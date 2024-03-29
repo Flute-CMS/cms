@@ -1,0 +1,3 @@
+[submodule "app/Themes/standard"]
+  path = app/Themes/standard
+  url = https://github.com/Flute-CMS/template-standard
