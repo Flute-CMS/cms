@@ -85,6 +85,7 @@ class ModuleInstall implements ModuleActionInterface
         ]);
 
         $module->status = ModuleManager::DISABLED;
+        $module->installedVersion = $moduleInformation->version;
 
         transaction($module)->run();
 

@@ -86,7 +86,7 @@ class ModulesView extends AbstractController
                 'key' => '{{ BUTTONS_MODULE }}',
                 'js' => '
                 function(data, type, full, meta) {
-                    let status = data[7], settings = [];
+                    let status = data[8], settings = [];
     
                     try {
                         settings = JSON.parse(data[2]);
