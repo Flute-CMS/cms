@@ -82,12 +82,12 @@ If you need a skilled developer for your projects, reach out to me on (My stack 
 
 Discover our range of free modules available for Flute:
 
-- [News module](#): Allows you to create news in the Flute
-- [Monitoring](#): Gets information about servers and displays it in a widget
-- [Bans And Comms](#): Displays the list of bans and mutes on a separate page
-- [Carousel](#): Adds a carousel widget
-- [Statistics](#): Creates a separate page of statistics
-- ...and more at our [modules page](#).
+- [News module](https://github.com/Flute-CMS/news): Allows you to create news in the Flute
+- [Monitoring](https://github.com/Flute-CMS/monitoring): Gets information about servers and displays it in a widget
+- [Bans And Comms](https://github.com/Flute-CMS/BansComms): Displays the list of bans and mutes on a separate page
+- [Carousel](https://github.com/Flute-CMS/carousel): Adds a carousel widget
+- [Statistics](https://github.com/Flute-CMS/stats): Creates a separate page of statistics
+- ...and more at our [repositories page](https://github.com/orgs/Flute-CMS/repositories).
 
 These modules are designed to enhance your Flute experience and are available at no cost.
 
