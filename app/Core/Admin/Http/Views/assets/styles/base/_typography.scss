@@ -1,0 +1,152 @@
+// Базовые стили
+body {
+    font-family: $font-primary;
+    color: $color-text;
+    background-color: $color-bg;
+    font-size: $font-size-base;
+    line-height: $font-line-height;
+    padding: 20px;
+    height: 100vh;
+}
+
+// Заголовки
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: $font-secondary;
+}
+
+// Параграфы и ссылки
+p,
+a {
+    font-size: $font-size-base;
+    line-height: 1.6;
+}
+
+a {
+    color: $color-secondary;
+    text-decoration: none;
+
+    &:hover {
+        color: darken($color-secondary, 15%);
+    }
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background-color: $color-disabled;
+    border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: $color-primary;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: $color-primary;
+}
+
+ul {
+    list-style-type: none;
+}
+
+::-moz-selection {
+    background: $color-primary-light;
+}
+
+::selection {
+    background: $color-primary-light;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+table {
+    width: 100%;
+}
+
+// Контейнер и его флекс
+.admin-container {
+    height: 100%;
+    display: flex;
+    gap: 20px;
+
+    .content {
+        flex: 1;
+        padding: 30px;
+        border-radius: 40px;
+        background-color: $color-card;
+        position: relative;
+        margin-left: 370px;
+        margin-bottom: 20px;
+
+        &-header {
+            border-bottom: 1px solid $color-white-3;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+    }
+}
+
+.admin-header {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid $color-white-5;
+
+    p {
+        color: $color-gray;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    // >div:last-child {
+    //     flex: 1;
+    // }
+
+    .back_btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $color-disabled;
+        border-radius: 50px;
+        color: $color-primary;
+        margin-right: 15px;
+        border: 1px solid $color-primary-light;
+        transition: $transition;
+
+        &:hover {
+            border: 1px solid $color-primary;
+        }
+    }
+}
+
+.position-relative {
+    position: relative;
+}
+
+a {
+    color: $color-primary;
+    transition: $transition;
+    font-size: 14px;
+
+    &:hover {
+        color: darken($color-primary, 10);
+    }
+}

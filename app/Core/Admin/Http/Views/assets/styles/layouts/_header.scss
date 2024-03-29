@@ -1,0 +1,143 @@
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.header_search {
+    flex: 1;
+    width: 100%;
+
+    .input {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: $color-disabled;
+        border-radius: 18px;
+        gap: 10px;
+        width: 100%;
+        border: 1px solid $color-white-5;
+
+        >i {
+            color: $color-white-20;
+        }
+
+        input {
+            transition: $transition;
+            width: 100%;
+            font-size: 14px;
+            color: $color-text;
+
+            &::placeholder {
+                color: $color-white-20;
+            }
+        }
+    }
+}
+
+.header_version {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .version_text {
+        display: flex;
+        align-items: flex-end;
+        flex-direction: column;
+
+        p {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        a {
+            font-size: 12px;
+            color: $color-primary;
+            font-weight: 500;
+            transition: $transition;
+            opacity: .5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    .version {
+        font-size: 20px;
+        padding: 10px 15px;
+        border: 1px solid $color-white-5;
+        border-radius: 12px;
+        font-weight: bold;
+        user-select: all;
+    }
+}
+
+.header_log {
+    cursor: pointer;
+    width: 51px;
+    height: 51px;
+    font-size: 24px;
+    border-radius: 12px;
+    color: $color-secondary;
+    border: 1px solid $color-secondary-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition;
+
+    &:hover {
+        background-color: $color-secondary;
+        color: $color-text-inverse;
+        border: 1px solid $color-secondary;
+    }
+}
+
+.header-contact {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+    a {
+        cursor: pointer;
+        width: 51px;
+        height: 51px;
+        font-size: 24px;
+        border-radius: 12px;
+        color: darken($color-text, 70);
+        border: 1px solid $color-white-10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+
+        &:first-child {
+            border: 1px solid #7289da63;
+
+            svg {
+                width: 24px;
+                height: 24px;
+                fill: #7289da63;
+                transition: .3s;
+            }
+
+            &:hover {
+                background-color: #7289da;
+
+                svg {
+                    fill: $color-text;
+                }
+            }
+        }
+
+        &:last-child {
+            &:hover {
+                background-color: $color-white-20;
+                color: $color-text;
+                border: 1px solid $color-white-20;
+            }
+        }
+    }
+}

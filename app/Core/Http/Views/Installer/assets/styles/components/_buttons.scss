@@ -1,0 +1,118 @@
+.installer-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 auto;
+    margin-top: 30px;
+    gap: 10px;
+    width: auto;
+    padding: 12px;
+    padding-left: 20px;
+    border: 0;
+    position: relative;
+    overflow: hidden;
+    transition: background-color .5s ease-in-out;
+    border-radius: $border-radius;
+    background-color: $color-primary;
+    color: $color-text-inverse;
+    cursor: pointer;
+
+    p {
+        margin: 0;
+        font-weight: 500;
+        z-index: 2;
+        transition: .6s;
+    }
+
+    i {
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $color-disabled;
+        border-radius: 50px;
+        color: $color-primary;
+        font-size: 14px;
+        transform: rotate(-45deg);
+        transition: .5s;
+        z-index: 2;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        background-color: $color-disabled;
+        z-index: 1;
+        width: 25px;
+        height: 25px;
+        border-radius: 50px;
+
+        right: 12px;
+        width: 25px;
+        height: 25px;
+        transition: right .5s ease-in-out, width .5s ease-in-out, height .5s ease-in-out;
+        /* Плавный переход для after */
+    }
+
+    &:hover:not(&:disabled) {
+        background-color: transparent;
+
+        p {
+            color: $color-primary;
+        }
+
+        i {
+            transform: rotate(0);
+        }
+
+        &::after {
+            right: 0px;
+            width: 300px;
+            height: 100px;
+        }
+    }
+
+    &:disabled {
+        background-color: $color-disabled;
+        color: #5F5F5F;
+        opacity: 1;
+        cursor: not-allowed;
+
+        i {
+            color: #5F5F5F;
+        }
+    }
+
+    &[aria-busy="true"] {
+        padding-right: 20px;
+        background-color: $color-disabled;
+        color: $color-primary;
+        opacity: 1;
+        cursor: progress;
+        font-weight: 400;
+
+        i,
+        &::after {
+            display: none;
+        }
+
+        p {
+            opacity: .3;
+        }
+    }
+
+    &.success {
+        background-color: $color-disabled;
+        padding-left: 12px;
+
+        &::after {
+            transition: none;
+        }
+
+        i {
+            color: $color-primary;
+            transform: rotate(0deg);    
+        }
+    }
+}

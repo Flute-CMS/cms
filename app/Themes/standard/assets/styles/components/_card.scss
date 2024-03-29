@@ -1,0 +1,40 @@
+.card {
+    padding: 20px;
+    border-radius: $border-radius;
+    background-color: $color-card;
+    position: relative;
+
+    &-header {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid $color-white-5;
+    
+        p {
+            color: $color-gray;
+            font-weight: 500;
+            font-size: 14px;
+        }
+    
+        // >div:last-child {
+        //     flex: 1;
+        // }
+    
+        .back_btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: $color-disabled;
+            border-radius: 50px;
+            color: $color-primary;
+            margin-right: 15px;
+            border: 1px solid $color-primary-light;
+            transition: $transition;
+    
+            &:hover {
+                border: 1px solid $color-primary;
+            }
+        }
+    }
+}

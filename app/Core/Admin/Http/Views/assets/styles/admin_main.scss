@@ -1,0 +1,20 @@
+// Импорт базовых стилей
+@import 'base/reset';
+@import 'base/typography';
+
+@import 'utils/mixins';
+
+@import 'components/button';
+@import 'components/card';
+@import 'components/skeleton';
+@import 'components/inputs';
+@import 'components/modal';
+@import 'components/toast';
+@import 'components/chips';
+@import 'components/tooltip';
+@import 'components/driver';
+@import 'components/table';
+@import 'components/editor';
+
+@import 'layouts/sidebar';
+@import 'layouts/header';

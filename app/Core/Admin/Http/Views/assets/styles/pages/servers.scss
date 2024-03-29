@@ -1,0 +1,49 @@
+.blurry-text {
+    color: transparent;
+    text-shadow: 0 0 5px rgb(255 255 255);
+    transition: 1s;
+}
+
+.blurry-text:hover {
+    color: inherit;
+    text-shadow: none;
+}
+
+.servers-action-buttons {
+    display: flex;
+    gap: 5px;
+
+    >div,a  {
+        padding: 10px;
+        width: 30px;
+        height: 30px;
+        border: 1px solid $color-white-5;
+        color: $color-text;
+        display: flex;
+        border-radius: $border-radius;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: $transition;
+
+        &.delete {
+            border: 1px solid #f1494929;
+            color: $color-error;
+
+            &:hover {
+                border: 1px solid $color-error;
+                background-color: #f1494929;
+            }
+        }
+
+        &.change {
+            border: 1px solid #ffc04630;
+            color: $color-warning;
+
+            &:hover {
+                border: 1px solid $color-warning;
+                background-color: #ffc04630;
+            }
+        }
+    }
+}

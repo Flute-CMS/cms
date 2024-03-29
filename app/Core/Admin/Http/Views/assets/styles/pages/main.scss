@@ -1,0 +1,125 @@
+.settings_bar {
+    margin: 0 auto;
+    background-color: $color-disabled;
+    border-radius: 12px;
+    border: 1px solid $color-white-5;
+    padding: 7px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    max-width: max-content;
+    margin-bottom: 20px;
+
+    button {
+        color: $color-text;
+        opacity: .7;
+        transition: $transition;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        padding: 10px;
+
+        &:hover {
+            opacity: 1;
+            background-color: $color-white-5;
+        }
+
+        &.active {
+            opacity: 1;
+            background-color: $color-white-5;
+            color: $color-primary;
+        }
+    }
+}
+
+.settings-container {
+    >div {
+        display: none;
+
+        &.active {
+            display: block;
+            animation: contentAppearance .5s ease forwards;
+        }
+    }
+}
+
+.connection_items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.connection-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid $color-white-5;
+    border-radius: 12px;
+    align-items: center;
+
+    .connection_buttons {
+        display: flex;
+        gap: 10px;
+        font-size: 20px;
+
+        .btn-change {
+            color: $color-text;
+        }
+
+        .btn-delete {
+            color: $color-error;
+        }
+    }
+}
+
+@keyframes contentAppearance {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile_checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    label {
+        font-size: 14px !important;
+    }
+}
+
+#durationReadable {
+    margin-top: 5px;
+    color: $color-primary;
+    opacity: .7;
+    font-weight: 500;
+}
+
+#getMyIp {
+    color: $color-primary;
+    transition: $transition;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+
+    &:hover {
+        opacity: .7;
+    }
+}
+
+#myIp {
+    color: $color-primary;
+    font-size: 14px;
+    font-weight: 500;
+}

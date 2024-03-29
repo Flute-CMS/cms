@@ -1,0 +1,163 @@
+@import 'layout/main';
+
+.welcome-text {
+    text-align: center;
+    font-size: 75px;
+    margin: 0;
+    font-weight: 700;
+    color: $color-primary;
+}
+
+.click-button {
+    text-align: center;
+    font-size: 18px;
+    margin-top: -5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 400;
+}
+
+.hidden {
+    display: none;
+}
+
+.welcome-div {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+}
+
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.5em;
+    background-color: currentColor;
+    animation: blink 1s infinite;
+    text-align: center;
+    font-size: 2rem;
+    margin-left: 3px;
+    margin-top: 3px;
+
+    &.staid {
+        animation: none;
+    }
+}
+
+
+.welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 1s;
+}
+
+.main-content {
+    display: none;
+}
+
+@keyframes blink {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes blinkText {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.buttons_next {
+    width: 570px;
+    position: relative;
+    margin: 0 auto;
+    top: -10rem;
+
+    div {
+        color: #fff;
+        opacity: .3;
+        transition: .3s;
+
+        &:hover {
+            color: $color-primary;
+            opacity: .7;
+        }
+    }
+}
+
+@keyframes rotateanimation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.rotate {
+    display: block;
+    animation: rotateanimation 1s linear infinite;
+}
+
+.language-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+    max-width: 480px;
+    margin-bottom: 40px;
+
+    .lang-button {
+        flex: 1;
+        color: $color-inactive;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 2px solid $color-inactive;
+        padding: 5px 10px;
+        border-radius: 18px;
+        height: 66px;
+        padding: 0px 25px;
+        font-size: $font-size-base;
+        transition: $transition;
+        justify-content: center;
+
+        img {
+            width: 18px;
+            height: 18px;
+            border-radius: 25px;
+            object-fit: cover;
+        }
+
+        &.active {
+            background-color: $color-primary-light;
+            border: 2px solid $color-primary;
+            color: $color-primary;
+        }
+    }
+}

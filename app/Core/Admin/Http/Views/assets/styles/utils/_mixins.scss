@@ -1,0 +1,66 @@
+$sizes: (
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px
+);
+
+@mixin media($minmax, $media) {
+
+    @each $size,
+    $resolution in $sizes {
+        @if $media ==$size {
+            @media only screen and (#{$minmax}-width: #{$resolution}) {
+                @content;
+            }
+        }
+    }
+}
+
+// Центрирование элемента с помощью Flexbox
+@mixin flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+// Подключение шрифтов
+@mixin font-face($name, $path, $weight: normal, $style: normal) {
+    @font-face {
+        font-family: $name;
+        src: url('#{$path}.woff2') format('woff2'),
+        url('#{$path}.woff') format('woff');
+        font-weight: $weight;
+        font-style: $style;
+    }
+}
+
+// Миксин для создания тени
+@mixin box-shadow($x, $y, $blur, $color) {
+    -webkit-box-shadow: $x $y $blur $color;
+    -moz-box-shadow: $x $y $blur $color;
+    box-shadow: $x $y $blur $color;
+}
+
+// Миксин для создания градиента
+@mixin gradient-bg($start, $end) {
+    background: $start; // Fallback
+    background: linear-gradient(to right, $start, $end);
+}
+
+// Миксин для анимации
+@mixin transition($property: all, $duration: 0.3s, $ease: ease) {
+    transition: $property $duration $ease;
+}
+
+// Миксин для текстового оформления
+@mixin text-style($font-family, $font-size, $line-height: 1.5) {
+    font-family: $font-family;
+    font-size: $font-size;
+    line-height: $line-height;
+}
+
+@mixin blur($value: 10px) {
+    backdrop-filter: blur($value);
+    --webkit-backdrop-filter: blur($value);
+}

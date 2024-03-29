@@ -1,0 +1,175 @@
+.user-action-buttons {
+    display: flex;
+    gap: 5px;
+
+    >div,
+    a {
+        padding: 10px;
+        width: 30px;
+        height: 30px;
+        border: 1px solid $color-white-5;
+        color: $color-text;
+        display: flex;
+        border-radius: $border-radius;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: $transition;
+
+        &.delete {
+            border: 1px solid #f1494929;
+            color: $color-error;
+
+            &:hover {
+                border: 1px solid $color-error;
+                background-color: #f1494929;
+            }
+        }
+
+        &.change {
+            border: 1px solid #ffc04630;
+            color: $color-warning;
+
+            &:hover {
+                border: 1px solid $color-warning;
+                background-color: #ffc04630;
+            }
+        }
+    }
+}
+
+.card-user {
+    background-color: $color-disabled;
+    border-radius: 6px;
+    padding: 20px;
+
+    &-header {
+        margin-bottom: 20px;
+    }
+
+    &-content {
+        .form-group {
+            label {
+                font-size: 14px;
+                opacity: .6;
+            }
+
+            >input {
+                margin-top: 5px;
+            }
+        }
+
+        .avatar {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+    }
+}
+
+.chip-input {
+    padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 35px;
+    cursor: pointer;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 14px;
+    color: #FFFFFF;
+    transition: 0.3s;
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+
+        .chip {
+            background-color: $color-primary;
+            color: $color-text-inverse;
+            font-weight: 500;
+            font-size: 12px;
+            margin: 2px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+
+            .close {
+                margin-left: 5px;
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.chips_container {
+    position: relative;
+}
+
+.dialog {
+    position: absolute;
+    width: 100%;
+    opacity: 1;
+    transition: $transition;
+    background-color: $color-gray;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    z-index: 2;
+    padding: 10px;
+    user-select: none;
+
+    .suggestions {
+        display: flex;
+        gap: 5px;
+        flex-direction: column;
+
+        >div {
+            font-size: 13px;
+            font-weight: 500;
+        }
+    }
+
+    &.hidden {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.goto_btn {
+    font-size: 14px;
+    font-weight: 500;
+    color: $color-primary;
+    opacity: .7;
+    transition: $transition;
+
+    &:hover {
+        color: $color-primary;
+        opacity: 1;
+    }
+}
+
+.social_name_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    >svg {
+        fill: $color-text;
+    }
+}
+
+.show_icon {
+    div {
+        display: flex;
+        align-items: center;    
+        justify-content: center;
+    }
+
+    i {
+        font-size: 18px;
+        color: $color-primary;
+    }
+}

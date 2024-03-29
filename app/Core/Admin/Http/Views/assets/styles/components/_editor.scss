@@ -1,0 +1,677 @@
+.codex-editor path {
+    stroke: $color-text;
+}
+
+.editor_title {
+    margin-bottom: 20px !important;
+    background-color: $color-primary;
+    color: $color-text-inverse;
+    border-radius: ($border-radius / 2);
+    line-height: 1;
+    padding: 10px;
+}
+
+.codex-editor .card {
+    border: 1px solid $color-white-5;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 10px;
+    padding-left: 25px;
+}
+
+.ce-popover,
+.tc-popover,
+.tc-wrap {
+    --color-text-primary: #{$color-text};
+    --color-border: #{$color-white-5};
+    --color-shadow: #{$color-white-5};
+    --color-background: #{$color-disabled};
+    --color-background-item-hover: #{$color-primary};
+    --padding: #{$spacing-md};
+    --color-text-secondary: #{$color-gray};
+    --width: 250px;
+    --max-height: 400px;
+
+    box-shadow: none;
+    border-radius: $border-radius;
+}
+
+.ce-popover-item__secondary-title {
+    font-weight: 500;
+}
+
+.ce-popover-item {
+    --border-radius: 12px;
+    transition: background-color $transition, color $transition;
+
+    .ce-popover-item__icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 12px;
+        transition: $transition;
+
+        svg {
+            width: 30px;
+            height: 30px;
+        }
+    }
+
+    &:not(&:last-of-type) {
+        margin-bottom: 5px;
+    }
+}
+
+@media (hover: hover) {
+    .ce-popover-item:hover:not(.ce-popover-item--no-hover) {
+        color: $color-text-inverse;
+
+        .ce-popover-item__icon {
+            background-color: $color-disabled;
+        }
+
+        svg path,
+        svg rect {
+            stroke: $color-primary;
+        }
+    }
+}
+
+.tc-cell,
+.tc-row,
+.tc-table,
+.tc-add-column,
+.tc-add-row,
+.tc-wrap,
+.tc-wrap {
+    --color-border: #{$color-white-5};
+    border-color: $color-white-5;
+}
+
+.ce-block__content,
+.ce-block__content,
+.ce-toolbar__content {
+    max-width: 100%;
+}
+
+.ce-toolbar {
+    z-index: 1;
+    // right: auto;
+}
+
+.ce-popover__custom-content>div {
+    display: flex;
+
+    >button {
+        flex: 1;
+    }
+}
+
+@media (hover: hover) {
+    .cdx-settings-button:hover {
+        background-color: $color-primary-light;
+    }
+}
+
+.cdx-checklist__item-checkbox-check {
+    background-color: $color-card;
+}
+
+.ce-inline-tool-input {
+    color: $color-text;
+}
+
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+    color: $color-text;
+
+    &:hover {
+        background-color: $color-white-3;
+        color: $color-primary;
+    }
+
+    @media (max-width: 767px) {
+        border: none;
+        box-shadow: none;
+        background-color: $color-card;
+    }
+}
+
+..ce-popover-item {}
+
+.ce-popover-item__icon,
+.ce-conversion-tool__icon {
+    background-color: $color-white-5;
+    box-shadow: none;
+}
+
+.cdx-input {
+    border: 1px solid $color-white-10;
+}
+
+.ce-popover__custom-content select {
+}
+
+.ce-conversion-tool:hover,
+.ce-inline-tool:hover,
+.ce-inline-toolbar__dropdown:hover {
+    background: $color-primary-light;
+}
+
+.cdx-search-field {
+    background: $color-disabled;
+    border: 1px solid $color-white-3;
+    border-radius: 18px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.cdx-search-field__input {
+    margin-bottom: 0;
+    padding: 5px;
+    height: auto;
+    color: $color-text;
+}
+
+.cdx-search-field__icon {
+    height: auto;
+    margin: 0;
+}
+
+.ce-block--selected .ce-block__content {
+    background: #1be09e2e;
+    border: none;
+    color: var(--invert-color);
+}
+
+.ct:before {
+    background-color: $color-card;
+}
+
+.ce-toolbar__actions {
+    background-color: transparent;
+
+    @media (min-width: 768px) {
+        right: 100%;
+    }
+
+    // right: calc(100% + 10px);
+}
+
+.ce-inline-toolbar,
+.ce-conversion-toolbar {
+    background-color: $color-bg;
+    border: 1px solid $color-white-5;
+}
+
+.cdx-simple-image__picture--with-border {
+    border: 1px solid $color-white-5;
+}
+
+.cdx-marker {
+    background-color: $color-primary;
+}
+
+@media (min-width: 651px) {
+    .codex-editor--narrow .ce-block--focused {
+        margin-right: 0;
+        padding: 0;
+    }
+}
+
+.ce-editorJsRow {
+    border: 1px solid $color-white-5;
+    padding: 20px;
+    padding-top: 40px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+
+    .ce-toolbar__actions {
+        left: calc(100% - 40px);
+    }
+
+    .ce-block:first-of-type {
+        margin-top: var(--bs-gutter-y);
+    }
+
+    .ce-toolbar {
+        right: 25px;
+    }
+
+    .codex-editor__redactor.row {
+
+        // @media (min-width: 767px) {
+        //     padding-right: 65px;
+        // }
+
+        >.ce-block {
+            transition: .2s;
+
+            >.ce-block__content {
+                max-width: 100%;
+
+                .codex-editor__redactor {
+                    padding-left: 40px;
+                }
+
+                .ce-toolbar__actions {
+                    left: -20px;
+                }
+            }
+        }
+    }
+}
+
+.widgets-container {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    max-height: 260px;
+    overflow: auto;
+
+    .widget {
+        height: 100px;
+        width: 140px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        cursor: pointer;
+
+        &.widget__selected {
+            .widget-image {
+                border: 1px solid $color-primary;
+            }
+        }
+
+        .widget-lazy {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: $color-primary;
+            border: 0;
+            right: 5px;
+            border-radius: 100%;
+            top: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            color: $color-text-inverse;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .widget-image {
+            height: 100%;
+            border-radius: ($border-radius / 2);
+            background-color: $color-bg;
+            position: relative;
+            object-fit: cover;
+            height: 75px;
+
+            i {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                color: #ffffff21;
+                font-size: 30px;
+            }
+        }
+
+        .widget-title {
+            height: 18px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+    }
+}
+
+.widget-block {
+    border: 2px dashed $color-white-5;
+    border-radius: 12px;
+    padding: 25px;
+    position: relative;
+    margin-bottom: 10px;
+
+    .widget-name {
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 1.2em;
+        font-weight: bold;
+        background: $color-primary;
+        color: $color-text-inverse;
+        width: max-content;
+        padding: 5px;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+
+    .widget-loader {
+        font-size: 0.9em;
+        letter-spacing: 0.5px;
+        color: var(--muted-color);
+    }
+
+    .widget-settings {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $color-disabled;
+        border-top-right-radius: 12px;
+        border-bottom-left-radius: 12px;
+        // z-index: 1;
+        cursor: pointer;
+        transition: .3s;
+
+        svg {
+            transition: .3s;
+            fill: $color-primary;
+        }
+
+        &:hover {
+            background-color: $color-primary;
+
+            svg {
+                fill: $color-text-inverse;
+            }
+        }
+    }
+}
+
+.widget-settings-background {
+    z-index: 101;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background: #000000b3;
+    bottom: 0;
+    opacity: 1;
+    left: 0;
+    opacity: 0;
+    transition: .25s;
+
+    &.opened {
+        opacity: 1;
+    }
+}
+
+.widget-settings-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 6rem;
+    width: 360px;
+    min-height: calc(100% - 200px);
+    background: $color-bg;
+    border-radius: $border-radius;
+    padding: 20px;
+    z-index: 101;
+    transition: .25s;
+    transform: translateX(300px);
+    opacity: 0;
+
+    &.opened {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+
+    .widget-settings-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+
+        .widget-settings-title-name {
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 1.2em;
+            font-weight: bold;
+            background: $color-primary;
+            color: $color-text-inverse;
+            padding: 5px;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .widget-settings-title-close {
+            cursor: pointer;
+
+            svg {
+                font-size: 20px;
+                transition: .3s;
+                fill: $color-inactive;
+
+                &:hover {
+                    fill: #f46f52;
+                }
+            }
+        }
+    }
+
+    .widget-settings-container {
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 550px;
+        overflow-y: auto;
+        padding-right: 10px;
+        overflow-x: hidden;
+
+        .input-form {
+            &.input-reverse {
+                display: flex;
+                flex-direction: column-reverse;
+                margin: 10px 0;
+
+                >label {
+                    color: $color-gray;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+
+                input[type="file"] {
+                    border: 1px solid $color-white-10;
+                    border-radius: ($border-radius / 2);
+                    height: 40px;
+                    color: $color-text;
+                    font-weight: 500;
+                    font-size: 14px;
+
+                    &::file-selector-button {
+                        border: none;
+                        border-radius: 4px;
+                        color: $color-text-inverse;
+                        background-color: $color-primary;
+                        height: 40px;
+                        cursor: pointer;
+                        transition: all .25s ease-in;
+                        cursor: pointer;
+                        margin-right: 10px;
+                    }
+                }
+            }
+        }
+    }
+
+    .btn {
+        bottom: 20px;
+        position: absolute;
+        width: calc(100% - 40px);
+    }
+}
+
+.save_container {
+    position: fixed;
+    z-index: 1;
+    top: calc(100% - 40px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    white-space: nowrap;
+    align-items: center;
+    gap: 55px;
+    background: $color-disabled;
+    padding: 7px 7px 7px 15px;
+    border-radius: $border-radius;
+    visibility: hidden;
+    opacity: 0;
+    transition: .3s;
+    font-weight: 500;
+    box-shadow: 0px 5px 20px 0px $color-disabled;
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    &.opened {
+        top: calc(100% - 45px);
+        visibility: visible;
+        opacity: 1;
+    }
+
+    #saveButton {
+        padding: 7px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        outline: none;
+        border: 0;
+        background-color: $color-primary;
+        border-radius: $border-radius;
+    }
+}
+
+.widget-radio-input {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+
+    input {
+        display: none;
+
+        &:checked~label {
+            color: $color-primary;
+            background-color: $color-primary-light;
+            border: 2px solid $color-primary;
+            cursor: default;
+        }
+    }
+
+    label {
+        cursor: pointer;
+        flex: 1;
+        border: 2px solid $color-inactive;
+        border-radius: ($border-radius / 2);
+        transition: $transition;
+        color: $color-inactive;
+        font-weight: 500;
+        padding: 20px 25px;
+        text-align: center;
+    }
+
+    >div {
+        display: flex;
+        flex: 1;
+    }
+
+    .radio-image-wrapper {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .radio-image {
+        position: relative;
+        display: block;
+        max-height: 100px;
+        max-width: 145px;
+
+        label {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            border-radius: $border-radius;
+            transition: .3s;
+            border: 2px solid transparent;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        img {
+            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        input[type="radio"]:not(:checked)~label {
+            opacity: .3;
+            cursor: pointer;
+        }
+
+        input[type="radio"]:checked~label {
+            border: 2px solid $color-primary;
+        }
+    }
+}
+
+.editor-image {
+    margin: 10px 0;
+    padding: 0;
+    text-align: center;
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    &.border-class img {
+        border: 2px solid $color-white-5;
+        border-radius: 6px;
+    }
+
+    &.stretched-class img {
+        width: 100%;
+    }
+
+    &.with-background {
+        background-color: $color-card;
+        /* Example background color */
+        padding: 10px;
+    }
+
+    figcaption {
+        margin-top: 8px;
+        color: $color-gray;
+        font-style: italic;
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+}
+
+.tc-cell--selected {
+    background-color: $color-primary-light !important;
+}
+
+.tc-popover, .tc-wrap {
+    --color-border: #{$color-white-3} !important;
+    --color-background: #{$color-disabled} !important;
+    --color-background-hover: #{$color-inactive} !important;
+}

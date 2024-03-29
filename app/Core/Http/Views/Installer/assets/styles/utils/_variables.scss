@@ -1,0 +1,60 @@
+// Цвета
+$color-text: #FFFFFF;
+$color-text-inverse: #0B0B0B;
+$color-primary: #BAFF68;
+$color-primary-light: #bbff681f;
+$color-secondary: #AD68FF;
+$color-card: #0D0D0D;
+$color-bg: #0B0B0B;
+$color-inactive: #5F5F5F;
+$color-disabled: #191919;
+$color-success: #65FF7E;
+$color-error: #F14949;
+$color-warning: #FFC046;
+
+// Шрифты
+$font-primary: 'Montserrat', 'Open Sans', system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+$font-secondary: 'SF Pro Display', 'Montserrat', system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+$font-line-height: 1.5;
+
+// Размеры
+$font-size-large: 20px;
+$font-size-base: 16px;
+$font-size-small: 14px;
+
+// Прочее
+$border-radius: 25px;
+$border-radius-el: 14px;
+$transition: .3s;
+
+:root {
+    // Цвета
+    --color-text: #{$color-text};
+    --color-text-inverse: #{$color-text-inverse};
+    --color-primary: #{$color-primary};
+    --color-primary-light: #{$color-primary-light};
+    --color-secondary: #{$color-secondary};
+    --color-card: #{$color-card};
+    --color-bg: #{$color-bg};
+    --color-inactive: #{$color-inactive};
+    --color-disabled: #{$color-disabled};
+    --color-success: #{$color-success};
+    --color-error: #{$color-error};
+    --color-warning: #{$color-warning};
+
+    // Шрифты
+    --font-primary: #{$font-primary};
+    --font-secondary: #{$font-secondary};
+    --font-line-height: #{$font-line-height};
+
+    // Размеры
+    --font-size-base: #{$font-size-base};
+    --font-size-large: #{$font-size-large};
+    --font-size-small: #{$font-size-small};
+
+    // Прочее
+    --border-radius: #{$border-radius};
+    --border-radius-el: #{$border-radius-el};
+
+    --animate-duration: .6s;
+}

@@ -1,0 +1,90 @@
+.socials_container {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+
+    .profile_setting_social {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        padding-left: 20px;
+        background-color: $color-disabled;
+        border-radius: $border-radius;
+        color: $color-text;
+        font-size: 14px;
+        gap: 20px;
+
+        svg {
+            fill: $color-text;
+        }
+
+        > div {
+            flex: 1;
+
+            &:nth-child(2) {
+                flex: 2;
+            }
+        }
+
+        .social_name_icon {
+            display: flex;
+            gap: 20px;
+            text-transform: uppercase;
+            font-weight: 600;
+            align-items: center;
+        }
+
+        [data-show], [data-hide] {
+            font-size: 18px;
+            transition: .3s;
+            cursor: pointer;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        [data-hide] {
+            color: $color-primary;
+        }
+
+        [data-show] {
+            color: $color-white-20;
+        }
+
+        a {
+            font-size: 12px;
+            line-height: 1;
+            padding: 10px 15px;
+            border-radius: $border-radius;
+            font-weight: 500;
+            transition: .3s;
+            cursor: pointer;
+            color: $color-text;
+
+            &:not([data-connect]) {
+                background: $color-error;
+
+                &:hover {
+                    background: lighten($color-error, 5);
+                }
+            }
+
+            &[data-connect] {
+                background-color: $color-primary-light;
+                color: $color-primary;
+
+                &:hover {
+                    color: $color-text-inverse;
+                    background-color: $color-primary;
+                }
+            }
+        }
+
+        @media (max-width: 768px) {
+            > div:nth-child(2) {
+                display: none;
+            }
+        }
+    }
+}

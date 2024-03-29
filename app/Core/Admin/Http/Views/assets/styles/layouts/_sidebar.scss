@@ -1,0 +1,367 @@
+.sidebar {
+    position: fixed;
+    height: calc(100% - 40px);
+    width: 350px;
+    z-index: 2;
+    border-radius: 40px;
+    border: 1px solid $color-white-5;
+    background:
+        radial-gradient(farthest-side at top left,
+            #bbff6807,
+            transparent 200px),
+        radial-gradient(farthest-corner at bottom right,
+            #ac68ff09,
+            transparent 330px);
+    background-color: #0D0D0D;
+    padding: 15px;
+    padding-top: 30px;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+
+    &-logo {
+        display: flex;
+        padding-bottom: 30px;
+        border-bottom: 1px solid $color-white-5;
+        align-items: center;
+        gap: 10px;
+        position: absolute;
+        left: 0;
+        width: 100%;
+
+        .tag {
+            position: relative;
+            font-size: 12px;
+            top: -5px;
+            color: $color-secondary;
+        }
+
+        .return-btn {
+            margin-left: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50px;
+            border: 1px solid $color-white-20;
+            color: $color-text;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: $transition;
+
+            &:hover {
+                color: $color-primary;
+                background-color: $color-primary-light;
+            }
+        }
+
+        h2 {
+            font-weight: 500;
+        }
+
+        img {
+            margin-left: 10px;
+            height: 25px;
+            align-items: center;
+        }
+    }
+
+    .flex-menu {
+        padding-top: 90px;
+        height: 100%;
+        display: flex;
+        gap: 20px;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .main-menu,
+    .additional-menu {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    &-menu {
+        display: flex;
+        gap: 20px;
+        flex-direction: column;
+        overflow: auto;
+        padding-right: 5px;
+        height: 100%;
+
+        .title {
+            font-size: 12px;
+            font-weight: 600;
+            color: $color-gray;
+        }
+
+        .main-menu {
+            .items {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+
+                .item {
+                    padding: 15px;
+                    transition: $transition;
+                    border: 1px solid transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    color: $color-text;
+
+                    .name-icon {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+
+                        i {
+                            font-size: 18px;
+                        }
+
+                        p {
+                            font-size: 14px;
+                            line-height: 1;
+                        }
+                    }
+
+                    &:hover {
+                        border: 1px solid $color-white-5;
+                        background-color: $color-white-3;
+                    }
+
+                    &.active {
+                        color: $color-primary;
+                        border: 1px solid $color-primary-light;
+                        background-color: $color-white-5;
+                    }
+
+                    .tag {
+                        font-weight: 500;
+                        font-size: 11px;
+                        padding: 2px 5px;
+                        background-color: $color-secondary;
+                        color: $color-text;
+                        border-radius: 6px;
+
+                        .primary {
+                            color: $color-text-inverse;
+                            background-color: $color-primary;
+                        }
+                    }
+                }
+            }
+        }
+
+        .additional-menu {
+
+            .items {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+
+                >button {
+                    color: $color-text;
+                    border-radius: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    width: 100%;
+                    cursor: default;
+
+                    .head-button {
+                        cursor: pointer;
+                        flex: 1;
+                        width: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 15px;
+                        border-radius: 10px;
+                        font-weight: 500;
+                        color: darken($color-text, 30);
+                        transition: none;
+
+                        &:hover {
+                            color: $color-text;
+                            background-color: $color-white-10;
+                        }
+
+                        .name-icon {
+                            display: flex;
+                            align-items: center;
+                            gap: 15px;
+
+                            i {
+                                font-size: 16px;
+                            }
+
+                            p {
+                                font-size: 14px;
+                                line-height: 1;
+                            }
+                        }
+                    }
+
+                    .btn-add-menu {
+                        display: flex;
+                        align-items: baseline;
+                        flex-direction: column;
+                        margin-top: 10px;
+                        padding-left: 20px;
+                        border-left: 1px solid $color-white-5;
+                        margin-left: 19px; // Я дебил???
+                        gap: 15px;
+                        visibility: hidden;
+                        opacity: 0;
+                        transition: $transition;
+                        display: none;
+                        margin-bottom: 10px;
+
+                        a {
+                            font-size: 14px;
+                            color: $color-gray;
+                            transition: $transition;
+                            font-weight: 500;
+                            position: relative;
+
+                            &:hover {
+                                color: $color-text;
+                            }
+
+                            &.active {
+                                color: $color-primary;
+
+                                &::after {
+                                    position: absolute;
+                                    display: block;
+                                    opacity: 1;
+                                    visibility: visible;
+                                    width: 1px;
+                                    height: 100%;
+                                    top: 0;
+                                    left: -21px;
+                                    content: "";
+                                    background-color: #BAFF68;
+                                    transition: 0.3s;
+                                }
+                            }
+                        }
+                    }
+
+                    &.opened {
+                        .head-button {
+                            color: $color-text;
+                            background-color: $color-white-20;
+
+                            >i {
+                                transform: rotate(180deg);
+                            }
+                        }
+
+                        .btn-add-menu {
+                            visibility: visible;
+                            opacity: 1;
+                            display: flex;
+                        }
+                    }
+
+                    &.active {
+                        .head-button {
+                            color: $color-text-inverse;
+                            background-color: $color-primary;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .recent-menu {
+        display: flex;
+        gap: 15px;
+        flex-direction: column;
+        flex: 1;
+        justify-content: flex-end;
+        padding: 10px;
+        padding-top: 0;
+        padding-bottom: 0;
+
+        .title {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+
+            > div {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 12px;
+                font-weight: 600;
+                color: $color-gray;
+            }
+
+            a {
+                opacity: .7;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            i {
+                font-size: 14px;
+            }
+        }
+
+        .items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 90px;
+            overflow: auto;
+            padding-right: 10px;
+
+            &.hidden {
+                display: none;
+            }
+
+            &::-webkit-scrollbar {
+                width: 3px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: $color-primary-light;
+                border-radius: 10px;
+            }
+
+
+            .item {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 10px;
+                flex-direction: row-reverse;
+
+                >i {
+                    color: $color-error;
+                    cursor: pointer;
+                }
+
+                a {
+                    font-size: 14px;
+                    color: $color-text;
+                    opacity: .8;
+                    transition: $transition;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+.chips-container {
+    display: flex;
+    max-width: 200px;
+    overflow: auto;
+    padding-bottom: 5px;
+    gap: 5px;
+    
+    > div {
+        padding: 5px 10px;
+        border-radius: $border-radius;
+        background-color: $color-primary;
+        color: $color-text-inverse;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+}

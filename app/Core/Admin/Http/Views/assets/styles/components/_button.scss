@@ -1,0 +1,222 @@
+// Icon size variables
+$icon-size-default: 54px;
+$icon-size-medium: 50px;
+$icon-size-small: 44px;
+
+// Button padding variables
+$padding-default: 15px 25px;
+$padding-medium: 13px 25px;
+$padding-small: 10px 20px;
+
+// Mixin for base button styles
+@mixin button-base {
+    padding: $padding-default;
+    border: none;
+    border-radius: $icon-size-default;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all $transition;
+    background-color: $color-inactive;
+    color: $color-text;
+}
+
+// Mixin for button icon
+@mixin button-icon($size: $icon-size-default, $position-right: -$size) {
+    width: $size;
+    height: $size;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: ($size / 2);
+    position: absolute;
+    transition: all $transition;
+    right: $position-right;
+    background-color: $color-inactive;
+    color: $color-text;
+    line-height: normal;
+}
+
+// Mixin for button size adjustment
+@mixin button-size($padding, $icon-size, $icon-right) {
+    padding: $padding;
+
+    .btn__icon {
+        @include button-icon($icon-size, $icon-right);
+    }
+}
+
+.btn {
+    @include button-base;
+
+    &.size-m {
+        @include button-size($padding-medium, $icon-size-medium, -$icon-size-medium);
+    }
+
+    &.size-s {
+        @include button-size($padding-small, $icon-size-small, -$icon-size-small);
+    }
+
+    &--with-icon {
+        margin-right: $icon-size-default;
+
+        .btn__icon {
+            @include button-icon;
+
+            &.arrow {
+                transform: rotate(-45deg);
+            }
+        }
+    }
+
+    &.outline:not(&.primary) {
+        background-color: transparent;
+        box-shadow: inset 0px 0px 0px 1px $color-inactive;
+        color: $color-text;
+
+        .btn__icon {
+            background-color: transparent;
+            box-shadow: inset 0px 0px 0px 1px $color-inactive;
+            color: $color-text;
+        }
+
+        &:hover {
+            background-color: $color-primary-light;
+            color: $color-primary;
+            box-shadow: inset 0px 0px 0px 1px $color-primary;
+
+            .btn__icon {
+                background-color: $color-primary-light;
+                color: $color-primary;
+                box-shadow: inset 0px 0px 0px 1px $color-primary;
+            }
+        }
+    }
+
+    &.primary {
+        background-color: $color-primary;
+        color: $color-text-inverse !important;
+
+        .btn__icon {
+            background-color: $color-primary;
+            color: $color-text-inverse;
+        }
+
+        &.outline {
+            box-shadow: inset 0px 0px 0px 1px $color-primary;
+            color: $color-primary;
+            background-color: $color-primary;
+
+            &:active {
+                background-color: $color-disabled;
+                color: $color-primary !important;
+
+                .btn__icon {
+                    background-color: $color-disabled;
+                    color: $color-primary;
+                }
+            }
+
+            .btn__icon {
+                box-shadow: inset 0px 0px 0px 1px $color-primary;
+                color: $color-primary;
+            }
+        }
+    }
+
+    &.secondary {
+        background-color: $color-secondary;
+        color: $color-text;
+
+        .btn__icon {
+            background-color: $color-secondary;
+            color: $color-text;
+        }
+
+        &:hover {
+            background-color: $color-secondary;
+            color: $color-text;
+
+            .btn__icon {
+                background-color: $color-secondary;
+                color: $color-text;
+            }
+        }
+    }
+
+    &.ghosted {
+        background-color: transparent;
+        color: $color-text;
+        box-shadow: none;
+
+        &:hover {
+            box-shadow: none;
+            background-color: $color-primary-light;
+            color: $color-primary
+        }
+    }
+
+    &:hover {
+        background-color: $color-primary;
+        color: $color-text-inverse;
+
+        .btn__icon {
+            background-color: $color-primary;
+            color: $color-text-inverse;
+
+            &.arrow {
+                transform: rotate(0deg);
+            }
+        }
+    }
+
+    &.error {
+        background-color: $color-error;
+        box-shadow: inset 0px 0px 0px 1px $color-error;
+
+        &:hover,
+        &:active {
+            box-shadow: inset 0px 0px 0px 1px $color-error;
+            background-color: darken($color-error, 10);
+            color: $color-text !important;
+        }
+    }
+
+    &:active {
+        background-color: $color-disabled;
+        color: $color-primary !important;
+
+        .btn__icon {
+            background-color: $color-disabled;
+            color: $color-primary;
+        }
+    }
+
+    &:disabled {
+        background-color: $color-disabled !important;
+        color: $color-gray !important;
+        cursor: not-allowed;
+
+        .btn__icon {
+            background-color: $color-disabled !important;
+            color: $color-gray !important;
+        }
+
+        &:active {
+            background-color: $color-disabled !important;
+            color: $color-gray !important;
+            cursor: not-allowed;
+
+            .btn__icon {
+                background-color: $color-disabled !important;
+                color: $color-gray !important;
+            }
+        }
+    }
+}

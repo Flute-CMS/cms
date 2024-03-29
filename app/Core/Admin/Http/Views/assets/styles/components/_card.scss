@@ -1,0 +1,14 @@
+.card {
+    padding: 20px;
+    border-radius: $border-radius;
+    background-color: $color-white-3;
+    position: relative;
+    overflow: hidden;
+    
+    .card-header {
+        border-bottom: 1px solid $color-white-3;
+        padding-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,76 @@
+
+.progress_block {
+    position: absolute;
+    top: 50%;
+    left: 95%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+
+    &.animation {
+        animation: stepsAnimation .5s ease forwards;
+        animation-delay: .7s;
+    }
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+.step {
+    width: 44px;
+    height: 44px;
+    background-color: $color-disabled;
+    color: $color-inactive;
+    font-weight: 700;
+    margin: 7px;
+    display: flex;
+    text-align: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    border: 0 !important;
+
+    &:hover {
+        color: $color-inactive;
+    }
+
+    &.completed {
+        color: $color-primary;
+        background-color: $color-disabled;
+        border: 2px solid $color-primary !important;
+        font-weight: bold;
+    }
+}
+
+.step-line {
+    flex-grow: 1;
+    height: 40px;
+    background-color: $color-disabled;
+    position: relative;
+    width: 2px;
+}
+
+.progress {
+    height: 100%;
+    background-color: $color-primary;
+    position: absolute;
+
+    &.full {
+        width: 2px;
+    }
+}
+
+.progress_name {
+    padding: 1rem;
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: $color-card;
+    border-radius: $border-radius;
+    color: $color-primary;
+}
