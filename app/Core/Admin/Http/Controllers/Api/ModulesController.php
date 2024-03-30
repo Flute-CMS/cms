@@ -139,7 +139,7 @@ class ModulesController extends AbstractController
             return $this->error(__('admin.modules_list.single_folder_expected'));
         }
 
-        $folderName = reset($rootFolders);
+        $folderName = str_replace('-main', '', reset($rootFolders));
         $extractPath = BASE_PATH . 'app/Modules/';
 
         if( $this->moduleManager->issetModule($folderName) )
@@ -221,6 +221,10 @@ class ModulesController extends AbstractController
             $mopd = $this->moduleManager->getModule($key);
 
             $this->actions->uninstallModule($mopd);
+
+            cache()->delete('flute.modules.alldb');
+            cache()->delete('flute.modules.array');
+            cache()->delete('flute.modules.json');
 
             return $this->success();
         } catch (\Exception $e) {

@@ -25,9 +25,16 @@ class ModuleRegister
         foreach ($providers as $provider) {
             $classPath = self::normalizeClassPath($provider['class']);
 
+            if( !class_exists(self::normalizeClassPath($classPath)) ) {
+                logs('modules')->error("Module $classPath wasn't found in the FileSystem!");
+                continue;
+            }
+
+            $module = self::instantiateClass($classPath);
+
             /** @var ModuleServiceProvider */
             $class = app()
-                ->serviceProvider(self::instantiateClass($classPath))
+                ->serviceProvider($module)
                 ->get($classPath);
 
             $class->setModuleName($provider['module']);
