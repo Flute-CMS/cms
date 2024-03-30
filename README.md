@@ -8,7 +8,7 @@
 &nbsp;
 <p align="center">
   <a href="https://flute-cms.com" target="_blank">
-    <img src="https://github.com/FlamesONE/flute/assets/62756604/51df206a-a767-48cb-a7ec-c777c1a15cb8" alt="Flute" width="200px">
+    <img src="https://github.com/Flute-CMS/cms/assets/62756604/af601b07-7ec6-45df-8a03-592d362a4a0c" alt="Flute" width="200px">
   </a>
 </p>
 &nbsp;
@@ -32,7 +32,7 @@
 <hr />
 
 <a href="https://docs.flute-cms.com">
-  <img src="https://github.com/FlamesONE/flute/assets/62756604/8944acba-b7af-4fbf-b21f-0e2229b0a5fb" alt="Flute dashboard"/>
+  <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute dashboard"/>
 </a>
 <p align="center">
   👀 Example of dashboard
@@ -122,4 +122,5 @@ Need help with installation, customization, or development? Join our [Discord](h
 &nbsp;
 
 # ⭐ Like what you see? Give us a star!
-![flute-gif](https://github.com/FlamesONE/flute/assets/62756604/9af2cfe8-f225-44bb-931c-5447369811f2)
+![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)
+
