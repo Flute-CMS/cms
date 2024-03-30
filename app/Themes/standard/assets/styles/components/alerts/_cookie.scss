@@ -1,0 +1,50 @@
+.toast-cookie {
+    padding: 20px 10px;
+    cursor: default;
+    max-width: 450px;
+    
+    .toast-content-icon {
+        width: 50px;
+        margin: 0 20px;
+        margin-left: 10px;
+
+        img {
+            max-width: max-content;
+            width: 50px;
+        }
+    }
+
+    .icon-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: #fff;
+        font-size: 17px;
+        opacity: .4;
+        transition: .3s;
+        cursor: pointer;
+
+        &:hover {
+            opacity: .7;
+        }
+    }
+
+    .toast-header {
+        font-size: 15px;
+        text-transform: uppercase;
+        font-weight: bold;
+        color: #fff;
+        letter-spacing: 0.3px;
+
+        span {
+            color: var(--primary);
+        }
+    }
+
+    .toast-text {
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.2px;
+        opacity: .6;
+    }
+}

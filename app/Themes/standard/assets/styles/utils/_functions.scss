@@ -1,0 +1,19 @@
+// Функция для конвертации px в rem
+@function px-to-rem($pixels, $base-font-size: 16px) {
+    @return ($pixels / $base-font-size) * 1rem;
+}
+
+// Функция для создания цвета с прозрачностью
+@function color-opacity($color, $opacity) {
+    @return rgba($color, $opacity);
+}
+
+// Функция для смешивания двух цветов
+@function mix-colors($color1, $color2, $percentage: 50%) {
+    @return mix($color1, $color2, $percentage);
+}
+
+// Функция для создания полупрозрачного цвета
+@function semi-transparent-color($color, $alpha: 0.5) {
+    @return rgba($color, $alpha);
+}

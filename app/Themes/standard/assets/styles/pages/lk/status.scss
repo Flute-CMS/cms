@@ -1,0 +1,33 @@
+.status_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+
+    .status_header {
+        font-size: 3rem;
+        color: $color-primary;
+        margin: 0;
+
+        &.error {
+            color: $color-error;
+        }
+    }
+
+    .status_text {
+        text-wrap: balance;
+        max-width: 500px;
+        margin: 20px auto;
+        color: $color-text;
+        font-weight: 500;
+        background-color: $color-disabled;
+        border-radius: $border-radius / 2;
+        padding: 20px;
+    }
+}
+
+.secret_img {
+    max-width: 500px;
+    border-radius: $border-radius / 2;
+}

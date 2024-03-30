@@ -1,0 +1,49 @@
+.breadcrumb {
+    margin-bottom: 10px;
+
+    ul {
+        display: flex;
+        list-style: none;
+
+        li+li:before {
+            padding: 8px;
+            color: $color-white-20;
+            content: "/\00a0";
+        }
+
+        li {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+
+            &:not(:last-child),
+            &:first-child {
+                .bread__item {
+                    color: $color-white-20;
+                }
+            }
+
+            a {
+                transition: $transition;
+                color: darken($color-primary, 40) !important;
+
+                &:hover {
+                    color: $color-primary !important;
+                }
+
+                &::after {
+                    text-decoration: none;
+                }
+            }
+
+            a,
+            div {
+                padding: 0;
+                margin: 0;
+                font-size: 12px;
+                letter-spacing: 0.4px;
+            }
+        }
+    }
+}

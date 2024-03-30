@@ -1,0 +1,37 @@
+.error_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+
+    .error_header {
+        font-size: 5rem;
+        color: $color-primary;
+        margin: 0;
+    }
+
+    .error_text {
+        color: $color-inactive;
+        font-weight: 500;
+        margin-top: 0;
+    }
+}
+
+.secret_img {
+    max-width: 500px;
+    border-radius: $border-radius / 2;
+    position: absolute;
+    top: -65px;
+    z-index: -1;
+    opacity: .3;
+}
+
+
+.secret_arnold {
+    width: 200px;
+    object-fit: cover;
+    height: 250px;
+    border-radius: $border-radius / 2;
+    margin: 10px 0;
+}
