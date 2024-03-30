@@ -56,14 +56,34 @@
 
 &nbsp;
 
-# 🚀 Quickstart install
+# 💼 Requirements
 
-Get Flute up and running with this command:
+To successfully install and run Flute, ensure your system meets the following requirements:
+- PHP 7.4 or later.
+- MySQL 5.7.29 or higher / MariaDB 10.2.7 or higher.
+- Apache or Nginx web server.
+- (Optionally) Composer for dependency management.
 
-```
-composer create-project flute-cms/cms
-```
+&nbsp;
 
+# 🚀 Installation of Flute
+
+### On a VDS (Virtual Dedicated Server):
+1. Download Flute from [releases](https://github.com/Flute-CMS/cms/releases).
+2. Upload the files to your server.
+3. Use the command:
+   ```
+   composer install
+   ```
+   to install dependencies.
+4. Configure your web server (Apache/Nginx) and the database.
+
+### On Shared Hosting:
+1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
+2. Upload them to your hosting via FTP or the hosting provider's file manager.
+3. Configure the web server on your hosting to point to the Flute folder.
+
+Both installations require setting up the database and configuring Flute.
 
 &nbsp;
 
@@ -82,12 +102,12 @@ If you need a skilled developer for your projects, reach out to me on (My stack 
 
 Discover our range of free modules available for Flute:
 
-- [News module](#): Allows you to create news in the Flute
-- [Monitoring](#): Gets information about servers and displays it in a widget
-- [Bans And Comms](#): Displays the list of bans and mutes on a separate page
-- [Carousel](#): Adds a carousel widget
-- [Statistics](#): Creates a separate page of statistics
-- ...and more at our [modules page](#).
+- [News module](https://github.com/Flute-CMS/news): Allows you to create news in the Flute
+- [Monitoring](https://github.com/Flute-CMS/monitoring): Gets information about servers and displays it in a widget
+- [Bans And Comms](https://github.com/Flute-CMS/BansComms): Displays the list of bans and mutes on a separate page
+- [Carousel](https://github.com/Flute-CMS/carousel): Adds a carousel widget
+- [Statistics](https://github.com/Flute-CMS/stats): Creates a separate page of statistics
+- ...and more at our [repositories page](https://github.com/orgs/Flute-CMS/repositories).
 
 These modules are designed to enhance your Flute experience and are available at no cost.
 
