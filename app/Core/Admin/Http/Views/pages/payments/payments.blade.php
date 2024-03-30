@@ -1,5 +1,5 @@
 @extends('Core.Admin.Http.Views.layout', [
-    'title' => __('admin.title', ['name' => __('admin.payments.payments')]),
+    'title' => __('admin.title', ['name' => __('admin.payments.payments_header')]),
 ])
 
 @push('content')

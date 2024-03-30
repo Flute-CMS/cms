@@ -20,7 +20,7 @@ class ModulesController extends AbstractController
     public function __construct(ModuleManager $moduleManager, ModuleActions $moduleActions)
     {
         HasPermissionMiddleware::permission('admin.modules');
-        
+
         $this->moduleManager = $moduleManager;
         $this->actions = $moduleActions;
     }
@@ -139,20 +139,23 @@ class ModulesController extends AbstractController
             return $this->error(__('admin.modules_list.single_folder_expected'));
         }
 
-        $folderName = str_replace('-main', '', reset($rootFolders));
+        // Remove '-main' suffix from the folder name
+        $originalFolderName = reset($rootFolders);
+        $folderName = preg_replace('/-main$/', '', $originalFolderName);
         $extractPath = BASE_PATH . 'app/Modules/';
 
-        if( $this->moduleManager->issetModule($folderName) )
+        if ($this->moduleManager->issetModule($folderName))
             return $this->error(__('admin.modules_list.module_already_exists'));
 
         if (!fs()->exists($extractPath . $folderName)) {
             fs()->mkdir($extractPath . $folderName, 0755);
         }
 
-        if (!$zip->extractTo($extractPath)) {
-            $zip->close();
-            fs()->remove($extractPath . $folderName); // Clean up on failure
-            return $this->error(__('admin.modules_list.zip_extraction_failed'));
+        // Extract ZIP contents into the renamed folder
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $filename = $zip->getNameIndex($i);
+            $newFilename = preg_replace('/^' . preg_quote($originalFolderName, '/') . '/', $folderName, $filename);
+            $this->extractFile($zip, $filename, $extractPath . $newFilename);
         }
 
         $zip->close();
@@ -194,6 +197,29 @@ class ModulesController extends AbstractController
             'moduleName' => $folderName,
             'moduleVersion' => $moduleConfig['version']
         ]);
+    }
+
+    /**
+     * Extracts a single file from a ZipArchive.
+     *
+     * @param ZipArchive $zip
+     * @param string $filename
+     * @param string $destination
+     */
+    protected function extractFile($zip, $filename, $destination)
+    {
+        $fileStream = $zip->getStream($filename);
+        if (!$fileStream) {
+            throw new \Exception("Unable to retrieve stream for file $filename in ZIP archive.");
+        }
+
+        $dir = dirname($destination);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        file_put_contents($destination, $fileStream);
+        fclose($fileStream);
     }
 
     /**

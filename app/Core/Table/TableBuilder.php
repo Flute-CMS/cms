@@ -213,6 +213,14 @@ class TableBuilder
         return $this;
     }
 
+    protected function generateEmpty() : string
+    {
+        $div = Html::el('div')->class('table_empty');
+        $div->addHtml(__('def.no_results_found'));
+
+        return $div->render();
+    }
+
     /**
      * Рендеринг HTML-таблицы.
      *
@@ -220,6 +228,10 @@ class TableBuilder
      */
     public function render()
     {
+        if( sizeof( $this->data ) === 0 && !$this->ajaxPath ) {
+            return $this->generateEmpty();
+        }
+
         // Pretend multiload table styles on 1 page
         if (!self::$initialised) {
             template()->addStyle('tables_css');

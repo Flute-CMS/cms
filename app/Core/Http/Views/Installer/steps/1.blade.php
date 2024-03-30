@@ -30,7 +30,7 @@
             @endforeach
         </div>
 
-        @btnInst(['text' => __('Продолжить'), 'disabled' => true])
+        @btnInst(['text' => __('def.continue'), 'disabled' => true])
     </div>
 @endpush
 

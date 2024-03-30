@@ -33,7 +33,7 @@
             </form>
         </div>
     </div>
-    @btnInst(['text' => __('Завершить установку'), 'id' => 'continue'])
+    @btnInst(['text' => __('install.finish'), 'id' => 'continue'])
 @endpush
 
 @push('footer')
