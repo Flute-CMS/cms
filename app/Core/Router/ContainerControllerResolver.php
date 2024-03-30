@@ -83,7 +83,7 @@ class ContainerControllerResolver
 
     private function fetchModel(string $className, $id): object
     {
-        $key = "model_binding_$className";
+        $key = str_replace(['/', '\\'], ['_', '_'], "model_binding_$className");
         $has = cache()->has($key);
 
         if ($has && cache($key) !== true)
