@@ -66,14 +66,24 @@ To successfully install and run Flute, ensure your system meets the following re
 
 &nbsp;
 
-# 🚀 Quickstart install
+# 🚀 Installation of Flute
 
-Get Flute up and running with this command:
+### On a VDS (Virtual Dedicated Server):
+1. Download Flute from [releases](https://github.com/Flute-CMS/cms/releases).
+2. Upload the files to your server.
+3. Use the command:
+   ```
+   composer install
+   ```
+   to install dependencies.
+4. Configure your web server (Apache/Nginx) and the database.
 
-```
-composer create-project flute-cms/cms
-```
+### On Shared Hosting:
+1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
+2. Upload them to your hosting via FTP or the hosting provider's file manager.
+3. Configure the web server on your hosting to point to the Flute folder.
 
+Both installations require setting up the database and configuring Flute.
 
 &nbsp;
 
