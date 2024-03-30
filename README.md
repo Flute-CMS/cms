@@ -56,6 +56,16 @@
 
 &nbsp;
 
+# 💼 Requirements
+
+To successfully install and run Flute, ensure your system meets the following requirements:
+- PHP 7.4 or later.
+- MySQL 5.7.29 or higher / MariaDB 10.2.7 or higher.
+- Apache or Nginx web server.
+- (Optionally) Composer for dependency management.
+
+&nbsp;
+
 # 🚀 Quickstart install
 
 Get Flute up and running with this command:
