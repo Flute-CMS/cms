@@ -62,7 +62,7 @@
                                 @endif
                             </div>
                             <div class="ext_name">
-                                <span class="status-label">{{ $reqs['opcache_enabled']['required'] ? __('install.2.all_good') : __('install.2.may_installed') }}</span>
+                                <span class="status-label">{{ $reqs['opcache_enabled']['required'] ? __('install.2.all_good') : __('install.2.may_unstable') }}</span>
                                 <p>OPCache: {{ $reqs['opcache_enabled']['current'] ? __('install.on') : __('install.off') }}</p>
                             </div>
                         </div>

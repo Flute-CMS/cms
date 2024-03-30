@@ -4,16 +4,16 @@ return array (
   'editor' => 
   array (
     'permission' => 'admin.pages',
-    'completed' => true,
+    'completed' => false,
   ),
   'admin_stats' => 
   array (
     'permission' => 'admin.stats',
-    'completed' => true,
+    'completed' => false,
   ),
   'admin_settings' => 
   array (
     'permission' => 'admin.system',
-    'completed' => true,
+    'completed' => false,
   ),
 );

@@ -26,6 +26,8 @@ class ConfigurationServiceProvider extends AbstractServiceProvider
 
         app()->debug($configs['app']['debug']);
         app()->setLang($configs['lang']['locale']);
+
+        date_default_timezone_set($configs['app']['timezone']);
     }
 
     private function registerConfigServices(array $configs, \DI\Container $container, string $prefix = ''): void

@@ -17,7 +17,7 @@ class LangStep extends AbstractStep
     public function install(\Flute\Core\Support\FluteRequest $request, APIInstallerController $installController) : Response
     {
         $lang = (string) $request->input('lang');
-        $timezone = (string) $request->input('timezone');
+        $timezone = (string) $this->checkTimezone($request->input('timezone'));
 
         if (!in_array($lang, config('lang.available'))) {
             return $installController->error($installController->trans('Несуществующий язык'));
@@ -30,5 +30,15 @@ class LangStep extends AbstractStep
         app()->setLang($lang);
 
         return $installController->success();
+    }
+
+    protected function checkTimezone( string $timezone ) : string
+    {
+        switch ($timezone) {
+            case 'Europe/Kyiv':
+                return 'Europe/Kiev';
+            default:
+                return $timezone;
+        }
     }
 }

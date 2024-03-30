@@ -11,7 +11,7 @@ return array (
   'logo' => 'assets/img/logo.svg',
   'key' => '',
   'tips' => true,
-  'timezone' => 'Asia/Yekaterinburg',
+  'timezone' => '',
   'notifications' => 'all',
   'mode' => 'default',
   'share' => false,

@@ -128,7 +128,7 @@ class UserService
      *
      * @return User
      */
-    public function getCurrentUser(): User
+    public function getCurrentUser(): ?User
     {
         if (!$this->currentUser) {
             $this->authSession();

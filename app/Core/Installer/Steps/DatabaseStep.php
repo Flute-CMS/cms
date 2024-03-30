@@ -76,7 +76,7 @@ class DatabaseStep extends AbstractStep
             } catch (DatabaseException $e) {
                 // Возвращаем сообщение об ошибке, если подключение не удалось
                 return $installController->error($installController->trans('db_error', [
-                    "%error%" => mb_convert_encoding($e->getTraceAsString(), 'UTF-8'),
+                    "%error%" => mb_convert_encoding($e->getMessage(), 'UTF-8'),
                 ]));
             }
         } else {
