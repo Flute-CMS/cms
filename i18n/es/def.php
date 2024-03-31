@@ -20,7 +20,7 @@
     "profile" => "Perfil",
     "page_editor" => "Editor de página",
     "main" => "Principal",
-    "profile_user" => "nombre - Perfil de usuario",
+    "profile_user" => "Perfil de name",
     "settings" => "Ajustes",
     "profile_settings" => "Ajustes de perfil",
     "user_profile" => "Perfil del usuario - %user%",
