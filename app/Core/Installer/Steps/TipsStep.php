@@ -11,7 +11,7 @@ class TipsStep extends AbstractStep
 
     public function install(\Flute\Core\Support\FluteRequest $request, APIInstallerController $installController) : Response
     {
-        $this->tips   = $request->get('tips') === 'on';
+        $this->tips   = $request->input('tips') === 'on';
 
         $this->updateConfig();
 

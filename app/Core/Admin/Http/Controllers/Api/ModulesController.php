@@ -27,7 +27,7 @@ class ModulesController extends AbstractController
 
     public function changeSettings(FluteRequest $request, string $key)
     {
-        $providers = $request->get('providers');
+        $providers = $request->input('providers');
 
         if (!$this->moduleManager->issetModule($key))
             return $this->error(__('admin.modules_list.module_is_not_exists', ['key' => $key]));
@@ -192,6 +192,10 @@ class ModulesController extends AbstractController
                 ]
             ]);
         }
+
+        cache()->delete('flute.modules.alldb');
+        cache()->delete('flute.modules.array');
+        cache()->delete('flute.modules.json');
 
         return $this->json([
             'moduleName' => $folderName,

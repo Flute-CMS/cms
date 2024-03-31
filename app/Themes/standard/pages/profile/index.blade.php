@@ -10,13 +10,13 @@
 
 @push('profile_tabs')
     @if (sizeof($tabs) > 0)
-        <a href='{{ url('profile/' . $id) }}' class="@if (!request()->input('tab')) active @endif">
+        <a href='{{ url('profile/' . $user->getUrl()) }}' class="@if (!request()->input('tab')) active @endif">
             <i class="ph ph-house"></i>
             {{ __('def.main') }}
         </a>
 
         @foreach ($tabs as $key => $tab)
-            <a href='{{ url('profile/' . $id, [
+            <a href='{{ url('profile/' . $user->getUrl(), [
                 'tab' => $key,
             ]) }}'
                 class="@if ($active === $key) active @endif {{ $tab['classes'] }}">

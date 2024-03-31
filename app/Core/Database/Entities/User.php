@@ -237,4 +237,9 @@ class User
 
         return $permissions;
     }
+
+    public function getUrl()
+    {
+        return !empty( $this->uri ) ? $this->uri : $this->id;
+    }
 }

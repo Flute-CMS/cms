@@ -256,9 +256,12 @@ class ModuleManager
      */
     protected function loadModulesFromDatabase(): void
     {
-        $modules = $this->performance ? cache()->callback("flute.modules.alldb", function () {
-            return rep(Module::class)->select()->fetchAll();
-        }, self::CACHE_TIME) : rep(Module::class)->select()->fetchAll();
+        // NOT THE BEST SOLUTION
+        // $modules = $this->performance ? cache()->callback("flute.modules.alldb", function () {
+        //     return rep(Module::class)->select()->fetchAll();
+        // }, self::CACHE_TIME) : rep(Module::class)->select()->fetchAll();
+
+        $modules = rep(Module::class)->select()->fetchAll();
 
         $this->modulesDatabase = $modules;
 
@@ -284,8 +287,9 @@ class ModuleManager
             $search = array_search($module->key, $columnsDb);
 
             // Потом проверяем, если все ок, то добавляем в общий массив, если нет, то добавляем в БД и массив
-            if (!is_int($search) || $this->modulesDatabase[$search]->key !== $module->key)
+            if (!is_int($search) || $this->modulesDatabase[$search]->key !== $module->key) {
                 $this->createModuleInDatabase($module);
+            }
             else {
                 $moduleResult->status = $this->modulesDatabase[$search]->status;
                 $moduleResult->installedVersion = $this->modulesDatabase[$search]->installedVersion;

@@ -18,7 +18,7 @@ class ShareStep extends AbstractStep
      */
     public function install(\Flute\Core\Support\FluteRequest $request, APIInstallerController $installController): Response
     {
-        $this->share = $request->get('share') === 'on';
+        $this->share = $request->input('share') === 'on';
         $this->lang = config('installer.params.lang');
         $this->key = config('installer.params.key');
         $this->timezone = config('installer.params.timezone');

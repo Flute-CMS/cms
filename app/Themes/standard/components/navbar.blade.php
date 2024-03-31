@@ -50,7 +50,7 @@
             <div class="miniprofile_container">
                 <div class="miniprofile_base">
                     <div class="miniprofile_header">
-                        <a href="{{ url('profile/' . user()->id) }}" class="mp-flex">
+                        <a href="{{ url('profile/' . user()->getUrl()) }}" class="mp-flex">
                             <div class="miniprofile_name">
                                 <div class="miniprofile_name_text">
                                     {{ user()->name }}

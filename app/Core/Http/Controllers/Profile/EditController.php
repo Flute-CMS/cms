@@ -29,8 +29,8 @@ class EditController extends AbstractController
 
         // Add breadcrumbs
         breadcrumb()
-            ->add(__('def.home'))
-            ->add(__('def.profile') . " - $user->name", url("profile/{$user->id}"))
+            ->add(__('def.home'), url('/'))
+            ->add(__('def.profile') . " - $user->name", url("profile/{$user->getUrl()}"))
             ->add(__('def.settings'));
 
         return view('pages/profile/edit.blade.php', [
@@ -57,8 +57,11 @@ class EditController extends AbstractController
         $value = $request->input('value');
         $strlen = mb_strlen($value);
 
+        if( empty($value) )
+            return $this->updateUser('uri', null);
+
         // Проверка на пустое значение и длину строки
-        if (empty($value) || $strlen < 3 || $strlen > 50) {
+        if ($strlen < 3 || $strlen > 50) {
             return $this->error(__('profile.uri_error'));
         }
 
