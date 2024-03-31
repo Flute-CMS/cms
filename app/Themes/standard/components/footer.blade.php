@@ -47,7 +47,7 @@
                     @endif
 
                     @if (config('app.flute_copyright'))
-                        <a href="https://github.com/FlamesONE/flute" target="_blank"
+                        <a href="https://github.com/Flute-CMS/cms" target="_blank"
                             class="powered_by_footer">
                             <div>
                                 <p class="powered_by">Powered by</p>

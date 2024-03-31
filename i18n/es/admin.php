@@ -8,7 +8,7 @@
         'registrations' => 'Registro',
         'registrations_desc' => 'Registros de esta semana'
     ],
-    'will_be_in_beta' => 'Estará en versión beta',
+    'will_be_in_beta' => 'Está en versión beta',
     "menu" => [
         "main-menu" => "Menú principal",
         "additional-menu" => "Menú adicional"
@@ -80,8 +80,8 @@
     'db_connection_name' => 'Nombre de la conexión',
     'db_connection_name_placeholder' => 'Escribir nombre',
     'db_driver' => 'Seleccionar controlador',
-    'db_host' => 'Anfitrión',
-    'db_host_placeholder' => 'Anfitrión de la base de datos',
+    'db_host' => 'Host',
+    'db_host_placeholder' => 'Host/IP de la base de datos',
     'db_user' => 'Usuario',
     'db_user_placeholder' => 'Nombre de usuario',
     'db_password' => 'Contraseña',
@@ -260,6 +260,8 @@
         'zip_extraction_failed' => 'Error al extraer los archivos del archivo ZIP.',
         'module_json_not_found' => 'Archivo module.json no encontrado en la raíz del archivo ZIP.',
         'invalid_module_json' => 'Formato module.json no válido.',
+        'installed_version' => 'Versión actual',
+        'last_version' => 'Última versión',        
     ],
     'themes_list' => [
         'header' => 'Lista de temas',
@@ -547,6 +549,32 @@
         'edit_description' => 'En esta página puedes cambiar los parámetros del escucha para las notificaciones.',
         'add_title' => 'Agregar escucha',
         'add_description' => 'En esta página puedes agregar una notificación para cualquier evento en Flute CMS'
-    ]
+    ],
+    'api' => [
+        'add_title' => 'Añadir una nueva clave API',
+        'add_description' => 'En esta página puedes generar una nueva clave API con permisos específicos',
+        'key' => 'Tu clave',
+        'permissions' => 'Permisos de la clave',
+        'perm_desc' => 'La clave debe tener permisos de ejecución. Aquí es donde se seleccionan.',
+        'header' => 'Lista de claves API emitidas',
+        'description' => 'En esta página se muestra una lista de todas las claves en el motor',
+        'add' => 'Añadir nueva clave API',
+        'regenerate' => 'Regenerar'
+    ],
+    'databases' => [
+        'title' => 'Conexiones de base de datos',
+        'server_not_found' => 'Servidor no encontrado',
+        'params_empty' => 'Algunos parámetros están vacíos',
+        'setting_description' => 'Aquí puedes configurar la vinculación de un controlador de base de datos específico a un servidor',
+        'add' => 'Añadir conexión',
+        'dbname' => 'Nombre de la base de datos',
+        'dbname_desc' => 'Esta base de datos será utilizada por el controlador',
+        'server' => 'Servidor vinculado',
+        'add_description' => 'En esta página puedes agregar una nueva conexión entre el servidor y la base de datos',
+        'mod' => 'Nombre del controlador',
+        'mod_desc' => 'Este es el controlador que estará vinculado al servidor',
+        'server_label' => 'Servidor',
+        'edit_title' => 'Editar conexión',
+        'edit_description' => 'En esta página puedes editar la conexión en un servidor específico'
+    ]    
 ];
-
