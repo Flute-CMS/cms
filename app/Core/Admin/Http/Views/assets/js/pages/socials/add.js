@@ -1,3 +1,13 @@
+$(document).ready(function () {
+    $('#key').change(function () {
+        var socialPlatform = $(this).val();
+        var redirectUri1 = u(`social/${socialPlatform}`);
+        var redirectUri2 = u(`profile/social/bind/${socialPlatform}`);
+        $('#redirectUri1').val(redirectUri1);
+        $('#redirectUri2').val(redirectUri2);
+    });
+});
+
 var editor = ace.edit('editor');
 
 var unformattedContent = editor.getSession().getValue();

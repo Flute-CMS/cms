@@ -88,6 +88,32 @@
             </div>
         </div>
 
+        <!-- Readonly inputs for URLs -->
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="handleUrl">Handle URL</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="handleUrl" type="text" class="form-control" readonly value="{{ url('/api/lk/handle/'.$gateway->adapter) }}">
+            </div>
+        </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="successUrl">Success URL</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="successUrl" type="text" class="form-control" readonly value="{{ url('/lk/success') }}">
+            </div>
+        </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="failUrl">Fail URL</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="failUrl" type="text" class="form-control" readonly value="{{ url('/lk/fail') }}">
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-9 offset-sm-3">

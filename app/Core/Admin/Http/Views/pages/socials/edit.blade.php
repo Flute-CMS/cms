@@ -35,7 +35,8 @@
             <div class="col-sm-9">
                 <select name="key" id="key" class="form-control">
                     @foreach ($drivers as $item)
-                        <option value="{{ $item }}" @if($social->key === $item) selected @endif>{{ $item }}</option>
+                        <option value="{{ $item }}" @if ($social->key === $item) selected @endif>
+                            {{ $item }}</option>
                     @endforeach
                 </select>
             </div>
@@ -73,6 +74,24 @@
             <div class="col-sm-9">
                 <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
                 <label for="enabled"></label>
+            </div>
+        </div>
+
+        <!-- Readonly inputs for redirect_uris -->
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="redirectUri1">Redirect URI 1</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="redirectUri1" type="text" class="form-control" readonly value="{{ url('social/'.$social->key) }}">
+            </div>
+        </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="redirectUri2">Redirect URI 2</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="redirectUri2" type="text" class="form-control" readonly value="{{ url('profile/social/bind/'.$social->key) }}">
             </div>
         </div>
 

@@ -22,18 +22,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         ev.preventDefault();
 
-        let path = $form.attr('id'), form = serializeForm($form);
+        let path = $form.attr('id'),
+            form = serializeForm($form);
 
         let url = `admin/api/payments/${path}`,
             method = 'POST';
-    
+
         if (path === 'edit') {
             url = `admin/api/payments/${form.id}`;
             method = 'PUT';
         }
-    
+
         if (ev.target.checkValidity()) {
             sendRequest(form, url, method);
         }
+    });
+
+    $('#adapter').change(function () {
+        var paymentSystem = $(this).val();
+        var handleUrl = u(`api/lk/handle/${paymentSystem}`); // Example URL format
+        $('#handleUrl').val(handleUrl);
     });
 });
