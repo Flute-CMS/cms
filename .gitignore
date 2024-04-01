@@ -10,3 +10,4 @@
 /public/assets/img/cache/*
 /public/assets/css/cache/*
 /public/assets/js/cache/*
+.DS_Store
