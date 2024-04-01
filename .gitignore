@@ -1,4 +1,5 @@
 .vscode
+/config-dev/
 /vendor/
 /docker/logs/nginx/*
 /docker/logs/php.log/*

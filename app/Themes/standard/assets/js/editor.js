@@ -858,7 +858,7 @@ class Widget {
 }
 
 window.editorTools = {
-    ...window.editorTools ?? {},
+    ...(window.editorTools ?? {}),
     ...{
         header: {
             class: Header,
@@ -887,6 +887,10 @@ window.editorTools = {
             class: editorjsNestedChecklist,
             inlineToolbar: true,
             shortcut: 'CMD+SHIFT+L',
+        },
+        widget: {
+            class: Widget,
+            tunes: ['col'],
         },
         row: {
             class: Row,
