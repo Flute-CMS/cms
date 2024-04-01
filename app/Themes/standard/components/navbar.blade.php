@@ -143,7 +143,7 @@
                                             <i class="{{ $item['icon'] }}"></i>
                                         @endif
                                         @if ($item['title'])
-                                            <p>{{ $item['title'] }}</p>
+                                            <p>{{ __($item['title']) }}</p>
                                         @endif
                                     </a>
                                 @elseif(sizeof($item['children']) > 0)

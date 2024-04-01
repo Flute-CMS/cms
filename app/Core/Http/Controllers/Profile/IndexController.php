@@ -43,7 +43,7 @@ class IndexController extends AbstractController
 
         // Add breadcrumbs
         breadcrumb()
-            ->add(__('def.home'), url())
+            ->add(__('def.home'), url('/'))
             ->add(__('def.profile') . " - $user->name");
 
         try {

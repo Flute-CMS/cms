@@ -61,14 +61,14 @@
 
         <button id="save" class="btn primary size-s mt-4">@t('def.save')</button>
     @else
-        <div class="roles_empty">
-            @t('admin.roles.empty')
+        <div class="table_empty">
+            @t('def.no_results_found')
         </div>
     @endif
 @endpush
 
 @push('footer')
-    <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+    <script src="https://SortableJS.github.io/Sortable/Sortable.js"></script>
     <script>
         const adminRoleId = {{ $priority->id }};
         const adminRolePriority = {{ $priority->priority }};

@@ -9,7 +9,7 @@ use Flute\Core\Support\AbstractServiceProvider;
 
 class AuthServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             AuthenticationService::class => \DI\create(),
@@ -21,8 +21,13 @@ class AuthServiceProvider extends AbstractServiceProvider
     /**
      * Register auth service.
      */
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
-        is_installed() && $container->get(AuthService::class)->setRoutes();
+        if (is_installed()) {
+            $container->get(AuthService::class)->setRoutes();
+
+            // temp
+            app()->getLoader()->addPsr4('Hybridauth\\Provider\\', BASE_PATH . 'app/Core/Auth/Hybrid');
+        }
     }
 }

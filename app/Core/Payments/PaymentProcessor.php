@@ -205,6 +205,10 @@ class PaymentProcessor
 
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional);
 
+        foreach ($additional as $key => $val) {
+            $additional[$key] = str_replace(["{{amount}}", "{{transactionId}}"], [$invoice->originalAmount, $invoice->transactionId], $val);
+        }
+
         $paymentData = array_merge([
             'amount' => $invoice->originalAmount,
             'transactionId' => $invoice->transactionId

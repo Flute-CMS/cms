@@ -69,10 +69,9 @@ class FooterService
 
         foreach ($FooterItems as $item) {
             $format = $this->format($item);
-
-            if ($format['children'])
-                $formattedItems[] = $format;
+            $formattedItems[] = $format;
         }
+
 
         return $formattedItems;
     }

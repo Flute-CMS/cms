@@ -547,5 +547,32 @@
         'edit_description' => 'On this page, you can change the parameters of the listener for notifications.',
         'add_title' => 'Adding Listener',
         'add_description' => 'On this page, you can add a notification for any event in the Flute CMS'
+    ],
+    'api' => [
+        'add_title' => 'Adding a New API Key',
+        'add_description' => 'On this page, you can generate a new API key with specific permissions',
+        'key' => 'Your Key',
+        'permissions' => 'Key Permissions',
+        'perm_desc' => 'The key must have execution permissions. Here they are selected.',
+        'header' => 'List of Issued API Keys',
+        'description' => 'This page displays a list of all keys in the engine',
+        'add' => 'Add a New API Key',
+        'regenerate' => 'Regenerate'
+    ],
+    'databases' => [
+        'title' => 'Database Associations',
+        'server_not_found' => 'Server Not Found',
+        'params_empty' => 'Some parameters are empty',
+        'setting_description' => 'Here you can configure the binding of a specific database driver to the server',
+        'add' => 'Add Association',
+        'dbname' => 'Database Name',
+        'dbname_desc' => 'This database will be used by the driver',
+        'server' => 'Associated Server',
+        'add_description' => 'On this page, you can add a new association between the server and the database',
+        'mod' => 'Driver Name',
+        'mod_desc' => 'This is the driver that will be bound to the server',
+        'server_label' => 'Server',
+        'edit_title' => 'Edit Association',
+        'edit_description' => 'On this page, you can edit the association for a specific server'
     ]
 ];

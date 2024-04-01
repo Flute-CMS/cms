@@ -84,13 +84,13 @@
 
         <button id="save" class="btn primary size-s mt-4">@t('def.save')</button>
     @else
-        <div class="navigation_empty">
-            @t('admin.navigation.empty')
+        <div class="table_empty">
+            @t('def.no_results_found')
         </div>
     @endif
 @endpush
 
 @push('footer')
-    <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+    <script src="https://SortableJS.github.io/Sortable/Sortable.js"></script>
     @at('Core/Admin/Http/Views/assets/js/pages/navigation/list.js')
 @endpush
