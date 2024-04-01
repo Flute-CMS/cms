@@ -362,7 +362,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function setupBlade(): void
     {
-        $this->blade = new BladeOne($this->viewsPath, $this->cachePath, config('view.cache.mode'));
+        $this->blade = BladeOne::getInstance($this->viewsPath, $this->cachePath, config('view.cache.mode'));
 
         $this->blade->setBaseUrl(config("app.url"));
         $this->blade->throwOnError = true;

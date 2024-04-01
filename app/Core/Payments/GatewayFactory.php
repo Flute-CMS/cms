@@ -9,11 +9,15 @@ class GatewayFactory
 {
     public function create(PaymentGatewayEntity $gatewayEntity)
     {
-        $gateway = Omnipay::getFactory()->create($gatewayEntity->adapter);
-        $config = $this->decryptConfig($gatewayEntity->additional);
-        $gateway->initialize($config);
-
-        return $gateway;
+        try {
+            $gateway = Omnipay::getFactory()->create($gatewayEntity->adapter);
+            $config = $this->decryptConfig($gatewayEntity->additional);
+            $gateway->initialize($config);
+    
+            return $gateway;
+        } catch(\RuntimeException $e) {
+            logs()->warning($e);
+        }
     }
 
     private function decryptConfig($encryptedConfig)

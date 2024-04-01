@@ -145,4 +145,12 @@ class EditedBladeOne extends BladeOne
             $this->assetDict[$name] = $url;
         }
     }
+
+    public static function getInstance($templatePath = null, $compiledPath = null, $mode = 0): BladeOne
+    {
+        if (!isset(self::$instance)) {
+            self::$instance = new self($templatePath, $compiledPath, $mode);
+        }
+        return self::$instance;
+    }
 }

@@ -9,7 +9,7 @@ class CSRFMiddleware extends AbstractMiddleware
 {
     public function __invoke(FluteRequest $request, \Closure $next)
     {
-        if( user()->getCurrentUser()->id === 'API_ID' )
+        if( user()->isLoggedIn() && user()->getCurrentUser()->id === 'API_ID' )
             return $next($request);
 
         if( !template()->getBlade()->csrfIsValid() && config('auth.csrf_enabled') )
