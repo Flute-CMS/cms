@@ -5,7 +5,7 @@ return [
     "next" => "Dalej",
     "last_step_required" => "Aby kontynuować, musisz ukończyć ostatni krok!",
     "finish" => "Zakończ instalację!",
-    "1" => [
+    1 => [
         'card_head' => 'Wybór języka',
         "title" => "Flute :: Wybór języka",
         'Несуществующий язык' => 'Wygląda na to, że wybrałeś jakiś tajemniczy język :0'
