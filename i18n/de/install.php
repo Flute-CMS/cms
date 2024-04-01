@@ -5,7 +5,7 @@ return [
     "next" => "Weiter",
     "last_step_required" => "Um fortzufahren, müssen Sie den letzten Schritt abschließen!",
     "finish" => "Installation abschließen!",
-    "1" => [
+    1 => [
         'card_head' => 'Sprachauswahl',
         "title" => "Flöte :: Sprachauswahl",
         'Несуществующий язык' => 'Es sieht so aus, als hätten Sie eine mysteriöse Sprache ausgewählt :0'
