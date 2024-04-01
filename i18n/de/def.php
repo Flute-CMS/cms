@@ -146,6 +146,7 @@
     "es" => "Español",
     "it" => "Italiano",
     "uk" => "Українська",
+    "uz" => "Oʻzbekcha",
     "found" => "Gefunden",
     "widget_has_errors" => "Das Widget - <b>%name%</b> enthält Fehler. Bitte <b>entfernen Sie es</b> sofort aus der Widget-Liste!",
     "choose_widget" => "Widget auswählen",
