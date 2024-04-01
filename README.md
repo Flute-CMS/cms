@@ -83,6 +83,9 @@ To successfully install and run Flute, ensure your system meets the following re
 2. Upload them to your hosting via FTP or the hosting provider's file manager.
 3. Configure the web server on your hosting to point to the Flute folder.
 
+![gif_install](https://github.com/Flute-CMS/cms/assets/62756604/62b8a0cb-c7ed-431b-981c-470304c1fbd8)
+
+
 Both installations require setting up the database and configuring Flute.
 
 &nbsp;

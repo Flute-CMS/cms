@@ -20,6 +20,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/var/www/html
+    restart: always
     expose:
        - 9000
     depends_on:
@@ -30,6 +31,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./:/var/www/html
+    restart: always
     ports:
       - 8080:80
     depends_on:
