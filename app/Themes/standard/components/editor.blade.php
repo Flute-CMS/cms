@@ -40,7 +40,7 @@
             <button id="saveButton">@t('def.save')</button>
         </div>
     @else
-        <div class="mb-4">
+        <div class="mb-4 editor-content">
             {!! page()->run() !!}
         </div>
     @endif

@@ -133,7 +133,7 @@ class ImagesController extends AbstractController
             try {
                 \WebPConvert\WebPConvert::convert('assets/uploads/' . $fileName, $newFileDestination);
             } catch (\Exception $e) {
-                logs()->error($e->getTraceAsString());
+                logs()->error($e);
 
                 fs()->remove('assets/uploads/' . $fileName);
                 return $this->error(__('validator.image_conversion_failed'));

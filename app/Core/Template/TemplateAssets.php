@@ -232,7 +232,7 @@ class TemplateAssets
                 try {
                     \WebPConvert\WebPConvert::convert($imgPathBase, $webpImgBasePath);
                 } catch (\Exception $e) {
-                    logs()->error($e->getTraceAsString());
+                    logs()->error($e);
                     return;
                 }
 

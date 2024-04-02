@@ -10,7 +10,7 @@ class ParagraphParser implements ParserInterface
     public function parse(array $array, string $id)
     {
         $text = Html::el('p');
-        $text->addText($array['text']);
+        $text->addHtml($array['text']);
 
         return $text->toHtml();
     }

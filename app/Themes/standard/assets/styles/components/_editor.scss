@@ -774,8 +774,25 @@
     background-color: $color-primary-light !important;
 }
 
-.tc-popover, .tc-wrap {
+.tc-popover,
+.tc-wrap {
     --color-border: #{$color-white-3} !important;
     --color-background: #{$color-disabled} !important;
     --color-background-hover: #{$color-inactive} !important;
+}
+
+.editor-content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    ol,
+    ul {
+        padding-left: 1rem;
+
+        li {
+            padding-left: 0.5rem;
+        }
+    }
 }

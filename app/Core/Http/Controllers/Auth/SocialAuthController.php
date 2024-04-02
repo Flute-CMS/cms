@@ -34,7 +34,7 @@ class SocialAuthController extends AbstractController
             return $this->error(__('auth.errors.social_not_found'));
         }
         catch (\Exception $e) {
-            logs()->error($e->getTraceAsString());
+            logs()->error($e);
         
             if( app('debug') )
                 throw $e;

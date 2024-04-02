@@ -40,8 +40,10 @@ class WidgetManager
 
         $this->performance = (bool) (app('app.mode') === App::PERFORMANCE_MODE);
 
-        is_installed() && $this->loadAllWidgetsFromDB();
-        $this->loadAllRoutes();
+        if (is_installed()) {
+            $this->loadAllWidgetsFromDB();
+            $this->loadAllRoutes();
+        }
     }
 
     protected function getRepository(): Repository
@@ -208,9 +210,10 @@ class WidgetManager
      */
     private function loadAllWidgetsFromDB(): void
     {
-        $widgets = $this->performance ? cache()->callback("flute.widget.all", function () {
-            return $this->getAllWidgets();
-        }, self::CACHE_TIME) : $this->getAllWidgets();
+        // $widgets = $this->performance ? cache()->callback("flute.widget.all", function () {
+        //     return $this->getAllWidgets();
+        // }, self::CACHE_TIME) : $this->getAllWidgets();
+        $widgets = $this->getAllWidgets();
 
         foreach ($widgets as $widget) {
 
@@ -331,7 +334,7 @@ class WidgetManager
                 unset($this->widgets[$widgetLoader]);
 
                 transaction($widget, 'delete')->run();
-            } catch (\Exception $e) {  
+            } catch (\Exception $e) {
                 //
             }
         }

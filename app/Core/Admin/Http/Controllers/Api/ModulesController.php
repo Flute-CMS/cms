@@ -141,7 +141,7 @@ class ModulesController extends AbstractController
 
         // Remove '-main' suffix from the folder name
         $originalFolderName = reset($rootFolders);
-        $folderName = preg_replace('/-main$/', '', $originalFolderName);
+        $folderName = preg_replace('/(-main|-[\d.]+|_test)$/', '', $originalFolderName);
         $extractPath = BASE_PATH . 'app/Modules/';
 
         if ($this->moduleManager->issetModule($folderName))
