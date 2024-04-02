@@ -211,10 +211,18 @@ class PaymentProcessor
 
         $paymentData = array_merge([
             'amount' => $invoice->originalAmount,
-            'transactionId' => $invoice->transactionId
+            'transactionId' => $invoice->transactionId,
+            'notifyUrl' => url('/api/lk/handle/'.$gateway->getShortName()),
+            'cancelUrl' => url('/lk/fail'),
+            'returnUrl' => url('/lk/success'),
         ], (array) $additional);
 
-        $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity), BeforeGatewayProcessingEvent::NAME);
+        $event = $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData), BeforeGatewayProcessingEvent::NAME);
+
+        $paymentData = $event->getPaymentdata();
+        $gateway = $event->getGateway();
+        $gatewayEntity = $event->getPaymentGateway();
+        $invoice = $event->getInvoice();
 
         $response = $gateway->purchase($paymentData)->send();
 

@@ -27,6 +27,7 @@ class ShareStep extends AbstractStep
 
         $this->updateConfig();
         $this->createLogs();
+        $this->clearCache();
 
         return $installController->success();
     }
@@ -37,6 +38,21 @@ class ShareStep extends AbstractStep
         @file_put_contents(BASE_PATH . "storage/logs/modules.log", '');
         @file_put_contents(BASE_PATH . "storage/logs/templates.log", '');
         @file_put_contents(BASE_PATH . "storage/logs/database.log", '');
+    }
+
+    protected function clearCache()
+    {
+        $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
+        $jsCachePath = BASE_PATH . '/public/assets/js/cache/*';
+
+        try {
+            $filesystem = fs();
+            
+            $filesystem->remove(glob($cssCachePath));
+            $filesystem->remove(glob($jsCachePath));
+        } catch (Exception $e) {
+            //
+        }
     }
 
     /**

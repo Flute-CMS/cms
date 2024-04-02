@@ -167,9 +167,11 @@ class PaymentsView extends AbstractController
                     // Scan the Omnipay directory for gateway classes
                     $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullPath));
                     foreach ($files as $file) {
+
                         if ($file->isFile() && $file->getExtension() == 'php') {
                             $filename = $file->getFilename();
                             // Check if the file name ends with 'Gateway.php'
+
                             if (substr($filename, -11) == 'Gateway.php') {
                                 $gatewayClassShortName = substr($filename, 0, -4);
                                 $gatewayClass = $namespace . $gatewayClassShortName;

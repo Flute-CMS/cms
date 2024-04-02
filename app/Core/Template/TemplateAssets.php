@@ -104,7 +104,7 @@ class TemplateAssets
         $cssPath = "assets/css/cache/" . $sha1 . ".css";
         $cssBasePath = BASE_PATH . "public/assets/css/cache/" . $sha1 . ".css";
 
-        if (!file_exists($cssBasePath) || filemtime($scssPath) > filemtime($cssBasePath) || (bool) config('app.debug') === true) {
+        if (!file_exists($cssBasePath) || (filemtime($scssPath) > filemtime($cssBasePath)) || (bool) config('app.debug') === true) {
             $this->compileScss($scssPath, $cssBasePath);
         }
 
