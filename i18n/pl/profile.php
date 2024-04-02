@@ -7,6 +7,7 @@ return [
     'name_error' => 'Nieprawidłowy format nazwy',
     'uri_error' => 'Nieprawidłowy format adresu URI',
     'change_banner' => 'Zmień baner',
+    'change_avatar' => 'Zmień awatar',
     'settings' => [
         'social' => 'Połączenia',
         'main' => 'Główne',

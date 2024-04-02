@@ -35,7 +35,7 @@
                 <input type="file" id="banner-input" style="display: none;"
                     accept="{{ implode(', ', config('profile.banner_types')) }}">
 
-                <div data-tooltip='@t('profile.change_banner')' data-tooltip-conf="left" id="profile_banner_change">
+                <div data-tooltip="@t('profile.change_banner')" data-tooltip-conf="left" id="profile_banner_change">
                     <i class="ph ph-pencil-simple"></i>
                 </div>
             @endif
@@ -55,8 +55,14 @@
             <div class="avatar-border">
                 <div class="avatar-loading-indicator"></div>
             </div>
-            <img @if (user()->id === $user->id) data-tooltip='@t('def.change_avatar')' class="profile_avatar editable" id="profile_avatar_change" @else class="profile_avatar" @endif
-                src="{{ url($user->avatar) }}" alt="{{ $user->name }}">
+
+            <div @if (user()->id === $user->id) class="profile_avatar_wrapper editable" data-tooltip="@t('profile.change_avatar')" data-tooltip-conf="top" id="profile_avatar_change" @else class="profile_avatar_wrapper" @endif>
+                <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="profile_avatar">
+                @if (user()->id === $user->id)
+                    <i class="ph ph-pencil-simple profile_change_ico"></i>
+                @endif
+            </div>
+
             <div class="profile_up_info">
                 <div class="profile_up_name">
                     <h2>{{ $user->name }}</h2>
@@ -64,12 +70,14 @@
                         <p>@t('def.balance'): {{ $user->balance . app('lk.currency_view') }}</p>
                     @endif
                 </div>
-                @if (sizeof($user->socialNetworks) > 0)
+                @if (count($user->socialNetworks) > 0)
                     <div class="profile_up_socials">
                         @foreach ($user->socialNetworks as $network)
-                            @if ((bool) $network->hidden !== true || user()->id == $user->id || user()->hasPermission('admin.users'))
+                            @if (!$network->hidden || auth()->user()->id == $user->id || auth()->user()->hasPermission('admin.users'))
                                 <a href="{{ $network->url }}" target="_blank">
-                                    {!! $network->socialNetwork->icon !!}
+                                    <div data-tooltip="{{ $network->socialNetwork->key }}" data-tooltip-conf="top">
+                                        {!! $network->socialNetwork->icon !!}
+                                    </div>
                                 </a>
                             @endif
                         @endforeach

@@ -5,6 +5,7 @@
     'name_error' => 'Nom formati noto‘g‘ri',
     'uri_error' => 'Havola formati noto‘g‘ri',
     'change_banner' => 'Bannerni oʻzgartirish',
+    'change_avatar' => 'Avatarni oʻzgartirish',
     'settings' => [
         'social' => 'Bogʻlash',
         'main' => 'Asosiy',

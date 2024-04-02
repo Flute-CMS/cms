@@ -5,6 +5,7 @@
     'name_error' => 'Invalid name format',
     'uri_error' => 'Invalid link format',
     'change_banner' => 'Change banner',
+    'change_avatar' => 'Change avatar',
     'settings' => [
         'social' => 'Bindings',
         'main' => 'Main',
