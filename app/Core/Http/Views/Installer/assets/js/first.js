@@ -107,7 +107,8 @@ function getLanguageSelectionMessage() {
         'ta': 'மொழி தேர்ந்தெடுக்கவும்',
         'vi': 'Chọn ngôn ngữ',
         'id': 'Pilih bahasa',
-        'ms': 'Pilih bahasa'
+        'ms': 'Pilih bahasa',
+        'uz': 'Tilni tanlang'
     };
 }
 
@@ -143,7 +144,8 @@ function getContinueMessage() {
         'ta': 'தொடர',
         'vi': 'Tiếp tục',
         'id': 'Lanjutkan',
-        'ms': 'Teruskan'
+        'ms': 'Teruskan',
+        'uz': 'Davom etish'
     };
 }
 
