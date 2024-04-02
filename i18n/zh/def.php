@@ -147,6 +147,7 @@
     "es" => "Español",
     "it" => "Italiano",
     "uk" => "Українська",
+    "uz" => "Oʻzbekcha",
     "found" => "找到结果：",
     "widget_has_errors" => "小部件 - <b>%name%</b> 包含错误。请 <b>立即</b> 从小部件列表中 <b>移除它</b>！",
     "choose_widget" => "选择小部件",

@@ -5,6 +5,7 @@
     'name_error' => 'Formato de nombre incorrecto',
     'uri_error' => 'Formato de enlace incorrecto',
     'change_banner' => 'Cambiar banner',
+    'change_avatar' => 'Cambiar avatar',
     'settings' => [
         'social' => 'Redes Sociales',
         'main' => 'Principal',

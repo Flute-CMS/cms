@@ -30,5 +30,6 @@ return [
     'ta' => 'தமிழ்',
     'vi' => 'Tiếng Việt',
     'id' => 'Bahasa Indonesia',
-    'ms' => 'Bahasa Melayu'
+    'ms' => 'Bahasa Melayu',
+    'uz' => 'Oʻzbekcha'
 ];
