@@ -70,10 +70,10 @@
                         <p>@t('def.balance'): {{ $user->balance . app('lk.currency_view') }}</p>
                     @endif
                 </div>
-                @if (count($user->socialNetworks) > 0)
+                @if (sizeof($user->socialNetworks) > 0)
                     <div class="profile_up_socials">
                         @foreach ($user->socialNetworks as $network)
-                            @if (!$network->hidden || auth()->user()->id == $user->id || auth()->user()->hasPermission('admin.users'))
+                            @if ((bool) $network->hidden !== true || user()->hasPermission('admin.users'))
                                 <a href="{{ $network->url }}" target="_blank">
                                     <div data-tooltip="{{ $network->socialNetwork->key }}" data-tooltip-conf="top">
                                         {!! $network->socialNetwork->icon !!}
