@@ -5,6 +5,7 @@
     'name_error' => '姓名格式无效',
     'uri_error' => '链接格式无效',
     'change_banner' => '更改横幅',
+    'change_avatar' => '更改头像',
     'settings' => [
         'social' => '绑定',
         'main' => '主要',

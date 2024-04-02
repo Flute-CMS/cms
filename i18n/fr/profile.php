@@ -7,6 +7,7 @@ return [
     'name_error' => 'Format de nom incorrect',
     'uri_error' => 'Format d\'URI incorrect',
     'change_banner' => 'Changer la bannière',
+    'change_avatar' => 'Changer d\'avatar',
     'settings' => [
         'social' => 'Liens sociaux',
         'main' => 'Principal',
