@@ -22,7 +22,8 @@ class InstallerFinder
 
     protected function url()
     {
-        return request()->isSecure() ? 'https' : 'http' . "://" . request()->getHttpHost();
+        $scheme = request()->isSecure() ? 'https' : 'http';
+        return $scheme . "://" . request()->getHttpHost();
     }
 
     public function setLocale()
