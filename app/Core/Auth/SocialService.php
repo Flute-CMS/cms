@@ -260,6 +260,7 @@ class SocialService
         $user = new User();
         $user->name = $userProfile->displayName;
         $user->email = $email;
+        $user->uri = null;
         $user->avatar = $userProfile->photoURL ?? config('profile.default_avatar');
         $user->banner = config('profile.default_banner');
         $user->verified = true;

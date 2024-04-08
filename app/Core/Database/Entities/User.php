@@ -31,7 +31,7 @@ class User
     public $login;
 
     /** @Column(type="string", nullable=true) */
-    public $uri;
+    public $uri = null;
 
     /** @Column(type="string") */
     public $name;

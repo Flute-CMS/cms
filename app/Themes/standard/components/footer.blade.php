@@ -12,7 +12,7 @@
 
                                 <div class="social_footer_container">
                                     @foreach (footer()->socials()->all() as $social)
-                                        <a href="{{ $social->url }}" target="_blank" data-tooltip="{{ $social->name }}">
+                                        <a href="{{ $social->url }}" target="_blank" data-tooltip="{{ __($social->name) }}">
                                             {!! $social->icon !!}
                                         </a>
                                     @endforeach
@@ -25,14 +25,14 @@
                         <div class="d-flex justify-content-center footer_links">
                             @foreach (footer()->all() as $key => $item)
                                 <div class="footer_link">
-                                    <p>{!! $item['title'] !!}</p>
+                                    <p>{!! __($item['title']) !!}</p>
 
                                     <ul class="footer_items">
                                         @foreach ($item['children'] as $child_item)
                                             <li class="footer_item">
                                                 <a href="{{ $child_item['url'] }}"
                                                     @if ($child_item['new_tab']) target="_blank" @endif>
-                                                    {!! $child_item['title'] !!}
+                                                    {!! __($child_item['title']) !!}
                                                 </a>
                                             </li>
                                         @endforeach

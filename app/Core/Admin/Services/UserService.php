@@ -51,7 +51,7 @@ class UserService
         $user->name = $input['name'];
         $user->email = $input['email'];
         $user->login = $input['login'];
-        $user->uri = $input['uri'];
+        $user->uri = empty($input['uri']) ? null : $input['uri'];
         $user->balance = $input['balance'];
 
         $currentUserHighestPriority = $this->getCurrentUserHighestPriority(user()->getCurrentUser());

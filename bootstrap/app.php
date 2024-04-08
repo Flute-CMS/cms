@@ -40,6 +40,10 @@ use Flute\Core\ServiceProviders\ViewServiceProvider;
 use Flute\Core\ServiceProviders\WidgetServiceProvider;
 use Flute\Core\ServiceProviders\EmailServiceProvider;
 
+if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
+    exit('Folder "vendor" wasn\'t found. Please, check your files again');
+}
+
 /**
  * Include the composer autoloader
  */

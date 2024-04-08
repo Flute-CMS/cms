@@ -4,13 +4,14 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Composer\Console\Application;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
-use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Table\TablePreparation;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+
+putenv('COMPOSER_HOME=' . __DIR__ . '/vendor/bin/composer');
 
 class ComposerController extends AbstractController
 {
