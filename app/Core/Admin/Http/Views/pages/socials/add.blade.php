@@ -70,18 +70,20 @@
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri1">Redirect URI 1</label>
             </div>
-            <div class="col-sm-9">
+            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
                 <input id="redirectUri1" type="text" class="form-control" readonly
-                    value="{{ url('social/' . $drivers[array_key_first($drivers)]) }}">
+                    value="{{ url('social/' . $drivers[array_key_first($drivers)]) }}"
+                    data-copy="{{ url('social/' . $drivers[array_key_first($drivers)]) }}">
             </div>
         </div>
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri2">Redirect URI 2</label>
             </div>
-            <div class="col-sm-9">
+            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
                 <input id="redirectUri2" type="text" class="form-control" readonly
-                    value="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}">
+                    value="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}"
+                    data-copy="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}">
             </div>
         </div>
 
