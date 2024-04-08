@@ -70,6 +70,7 @@ To successfully install and run Flute, ensure your system meets the following re
 # 🚀 Installation of Flute
 
 ### On a VDS (Virtual Dedicated Server):
+
 1. Download Flute from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload the files to your server.
 3. Use the command:
@@ -80,6 +81,7 @@ To successfully install and run Flute, ensure your system meets the following re
 4. Configure your web server (Apache/Nginx) and the database.
 
 ### On Shared Hosting:
+
 1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload them to your hosting via FTP or the hosting provider's file manager.
 3. Configure the web server on your hosting to point to the Flute folder.
@@ -105,7 +107,6 @@ If you need a skilled developer for your projects, reach out to me on (My stack 
 # 📦 Free Modules List
 
 Discover our range of free modules available for Flute:
-
 - [News module](https://github.com/Flute-CMS/news): Allows you to create news in the Flute
 - [Monitoring](https://github.com/Flute-CMS/monitoring): Gets information about servers and displays it in a widget
 - [Bans And Comms](https://github.com/Flute-CMS/BansComms): Displays the list of bans and mutes on a separate page
@@ -126,4 +127,5 @@ Need help with installation, customization, or development? Join our [Discord](h
 &nbsp;
 
 # ⭐ Like what you see? Give us a star!
+
 ![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)

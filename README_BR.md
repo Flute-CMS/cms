@@ -33,7 +33,7 @@
 <hr />
 
 <a href="https://docs.flute-cms.com">
-  <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute dashboard"/>
+  <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute Painel Admin"/>
 </a>
 <p align="center">
   👀 Exemplo do Painel Admin
@@ -59,17 +59,18 @@
 
 # 💼 Requisitos
 
-To successfully install and run Flute, ensure your system meets the following requirements:
-- PHP 7.4 or later.
-- MySQL 5.7.29 or higher / MariaDB 10.2.7 or higher.
-- Apache or Nginx web server.
-- (Optionally) Composer for dependency management.
+Para instalar e executar o Flute com êxito, certifique-se de que seu sistema atenda aos seguintes requisitos:
+- PHP 7.4 ou posterior.
+- MySQL 5.7.29 ou superior/MariaDB 10.2.7 ou superior.
+- Servidor web Apache ou Nginx.
+- (Opcionalmente) Composer para gerenciamento de dependências.
 
 &nbsp;
 
 # 🚀 Instalação do Flute
 
 ### Em um VDS (Servidor Virtual Dedicado):
+
 1. Baixe o Flute em [releases](https://github.com/Flute-CMS/cms/releases).
 2. Faça upload dos arquivos para o seu servidor.
 3. Use o comando:
@@ -80,6 +81,7 @@ To successfully install and run Flute, ensure your system meets the following re
 4. Configure seu servidor web (Apache/Nginx) e o banco de dados.
 
 ### Na Hospedagem Compartilhada:
+
 1. Baixe o Flute e a pasta `vendor` em [releases](https://github.com/Flute-CMS/cms/releases).
 2. Carregue-os em sua hospedagem via FTP ou no gerenciador de arquivos do provedor de hospedagem.
 3. Configure o servidor web em sua hospedagem para apontar para a pasta Flute.
@@ -105,7 +107,6 @@ Se você precisar de um desenvolvedor qualificado para seus projetos, entre em c
 # 📦 Lista de Módulos Gratuitos
 
 Descubra a nossa gama de módulos gratuitos disponíveis para o Flute:
-
 - [Módulo de notícias](https://github.com/Flute-CMS/news): Permite criar notícias no Flute
 - [Monitoramento](https://github.com/Flute-CMS/monitoring): Obtém informações sobre servidores e as exibe em um widget
 - [Bans & Comms](https://github.com/Flute-CMS/BansComms): Exibe a lista de banimentos e silenciamentos em uma página separada
@@ -126,4 +127,5 @@ Precisa de ajuda com instalação, personalização ou desenvolvimento? Junte-se
 &nbsp;
 
 # ⭐ Gostou do que está vendo? Dê-nos uma star!
+
 ![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)
