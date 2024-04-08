@@ -72,8 +72,8 @@
         svg {
             fill: darken($color-text, 40);
             transition: $transition;
-            max-width: 80px;
-            max-height: 80px;
+            width: 80px;
+            height: 80px;
         }
 
         i {
