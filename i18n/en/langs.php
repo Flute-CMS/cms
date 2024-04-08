@@ -8,6 +8,7 @@ return [
     'fr' => 'Français',
     'it' => 'Italiano',
     'pt' => 'Português',
+    'br' => 'Português Brasil',
     'zh' => '中文',
     'ja' => '日本語',
     'ko' => '한국어',
