@@ -148,6 +148,7 @@
     "it" => "Italiano",
     "uk" => "Українська",
     "uz" => "Oʻzbekcha",
+    "br" => "Portuguese Brazil",
     "found" => "Znaleziono wyników:",
     "widget_has_errors" => "Widżet - <b>%name%</b> zawiera błędy. Proszę <b>usunąć go</b> z listy widżetów <b>natychmiastowo</b>!",
     "choose_widget" => "Wybierz widżet",

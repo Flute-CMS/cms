@@ -149,6 +149,7 @@ return [
     "it" => "Italiano",
     "uk" => "Ucraniano",
     "uz" => "Uzbeque",
+    "br" => "Português Brasil",
     "found" => "Resultados encontrados:",
     "widget_has_errors" => "O widget - <b>%name%</b> possui erros. Por favor, <b>remova-o</b> da lista de widgets <b>imediatamente</b>!",
     "choose_widget" => "Escolher Widget",

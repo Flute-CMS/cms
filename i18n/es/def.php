@@ -148,6 +148,7 @@
     "it" => "Italiano",
     "uk" => "Ucraniano",
     "uz" => "Uzbeko",
+    "br" => "Portuguese Brazil",
     "found" => "Encontrado",
     "widget_has_errors" => "El widget - <b>%name%</b> contiene errores. ¡Retíralo <b>inmediatamente</b> de la lista de widgets!",
     "choose_widget" => "Elegir un widget",
