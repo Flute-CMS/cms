@@ -16,4 +16,14 @@ return array (
     'permission' => 'admin.system',
     'completed' => false,
   ),
+  'admin_composer' => 
+  array (
+    'permission' => 'admin.composer',
+    'completed' => false,
+  ),
+  'admin_gateways' => 
+  array (
+    'permission' => 'admin.gateways',
+    'completed' => false,
+  ),
 );

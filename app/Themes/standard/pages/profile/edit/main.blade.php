@@ -90,31 +90,6 @@
                     </div>
                 </div>
             </div>
-            <div class="profile_settings_setting settings_inputs">
-                <div>
-                    <div class="profile_settings_setting_title">@t('profile.s_main.nickname')</div>
-                    <div class="profile_settings_setting_container">
-                        <label class="profile_label" data-input="name">
-                            <div class="input-container success">
-                                <input type="text" value="{{ $user->name }}" placeholder="@t('profile.s_main.placeholder')">
-                                <button class="save-button">@t('def.save')</button>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <div class="profile_settings_setting_title">@t('profile.s_main.nickname_uri')</div>
-                    <div class="profile_settings_setting_container">
-                        <label class="profile_label" data-input="uri">
-                            <div class="input-container input_uri @if (!empty($user->uri)) success @endif">
-                                <p>profile/</p>
-                                <input type="text" value="{{ $user->uri }}" placeholder="@t('profile.s_main.placeholder')">
-                                <button class="save-button">@t('def.save')</button>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 @endpush

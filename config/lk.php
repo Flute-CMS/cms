@@ -1,7 +1,6 @@
 <?php
 
 return array (
-  'min_amount' => 200,
-  'currency_view' => '₽',
+  'currency_view' => 'FC',
   'oferta_view' => true,
 );

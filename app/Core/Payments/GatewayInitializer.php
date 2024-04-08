@@ -3,6 +3,7 @@
 namespace Flute\Core\Payments;
 
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
+use Flute\Core\Payments\Events\RegisterPaymentFactoriesEvent;
 use Omnipay\Common\Helper;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -54,6 +55,8 @@ class GatewayInitializer
 
     protected function initializeGateways()
     {
+        events()->dispatch(new RegisterPaymentFactoriesEvent, RegisterPaymentFactoriesEvent::NAME);
+
         $gatewayEntities = rep(PaymentGatewayEntity::class)
             ->findAll(['enabled' => true]);
 

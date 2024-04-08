@@ -43,6 +43,8 @@ class DatabaseConfigService extends AbstractConfigService
             }
 
             $this->fileSystemService->updateConfig($this->getConfigPath('database'), $config);
+            user()->log('events.config_updated', 'database');
+
             return response()->success(__('def.success'));
         } catch (\Exception $e) {
             logs()->error($e);

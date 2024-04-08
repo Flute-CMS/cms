@@ -42,6 +42,8 @@ class PagesController extends AbstractController
             $page->addBlock($pageBlock);
         }
 
+        user()->log('events.custom_pages_added', $request->title);
+
         transaction($page)->run();
 
         return $this->success();
@@ -53,6 +55,8 @@ class PagesController extends AbstractController
 
         if (!$page)
             return $this->error(__('admin.pages.not_found'), 404);
+
+        user()->log('events.custom_pages_deleted', $id);
 
         transaction($page, 'delete')->run();
 
@@ -87,6 +91,8 @@ class PagesController extends AbstractController
 
             $page->addBlock($pageBlock);
         }
+
+        user()->log('events.custom_page_edited', $id);
 
         transaction($page)->run();
 

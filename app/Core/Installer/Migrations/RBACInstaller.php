@@ -46,6 +46,10 @@ class RBACInstaller
             $this->createPermission('admin.pages', 'Permission to CRUD pages'),
             $this->createPermission('admin.socials', 'Permission to CRUD socials'),
             $this->createPermission('admin.notifications', 'Permission to create user notifications'),
+
+            $this->createPermission('admin.composer', 'Permission to CRUD composer packages'),
+            $this->createPermission('admin.translate', 'Permission to CRUD translates'),
+            $this->createPermission('admin.currency', 'Permission to CRUD currencies'),
         ];
 
         // Assign permissions to admin role

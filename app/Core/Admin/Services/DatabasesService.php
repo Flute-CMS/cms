@@ -16,6 +16,8 @@ class DatabasesService
         $dbConnection->additional = $additional;
         $dbConnection->server = $this->getServer($sid);
 
+        user()->log('events.database_connection_added', $mod);
+
         transaction($dbConnection)->run();
     }
 
@@ -27,6 +29,8 @@ class DatabasesService
         $dbConnection->dbname = $dbname;
         $dbConnection->additional = $additional;
 
+        user()->log('events.database_connection_edited', $id);
+
         transaction($dbConnection)->run();
     }
 
@@ -35,6 +39,8 @@ class DatabasesService
         $dbConnection = $this->find($id);
 
         transaction($dbConnection, 'delete')->run();
+
+        user()->log('events.database_connection_deleted', $id);
 
         return;
     }

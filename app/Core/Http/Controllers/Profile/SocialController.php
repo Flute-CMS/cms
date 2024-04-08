@@ -42,6 +42,8 @@ class SocialController extends AbstractController
 
             transaction($userSocialNetwork)->run();
 
+            user()->log('profile.bind_social', $provider);
+
             return $this->socialSuccess();
         } catch (UserNotFoundException $e) {
             return $this->socialError(__('auth.errors.user_not_found'));
@@ -86,6 +88,8 @@ class SocialController extends AbstractController
             return redirect()->back()->withErrors(t('profile.errors.social_only_one'));
         }
 
+        user()->log('profile.unbind_social', $provider);
+
         transaction($socialNetwork, 'delete')->run();
 
         return redirect()->back()->with('success', t('profile.s_social.social_disconnected'));
@@ -100,6 +104,12 @@ class SocialController extends AbstractController
      */
     public function hideSocial(FluteRequest $fluteRequest, string $provider): Response
     {
+        try {
+            $this->throttle("profile_change_hide_social");
+        } catch (\Exception $e) {
+            return $this->error(__('auth.too_many_requests'));
+        }
+
         $repository = rep(UserSocialNetwork::class);
 
         $socialNetwork = $repository->select()->load(['user', 'socialNetwork'])->where([
@@ -108,6 +118,8 @@ class SocialController extends AbstractController
         ])->fetchOne();
 
         $socialNetwork->hidden = !$socialNetwork->hidden;
+
+        user()->log('profile.hide_social', $provider);
 
         transaction($socialNetwork)->run();
 

@@ -91,15 +91,15 @@ class AuthService
      * @return User
      * @throws UserNotFoundException If the user is not found.
      */
-    public function authenticateById(int $userId, bool $remember = false) : User
+    public function authenticateById(int $userId, bool $remember = false): User
     {
         $this->logout();
 
         $authResult = $this->auth->authenticateByUserId($userId);
-        
+
         // Save user to session
         session()->set('user_id', $authResult->id);
-        
+
         if ($remember) {
             $this->auth->createRememberToken($authResult);
         }
@@ -261,12 +261,16 @@ class AuthService
     public function setRoutes()
     {
         $this->dispatcher->group(function (RouteGroup $routeGroup) {
-            if( !user()->hasPermission('admin.pages') )
+            if (!user()->hasPermission('admin.pages'))
                 $routeGroup->middleware(GuestMiddleware::class);
 
             // Auth
             $routeGroup->get('/login', [AuthController::class, 'getLogin']);
-            $routeGroup->get('/register', [AuthController::class, 'getRegister']);
+
+            if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty())) {
+                $routeGroup->get('/register', [AuthController::class, 'getRegister']);
+            }
+
             $routeGroup->get('/confirm/{token}', [AuthController::class, 'getConfirmation']);
 
             // Social auth
@@ -278,7 +282,7 @@ class AuthService
             // Social auth register
             $routeGroup->get('/social/register', [SocialAuthController::class, 'getSocialRegister']);
 
-            if( config('auth.reset_password') ) {
+            if (config('auth.reset_password') && (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))) {
                 $routeGroup->get('/reset', [PasswordResetController::class, 'getReset']);
                 $routeGroup->get('/reset/{token}', [PasswordResetController::class, 'getResetWithToken']);
             }
@@ -286,20 +290,21 @@ class AuthService
             // Post routes with CSRF protection
             $routeGroup->group(function (RouteGroup $routeGroup) {
                 $routeGroup->middleware(GuestMiddleware::class);
-                
-                if( config('auth.csrf_enabled') ) {
-                    $routeGroup->middleware(CSRFMiddleware::class);
-                }
+                if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty())) {
+                    if (config('auth.csrf_enabled')) {
+                        $routeGroup->middleware(CSRFMiddleware::class);
+                    }
 
-                $routeGroup->post('/register', [AuthController::class, 'postRegister']);
-                $routeGroup->post('/login', [AuthController::class, 'postLogin']);
+                    $routeGroup->post('/register', [AuthController::class, 'postRegister']);
+                    $routeGroup->post('/login', [AuthController::class, 'postLogin']);
+
+                    if (config('auth.reset_password')) {
+                        $routeGroup->post('/reset', [PasswordResetController::class, 'postReset']);
+                        $routeGroup->post('/reset/{token}', [PasswordResetController::class, 'postResetWithToken']);
+                    }
+                }
 
                 $routeGroup->post('/social/register', [SocialAuthController::class, 'postSocialRegister']);
-
-                if( config('auth.reset_password') ) {
-                    $routeGroup->post('/reset', [PasswordResetController::class, 'postReset']);
-                    $routeGroup->post('/reset/{token}', [PasswordResetController::class, 'postResetWithToken']);
-                }
             });
         });
 

@@ -75,6 +75,7 @@ class UsersView extends AbstractController
                     changeDiv.classList.add("action-button", "change");
                     changeDiv.setAttribute("data-tooltip", translate("admin.users.change"));
                     changeDiv.setAttribute("href", u(`admin/users/edit/${data[0]}`));
+                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
                     changeDiv.appendChild(changeIcon);
@@ -85,6 +86,7 @@ class UsersView extends AbstractController
                     deleteDiv.setAttribute("data-tooltip", translate("admin.users.delete"));
                     deleteDiv.setAttribute("data-deleteaction", data[0]);
                     deleteDiv.setAttribute("data-deletepath", "users");
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

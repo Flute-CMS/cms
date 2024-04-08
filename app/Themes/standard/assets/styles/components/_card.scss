@@ -1,5 +1,5 @@
 .card {
-    padding: 20px;
+    padding: 25px;
     border-radius: $border-radius;
     background-color: $color-card;
     position: relative;
@@ -8,6 +8,8 @@
         margin-bottom: 20px;
         padding-bottom: 20px;
         border-bottom: 1px solid $color-white-5;
+        font-size: 18px;
+        font-weight: 500;
     
         p {
             color: $color-gray;

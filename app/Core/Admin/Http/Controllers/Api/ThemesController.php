@@ -41,6 +41,8 @@ class ThemesController extends AbstractController
             $setting->value = $settings[$setting->key] ?? $setting->value;
         }
 
+        user()->log('events.theme_settings_changed', $key);
+
         transaction($theme)->run();
 
         return $this->success();
@@ -50,6 +52,8 @@ class ThemesController extends AbstractController
     {
         try {
             $this->actions->activateTheme($key);
+
+            user()->log('events.theme_enabled', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -61,6 +65,7 @@ class ThemesController extends AbstractController
     {
         try {
             $this->actions->disableTheme($key);
+            user()->log('events.theme_disabled', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -72,6 +77,7 @@ class ThemesController extends AbstractController
     {
         try {
             $this->actions->installTheme($key);
+            user()->log('events.theme_installed', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -129,7 +135,7 @@ class ThemesController extends AbstractController
         $extractPath = BASE_PATH . 'app/Themes/';
 
         try {
-            if( $this->themeManager->getTheme($folderName) )
+            if ($this->themeManager->getTheme($folderName))
                 return $this->error(__('admin.themes_list.theme_already_exists'));
         } catch (\Exception $e) {
             // 
@@ -154,6 +160,8 @@ class ThemesController extends AbstractController
             fs()->remove($themePath);
             return $this->error(__('admin.themes_list.loader_not_found'));
         }
+
+        user()->log('events.theme_uploaded', $folderName);
 
         return $this->json([
             'themeName' => $folderName,
@@ -183,6 +191,7 @@ class ThemesController extends AbstractController
     {
         try {
             $this->actions->uninstallTheme($key);
+            user()->log('events.theme_deleted', $key);
 
             return $this->success();
         } catch (\Exception $e) {

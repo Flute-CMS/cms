@@ -10,6 +10,7 @@
             ) {
                 driverObj.destroy();
                 completeTip('admin_settings');
+                $('#start-tour-btn').hide();
             }
         },
         steps: [
@@ -185,5 +186,20 @@
         ],
     });
 
-    driverObj.drive();
+    $(document).ready(function () {
+        // Создание кнопки
+        let tourButton = $('<button/>', {
+            id: 'start-tour-btn',
+            html: '<i class="ph ph-flag"></i>',
+            click: function () {
+                driverObj.drive();
+                $(this).hide();
+            },
+        })
+            .attr('data-tooltip', translate('def.start_tour'))
+            .attr('data-tooltip-conf', 'left');
+
+        // Добавление кнопки в body
+        $('body').append(tourButton);
+    });
 })();

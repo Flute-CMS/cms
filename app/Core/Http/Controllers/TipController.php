@@ -23,6 +23,8 @@ class TipController extends AbstractController
         $tips[$tip]['completed'] = true;
 
         fs()->updateConfig(BASE_PATH . 'config/tips_complete.php', $tips);
+        
+        user()->log('events.tip_completed', $tip);
 
         return $this->success();
     }

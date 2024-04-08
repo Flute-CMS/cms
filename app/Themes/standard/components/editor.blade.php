@@ -8,6 +8,7 @@
             </script>
             <script src="@asset('assets/js/editor/table.js')"></script>
             <script src="@asset('assets/js/editor/alignment.js')"></script>
+            <script src="@asset('assets/js/editor/raw.js')"></script>
             <script src="@asset('assets/js/editor/delimiter.js')"></script>
             <script src="@asset('assets/js/editor/embed.js')"></script>
             <script src="@asset('assets/js/editor/header.js')"></script>

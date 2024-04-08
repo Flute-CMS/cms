@@ -2,6 +2,8 @@
 
 use Flute\Core\Admin\Http\Controllers\Api\ApiController;
 use Flute\Core\Admin\Http\Controllers\Api\CacheController;
+use Flute\Core\Admin\Http\Controllers\Api\ComposerController;
+use Flute\Core\Admin\Http\Controllers\Api\CurrencyController;
 use Flute\Core\Admin\Http\Controllers\Api\DatabasesController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterSocialsController;
@@ -19,8 +21,11 @@ use Flute\Core\Admin\Http\Controllers\Api\RolesController;
 use Flute\Core\Admin\Http\Controllers\Api\ServersController;
 use Flute\Core\Admin\Http\Controllers\Api\SocialsController;
 use Flute\Core\Admin\Http\Controllers\Api\ThemesController;
+use Flute\Core\Admin\Http\Controllers\Api\TranslateController;
 use Flute\Core\Admin\Http\Controllers\Api\UsersController;
 use Flute\Core\Admin\Http\Controllers\Views\ApiView;
+use Flute\Core\Admin\Http\Controllers\Views\ComposerView;
+use Flute\Core\Admin\Http\Controllers\Views\CurrenciesView;
 use Flute\Core\Admin\Http\Controllers\Views\DatabasesView;
 use Flute\Core\Admin\Http\Controllers\Views\Footer\FooterSocialsView;
 use Flute\Core\Admin\Http\Controllers\Views\Footer\FooterView;
@@ -35,6 +40,7 @@ use Flute\Core\Admin\Http\Controllers\Views\RolesView;
 use Flute\Core\Admin\Http\Controllers\Views\ServersView;
 use Flute\Core\Admin\Http\Controllers\Views\SocialsView;
 use Flute\Core\Admin\Http\Controllers\Views\ThemesView;
+use Flute\Core\Admin\Http\Controllers\Views\TranslatesView;
 use Flute\Core\Admin\Http\Controllers\Views\UsersView;
 use Flute\Core\Admin\Http\Controllers\Views\NavbarView;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
@@ -46,6 +52,7 @@ $router->group(function ($router) {
     $router->middleware(HasPermissionMiddleware::class);
 
     $router->group(function (RouteGroup $admin) {
+        $admin->get('', [IndexView::class, 'index']);
         $admin->get('/', [IndexView::class, 'index']);
         $admin->get('/settings', [MainSettingsView::class, 'index']);
 
@@ -122,6 +129,21 @@ $router->group(function ($router) {
             $adminModule->get('/add', [DatabasesView::class, 'add']);
             $adminModule->get('/edit/{id}', [DatabasesView::class, 'update']);
         }, '/databases');
+
+        $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->get('/list', [CurrenciesView::class, 'list']);
+            $adminModule->get('/add', [CurrenciesView::class, 'add']);
+            $adminModule->get('/edit/{id}', [CurrenciesView::class, 'update']);
+        }, '/currency');
+
+        $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->get('/list', [ComposerView::class, 'list']);
+            $adminModule->get('/add', [ComposerView::class, 'add']);
+        }, '/composer');
+
+        $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->get('/list', [TranslatesView::class, 'list']);
+        }, '/translate');
 
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->get('/list', [FooterView::class, 'list']);
@@ -235,6 +257,19 @@ $router->group(function ($router) {
         }, '/databases');
 
         $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->post('/add', [CurrencyController::class, 'add']);
+            $adminModule->put('/{id}', [CurrencyController::class, 'edit']);
+            $adminModule->delete('/{id}', [CurrencyController::class, 'delete']);
+        }, '/currency');
+
+        $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->delete('/{id}', [ComposerController::class, 'delete']);
+            $adminModule->post('/install', [ComposerController::class, 'install']);
+            $adminModule->post('/uninstall', [ComposerController::class, 'uninstall']);
+            $adminModule->get('/table', [ComposerController::class, 'table']);
+        }, '/composer');
+
+        $admin->group(function (RouteGroup $adminModule) {
             $adminModule->post('/add', [ApiController::class, 'add']);
             $adminModule->delete('/{id}', [ApiController::class, 'delete']);
         }, '/api');
@@ -263,6 +298,10 @@ $router->group(function ($router) {
             $adminModule->get('/translations', [CacheController::class, 'translations']);
             $adminModule->get('/styles', [CacheController::class, 'styles']);
         }, '/cache');
+
+        $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->post('/change', [TranslateController::class, 'edit']);
+        }, '/translate');
 
         // 
     }, 'admin/api');

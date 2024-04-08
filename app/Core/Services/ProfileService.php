@@ -29,59 +29,68 @@ class ProfileService
         return $this->disableMainInfo;
     }
 
-    public function addMod( ProfileModInterface $mod )
+    public function addMod(ProfileModInterface $mod)
     {
         $this->mods->set($mod->getKey(), $mod);
     }
 
-    public function addTab( ProfileTabInterface $tab )
+    public function addTab(ProfileTabInterface $tab)
     {
         $this->tabs->set($tab->getKey(), $tab);
     }
 
-    public function searchMode( string $key ) : bool
+    public function searchMode(string $key): bool
     {
         return $this->mods->containsKey($key);
     }
 
-    public function searchTab( string $key ) : bool
+    public function searchTab(string $key): bool
     {
         return $this->tabs->containsKey($key);
     }
 
-    public function renderMode( string $key, User $user )
+    public function renderMode(string $key, User $user)
     {
-        if( !$this->mods->containsKey($key) )
+        if (!$this->mods->containsKey($key))
             throw new \RuntimeException("Mod $key not found");
 
         return $this->mods->get($key)->render($user);
     }
 
-    public function renderTab( string $key, User $user )
+    public function renderTab(string $key, User $user)
     {
-        if( !$this->tabs->containsKey($key) )
+        if (!$this->tabs->containsKey($key))
             throw new \RuntimeException("Tab $key not found");
 
         return $this->tabs->get($key)->render($user);
     }
-
     public function getMods(): array
     {
-        $result = [];
+        $mods = $this->mods->map(function ($mod) {
+            $info = $mod->getSidebarInfo();
+            $info['position'] = $info['position'] ?? 0;
+            return $info;
+        })->toArray();
 
-        foreach( $this->mods as $key => $mod )
-            $result[$key] = $mod->getSidebarInfo();
+        uasort($mods, function ($a, $b) {
+            return $a['position'] <=> $b['position'];
+        });
 
-        return $result;
+        return $mods;
     }
 
     public function getTabs(): array
     {
-        $result = [];
+        $tabs = $this->tabs->map(function ($tab) {
+            $info = $tab->getSidebarInfo();
+            $info['position'] = $info['position'] ?? 0;
+            return $info;
+        })->toArray();
 
-        foreach( $this->tabs as $key => $tab )
-            $result[$key] = $tab->getSidebarInfo();
+        uasort($tabs, function ($a, $b) {
+            return $a['position'] <=> $b['position'];
+        });
 
-        return $result;
+        return $tabs;
     }
 }

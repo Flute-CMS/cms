@@ -5,6 +5,7 @@ namespace Flute\Core\Database\Entities;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
+use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 
 /**
  * @Entity()
@@ -54,6 +55,17 @@ class Server
 
     public function __construct()
     {
+        $this->dbconnections = new PivotedCollection();
         $this->created_at = new \DateTime();
+    }
+
+    public function getDbConnection(string $mod)
+    {
+        foreach ($this->dbconnections as $dbConnection) {
+            if ($dbConnection->mod === $mod) {
+                return $dbConnection;
+            }
+        }
+        return null;
     }
 }

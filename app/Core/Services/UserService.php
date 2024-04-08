@@ -63,7 +63,7 @@ class UserService
                 $this->sessionExpired();
 
             if ((bool) config('auth.security_token') !== true || (bool) config('auth.security_token') === true && ($tokenInfo && $_SERVER['HTTP_USER_AGENT'] === $tokenInfo->userDevice->deviceDetails && $tokenInfo->userDevice->ip === request()->ip())) {
-                $this->currentUser = $tokenInfo->user;
+                $this->currentUser = $this->get($tokenInfo->user->id);
                 session()->set('user_id', $tokenInfo->user->id);
             } else
                 $this->sessionExpired();

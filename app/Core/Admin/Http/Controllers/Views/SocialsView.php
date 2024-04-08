@@ -68,6 +68,7 @@ class SocialsView extends AbstractController
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-tooltip", translate("admin.socials.delete"));
                     deleteDiv.setAttribute("data-deletesocial", data[0]);
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);
@@ -76,6 +77,7 @@ class SocialsView extends AbstractController
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
                     changeDiv.setAttribute("data-tooltip", translate("admin.socials.change"));
+                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     changeDiv.setAttribute("href", u(`admin/socials/edit/${data[0]}`));
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
@@ -87,6 +89,7 @@ class SocialsView extends AbstractController
                         disableDiv.classList.add("action-button", "disable");
                         disableDiv.setAttribute("data-tooltip", translate("admin.socials.disable_social"));
                         disableDiv.setAttribute("data-disablesocial", data[0]);
+                        disableDiv.setAttribute("data-tooltip-conf", "left");
                         let disableIcon = make("i");
                         disableIcon.classList.add("ph-bold", "ph-power");
                         disableDiv.appendChild(disableIcon);
@@ -99,6 +102,7 @@ class SocialsView extends AbstractController
                         activeDiv.classList.add("action-button", "activate");
                         activeDiv.setAttribute("data-tooltip", translate("admin.socials.enable_social"));
                         activeDiv.setAttribute("data-activatesocial", data[0]);
+                        activeDiv.setAttribute("data-tooltip-conf", "left");
                         let activeIcon = make("i");
                         activeIcon.classList.add("ph-bold", "ph-power");
                         activeDiv.appendChild(activeIcon);

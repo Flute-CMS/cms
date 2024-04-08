@@ -3,9 +3,6 @@
     'title' => __('admin.title', ['name' => __('admin.databases.title')]),
 ])
 
-@push('header')
-@endpush
-
 @push('content')
     <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
@@ -20,7 +17,4 @@
     </div>
 
     {!! $table !!}
-@endpush
-
-@push('footer')
 @endpush

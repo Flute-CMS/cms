@@ -78,7 +78,11 @@
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
             <label for="performanceMode">
-                @t('admin.app.performance_mode_label')</label>
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.app.performance_mode_label')
+            </label>
             <small class="form-text text-muted">@t('admin.app.performance_mode_description')</small>
         </div>
         <div class="col-sm-9">
@@ -89,7 +93,7 @@
     </div>
 
     <!-- Ключ -->
-    <div class="position-relative row form-group">
+    {{-- <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label required">
             <label for="key">
                 @t('admin.app.key_label')
@@ -100,7 +104,7 @@
             <input name="key" id="key" placeholder="@t('admin.app.key_label')" type="password" class="form-control"
                 value="{{ config('app.key') }}" required>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Логотип -->
     {{-- <div class="position-relative row form-group">
@@ -149,8 +153,8 @@
             <small class="form-text text-muted">@t('admin.app.flute_copyright_description')</small>
         </div>
         <div class="col-sm-9">
-            <input name="flute_copyright" role="switch" id="flute_copyright" type="checkbox" class="form-check-input"
-                {{ config('app.flute_copyright') ? 'checked' : '' }}>
+            <input name="flute_copyright" role="switch" id="flute_copyright" type="checkbox"
+                class="form-check-input" {{ config('app.flute_copyright') ? 'checked' : '' }}>
             <label for="flute_copyright"></label>
         </div>
     </div>
@@ -186,6 +190,35 @@
                     @t('admin.app.notifications_unread')
                 </option>
             </select>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group align-items-start">
+        <div class="col-sm-3 col-form-label required">
+            <label for="favicon">
+                Favicon
+            </label>
+            <small>@t('admin.app.favicon_desc')</small>
+        </div>
+        <div class="col-sm-9">
+            <div class="d-flex flex-column">
+                <input type="file" name="favicon" id="favicon" class="form-control" accept="image/*">
+                <img class="example-image" src="@asset('favicon.ico')" alt="">
+            </div>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group align-items-start">
+        <div class="col-sm-3 col-form-label required">
+            <label for="logo">
+                @t('admin.app.logo')
+            </label>
+        </div>
+        <div class="col-sm-9">
+            <div class="d-flex flex-column">
+                <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
+                <img class="example-image" src="@asset(config('app.logo'))" alt="">
+            </div>
         </div>
     </div>
 

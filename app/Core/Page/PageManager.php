@@ -135,15 +135,23 @@ class PageManager
         /** @var PageEditorParser $parser */
         $parser = app(PageEditorParser::class);
 
-        return $parser->parse($this->blocks);
+        $parse = '';
+
+        try {
+            $parse = $parser->parse($this->blocks);
+        } catch (\RuntimeException $e) {
+            logs()->error($e);
+        }
+
+        return $parse;
     }
 
-    public function isEditorDisabled() : bool
+    public function isEditorDisabled(): bool
     {
         return $this->disabled;
     }
 
-    public function disablePageEditor() : self
+    public function disablePageEditor(): self
     {
         $this->disabled = true;
 
@@ -196,12 +204,12 @@ class PageManager
     ): Page {
         $page = new Page;
         $page->route = $route;
-        $page->title = $title;
-        $page->description = $description;
+        $page->title = $title ?? "Custom page";
+        $page->description = $description ?? "Description of custom page";
         $page->keywords = $keywords;
         $page->robots = $robots;
-        $page->og_title = $og_title;
-        $page->og_description = $og_description;
+        $page->og_title = $og_title ?? "Custom page";
+        $page->og_description = $og_description ?? "Description of custom page";
         $page->og_image = $og_image;
 
         transaction($page)->run();

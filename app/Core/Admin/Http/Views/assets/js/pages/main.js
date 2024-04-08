@@ -1,59 +1,67 @@
-$('[data-id]').on('click', function (e) {
-    e.preventDefault();
-    let el = $(this);
-    let tabId = el.data('id');
+$(document).ready(function () {
+    $('input[type="file"]').change(function() {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $(this).siblings('.example-image').attr('src', e.target.result);
+            }.bind(this);
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
 
-    if (el.hasClass('active')) return;
+    $('[data-id]').on('click', function (e) {
+        e.preventDefault();
+        let el = $(this);
+        let tabId = el.data('id');
 
-    // Обновляем классы для вкладок и контента
-    $('[data-id]').not(el).removeClass('active');
-    el.addClass('active');
-    $('.settings-container > div').removeClass('active');
-    $(`.settings-container > #${tabId}`).addClass('active');
+        if (el.hasClass('active')) return;
 
-    // Обновляем URL без перезагрузки страницы
-    if (history.pushState) {
-        let newUrl =
-            window.location.protocol +
-            '//' +
-            window.location.host +
-            window.location.pathname +
-            '?tab=' +
-            tabId;
-        window.history.pushState({ path: newUrl }, '', newUrl);
-    }
-});
+        // Обновляем классы для вкладок и контента
+        $('[data-id]').not(el).removeClass('active');
+        el.addClass('active');
+        $('.settings-container > div').removeClass('active');
+        $(`.settings-container > #${tabId}`).addClass('active');
 
-// Функция для обработки параметра tab при загрузке страницы
-function handleTabParameter() {
-    let params = new URLSearchParams(window.location.search);
-    let tab = params.get('tab') ?? 'app';
+        // Обновляем URL без перезагрузки страницы
+        if (history.pushState) {
+            let newUrl =
+                window.location.protocol +
+                '//' +
+                window.location.host +
+                window.location.pathname +
+                '?tab=' +
+                tabId;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
+    });
 
-    if (tab) {
-        let el = $(`[data-id=${tab}]`);
-        if (el.length) {
-            el.click(); // Активируем вкладку если она существует
+    // Функция для обработки параметра tab при загрузке страницы
+    function handleTabParameter() {
+        let params = new URLSearchParams(window.location.search);
+        let tab = params.get('tab') ?? 'app';
+
+        if (tab) {
+            let el = $(`[data-id=${tab}]`);
+            if (el.length) {
+                el.click(); // Активируем вкладку если она существует
+            }
         }
     }
-}
 
-let db_connections = $('[data-database]')
-    .map(function () {
-        return {
-            value: $(this).data('database'),
-            text: $(this).text(),
-        };
-    })
-    .get();
-
-// Вызываем функцию при загрузке страницы
-$(document).ready(function () {
+    let db_connections = $('[data-database]')
+        .map(function () {
+            return {
+                value: $(this).data('database'),
+                text: $(this).text(),
+            };
+        })
+        .get();
     handleTabParameter();
 
     document.getElementById('getMyIp').addEventListener('click', function () {
         fetch(u('admin/api/getip'), {
             headers: {
-                "x-csrf-token":csrfToken,
+                'x-csrf-token': csrfToken,
             },
         })
             .then((response) => response.text())
@@ -111,14 +119,22 @@ $(document).ready(function () {
         '.settings-container > div.active > form',
         (ev) => {
             let $form = $(ev.currentTarget);
+            let id = $('[data-id].active').data('id');
+            let rand = Math.random();
 
             ev.preventDefault();
 
+            if (
+                rand < 0.2 &&
+                id === 'app' &&
+                !$('input[name="flute_copyright"]').is(':checked')
+            ) {
+                let audio = new Audio(u('assets/sounds/fnaf.mp3'));
+                audio.play();
+            }
+
             if (ev.target.checkValidity()) {
-                sendRequest(
-                    serializeForm($form),
-                    `admin/api/settings/` + $('[data-id].active').data('id'),
-                );
+                sendRequestFormData(serializeFormData($form), `admin/api/settings/` + id);
             }
         },
     );
@@ -318,247 +334,268 @@ $(document).ready(function () {
             type: 'modal',
         });
     });
-});
 
-async function createDb(defaultValues = {}, name = null) {
-    return {
-        id: Object.keys(defaultValues).length > 0 ? 'dbEditForm' : 'dbForm',
-        fields: [
-            {
-                type: 'hidden',
-                id: 'lastDbName',
-                default: name ?? '',
-            },
-            {
-                type: 'select',
-                id: 'defaultDatabase',
-                label: translate('admin.default_db'),
-                helpText: translate('admin.default_db_help'),
-                required: true,
-                options: db_connections,
-                default: defaultValues.connection,
-            },
-            {
-                type: 'text',
-                id: 'tablePrefix',
-                label: translate('admin.table_prefix'),
-                placeholder: translate('admin.table_prefix_placeholder'),
-                helpText: translate('admin.table_prefix_help'),
-                default: defaultValues.prefix,
-            },
-            {
-                type: 'text',
-                id: 'dbName',
-                label: translate('admin.db_name'),
-                placeholder: translate('admin.db_name_placeholder'),
-                required: true,
-                default: name,
-            },
-        ],
-    };
-}
+    async function createDb(defaultValues = {}, name = null) {
+        return {
+            id: Object.keys(defaultValues).length > 0 ? 'dbEditForm' : 'dbForm',
+            fields: [
+                {
+                    type: 'hidden',
+                    id: 'lastDbName',
+                    default: name ?? '',
+                },
+                {
+                    type: 'select',
+                    id: 'defaultDatabase',
+                    label: translate('admin.default_db'),
+                    helpText: translate('admin.default_db_help'),
+                    required: true,
+                    options: db_connections,
+                    default: defaultValues.connection,
+                },
+                {
+                    type: 'text',
+                    id: 'tablePrefix',
+                    label: translate('admin.table_prefix'),
+                    placeholder: translate('admin.table_prefix_placeholder'),
+                    helpText: translate('admin.table_prefix_help'),
+                    default: defaultValues.prefix,
+                },
+                {
+                    type: 'text',
+                    id: 'dbName',
+                    label: translate('admin.db_name'),
+                    placeholder: translate('admin.db_name_placeholder'),
+                    required: true,
+                    default: name,
+                },
+            ],
+        };
+    }
 
-async function createDbConnectionFormConfig(defaultValues = {}, name = null) {
-    // ЕБАШИМ КОСТЫЛИ. АХАХАХХАХАХА
-    let connDetails = {};
+    async function createDbConnectionFormConfig(
+        defaultValues = {},
+        name = null,
+    ) {
+        // ЕБАШИМ КОСТЫЛИ. АХАХАХХАХАХА
+        let connDetails = {};
 
-    if (defaultValues.connection) {
-        let test = defaultValues.connection.split(';');
+        if (defaultValues.connection) {
+            let test = defaultValues.connection.split(';');
 
-        for (let val of test) {
-            let valueSplitten = val.split('=');
+            for (let val of test) {
+                let valueSplitten = val.split('=');
 
-            let splittenHost = valueSplitten[0].split(':');
+                let splittenHost = valueSplitten[0].split(':');
 
-            if (splittenHost[1] === 'host') {
-                connDetails.driver = splittenHost[0];
-                connDetails.host = valueSplitten[1];
-            } else {
-                connDetails[valueSplitten[0]] = valueSplitten[1];
+                if (splittenHost[1] === 'host') {
+                    connDetails.driver = splittenHost[0];
+                    connDetails.host = valueSplitten[1];
+                } else {
+                    connDetails[valueSplitten[0]] = valueSplitten[1];
+                }
             }
+        }
+
+        return {
+            id:
+                Object.keys(defaultValues).length > 0
+                    ? 'dbEditConnectionForm'
+                    : 'dbConnectionForm',
+            fields: [
+                {
+                    type: 'hidden',
+                    id: 'lastDbConnectionName',
+                    default: name ?? '',
+                },
+                {
+                    type: 'text',
+                    id: 'dbConnectionName',
+                    label: translate('admin.db_connection_name'),
+                    placeholder: translate(
+                        'admin.db_connection_name_placeholder',
+                    ),
+                    required: true,
+                    default: name ?? '',
+                },
+                {
+                    type: 'select',
+                    id: 'dbDriver',
+                    label: translate('admin.db_driver'),
+                    required: true,
+                    options: [
+                        { value: 'mysql', text: translate('admin.mysql') },
+                        {
+                            value: 'postgresql',
+                            text: translate('admin.postgresql'),
+                        },
+                        { value: 'sqlite', text: translate('admin.sqlite') },
+                        // Другие драйверы...
+                    ],
+                    default: connDetails.driver,
+                },
+                {
+                    type: 'text',
+                    id: 'dbHost',
+                    label: translate('admin.db_host'),
+                    placeholder: translate('admin.db_host_placeholder'),
+                    required: true,
+                    default: connDetails.host,
+                },
+                {
+                    type: 'text',
+                    id: 'dbName',
+                    label: translate('admin.db_name'),
+                    placeholder: translate('admin.db_name_placeholder'),
+                    required: true,
+                    default: connDetails.dbname,
+                },
+                {
+                    type: 'text',
+                    id: 'dbUser',
+                    label: translate('admin.db_user'),
+                    placeholder: translate('admin.db_user_placeholder'),
+                    required: true,
+                    default: defaultValues.username,
+                },
+                {
+                    type: 'password',
+                    id: 'dbPassword',
+                    label: translate('admin.db_password'),
+                    placeholder: translate('admin.db_password_placeholder'),
+                    default: defaultValues.password,
+                },
+                {
+                    type: 'number',
+                    id: 'dbPort',
+                    label: translate('admin.db_port'),
+                    placeholder: translate('admin.db_port_placeholder'),
+                    default: connDetails.port || 3306,
+                    required: true,
+                },
+            ],
+        };
+    }
+    document
+        .getElementById('rememberMeDuration')
+        .addEventListener('input', function (e) {
+            let seconds = parseInt(e.target.value, 10);
+            let lang = document.documentElement.lang;
+            let readableDuration = secondsToReadable(seconds, lang);
+            document.getElementById('durationReadable').textContent =
+                readableDuration;
+        });
+
+    function secondsToReadable(seconds, lang) {
+        if (isNaN(seconds) || seconds === 0) {
+            return '';
+        }
+
+        let months = Math.floor(seconds / (3600 * 24 * 30.44)); // Average number of seconds in a month
+        seconds -= months * (3600 * 24 * 30.44);
+
+        let weeks = Math.floor(seconds / (3600 * 24 * 7));
+        seconds -= weeks * (3600 * 24 * 7);
+
+        let days = Math.floor(seconds / (3600 * 24));
+        seconds -= days * (3600 * 24);
+
+        let hours = Math.floor(seconds / 3600);
+        seconds -= hours * 3600;
+
+        let minutes = Math.floor(seconds / 60);
+        seconds -= minutes * 60;
+
+        if (lang === 'ru') {
+            return formatDurationRu(
+                months,
+                weeks,
+                days,
+                hours,
+                minutes,
+                seconds,
+            );
+        } else {
+            return formatDurationEn(
+                months,
+                weeks,
+                days,
+                hours,
+                minutes,
+                seconds,
+            );
         }
     }
 
-    return {
-        id:
-            Object.keys(defaultValues).length > 0
-                ? 'dbEditConnectionForm'
-                : 'dbConnectionForm',
-        fields: [
-            {
-                type: 'hidden',
-                id: 'lastDbConnectionName',
-                default: name ?? '',
-            },
-            {
-                type: 'text',
-                id: 'dbConnectionName',
-                label: translate('admin.db_connection_name'),
-                placeholder: translate('admin.db_connection_name_placeholder'),
-                required: true,
-                default: name ?? '',
-            },
-            {
-                type: 'select',
-                id: 'dbDriver',
-                label: translate('admin.db_driver'),
-                required: true,
-                options: [
-                    { value: 'mysql', text: translate('admin.mysql') },
-                    {
-                        value: 'postgresql',
-                        text: translate('admin.postgresql'),
-                    },
-                    { value: 'sqlite', text: translate('admin.sqlite') },
-                    // Другие драйверы...
-                ],
-                default: connDetails.driver,
-            },
-            {
-                type: 'text',
-                id: 'dbHost',
-                label: translate('admin.db_host'),
-                placeholder: translate('admin.db_host_placeholder'),
-                required: true,
-                default: connDetails.host,
-            },
-            {
-                type: 'text',
-                id: 'dbName',
-                label: translate('admin.db_name'),
-                placeholder: translate('admin.db_name_placeholder'),
-                required: true,
-                default: connDetails.dbname,
-            },
-            {
-                type: 'text',
-                id: 'dbUser',
-                label: translate('admin.db_user'),
-                placeholder: translate('admin.db_user_placeholder'),
-                required: true,
-                default: defaultValues.username,
-            },
-            {
-                type: 'password',
-                id: 'dbPassword',
-                label: translate('admin.db_password'),
-                placeholder: translate('admin.db_password_placeholder'),
-                default: defaultValues.password,
-            },
-            {
-                type: 'number',
-                id: 'dbPort',
-                label: translate('admin.db_port'),
-                placeholder: translate('admin.db_port_placeholder'),
-                default: connDetails.port || 3306,
-                required: true,
-            },
-        ],
-    };
-}
-document
-    .getElementById('rememberMeDuration')
-    .addEventListener('input', function (e) {
-        let seconds = parseInt(e.target.value, 10);
-        let lang = document.documentElement.lang;
-        let readableDuration = secondsToReadable(seconds, lang);
-        document.getElementById('durationReadable').textContent =
-            readableDuration;
-    });
-
-function secondsToReadable(seconds, lang) {
-    if (isNaN(seconds) || seconds === 0) {
-        return '';
+    function formatDurationRu(months, weeks, days, hours, minutes, seconds) {
+        let parts = [];
+        if (months > 0) {
+            parts.push(
+                months + ' ' + pluralRu(months, ['месяц', 'месяца', 'месяцев']),
+            );
+        }
+        if (weeks > 0) {
+            parts.push(
+                weeks + ' ' + pluralRu(weeks, ['неделя', 'недели', 'недель']),
+            );
+        }
+        if (days > 0) {
+            parts.push(days + ' ' + pluralRu(days, ['день', 'дня', 'дней']));
+        }
+        if (hours > 0) {
+            parts.push(hours + ' ' + pluralRu(hours, ['час', 'часа', 'часов']));
+        }
+        if (minutes > 0) {
+            parts.push(
+                minutes +
+                    ' ' +
+                    pluralRu(minutes, ['минута', 'минуты', 'минут']),
+            );
+        }
+        if (seconds > 0) {
+            parts.push(
+                seconds +
+                    ' ' +
+                    pluralRu(seconds, ['секунда', 'секунды', 'секунд']),
+            );
+        }
+        return parts.join(' и ');
     }
 
-    let months = Math.floor(seconds / (3600 * 24 * 30.44)); // Average number of seconds in a month
-    seconds -= months * (3600 * 24 * 30.44);
+    function formatDurationEn(months, weeks, days, hours, minutes, seconds) {
+        let parts = [];
+        if (months > 0) {
+            parts.push(months + ' ' + (months === 1 ? 'month' : 'months'));
+        }
+        if (weeks > 0) {
+            parts.push(weeks + ' ' + (weeks === 1 ? 'week' : 'weeks'));
+        }
+        if (days > 0) {
+            parts.push(days + ' ' + (days === 1 ? 'day' : 'days'));
+        }
+        if (hours > 0) {
+            parts.push(hours + ' ' + (hours === 1 ? 'hour' : 'hours'));
+        }
+        if (minutes > 0) {
+            parts.push(minutes + ' ' + (minutes === 1 ? 'minute' : 'minutes'));
+        }
+        if (seconds > 0) {
+            parts.push(seconds + ' ' + (seconds === 1 ? 'second' : 'seconds'));
+        }
+        return parts.join(' and ');
+    }
 
-    let weeks = Math.floor(seconds / (3600 * 24 * 7));
-    seconds -= weeks * (3600 * 24 * 7);
+    function pluralRu(n, forms) {
+        return forms[
+            n % 10 === 1 && n % 100 !== 11
+                ? 0
+                : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+                ? 1
+                : 2
+        ];
+    }
 
-    let days = Math.floor(seconds / (3600 * 24));
-    seconds -= days * (3600 * 24);
-
-    let hours = Math.floor(seconds / 3600);
-    seconds -= hours * 3600;
-
-    let minutes = Math.floor(seconds / 60);
-    seconds -= minutes * 60;
-
-    if (lang === 'ru') {
-        return formatDurationRu(months, weeks, days, hours, minutes, seconds);
-    } else {
-        return formatDurationEn(months, weeks, days, hours, minutes, seconds);
-    }
-}
-
-function formatDurationRu(months, weeks, days, hours, minutes, seconds) {
-    let parts = [];
-    if (months > 0) {
-        parts.push(
-            months + ' ' + pluralRu(months, ['месяц', 'месяца', 'месяцев']),
-        );
-    }
-    if (weeks > 0) {
-        parts.push(
-            weeks + ' ' + pluralRu(weeks, ['неделя', 'недели', 'недель']),
-        );
-    }
-    if (days > 0) {
-        parts.push(days + ' ' + pluralRu(days, ['день', 'дня', 'дней']));
-    }
-    if (hours > 0) {
-        parts.push(hours + ' ' + pluralRu(hours, ['час', 'часа', 'часов']));
-    }
-    if (minutes > 0) {
-        parts.push(
-            minutes + ' ' + pluralRu(minutes, ['минута', 'минуты', 'минут']),
-        );
-    }
-    if (seconds > 0) {
-        parts.push(
-            seconds + ' ' + pluralRu(seconds, ['секунда', 'секунды', 'секунд']),
-        );
-    }
-    return parts.join(' и ');
-}
-
-function formatDurationEn(months, weeks, days, hours, minutes, seconds) {
-    let parts = [];
-    if (months > 0) {
-        parts.push(months + ' ' + (months === 1 ? 'month' : 'months'));
-    }
-    if (weeks > 0) {
-        parts.push(weeks + ' ' + (weeks === 1 ? 'week' : 'weeks'));
-    }
-    if (days > 0) {
-        parts.push(days + ' ' + (days === 1 ? 'day' : 'days'));
-    }
-    if (hours > 0) {
-        parts.push(hours + ' ' + (hours === 1 ? 'hour' : 'hours'));
-    }
-    if (minutes > 0) {
-        parts.push(minutes + ' ' + (minutes === 1 ? 'minute' : 'minutes'));
-    }
-    if (seconds > 0) {
-        parts.push(seconds + ' ' + (seconds === 1 ? 'second' : 'seconds'));
-    }
-    return parts.join(' and ');
-}
-
-function pluralRu(n, forms) {
-    return forms[
-        n % 10 === 1 && n % 100 !== 11
-            ? 0
-            : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
-            ? 1
-            : 2
-    ];
-}
-
-// Инициализация при загрузке страницы
-window.onload = function () {
+    // Инициализация при загрузке страницы
     let initialSeconds = document.getElementById('rememberMeDuration').value;
     let lang = document.documentElement.lang;
     let readableDuration = secondsToReadable(
@@ -566,4 +603,4 @@ window.onload = function () {
         lang,
     );
     document.getElementById('durationReadable').textContent = readableDuration;
-};
+});

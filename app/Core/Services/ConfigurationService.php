@@ -163,7 +163,7 @@ class ConfigurationService
                 "notifications" => Expect::string('all')->required(),
             ]),
             "lk" => Expect::structure([
-                "min_amount" => Expect::int(100)->required(),
+                // "min_amount" => Expect::int(100)->required(),
                 "currency_view" => Expect::string()->required(),
                 "oferta_view" => Expect::bool(false)->required(),
             ]),
@@ -193,6 +193,7 @@ class ConfigurationService
                 "csrf_enabled" => Expect::bool(true)->required(),
                 "reset_password" => Expect::bool(true)->required(),
                 "security_token" => Expect::bool(true)->required(),
+                "only_social" => Expect::bool(false),
                 "registration" => Expect::structure([
                     "confirm_email" => Expect::bool()->required(),
                     "social_supplement" => Expect::bool()->required()
@@ -238,11 +239,8 @@ class ConfigurationService
             "lang" => Expect::structure([
                 "locale" => Expect::string("ru")->required(),
                 "cache" => Expect::bool(true)->required(),
-                "available" => Expect::array([
-                    'ru',
-                    'en',
-                    'uk'
-                ]),
+                "available" => Expect::array([]),
+                "all" => Expect::array([]),
             ]),
             "installer" => Expect::structure([
                 "step" => Expect::int()->required(),

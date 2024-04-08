@@ -37,7 +37,6 @@ class AdminSidebarBuilder implements AdminBuilderInterface
             ],
         ],
         'additional' => [
-            
             [
                 'icon' => 'ph-cube',
                 'title' => 'admin.modules.title',
@@ -65,6 +64,24 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 'title' => 'admin.pages.title',
                 'permission' => 'admin.pages',
                 'url' => '/admin/pages/list'
+            ],
+            [
+                'icon' => 'ph-folders',
+                'title' => 'admin.composer.title',
+                'permission' => 'admin.composer',
+                'url' => '/admin/composer/list'
+            ],
+            [
+                'icon' => 'ph-translate',
+                'title' => 'admin.translate.title',
+                'permission' => 'admin.translate',
+                'url' => '/admin/translate/list'
+            ],
+            [
+                'icon' => 'ph-currency-circle-dollar',
+                'title' => 'admin.currency.title',
+                'permission' => 'admin.currency',
+                'url' => '/admin/currency/list'
             ],
             [
                 'icon' => 'ph-database',

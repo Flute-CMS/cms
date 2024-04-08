@@ -61,6 +61,7 @@ class PaymentsPromoView extends AbstractController
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-tooltip", translate("admin.payments.promo.delete"));
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     deleteDiv.setAttribute("data-deletepromo", data[0]);
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
@@ -70,6 +71,7 @@ class PaymentsPromoView extends AbstractController
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
                     changeDiv.setAttribute("data-tooltip", translate("admin.payments.promo.change"));
+                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     changeDiv.setAttribute("href", u(`admin/payments/promo/edit/${data[0]}`));
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");

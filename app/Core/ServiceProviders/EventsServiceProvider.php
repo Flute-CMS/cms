@@ -2,11 +2,11 @@
 
 namespace Flute\Core\ServiceProviders;
 
-
 use Flute\Core\Support\AbstractServiceProvider;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Flute\Core\Support\FluteEventDispatcher;
 use DI\ContainerBuilder;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class EventsServiceProvider extends AbstractServiceProvider
 {
@@ -20,9 +20,10 @@ class EventsServiceProvider extends AbstractServiceProvider
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            EventDispatcher::class => \DI\create(),
-            EventDispatcherInterface::class => \DI\get(EventDispatcher::class),
-            "events" => \DI\get(EventDispatcher::class)
+            FluteEventDispatcher::class => \DI\autowire(),
+            EventDispatcher::class => \DI\get(FluteEventDispatcher::class),
+            EventDispatcherInterface::class => \DI\get(FluteEventDispatcher::class),
+            "events" => \DI\get(FluteEventDispatcher::class)
         ]);
     }
 

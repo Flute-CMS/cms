@@ -49,6 +49,8 @@ class NavigationController extends AbstractController
 
         $this->clearCache();
 
+        user()->log('events.navigation_order_changed');
+
         return $this->success();
     }
 
@@ -85,6 +87,8 @@ class NavigationController extends AbstractController
 
         $this->clearCache();
 
+        user()->log('events.navigation_edit', $item->id);
+
         return $this->success();
     }
 
@@ -116,6 +120,8 @@ class NavigationController extends AbstractController
 
         $this->clearCache();
 
+        user()->log('events.navigation_added', $input['title']);
+
         return $this->success();
     }
 
@@ -129,6 +135,8 @@ class NavigationController extends AbstractController
         transaction($item, 'delete')->run();
 
         $this->clearCache();
+
+        user()->log('events.navigation_deleted', $id);
 
         return $this->success();
     }

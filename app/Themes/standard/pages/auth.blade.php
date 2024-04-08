@@ -12,6 +12,8 @@
     @foreach ($social as $key => $item)
         <a href="{{ url('social/' . $key) }}" class="auth_social_item">
             {!! $item !!}
+
+            <p>{{ $key }}</p>
         </a>
     @endforeach
 @endpush
@@ -22,7 +24,7 @@
         @navigation
         @breadcrumb
         @editor
-        
+
         @stack('container')
 
         <div class="row justify-content-md-center">
@@ -32,7 +34,7 @@
                     <div class="auth_socials mb-4">
                         @stack('auth_socials')
                     </div>
-                    @if (sizeof($social) > 0)
+                    @if (sizeof($social) > 0 && !config('auth.only_social', false))
                         <div class="container_auth_line">
                             <span class="line"></span>
                             <p class="text">@t('auth.auth.via_login')</p>
@@ -41,13 +43,15 @@
                     @endif
                 </div>
                 @flash
-                <div class="card">
-                    {!! $form !!}
-                    <div class="auth_footer mt-3">
-                        <p>@t('auth.do_not_have_account')</p>
-                        <a href="{{ url('register') }}">@t('auth.registration.title')</a>
+                @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
+                    <div class="card">
+                        {!! $form !!}
+                        <div class="auth_footer mt-3">
+                            <p>@t('auth.do_not_have_account')</p>
+                            <a href="{{ url('register') }}">@t('auth.registration.title')</a>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>

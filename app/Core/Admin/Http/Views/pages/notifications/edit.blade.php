@@ -55,8 +55,11 @@
                 <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="icon" id="icon" placeholder="@t('admin.notifications.icon')" type="text" class="form-control"
-                    value="{{ $notification->icon }}" required>
+                <div class="d-flex align-items-center">
+                    <div id="icon-output">{!! $notification->icon !!}</div>
+                    <input name="icon" id="icon" placeholder="@t('admin.notifications.icon')" type="text"
+                        class="form-control" value="{{ $notification->icon }}" required>
+                </div>
             </div>
         </div>
 

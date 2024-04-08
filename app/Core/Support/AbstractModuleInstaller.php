@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Support;
 use Flute\Core\Database\DatabaseConnection;
+use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Modules\ModuleInformation;
 
 abstract class AbstractModuleInstaller
@@ -16,6 +17,11 @@ abstract class AbstractModuleInstaller
     public function getKey(): ?string
     {
         return $this->key;
+    }
+
+    public function getNavItem() : ?NavbarItem
+    {
+        return null;
     }
 
     abstract public function install(ModuleInformation &$module) : bool;

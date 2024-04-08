@@ -49,6 +49,9 @@ class ModulesController extends AbstractController
 
         fs()->dumpFile($moduleJson, \Nette\Utils\Json::encode($module, JSON_PRETTY_PRINT));
 
+        user()->log('events.module_settings_edited', $key);
+
+
         return $this->success(__('def.success'));
     }
 
@@ -58,6 +61,7 @@ class ModulesController extends AbstractController
             $mopd = $this->moduleManager->getModule($key);
 
             $this->actions->activateModule($mopd);
+            user()->log('events.module_activated', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -71,6 +75,7 @@ class ModulesController extends AbstractController
             $mopd = $this->moduleManager->getModule($key);
 
             $this->actions->disableModule($mopd);
+            user()->log('events.module_disabled', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -85,6 +90,8 @@ class ModulesController extends AbstractController
 
             if (!$this->actions->installModule($mopd))
                 return $this->error(__('def.unknown_error'));
+
+            user()->log('events.module_installed', $key);
 
             return $this->success();
         } catch (\Exception $e) {
@@ -197,6 +204,8 @@ class ModulesController extends AbstractController
         cache()->delete('flute.modules.array');
         cache()->delete('flute.modules.json');
 
+        user()->log('events.module_uploaded', $folderName);
+
         return $this->json([
             'moduleName' => $folderName,
             'moduleVersion' => $moduleConfig['version']
@@ -255,6 +264,8 @@ class ModulesController extends AbstractController
             cache()->delete('flute.modules.alldb');
             cache()->delete('flute.modules.array');
             cache()->delete('flute.modules.json');
+
+            user()->log('events.module_deleted', $key);
 
             return $this->success();
         } catch (\Exception $e) {

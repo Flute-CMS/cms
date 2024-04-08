@@ -29,7 +29,7 @@
                 <small>@t('admin.pages.route_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="route" id="route" type="text" class="form-control"
+                <input name="route" id="route" type="text" class="form-control" placeholder="/test"
                     required>
                 <div class="error" id="errorMessage"></div>
             </div>
@@ -41,7 +41,7 @@
                 <label for="title">@t('admin.pages.title_label')</label>
             </div>
             <div class="col-sm-9">
-                <input name="title" id="title" type="text" class="form-control"
+                <input name="title" id="title" type="text" class="form-control" placeholder="some title..."
                     required>
             </div>
         </div>
@@ -171,6 +171,7 @@
 @push('footer')
     <script src="@asset('assets/js/editor/table.js')"></script>
     <script src="@asset('assets/js/editor/alignment.js')"></script>
+    <script src="@asset('assets/js/editor/raw.js')"></script>
     <script src="@asset('assets/js/editor/delimiter.js')"></script>
     <script src="@asset('assets/js/editor/embed.js')"></script>
     <script src="@asset('assets/js/editor/header.js')"></script>

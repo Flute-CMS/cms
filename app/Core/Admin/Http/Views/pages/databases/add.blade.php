@@ -54,6 +54,17 @@
             </div>
         </div>
 
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label required">
+                <label for="additional">
+                    @t('admin.databases.settings')
+                </label>
+            </div>
+            <div class="col-sm-9">
+                <div id="editorAce">[]</div>
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-9 offset-sm-3">
@@ -64,4 +75,9 @@
             </div>
         </div>
     </form>
+@endpush
+
+@push('footer')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
 @endpush

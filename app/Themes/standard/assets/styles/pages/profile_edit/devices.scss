@@ -1,0 +1,21 @@
+.table-devices {
+    width: 100%;
+    
+    .device-details {
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        align-items: center;
+
+        i {
+            font-size: 18px;
+            color: $color-primary;
+        }
+    }
+
+    .device-endsession {
+        color: $color-error;
+        font-weight: 500;
+        font-size: 14px;
+    }
+}

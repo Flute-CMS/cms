@@ -27,9 +27,10 @@ class ProfileRoutes
                     $editMiddleware->add('post', '/avatar', [ImagesController::class, 'updateAvatar']);
 
                     // Detail information edit
-                    $editMiddleware->add('post', '/name', [EditController::class, 'updateName']);
+                    // $editMiddleware->add('post', '/name', [EditController::class, 'updateName']);
                     $editMiddleware->add('post', '/hidden', [EditController::class, 'updateHidden']);
-                    $editMiddleware->add('post', '/uri', [EditController::class, 'updateUri']);
+                    // $editMiddleware->add('post', '/uri', [EditController::class, 'updateUri']);
+                    $editMiddleware->add('delete', '/deletedevice', [EditController::class, 'deleteDevice']);
                     // $editMiddleware->add('post', '/password', [EditController::class, 'updatePassword']);
                 });
 

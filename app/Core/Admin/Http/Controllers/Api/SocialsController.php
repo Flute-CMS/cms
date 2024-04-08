@@ -38,6 +38,8 @@ class SocialsController extends AbstractController
         $social->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? false;
         $social->settings = $request->settings;
 
+        user()->log('events.social_added', $request->key);
+
         transaction($social)->run();
 
         return $this->success();
@@ -45,40 +47,46 @@ class SocialsController extends AbstractController
 
     public function enable(FluteRequest $request, string $id)
     {
-        $payment = $this->getSocial((int) $id);
+        $social = $this->getSocial((int) $id);
 
-        if (!$payment)
+        if (!$social)
             return $this->error(__('admin.socials.not_found'), 404);
 
-        $payment->enabled = true;
+        $social->enabled = true;
 
-        transaction($payment)->run();
+        user()->log('events.social_enabled', $id);
+
+        transaction($social)->run();
 
         return $this->success();
     }
 
     public function disable(FluteRequest $request, string $id)
     {
-        $payment = $this->getSocial((int) $id);
+        $social = $this->getSocial((int) $id);
 
-        if (!$payment)
+        if (!$social)
             return $this->error(__('admin.socials.not_found'), 404);
 
-        $payment->enabled = false;
+        $social->enabled = false;
 
-        transaction($payment)->run();
+        user()->log('events.social_disabled', $id);
+
+        transaction($social)->run();
 
         return $this->success();
     }
 
     public function delete(FluteRequest $request, string $id)
     {
-        $payment = $this->getSocial((int) $id);
+        $social = $this->getSocial((int) $id);
 
-        if (!$payment)
+        if (!$social)
             return $this->error(__('admin.socials.not_found'), 404);
 
-        transaction($payment, 'delete')->run();
+        user()->log('events.social_deleted', $id);
+
+        transaction($social, 'delete')->run();
 
         return $this->success();
     }
@@ -102,6 +110,8 @@ class SocialsController extends AbstractController
         $social->key = $request->key;
         $social->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? false;
         $social->settings = $request->settings;
+
+        user()->log('events.social_changed', $id);
 
         transaction($social)->run();
 

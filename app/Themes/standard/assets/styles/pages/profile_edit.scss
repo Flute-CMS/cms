@@ -1,17 +1,16 @@
 .profile_edit_buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
 
     a {
-        background: $color-disabled;
         display: flex;
         border-radius: ($border-radius / 2);
         align-items: center;
-        gap: 20px;
-        padding: 15px 20px;
-        transition: .3s;
-        color: $color-text;
+        gap: 10px;
+        padding: 20px 20px;
+        transition: background-color $transition;
+        color: $color-inactive;
 
         .profile_edit_flex {
             display: flex;
@@ -19,13 +18,10 @@
             gap: 3px;
 
             .profile_edit_sidebar_header {
-                text-transform: uppercase;
-                color: $color-text;
-                letter-spacing: 0.2px;
+                color: inherit;
                 font-size: 14px;
-                font-weight: bold;
-                line-height: 1.1;
-                transition: .3s;
+                transition: $transition;
+                font-weight: 500;
             }
 
             .profile_edit_sidebar_text {
@@ -39,7 +35,23 @@
             }
         }
 
-        &:hover, &.active {
+        i {
+            color: inherit;
+            width: 20px;
+            font-size: 18px;
+            transition: $transition;
+        }
+
+        &:hover {
+            background-color: $color-white-10;
+            color: $color-text;
+
+            .profile_edit_sidebar_header {
+                color: $color-text;
+            }
+        }
+
+        &.active {
             background-color: $color-primary-light;
             color: $color-primary;
 
@@ -60,11 +72,6 @@
             .profile_edit_sidebar_header {
                 color: $color-text-inverse
             }
-        }
-
-        i {
-            width: 20px;
-            font-size: 22px;
         }
     }
 }

@@ -20,6 +20,8 @@ class PagesController extends AbstractController
 
         page()->savePageBlocks($data['blocks'], $page);
 
+        user()->log('events.custom_pages_edited', $page);
+
         return $this->success();
     }
 

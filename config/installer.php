@@ -5,6 +5,6 @@ return array (
   'finished' => false,
   'params' => 
   array (
-    'lang' => 'en'
+    'lang' => 'en',
   ),
 );

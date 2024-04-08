@@ -30,6 +30,8 @@ class ServersController extends AbstractController
         $server->mod = $request->gameSelect;
         $server->rcon = $request->serverRcon;
 
+        user()->log('events.server_added', $request->serverName . ' ' . $request->serverIp . ':' . $request->serverPort);
+
         transaction($server)->run();
 
         return $this->success();
@@ -41,6 +43,8 @@ class ServersController extends AbstractController
 
         if (!$server)
             return $this->error(__('admin.servers.not_found'), 404);
+
+        user()->log('events.server_deleted', $id);
 
         transaction($server, 'delete')->run();
 
@@ -66,6 +70,8 @@ class ServersController extends AbstractController
         $server->port = $request->serverPort;
         $server->mod = $request->gameSelect;
         $server->rcon = $request->serverRcon;
+
+        user()->log('events.server_changed', $id);
 
         transaction($server)->run();
 

@@ -14,6 +14,6 @@ return array (
   'timezone' => '',
   'notifications' => 'all',
   'mode' => 'default',
-  'share' => false,
+  'share' => true,
   'flute_copyright' => true,
 );

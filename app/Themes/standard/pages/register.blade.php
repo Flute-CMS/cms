@@ -12,6 +12,8 @@
     @foreach ($social as $key => $item)
         <a href="{{ url('social/' . $key) }}" class="auth_social_item">
             {!! $item !!}
+
+            <p>{{ $key }}</p>
         </a>
     @endforeach
 @endpush

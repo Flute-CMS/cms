@@ -121,7 +121,12 @@
     <!-- Конвертация в WebP -->
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
-            <label for="convertToWebp">@t('admin.form_profile.convert_to_webp_label')</label>
+            <label for="convertToWebp">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.form_profile.convert_to_webp_label')
+            </label>
             <small class="form-text text-muted">@t('admin.form_profile.convert_to_webp_description')</small>
         </div>
         <div class="col-sm-9">

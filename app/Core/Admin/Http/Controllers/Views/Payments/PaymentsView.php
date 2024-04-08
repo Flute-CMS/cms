@@ -158,20 +158,15 @@ class PaymentsView extends AbstractController
         foreach ($namespaceMap as $namespace => $paths) {
             foreach ($paths as $path) {
                 if (strpos($namespace, 'Omnipay\\') !== 0) {
-                    // Skip non-Omnipay namespaces
                     continue;
                 }
 
                 $fullPath = realpath($path);
                 if ($fullPath && is_dir($fullPath)) {
-                    // Scan the Omnipay directory for gateway classes
                     $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullPath));
                     foreach ($files as $file) {
-
                         if ($file->isFile() && $file->getExtension() == 'php') {
                             $filename = $file->getFilename();
-                            // Check if the file name ends with 'Gateway.php'
-
                             if (substr($filename, -11) == 'Gateway.php') {
                                 $gatewayClassShortName = substr($filename, 0, -4);
                                 $gatewayClass = $namespace . $gatewayClassShortName;
@@ -180,7 +175,9 @@ class PaymentsView extends AbstractController
                                     $gatewayInstance = new $gatewayClass();
 
                                     if (is_callable([$gatewayInstance, 'getName'])) {
-                                        $result[Helper::getGatewayShortName($gatewayClass)] = $gatewayInstance->getName();
+                                        $driverName = Helper::getGatewayShortName($gatewayClass);
+                                        $result[$driverName]['name'] = $gatewayInstance->getName();
+                                        $result[$driverName]['parameters'] = $this->getGatewayParameters($gatewayInstance);
                                     }
                                 }
                             }
@@ -190,21 +187,32 @@ class PaymentsView extends AbstractController
             }
         }
 
-        $classMap = app()->getLoader()->getClassMap();
-        foreach ($classMap as $class => $path) {
-            if (substr($path, -11) == 'Gateway.php') {
-                if (payments()->gatewayExists($class) && !Strings::contains($class, 'Abstract')) {
-                    $gatewayInstance = new $class();
+        return $result;
+    }
 
-                    if (is_callable([$gatewayInstance, 'getName'])) {
-                        $result[Helper::getGatewayShortName($class)] = $gatewayInstance->getName();
-                    }
+    private function getGatewayParameters($gatewayInstance)
+    {
+        $parameters = [];
+        $reflectionClass = new \ReflectionClass($gatewayInstance);
+
+        foreach ($reflectionClass->getMethods() as $method) {
+            if (strpos($method->name, 'get') === 0) {
+                $methodBody = file_get_contents($method->getFileName());
+                $startLine = $method->getStartLine() - 1;
+                $endLine = $method->getEndLine();
+                $length = $endLine - $startLine;
+
+                $source = implode("\n", array_slice(explode("\n", $methodBody), $startLine, $length));
+
+                if (preg_match('/->getParameter\([\'"]([^\'"]+)[\'"]\)/', $source, $matches)) {
+                    $parameters[] = $matches[1];
                 }
             }
         }
 
-        return $result;
+        return $parameters;
     }
+
 
     protected function getPaymentGateway(int $id): ?PaymentGateway
     {

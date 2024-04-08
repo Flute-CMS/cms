@@ -71,6 +71,8 @@ class UserService
             }
         }
 
+        user()->log('events.user_edited', $user->id);
+
         transaction($user)->run();
 
         return ['status' => 'success', 'message' => 'User updated successfully', 'code' => 200];
@@ -102,6 +104,8 @@ class UserService
                 'code' => 403
             ];
         }
+
+        user()->log('events.user_deleted', $userToDelete->id);
 
         // Фактическое удаление пользователя
         transaction($userToDelete, 'delete')->run();

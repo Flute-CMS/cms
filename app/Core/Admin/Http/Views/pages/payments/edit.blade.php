@@ -48,30 +48,18 @@
                 <select name="adapter" id="adapter" class="form-control">
                     @foreach ($drivers as $key => $item)
                         <option value="{{ $key }}" @if ($gateway->adapter === $key) selected @endif>
-                            {{ $item }}</option>
+                            {{ $item['name'] }}</option>
                     @endforeach
                 </select>
             </div>
         </div>
-        <div class="position-relative row form-group">
-            <div class="col-sm-3 col-form-label">
-                <label for="enabled">
-                    @t('admin.payments.enabled')</label>
-                <small>@t('admin.payments.enabled_description')</small>
-            </div>
-            <div class="col-sm-9">
-                <input name="enabled" role="switch" id="enabled" type="checkbox" class="form-check-input"
-                    @if ($gateway->enabled) checked @endif>
-                <label for="enabled"></label>
-            </div>
-        </div>
-        <div class="position-relative row form-group">
+        <div class="position-relative row form-group align-items-start">
             <div class="col-sm-3 col-form-label required">
                 <label for="addititional">
                     @t('admin.payments.params')
                 </label>
             </div>
-            <div class="col-sm-9" id="parametersContainer">
+            <div class="col-sm-9 parametersEdit" id="parametersContainer">
                 @foreach ($additional as $key => $val)
                     <div class="param-group" id="param-group-{{ $key }}">
                         <input type="text" name="paramNames[]" class="form-control" placeholder="Key" required=""
@@ -94,7 +82,8 @@
                 <label for="handleUrl">Handle URL</label>
             </div>
             <div class="col-sm-9">
-                <input id="handleUrl" type="text" class="form-control" readonly value="{{ url('/api/lk/handle/'.$gateway->adapter) }}">
+                <input id="handleUrl" type="text" class="form-control" readonly
+                    value="{{ url('/api/lk/handle/' . $gateway->adapter) }}">
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -113,6 +102,18 @@
                 <input id="failUrl" type="text" class="form-control" readonly value="{{ url('/lk/fail') }}">
             </div>
         </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="enabled">
+                    @t('admin.payments.enabled')</label>
+                <small>@t('admin.payments.enabled_description')</small>
+            </div>
+            <div class="col-sm-9">
+                <input name="enabled" role="switch" id="enabled" type="checkbox" class="form-check-input"
+                    @if ($gateway->enabled) checked @endif>
+                <label for="enabled"></label>
+            </div>
+        </div>
 
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
@@ -127,5 +128,9 @@
 @endpush
 
 @push('footer')
+    <script type="text/javascript">
+        var drivers = {!! json_encode($drivers) !!};
+    </script>
+
     @at('Core/Admin/Http/Views/assets/js/pages/payments/add.js')
 @endpush

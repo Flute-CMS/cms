@@ -17,7 +17,7 @@
             <i class="{{ $val['icon'] }}"></i>
             <div class="profile_edit_flex">
                 <div class="profile_edit_sidebar_header">{{ __($val['name']) }}</div>
-                <div class="profile_edit_sidebar_text">{{ __($val['desc']) }}</div>
+                {{-- <div class="profile_edit_sidebar_text">{{ __($val['desc']) }}</div> --}}
             </div>
         </a>
     @endforeach

@@ -38,6 +38,10 @@ function serializeForm($form) {
         }
     });
 
+    if ($('#editorAce').length > 0) {
+        paramObj.editorContent = ace.edit('editorAce').getValue();
+    }
+
     // Assign additional parameters to a specific key, or directly to paramObj
     paramObj.additional = additionalParams;
 
@@ -93,7 +97,95 @@ function sendRequest(data, path = null, method = 'POST') {
     return result;
 }
 
+function serializeFormData($form) {
+    let formData = new FormData($form[0]);
+    let additionalParams = {};
+
+    // Process dynamic additional parameters
+    $form.find('input[name="paramNames[]"]').each(function (index) {
+        let name = $(this).val();
+        let value =
+            $form.find('input[name="paramValues[]"]').eq(index).val() || '';
+        if (name) {
+            additionalParams[name] = value;
+        }
+    });
+
+    // Добавляем неотмеченные чекбоксы
+    $form.find('input[type="checkbox"]').each(function () {
+        formData.set(this.name, this.checked);
+    });
+
+    if ($('#editorAce').length > 0) {
+        formData.set('editorContent', ace.edit('editorAce').getValue());
+    }
+
+    // Append additional parameters to formData
+    Object.keys(additionalParams).forEach((key) => {
+        formData.append(key, additionalParams[key]);
+    });
+
+    return formData;
+}
+
+function sendRequestFormData(data, path = null, method = 'POST') {
+    let result = null;
+
+    $.ajax({
+        url: u(path),
+        type: method,
+        data: data,
+        contentType: false,
+        processData: false,
+        async: false,
+        success: function (response) {
+            toast({
+                message: response?.success || translate('def.success'),
+                type: 'success',
+            });
+
+            result = response;
+
+            Modals.clear();
+
+            if (method === 'DELETE') {
+                window.location.reload();
+            } else {
+                if (!path.includes('admin/api/settings')) {
+                    $('button[type="submit"]').attr('disabled', true);
+
+                    setTimeout(() => {
+                        if ('referrer' in document) {
+                            window.location = document.referrer;
+                        } else {
+                            window.history.back();
+                        }
+                    }, 2000);
+                }
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error('error request', jqXHR, textStatus, errorThrown);
+            toast({
+                message:
+                    jqXHR.responseJSON?.error ?? translate('def.unknown_error'),
+                type: 'error',
+            });
+
+            result = jqXHR.responseJSON;
+        },
+    });
+
+    return result;
+}
+
 $(document).ready(function () {
+    if ($('#editorAce').length > 0) {
+        let editor = ace.edit('editorAce');
+        editor.setTheme('ace/theme/solarized_dark');
+        editor.session.setMode('ace/mode/json');
+    }
+
     $(document).on('submit', '[data-form]', (ev) => {
         let $form = $(ev.currentTarget);
 
@@ -126,4 +218,10 @@ $(document).ready(function () {
             // $(this).parent().parent().parent().remove();
         }
     });
+
+    $('#icon').on('input', function () {
+        let val = $(this).val().trim();
+        $('#icon-output').html(val);
+    });
 });
+

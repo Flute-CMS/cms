@@ -12,7 +12,7 @@ if (!function_exists('__')) {
      * @param  string|null  $locale
      * @return string
      */
-    function __(string $key, array $replacements = [], string $locale = null): string
+    function __(?string $key, array $replacements = [], string $locale = null): string
     {
         $translator = translation();
 

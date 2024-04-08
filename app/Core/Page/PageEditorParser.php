@@ -9,8 +9,10 @@ use Flute\Core\Page\Parsers\HeaderParser;
 use Flute\Core\Page\Parsers\ImageParser;
 use Flute\Core\Page\Parsers\ListParser;
 use Flute\Core\Page\Parsers\ParagraphParser;
+use Flute\Core\Page\Parsers\RawParser;
 use Flute\Core\Page\Parsers\RowParser;
 use Flute\Core\Page\Parsers\TableParser;
+use Flute\Core\Page\Parsers\ToggleParser;
 use Flute\Core\Page\Parsers\WidgetParser;
 use Flute\Core\Page\Tunes\AlignmentTune;
 use Flute\Core\Page\Tunes\ColTune;
@@ -38,7 +40,8 @@ class PageEditorParser
         'row' => RowParser::class,
         'table' => TableParser::class,
         'widget' => WidgetParser::class,
-        'image' => ImageParser::class
+        'image' => ImageParser::class,
+        'raw' => RawParser::class
     ];
 
     /**

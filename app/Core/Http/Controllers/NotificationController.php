@@ -21,16 +21,16 @@ class NotificationController extends AbstractController
         ]);
     }
 
-    public function delete( FluteRequest $fluteRequest, int $id )
+    public function delete( FluteRequest $fluteRequest, $id )
     {
-        notification()->delete($id);
+        notification()->delete((int) $id);
 
         return $this->success();
     }
 
-    public function read( FluteRequest $fluteRequest, int $id )
+    public function read( FluteRequest $fluteRequest, $id )
     {
-        notification()->setViewed($id);
+        notification()->setViewed((int) $id);
 
         return $this->success();
     }

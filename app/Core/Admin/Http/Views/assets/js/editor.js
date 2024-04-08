@@ -56,10 +56,10 @@ window.colMdEditor = class ColMdTune {
     save() {
         return this.md;
     }
-}
+};
 
 window.editorTools = {
-    ...window.editorTools ?? {},
+    ...(window.editorTools ?? {}),
     ...{
         header: {
             class: Header,
@@ -74,6 +74,7 @@ window.editorTools = {
             inlineToolbar: true,
             tunes: ['alignment'],
         },
+        raw: RawTool,
         image: {
             class: ImageTool,
             inlineToolbar: ['link'],

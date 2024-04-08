@@ -13,7 +13,7 @@
         </a>
         <div>
             <h2>@t('admin.navigation.edit_title', [
-                'name' => $navigation->title
+                'name' => $navigation->title,
             ])</h2>
             <p>@t('admin.navigation.edit_description')</p>
         </div>
@@ -30,8 +30,7 @@
             </div>
             <div class="col-sm-9">
                 <input name="title" id="title" placeholder="@t('admin.navigation.navigation_label')" type="text" class="form-control"
-                    value="{{ $navigation->title }}"
-                    required>
+                    value="{{ $navigation->title }}" required>
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -43,7 +42,11 @@
 
             </div>
             <div class="col-sm-9">
-                <input name="icon" id="icon" placeholder="@t('admin.navigation.icon_label')" type="text" class="form-control" value="{{ $navigation->icon }}">
+                <div class="d-flex align-items-center">
+                    <div id="icon-output"><i class="{!! $navigation->icon !!}"></i></div>
+                    <input name="icon" id="icon" placeholder="@t('admin.navigation.icon_label')" type="text" class="form-control"
+                        value="{{ $navigation->icon }}" required>
+                </div>
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -53,17 +56,19 @@
                 </label>
             </div>
             <div class="col-sm-9">
-                <input name="url" id="url" placeholder="@t('admin.navigation.url_label')" type="text" class="form-control" value="{{ $navigation->url }}">
+                <input name="url" id="url" placeholder="@t('admin.navigation.url_label')" type="text" class="form-control"
+                    value="{{ $navigation->url }}">
             </div>
         </div>
-        <div class="position-relative row form-group" @if(empty($navigation->url)) style="display: none" @endif>
+        <div class="position-relative row form-group" @if (empty($navigation->url)) style="display: none" @endif>
             <div class="col-sm-3 col-form-label">
                 <label for="new_tab">
                     @t('admin.navigation.new_tab')</label>
                 <small>@t('admin.navigation.new_tab_description')</small>
             </div>
             <div class="col-sm-9">
-                <input name="new_tab" role="switch" id="new_tab" type="checkbox" class="form-check-input" @if($navigation->new_tab) checked @endif>
+                <input name="new_tab" role="switch" id="new_tab" type="checkbox" class="form-check-input"
+                    @if ($navigation->new_tab) checked @endif>
                 <label for="new_tab"></label>
             </div>
         </div>
@@ -75,7 +80,7 @@
             </div>
             <div class="col-sm-9">
                 <input name="visible_only_for_guests" role="switch" id="visible_only_for_guests" type="checkbox"
-                    class="form-check-input"  @if($navigation->visibleOnlyForGuests) checked @endif>
+                    class="form-check-input" @if ($navigation->visibleOnlyForGuests) checked @endif>
                 <label for="visible_only_for_guests"></label>
             </div>
         </div>
@@ -87,7 +92,7 @@
             </div>
             <div class="col-sm-9">
                 <input name="visible_only_for_logged_in" role="switch" id="visible_only_for_logged_in" type="checkbox"
-                    class="form-check-input" @if($navigation->visibleOnlyForLoggedIn) checked @endif>
+                    class="form-check-input" @if ($navigation->visibleOnlyForLoggedIn) checked @endif>
                 <label for="visible_only_for_logged_in"></label>
             </div>
         </div>
@@ -102,7 +107,8 @@
                         @foreach ($roles as $role)
                             <div class="form-checkbox">
                                 <input class="form-check-input" name="roles[{{ $role->id }}]" type="checkbox"
-                                    value="{{ $role->id }}" id="roles[{{ $role->id }}]" @if($navigation->hasRole($role)) checked @endif>
+                                    value="{{ $role->id }}" id="roles[{{ $role->id }}]"
+                                    @if ($navigation->hasRole($role)) checked @endif>
                                 <label class="form-check-label" for="roles[{{ $role->id }}]"
                                     style="color: {{ $role->color }} !important;">
                                     {{ $role->name }}

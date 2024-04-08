@@ -19,6 +19,15 @@ class AuthController extends AbstractController
 {
     public function getLogin(FluteRequest $request)
     {
+        if( config('auth.only_social', false) ) {
+            $providers = social()->getAll();
+            
+            if( sizeof($providers) === 1 ) {
+                $key = array_key_first($providers);
+                return redirect(url("social/$key"));
+            }
+        }
+
         $form = $this->getAuthForm();
 
         return view('pages/auth', [
@@ -148,8 +157,8 @@ class AuthController extends AbstractController
             return response()->redirect('/');
         } catch (\Exception $e) {
             logs()->error($e);
-
-            return response()->error(500, __('def.unknown_error'));
+            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            return response()->error(500, $message);
         }
     }
 

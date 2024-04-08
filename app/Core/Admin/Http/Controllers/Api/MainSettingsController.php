@@ -33,7 +33,11 @@ class MainSettingsController extends AbstractController
             return $this->error('Invalid settings');
         }
 
-        return $this->configServices[$tab]->updateConfig($request->input());
+        $params = $request->input();
+
+        $params['files'] = $request->files;
+
+        return $this->configServices[$tab]->updateConfig($params);
     }
 
     public function createLog(FluteRequest $fluteRequest)

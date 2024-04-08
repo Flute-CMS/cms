@@ -60,54 +60,54 @@ $(document).ready(function () {
         });
     });
 
-    $('.profile_label').each(function () {
-        let dataInput = $(this).data('input');
+    // $('.profile_label').each(function () {
+    //     let dataInput = $(this).data('input');
 
-        let $container = $(this).find('.input-container');
-        let $button = $(this).find('.save-button');
-        let $input = $(this).find("input[type='text']");
-        let $textError = $('<div class="input-error"></div>').insertAfter(
-            $container,
-        ); // Элемент для ошибки
+    //     let $container = $(this).find('.input-container');
+    //     let $button = $(this).find('.save-button');
+    //     let $input = $(this).find("input[type='text']");
+    //     let $textError = $('<div class="input-error"></div>').insertAfter(
+    //         $container,
+    //     ); // Элемент для ошибки
 
-        $input.on('input', function () {
-            isSaved = false;
-            $button.addClass('active');
-            $container.addClass('active').removeClass('error success');
-            $textError.hide(); // Скрыть сообщение об ошибке при изменении значения
-        });
+    //     $input.on('input', function () {
+    //         isSaved = false;
+    //         $button.addClass('active');
+    //         $container.addClass('active').removeClass('error success');
+    //         $textError.hide(); // Скрыть сообщение об ошибке при изменении значения
+    //     });
 
-        $button.on('click', function (e) {
-            e.preventDefault();
+    //     $button.on('click', function (e) {
+    //         e.preventDefault();
 
-            if (!$(this).hasClass('active')) return;
+    //         if (!$(this).hasClass('active')) return;
 
-            $textError.hide(); // Скрыть сообщение об ошибке перед отправкой запроса
+    //         $textError.hide(); // Скрыть сообщение об ошибке перед отправкой запроса
 
-            $.post(
-                u(`profile/edit/${dataInput}`),
-                {
-                    value: $input.val(),
-                },
-                function (data) {
-                    $container.addClass('success').removeClass('active error');
-                    isSaved = true;
-                    $button.removeClass('active');
-                },
-            ).fail(function (jqXHR) {
-                try {
-                    let error = JSON.parse(jqXHR.responseText);
-                    $container.addClass('error').removeClass('active success');
-                    $textError
-                        .text(error?.error?.message ?? error?.error)
-                        .show(); // Отображение сообщения об ошибке
-                } catch (error) {
-                    $container.addClass('error').removeClass('active success');
-                    $textError.text('Something wrong..').show(); // Отображение сообщения об ошибке
-                }
-            });
-        });
-    });
+    //         $.post(
+    //             u(`profile/edit/${dataInput}`),
+    //             {
+    //                 value: $input.val(),
+    //             },
+    //             function (data) {
+    //                 $container.addClass('success').removeClass('active error');
+    //                 isSaved = true;
+    //                 $button.removeClass('active');
+    //             },
+    //         ).fail(function (jqXHR) {
+    //             try {
+    //                 let error = JSON.parse(jqXHR.responseText);
+    //                 $container.addClass('error').removeClass('active success');
+    //                 $textError
+    //                     .text(error?.error?.message ?? error?.error)
+    //                     .show(); // Отображение сообщения об ошибке
+    //             } catch (error) {
+    //                 $container.addClass('error').removeClass('active success');
+    //                 $textError.text('Something wrong..').show(); // Отображение сообщения об ошибке
+    //             }
+    //         });
+    //     });
+    // });
 });
 
 document.addEventListener('click', function (event) {

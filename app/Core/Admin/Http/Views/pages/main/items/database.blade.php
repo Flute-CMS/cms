@@ -31,7 +31,7 @@
     </div>
 
     <!-- Управление подключениями -->
-    <div class="position-relative row form-group" id="tip_con">
+    <div class="position-relative row form-group align-items-start" id="tip_con">
         <div class="col-sm-3 col-form-label">
             <label>@t('admin.form_database.manage_connections_label')</label>
             <small class="form-text text-muted">@t('admin.form_database.manage_connections_description')</small>
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Управление базами данных -->
-    <div class="position-relative row form-group" id="tip_dbs">
+    <div class="position-relative row form-group align-items-start" id="tip_dbs">
         <div class="col-sm-3 col-form-label">
             <label>@t('admin.form_database.manage_databases_label')</label>
             <small class="form-text text-muted">@t('admin.form_database.manage_databases_description')</small>

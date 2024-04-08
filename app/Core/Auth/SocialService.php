@@ -76,6 +76,26 @@ class SocialService
     }
 
     /**
+     * Get all registered social providers
+     * 
+     * @return array
+     */
+    public function getAll(): array
+    {
+        return $this->registeredProviders;
+    }
+
+    /**
+     * If socials is empty
+     * 
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return empty($this->registeredProviders);
+    }
+
+    /**
      * Add and register a social
      *
      * @param string $key
@@ -89,11 +109,11 @@ class SocialService
      */
     public function addSocial(string $key, array $settings, string $icon, bool $enabled = true): SocialNetwork
     {
-        $socialNetwork              = new SocialNetwork();
-        $socialNetwork->key         = $key;
-        $socialNetwork->settings    = Json::encode($settings);
-        $socialNetwork->icon        = $icon;
-        $socialNetwork->enabled     = $enabled;
+        $socialNetwork = new SocialNetwork();
+        $socialNetwork->key = $key;
+        $socialNetwork->settings = Json::encode($settings);
+        $socialNetwork->icon = $icon;
+        $socialNetwork->enabled = $enabled;
 
         transaction($socialNetwork)->run();
 
@@ -119,10 +139,10 @@ class SocialService
             'value' => $userProfile->identifier,
         ])->fetchOne();
 
-        if( $userSocial )
+        if ($userSocial)
             return $userSocial->user;
 
-        if( app('auth.registration.social_supplement') )
+        if (app('auth.registration.social_supplement'))
             throw new NeedRegistrationException($userProfile);
 
         return $this->registerNewUser($userProfile, $social['entity']);
@@ -139,24 +159,24 @@ class SocialService
      * 
      * @return mixed
      */
-    public function authenticate( string $socialNetworkName, bool $bind = false )
+    public function authenticate(string $socialNetworkName, bool $bind = false)
     {
         $this->registerHybridAuth($socialNetworkName, $bind);
 
         $adapter = $this->hybridauth->authenticate($socialNetworkName);
-        
+
         $userProfile = $adapter->getUserProfile();
 
         try {
             $this->hybridauth->disconnectAllAdapters();
-        } catch(InvalidApplicationCredentialsException $e) {
+        } catch (InvalidApplicationCredentialsException $e) {
             logs()->error($e);
         }
 
         $adapter->disconnect();
         $adapter->getStorage()->clear();
 
-        if( !$userProfile )
+        if (!$userProfile)
             throw new Exception('User profile load failed.');
 
         return $userProfile;
@@ -166,11 +186,11 @@ class SocialService
      * Display the registered social media platforms.
      * @return array
      */
-    public function toDisplay() : array
+    public function toDisplay(): array
     {
         $result = [];
 
-        foreach( $this->registeredProviders as $provider ) {
+        foreach ($this->registeredProviders as $provider) {
             $result[$provider['entity']->key] = $provider['entity']->icon;
         }
 
@@ -179,9 +199,13 @@ class SocialService
 
     public function clearAuthData()
     {
-        $this->registerHybridAuth();
+        try {
+            $this->registerHybridAuth();
 
-        $this->hybridauth->disconnectAllAdapters();
+            $this->hybridauth->disconnectAllAdapters();
+        } catch (Exception $e) {
+            // ignore stupid errors
+        }
     }
 
     /**
@@ -190,9 +214,9 @@ class SocialService
      * @return array
      * @throws SocialNotFoundException
      */
-    public function retrieveSocialNetwork(string $socialNetworkName ): array
+    public function retrieveSocialNetwork(string $socialNetworkName): array
     {
-        if( !isset( $this->registeredProviders[$socialNetworkName] ) )
+        if (!isset($this->registeredProviders[$socialNetworkName]))
             throw new SocialNotFoundException($socialNetworkName);
 
         return $this->registeredProviders[$socialNetworkName];
@@ -202,9 +226,9 @@ class SocialService
      * Initialize Hybridauth with registered providers.
      * @throws InvalidArgumentException
      */
-    public function registerHybridAuth( string $socialNetworkName = null, bool $bind = false ) : void
+    public function registerHybridAuth(string $socialNetworkName = null, bool $bind = false): void
     {
-        if( !$this->hybridauth )
+        if (!$this->hybridauth)
             $this->hybridauth = new Hybridauth([
                 'callback' => url($bind ? "profile/social/bind/$socialNetworkName" : "social/$socialNetworkName")->get(),
                 'providers' => $this->registeredProviders
@@ -218,11 +242,24 @@ class SocialService
      * @return User
      * @throws Throwable
      */
-    protected function registerNewUser( Profile $userProfile, SocialNetwork $socialNetwork): User
+    protected function registerNewUser(Profile $userProfile, SocialNetwork $socialNetwork): User
     {
+        $email = $userProfile->email;
+
+        // If user has a email, we just delete them
+        if ($userProfile->email) {
+            $findUser = $this->userRepository->select()->where([
+                'email' => $userProfile->email
+            ])->fetchOne();
+
+            if (!empty($findUser)) {
+                $email = null;
+            }
+        }
+
         $user = new User();
         $user->name = $userProfile->displayName;
-        $user->email = $userProfile->email;
+        $user->email = $email;
         $user->avatar = $userProfile->photoURL ?? config('profile.default_avatar');
         $user->banner = config('profile.default_banner');
         $user->verified = true;

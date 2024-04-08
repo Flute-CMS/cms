@@ -71,9 +71,11 @@
                                 {{ user()->balance }} {{ app()->get('lk.currency_view') }}
                             </div>
                         </a>
-                        <div class="miniprofile_lang">
-                            <img src="{{ url('assets/img/langs/' . app()->getLang() . '.svg') }}" alt="">
-                        </div>
+                        @if (sizeof(config('lang.available')) > 1)
+                            <div class="miniprofile_lang">
+                                <img src="{{ url('assets/img/langs/' . app()->getLang() . '.svg') }}" alt="">
+                            </div>
+                        @endif
                         <a href="{{ url('logout') }}" class="miniprofile_logout">
                             <i class="ph ph-sign-out"></i>
                         </a>
@@ -84,163 +86,168 @@
                         </div>
                     </div>
                 </div>
-                <div class="miniprofile_langs_container" style="display: none">
-                    @foreach (app('lang.available') as $lang)
-                        <a href="{{ url(null, ['lang' => $lang]) }}"
-                            data-lang="{{ $lang }}"
-                            class="miniprofile_langs_item @if ($lang === app()->getLang()) active @endif">
-                            <img src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
-                            <p>@t('langs.' . $lang)</p>
-                        </a>
-                    @endforeach
-                </div>
+                @if (sizeof(config('lang.available')) > 1)
+                    <div class="miniprofile_langs_container" style="display: none">
+                        @foreach (app('lang.available') as $lang)
+                            <a href="{{ url(null, ['lang' => $lang]) }}" data-lang="{{ $lang }}"
+                                class="miniprofile_langs_item @if ($lang === app()->getLang()) active @endif">
+                                <img src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
+                                <p>@t('langs.' . $lang)</p>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </li>
     @endpush
     @elseauth
     @push('nav_right_controls_guest')
-        <li>
-            <div class="nav_guest_lang">
-                <img src="{{ url('assets/img/langs/' . app()->getLang() . '.svg') }}" alt="">
-            </div>
-            <div class="miniprofile_container">
-                <div class="miniprofile_langs_container">
-                    @foreach (app('lang.available') as $lang)
-                        <a href="{{ url(null, ['lang' => $lang]) }}" 
-                            data-lang="{{ $lang }}"
-                            data-skip="1"
-                            class="miniprofile_langs_item @if ($lang === app()->getLang()) active @endif">
-                            <img src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
-                            <p>@t('langs.' . $lang)</p>
-                        </a>
-                    @endforeach
+        @if (sizeof(config('lang.available')) > 1)
+            <li>
+                <div class="nav_guest_lang">
+                    <img src="{{ url('assets/img/langs/' . app()->getLang() . '.svg') }}" alt="">
                 </div>
-            </div>
-        </li>
+                <div class="miniprofile_container">
+                    <div class="miniprofile_langs_container">
+                        @foreach (app('lang.available') as $lang)
+                            <a href="{{ url(null, ['lang' => $lang]) }}" data-lang="{{ $lang }}" data-skip="1"
+                                class="miniprofile_langs_item @if ($lang === app()->getLang()) active @endif">
+                                <img src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
+                                <p>@t('langs.' . $lang)</p>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </li>
+        @endif
     @endpush
 @endauth
 
-<nav class="navbar container">
-    <div class="row" id="nav_desc">
-        <div class="col-md-12">
-            <div class="navbar--container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    <img src="@asset(app('app.logo'))" loading="lazy" alt="logo">
-                    <h2 class="navbar-brand-name">
-                        {{ app('app.name') }}
-                    </h2>
-                </a>
+<div class="container container-nav">
+    <nav class="navbar">
+        <div class="row" id="nav_desc">
+            <div class="col-md-12">
+                <div class="navbar--container">
+                    <a class="navbar-brand" href="{{ url('/') }}">
+                        <img src="@asset(app('app.logo'))" loading="lazy" alt="logo">
+                        <h2 class="navbar-brand-name">
+                            {{ app('app.name') }}
+                        </h2>
+                    </a>
 
-                @if ($nav_type === 'navbar')
-                    <div class="navbar--container-items">
-                        @if (sizeof(navbar()->all()) > 0)
-                            @foreach (navbar()->all() as $item)
-                                @if (sizeof($item['children']) === 0)
-                                    <a href="{{ url($item['url']) }}"
-                                        @if ($item['new_tab']) target="_blank" @endif
-                                        class="menu-item @if (!sizeof($item['children']) && request()->is($item['url'])) active @endif">
-                                        @if ($item['icon'])
-                                            <i class="{{ $item['icon'] }}"></i>
-                                        @endif
-                                        @if ($item['title'])
-                                            <p>{{ __($item['title']) }}</p>
-                                        @endif
-                                    </a>
-                                @elseif(sizeof($item['children']) > 0)
-                                    <div class="menu-item">
-                                        @if ($item['icon'])
-                                            <i class="{{ $item['icon'] }}"></i>
-                                        @endif
-                                        <p>
-                                            {{ __($item['title']) }}
-                                            <i class="ph ph-caret-down"></i>
-                                        </p>
+                    @if ($nav_type === 'navbar')
+                        <div class="navbar--container-items">
+                            @if (sizeof(navbar()->all()) > 0)
+                                @foreach (navbar()->all() as $item)
+                                    @if (sizeof($item['children']) === 0)
+                                        <a href="{{ url($item['url']) }}"
+                                            @if ($item['new_tab']) target="_blank" @endif
+                                            class="menu-item @if (!sizeof($item['children']) && request()->is($item['url'])) active @endif">
+                                            @if ($item['icon'])
+                                                <i class="{{ $item['icon'] }}"></i>
+                                            @endif
+                                            @if ($item['title'])
+                                                <p>{{ __($item['title']) }}</p>
+                                            @endif
+                                        </a>
+                                    @elseif(sizeof($item['children']) > 0)
+                                        <div class="menu-item">
+                                            @if ($item['icon'])
+                                                <i class="{{ $item['icon'] }}"></i>
+                                            @endif
+                                            <p>
+                                                {{ __($item['title']) }}
+                                                <i class="ph ph-caret-down"></i>
+                                            </p>
 
-                                        @if (isset($item['children']) && count($item['children']) > 0)
-                                            <ul class="submenu">
-                                                @foreach ($item['children'] as $child)
-                                                    <li>
-                                                        <a href="{{ url($child['url']) }}"
-                                                            @if ($child['new_tab']) target="_blank" @endif>
-                                                            @if ($child['icon'])
-                                                                <i class="{{ $child['icon'] }}"></i>
-                                                            @endif
-                                                            {{ __($child['title']) }}
-                                                        </a>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                    </div>
-                                @endif
-                            @endforeach
-                        @endif
-                    </div>
-                @endif
-
-                <div class="navbar-panel">
-                    @can('admin.pages')
-                        @if (!page()->isEditorDisabled())
-                            <label id="editMode">
-                                <input type="checkbox" @if (request()->input('editMode')) checked @endif>
-                                <span class="toggle_background">
-                                    <div class="circle-icon"></div>
-                                    <div class="vertical_line"></div>
-                                </span>
-                            </label>
-                        @endif
-                    @endcan
-
-                    @auth
-                        <ul class="navbar_right_controls">
-                            @stack('nav_right_controls')
-                        </ul>
-                        @elseauth
-                        <div class="default-panel">
-                            <ul class="navbar_right_controls controls_not_auth">
-                                @stack('nav_right_controls_guest')
-                            </ul>
-                            <div class="buttons">
-                                <a class="btn ghosted size-m" role="button" href="{{ url('login') }}">
-                                    @t('def.auth')
-                                </a>
-                                <a href="{{ url('register') }}" class="btn btn--with-icon size-m outline">
-                                    @t('def.register')
-                                    <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
-                                </a>
-                            </div>
+                                            @if (isset($item['children']) && count($item['children']) > 0)
+                                                <ul class="submenu">
+                                                    @foreach ($item['children'] as $child)
+                                                        <li>
+                                                            <a href="{{ url($child['url']) }}"
+                                                                @if ($child['new_tab']) target="_blank" @endif>
+                                                                @if ($child['icon'])
+                                                                    <i class="{{ $child['icon'] }}"></i>
+                                                                @endif
+                                                                {{ __($child['title']) }}
+                                                            </a>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endforeach
+                            @endif
                         </div>
-                    @endauth
+                    @endif
+
+                    <div class="navbar-panel">
+                        @can('admin.pages')
+                            @if (!page()->isEditorDisabled())
+                                <label id="editMode">
+                                    <input type="checkbox" @if (request()->input('editMode')) checked @endif>
+                                    <span class="toggle_background">
+                                        <div class="circle-icon"></div>
+                                        <div class="vertical_line"></div>
+                                    </span>
+                                </label>
+                            @endif
+                        @endcan
+
+                        @auth
+                            <ul class="navbar_right_controls">
+                                @stack('nav_right_controls')
+                            </ul>
+                            @elseauth
+                            <div class="default-panel">
+                                <ul class="navbar_right_controls controls_not_auth">
+                                    @stack('nav_right_controls_guest')
+                                </ul>
+                                <div class="buttons">
+                                    <a class="btn ghosted size-m" role="button" href="{{ url('login') }}">
+                                        @t('def.auth')
+                                    </a>
+                                    @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
+                                        <a href="{{ url('register') }}" class="btn btn--with-icon size-m outline">
+                                            @t('def.register')
+                                            <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endauth
+                    </div>
                 </div>
-            </div>
-            <div class="navbar-search">
-                <div class="input">
-                    <i class="ph-bold ph-magnifying-glass"></i>
-                    <input type="text" id="search" placeholder="@t('def.lets_search')">
+                <div class="navbar-search">
+                    <div class="input">
+                        <i class="ph-bold ph-magnifying-glass"></i>
+                        <input type="text" id="search" placeholder="@t('def.lets_search')">
+                    </div>
+                    <div class="right-search">
+                        <i class="ph-bold ph-x" id="closeSearch"></i>
+                    </div>
+                    <div id="search_container"></div>
                 </div>
-                <div class="right-search">
-                    <i class="ph-bold ph-x" id="closeSearch"></i>
-                </div>
-                <div id="search_container"></div>
             </div>
         </div>
-    </div>
-    <div class="row" id="nav_mobile">
-        <div class="col-md-12">
-            <div class="navbar--container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    <img src="@asset(app('app.logo'))" loading="lazy" alt="logo">
-                    <h2 class="navbar-brand-name">
-                        {{ app('app.name') }}
-                    </h2>
-                </a>
-                <div class="mobile_menu navbar-burger">
-                    <i class="ph ph-list"></i>
+        <div class="row" id="nav_mobile">
+            <div class="col-md-12">
+                <div class="navbar--container">
+                    <a class="navbar-brand" href="{{ url('/') }}">
+                        <img src="@asset(app('app.logo'))" loading="lazy" alt="logo">
+                        <h2 class="navbar-brand-name">
+                            {{ app('app.name') }}
+                        </h2>
+                    </a>
+                    <div class="mobile_menu navbar-burger">
+                        <i class="ph ph-list"></i>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
+</div>
 <div class="navbar_mobile">
     <ul class="navbar_mobile_icons">
         @auth

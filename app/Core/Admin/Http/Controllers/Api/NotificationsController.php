@@ -29,6 +29,8 @@ class NotificationsController extends AbstractController
 
         transaction($notification)->run();
 
+        user()->log('events.custom_notification_added', $request->event);
+
         return $this->success();
     }
 
@@ -38,6 +40,8 @@ class NotificationsController extends AbstractController
 
         if (!$notification)
             return $this->error(__('admin.notifications.not_found'), 404);
+
+        user()->log('events.custom_notification_deleted', $id);
 
         transaction($notification, 'delete')->run();
 
@@ -56,6 +60,8 @@ class NotificationsController extends AbstractController
         $notification->title = $request->title;
         $notification->content = $request->content;
         $notification->url = $request->input('url', null);
+
+        user()->log('events.custom_notification_edited', $id);
 
         transaction($notification)->run();
 

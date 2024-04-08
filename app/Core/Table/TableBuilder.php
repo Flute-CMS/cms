@@ -46,7 +46,8 @@ class TableBuilder
      * @var array Опции конфигурации DataTables.
      */
     protected array $options = [
-        'ajax' => '',
+        'ajax' => [],
+        'autoWidth' => false,
         'language' => [
             'paginate' => [
                 'first' => '<i class="ph ph-caret-double-left"></i>',
@@ -54,6 +55,9 @@ class TableBuilder
                 'next' => '<i class="ph ph-caret-right"></i>',
                 'last' => '<i class="ph ph-caret-double-right"></i>'
             ]
+        ],
+        'order' => [
+            [0, 'desc']
         ]
     ];
 
@@ -113,6 +117,18 @@ class TableBuilder
         // Check for img, url and etc.
     }
 
+    protected function checkOrder()
+    {
+        foreach ($this->columns as $key => $val) {
+            if ($val['isDefaultOrder']) {
+                $this->options['order'][] = [
+                    $key,
+                    $val['defaultOrderType']
+                ];
+            }
+        }
+    }
+
     protected function checkForId(string $key, $value, TableColumn $column)
     {
         // if( $key === 'id' ) $column->setType('number');
@@ -151,6 +167,7 @@ class TableBuilder
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-tooltip", translate("def.delete"));
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     deleteDiv.setAttribute("data-deleteaction", data[0]);
                     deleteDiv.setAttribute("data-deletepath", "{{KEY}}");
                     let deleteIcon = make("i");
@@ -188,6 +205,7 @@ class TableBuilder
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-tooltip", translate("def.delete"));
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     deleteDiv.setAttribute("data-deleteaction", data[0]);
                     deleteDiv.setAttribute("data-deletepath", "{{KEY}}");
                     let deleteIcon = make("i");
@@ -198,6 +216,7 @@ class TableBuilder
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
                     changeDiv.setAttribute("data-tooltip", translate("def.edit"));
+                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     changeDiv.setAttribute("href", u(`admin/{{KEY}}/edit/${data[0]}`));
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
@@ -213,7 +232,7 @@ class TableBuilder
         return $this;
     }
 
-    protected function generateEmpty() : string
+    protected function generateEmpty(): string
     {
         $div = Html::el('div')->class('table_empty');
         $div->addHtml(__('def.no_results_found'));
@@ -228,7 +247,7 @@ class TableBuilder
      */
     public function render()
     {
-        if( sizeof( $this->data ) === 0 && !$this->ajaxPath ) {
+        if (sizeof($this->data) === 0 && !$this->ajaxPath) {
             return $this->generateEmpty();
         }
 
@@ -240,15 +259,21 @@ class TableBuilder
             self::$initialised = true;
         }
 
+        $this->checkOrder();
+
         $JSHtml = sprintf("
             <script>
-                let table = $('#%s');
-                table.DataTable(%s);
-                table.removeClass('skeleton')
+                document.addEventListener('DOMContentLoaded', () => {
+                    let table = $('#%s');
+                    table.DataTable(%s);
+                    table.removeClass('skeleton')
+                });
             </script>",
             $this->tableId,
             Json::encode($this->getTableOptions())
         );
+
+        $JSHtml = $this->setAjaxErrorHandler($JSHtml);
 
         template()->section(
             "footer",
@@ -334,7 +359,7 @@ class TableBuilder
             unset($options['ajax']);
             unset($options['processing']);
         } else if (!empty($this->ajaxPath)) {
-            $options['ajax'] = ['url' => $this->ajaxPath];
+            $options['ajax']['url'] = $this->ajaxPath;
         }
 
         if (!empty($options['columnDefs'])) {
@@ -470,13 +495,28 @@ class TableBuilder
     {
         $this->setTableLang(table_lang());
 
-        $this->options['ajax'] = $this->ajaxPath;
+        $this->options['ajax']['url'] = $this->ajaxPath;
+        $this->options['ajax']['error'] = "{{ERROR_HANDLER}}";
         $this->options['serverSide'] = true;
         $this->options['processing'] = true;
     }
 
+    protected function setAjaxErrorHandler(string $html)
+    {
+        $encodedHTML = str_replace('"{{ERROR_HANDLER}}"', 'function (jqXHR, textStatus, errorThrown) {
+            toast({
+                message:
+                    jqXHR.responseJSON?.error ?? translate("def.unknown_error"),
+                type: "error",
+            });
+        }', $html);
+
+        return $encodedHTML;
+    }
+
     protected function generateHtml(): string
     {
+        $overflowDiv = Html::el('div')->addClass('overflow-table');
         $table = Html::el('table')->id($this->tableId)->addClass("{$this->tableClass} skeleton");
 
         if (!empty($this->columns)) {
@@ -511,7 +551,9 @@ class TableBuilder
             $table->addHtml($tbody);
         }
 
-        return $table->render();
+        $overflowDiv->addHtml($table);
+
+        return $overflowDiv->render();
     }
 
     protected function generateTableId(): void

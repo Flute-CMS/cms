@@ -43,25 +43,48 @@
     flex-direction: row;
     justify-content: center;
     gap: 15px;
+    margin: 0 auto;
 
     .auth_social_item {
-        background: $color-disabled;
-        border-radius: $border-radius;
+        border-radius: $border-radius / 2;
         transition: $transition;
         display: flex;
-        height: 50px;
-        width: 50px;
         align-items: center;
         justify-content: center;
         border: 1px solid $color-white-10;
+        width: 100%;
+        padding: 15px;
+        gap: 10px;
+        color: $color-text;
+        width: 170px;
+        position: relative;
+        overflow: hidden;
+        padding-left: 65px;
+
+        svg,
+        i {
+            position: absolute;
+            left: -15px;
+            bottom: -20px;
+            transform: rotate(-15deg);
+        }
 
         svg {
-            fill: $color-text;
+            fill: darken($color-text, 40);
             transition: $transition;
+            max-width: 80px;
+            max-height: 80px;
         }
 
         i {
-            font-size: 25px;
+            color: darken($color-text, 40);
+            font-size: 80px;
+            transition: 0.3s;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.5;
         }
 
         &:hover {
@@ -73,6 +96,14 @@
             }
 
             i {
+                color: $color-primary;
+            }
+            
+            i, svg {
+                transform: rotate(0deg);
+            }
+
+            p {
                 color: $color-primary;
             }
         }

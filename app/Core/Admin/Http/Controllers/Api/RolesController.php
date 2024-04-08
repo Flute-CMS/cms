@@ -35,6 +35,8 @@ class RolesController extends AbstractController
             }
         }
 
+        user()->log('events.roles_order_changed');
+
         return $this->success();
     }
 
@@ -51,6 +53,8 @@ class RolesController extends AbstractController
             return $this->error(__('admin.roles.no_access'));
 
         transaction($role, 'delete')->run();
+
+        user()->log('events.role_deleted', $roleId);
 
         return $this->success();
     }
@@ -71,6 +75,8 @@ class RolesController extends AbstractController
 
         $this->syncPermissions($role, $request->input('permissions', []));
 
+        user()->log('events.role_added', $request->name);
+
         return $this->success();
     }
 
@@ -90,6 +96,8 @@ class RolesController extends AbstractController
         $role->color = $request->input('color', $role->color);
 
         transaction($role)->run();
+
+        user()->log('events.role_edited', $roleId);
 
         $this->syncPermissions($role, $request->input('permissions', []));
 

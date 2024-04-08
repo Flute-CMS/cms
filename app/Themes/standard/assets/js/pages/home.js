@@ -8,19 +8,37 @@ if (!IS_EDITING) {
         },
         onDestroyed: () => {
             completeTip('editor');
+            $('#start-tour-btn').hide();
         },
         steps: [
             {
                 element: '#editMode',
                 popover: {
                     title: translate('popover.home.title.editor_mode_title'),
-                    description:translate('popover.home.description.editor_mode'),
+                    description: translate(
+                        'popover.home.description.editor_mode',
+                    ),
                 },
             },
         ],
     });
 
-    driverObj.drive();
+    $(document).ready(function () {
+        // Создание кнопки
+        let tourButton = $('<button/>', {
+            id: 'start-tour-btn',
+            html: '<i class="ph ph-flag"></i>',
+            click: function () {
+                driverObj.drive();
+                $(this).hide();
+            },
+        })
+            .attr('data-tooltip', translate('def.start_tour'))
+            .attr('data-tooltip-conf', 'left');
+
+        // Добавление кнопки в body
+        $('body').append(tourButton);
+    });
 } else {
     const driverObj = driver({
         nextBtnText: '—›',

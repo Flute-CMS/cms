@@ -81,5 +81,23 @@
             'save_button' => 'After modifying data, be sure to save all content by clicking this button.',
             'editor_course_completed' => 'That\'s all you need to know for a basic understanding in the editor. For more details, see the official documentation.',
         ],
-    ]
+    ],
+    'composer' => [
+        'title' => [
+            'composer' => 'How does Composer work?',
+            'what_is_this' => 'What is this?',
+            'and_then' => 'And then?',
+            'package_list' => 'Package List',
+            'deletion' => 'Deletion',
+            'practice' => 'Let\'s get practical',
+        ],
+        'description' => [
+            'composer' => 'The Composer package manager allows you to install community libraries',
+            'what_is_this' => 'The <a href="https://packagist.org/" target="_blank">Composer</a> package manager allows you to install community libraries',
+            'and_then' => 'These packages will be very useful when developing modules or templates. Essentially, you can attach absolutely anything from the admin panel here!',
+            'package_list' => 'Here are all the packages installed in the system. If you don\'t know which package is responsible for what, DON\'T TOUCH ANYTHING',
+            'deletion' => 'Each package can be removed from the system. This is useful if you installed something, but it conflicts with another, or you simply no longer need to use it',
+            'practice' => 'Let\'s add our first package',
+        ],
+    ],
 ];

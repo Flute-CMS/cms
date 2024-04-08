@@ -24,7 +24,7 @@
             <div class="col-sm-9">
                 <select name="dbname" id="dbname" class="form-control">
                     @foreach (config('database.databases') as $key => $val)
-                        <option value="{{ $key }}" @if( $key === $connection->dbname ) selected @endif>
+                        <option value="{{ $key }}" @if ($key === $connection->dbname) selected @endif>
                             {{ $key }}</option>
                     @endforeach
                 </select>
@@ -42,6 +42,17 @@
             </div>
         </div>
 
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label required">
+                <label for="additional">
+                    @t('admin.databases.settings')
+                </label>
+            </div>
+            <div class="col-sm-9">
+                <div id="editorAce">{{ $connection->additional }}</div>
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-9 offset-sm-3">
@@ -52,4 +63,9 @@
             </div>
         </div>
     </form>
+@endpush
+
+@push('footer')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
 @endpush

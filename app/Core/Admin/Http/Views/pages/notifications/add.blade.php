@@ -25,7 +25,7 @@
             </div>
             <div class="col-sm-9">
                 <input name="event" id="event" placeholder="@t('admin.notifications.event')" type="text" class="form-control"
-                     required>
+                    required>
                 <small>Example: <code>flute.choose_lang</code></small>
             </div>
         </div>
@@ -38,7 +38,7 @@
             </div>
             <div class="col-sm-9">
                 <input name="title" id="title" placeholder="@t('admin.notifications.title_label')" type="text" class="form-control"
-                     required>
+                    required>
             </div>
         </div>
 
@@ -50,8 +50,11 @@
                 <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="icon" id="icon" placeholder="@t('admin.notifications.icon')" type="text" class="form-control"
-                     required>
+                <div class="d-flex align-items-center">
+                    <div id="icon-output"></div>
+                    <input name="icon" id="icon" placeholder="@t('admin.notifications.icon')" type="text" class="form-control"
+                        required>
+                </div>
             </div>
         </div>
 
@@ -62,8 +65,7 @@
                 </label>
             </div>
             <div class="col-sm-9">
-                <input name="url" id="url" placeholder="@t('admin.notifications.url')" type="text" class="form-control"
-                    >
+                <input name="url" id="url" placeholder="@t('admin.notifications.url')" type="text" class="form-control">
             </div>
         </div>
 

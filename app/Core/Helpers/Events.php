@@ -1,16 +1,16 @@
 <?php
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Flute\Core\Support\FluteEventDispatcher;
 
 if( !function_exists("events") )
 {
     /**
      * Get the events instance
      * 
-     * @return EventDispatcher
+     * @return FluteEventDispatcher
      */
-    function events() : EventDispatcher
+    function events() : FluteEventDispatcher
     {
-        return app()->get(EventDispatcher::class);
+        return app()->get(FluteEventDispatcher::class);
     }
 }

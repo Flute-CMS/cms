@@ -36,6 +36,11 @@ class PaymentInvoice
      */
     public $promoCode;
 
+    /**
+     * @BelongsTo(target="Currency", nullable=true)
+     */
+    public $currency;
+
     /** @Column(type="boolean", default="false") */
     public $isPaid;
 

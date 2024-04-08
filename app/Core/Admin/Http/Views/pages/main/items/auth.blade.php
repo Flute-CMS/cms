@@ -35,6 +35,9 @@
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
             <label for="csrfEnabled">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                    <i class="ph ph-warning"></i>
+                </div>
                 @t('admin.auth_form.csrf_protection_label')
             </label>
             <small class="form-text text-muted">@t('admin.auth_form.csrf_protection_description')</small>
@@ -90,8 +93,22 @@
         </div>
     </div>
 
-    <!-- Поддержка социальных сетей -->
     <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="only_social">
+                @t('admin.auth_form.only_social')
+            </label>
+            <small class="form-text text-muted">@t('admin.auth_form.only_social_label')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="only_social" role="switch" id="only_social" type="checkbox" class="form-check-input"
+                {{ config('auth.only_social', false) ? 'checked' : '' }}>
+            <label for="only_social"></label>
+        </div>
+    </div>
+
+    <!-- Поддержка социальных сетей -->
+    {{-- <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
             <label for="socialSupplement">@t('admin.auth_form.social_support_label')</label>
             <small class="form-text text-muted">@t('admin.auth_form.social_support_description')</small>
@@ -101,7 +118,7 @@
                 {{ config('auth.registration.social_supplement') ? 'checked' : '' }}>
             <label for="socialSupplement"></label>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Валидация -->
     <!-- Валидация логина -->

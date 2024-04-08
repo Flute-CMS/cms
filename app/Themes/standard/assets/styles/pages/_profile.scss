@@ -2,26 +2,26 @@
 
 .profile_tabs {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
 
     >a {
-        height: 50px;
         display: flex;
         align-items: center;
-        font-size: 12px;
+        font-size: 14px;
         gap: 10px;
-        padding: 0 20px;
+        padding: 15px 20px;
         border-radius: ($border-radius / 2);
-        background-color: $color-disabled;
-        color: $color-inactive;
-        text-transform: uppercase;
-        font-weight: 700;
+        color: darken($color-text, 30);
+        font-weight: 500;
         transition: .3s;
         cursor: pointer;
 
         i {
-            font-size: 16px;
+            font-size: 18px;
         }
 
         &:hover {

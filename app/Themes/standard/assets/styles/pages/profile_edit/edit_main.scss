@@ -95,9 +95,12 @@
             justify-content: center;
             align-items: center;
             transition: 0.2s ease;
+            z-index: 2;
 
             .icon {
-                color: #ffffff9d;
+                z-index: 1;
+                pointer-events: none;
+                color: darken($color-text, 50);
                 opacity: 0;
                 transition: opacity 0.2s ease;
             }

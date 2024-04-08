@@ -18,7 +18,7 @@
         </a>
         <div>
             <h2>@t('admin.users.edit_title', [
-                'name' => $user->name,
+                'name' => htmlentities($user->name),
             ])</h2>
             <p>@t('admin.users.edit_description')</p>
         </div>

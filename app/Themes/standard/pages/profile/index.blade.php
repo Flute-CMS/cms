@@ -10,11 +10,6 @@
 
 @push('profile_tabs')
     @if (sizeof($tabs) > 0)
-        <a href='{{ url('profile/' . $user->getUrl()) }}' class="@if (!request()->input('tab')) active @endif">
-            <i class="ph ph-house"></i>
-            {{ __('def.main') }}
-        </a>
-
         @foreach ($tabs as $key => $tab)
             <a href='{{ url('profile/' . $user->getUrl(), [
                 'tab' => $key,
@@ -56,7 +51,8 @@
                 <div class="avatar-loading-indicator"></div>
             </div>
 
-            <div @if (user()->id === $user->id) class="profile_avatar_wrapper editable" data-tooltip="@t('profile.change_avatar')" data-tooltip-conf="top" id="profile_avatar_change" @else class="profile_avatar_wrapper" @endif>
+            <div
+                @if (user()->id === $user->id) class="profile_avatar_wrapper editable" data-tooltip="@t('profile.change_avatar')" data-tooltip-conf="top" id="profile_avatar_change" @else class="profile_avatar_wrapper" @endif>
                 <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="profile_avatar">
                 @if (user()->id === $user->id)
                     <i class="ph ph-pencil-simple profile_change_ico"></i>
@@ -102,7 +98,7 @@
                 @endif
                 @if (user()->hasPermission('admin.users') || $user->id === user()->id)
                     <a role="button" class="btn profile_edit_btn outline"
-                        href="{{  url($user->id !== user()->id ? 'admin/users/edit/' . $user->id : 'profile/edit') }}">
+                        href="{{ url($user->id !== user()->id ? 'admin/users/edit/' . $user->id : 'profile/edit') }}">
                         @t('def.edit')
                     </a>
                 @endif
@@ -121,20 +117,22 @@
 
         @stack('container')
 
-        <div class="row gx-3">
+        <div class="row gx-3 gy-3">
+            <div class="col-md-12">
+                @if (!profile()->isMainDisabled())
+                    <div class="profile_container">
+                        @stack('profile_container')
+                    </div>
+                @endif
+            </div>
             @if (sizeof($tabs) > 0)
-                <div class="col-md-3">
+                <div class="col-md-12">
                     <div class="profile_tabs">
                         @stack('profile_tabs')
                     </div>
                 </div>
             @endif
-            <div class="col-md-{{ !sizeof($tabs) ? 12 : 9 }}">
-                @if (!profile()->isMainDisabled())
-                    <div class="profile_container mb-3">
-                        @stack('profile_container')
-                    </div>
-                @endif
+            <div class="col-md-12">
                 <div class="profile_body">
                     @stack('profile_body')
                 </div>

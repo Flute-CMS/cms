@@ -70,17 +70,6 @@ class ShareStep extends AbstractStep
 
         $lang = config('lang');
         $lang['locale'] = $this->lang;
-        $lang['available'] = [
-            0 => 'en',
-            1 => 'ru',
-            2 => 'pl',
-            3 => 'uk',
-            4 => 'de',
-            5 => 'zh',
-            6 => 'fr',
-            7 => 'es',
-            8 => 'uz',
-        ];
 
         fs()->updateConfig(BASE_PATH . 'config/lang.php', $lang);
     }

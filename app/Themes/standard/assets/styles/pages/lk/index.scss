@@ -65,10 +65,18 @@
     }
 
     &-result {
-        margin-left: 15px;
-        padding-left: 15px;
-        border-left: 1px solid $color-white-10;
         transition: $transition;
+
+        &.center-block {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        &-line {
+            margin-left: 15px;
+            padding-left: 15px;
+            border-left: 1px solid $color-white-10;
+        }
 
         &.inactive {
             opacity: .3;
@@ -157,6 +165,11 @@
         &[aria-invalid=true] {
             border-color: rgba(241, 73, 73, 0.20);
             background: rgba(241, 73, 73, 0.02);
+        }
+
+        &:disabled, &:disabled + label {
+            opacity: .6;
+            cursor: not-allowed;
         }
     }
 

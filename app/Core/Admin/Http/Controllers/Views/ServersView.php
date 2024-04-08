@@ -58,6 +58,7 @@ class ServersView extends AbstractController
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-tooltip", translate("admin.servers.delete"));
                     deleteDiv.setAttribute("data-deleteserver", data[0]);
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);
@@ -67,6 +68,7 @@ class ServersView extends AbstractController
                     changeDiv.classList.add("action-button", "change");
                     changeDiv.setAttribute("data-tooltip", translate("admin.servers.change"));
                     changeDiv.setAttribute("href", u(`admin/servers/edit/${data[0]}`));
+                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
                     changeDiv.appendChild(changeIcon);

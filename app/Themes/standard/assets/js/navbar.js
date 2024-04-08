@@ -15,15 +15,15 @@ $(document).ready(async () => {
     updateNotifications();
     setInterval(updateNotifications, 25000);
 
-    // $(document).on('click', function (event) {
-    //     if (
-    //         !$(event.target).closest(
-    //             '.navbar--container, #openNotifications, #openMiniProfile, #search, .navbar-search',
-    //         ).length
-    //     ) {
-    //         closeAllHandle();
-    //     }
-    // });
+    $(document).on('click', function (event) {
+        if (
+            !$(event.target).closest(
+                '.navbar--container, #openNotifications, #openMiniProfile, #search, .navbar-search',
+            ).length
+        ) {
+            closeAllHandle();
+        }
+    });
 });
 
 function initializeEventHandlers() {
@@ -74,7 +74,7 @@ function initializeEventHandlers() {
             return; // Игнорируем нажатие, если зажата одна из этих клавиш
         }
 
-        if (!$('input').is(':focus') && !isContentEditable) {
+        if (!$('input').is(':focus') && !isContentEditable && !$('textarea').is(':focus')) {
             // Помещаем фокус на целевой input
             $searchInput.focus();
             $searchInput.parent().parent().addClass('opened');

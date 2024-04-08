@@ -16,7 +16,7 @@ class BeforeGatewayProcessingEvent extends Event
     protected $paymentGateway;
     protected $paymentData;
 
-    public function __construct(PaymentInvoice $invoice, PaymentGateway $paymentGateway, GatewayInterface $gateway, array &$paymentData)
+    public function __construct(PaymentInvoice $invoice, PaymentGateway $paymentGateway, ?GatewayInterface $gateway, array &$paymentData)
     {
         $this->invoice = $invoice;
         $this->paymentGateway = $paymentGateway;

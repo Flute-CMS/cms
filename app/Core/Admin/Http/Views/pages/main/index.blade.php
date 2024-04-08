@@ -13,14 +13,38 @@
     </div>
 
     <div class="settings_bar">
-        <button data-id="app">@t('admin.settings_bar.system')</button>
-        <button data-id="auth">@t('admin.settings_bar.auth')</button>
-        <button data-id="database">@t('admin.settings_bar.database')</button>
-        <button data-id="lang">@t('admin.settings_bar.language')</button>
-        <button data-id="mail">@t('admin.settings_bar.smtp')</button>
-        <button data-id="profile">@t('admin.settings_bar.profile')</button>
-        <button data-id="lk">@t('admin.settings_bar.lk')</button>
-        <button data-id="cache">@t('admin.settings_bar.cache')</button>
+        <button data-id="app">
+            <i class="ph ph-gear-fine"></i>
+            @t('admin.settings_bar.system')
+        </button>
+        <button data-id="auth">
+            <i class="ph ph-fingerprint-simple"></i>
+            @t('admin.settings_bar.auth')
+        </button>
+        <button data-id="database">
+            <i class="ph ph-database"></i>
+            @t('admin.settings_bar.database')
+        </button>
+        <button data-id="lang">
+            <i class="ph ph-translate"></i>
+            @t('admin.settings_bar.language')
+        </button>
+        <button data-id="mail">
+            <i class="ph ph-envelope-simple"></i>
+            @t('admin.settings_bar.smtp')
+        </button>
+        <button data-id="profile">
+            <i class="ph ph-user-circle"></i>
+            @t('admin.settings_bar.profile')
+        </button>
+        <button data-id="lk">
+            <i class="ph ph-currency-circle-dollar"></i>
+            @t('admin.settings_bar.lk')
+        </button>
+        <button data-id="cache">
+            <i class="ph ph-cloud"></i>
+            @t('admin.settings_bar.cache')
+        </button>
     </div>
 
     <div class="settings-container">

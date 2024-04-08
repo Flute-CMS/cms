@@ -35,6 +35,16 @@ class TableColumn
     private bool $orderable = true;
 
     /**
+     * @var bool Нужно ли по стандарту использовать эту колонку для order'а
+     */
+    private bool $defaultOrder = false;
+    
+    /**
+     * @var string desc / asc
+     */
+    private string $defaultOrderType = 'desc';
+
+    /**
      * @var bool Возможность поиска по столбцу.
      */
     private bool $searchable = true;
@@ -101,6 +111,11 @@ class TableColumn
         return $this->searchable;
     }
 
+    public function isDefaultOrder() : bool
+    {
+        return $this->defaultOrder;
+    }
+
     public function getClassName()
     {
         return $this->className;
@@ -119,6 +134,11 @@ class TableColumn
     public function getRender()
     {
         return $this->render;
+    }
+
+    public function getDefaultOrderType()
+    {
+        return $this->defaultOrderType;
     }
 
     public function image(bool $rounded = true)
@@ -220,6 +240,18 @@ class TableColumn
         return $this;
     }
 
+    public function setDefaultOrder()
+    {
+        $this->defaultOrder = true;
+        return $this;
+    }
+
+    public function setDefaultOrderType(string $type)
+    {
+        $this->defaultOrderType = $type;
+        return $this;
+    }
+
     /**
      * Преобразует объект TableColumn в ассоциативный массив.
      *
@@ -233,6 +265,8 @@ class TableColumn
             'visible' => $this->visible,
             'orderable' => $this->orderable,
             'searchable' => $this->searchable,
+            'isDefaultOrder' => $this->isDefaultOrder(),
+            'defaultOrderType' => $this->getDefaultOrderType(),
         ];
 
         if ($this->render !== null) {

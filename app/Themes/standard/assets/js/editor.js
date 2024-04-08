@@ -873,6 +873,7 @@ window.editorTools = {
             inlineToolbar: true,
             tunes: ['alignment'],
         },
+        raw: RawTool,
         image: {
             class: ImageTool,
             inlineToolbar: ['link'],
@@ -900,6 +901,7 @@ window.editorTools = {
                         inlineToolbar: true,
                         tunes: ['alignment'],
                     },
+                    raw: RawTool,
                     header: {
                         class: Header,
                         inlineToolbar: ['link'],

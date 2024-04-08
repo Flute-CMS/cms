@@ -19,21 +19,25 @@ class ApiController extends AbstractController
     public function add(FluteRequest $request)
     {
         $api = new ApiKey();
-        
+
         $api->key = $request->input('key');
 
         transaction($api)->run();
 
         $this->syncPermissions($api, $request->input('permissions', []));
 
+        user()->log('events.api_key_added', $request->input('key'));
+
         return $this->success();
     }
 
-    public function delete( FluteRequest $request, $id )
+    public function delete(FluteRequest $request, $id)
     {
         $item = rep(ApiKey::class)->findByPK($id);
 
         transaction($item, 'delete')->run();
+        
+        user()->log('events.api_key_deleted', $request->input('key'));
 
         return $this->success();
     }

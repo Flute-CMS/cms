@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Http\Controllers\Profile;
 
+use Flute\Core\Database\Entities\UserDevice;
 use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Services\ProfileService;
 use Flute\Core\Support\AbstractController;
@@ -14,7 +15,7 @@ class EditController extends AbstractController
     public function __construct()
     {
         $this->currentMode = request()->input('mode', 'main');
-        
+
         page()->disablePageEditor();
 
         $this->middleware(CSRFMiddleware::class);
@@ -42,22 +43,38 @@ class EditController extends AbstractController
         ], true);
     }
 
-    // public function updatePassword( FluteRequest $request )
-    // {
+    public function deleteDevice(FluteRequest $request)
+    {
+        if (!$request->id)
+            return $this->error(__('def.empty_value'));
 
-    // }
+        try {
+            $this->throttle("profile_delete_device");
+        } catch (\Exception $e) {
+            return $this->error(__('auth.too_many_requests'));
+        }
 
-    // public function updateEmail( FluteRequest $request )
-    // {
+        $deviceId = rep(UserDevice::class)->findOne([
+            'user_id' => user()->getCurrentUser()->id,
+            'id' => $request->id
+        ]);
 
-    // }
+        if (!$deviceId)
+            return $this->error(__('profile.errors.device_not_found'), 404);
+
+        user()->log('events.profile_deleted_device', $deviceId->id);
+
+        transaction($deviceId, 'delete')->run();
+
+        return $this->success();
+    }
 
     public function updateUri(FluteRequest $request)
     {
         $value = $request->input('value');
         $strlen = mb_strlen($value);
 
-        if( empty($value) )
+        if (empty($value))
             return $this->updateUser('uri', null);
 
         // Проверка на пустое значение и длину строки
@@ -99,9 +116,17 @@ class EditController extends AbstractController
 
     protected function updateUser(string $key, $value)
     {
+        try {
+            $this->throttle("profile_change_$key");
+        } catch (\Exception $e) {
+            return $this->error(__('auth.too_many_requests'));
+        }
+
         $user = user()->getCurrentUser();
         $user->$key = is_bool($value) ? $value : htmlspecialchars($value);
         transaction($user)->run();
+
+        user()->log('events.profile_' . $key . '_changed');
 
         return $this->success();
     }

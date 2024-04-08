@@ -17,15 +17,20 @@ class LKApiController extends AbstractController
     public function purchase(FluteRequest $request, string $gateway): Response
     {
         try {
-            $payment = payments()->processor()->purchase($gateway, $request->amount, $request->promo);
+            $this->throttle('lk_purchase');
+
+            $payment = payments()->processor()->purchase($gateway, $request->amount, $request->promo, $request->currency);
+
+            // spam.
+            // user()->log('events.purchase_link', $gateway);
 
             return $this->json([
                 'link' => $payment
             ]);
         } catch (\Exception $e) {
             logs()->error($e);
-            // return $this->error($e->getMessage());
-            return $this->error(__('def.unknown_error'));
+            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            return response()->error(500, $message);
         }
     }
 
@@ -33,6 +38,9 @@ class LKApiController extends AbstractController
     {
         try {
             payments()->processor()->handlePayment($gateway);
+
+            user()->log('events.purchased', $gateway);
+
             return redirect(url('/lk/success'));
         } catch (\Exception $e) {
             logs()->warning($e);
@@ -45,6 +53,8 @@ class LKApiController extends AbstractController
         $promo = $request->input('promo');
 
         try {
+            $this->throttle('lk_validate_promo');
+
             $message = payments()->promo()->validate($promo);
 
             return $this->success($message);
@@ -52,9 +62,8 @@ class LKApiController extends AbstractController
             return $this->error($e->getMessage());
         } catch (\Exception $e) {
             logs()->error($e);
-
-            return $this->error(__('def.unknown_error'));
-            // return $this->error($e->getMessage());
+            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            return response()->error(500, $message);
         }
     }
 }

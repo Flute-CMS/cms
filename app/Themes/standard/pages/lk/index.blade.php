@@ -18,18 +18,42 @@
         @stack('container')
 
         <div class="lk">
-            <div class="lk-gateways">
-                <h3 class="lk-header active">@t('lk.page.choose_gateway')</h3>
+            @if (sizeof($payments) > 1)
+                <div class="lk-gateways">
+                    <h3 class="lk-header active">@t('lk.page.choose_gateway')</h3>
 
-                <div class="lk-gateways-content">
-                    @foreach ($payments as $key => $val)
-                        <button data-selectgateway="{{ $key }}" class="gateway">
-                            <img src="@asset('assets/img/payments/' . $key . '.webp')" alt="{{ $key }}">
-                        </button>
-                    @endforeach
+                    @if (sizeof($currencies) > 1)
+                        <div class="custom-select mb-3">
+                            <button class="select-button" role="combobox" aria-labelledby="select button"
+                                aria-haspopup="listbox" aria-expanded="false" aria-controls="select-dropdown">
+                                <span class="selected-value">{{ $currencies[0]->code }}</span>
+                                <span class="arrow"></span>
+                            </button>
+                            <ul class="select-dropdown" role="listbox" id="select-dropdown">
+                                @foreach ($currencies as $key => $item)
+                                    <li role="option">
+                                        <input type="radio" id="{{ $item->code }}" name="social-account"
+                                            @if ($key === 0) checked @endif />
+                                        <label for="{{ $item->code }}">{{ strtoupper($item->code) }}</label>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (sizeof($payments) > 1)
+                        <div class="lk-gateways-content">
+                            @foreach ($payments as $key => $val)
+                                <button data-selectgateway="{{ $key }}" class="gateway"
+                                    @if (!$currencies[0]->hasPaymentByKey($key)) style="display: none;" @endif>
+                                    <img src="@asset('assets/img/payments/' . $key . '.webp')" alt="{{ $key }}">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
-            </div>
-            <div class="lk-result inactive">
+            @endif
+            <div class="lk-result inactive @if (sizeof($payments) > 1) lk-result-line @else center-block @endif">
                 <h3 class="lk-header">@t('lk.page.put_amount_and_promo')</h3>
 
                 <div class="lk-result-content">
@@ -76,7 +100,17 @@
 
 @push('footer')
     <script>
-        const MIN_AMOUNT = {{ config('lk.min_amount') }};
+        @if (sizeof($payments) === 1)
+            let selectedGatewayInit = "{{ array_key_first($payments) }}";
+        @endif
+
+        @if (!empty($currencies))
+            let selectedCurrency = '{{ $currencies[0]->code }}';
+            let selectedGateway = null;
+            let currencyExchangeRates = {!! json_encode($currencyExchangeRates) !!};
+            let currencyGateways = {!! json_encode($currencyGateways) !!};
+            let currencyMinimumAmounts = {!! json_encode($currencyMinimumAmounts) !!};
+        @endif
     </script>
 
     @at(tt('assets/js/pages/lk.js'))

@@ -18,10 +18,37 @@
         </div>
     </div>
 
+    <div class="position-relative row form-group align-items-start">
+        <div class="col-sm-3 col-form-label required">
+            <label for="locale">@t('admin.form_lang.langs_available')</label>
+            <small class="form-text text-muted">@t('admin.form_lang.langs_available_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <div class="checkboxes">
+                @foreach (config('lang.all') as $lang)
+                    <div class="form-checkbox">
+                        <input class="form-check-input" name="available[{{ $lang }}]" type="checkbox"
+                            value="{{ $lang }}" id="available[{{ $lang }}]"
+                            {{ in_array($lang, config('lang.available')) ? 'checked' : '' }}>
+                        <label class="form-check-label flex-row" for="available[{{ $lang }}]">
+                            <img class="lang_img" src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
+                            {{ strtoupper($lang) }}
+                        </label>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
     <!-- Кеширование -->
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
-            <label for="cache">@t('admin.form_lang.caching_label')</label>
+            <label for="cache">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.form_lang.caching_label')
+            </label>
             <small class="form-text text-muted">@t('admin.form_lang.caching_description')</small>
         </div>
         <div class="col-sm-9">

@@ -13,6 +13,9 @@
         'main_desc' => 'Profile settings',
         'social_desc' => 'Social network settings',
         'devices_desc' => 'Active sessions settings',
+        'security' => 'Security',
+        'invoices' => 'Invoices',
+        'theme' => 'Theme'
     ],
     's_main' => [
         'info' => 'Basic information',
@@ -39,6 +42,22 @@
     "errors" => [
         'social_binded' => 'Social network already bound to the profile',
         'social_not_connected' => 'You don\'t have such a social network connected 🤔',
-        'social_only_one' => 'You can\'t unlink the only social network!',
+        'social_only_one' => 'You cannot unlink the only social network!',
+        'uri_taken' => 'A link with this value is already taken!'
     ],
+    'invoices' => [
+        'info' => 'Invoices',
+    ],
+    'security' => [
+        'info' => 'Personal Information',
+        'main_settings' => 'Main Settings'
+    ],
+    'theme' => [
+        'info' => 'Theme Configuration'
+    ],
+    'devices' => [
+        'info' => 'Authorized Devices',
+        'type' => 'Device Type',
+        'end' => 'End'
+    ]
 ];

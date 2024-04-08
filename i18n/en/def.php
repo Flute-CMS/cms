@@ -174,5 +174,9 @@
     'site_not_support' => 'This site is not supported on mobile devices. Content may display incorrectly. Please switch to PC.',
     'i_dcare' => 'I don\'t care!',
     'hide' => 'Hide',
-    'open' => 'Open'
+    'open' => 'Open',
+    'accept' => 'Apply',
+    'not_paid' => 'Not Paid',
+    'paid' => 'Paid',
+    'start_tour' => 'Start Tour!'
 ];

@@ -24,7 +24,7 @@ class NavbarItem
     public $url;
 
     /** @Column(type="boolean", default=false) */
-    public $new_tab;
+    public $new_tab = false;
 
     /** @Column(type="string", nullable=true) */
     public $icon;
@@ -33,10 +33,10 @@ class NavbarItem
     public $position = 0;
 
     /** @Column(type="boolean", default=false) */
-    public $visibleOnlyForGuests;
+    public $visibleOnlyForGuests = false;
 
     /** @Column(type="boolean", default=false) */
-    public $visibleOnlyForLoggedIn;
+    public $visibleOnlyForLoggedIn = false;
 
     /** @BelongsTo(target="NavbarItem", nullable=true, innerKey="parent_id") */
     public $parent;
@@ -52,7 +52,7 @@ class NavbarItem
         $this->roles = new PivotedCollection();
         $this->children = new PivotedCollection();
     }
-    
+
     /**
      * Add a role to the navbar item.
      *
@@ -65,11 +65,11 @@ class NavbarItem
         }
     }
 
-    public function clearRoles() : void
+    public function clearRoles(): void
     {
         $this->roles->clear();
     }
-    
+
     /**
      * has a role
      *

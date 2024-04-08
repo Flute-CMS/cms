@@ -11,6 +11,12 @@ $(document).ready(() => {
     const messageContainer = $('#messagePromo');
     const messageAmount = $('#messageAmount');
 
+    if (typeof selectedGatewayInit !== 'undefined') {
+        selectedGateway = selectedGatewayInit;
+        checkForValidity();
+        updateSubmitButtonState();
+    }
+
     function updateMessage(type, message, container = 'promo') {
         const icon =
             message === ''
@@ -67,6 +73,13 @@ $(document).ready(() => {
         $('.lk-result').removeClass('inactive');
     }
 
+    promoInput.on('keydown', function search(e) {
+        if (e.keyCode == 13) {
+            if (promoButton.hasClass('delete-promo-btn')) return;
+            applyPromo($(this).val());
+        }
+    });
+
     promoInput.on('input', function () {
         updateMessage('', '');
         promoApplied = false;
@@ -76,13 +89,16 @@ $(document).ready(() => {
 
     promoButton.on('click', function () {
         const promoCode = promoInput.val();
-
         if (promoButton.hasClass('delete-promo-btn')) return;
 
+        applyPromo(promoCode);
+    });
+
+    function applyPromo(promo) {
         $.ajax({
             url: u('api/lk/validate-promo'),
             type: 'POST',
-            data: { promo: promoCode },
+            data: { promo: promo },
             success: function (response) {
                 if (response.success) {
                     promoType = response.success.type;
@@ -101,7 +117,7 @@ $(document).ready(() => {
                 updateSubmitButtonState();
             },
             error: function (error) {
-                console.error('Ошибка:', error);
+                console.error('Error:', error);
                 promoType = null;
                 promoValue = 0;
                 updateMessage(
@@ -113,9 +129,13 @@ $(document).ready(() => {
                 updateSubmitButtonState();
             },
         });
-    });
+    }
 
     $(document).on('click', '.delete-promo-btn', function () {
+        deletePromo();
+    });
+
+    function deletePromo() {
         promoInput.val('');
         updateMessage('', '');
         promoApplied = false;
@@ -123,23 +143,59 @@ $(document).ready(() => {
         promoValue = 0;
         togglePromoButtonState(false);
         updateSubmitButtonState();
+    }
+
+    $('.select-dropdown li').on('click', function () {
+        let currencyCode = $(this).find('input').attr('id');
+        selectedCurrency = currencyCode;
+        selectedGateway = null;
+        $('.lk-result').addClass('inactive');
+        $('[data-selectgateway]').removeClass('active');
+        updateGatewayVisibility();
+        updateFinalAmount();
+        deletePromo();
     });
+
+    function updateGatewayVisibility() {
+        $('.gateway').each(function () {
+            let gatewayKey = $(this).data('selectgateway');
+            if (currencyGateways[selectedCurrency].includes(gatewayKey)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
 
     function updateFinalAmount() {
         let amount = parseFloat(amountInput.val());
         if (isNaN(amount)) amount = 0;
 
+        let amountInSelectedCurrency =
+            amount * (currencyExchangeRates[selectedCurrency] || 1);
+
+        $('#amount_result span').text(
+            amountInSelectedCurrency.toFixed(2) + ' ' + selectedCurrency,
+        );
+
         let amountToPay = amount;
+
         if (promoType && promoValue) {
             switch (promoType) {
                 case 'amount':
-                    amount = Math.max(0, amount + promoValue); // Deduct promo value from amount to pay
+                    amountToPay = Math.max(0, amount + promoValue); // Deduct promo value from amount to pay
                     break;
                 case 'percentage':
-                    amountToPay = amount * (1 - promoValue / 100); // Deduct a percentage from amount to pay
+                    amountInSelectedCurrency =
+                        amount *
+                        (1 - promoValue / 100) *
+                        (currencyExchangeRates[selectedCurrency] || 1);
                     break;
                 case 'subtract':
-                    amountToPay = Math.max(MIN_AMOUNT, amount - promoValue);
+                    amountToPay = Math.max(
+                        getMinimumSum(),
+                        amount - promoValue,
+                    );
                     break;
             }
         }
@@ -151,10 +207,17 @@ $(document).ready(() => {
 
         // Display the original amount and the final amount to pay
         $('#amount_result span').text(
-            amount.toFixed(2) + ' ' + $('#amount_result').data('currency'),
+            amountToPay.toFixed(2) + ' ' + $('#amount_result').data('currency'),
         );
         $('#amount_to_pay span').text(
-            amountToPay.toFixed(2) + ' ' + $('#amount_to_pay').data('currency'),
+            amountInSelectedCurrency.toFixed(2) + ' ' + selectedCurrency,
+        );
+    }
+
+    function getMinimumSum() {
+        return (
+            currencyMinimumAmounts[selectedCurrency] /
+            (currencyExchangeRates[selectedCurrency] || 1)
         );
     }
 
@@ -164,14 +227,14 @@ $(document).ready(() => {
             agreeCheckbox.length == 0 ? true : agreeCheckbox.is(':checked');
         let enableButton = selectedGateway && amountIsValid && agreeIsChecked;
 
-        console.log(promoType, promoValue);
-
         if (promoType === 'subtract' && promoValue > 0) {
-            const requiredAmount = promoValue + MIN_AMOUNT;
+            let requiredAmount = getMinimumSum() + promoValue;
             if (parseFloat(amountInput.val()) < requiredAmount) {
                 updateMessage(
                     'error',
-                    translate('lk.min_amount', { ':sum': requiredAmount }),
+                    translate('lk.min_amount', {
+                        ':sum': requiredAmount.toFixed(2),
+                    }),
                 );
                 enableButton = false;
                 promoApplied = false;
@@ -189,17 +252,21 @@ $(document).ready(() => {
         let amount = parseFloat(amountInput.val());
         if (isNaN(amount)) return false;
 
+        let minSum = getMinimumSum();
+
         if (promoType === 'subtract' && promoValue > 0) {
-            return amount >= promoValue + MIN_AMOUNT;
+            return amount >= promoValue + minSum;
         } else {
-            if (amount < MIN_AMOUNT)
+            if (amount < minSum)
                 updateMessage(
                     'error',
-                    translate('lk.min_amount', { ':sum': MIN_AMOUNT }),
+                    translate('lk.min_amount', {
+                        ':sum': minSum.toFixed(2),
+                    }),
                     'amount',
                 );
 
-            return amount >= MIN_AMOUNT;
+            return amount >= minSum;
         }
     }
 
@@ -230,6 +297,7 @@ $(document).ready(() => {
             data: {
                 amount: amount,
                 promo: promoCode,
+                currency: selectedCurrency
             },
             success: function (response) {
                 if (response.link) {

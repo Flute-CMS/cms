@@ -24,9 +24,12 @@ class ProfileConfigService extends AbstractConfigService
 
         try {
             $this->fileSystemService->updateConfig($this->getConfigPath('profile'), $config);
+            user()->log('events.config_updated', 'profile');
+
             return response()->success(__('def.success'));
         } catch (\Exception $e) {
-            return response()->error(500, __('def.unknown_error'));
+            logs()->error($e);
+            return response()->error(500, $e->getMessage() ?? __('def.unknown_error'));
         }
     }
 }

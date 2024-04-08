@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Payments;
 
+use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\PromoCodeUsage;
@@ -29,7 +30,7 @@ class PaymentProcessor
     /**
      * Создание счета и переадресация на оплату
      */
-    public function purchase(string $gatewayName, int $amount, string $promo = null)
+    public function purchase(string $gatewayName, int $amount, ?string $promo = null, ?string $currencyCode = null)
     {
         $gateway = rep(PaymentGateway::class)->findOne([
             'name' => $gatewayName,
@@ -51,7 +52,7 @@ class PaymentProcessor
             $user = user()->getCurrentUser();
             try {
                 $promoData = payments()->promo()->validate($promo, $user->id);
-                $newAmount = $this->calculatePromoBonus($promoData, $amount, $amount);
+                $newAmount = $this->calculatePromoBonus($promoData, $amount);
             } catch (\Exception $e) {
                 // Обработка исключений, связанных с промокодом
                 throw new PaymentException($e->getMessage());
@@ -59,9 +60,18 @@ class PaymentProcessor
         }
 
         $invoice = new PaymentInvoice;
+
+        if (!empty($currencyCode)) {
+            $currency = $this->getCurrency($gateway, $invoice, $currencyCode);
+            if ($currency) {
+                $amount = $this->convertAmountToCurrency($amount, $currency);
+            }
+        }
+
         $invoice->originalAmount = $amount;
-        $invoice->promoCode = payments()->promo()->get($promo);
         $invoice->amount = $newAmount;
+
+        $invoice->promoCode = payments()->promo()->get($promo);
         $invoice->gateway = $gateway->name;
         $invoice->transactionId = uniqid();
         $invoice->isPaid = false;
@@ -74,6 +84,28 @@ class PaymentProcessor
         return $this->processPayment($invoice, $gateway);
     }
 
+    protected function convertAmountToCurrency($amount, Currency $currency)
+    {
+        return $amount * $currency->exchange_rate;
+    }
+
+    protected function getCurrency(PaymentGateway $gateway, PaymentInvoice $paymentInvoice, string $code)
+    {
+        $currency = rep(Currency::class)->findOne([
+            'code' => $code
+        ]);
+
+        if (empty($currency))
+            return;
+
+        if (!$currency->hasPayment($gateway))
+            return;
+
+        $paymentInvoice->currency = $currency;
+
+        return $currency;
+    }
+
     private function applyPromoCode($amount, $promoData)
     {
         switch ($promoData['type']) {
@@ -81,8 +113,8 @@ class PaymentProcessor
                 return max(0, $amount - $promoData['value']);
             case 'percentage':
                 return max(0, $amount - ($amount * $promoData['value'] / 100));
-            case 'subtract':
-                return $amount - $promoData['value'];
+            // case 'subtract':
+            //     return $amount - $promoData['value'];
         }
         return $amount;
     }
@@ -153,7 +185,7 @@ class PaymentProcessor
         if ($promo) {
             try {
                 $promoData = payments()->promo()->validate($promo->code, $user->id);
-                $totalAmount = $this->calculatePromoBonus($promoData, $invoice->amount, $invoice->originalAmount);
+                $totalAmount = $this->calculatePromoBonus($promoData, $invoice->amount);
 
                 $this->recordPromoUsage($promo, $user, $invoice);
             } catch (\Exception $e) {
@@ -164,15 +196,14 @@ class PaymentProcessor
         return $totalAmount;
     }
 
-    public function calculatePromoBonus($promoData, $amount, $originalAmount)
+    public function calculatePromoBonus($promoData, $amount)
     {
         switch ($promoData['type']) {
-            case 'percentage':
-            case 'subtract':
-                return $originalAmount;
+            // case 'subtract':
+            //     return $originalAmount;
 
-            // case 'percentage':
-            //     return $amount * ($promoData['value'] / 100);
+            case 'percentage':
+                return $amount * (1 + ($promoData['value'] / 100));
 
             case 'amount':
                 return $amount + $promoData['value'];
@@ -190,12 +221,6 @@ class PaymentProcessor
         transaction($usage)->run();
     }
 
-    public function updateUserBalance($user, $amount)
-    {
-        $user->balance = $user->balance + $amount;
-        transaction($user)->run();
-    }
-
     /**
      * Инициализация провайдера для покупки
      */
@@ -205,17 +230,20 @@ class PaymentProcessor
 
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional);
 
+
         foreach ($additional as $key => $val) {
-            $additional->$key = str_replace(["{{amount}}", "{{transactionId}}"], [$invoice->originalAmount, $invoice->transactionId], $val);
+            $additional->$key = str_replace(["{{amount}}", "{{transactionId}}", "{{currency}}"], [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code], $val);
         }
 
         $paymentData = array_merge([
             'amount' => $invoice->originalAmount,
             'transactionId' => $invoice->transactionId,
-            'notifyUrl' => url('/api/lk/handle/'.$gateway->getShortName()),
             'cancelUrl' => url('/lk/fail'),
             'returnUrl' => url('/lk/success'),
         ], (array) $additional);
+
+        if (!isset($paymentData['currency']))
+            $paymentData['currency'] = $invoice->currency->code;
 
         $event = $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData), BeforeGatewayProcessingEvent::NAME);
 
@@ -223,6 +251,8 @@ class PaymentProcessor
         $gateway = $event->getGateway();
         $gatewayEntity = $event->getPaymentGateway();
         $invoice = $event->getInvoice();
+
+        $paymentData['notifyUrl'] = url('/api/lk/handle/' . $gateway->getShortName());
 
         $response = $gateway->purchase($paymentData)->send();
 

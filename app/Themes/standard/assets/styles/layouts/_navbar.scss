@@ -1,13 +1,16 @@
 $search-bg: #202020;
 
-.navbar {
+.container-nav {
     position: sticky;
-    top: 10px;
+    z-index: 100;
+    top: 20px;
+}
+
+.navbar {
     margin: 20px auto;
     height: 70px;
     background-color: $color-disabled;
     border-radius: 40px;
-    z-index: 100;
     padding: 5px;
     box-shadow: 0px 2px 20px 0px $color-card;
 
@@ -16,8 +19,6 @@ $search-bg: #202020;
     }
 
     @media (max-width: 768px) {
-        width: calc(100% - 20px);
-
         #nav_desc {
             display: none
         }
@@ -154,8 +155,8 @@ $search-bg: #202020;
 
 .navbar-search {
     position: absolute;
-    width: calc(100% - 20px);
-    height: calc(100% - 20px);
+    width: calc(100% - 44px);
+    height: calc(100% - 19px);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -165,10 +166,10 @@ $search-bg: #202020;
     gap: 10px;
     opacity: 0;
     left: 0;
-    margin-left: 11px;
+    margin-left: 23px;
     transition: $transition;
     visibility: hidden;
-    top: 10px;
+    top: 9px;
 
     &.opened {
         visibility: visible;
@@ -176,9 +177,9 @@ $search-bg: #202020;
     }
 
     &.has-value {
-        width: 100%;
+        width: calc(100% - 25px);
         height: 100%;
-        left: 0;
+        left: 12px;
         border-radius: 50px;
         margin-left: 0;
         top: 0;
@@ -562,19 +563,24 @@ $search-bg: #202020;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--color);
+        color: $color-text;
         border-radius: 0;
         padding: 5px;
         font-size: 23px;
         cursor: pointer;
         position: relative;
-        transition: .3s;
+        transition: $transition;
+
+        &:hover {
+            color: $color-primary;
+        }
     }
 
     #openMiniProfile {
         display: flex;
         justify-content: space-between;
         gap: 15px;
+        transition: none;
 
         >i {
             transition: $transition;
@@ -590,6 +596,12 @@ $search-bg: #202020;
             object-fit: cover;
             height: 50px;
             border-radius: 50%;
+        }
+
+        &:hover {
+            > i {
+                color: $color-primary;
+            }
         }
     }
 }
@@ -662,7 +674,7 @@ $search-bg: #202020;
     }
 
     .notifications_body {
-        padding-right: 10px;
+        // padding-right: 10px;
         max-height: 300px;
         overflow-y: auto;
         display: flex;

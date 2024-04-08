@@ -144,7 +144,9 @@
         'debug_ips_description' => 'Enter addresses where debug mode will be enabled (comma separated)',
         'get_ip' => 'Get my IP',
         'steam_label' => 'STEAM API Key',
-        'steam_description' => 'Key required to get avatars from <a target="_blank" href="https://steamcommunity.com/dev/apikey">Steam</a> servers'
+        'steam_description' => 'Key required to get avatars from <a target="_blank" href="https://steamcommunity.com/dev/apikey">Steam</a> servers',
+        'logo' => 'Logo',
+        'favicon_desc' => 'This is the icon displayed in your browser tab 👀'
     ],
     'lk' => [
         'currency_view_label' => 'Currency (view)',
@@ -184,6 +186,8 @@
         'login_validation_label' => 'Login Validation',
         'password_validation_label' => 'Password Validation',
         'name_validation_label' => 'Name Validation',
+        'only_social' => 'Only social',
+        'only_social_label' => 'Enable authorization and registration only via social networks'
     ],
     'form_database' => [
         'default_database_label' => 'Default Database',
@@ -202,6 +206,8 @@
         'language_description' => 'Select the language for the site interface.',
         'caching_label' => 'Caching',
         'caching_description' => 'Enable or disable caching.',
+        'langs_available' => 'Available languages',
+        'langs_available_description' => 'Select the languages that will be available in Flute'
     ],
     'form_mail' => [
         'smtp_enabled_label' => 'SMTP Enabled',
@@ -573,6 +579,42 @@
         'mod_desc' => 'This is the driver that will be bound to the server',
         'server_label' => 'Server',
         'edit_title' => 'Edit Association',
-        'edit_description' => 'On this page, you can edit the association for a specific server'
-    ]
+        'edit_description' => 'On this page, you can edit the association for a specific server',
+        'settings' => 'Additional settings'
+    ],
+    'composer' => [
+        'title' => 'Composer',
+        'setting_description' => 'On this page, you can add or remove a new Composer package',
+        'name' => 'Package Name',
+        'installed' => 'Installed Version',
+        'add' => 'Add Package',
+        'add_description' => 'This page displays a table of all Composer packages. You can install any',
+        'packageName' => 'Package Name',
+        'description' => 'Description',
+        'downloads' => 'Downloads',
+        'download' => ''
+    ],
+    'translate' => [
+        'title' => 'Translations',
+        'setting_description' => 'On this page, you can create your own phrases for Flute with the key <kbd>custom.</kbd>',
+        'edit' => 'Edit translation phrases - :code',
+        'edit_description' => 'On this page, you can create or modify new translations with the key <kbd>custom.</kbd>',
+        'translations' => 'Phrases'
+    ],
+    'currency' => [
+        'title' => 'Currencies',
+        'setting_description' => 'List of custom currencies created in Flute',
+        'currency' => 'Currency (code)',
+        'add' => 'Add Currency',
+        'add_description' => 'On this page, you can add a new currency',
+        'min_value' => 'Minimum Value',
+        'min_value_desc' => 'Specify the minimum top-up amount for this currency',
+        'exchange_rate' => 'Exchange Rate',
+        'exchange_rate_desc' => 'Specify the conversion percentage of the amount to this currency',
+        'gateway' => 'Which payment gateways does it apply to',
+        'edit' => 'Edit Currency',
+        'edit_description' => 'On this page, you can edit currency parameters'
+    ],
+    'confirm_install' => 'Are you sure you want to install this?',
+    'may_have_errors' => 'This feature may work unstably!'
 ];

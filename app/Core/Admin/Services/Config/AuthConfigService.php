@@ -15,9 +15,11 @@ class AuthConfigService extends AbstractConfigService
             "csrf_enabled" => $this->b($params['csrfEnabled']),
             "reset_password" => $this->b($params['resetPassword']),
             "security_token" => $this->b($params['securityToken']),
+            "only_social" => $this->b($params['only_social']),
             "registration" => [
                 "confirm_email" => $this->b($params['confirmEmail']),
-                "social_supplement" => $this->b($params['socialSupplement'])
+                "social_supplement" => false
+                // "social_supplement" => $this->b($params['socialSupplement'])
             ],
             "validation" => [
                 "login" => [
@@ -37,9 +39,11 @@ class AuthConfigService extends AbstractConfigService
 
         try {
             $this->fileSystemService->updateConfig($this->getConfigPath('auth'), $config);
+            user()->log('events.config_updated', 'auth');
+
             return response()->success(__('def.success'));
         } catch (\Exception $e) {
-            return response()->error(500, __('def.unknown_error'));
+            return response()->error(500, $e->getMessage());
         }
     }
 }

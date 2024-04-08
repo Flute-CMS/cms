@@ -4,11 +4,13 @@ namespace Flute\Core\Modules\Actions;
 
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Module;
+use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Modules\Contracts\ModuleActionInterface;
 use Flute\Core\Modules\Exceptions\DependencyException;
 use Flute\Core\Modules\ModuleDependencies;
 use Flute\Core\Modules\ModuleInformation;
 use Flute\Core\Modules\ModuleManager;
+use Flute\Core\Support\AbstractModuleInstaller;
 use Flute\Core\Theme\ThemeManager;
 
 class ModuleInstall implements ModuleActionInterface
@@ -48,6 +50,7 @@ class ModuleInstall implements ModuleActionInterface
         }
 
         if (class_exists($installerClassDir)) {
+            /** @var AbstractModuleInstaller */
             $installer = new $installerClassDir($module->key);
 
             if (!method_exists($installer, 'install'))
@@ -57,12 +60,20 @@ class ModuleInstall implements ModuleActionInterface
 
             if (!$install)
                 return false;
-        }
 
+            if (!empty($item = $installer->getNavItem())) {
+                $this->createNavItem($item);
+            }
+        }
         $this->initDb($module);
         $this->e($module);
 
         return true;
+    }
+
+    protected function createNavItem(NavbarItem $navbarItem)
+    {
+        transaction($navbarItem)->run();
     }
 
     protected function checkModuleDependencies(ModuleInformation $module)

@@ -50,7 +50,8 @@ class PasswordResetController extends AbstractController
                 flash()->add('error', __('def.user_not_found'));
             } catch (\Exception $e) {
                 logs()->error($e);
-                flash()->add('error', __('def.unknown_error'));
+                $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+                return response()->error(500, $message);
             }
         } else {
             flash()->add('error', __('auth.submit_reset_error'));
@@ -110,7 +111,8 @@ class PasswordResetController extends AbstractController
                 flash()->add('error', __('def.user_not_found'));
             } catch (\Exception $e) {
                 logs()->error($e);
-                flash()->add('error', __('def.unknown_error'));
+                $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+                return response()->error(500, $message);
             }
         } else {
             flash()->add('error', 'You magicized!');

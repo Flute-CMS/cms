@@ -1,7 +1,7 @@
 <form>
     @csrf
 
-    <div class="position-relative row form-group">
+    {{-- <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label required">
             <label for="name">
                 @t('admin.lk.min_label')
@@ -12,7 +12,7 @@
             <input name="min_amount" id="min_amount" placeholder="@t('admin.lk.min_label')" type="number" class="form-control"
                 value="{{ config('lk.min_amount') }}" required>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Валюта -->
     <div class="position-relative row form-group">

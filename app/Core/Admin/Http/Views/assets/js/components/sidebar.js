@@ -64,6 +64,9 @@ $(document).ready(function () {
 });
 
 function addToRecent(itemTitle, itemUrl) {
+    // if ($('.recent-menu > .items').hasClass('hidden'))
+    //     return (window.location.href = itemUrl);
+
     fetch(u('admin/api/recent'), {
         method: 'POST',
         headers: {
@@ -77,7 +80,7 @@ function addToRecent(itemTitle, itemUrl) {
     })
         .then((response) => response.json())
         .then((data) => {
-            if (data.success) {
+            if (typeof data.success !== 'undefined') {
                 console.log('Item added to recent');
             } else {
                 console.error('Failed to add item');

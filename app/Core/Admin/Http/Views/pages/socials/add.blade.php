@@ -41,8 +41,11 @@
                 </label>
             </div>
             <div class="col-sm-9">
-                <input name="icon" id="icon" placeholder="@t('admin.socials.social_icon_label')" type="text" class="form-control"
-                    required>
+                <div class="d-flex align-items-center">
+                    <div id="icon-output"></div>
+                    <input name="icon" id="icon" placeholder="@t('admin.socials.social_icon_label')" type="text" class="form-control"
+                        required>
+                </div>
             </div>
         </div>
 
@@ -62,6 +65,26 @@
             </div>
         </div>
 
+        <!-- Readonly inputs for redirect_uris -->
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="redirectUri1">Redirect URI 1</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="redirectUri1" type="text" class="form-control" readonly
+                    value="{{ url('social/' . $drivers[array_key_first($drivers)]) }}">
+            </div>
+        </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="redirectUri2">Redirect URI 2</label>
+            </div>
+            <div class="col-sm-9">
+                <input id="redirectUri2" type="text" class="form-control" readonly
+                    value="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}">
+            </div>
+        </div>
+
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label">
                 <label for="enabled">
@@ -71,24 +94,6 @@
             <div class="col-sm-9">
                 <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
                 <label for="enabled"></label>
-            </div>
-        </div>
-
-        <!-- Readonly inputs for redirect_uris -->
-        <div class="position-relative row form-group">
-            <div class="col-sm-3 col-form-label">
-                <label for="redirectUri1">Redirect URI 1</label>
-            </div>
-            <div class="col-sm-9">
-                <input id="redirectUri1" type="text" class="form-control" readonly value="{{ url('social/'.$drivers[array_key_first($drivers)]) }}">
-            </div>
-        </div>
-        <div class="position-relative row form-group">
-            <div class="col-sm-3 col-form-label">
-                <label for="redirectUri2">Redirect URI 2</label>
-            </div>
-            <div class="col-sm-9">
-                <input id="redirectUri2" type="text" class="form-control" readonly value="{{ url('profile/social/bind/'.$drivers[array_key_first($drivers)]) }}">
             </div>
         </div>
 

@@ -40,24 +40,13 @@
             <div class="col-sm-9">
                 <select name="adapter" id="adapter" class="form-control">
                     @foreach ($drivers as $key => $item)
-                        <option value="{{ $key }}">{{ $item }}</option>
+                        <option value="{{ $key }}">{{ $item['name'] }}</option>
                     @endforeach
                 </select>
             </div>
         </div>
 
-        <div class="position-relative row form-group">
-            <div class="col-sm-3 col-form-label">
-                <label for="enabled">
-                    @t('admin.payments.enabled')</label>
-                <small>@t('admin.payments.enabled_description')</small>
-            </div>
-            <div class="col-sm-9">
-                <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
-                <label for="enabled"></label>
-            </div>
-        </div>
-        <div class="position-relative row form-group">
+        <div class="position-relative row form-group align-items-start">
             <div class="col-sm-3 col-form-label required">
                 <label for="additional">
                     @t('admin.payments.params')
@@ -76,7 +65,8 @@
                 <label for="handleUrl">Handle URL</label>
             </div>
             <div class="col-sm-9">
-                <input id="handleUrl" type="text" class="form-control" readonly value="{{ url('/api/lk/handle/'.$drivers[array_key_first($drivers)]) }}">
+                <input id="handleUrl" type="text" class="form-control" readonly
+                    value="{{ url('/api/lk/handle/' . $drivers[array_key_first($drivers)]['name']) }}">
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -103,6 +93,17 @@
                 <input id="failUrl" type="text" class="form-control" readonly value="{{ url('/lk/fail') }}">
             </div>
         </div>
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="enabled">
+                    @t('admin.payments.enabled')</label>
+                <small>@t('admin.payments.enabled_description')</small>
+            </div>
+            <div class="col-sm-9">
+                <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
+                <label for="enabled"></label>
+            </div>
+        </div>
 
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
@@ -117,5 +118,9 @@
 @endpush
 
 @push('footer')
+    <script type="text/javascript">
+        var drivers = {!! json_encode($drivers) !!};
+    </script>
+
     @at('Core/Admin/Http/Views/assets/js/pages/payments/add.js')
 @endpush

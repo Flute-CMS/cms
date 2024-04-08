@@ -249,7 +249,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function addScript(string $js): void
     {
-        $this->section('footer', sprintf("<script src='%s'></script>", $this->getBlade()->relative($js)));
+        $this->section('footer', sprintf("<script src='%s' defer></script>", $this->getBlade()->relative($js)));
     }
 
     /**

@@ -51,7 +51,7 @@
                 <select name="type" id="type" class="form-control">
                     <option value="amount">@t('admin.payments.promo.amount')</option>
                     <option value="percentage">@t('admin.payments.promo.percentage')</option>
-                    <option value="subtract">@t('admin.payments.promo.subtract')</option>
+                    {{-- <option value="subtract">@t('admin.payments.promo.subtract')</option> --}}
                 </select>
             </div>
         </div>

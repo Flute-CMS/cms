@@ -102,6 +102,7 @@ class ModulesView extends AbstractController
                         let deleteDiv = make("div");
                         deleteDiv.classList.add("action-button", "delete");
                         deleteDiv.setAttribute("data-tooltip", translate("admin.modules_list.delete_module"));
+                        deleteDiv.setAttribute("data-tooltip-conf", "left");
                         deleteDiv.setAttribute("data-deletemodule", data[0]);
                         let deleteIcon = make("i");
                         deleteIcon.classList.add("ph-bold", "ph-trash");
@@ -115,6 +116,7 @@ class ModulesView extends AbstractController
                         settingsDiv.setAttribute("data-tooltip", translate("def.settings"));
                         settingsDiv.setAttribute("data-settingsmodule", data[2]);
                         settingsDiv.setAttribute("data-key", data[0]);
+                        settingsDiv.setAttribute("data-tooltip-conf", "left");
                         let gearIcon = make("i");
                         gearIcon.classList.add("ph", "ph-gear");
                         settingsDiv.appendChild(gearIcon);
@@ -127,6 +129,7 @@ class ModulesView extends AbstractController
                         installDiv.classList.add("action-button", "install");
                         installDiv.setAttribute("data-tooltip", translate("admin.modules_list.install_module"));
                         installDiv.setAttribute("data-installmodule", data[0]);
+                        installDiv.setAttribute("data-tooltip-conf", "left");
                         let installIcon = make("i");
                         installIcon.classList.add("ph-bold", "ph-download");
                         installDiv.appendChild(installIcon);
@@ -139,6 +142,7 @@ class ModulesView extends AbstractController
                         disableDiv.classList.add("action-button", "disable");
                         disableDiv.setAttribute("data-tooltip", translate("admin.modules_list.disable_module"));
                         disableDiv.setAttribute("data-disablemodule", data[0]);
+                        disableDiv.setAttribute("data-tooltip-conf", "left");
                         let disableIcon = make("i");
                         disableIcon.classList.add("ph-bold", "ph-power");
                         disableDiv.appendChild(disableIcon);
@@ -151,6 +155,7 @@ class ModulesView extends AbstractController
                         activeDiv.classList.add("action-button", "activate");
                         activeDiv.setAttribute("data-tooltip", translate("admin.modules_list.enable_module"));
                         activeDiv.setAttribute("data-activatemodule", data[0]);
+                        activeDiv.setAttribute("data-tooltip-conf", "left");
                         let activeIcon = make("i");
                         activeIcon.classList.add("ph-bold", "ph-power");
                         activeDiv.appendChild(activeIcon);

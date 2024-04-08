@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Support;
 
+use Flute\Core\Exceptions\TooManyRequestsException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -100,5 +101,24 @@ abstract class AbstractController
     public function isCsrfValid(): bool
     {
         return template()->getBlade()->csrfIsValid();
+    }
+
+    /**
+     * Throttle the requests to limit the number of attempts per minute.
+     *
+     * @param string $key The action key.
+     * @param int $maxRequest The maximum number of requests allowed.
+     * @param int $perMinute The time period in minutes.
+     * @param int $burstiness The maximum number of requests in a burst.
+     * @throws TooManyRequestsException
+     */
+    protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
+    {
+        throttler()->throttle(
+            ['action' => $key, request()->ip()],
+            $maxRequest,
+            $perMinute,
+            $burstiness
+        );
     }
 }

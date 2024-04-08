@@ -1,10 +1,9 @@
 .sidebar {
     position: fixed;
-    height: calc(100% - 40px);
+    height: 100%;
     width: 350px;
     z-index: 2;
-    border-radius: 40px;
-    border: 1px solid $color-white-5;
+    border-right: 1px solid $color-white-5;
     background:
         radial-gradient(farthest-side at top left,
             #bbff6807,
@@ -13,31 +12,37 @@
             #ac68ff09,
             transparent 330px);
     background-color: #0D0D0D;
-    padding: 15px;
     padding-top: 30px;
     padding-bottom: 20px;
     display: flex;
     flex-direction: column;
 
+    ::-webkit-scrollbar-thumb {
+        background-color: transparent;
+    }
+
+    ::-webkit-scrollbar-track {
+        display: none;
+    }
+
     &-logo {
-        display: flex;
         padding-bottom: 30px;
         border-bottom: 1px solid $color-white-5;
-        align-items: center;
-        gap: 10px;
         position: absolute;
         left: 0;
         width: 100%;
+        display: flex;
+        gap: 10px;
+        align-items: center;
 
         .tag {
             position: relative;
             font-size: 12px;
-            top: -5px;
             color: $color-secondary;
         }
 
         .return-btn {
-            margin-left: 30px;
+            margin-left: 15px;
             width: 40px;
             height: 40px;
             border-radius: 50px;
@@ -49,9 +54,8 @@
             justify-content: center;
             transition: $transition;
 
-            &:hover {
-                color: $color-primary;
-                background-color: $color-primary-light;
+            > i {
+                transition: transform $transition;
             }
         }
 
@@ -63,6 +67,24 @@
             margin-left: 10px;
             height: 25px;
             align-items: center;
+        }
+        
+        > a {
+            align-items: center;
+            gap: 10px;
+            display: flex;
+            color: $color-text;
+
+            &:hover {
+                .return-btn {
+                    color: $color-primary;
+                    background-color: $color-primary-light;
+
+                    > i {
+                        transform: rotate(-45deg);
+                    }
+                }
+            }
         }
     }
 
@@ -82,36 +104,62 @@
         flex-direction: column;
     }
 
+    &:hover {
+        ::-webkit-scrollbar-thumb {
+            background-color: $color-primary-light;
+
+            &:hover {
+                background-color: #baff6882;
+            }
+        }
+    }
+
     &-menu {
         display: flex;
-        gap: 20px;
         flex-direction: column;
         overflow: auto;
-        padding-right: 5px;
+        border-bottom: 1px solid $color-white-5;
         height: 100%;
 
         .title {
             font-size: 12px;
             font-weight: 600;
             color: $color-gray;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 20px;
+
+            >i {
+                font-size: 16px;
+            }
+
+            >p {
+                font-size: 12px;
+            }
         }
 
         .main-menu {
+            .title {
+                margin-top: 0;
+            }
+
             .items {
                 display: flex;
                 flex-direction: column;
-                gap: 5px;
 
                 .item {
-                    padding: 15px;
-                    transition: $transition;
+                    padding: 15px 20px;
+                    transition: none;
                     border: 1px solid transparent;
                     display: flex;
+                    font-weight: 500;
                     align-items: center;
                     justify-content: space-between;
-                    border-radius: 10px;
                     cursor: pointer;
-                    color: $color-text;
+                    color: darken($color-text, 50);
 
                     .name-icon {
                         display: flex;
@@ -129,13 +177,12 @@
                     }
 
                     &:hover {
-                        border: 1px solid $color-white-5;
+                        color: $color-text;
                         background-color: $color-white-3;
                     }
 
                     &.active {
                         color: $color-primary;
-                        border: 1px solid $color-primary-light;
                         background-color: $color-white-5;
                     }
 
@@ -161,7 +208,6 @@
             .items {
                 display: flex;
                 flex-direction: column;
-                gap: 5px;
 
                 >button {
                     color: $color-text;
@@ -179,15 +225,17 @@
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        padding: 15px;
-                        border-radius: 10px;
-                        font-weight: 500;
-                        color: darken($color-text, 30);
+                        padding: 17px 20px;
+                        color: darken($color-text, 40);
                         transition: none;
 
                         &:hover {
                             color: $color-text;
-                            background-color: $color-white-10;
+                            background-color: $color-white-3;
+                        }
+
+                        i {
+                            transition: transform $transition;
                         }
 
                         .name-icon {
@@ -197,6 +245,7 @@
 
                             i {
                                 font-size: 16px;
+                                transition: transform $transition;
                             }
 
                             p {
@@ -211,15 +260,16 @@
                         align-items: baseline;
                         flex-direction: column;
                         margin-top: 10px;
-                        padding-left: 20px;
+                        padding-left: 24px;
                         border-left: 1px solid $color-white-5;
-                        margin-left: 19px; // Я дебил???
-                        gap: 15px;
+                        margin-left: 26px; // Я дебил???
+                        gap: 10px;
                         visibility: hidden;
                         opacity: 0;
                         transition: $transition;
                         display: none;
                         margin-bottom: 10px;
+                        width: -webkit-fill-available;
 
                         a {
                             font-size: 14px;
@@ -227,6 +277,9 @@
                             transition: $transition;
                             font-weight: 500;
                             position: relative;
+                            width: 100%;
+                            text-align: left;
+                            padding: 5px;
 
                             &:hover {
                                 color: $color-text;
@@ -243,7 +296,7 @@
                                     width: 1px;
                                     height: 100%;
                                     top: 0;
-                                    left: -21px;
+                                    left: -25px;
                                     content: "";
                                     background-color: #BAFF68;
                                     transition: 0.3s;
@@ -254,8 +307,8 @@
 
                     &.opened {
                         .head-button {
-                            color: $color-text;
-                            background-color: $color-white-20;
+                            color: $color-primary;
+                            background-color: $color-white-5;
 
                             >i {
                                 transform: rotate(180deg);
@@ -271,8 +324,9 @@
 
                     &.active {
                         .head-button {
-                            color: $color-text-inverse;
-                            background-color: $color-primary;
+                            color: $color-primary;
+                            background-color: $color-primary-light;
+                            // background-image: linear-gradient(to left top, #222a1900, #2f3f1d82, #3c55207a, #496b2273, #57832242);
                         }
                     }
                 }
@@ -286,9 +340,8 @@
         flex-direction: column;
         flex: 1;
         justify-content: flex-end;
-        padding: 10px;
-        padding-top: 0;
         padding-bottom: 0;
+        padding-left: 15px;
 
         .title {
             display: flex;
@@ -296,7 +349,7 @@
             gap: 10px;
             align-items: center;
 
-            > div {
+            >div {
                 display: flex;
                 align-items: center;
                 gap: 5px;
@@ -362,6 +415,29 @@
                     }
                 }
             }
+        }
+    }
+}
+
+.items-additional {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    flex: 1;
+    width: 100%;
+    transition: none;
+    text-align: left;
+    margin-top: 5px;
+
+    >a {
+        font-weight: 500;
+        color: darken($color-text, 40);
+        padding: 12px 20px;
+        font-size: 14px;
+
+        &:hover {
+            color: $color-text;
+            background-color: $color-white-5;
         }
     }
 }

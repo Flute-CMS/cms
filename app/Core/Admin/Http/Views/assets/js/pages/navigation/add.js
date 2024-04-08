@@ -13,6 +13,11 @@ $(document).ready(function () {
         }
     }
 
+    $('#icon').on('input', function () {
+        let val = $(this).val().trim();
+        $('#icon-output').html(`<i class='${val}'></i>`);
+    });
+
     // Обработчик события изменения текста в поле URL
     $('#url').on('input', function () {
         var pathOrUrl = $(this).val();

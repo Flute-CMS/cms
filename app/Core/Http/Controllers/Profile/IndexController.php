@@ -49,7 +49,7 @@ class IndexController extends AbstractController
         try {
             $tab = $profileService->renderTab($this->event->getActiveTab(), $user);
         } catch (\RuntimeException $e) {
-            logs()->warning($e);
+            // logs()->warning($e);
             $tab = '';
         }
         

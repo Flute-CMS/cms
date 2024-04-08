@@ -3,6 +3,7 @@
 namespace Flute\Core\Admin\Support;
 
 use Flute\Core\Services\FileSystemService;
+use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractConfigService

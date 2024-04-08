@@ -35,7 +35,7 @@ class PaymentsController extends AbstractController
         $payment = new PaymentGateway;
         $payment->name = $request->name;
         $payment->adapter = $request->adapter;
-        $payment->enabled = (bool) $request->enabled ?? false;
+        $payment->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOLEAN) ?? false;
         $payment->additional = \Nette\Utils\Json::encode($request->additional);
 
         transaction($payment)->run();
@@ -98,7 +98,7 @@ class PaymentsController extends AbstractController
 
         $payment->name = $request->name;
         $payment->adapter = $request->adapter;
-        $payment->enabled = (bool) $request->enabled ?? false;
+        $payment->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOLEAN) ?? false;
         $payment->additional = \Nette\Utils\Json::encode($request->additional);
 
         transaction($payment)->run();

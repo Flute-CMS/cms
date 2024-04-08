@@ -41,7 +41,7 @@ class ImagesController extends AbstractController
      * 
      * @return Response
      */
-    public function removeAvatar(FluteRequest $request) : Response
+    public function removeAvatar(FluteRequest $request): Response
     {
         return $this->removeImage($request, 'avatar');
     }
@@ -53,7 +53,7 @@ class ImagesController extends AbstractController
      * 
      * @return Response
      */
-    public function removeBanner(FluteRequest $request) : Response
+    public function removeBanner(FluteRequest $request): Response
     {
         return $this->removeImage($request, 'banner');
     }
@@ -66,7 +66,7 @@ class ImagesController extends AbstractController
      * 
      * @return Response
      */
-    private function removeImage(FluteRequest $request, string $type) : Response
+    private function removeImage(FluteRequest $request, string $type): Response
     {
         $default = config("profile.default_$type");
 
@@ -75,6 +75,8 @@ class ImagesController extends AbstractController
 
         $user->$type = $default;
         transaction($user)->run();
+
+        user()->log('events.profile_' . $type . '_deleted');
 
         return $this->success();
     }
@@ -89,6 +91,12 @@ class ImagesController extends AbstractController
      */
     protected function updateImage(FluteRequest $request, string $imageType)
     {
+        try {
+            $this->throttle("profile_change_$imageType");
+        } catch (\Exception $e) {
+            return $this->error(__('auth.too_many_requests'));
+        }
+
         /** @var UploadedFile $file */
         $file = $request->files->get($imageType);
 
@@ -104,10 +112,10 @@ class ImagesController extends AbstractController
 
         try {
             $mimeType = $file->getMimeType();
-        } catch(\Exception $e) {
-            logs()->error($file->getErrorMessage());
-
-            return $this->error(__('def.unknown_error'));
+        } catch (\Exception $e) {
+            logs()->error($e);
+            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            return response()->error(500, $message);
         }
 
         if (!in_array($mimeType, app('profile.' . $imageType . '_types'))) {
@@ -154,7 +162,7 @@ class ImagesController extends AbstractController
 
         transaction($user)->run();
 
-        user()->log('profile.' . $imageType . '_updated');
+        user()->log('events.profile_' . $imageType . '_updated');
 
         return $this->success((string) url($newFileDestination));
     }

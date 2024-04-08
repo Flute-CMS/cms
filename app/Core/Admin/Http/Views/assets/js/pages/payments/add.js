@@ -3,14 +3,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#addParam').click(function () {
         paramIndex++;
-        $('#parametersContainer').append(`
-                <div class="param-group" id="param-group-${paramIndex}">
-                    <input type="text" name="paramNames[]" class="form-control" placeholder="Key" required>
-                    <input type="text" name="paramValues[]" class="form-control" placeholder="Value" required>
-                    <button type="button" class="removeParam btn size-s error" data-id="${paramIndex}">${translate('def.delete')}</button>
-                </div>
-            `);
+        appendParamFields(paramIndex);
     });
+
+    function appendParamFields(index, key = '', value = '') {
+        $('#parametersContainer').append(`
+            <div class="param-group" id="param-group-${index}">
+                <input type="text" name="paramNames[]" class="form-control" placeholder="Key" value="${key}" required>
+                <input type="text" name="paramValues[]" class="form-control" placeholder="Value" value="${value}" required>
+                <button type="button" class="removeParam btn size-s error" data-id="${index}">${translate('def.delete')}</button>
+            </div>
+        `);
+    }
 
     $(document).on('click', '.removeParam', function () {
         let id = $(this).data('id');
@@ -42,5 +46,26 @@ document.addEventListener('DOMContentLoaded', function () {
         var paymentSystem = $(this).val();
         var handleUrl = u(`api/lk/handle/${paymentSystem}`); // Example URL format
         $('#handleUrl').val(handleUrl);
+        updateParameters();
     });
+
+    var adapterSelect = document.getElementById('adapter');
+    var parametersContainer = document.getElementById('parametersContainer');
+
+    function updateParameters() {
+        var selectedGatewayKey = adapterSelect.value;
+        var params = drivers[selectedGatewayKey]?.parameters || [];
+
+        $('#parametersContainer').empty();
+
+        params.forEach(function (param) {
+            paramIndex++;
+            appendParamFields(paramIndex, param, ''); // Append new parameter fields
+        });
+    }
+
+    if (!$('#parametersContainer').hasClass('parametersEdit'))
+        updateParameters();
+
+    adapterSelect.addEventListener('change', updateParameters);
 });

@@ -18,6 +18,7 @@ use Exception;
 use Flute\Core\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Events\ResponseEvent;
+use Flute\Core\Support\FluteEventDispatcher;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Traits\LangTrait;
 use Flute\Core\Traits\RouterTrait;
@@ -26,7 +27,6 @@ use Flute\Core\Router\RouteDispatcher;
 use Flute\Core\Traits\ConfigurationTrait;
 use Flute\Core\Traits\LoggerTrait;
 use Flute\Core\Traits\ThemeTrait;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -47,7 +47,7 @@ final class App
      * 
      * @var string
      */
-    public const VERSION = '0.1.2.1-alpha';
+    public const VERSION = '0.1.3-alpha';
 
     /**
      * Set the base path of the application
@@ -76,10 +76,10 @@ final class App
     private \League\Config\ConfigurationInterface $configuration;
     private ClassLoader $loader;
 
-    public function __construct( ClassLoader $loader )
+    public function __construct(ClassLoader $loader)
     {
         $this->loader = $loader;
-        
+
         $this->_setContainer();
     }
 
@@ -108,7 +108,7 @@ final class App
      * 
      * @return ClassLoader
      */
-    public function getLoader() : ClassLoader
+    public function getLoader(): ClassLoader
     {
         return $this->loader;
     }
@@ -248,10 +248,14 @@ final class App
     public function serviceProvider($provider): App
     {
         $this->providers[] = $provider;
-
-        $provider->register(
-            $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer()
-        );
+        
+        try {
+            $provider->register(
+                $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer()
+            );
+        } catch (Exception $e) {
+            logs()->error($e);
+        }
 
         return $this;
     }
@@ -264,9 +268,13 @@ final class App
     public function bootServiceProviders()
     {
         foreach ($this->providers as $key => $provider) {
-            $provider->boot($this->container);
+            try {
+                $provider->boot($this->container);
 
-            $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
+                $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
+            } catch (Exception $e) {
+                logs()->error($e);
+            }
         }
 
         $this->initializeEventListeners();
@@ -279,8 +287,8 @@ final class App
      */
     protected function initializeEventListeners(): void
     {
-        /** @var EventDispatcherInterface $dispatcher */
-        $dispatcher = $this->container->get(EventDispatcherInterface::class);
+        /** @var FluteEventDispatcher $dispatcher */
+        $dispatcher = $this->container->get(FluteEventDispatcher::class);
 
         foreach ($this->listen as $event => $listeners) {
             foreach ($listeners as $listener) {
@@ -320,10 +328,10 @@ final class App
 
         // Ставим новый Response из ивента в возвращаемый объект.
         // Вдруг кто-то там что-то поменял, и нам надо вернуть новый объект
-        // if (is_debug())
-        //     $res->sendContent();
-        // else
-        $res->send();
+        if (is_debug() && !(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'))
+            $res->sendContent();
+        else
+            $res->send();
     }
 
     /**

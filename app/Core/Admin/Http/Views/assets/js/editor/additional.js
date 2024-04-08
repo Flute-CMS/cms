@@ -868,6 +868,7 @@ window.editorTools = {
         inlineToolbar: true,
         tunes: ['alignment'],
     },
+    raw: RawTool,
     image: {
         class: ImageTool,
         inlineToolbar: ['link'],
@@ -932,6 +933,7 @@ window.editorTools = {
                     class: Marker,
                     shortcut: 'CMD+SHIFT+M',
                 },
+                raw: RawTool,
                 alignment: {
                     class: AlignmentBlockTune,
                     config: {

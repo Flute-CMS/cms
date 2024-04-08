@@ -6,6 +6,7 @@ return array (
   'csrf_enabled' => true,
   'reset_password' => true,
   'security_token' => true,
+  'only_social' => false,
   'registration' => 
   array (
     'confirm_email' => false,
