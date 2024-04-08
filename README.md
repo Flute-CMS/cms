@@ -2,6 +2,7 @@
   
 [<kbd><br>🌐 Русский README<br><br></kbd>](./README_RU.md)
 [<kbd><br>🌐 English README<br><br></kbd>](./README.md)
+[<kbd><br>🌐 Português README<br><br></kbd>](./README_BR.md)
 </div>
 
 <hr />
@@ -85,7 +86,6 @@ To successfully install and run Flute, ensure your system meets the following re
 
 ![gif_install](https://github.com/Flute-CMS/cms/assets/62756604/62b8a0cb-c7ed-431b-981c-470304c1fbd8)
 
-
 Both installations require setting up the database and configuring Flute.
 
 &nbsp;
@@ -93,6 +93,7 @@ Both installations require setting up the database and configuring Flute.
 📚 Visit our [documentation](https://docs.flute-cms.com/docs/what_it) for detailed instructions on installation, customization, and module & template development.
 
 &nbsp;
+
 # 👨‍💻 Looking for Opportunities
 
 If you need a skilled developer for your projects, reach out to me on (My stack is React / TS / Node / PHP / JS):
@@ -114,8 +115,8 @@ Discover our range of free modules available for Flute:
 
 These modules are designed to enhance your Flute experience and are available at no cost.
 
-
 &nbsp;
+
 # 🆘 Getting help
 
 Need help with installation, customization, or development? Join our [Discord](https://discord.gg/BcBMeVJJsd) for assistance! Report bugs or issues on:
@@ -126,4 +127,3 @@ Need help with installation, customization, or development? Join our [Discord](h
 
 # ⭐ Like what you see? Give us a star!
 ![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)
-

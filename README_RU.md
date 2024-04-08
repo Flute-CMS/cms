@@ -2,6 +2,7 @@
   
 [<kbd><br>🌐 Русский README<br><br></kbd>](./README_RU.md)
 [<kbd><br>🌐 English README<br><br></kbd>](./README.md)
+[<kbd><br>🌐 Português README<br><br></kbd>](./README_BR.md)
 </div>
 
 <hr />
