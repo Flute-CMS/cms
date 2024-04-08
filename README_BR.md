@@ -107,7 +107,7 @@ Se você precisar de um desenvolvedor qualificado para seus projetos, entre em c
 # 📦 Lista de Módulos Gratuitos
 
 Descubra a nossa gama de módulos gratuitos disponíveis para o Flute:
-- [Módulo de notícias](https://github.com/Flute-CMS/news): Permite criar notícias no Flute
+- [Notícias](https://github.com/Flute-CMS/news): Permite criar notícias no Flute
 - [Monitoramento](https://github.com/Flute-CMS/monitoring): Obtém informações sobre servidores e as exibe em um widget
 - [Bans & Comms](https://github.com/Flute-CMS/BansComms): Exibe a lista de banimentos e silenciamentos em uma página separada
 - [Carrossel](https://github.com/Flute-CMS/carousel): Adiciona um widget de carrossel
