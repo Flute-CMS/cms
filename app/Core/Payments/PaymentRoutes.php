@@ -37,7 +37,7 @@ class PaymentRoutes
                 $apiGroup->post('/buy/{gateway}', [LKApiController::class, 'purchase']);
             });
 
-            $api->post('/handle/{gateway}', [LKApiController::class, 'handle']);
+            $api->any('/handle/{gateway}', [LKApiController::class, 'handle']);
         }, '/api/lk');
     }
 }

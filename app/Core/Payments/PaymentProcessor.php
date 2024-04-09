@@ -230,7 +230,6 @@ class PaymentProcessor
 
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional);
 
-
         foreach ($additional as $key => $val) {
             $additional->$key = str_replace(["{{amount}}", "{{transactionId}}", "{{currency}}"], [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code], $val);
         }
@@ -259,9 +258,9 @@ class PaymentProcessor
         $this->dispatcher->dispatch(new AfterGatewayResponseEvent($invoice, $response), AfterGatewayResponseEvent::NAME);
 
         if ($response->isRedirect()) {
-            return $response->getRedirectUrl();
+            return $response->redirect();
         } else {
-            throw new PaymentException($response->getMessage());
+            throw new PaymentException($response->getMessage() ?? $response->getData()->message);
         }
     }
 }

@@ -27,7 +27,7 @@ class ListParser implements ParserInterface
         $list = Html::el($listType);
 
         foreach ($items as $itemData) {
-            $item = Html::el('li')->setText($itemData['content']);
+            $item = Html::el('li')->setHtml($itemData['content']);
             $list->addHtml($item);
 
             // Generate nested list

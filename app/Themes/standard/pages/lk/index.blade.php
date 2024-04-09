@@ -56,7 +56,9 @@
             <div class="lk-result inactive @if (sizeof($payments) > 1) lk-result-line @else center-block @endif">
                 <h3 class="lk-header">@t('lk.page.put_amount_and_promo')</h3>
 
-                <div class="lk-result-content">
+                @flash
+
+                <form method="POST" class="lk-result-content">
                     <div class="input-lk">
                         <label for="amount">@t('lk.page.enter_amount')</label>
                         <input type="number" name="amount"
@@ -92,7 +94,7 @@
                     @endif
 
                     <button id="buy_btn" class="btn size-s primary" disabled>@t('lk.page.recharge')</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>

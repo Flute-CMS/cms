@@ -66,8 +66,8 @@
             </div>
             <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
                 <input id="handleUrl" type="text" class="form-control" readonly
-                    value="{{ url('/api/lk/handle/' . $drivers[array_key_first($drivers)]) }}"
-                    data-copy="{{ url('/api/lk/handle/' . $drivers[array_key_first($drivers)]) }}">
+                    value="{{ url('/api/lk/handle/' . array_key_first($drivers)) }}"
+                    data-copy="{{ url('/api/lk/handle/' . array_key_first($drivers)) }}">
             </div>
         </div>
         <div class="position-relative row form-group">

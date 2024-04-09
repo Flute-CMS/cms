@@ -10,7 +10,7 @@ class HeaderParser implements ParserInterface
     public function parse(array $array, string $id)
     {
         $html = Html::el('h'.(int) $array['level']);
-        $html->addText($array['text']);
+        $html->setHtml($array['text']);
 
         return $html->toHtml();
     }
