@@ -42,7 +42,7 @@
     "add_fail" => "Qo‘shishda xatolik yuz berdi",
     "add_error" => "Yozuv qo‘shishda xatolik yuz berdi",
     "search" => "Qidirish",
-    "search_results_for" => "ʻ%query%ʻ uchun qidiruv natijalari",
+    "search_results_for" => "'%query%' uchun qidiruv natijalari",
     "no_results_found" => "Hech narsa topilmadi",
     "username" => "Foydalanuvchi ismi",
     "password" => "Parol",
