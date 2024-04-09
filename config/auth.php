@@ -3,7 +3,7 @@
 return array (
   'remember_me' => true,
   'remember_me_duration' => 604800,
-  'csrf_enabled' => true,
+  'csrf_enabled' => false,
   'reset_password' => true,
   'security_token' => true,
   'only_social' => false,
