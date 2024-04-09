@@ -280,45 +280,79 @@ $(document).ready(() => {
 
     agreeCheckbox.on('change', updateSubmitButtonState);
 
-    submitButton.on('click', function (e) {
-        e.preventDefault(); // Предотвратить стандартное поведение кнопки
+    // submitButton.on('click', function (e) {
+    //     e.preventDefault(); // Предотвратить стандартное поведение кнопки
 
+    //     if (!isAmountValid() || !selectedGateway) {
+    //         // updateMessage('error', 'Пожалуйста, проверьте вводимые данные', 'amount');
+    //         return;
+    //     }
+
+    //     const amount = parseFloat(amountInput.val());
+    //     const promoCode = promoApplied ? promoInput.val() : '';
+
+    //     $.ajax({
+    //         url: u('api/lk/buy/' + selectedGateway),
+    //         type: 'POST',
+    //         data: {
+    //             amount: amount,
+    //             promo: promoCode,
+    //             currency: selectedCurrency
+    //         },
+    //         success: function (response) {
+    //             if (response.link) {
+    //                 window.location.href = response.link;
+    //             } else {
+    //                 toast({
+    //                     type: 'error',
+    //                     message:
+    //                         response?.error || translate('def.unknown_error'),
+    //                 });
+    //             }
+    //         },
+    //         error: function (error) {
+    //             console.error('Ошибка:', error);
+    //             toast({
+    //                 type: 'error',
+    //                 message:
+    //                     error?.responseJSON?.error ||
+    //                     translate('def.unknown_error'),
+    //             });
+    //         },
+    //     });
+    // });
+
+    $('.lk-result-content').on('submit', function (e) {
         if (!isAmountValid() || !selectedGateway) {
-            // updateMessage('error', 'Пожалуйста, проверьте вводимые данные', 'amount');
+            // Выведите сообщение об ошибке, если требуется
+            e.preventDefault();
             return;
         }
 
-        const amount = parseFloat(amountInput.val());
-        const promoCode = promoApplied ? promoInput.val() : '';
+        // Изменение action формы
+        $(this).attr('action', u('api/lk/buy/' + selectedGateway));
 
-        $.ajax({
-            url: u('api/lk/buy/' + selectedGateway),
-            type: 'POST',
-            data: {
-                amount: amount,
-                promo: promoCode,
-                currency: selectedCurrency
-            },
-            success: function (response) {
-                if (response.link) {
-                    window.location.href = response.link;
-                } else {
-                    toast({
-                        type: 'error',
-                        message:
-                            response?.error || translate('def.unknown_error'),
-                    });
-                }
-            },
-            error: function (error) {
-                console.error('Ошибка:', error);
-                toast({
-                    type: 'error',
-                    message:
-                        error?.responseJSON?.error ||
-                        translate('def.unknown_error'),
-                });
-            },
-        });
+        // Добавление или обновление скрытого поля для валюты
+        updateHiddenInput(this, 'currency', selectedCurrency);
+
+        // Добавление или обновление скрытого поля для промокода
+        if (promoApplied) {
+            updateHiddenInput(this, 'promo', promoInput.val());
+        }
     });
+
+    function updateHiddenInput(form, name, value) {
+        let input = $(form).find('input[type="hidden"][name="' + name + '"]');
+        if (input.length === 0) {
+            $(form).append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: name,
+                    value: value,
+                }),
+            );
+        } else {
+            input.val(value);
+        }
+    }
 });

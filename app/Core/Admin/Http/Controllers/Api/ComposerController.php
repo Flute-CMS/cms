@@ -11,7 +11,7 @@ use GuzzleHttp\Client;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-putenv('COMPOSER_HOME=' . __DIR__ . '/vendor/bin/composer');
+putenv('COMPOSER_HOME=' . BASE_PATH . '/vendor/bin/composer');
 
 class ComposerController extends AbstractController
 {

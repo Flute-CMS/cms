@@ -14,23 +14,20 @@ class LKApiController extends AbstractController
     {
     }
 
-    public function purchase(FluteRequest $request, string $gateway): Response
+    public function purchase(FluteRequest $request, string $gateway)
     {
         try {
             $this->throttle('lk_purchase');
 
-            $payment = payments()->processor()->purchase($gateway, $request->amount, $request->promo, $request->currency);
+            $redirect = payments()->processor()->purchase($gateway, $request->amount, $request->promo, $request->currency);
 
-            // spam.
-            // user()->log('events.purchase_link', $gateway);
-
-            return $this->json([
-                'link' => $payment
-            ]);
+            // Temporarly
+            exit($redirect);
         } catch (\Exception $e) {
             logs()->error($e);
             $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
-            return response()->error(500, $message);
+
+            return redirect('/lk')->withErrors($message);
         }
     }
 
@@ -41,10 +38,12 @@ class LKApiController extends AbstractController
 
             user()->log('events.purchased', $gateway);
 
-            return redirect(url('/lk/success'));
+            return $this->success('1');
+            // return redirect(url('/lk/success'));
         } catch (\Exception $e) {
             logs()->warning($e);
-            return redirect(url('/lk/fail'));
+            // return redirect(url('/lk/fail'));
+            return $this->error('some error');
         }
     }
 
