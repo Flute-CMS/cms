@@ -42,7 +42,7 @@
     "add_fail" => "Błąd podczas dodawania",
     "add_error" => "Błąd podczas dodawania wpisu",
     "search" => "Szukaj",
-    "search_results_for" => "Wyniki wyszukiwania dla 'query%'",
+    "search_results_for" => "Wyniki wyszukiwania dla '%query%'",
     "no_results_found" => "Nie znaleziono wyników",
     "username" => "Nazwa użytkownika",
     "password" => "Hasło",
