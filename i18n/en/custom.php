@@ -1,5 +1,2 @@
-<?php
-
-return array (
-  221 => '212121',
+<?php return array (
 );
