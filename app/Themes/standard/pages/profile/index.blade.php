@@ -63,7 +63,7 @@
                 <div class="profile_up_name">
                     <h2>{{ $user->name }}</h2>
                     @if (user()->hasPermission('admin.users') || $user->id == user()->id)
-                        <p>@t('def.balance'): {{ $user->balance . app('lk.currency_view') }}</p>
+                        <p>@t('def.balance'): {{ $user->balance}} {{ app('lk.currency_view') }}</p>
                     @endif
                 </div>
                 @if (sizeof($user->socialNetworks) > 0)
