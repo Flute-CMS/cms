@@ -64,4 +64,3 @@
         "password_max_length" => "Parol uzunligi length belgi(-lar)dan oshmasligi kerak",
      ],
 ];
-

@@ -144,7 +144,9 @@
         "debug_ips_description" => "Entrez les adresses sur lesquelles le mode débogage sera activé (séparées par des virgules)",
         "get_ip" => "Obtenir mon IP",
         "steam_label" => "Clé API Steam",
-        "steam_description" => "Clé nécessaire pour obtenir les avatars depuis les serveurs <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a>"
+        "steam_description" => "Clé nécessaire pour obtenir les avatars depuis les serveurs <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a>",
+        "logo" => "Logo",
+        "favicon_desc" => "C'est l'icône dans l'onglet de ton navigateur 👀"
     ],
     "lk" => [
         "currency_view_label" => "Devise (vue)",
@@ -184,6 +186,8 @@
         "login_validation_label" => "Validation du login",
         "password_validation_label" => "Validation du mot de passe",
         "name_validation_label" => "Validation du nom",
+        "only_social" => "Uniquement les réseaux sociaux",
+        "only_social_label" => "Rendre l'authentification et l'inscription disponibles uniquement via les réseaux sociaux"
     ],
     "form_database" => [
         "default_database_label" => "Base de données par défaut",
@@ -202,6 +206,8 @@
         "language_description" => "Sélectionnez la langue de l'interface du site.",
         "caching_label" => "Mise en cache",
         "caching_description" => "Activer ou désactiver la mise en cache.",
+        "langs_available" => "Langues disponibles",
+        "langs_available_description" => "Sélectionnez les langues qui seront disponibles dans Flute"
     ],
     "form_mail" => [
         "smtp_enabled_label" => "SMTP Activé",
@@ -260,6 +266,8 @@
         "zip_extraction_failed" => "Échec de l'extraction des fichiers de l'archive ZIP.",
         "module_json_not_found" => "Le fichier module.json n'a pas été trouvé à la racine de l'archive.",
         "invalid_module_json" => "Format invalide pour le fichier module.json.",
+        "installed_version" => "Version actuelle",
+        "last_version" => "Dernière version"
     ],
     "themes_list" => [
         "header" => "Liste des thèmes",
@@ -547,5 +555,68 @@
         "edit_description" => "Sur cette page, vous pouvez modifier les paramètres du listener pour les notifications.",
         "add_title" => "Ajout d'un auditeur",
         "add_description" => "Sur cette page, vous pouvez ajouter une notification pour n'importe quel événement dans le CMS Flute"
-    ]
+    ],
+    "api" => [
+        "add_title" => "Ajout d'une nouvelle clé API",
+        "add_description" => "Sur cette page, vous pouvez émettre une nouvelle clé API avec des droits spécifiques",
+        "key" => "Votre clé",
+        "permissions" => "Droits de la clé",
+        "perm_desc" => "La clé doit avoir des droits d'exécution. C'est ici qu'ils sont sélectionnés",
+        "header" => "Liste des clés API émises",
+        "description" => "Cette page présente la liste de toutes les clés dans le moteur",
+        "add" => "Ajouter une nouvelle clé API",
+        "regenerate" => "Régénérer"
+    ],    
+    "databases" => [
+        "title" => "Connexions BD",
+        "server_not_found" => "Serveur non trouvé",
+        "params_empty" => "Certains paramètres sont vides",
+        "setting_description" => "Ici, vous pouvez configurer l'association d'un pilote de BD spécifique au serveur",
+        "add" => "Ajouter une connexion",
+        "dbname" => "Nom de la BD",
+        "dbname_desc" => "Cette BD sera utilisée par le pilote",
+        "server" => "Serveur associé",
+        "add_description" => "Sur cette page, vous pouvez ajouter une nouvelle connexion entre le serveur et la BD",
+        "mod" => "Nom du pilote",
+        "mod_desc" => "C'est le pilote qui sera associé au serveur",
+        "server_label" => "Serveur",
+        "edit_title" => "Modification de la connexion",
+        "edit_description" => "Sur cette page, vous pouvez modifier la connexion d'un serveur spécifique",
+        "settings" => "Paramètres supplémentaires"
+    ],
+    "composer" => [
+        "title" => "Compositeur",
+        "setting_description" => "Sur cette page, vous pouvez ajouter ou supprimer un nouveau paquet Composer",
+        "name" => "Nom du paquet",
+        "installed" => "Version installée",
+        "add" => "Ajouter un paquet",
+        "add_description" => "Cette page présente un tableau de tous les paquets Composer. Vous pouvez en installer n'importe lequel",
+        "packageName" => "Nom du paquet",
+        "description" => "Description",
+        "downloads" => "Téléchargements",
+        "download" => ""
+    ],
+    "translate" => [
+        "title" => "Traductions",
+        "setting_description" => "Sur cette page, vous pouvez créer vos propres phrases pour Flute avec la clé <kbd>custom.</kbd>",
+        "edit" => "Modification des phrases de traduction - :code",
+        "edit_description" => "Sur cette page, vous pouvez créer ou modifier de nouvelles traductions avec la clé <kbd>custom.</kbd>",
+        "translations" => "Phrases"
+    ],
+    "currency" => [
+        "title" => "Devises",
+        "setting_description" => "Liste des devises personnalisées créées dans Flute",
+        "currency" => "Devise (code)",
+        "add" => "Ajouter une devise",
+        "add_description" => "Sur cette page, vous pouvez ajouter une nouvelle devise",
+        "min_value" => "Valeur minimale",
+        "min_value_desc" => "Indiquez le montant minimum de recharge pour cette devise",
+        "exchange_rate" => "Taux de change",
+        "exchange_rate_desc" => "Indiquez le pourcentage de conversion du montant dans cette devise",
+        "gateway" => "Applicable à quels portails de paiement",
+        "edit" => "Modification de la devise",
+        "edit_description" => "Sur cette page, vous pouvez modifier les paramètres de la devise"
+    ],
+    "confirm_install" => "Êtes-vous sûr de vouloir installer cela ?",
+    "may_have_errors" => "Cette fonction peut fonctionner de manière instable !"    
 ];

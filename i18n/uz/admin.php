@@ -145,6 +145,8 @@
         "get_ip" => "Mening IP-ni toping",
         "steam_label" => "STEAM API kaliti",
         "steam_description" => "<a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a> serverlaridan avatarlarni olish uchun kalit kerak",
+        "logo" => "Logotip",
+        "favicon_desc" => "Bu brauzeringizning tabida joylashgan kichik ikonka 👀"
      ],
     "lk" => [
         "currency_view_label" => "Valyuta (turi)",
@@ -184,6 +186,8 @@
         "login_validation_label" => "Login tekshirish",
         "password_validation_label" => "Parolni tekshirish",
         "name_validation_label" => "Ismni tekshirish",
+        "only_social" => "Faqat ijtimoiy tarmoqlar",
+        "only_social_label" => "Avtorizatsiya va ro'yxatdan o'tishni faqat ijtimoiy tarmoqlar orqali amalga oshirish"
      ],
     "form_database" => [
         "default_database_label" => "Standart ma‘lumotlar bazasi",
@@ -202,6 +206,8 @@
         "language_description" => "Sayt interfeysi tilini tanlang.",
         "caching_label" => "Keshlash",
         "caching_description" => "Keshni yoqish yoki o‘chirish.",
+        "langs_available" => "Mavjud tillar",
+        "langs_available_description" => "Flute'da mavjud bo'ladigan tillarni tanlang"
      ],
     "form_mail" => [
         "smtp_enabled_label" => "SMTP yoqilgan",
@@ -576,6 +582,41 @@
         "server_label" => "Server",
         "edit_title" => "Ulanishni o‘zgartirish",
         "edit_description" => "Ushbu sahifada siz ma‘lum bir server uchun ulanishni o‘zgartirishingiz mumkin",
+        "settings" => "Qo'shimcha sozlamalar",
      ],
+     "composer" => [
+        "title" => "Kompozitor",
+        "setting_description" => "Ushbu sahifada yangi Composer paketini qo'shish yoki o'chirish mumkin",
+        "name" => "Paket nomi",
+        "installed" => "O'rnatilgan versiya",
+        "add" => "Paket qo'shish",
+        "add_description" => "Ushbu sahifada Composer paketlarining barcha jadvali keltirilgan. Siz istalganini o'rnatishingiz mumkin",
+        "packageName" => "Paket nomi",
+        "description" => "Tavsif",
+        "downloads" => "Yuklamalar",
+        "download" => ""
+    ],
+    "translate" => [
+        "title" => "Tarjimalar",
+        "setting_description" => "Ushbu sahifada siz Flute uchun <kbd>custom.</kbd> kalit bilan o'z frazalaringizni yaratishingiz mumkin",
+        "edit" => "Tarjima frazalarini o'zgartirish - :code",
+        "edit_description" => "Ushbu sahifada siz <kbd>custom.</kbd> kaliti bilan yangi tarjimalarni yaratish yoki o'zgartirish mumkin",
+        "translations" => "Frazalar"
+    ],
+    "currency" => [
+        "title" => "Valyutalar",
+        "setting_description" => "Flute yaratilgan maxsus valyutalar ro'yxati",
+        "currency" => "Valyuta (kod)",
+        "add" => "Valyuta qo'shish",
+        "add_description" => "Ushbu sahifada yangi valyuta qo'shish mumkin",
+        "min_value" => "Minimal qiymat",
+        "min_value_desc" => "Ushbu valyuta uchun to'ldirishning minimal summasini ko'rsating",
+        "exchange_rate" => "Almashinuv kursi",
+        "exchange_rate_desc" => "Ushbu valyutaga summani konvertatsiya qilish foizini ko'rsating",
+        "gateway" => "Qaysi to'lov shlyuzlariga taalluqli",
+        "edit" => "Valyutani o'zgartirish",
+        "edit_description" => "Ushbu sahifada siz valyuta parametrlarini o'zgartirishingiz mumkin"
+    ],
+    "confirm_install" => "Buni o'rnatishni aniq xohlaysizmi?",
+    "may_have_errors" => "Bu funksiya barqaror ishlamay qolishi mumkin!"    
 ];
-

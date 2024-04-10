@@ -144,7 +144,9 @@
         "debug_ips_description" => "Ingresa las direcciones en las que se activará el modo de depuración (separadas por comas)",
         "get_ip" => "Obtener mi IP",
         "steam_label" => "Clave de API de Steam",
-        "steam_description" => "Clave necesaria para obtener avatares de los servidores <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a>"
+        "steam_description" => "Clave necesaria para obtener avatares de los servidores <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a>",
+        "logo" => "Logotipo",
+        "favicon_desc" => "Es el iconito en la pestaña de tu navegador 👀"
     ],
     "lk" => [
         "currency_view_label" => "Moneda (visualización)",
@@ -184,6 +186,8 @@
         "login_validation_label" => "Validación de inicio de sesión",
         "password_validation_label" => "Validación de contraseña",
         "name_validation_label" => "Validación de nombre",
+        "only_social" => "Solo redes sociales",
+        "only_social_label" => "Hacer que el inicio de sesión y el registro sean solo a través de redes sociales"
     ],
     "form_database" => [
         "default_database_label" => "Base de datos por defecto",
@@ -202,6 +206,8 @@
         "language_description" => "Seleccione el idioma de la interfaz del sitio.",
         "caching_label" => "Caché",
         "caching_description" => "Activar o desactivar el caché.",
+        "langs_available" => "Idiomas disponibles",
+        "langs_available_description" => "Seleccione los idiomas que estarán disponibles en Flute"
     ],
     "form_mail" => [
         "smtp_enabled_label" => "SMTP Habilitado",
@@ -575,6 +581,42 @@
         "mod_desc" => "Este es el controlador que estará vinculado al servidor",
         "server_label" => "Servidor",
         "edit_title" => "Editar conexión",
-        "edit_description" => "En esta página puedes editar la conexión en un servidor específico"
-    ]    
+        "edit_description" => "En esta página puedes editar la conexión en un servidor específico",
+        "settings" => "Configuraciones adicionales"
+    ],
+    "composer" => [
+        "title" => "Compositor",
+        "setting_description" => "En esta página puedes añadir o eliminar un nuevo paquete Composer",
+        "name" => "Nombre del paquete",
+        "installed" => "Versión instalada",
+        "add" => "Añadir paquete",
+        "add_description" => "Esta página presenta una tabla de todos los paquetes Composer. Puedes instalar cualquiera",
+        "packageName" => "Nombre del paquete",
+        "description" => "Descripción",
+        "downloads" => "Descargas",
+        "download" => ""
+    ],
+    "translate" => [
+        "title" => "Traducciones",
+        "setting_description" => "En esta página puedes crear tus propias frases para Flute con la clave <kbd>custom.</kbd>",
+        "edit" => "Edición de frases de traducción - :code",
+        "edit_description" => "En esta página puedes crear o modificar nuevas traducciones con la clave <kbd>custom.</kbd>",
+        "translations" => "Frases"
+    ],
+    "currency" => [
+        "title" => "Monedas",
+        "setting_description" => "Lista de monedas personalizadas creadas en Flute",
+        "currency" => "Moneda (código)",
+        "add" => "Añadir moneda",
+        "add_description" => "En esta página puedes añadir una nueva moneda",
+        "min_value" => "Valor mínimo",
+        "min_value_desc" => "Indica el monto mínimo de recarga para esta moneda",
+        "exchange_rate" => "Tipo de cambio",
+        "exchange_rate_desc" => "Indica el porcentaje de conversión del monto a esta moneda",
+        "gateway" => "Aplicable a qué pasarelas de pago",
+        "edit" => "Edición de moneda",
+        "edit_description" => "En esta página puedes cambiar los parámetros de la moneda"
+    ],
+    "confirm_install" => "¿Estás seguro de que quieres instalar esto?",
+    "may_have_errors" => "¡Esta función puede funcionar de manera inestable!"    
 ];

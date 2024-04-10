@@ -22,4 +22,3 @@
     "upload_control_valid" => "Faylni yuklab olishda xatolik yuz berdi.",
     "form_invalid" => "Barcha kerakli maydonlarni toʻldiring.",
 ];
-

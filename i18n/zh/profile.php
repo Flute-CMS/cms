@@ -13,6 +13,9 @@
         "main_desc" => "个人资料设置",
         "social_desc" => "社交网络设置",
         "devices_desc" => "活跃会话设置",
+        "security" => "隐私",
+        "invoices" => "支付",
+        "theme" => "外观"
     ],
     "s_main" => [
         "info" => "基本信息",
@@ -40,5 +43,21 @@
         "social_binded" => "社交网络已绑定到个人资料",
         "social_not_connected" => "您没有连接此类社交网络 🤔",
         "social_only_one" => "您无法取消唯一的社交网络绑定！",
+        "uri_taken" => "此链接值已被占用！",
     ],
+    "invoices" => [
+        "info" => "支付"
+    ],
+    "security" => [
+        "info" => "个人信息",
+        "main_settings" => "主要设置"
+    ],
+    "theme" => [
+        "info" => "外观设置"
+    ],
+    "devices" => [
+        "info" => "授权设备",
+        "type" => "设备类型",
+        "end" => "结束"
+    ]
 ];

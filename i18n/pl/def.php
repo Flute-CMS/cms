@@ -175,5 +175,8 @@
     "i_dcare" => "Nie obchodzi mnie to!",
     "hide" => "Ukryj",
     "open" => "Otwórz",
-    "accept" => "Akceptuj"
+    "accept" => "Zastosuj",
+    "not_paid" => "Nieopłacone",
+    "paid" => "Opłacone",
+    "start_tour" => "Uruchom poradnik!"    
 ];

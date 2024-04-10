@@ -144,7 +144,9 @@
         "debug_ips_description" => "输入调试模式将启用的地址（逗号分隔）",
         "get_ip" => "获取我的 IP",
         "steam_label" => "STEAM API 密钥",
-        "steam_description" => "从 <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a> 服务器获取头像所需的密钥"
+        "steam_description" => "从 <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a> 服务器获取头像所需的密钥",
+        "logo" => "标志",
+        "favicon_desc" => "这是浏览器标签页中的小图标 👀"
     ],
     "lk" => [
         "currency_view_label" => "货币（视图）",
@@ -184,6 +186,8 @@
         "login_validation_label" => "登录验证",
         "password_validation_label" => "密码验证",
         "name_validation_label" => "名称验证",
+        "only_social" => "仅限社交网络",
+        "only_social_label" => "使授权和注册仅通过社交网络进行"
     ],
     "form_database" => [
         "default_database_label" => "默认数据库",
@@ -202,6 +206,8 @@
         "language_description" => "选择站点界面的语言。",
         "caching_label" => "缓存",
         "caching_description" => "启用或禁用缓存。",
+        "langs_available" => "可用语言",
+        "langs_available_description" => "选择将在Flute中可用的语言"
     ],
     "form_mail" => [
         "smtp_enabled_label" => "启用 SMTP",
@@ -260,6 +266,8 @@
         "zip_extraction_failed" => "从 ZIP 存档中提取文件失败。",
         "module_json_not_found" => "在存档的根目录中未找到 module.json 文件。",
         "invalid_module_json" => "无效的 module.json 文件格式。",
+        "installed_version" => "当前版本",
+        "last_version" => "最新版本"
     ],
     "themes_list" => [
         "header" => "主题列表",
@@ -283,7 +291,7 @@
         "single_folder_expected" => "ZIP 存档中预期为单个根文件夹。",
         "theme_already_exists" => "具有此名称的主题已存在。",
         "zip_extraction_failed" => "从 ZIP 存档中提取文件失败。",
-        "loader_not_found" => "在存档的根目录中找不到 ThemeLoader.php 文件。",
+        "loader_not_found" => "在存档的根目录中找不到 ThemeLoader.php 文件。"
     ],
     "servers" => [
         "mod" => "游戏",
@@ -547,5 +555,68 @@
         "edit_description" => "在此页面上，您可以更改通知的监听器参数。",
         "add_title" => "添加监听器",
         "add_description" => "在此页面上，您可以为 Flute CMS 中的任何事件添加通知"
-    ]
+    ],
+    "api" => [
+        "add_title" => "添加新的API密钥",
+        "add_description" => "在这个页面上，您可以发行一个具有特定权限的新API密钥",
+        "key" => "您的密钥",
+        "permissions" => "密钥权限",
+        "perm_desc" => "密钥需要有执行权限。这里就是选择它们的地方",
+        "header" => "已发行API密钥列表",
+        "description" => "这个页面展示了引擎中所有密钥的列表",
+        "add" => "添加新的API密钥",
+        "regenerate" => "重新生成"
+    ],
+    "databases" => [
+        "title" => "数据库连接",
+        "server_not_found" => "服务器未找到",
+        "params_empty" => "某些参数为空",
+        "setting_description" => "在这里，您可以配置特定数据库驱动程序到服务器的绑定",
+        "add" => "添加连接",
+        "dbname" => "数据库名称",
+        "dbname_desc" => "该数据库将由驱动程序使用",
+        "server" => "绑定的服务器",
+        "add_description" => "在这个页面上，您可以添加服务器与数据库之间的新连接",
+        "mod" => "驱动名称",
+        "mod_desc" => "这是将要绑定到服务器的驱动",
+        "server_label" => "服务器",
+        "edit_title" => "修改连接",
+        "edit_description" => "在这个页面上，您可以修改特定服务器的连接",
+        "settings" => "额外设置"
+    ],    
+    "composer" => [
+        "title" => "作曲家",
+        "setting_description" => "在这个页面上，您可以添加或删除一个新的Composer包",
+        "name" => "包名",
+        "installed" => "已安装版本",
+        "add" => "添加包",
+        "add_description" => "这个页面展示了所有Composer包的表格。你可以安装任何一个",
+        "packageName" => "包名",
+        "description" => "描述",
+        "downloads" => "下载次数",
+        "download" => ""
+    ],
+    "translate" => [
+        "title" => "翻译",
+        "setting_description" => "在这个页面上，您可以为Flute创建自定义短语，使用<kbd>custom.</kbd>键",
+        "edit" => "更改翻译短语 - :code",
+        "edit_description" => "在这个页面上，您可以使用<kbd>custom.</kbd>键创建或修改新的翻译",
+        "translations" => "短语"
+    ],
+    "currency" => [
+        "title" => "货币",
+        "setting_description" => "Flute创建的自定义货币列表",
+        "currency" => "货币（代码）",
+        "add" => "添加货币",
+        "add_description" => "在这个页面上，您可以添加新的货币",
+        "min_value" => "最小值",
+        "min_value_desc" => "请指定为这种货币充值的最小金额",
+        "exchange_rate" => "汇率",
+        "exchange_rate_desc" => "请指定将金额转换为这种货币的百分比",
+        "gateway" => "适用于哪些支付网关",
+        "edit" => "修改货币",
+        "edit_description" => "在这个页面上，您可以修改货币的参数"
+    ],
+    "confirm_install" => "您确定要安装它吗？",
+    "may_have_errors" => "这个功能可能会不稳定工作！"
 ];

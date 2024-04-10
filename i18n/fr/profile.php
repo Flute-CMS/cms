@@ -13,6 +13,9 @@
         "main_desc" => "Paramètres généraux du profil",
         "social_desc" => "Paramètres des réseaux sociaux",
         "devices_desc" => "Paramètres des sessions actives",
+        "security" => "Confidentialité",
+        "invoices" => "Paiements",
+        "theme" => "Apparence"
     ],
     "s_main" => [
         "info" => "Informations principales",
@@ -39,6 +42,22 @@
     "errors" => [
         "social_binded" => "Ce réseau social est déjà lié à votre profil",
         "social_not_connected" => "Vous n'avez pas encore connecté ce réseau social 🤔",
-        "social_only_one" => "Vous ne pouvez pas déconnecter votre seul réseau social !"
+        "social_only_one" => "Vous ne pouvez pas déconnecter votre seul réseau social !",
+        "uri_taken" => "Lien avec cette valeur est déjà pris!",
+    ],
+    "invoices" => [
+        "info" => "Paiements"
+    ],
+    "security" => [
+        "info" => "Informations personnelles",
+        "main_settings" => "Paramètres principaux"
+    ],
+    "theme" => [
+        "info" => "Configuration de l'apparence"
+    ],
+    "devices" => [
+        "info" => "Appareils autorisés",
+        "type" => "Type d'appareil",
+        "end" => "Terminer"
     ]
 ];

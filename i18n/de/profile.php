@@ -13,6 +13,9 @@
         "main_desc" => "Profil-Einstellungen",
         "social_desc" => "Einstellungen für soziale Netzwerke",
         "devices_desc" => "Einstellungen für aktive Sitzungen",
+        "security" => "Datenschutz",
+        "invoices" => "Zahlungen",
+        "theme" => "Erscheinungsbild"
     ],
     "s_main" => [
         "info" => "Grundlegende Informationen",
@@ -39,6 +42,22 @@
     "errors" => [
         "social_binded" => "Das soziale Netzwerk ist bereits mit dem Profil verbunden",
         "social_not_connected" => "Dieses soziale Netzwerk ist nicht mit deinem Profil verbunden 🤔",
-        "social_only_one" => "Du kannst nicht das einzige soziale Netzwerk trennen!"
+        "social_only_one" => "Du kannst nicht das einzige soziale Netzwerk trennen!",
+        "uri_taken" => "Link mit diesem Wert ist bereits vergeben!",
+    ],
+    "invoices" => [
+        "info" => "Zahlungen"
+    ],
+    "security" => [
+        "info" => "Persönliche Informationen",
+        "main_settings" => "Haupteinstellungen"
+    ],
+    "theme" => [
+        "info" => "Anpassung des Erscheinungsbilds"
+    ],
+    "devices" => [
+        "info" => "Autorisierte Geräte",
+        "type" => "Gerätetyp",
+        "end" => "Beenden"
     ]
 ];

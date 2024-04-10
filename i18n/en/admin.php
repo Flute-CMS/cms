@@ -266,6 +266,8 @@
         "zip_extraction_failed" => "Failed to extract files from ZIP archive.",
         "module_json_not_found" => "module.json file not found at the root of the archive.",
         "invalid_module_json" => "Invalid module.json file format.",
+        "installed_version" => "Current version",
+        "last_version" => "Latest version"
     ],
     "themes_list" => [
         "header" => "Theme List",

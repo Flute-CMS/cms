@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "page" => [
         "title" => "Recharge du solde",
         "choose_gateway" => "Choisissez la passerelle de paiement",

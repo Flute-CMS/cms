@@ -176,4 +176,7 @@
     "hide" => "Yashirish",
     "open" => "Ochish",
     "accept" => "Qoʻllash",
+    "not_paid" => "To'lanmagan",
+    "paid" => "To'langan",
+    "start_tour" => "Qo'llanmani boshlash!"
 ];

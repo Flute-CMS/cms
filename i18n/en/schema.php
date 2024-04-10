@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "typeMismatch" => "Type mismatch: Expected type expected, but got value.",
     "valueOutOfRange" => "Value is out of the expected range expected.",
     "lengthOutOfRange" => "Length of the value should be in the expected range expected, given length bytes.",

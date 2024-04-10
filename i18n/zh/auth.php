@@ -13,6 +13,7 @@
     "do_have_account" => "已经有帐号？",
     "submit_reset_success" => "密码重置链接已发送",
     "submit_reset_error" => "发送表单时出错",
+    "duplicate_login" => "具有该登录名的用户已存在",
     "errors" => [
         "user_not_found" => "找不到用户",
         "social_not_found" => "找不到社交网络",

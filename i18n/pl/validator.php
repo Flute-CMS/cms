@@ -20,4 +20,5 @@
     "image" => "Przesłany plik powinien być obrazem w formacie JPEG, GIF, PNG lub WebP.",
     "select_box_valid" => "Proszę wybrać prawidłową opcję.",
     "upload_control_valid" => "Wystąpił błąd podczas przesyłania pliku.",
+    "form_invalid" => "Proszę wypełnić wszystkie wymagane pola."
 ];

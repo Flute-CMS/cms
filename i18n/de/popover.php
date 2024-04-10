@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "admin_settings" => [
         "title" => [
             "admin_header" => "Systemeinstellungen",
@@ -83,5 +81,23 @@ return [
             "save_button" => "Nachdem Sie die Daten geändert haben, ist es wichtig, alle Inhalte durch Klicken auf diese Schaltfläche zu speichern.",
             "editor_course_completed" => "Damit sind alle Grundlagen für das grundlegende Verständnis des Editors abgedeckt. Für weitere Details lesen Sie die offizielle Dokumentation.",
         ],
-    ]
+    ],
+    "composer" => [
+        "title" => [
+            "composer" => "Wie funktioniert Composer?",
+            "what_is_this" => "Was ist das?",
+            "and_then" => "Und dann?",
+            "package_list" => "Paketliste",
+            "deletion" => "Löschung",
+            "practice" => "Gehen wir zur Praxis über",
+        ],
+        "description" => [
+            "composer" => "Der Paketmanager Composer ermöglicht das Installieren von Bibliotheken aus der Gemeinschaft",
+            "what_is_this" => "Der Paketmanager <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> ermöglicht das Installieren von Bibliotheken aus der Gemeinschaft",
+            "and_then" => "Diese Pakete werden sehr nützlich bei der Entwicklung von Modulen oder Vorlagen sein. Grundsätzlich können Sie hier direkt aus dem Admin-Panel alles Mögliche hinzufügen!",
+            "package_list" => "Hier befinden sich absolut alle im System installierten Pakete. Wenn Sie nicht wissen, wofür ein Paket verantwortlich ist, DANN FASSEN SIE NICHTS AN",
+            "deletion" => "Jedes Paket kann aus dem System entfernt werden. Das ist nützlich, wenn Sie etwas installiert haben, das mit etwas anderem in Konflikt steht oder nicht mehr benötigt wird",
+            "practice" => "Fügen wir unser erstes Paket hinzu",
+        ],
+    ],    
 ];

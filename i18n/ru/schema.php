@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "typeMismatch" => "Ошибка типа данных: Ожидается тип expected, но получено значение value.",
     "valueOutOfRange" => "Значение не находится в ожидаемом диапазоне expected.",
     "lengthOutOfRange" => "Длина значения должна быть в диапазоне expected, дано length байт.",

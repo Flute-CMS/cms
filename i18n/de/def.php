@@ -174,5 +174,8 @@
     "i_dcare" => "Mir ist egal!",
     "hide" => "Verbergen",
     "open" => "Öffnen",
-    "accept" => "Akzeptieren",
+    "accept" => "Anwenden",
+    "not_paid" => "Nicht bezahlt",
+    "paid" => "Bezahlt",
+    "start_tour" => "Tour starten!"    
 ];

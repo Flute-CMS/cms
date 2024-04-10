@@ -81,6 +81,23 @@
             "save_button" => "Après avoir modifié des données, assurez-vous de sauvegarder tout le contenu en appuyant sur ce bouton",
             "editor_course_completed" => "C'est tout ce qu'il faut savoir pour comprendre les bases de l'éditeur. Pour en savoir plus, consultez la documentation officielle",
         ],
-    ]
+    ],
+    "composer" => [
+        "title" => [
+            "composer" => "Comment fonctionne Composer ?",
+            "what_is_this" => "C'est quoi ça ?",
+            "and_then" => "Et ensuite ?",
+            "package_list" => "Liste des paquets",
+            "deletion" => "Suppression",
+            "practice" => "Passons à la pratique",
+        ],
+        "description" => [
+            "composer" => "Le gestionnaire de paquets Composer permet d'installer des bibliothèques de la communauté",
+            "what_is_this" => "Le gestionnaire de paquets <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> permet d'installer des bibliothèques de la communauté",
+            "and_then" => "Ces paquets seront très utiles pour le développement de modules ou de templates. En fait, vous pouvez y attacher absolument tout ce que vous voulez directement depuis le panneau d'admin !",
+            "package_list" => "Ici sont situés absolument tous les paquets installés dans le système. Si vous ne savez pas à quoi sert un paquet, NE TOUCHEZ À RIEN",
+            "deletion" => "Chaque paquet peut être supprimé du système. Cela est utile si vous avez installé quelque chose qui entre en conflit avec une autre chose, ou si cela n'est plus nécessaire",
+            "practice" => "Ajoutons notre premier paquet",
+        ],
+    ],    
 ];
-

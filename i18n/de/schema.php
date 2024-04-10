@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "typeMismatch" => "Datentypfehler: Der erwartete Typ ist expected, aber der Wert value wurde erhalten.",
     "valueOutOfRange" => "Der Wert liegt außerhalb des erwarteten Bereichs von expected.",
     "lengthOutOfRange" => "Die Länge des Wertes sollte im Bereich von expected liegen, aber length Bytes wurden gegeben.",
