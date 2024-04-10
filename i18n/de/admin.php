@@ -144,7 +144,9 @@
         "debug_ips_description" => "Geben Sie die IP-Adressen ein, bei denen der Debug-Modus aktiviert wird (durch Komma getrennt)",
         "get_ip" => "Meine IP herausfinden",
         "steam_label" => "STEAM-API-Schlüssel",
-        "steam_description" => "Der Schlüssel, der benötigt wird, um Avatare von den Servern <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a> zu erhalten"
+        "steam_description" => "Der Schlüssel, der benötigt wird, um Avatare von den Servern <a target=\"_blank\" href=\"https://steamcommunity.com/dev/apikey\">Steam</a> zu erhalten",
+        "logo" => "Logo",
+        "favicon_desc" => "Das ist das kleine Symbol im Tab deines Browsers 👀"
     ],
     "lk" => [
         "currency_view_label" => "Währung (Ansicht)",
@@ -184,6 +186,8 @@
         "login_validation_label" => "Login-Validierung",
         "password_validation_label" => "Passwortvalidierung",
         "name_validation_label" => "Namensvalidierung",
+        "only_social" => "Nur Soziale Netzwerke",
+        "only_social_label" => "Anmeldung und Registrierung nur über soziale Netzwerke ermöglichen"
     ],
     "form_database" => [
         "default_database_label" => "Standarddatenbank",
@@ -202,6 +206,8 @@
         "language_description" => "Wählen Sie die Sprache der Website-Benutzeroberfläche aus.",
         "caching_label" => "Caching",
         "caching_description" => "Aktivieren oder Deaktivieren des Caching.",
+        "langs_available" => "Verfügbare Sprachen",
+        "langs_available_description" => "Wählen Sie die Sprachen aus, die in Flute verfügbar sein werden"
     ],
     "form_mail" => [
         "smtp_enabled_label" => "SMTP aktiviert",
@@ -260,6 +266,8 @@
         "zip_extraction_failed" => "Extrahieren der Dateien aus dem ZIP-Archiv fehlgeschlagen.",
         "module_json_not_found" => "Datei module.json im Stammverzeichnis des Archivs nicht gefunden.",
         "invalid_module_json" => "Ungültiges Format für die Datei module.json.",
+        "installed_version" => "Installierte Version",
+        "last_version" => "Letzte Version"
     ],
     "themes_list" => [
         "header" => "Themenliste",
@@ -547,5 +555,68 @@
         "edit_description" => "Hier können Sie die Parameter des Benachrichtigungsempfängers ändern",
         "add_title" => "Benachrichtigung hinzufügen",
         "add_description" => "Hier können Sie eine Benachrichtigung für ein Ereignis in Flute CMS hinzufügen"
-    ]
+    ],
+    "api" => [
+        "add_title" => "Hinzufügen eines neuen API-Schlüssels",
+        "add_description" => "Auf dieser Seite können Sie einen neuen API-Schlüssel mit bestimmten Rechten ausstellen",
+        "key" => "Ihr Schlüssel",
+        "permissions" => "Schlüsselberechtigungen",
+        "perm_desc" => "Der Schlüssel muss Ausführungsberechtigungen haben. Hier werden sie ausgewählt",
+        "header" => "Liste der ausgegebenen API-Schlüssel",
+        "description" => "Auf dieser Seite wird eine Liste aller Schlüssel im System dargestellt",
+        "add" => "Neuen API-Schlüssel hinzufügen",
+        "regenerate" => "Regenerieren"
+    ],    
+    "databases" => [
+        "title" => "DB-Verbindungen",
+        "server_not_found" => "Server nicht gefunden",
+        "params_empty" => "Einige Parameter sind leer",
+        "setting_description" => "Hier können Sie die Zuordnung eines bestimmten DB-Treibers zu einem Server konfigurieren",
+        "add" => "Verbindung hinzufügen",
+        "dbname" => "DB-Name",
+        "dbname_desc" => "Diese DB wird vom Treiber verwendet",
+        "server" => "Zugeordneter Server",
+        "add_description" => "Auf dieser Seite können Sie eine neue Verbindung zwischen Server und DB hinzufügen",
+        "mod" => "Treibername",
+        "mod_desc" => "Dies ist der Treiber, der dem Server zugeordnet wird",
+        "server_label" => "Server",
+        "edit_title" => "Verbindung bearbeiten",
+        "edit_description" => "Auf dieser Seite können Sie die Verbindung eines bestimmten Servers ändern",
+        "settings" => "Zusätzliche Einstellungen"
+    ],
+    "composer" => [
+        "title" => "Komponist",
+        "setting_description" => "Auf dieser Seite können Sie ein neues Composer-Paket hinzufügen oder entfernen",
+        "name" => "Paketname",
+        "installed" => "Installierte Version",
+        "add" => "Paket hinzufügen",
+        "add_description" => "Diese Seite zeigt eine Tabelle aller Composer-Pakete. Sie können jedes installieren",
+        "packageName" => "Paketname",
+        "description" => "Beschreibung",
+        "downloads" => "Downloads",
+        "download" => ""
+    ],
+    "translate" => [
+        "title" => "Übersetzungen",
+        "setting_description" => "Auf dieser Seite können Sie Ihre eigenen Phrasen für Flute mit dem Schlüssel <kbd>custom.</kbd> erstellen",
+        "edit" => "Änderung der Übersetzungsphrasen - :code",
+        "edit_description" => "Auf dieser Seite können Sie neue Übersetzungen mit dem Schlüssel <kbd>custom.</kbd> erstellen oder ändern",
+        "translations" => "Phrasen"
+    ],
+    "currency" => [
+        "title" => "Währungen",
+        "setting_description" => "Liste der in Flute erstellten benutzerdefinierten Währungen",
+        "currency" => "Währung (Code)",
+        "add" => "Währung hinzufügen",
+        "add_description" => "Auf dieser Seite können Sie eine neue Währung hinzufügen",
+        "min_value" => "Mindestwert",
+        "min_value_desc" => "Geben Sie den minimalen Aufladebetrag für diese Währung an",
+        "exchange_rate" => "Wechselkurs",
+        "exchange_rate_desc" => "Geben Sie den Konvertierungsprozentsatz des Betrags in diese Währung an",
+        "gateway" => "Anwendbar auf welche Zahlungsgateways",
+        "edit" => "Währung ändern",
+        "edit_description" => "Auf dieser Seite können Sie die Parameter der Währung ändern"
+    ],
+    "confirm_install" => "Sind Sie sicher, dass Sie dies installieren möchten?",
+    "may_have_errors" => "Diese Funktion kann instabil funktionieren!"    
 ];

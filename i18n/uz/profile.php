@@ -13,6 +13,9 @@
         "main_desc" => "Profil sozlamalari",
         "social_desc" => "Ijtimoiy tarmoq sozlamalari",
         "devices_desc" => "Faol sessiyalar sozlamalari",
+        "security" => "Maxfiylik",
+        "invoices" => "To'lovlar",
+        "theme" => "Ko'rinish"
      ],
     "s_main" => [
         "info" => "Asosiy maʻlumotlar",
@@ -40,5 +43,21 @@
         "social_binded" => "Ijtimoiy tarmoq allaqachon profilga ulangan",
         "social_not_connected" => "Siz bunday ijtimoiy tarmoqqa ulanmagansiz 🤔",
         "social_only_one" => "Siz yagona ijtimoiy tarmoqni uza olmaysiz!",
-     ],
+        "uri_taken" => "Bu qiymat bilan bog'lanish allaqachon band!",
+    ],
+    "invoices" => [
+        "info" => "To'lovlar"
+    ],
+    "security" => [
+        "info" => "Shaxsiy ma'lumot",
+        "main_settings" => "Asosiy sozlamalar"
+    ],
+    "theme" => [
+        "info" => "Tashqi ko'rinish sozlamalari"
+    ],
+    "devices" => [
+        "info" => "Avtorizatsiya qilingan qurilmalar",
+        "type" => "Qurilma turi",
+        "end" => "Tugatish"
+    ]
 ];

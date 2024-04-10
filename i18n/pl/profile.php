@@ -13,6 +13,9 @@
         "main_desc" => "Ustawienia profilu",
         "social_desc" => "Ustawienia kont społecznościowych",
         "devices_desc" => "Ustawienia aktywnych sesji",
+        "security" => "Prywatność",
+        "invoices" => "Płatności",
+        "theme" => "Wygląd"
     ],
     "s_main" => [
         "info" => "Podstawowe informacje",
@@ -39,6 +42,22 @@
     "errors" => [
         "social_binded" => "To media społecznościowe jest już powiązane z profilem",
         "social_not_connected" => "Takie media społecznościowe nie są połączone z twoim profilem 🤔",
-        "social_only_one" => "Nie możesz odłączyć jedynego media społecznościowego!"
+        "social_only_one" => "Nie możesz odłączyć jedynego media społecznościowego!",
+        "uri_taken" => "Link z tą wartością jest już zajęty!",
+    ],
+    "invoices" => [
+        "info" => "Płatności"
+    ],
+    "security" => [
+        "info" => "Informacje osobiste",
+        "main_settings" => "Ustawienia główne"
+    ],
+    "theme" => [
+        "info" => "Konfiguracja wyglądu"
+    ],
+    "devices" => [
+        "info" => "Autoryzowane urządzenia",
+        "type" => "Typ urządzenia",
+        "end" => "Zakończ"
     ]
 ];

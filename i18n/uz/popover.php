@@ -82,4 +82,22 @@
             "editor_course_completed" => "Bu muharrirning asosiy tushunchasi uchun bilishingiz kerak boʻlgan hamma narsa. Qoʻshimcha maʻlumot olish uchun rasmiy hujjatlarga qarang",
           ],
      ],
+     "composer" => [
+        "title" => [
+            "composer" => "Composer qanday ishlaydi?",
+            "what_is_this" => "Bu nima?",
+            "and_then" => "Va keyin?",
+            "package_list" => "Paketlar ro'yxati",
+            "deletion" => "O'chirish",
+            "practice" => "Amaliyotga o'taylik",
+        ],
+        "description" => [
+            "composer" => "Composer paketlar menejeri jamoat kutubxonalarini o'rnatishga imkon beradi",
+            "what_is_this" => "Paketlar menejeri <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> jamoat kutubxonalarini o'rnatishga imkon beradi",
+            "and_then" => "Bu paketlar modullar yoki shablonlarni ishlab chiqishda juda foydali bo'ladi. Aslida, siz admin-panel orqali deyarli hamma narsani qo'shishingiz mumkin!",
+            "package_list" => "Bu yerda tizimga o'rnatilgan barcha paketlar joylashgan. Agar siz qaysi paket nima uchun javobgarligini bilmagan bo'lsangiz, HECH NARSA TEKSHIRMANG",
+            "deletion" => "Har bir paket tizimdan o'chirilishi mumkin. Bu narsa biror narsani o'rnatgan bo'lsangiz va u boshqa narsa bilan ziddiyatga kirsa yoki umuman foydalanish talab qilinmasa foydali",
+            "practice" => "Birinchi paketimizni qo'shaylik",
+        ],
+    ],  
 ];

@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "login_success" => "Inicio de sesión exitoso",
     "incorrect_password_or_login" => "Nombre de usuario o contraseña incorrectos",
     "too_many_requests" => "Demasiadas solicitudes",

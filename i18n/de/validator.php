@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "session_expired" => "Ihre Sitzung ist abgelaufen. Bitte kehren Sie zur Hauptseite zurück und versuchen Sie es erneut.",
     "equal" => "Bitte geben Sie %s ein.",
     "not_equal" => "Der Wert sollte nicht gleich %s sein.",
@@ -22,4 +20,5 @@ return [
     "image" => "Die hochgeladene Datei sollte ein Bild im JPEG-, GIF-, PNG- oder WebP-Format sein.",
     "select_box_valid" => "Bitte wählen Sie eine gültige Option aus.",
     "upload_control_valid" => "Beim Hochladen der Datei ist ein Fehler aufgetreten.",
+    "form_invalid" => "Bitte füllen Sie alle erforderlichen Felder aus."
 ];

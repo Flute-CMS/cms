@@ -81,6 +81,23 @@
             "save_button" => "Po zmianie danych koniecznie trzeba zapisać całą zawartość, klikając ten przycisk",
             "editor_course_completed" => "To wszystko, co trzeba wiedzieć, aby podstawowo korzystać z edytora. Aby dowiedzieć się więcej, sprawdź oficjalną dokumentację",
         ],
-    ]
+    ],
+    "composer" => [
+        "title" => [
+            "composer" => "Jak działa Composer?",
+            "what_is_this" => "Co to jest?",
+            "and_then" => "I co dalej?",
+            "package_list" => "Lista pakietów",
+            "deletion" => "Usuwanie",
+            "practice" => "Przejdźmy do praktyki",
+        ],
+        "description" => [
+            "composer" => "Menedżer pakietów Composer pozwala na instalowanie bibliotek społeczności",
+            "what_is_this" => "Menedżer pakietów <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> pozwala na instalowanie bibliotek społeczności",
+            "and_then" => "Te pakiety będą bardzo użyteczne podczas tworzenia modułów lub szablonów. W zasadzie możesz tutaj przypiąć absolutnie cokolwiek bezpośrednio z panelu administracyjnego!",
+            "package_list" => "Tutaj znajdują się absolutnie wszystkie pakiety zainstalowane w systemie. Jeśli nie wiesz, do czego służy dany pakiet, NIC NIE RÓB",
+            "deletion" => "Każdy pakiet można usunąć z systemu. Jest to przydatne, jeśli zainstalowałeś coś, co koliduje z czymś innym, lub jeśli nie jest już potrzebne",
+            "practice" => "Dodajmy nasz pierwszy pakiet",
+        ],
+    ]    
 ];
-

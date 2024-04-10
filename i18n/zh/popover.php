@@ -82,4 +82,22 @@
             "editor_course_completed" => "这就是您在编辑器中基本理解所需的全部内容。有关更多详细信息，请参阅官方文档。",
         ],
     ],
+    "composer" => [
+        "title" => [
+            "composer" => "Composer是如何工作的？",
+            "what_is_this" => "这是什么东西？",
+            "and_then" => "然后呢？",
+            "package_list" => "包列表",
+            "deletion" => "删除",
+            "practice" => "让我们来实践一下",
+        ],
+        "description" => [
+            "composer" => "Composer包管理器允许安装社区库",
+            "what_is_this" => "包管理器<a href=\"https://packagist.org/\" target=\"_blank\">composer</a>允许安装社区库",
+            "and_then" => "这些包在开发模块或模板时将非常有用。实际上，你可以直接从管理面板里安装任何东西！",
+            "package_list" => "这里列出了系统中安装的所有包。如果你不知道包负责什么，那么什么也不要动",
+            "deletion" => "每个包都可以从系统中删除。这很有用，如果你安装了某个东西，而它与其他东西冲突，或者根本不再需要使用",
+            "practice" => "让我们添加我们的第一个包",
+        ],
+    ],    
 ];

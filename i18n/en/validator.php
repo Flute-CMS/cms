@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "session_expired" => "Your session has expired. Please return to the main page and try again.",
     "equal" => "Please enter %s.",
     "not_equal" => "The value should not be equal to %s.",
@@ -22,4 +20,5 @@ return [
     "image" => "The uploaded file should be an image in JPEG, GIF, PNG, or WebP format.",
     "select_box_valid" => "Please select a valid option.",
     "upload_control_valid" => "An error occurred during file upload.",
+    "form_invalid" => "Please fill in all required fields."
 ];

@@ -20,4 +20,5 @@
     "image" => "上传的文件应为JPEG、GIF、PNG或WebP格式的图片。",
     "select_box_valid" => "请选择有效的选项。",
     "upload_control_valid" => "上传文件时发生错误。",
+    "form_invalid" => "请填写所有必填字段。"
 ];

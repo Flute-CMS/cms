@@ -175,5 +175,8 @@
     "i_dcare" => "Je m'en fiche !",
     "hide" => "Masquer",
     "open" => "Ouvrir",
-    "accept" => "Accepter"
+    "accept" => "Appliquer",
+    "not_paid" => "Non payé",
+    "paid" => "Payé",
+    "start_tour" => "Lancer le guide !"    
 ];

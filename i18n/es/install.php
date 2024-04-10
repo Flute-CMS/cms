@@ -1,6 +1,4 @@
-<?php
-
-return [
+<?php return [
     "back" => "Atrás",
     "next" => "Siguiente",
     "last_step_required" => "¡Para continuar, necesitas completar el último paso!",
