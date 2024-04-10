@@ -125,7 +125,7 @@ class PaymentProcessor
             throw new \Exception('Gateway is not exists');
 
         $gatewayEntity = rep(PaymentGateway::class)
-            ->findOne(['enabled' => true, 'adapter' => $gatewayName]);
+            ->findOne(['enabled' => true, 'name' => $gatewayName]);
 
         if (!$gatewayEntity)
             throw new \Exception("Gateway wasn't found");
@@ -251,7 +251,7 @@ class PaymentProcessor
         $gatewayEntity = $event->getPaymentGateway();
         $invoice = $event->getInvoice();
 
-        $paymentData['notifyUrl'] = url('/api/lk/handle/' . $gateway->getShortName())->get();
+        $paymentData['notifyUrl'] = url('/api/lk/handle/' . $gatewayEntity->name)->get();
 
         $response = $gateway->purchase($paymentData)->send();
 

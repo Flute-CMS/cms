@@ -326,7 +326,7 @@ final class App
         $router = $this->get(RouteDispatcher::class);
         $res = $this->responseEvent($router->handle($this->get(FluteRequest::class)));
 
-        events()->saveDeferredListenersToCache();
+        $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
 
         // Ставим новый Response из ивента в возвращаемый объект.
         // Вдруг кто-то там что-то поменял, и нам надо вернуть новый объект

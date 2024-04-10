@@ -7,14 +7,12 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class FluteEventDispatcher extends EventDispatcher
 {
-    private $cache;
     private $deferredListenersKey = 'flute.deferred_listeners';
-    private $deferredListeners = [];
+    public $deferredListeners = [];
 
-    public function __construct(CacheInterface $cache)
+    public function __construct()
     {
         parent::__construct();
-        $this->cache = $cache;
         $this->initializeDeferredListeners();
     }
 
@@ -28,7 +26,8 @@ class FluteEventDispatcher extends EventDispatcher
 
         $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
 
-        $this->addListener($eventName, $listener, $priority);
+        if (class_exists($listener[0]))
+            $this->addListener($eventName, $listener, $priority);
     }
 
     public function removeDeferredListener($eventName, $listener)
@@ -42,7 +41,7 @@ class FluteEventDispatcher extends EventDispatcher
                 unset($this->deferredListeners[$eventName]);
             }
 
-            $this->cache->set($this->deferredListenersKey, $this->deferredListeners);
+            cache()->set($this->deferredListenersKey, $this->deferredListeners);
         }
 
         $this->removeListener($eventName, $listener);
@@ -50,12 +49,12 @@ class FluteEventDispatcher extends EventDispatcher
 
     public function saveDeferredListenersToCache()
     {
-        $this->cache->set($this->deferredListenersKey, $this->deferredListeners);
+        cache()->set($this->deferredListenersKey, $this->deferredListeners, 3600);
     }
 
     private function initializeDeferredListeners()
     {
-        $deferredListeners = $this->cache->get($this->deferredListenersKey, []);
+        $deferredListeners = cache()->get($this->deferredListenersKey, []);
 
         foreach ($deferredListeners as $eventName => $listeners) {
             foreach ($listeners as $listenerData) {
