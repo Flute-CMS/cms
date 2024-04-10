@@ -26,7 +26,7 @@ class FluteEventDispatcher extends EventDispatcher
 
         $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
 
-        if (class_exists($listener[0]))
+        if (is_callable($listener))
             $this->addListener($eventName, $listener, $priority);
     }
 
@@ -55,6 +55,9 @@ class FluteEventDispatcher extends EventDispatcher
     private function initializeDeferredListeners()
     {
         $deferredListeners = cache()->get($this->deferredListenersKey, []);
+
+        if (!is_array($deferredListeners))
+            $deferredListeners = [];
 
         foreach ($deferredListeners as $eventName => $listeners) {
             foreach ($listeners as $listenerData) {
