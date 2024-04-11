@@ -31,7 +31,7 @@
 
 <hr />
 
-<a href="https://docs.flute-cms.com">
+<a href="https://demo.flute-cms.com">
   <img src="https://github.com/Flute-CMS/cms/assets/62756604/d5697ce9-3536-4062-afc3-b006a51f1b9e" alt="Flute dashboard"/>
 </a>
 <p align="center">
