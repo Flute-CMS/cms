@@ -16,7 +16,7 @@
 <br />
 <br />
 <p align="center">
-  <a href="https://flute-cms.com/">🌍 Веб-сайт Flute</a> •
+  <a href="https://demo.flute-cms.com/">🌍 Демо Flute</a> •
     <a href="https://docs.flute-cms.com/">📖 Документация</a> •
     <a href="https://discord.gg/BcBMeVJJsd">💬 Discord</a>
     <br /><br />
