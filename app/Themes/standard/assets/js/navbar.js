@@ -16,12 +16,14 @@ $(document).ready(async () => {
     setInterval(updateNotifications, 25000);
 
     $(document).on('click', function (event) {
-        if (
-            !$(event.target).closest(
-                '.navbar--container, #openNotifications, #openMiniProfile, #search, .navbar-search',
-            ).length
-        ) {
-            closeAllHandle();
+        if (!$(event.target).closest('.choose_lang').length) {
+            if (
+                !$(event.target).closest(
+                    '.navbar--container, #openNotifications, #openMiniProfile, #search, .navbar-search',
+                ).length
+            ) {
+                closeAllHandle();
+            }
         }
     });
 });
@@ -74,7 +76,11 @@ function initializeEventHandlers() {
             return; // Игнорируем нажатие, если зажата одна из этих клавиш
         }
 
-        if (!$('input').is(':focus') && !isContentEditable && !$('textarea').is(':focus')) {
+        if (
+            !$('input').is(':focus') &&
+            !isContentEditable &&
+            !$('textarea').is(':focus')
+        ) {
             // Помещаем фокус на целевой input
             $searchInput.focus();
             $searchInput.parent().parent().addClass('opened');
@@ -621,7 +627,7 @@ function checkActiveLang(e) {
     const href = $(this).attr('href');
 
     if (typeof driverObj !== 'undefined') driverObj.destroy();
-    if( typeof closeLangNotify !== 'undefined' ) setLang($(this).data('lang'));
+    if (typeof closeLangNotify !== 'undefined') setLang($(this).data('lang'));
 
     if ($(this).hasClass('active'))
         return $(this).data('skip') ? closeMiniProfile() : toggleLang();

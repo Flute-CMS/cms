@@ -24,7 +24,7 @@ $('.choose_lang').on('click', (e) => {
 
     driverObj = driver({
         onDestroyed: (e) => {
-            closeMiniProfile();
+            closeAllHandle();
         },
     });
 
