@@ -382,7 +382,7 @@ class AuthenticationService
     {
         $passwordResetTokenRepository = rep(PasswordResetToken::class);
 
-        $passwordResetToken = $passwordResetTokenRepository->findOne(['token' => $token]);
+        $passwordResetToken = $passwordResetTokenRepository->select()->where(['token' => $token])->load('user')->fetchOne();
 
         if ($passwordResetToken === null) {
             throw new PasswordResetTokenNotFoundException($token);
