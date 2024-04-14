@@ -276,7 +276,7 @@ class AuthenticationService
 
         $verificationTokenRepository = rep(VerificationToken::class);
 
-        $verificationToken = $verificationTokenRepository->findOne(['token' => $token]);
+        $verificationToken = $verificationTokenRepository->select()->where(['token' => $token])->load('user')->fetchOne();
 
         if ($verificationToken === null || $verificationToken->expiresAt < new \DateTime()) {
             throw new AccountNotVerifiedException();
