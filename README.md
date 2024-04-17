@@ -77,8 +77,11 @@ To successfully install and run Flute, ensure your system meets the following re
    ```
    to install dependencies.
 4. Configure your web server (Apache/Nginx) and the database.
-
+&nbsp;
 ### On Shared Hosting:
+> [!TIP]
+> Watch the video tutorial for installation [here](https://www.youtube.com/watch?v=PCSjl2w7A9k)
+
 1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload them to your hosting via FTP or the hosting provider's file manager.
 3. Configure the web server on your hosting to point to the Flute folder.
