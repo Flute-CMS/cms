@@ -80,7 +80,10 @@
     для установки зависимостей.
 4. Настройте ваш веб-сервер (Apache/Nginx) и базу данных.
 
+&nbsp;
 ### На Шаред-Хостинге:
+> [!TIP]
+> Вы можете посмотреть видео-установку [тут](https://www.youtube.com/watch?v=PCSjl2w7A9k)
 
 1. Скачайте Flute и папку `vendor` из [releases](https://github.com/Flute-CMS/cms/releases).
 2. Загрузите их на хостинг через FTP или файловый менеджер.
