@@ -17,11 +17,11 @@
 <br />
 <br />
 <p align="center">
-  <a href="https://demo.flute-cms.com/">🌍 Демо Flute</a> •
-    <a href="https://docs.flute-cms.com/">📖 Документация</a> •
+  <a href="https://demo.flute-cms.com">🌍 Демо Flute</a> •
+    <a href="https://docs.flute-cms.com">📖 Документация</a> •
     <a href="https://discord.gg/BcBMeVJJsd">💬 Discord</a>
     <br /><br />
-   <a href="https://github.com/Flute-CMS/cms/releases/">
+   <a href="https://github.com/Flute-CMS/cms/releases">
         <img src="https://img.shields.io/github/release/Flute-CMS/cms.svg" alt="Последний релиз" />
     </a>
   &nbsp;
@@ -32,7 +32,7 @@
 
 <hr />
 
-<a href="https://docs.flute-cms.com">
+<a href="https://demo.flute-cms.com">
   <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute админ-панели"/>
 <p align="center">
   👀 Пример админ-панели
