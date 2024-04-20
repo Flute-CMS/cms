@@ -61,7 +61,7 @@
 
 Para instalar e executar o Flute com êxito, certifique-se de que seu sistema atenda aos seguintes requisitos:
 - PHP 7.4 ou posterior.
-- MySQL 5.7.29 ou superior/MariaDB 10.2.7 ou superior.
+- MySQL 5.7.29 ou superior / MariaDB 10.2.7 ou superior.
 - Servidor web Apache ou Nginx.
 - (Opcionalmente) Composer para gerenciamento de dependências.
 
@@ -81,6 +81,9 @@ Para instalar e executar o Flute com êxito, certifique-se de que seu sistema at
 4. Configure seu servidor web (Apache/Nginx) e o banco de dados.
 
 ### Na Hospedagem Compartilhada:
+
+> [!TIP]
+> Assista ao tutorial em vídeo para instalação [aqui](https://www.youtube.com/watch?v=PCSjl2w7A9k)
 
 1. Baixe o Flute e a pasta `vendor` em [releases](https://github.com/Flute-CMS/cms/releases).
 2. Carregue-os em sua hospedagem via FTP ou no gerenciador de arquivos do provedor de hospedagem.

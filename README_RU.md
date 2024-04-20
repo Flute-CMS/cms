@@ -34,6 +34,7 @@
 
 <a href="https://demo.flute-cms.com">
   <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute админ-панели"/>
+</a>
 <p align="center">
   👀 Пример админ-панели
 </p>
