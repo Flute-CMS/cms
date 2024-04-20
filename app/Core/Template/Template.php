@@ -26,7 +26,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         'jquery' => '/assets/js/jquery.js',
         'tables_js' => '/assets/js/tables.js',
         'tables_css' => '/assets/css/libs/tables.css',
-        'phosphor' => 'https://unpkg.com/@phosphor-icons/web'
+        'phosphor' => 'https://unpkg.com/@phosphor-icons/web@2.1.1'
     ];
 
     /**

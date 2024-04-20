@@ -16,7 +16,7 @@
 
     <div class="translations">
         @foreach (app('lang.available') as $key => $lang)
-            <a data-lang="{{ $lang }}" @if($key === 0) class="active" @endif>
+            <a data-lang="{{ $lang }}" @if ($key === 0) class="active" @endif>
                 <img src="{{ url('assets/img/langs/' . $lang . '.svg') }}" alt="">
                 <p>@t('langs.' . $lang)</p>
             </a>
@@ -25,21 +25,24 @@
 
     <div class="translations-container">
         @foreach (app('lang.available') as $key => $lang)
-            <div id="{{ $lang }}" class="row form-group" @if ($key !== 0) style="display: none;" @endif>
+            <div id="{{ $lang }}" class="row form-group"
+                @if ($key !== 0) style="display: none;" @endif>
                 <div class="parametersContainer col-md-12">
                     @foreach ($translations[$lang] as $key => $val)
-                        <div class="param-group" id="param-group-{{ $key }}">
+                        <div class="param-group" id="param-group-{{ $lang }}-{{ $key }}">
                             <input type="text" name="paramNames[]" class="form-control" placeholder="Key" required=""
                                 value="{{ $key }}">
                             <input type="text" name="paramValues[]" class="form-control" placeholder="Value"
                                 required="" value="{{ $val }}">
                             <button type="button" class="removeParam btn size-s error"
+                                data-lang="{{ $lang }}"
                                 data-id="{{ $key }}">@t('def.delete')</button>
                         </div>
                     @endforeach
                 </div>
                 <div class="col-md-12">
-                    <button type="button" class="btn size-s outline addParam" data-lang="{{ $lang }}">@t('def.add')</button>
+                    <button type="button" class="btn size-s addParam outline"
+                        data-lang="{{ $lang }}">@t('def.add')</button>
                 </div>
             </div>
         @endforeach

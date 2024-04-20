@@ -47,7 +47,7 @@ final class App
      * 
      * @var string
      */
-    public const VERSION = '0.1.3-alpha';
+    public const VERSION = '0.1.3.1-alpha';
 
     /**
      * Set the base path of the application
@@ -325,6 +325,8 @@ final class App
         /** @var RouteDispatcher $router */
         $router = $this->get(RouteDispatcher::class);
         $res = $this->responseEvent($router->handle($this->get(FluteRequest::class)));
+
+        $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
 
         // Ставим новый Response из ивента в возвращаемый объект.
         // Вдруг кто-то там что-то поменял, и нам надо вернуть новый объект

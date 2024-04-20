@@ -7,52 +7,65 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class FluteEventDispatcher extends EventDispatcher
 {
-    private $cache;
     private $deferredListenersKey = 'flute.deferred_listeners';
+    public $deferredListeners = [];
 
-    public function __construct(CacheInterface $cache)
+    public function __construct()
     {
         parent::__construct();
-        $this->cache = $cache;
         $this->initializeDeferredListeners();
     }
 
     public function addDeferredListener($eventName, $listener, $priority = 0)
     {
-        $deferredListeners = $this->cache->get($this->deferredListenersKey, function () {
-            return [];
-        });
-
-        if (!is_array($deferredListeners)) {
-            $deferredListeners = [];
-        }
-
-
         $listenerId = $this->getListenerId($listener);
 
-        if (!isset($deferredListeners[$eventName])) {
-            $deferredListeners[$eventName] = [];
+        if (!isset($this->deferredListeners[$eventName])) {
+            $this->deferredListeners[$eventName] = [];
         }
 
-        if (!isset($deferredListeners[$eventName][$listenerId])) {
-            $deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
-            $this->cache->set($this->deferredListenersKey, $deferredListeners);
+        $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
+
+        if (is_callable($listener))
+            $this->addListener($eventName, $listener, $priority);
+    }
+
+    public function removeDeferredListener($eventName, $listener)
+    {
+        $listenerId = $this->getListenerId($listener);
+
+        if (isset($this->deferredListeners[$eventName][$listenerId])) {
+            unset($this->deferredListeners[$eventName][$listenerId]);
+
+            if (empty($this->deferredListeners[$eventName])) {
+                unset($this->deferredListeners[$eventName]);
+            }
+
+            cache()->set($this->deferredListenersKey, $this->deferredListeners);
         }
 
-        $this->addListener($eventName, $listener, $priority);
+        $this->removeListener($eventName, $listener);
+    }
+
+    public function saveDeferredListenersToCache()
+    {
+        cache()->set($this->deferredListenersKey, $this->deferredListeners, 3600);
     }
 
     private function initializeDeferredListeners()
     {
-        $deferredListeners = $this->cache->get($this->deferredListenersKey, function () {
-            return [];
-        });
+        $deferredListeners = cache()->get($this->deferredListenersKey, []);
+
+        if (!is_array($deferredListeners))
+            $deferredListeners = [];
 
         foreach ($deferredListeners as $eventName => $listeners) {
             foreach ($listeners as $listenerData) {
                 $this->addListener($eventName, $listenerData['listener'], $listenerData['priority']);
             }
         }
+
+        $this->deferredListeners = $deferredListeners;
     }
 
     private function getListenerId($listener)

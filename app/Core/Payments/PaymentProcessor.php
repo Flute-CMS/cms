@@ -230,7 +230,6 @@ class PaymentProcessor
 
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional);
 
-
         foreach ($additional as $key => $val) {
             $additional->$key = str_replace(["{{amount}}", "{{transactionId}}", "{{currency}}"], [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code], $val);
         }
@@ -238,8 +237,8 @@ class PaymentProcessor
         $paymentData = array_merge([
             'amount' => $invoice->originalAmount,
             'transactionId' => $invoice->transactionId,
-            'cancelUrl' => url('/lk/fail'),
-            'returnUrl' => url('/lk/success'),
+            'cancelUrl' => url('/lk/fail')->get(),
+            'returnUrl' => url('/lk/success')->get(),
         ], (array) $additional);
 
         if (!isset($paymentData['currency']))
@@ -252,16 +251,16 @@ class PaymentProcessor
         $gatewayEntity = $event->getPaymentGateway();
         $invoice = $event->getInvoice();
 
-        $paymentData['notifyUrl'] = url('/api/lk/handle/' . $gateway->getShortName());
+        $paymentData['notifyUrl'] = url('/api/lk/handle/' . $gatewayEntity->name)->get();
 
         $response = $gateway->purchase($paymentData)->send();
 
         $this->dispatcher->dispatch(new AfterGatewayResponseEvent($invoice, $response), AfterGatewayResponseEvent::NAME);
 
         if ($response->isRedirect()) {
-            return $response->getRedirectUrl();
+            return $response->redirect();
         } else {
-            throw new PaymentException($response->getMessage());
+            throw new PaymentException($response->getMessage() ?? $response->getData()->message);
         }
     }
 }

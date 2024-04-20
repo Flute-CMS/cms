@@ -228,11 +228,10 @@ class SocialService
      */
     public function registerHybridAuth(string $socialNetworkName = null, bool $bind = false): void
     {
-        if (!$this->hybridauth)
-            $this->hybridauth = new Hybridauth([
-                'callback' => url($bind ? "profile/social/bind/$socialNetworkName" : "social/$socialNetworkName")->get(),
-                'providers' => $this->registeredProviders
-            ], null, new StorageSession);
+        $this->hybridauth = new Hybridauth([
+            'callback' => url($bind ? "profile/social/bind/$socialNetworkName" : "social/$socialNetworkName")->get(),
+            'providers' => $this->registeredProviders
+        ], null, new StorageSession);
     }
 
     /**

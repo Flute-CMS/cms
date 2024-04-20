@@ -17,7 +17,7 @@
 <br />
 <br />
 <p align="center">
-  <a href="https://flute-cms.com/">🌍 Веб-сайт Flute</a> •
+  <a href="https://demo.flute-cms.com/">🌍 Демо Flute</a> •
     <a href="https://docs.flute-cms.com/">📖 Документация</a> •
     <a href="https://discord.gg/BcBMeVJJsd">💬 Discord</a>
     <br /><br />
@@ -34,7 +34,6 @@
 
 <a href="https://docs.flute-cms.com">
   <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute админ-панели"/>
-</a>
 <p align="center">
   👀 Пример админ-панели
 </p>
@@ -80,7 +79,10 @@
     для установки зависимостей.
 4. Настройте ваш веб-сервер (Apache/Nginx) и базу данных.
 
+&nbsp;
 ### На Шаред-Хостинге:
+> [!TIP]
+> Вы можете посмотреть видео-установку [тут](https://www.youtube.com/watch?v=PCSjl2w7A9k)
 
 1. Скачайте Flute и папку `vendor` из [releases](https://github.com/Flute-CMS/cms/releases).
 2. Загрузите их на хостинг через FTP или файловый менеджер.

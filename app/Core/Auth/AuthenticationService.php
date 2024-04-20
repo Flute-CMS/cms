@@ -276,7 +276,7 @@ class AuthenticationService
 
         $verificationTokenRepository = rep(VerificationToken::class);
 
-        $verificationToken = $verificationTokenRepository->findOne(['token' => $token]);
+        $verificationToken = $verificationTokenRepository->select()->where(['token' => $token])->load('user')->fetchOne();
 
         if ($verificationToken === null || $verificationToken->expiresAt < new \DateTime()) {
             throw new AccountNotVerifiedException();
@@ -382,7 +382,7 @@ class AuthenticationService
     {
         $passwordResetTokenRepository = rep(PasswordResetToken::class);
 
-        $passwordResetToken = $passwordResetTokenRepository->findOne(['token' => $token]);
+        $passwordResetToken = $passwordResetTokenRepository->select()->where(['token' => $token])->load('user')->fetchOne();
 
         if ($passwordResetToken === null) {
             throw new PasswordResetTokenNotFoundException($token);

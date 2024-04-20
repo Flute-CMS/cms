@@ -17,7 +17,7 @@
 <br />
 <br />
 <p align="center">
-  <a href="https://flute-cms.com/">🌍 Flute Website</a> •
+  <a href="https://demo.flute-cms.com/">🌍 Flute DEMO</a> •
     <a href="https://docs.flute-cms.com/">📖 Docs</a> •
     <a href="https://discord.gg/BcBMeVJJsd">💬 Discord</a>
     <br /><br />
@@ -32,8 +32,8 @@
 
 <hr />
 
-<a href="https://docs.flute-cms.com">
-  <img src="https://github.com/Flute-CMS/cms/assets/62756604/81f45ad7-f065-4248-b946-94f01312a3cc" alt="Flute dashboard"/>
+<a href="https://demo.flute-cms.com">
+  <img src="https://github.com/Flute-CMS/cms/assets/62756604/930f27ab-825e-44a4-81dc-5511f881d733" alt="Flute dashboard"/>
 </a>
 <p align="center">
   👀 Example of dashboard
@@ -79,8 +79,11 @@ To successfully install and run Flute, ensure your system meets the following re
    ```
    to install dependencies.
 4. Configure your web server (Apache/Nginx) and the database.
-
+&nbsp;
 ### On Shared Hosting:
+
+> [!TIP]
+> Watch the video tutorial for installation [here](https://www.youtube.com/watch?v=PCSjl2w7A9k)
 
 1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload them to your hosting via FTP or the hosting provider's file manager.

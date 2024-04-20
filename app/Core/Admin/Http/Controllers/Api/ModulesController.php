@@ -63,6 +63,8 @@ class ModulesController extends AbstractController
             $this->actions->activateModule($mopd);
             user()->log('events.module_activated', $key);
 
+            cache()->delete('flute.deferred_listeners');
+
             return $this->success();
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -77,6 +79,8 @@ class ModulesController extends AbstractController
             $this->actions->disableModule($mopd);
             user()->log('events.module_disabled', $key);
 
+            cache()->delete('flute.deferred_listeners');
+
             return $this->success();
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -90,6 +94,8 @@ class ModulesController extends AbstractController
 
             if (!$this->actions->installModule($mopd))
                 return $this->error(__('def.unknown_error'));
+
+            cache()->delete('flute.deferred_listeners');
 
             user()->log('events.module_installed', $key);
 
@@ -203,6 +209,7 @@ class ModulesController extends AbstractController
         cache()->delete('flute.modules.alldb');
         cache()->delete('flute.modules.array');
         cache()->delete('flute.modules.json');
+        cache()->delete('flute.deferred_listeners');
 
         user()->log('events.module_uploaded', $folderName);
 
@@ -264,6 +271,7 @@ class ModulesController extends AbstractController
             cache()->delete('flute.modules.alldb');
             cache()->delete('flute.modules.array');
             cache()->delete('flute.modules.json');
+            cache()->delete('flute.deferred_listeners');
 
             user()->log('events.module_deleted', $key);
 

@@ -194,6 +194,7 @@ class PaymentsView extends AbstractController
     {
         $parameters = [];
         $reflectionClass = new \ReflectionClass($gatewayInstance);
+        $except = ['currency', 'amount', 'transactionId'];
 
         foreach ($reflectionClass->getMethods() as $method) {
             if (strpos($method->name, 'get') === 0) {
@@ -205,7 +206,8 @@ class PaymentsView extends AbstractController
                 $source = implode("\n", array_slice(explode("\n", $methodBody), $startLine, $length));
 
                 if (preg_match('/->getParameter\([\'"]([^\'"]+)[\'"]\)/', $source, $matches)) {
-                    $parameters[] = $matches[1];
+                    if (!in_array($matches[1], $except))
+                        $parameters[] = $matches[1];
                 }
             }
         }
