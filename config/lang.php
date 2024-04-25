@@ -14,6 +14,7 @@ return array (
     6 => 'fr',
     7 => 'es',
     8 => 'uz',
+    9 => 'br',
   ),
   'all' => 
   array (
@@ -26,5 +27,6 @@ return array (
     6 => 'fr',
     7 => 'es',
     8 => 'uz',
+    9 => 'br',
   ),
 );
