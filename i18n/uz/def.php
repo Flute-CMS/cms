@@ -177,7 +177,6 @@
     'hide' => 'Yashirish',
     'open' => 'Ochish',
     'accept' => 'Qoʻllash',
-];
     "found" => "Natijalar topildi:",
     "widget_has_errors" => "Vidjet - <b>%name%</b> da xatolar mavjud. Iltimos <b>, uni</b> <b>darhol</b> vidjetlar roʻyxatidan olib tashlang!",
     "choose_widget" => "Vidjetni tanlang",
