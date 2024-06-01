@@ -30,11 +30,13 @@ class PaymentRoutes
         }, '/lk');
 
         $this->router->group(function( RouteGroup $api) {
-            $api->group(function ($apiGroup) {
+            $api->group(function (RouteGroup $apiGroup) {
+                $apiGroup->middleware(isAuthenticatedMiddleware::class);
                 $apiGroup->middleware(CSRFMiddleware::class); 
                 
                 $apiGroup->post('/validate-promo', [LKApiController::class, 'validatePromo']);
                 $apiGroup->post('/buy/{gateway}', [LKApiController::class, 'purchase']);
+                $apiGroup->get('/buy/{gateway}', [LKApiController::class, 'purchase']);
             });
 
             $api->any('/handle/{gateway}', [LKApiController::class, 'handle']);

@@ -26,6 +26,16 @@ class UserSocialNetwork
     /** @Column(type="boolean", default=false) */
     public $hidden = false;
 
+    /**
+     * @Column(type="datetime", nullable=true)
+     */
+    public $linkedAt;
+
+    public function __construct()
+    {
+        $this->linkedAt = new \DateTime();
+    }
+
     /** @BelongsTo(target="SocialNetwork", nullable=false, cascade=true) */
     public $socialNetwork;
 

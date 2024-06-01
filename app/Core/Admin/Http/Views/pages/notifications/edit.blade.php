@@ -9,13 +9,19 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/notifications/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/notifications/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.notifications.edit_title')</h2>
             <p>@t('admin.notifications.edit_description')</p>
+        </div>
+        <div>
+            <button data-deleteaction="{{ $notification->id }}" data-deletepath="notifications" class="btn size-s error outline">
+                @t('def.delete')
+            </button>
         </div>
     </div>
 
@@ -24,14 +30,25 @@
         <input type="hidden" name="id" value="{{ $notification->id }}">
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
-                <label for="event">
-                    @t('admin.notifications.event')
-                </label>
+                <label for="event_select">@t('admin.notifications.event')</label>
             </div>
             <div class="col-sm-9">
-                <input name="event" id="event" placeholder="@t('admin.notifications.event')" type="text" class="form-control"
-                    value="{{ $notification->event }}" required>
-                <small>Example: <code>flute.choose_lang</code></small>
+                <select name="event_select" id="event_select" class="form-control">
+                    @foreach ($events as $key => $event)
+                        <option value="{{ $key }}" @if ($notification->event == $key) selected @endif>
+                            {{ __("admin.notifications.$event") }}
+                        </option>
+                    @endforeach
+                    <option value="other" @if (!array_key_exists($notification->event, $events)) selected @endif>@t('admin.notifications.other')</option>
+                </select>
+
+                <input id="event_other" placeholder="@t('admin.notifications.specify_event')" type="text" class="form-control mt-2"
+                    @if (!array_key_exists($notification->event, $events)) style="display:block;" 
+                    value="{{ $notification->event }}" 
+                @else 
+                    hidden @endif>
+
+                <input type="hidden" name="event" id="event" value="{{ $notification->event }}">
             </div>
         </div>
 
@@ -87,6 +104,29 @@
             </div>
         </div>
 
+        <div class="position-relative row form-group show" id="notification-result">
+            <div class="col-sm-3 col-form-label required">
+                <label for="content">
+                    @t('def.preview')
+                </label>
+            </div>
+            <div class="col-sm-9">
+                <div class="notifications_item">
+                    <div class="notifications_item_flex @if ($notification->url) with_link @endif">
+                        {!! $notification->icon !!}
+                        <div class="notifications_item_content">
+                            <div class="notification_title">{!! $notification->title !!}</div>
+                            <div class="notification_text">{!! $notification->content !!}</div>
+                        </div>
+                    </div>
+                    @if ($notification->url)
+                        <a class="notifications_item_link" href="{{ $notification->url }}"
+                            target="_blank">@t('def.goto') <i class="ph ph-arrow-right"></i></a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-9 offset-sm-3">
@@ -97,4 +137,8 @@
             </div>
         </div>
     </form>
+@endpush
+
+@push('footer')
+    @at('Core/Admin/Http/Views/assets/js/pages/notifications/add.js')
 @endpush

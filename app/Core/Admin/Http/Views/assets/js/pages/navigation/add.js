@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
     // Функция проверки валидности URL или относительного пути
     function isValidPathOrUrl(string) {
         // Проверка на валидность полного URL
@@ -13,13 +13,13 @@ $(document).ready(function () {
         }
     }
 
-    $('#icon').on('input', function () {
+    $(document).on('input', '#icon', function () {
         let val = $(this).val().trim();
         $('#icon-output').html(`<i class='${val}'></i>`);
     });
 
     // Обработчик события изменения текста в поле URL
-    $('#url').on('input', function () {
+    $(document).on('input', '#url', function () {
         var pathOrUrl = $(this).val();
         if (isValidPathOrUrl(pathOrUrl)) {
             $('#new_tab').closest('.form-group').fadeIn(300);
@@ -30,13 +30,13 @@ $(document).ready(function () {
     });
 
     // Обработчики событий для переключения видимости
-    $('#visible_only_for_guests').change(function () {
+    $(document).on('change', '#visible_only_for_guests', function () {
         if ($(this).is(':checked')) {
             $('#visible_only_for_logged_in').prop('checked', false);
         }
     });
 
-    $('#visible_only_for_logged_in').change(function () {
+    $(document).on('change', '#visible_only_for_logged_in', function () {
         if ($(this).is(':checked')) {
             $('#visible_only_for_guests').prop('checked', false);
         }
@@ -45,9 +45,9 @@ $(document).ready(function () {
     // Обновление состояния чекбокса "visible_only_for_guests"
     function updateVisibleOnlyForGuestsCheckbox() {
         // Проверяем, выбран ли хотя бы один чекбокс роли
-        var isAnyRoleChecked = $('.checkboxes .form-check-input').is(
-            ':checked',
-        );
+        var isAnyRoleChecked = $(
+            '#navEdit .checkboxes .form-check-input, #navAdd .checkboxes .form-check-input',
+        ).is(':checked');
         $('#visible_only_for_guests').prop('disabled', isAnyRoleChecked);
         if (isAnyRoleChecked) {
             $('#visible_only_for_guests').prop('checked', false);
@@ -55,25 +55,30 @@ $(document).ready(function () {
     }
 
     // Обработчик события изменения для чекбоксов ролей
-    $('.checkboxes .form-check-input').change(function () {
-        updateVisibleOnlyForGuestsCheckbox();
-    });
+    $(document).on(
+        'change',
+        '#navEdit .checkboxes .form-check-input, #navAdd .checkboxes .form-check-input',
+        function () {
+            updateVisibleOnlyForGuestsCheckbox();
+        },
+    );
 
-    $(document).on('submit', '#add, #edit', (ev) => {
+    $(document).on('submit', '#navAdd, #navEdit', (ev) => {
         let $form = $(ev.currentTarget);
-        
+
         ev.preventDefault();
-    
-        let path = $form.attr('id'), form = serializeForm($form);
+
+        let path = $form.attr('id') === 'navAdd' ? 'add' : 'edit',
+            form = serializeForm($form);
 
         let url = `admin/api/navigation/${path}`,
             method = 'POST';
-    
+
         if (path === 'edit') {
             url = `admin/api/navigation/${form.id}`;
             method = 'PUT';
         }
-    
+
         if (ev.target.checkValidity()) {
             sendRequest(form, url, method);
         }

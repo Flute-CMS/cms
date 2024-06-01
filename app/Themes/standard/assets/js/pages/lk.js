@@ -280,47 +280,114 @@ $(document).ready(() => {
 
     agreeCheckbox.on('change', updateSubmitButtonState);
 
-    // submitButton.on('click', function (e) {
-    //     e.preventDefault(); // Предотвратить стандартное поведение кнопки
+    submitButton.on('click', function (e) {
+        if (!IS_NEW_WINDOW) return;
 
-    //     if (!isAmountValid() || !selectedGateway) {
-    //         // updateMessage('error', 'Пожалуйста, проверьте вводимые данные', 'amount');
-    //         return;
-    //     }
+        document.getElementById('paymentOverlay').classList.add('show');
 
-    //     const amount = parseFloat(amountInput.val());
-    //     const promoCode = promoApplied ? promoInput.val() : '';
+        e.preventDefault();
 
-    //     $.ajax({
-    //         url: u('api/lk/buy/' + selectedGateway),
-    //         type: 'POST',
-    //         data: {
-    //             amount: amount,
-    //             promo: promoCode,
-    //             currency: selectedCurrency
-    //         },
-    //         success: function (response) {
-    //             if (response.link) {
-    //                 window.location.href = response.link;
-    //             } else {
-    //                 toast({
-    //                     type: 'error',
-    //                     message:
-    //                         response?.error || translate('def.unknown_error'),
-    //                 });
-    //             }
-    //         },
-    //         error: function (error) {
-    //             console.error('Ошибка:', error);
-    //             toast({
-    //                 type: 'error',
-    //                 message:
-    //                     error?.responseJSON?.error ||
-    //                     translate('def.unknown_error'),
-    //             });
-    //         },
-    //     });
-    // });
+        if (!isAmountValid() || !selectedGateway) {
+            updateMessage('error', translate('def.check_input'), 'amount');
+            return;
+        }
+
+        const amount = parseFloat(amountInput.val());
+        const promoCode = promoApplied ? promoInput.val() : '';
+        const currency = selectedCurrency;
+
+        const url = new URL(u('api/lk/buy/' + selectedGateway));
+        url.searchParams.append('amount', amount);
+        if (promoCode) url.searchParams.append('promo', promoCode);
+        url.searchParams.append('currency', currency);
+
+        let formWindow = createPopupWin(
+            url.toString(),
+            'Payment page',
+            1000,
+            600,
+        );
+        if (formWindow) {
+            document
+                .getElementById('paymentOverlay')
+                .classList.remove('success', 'error');
+            document.getElementById('paymentOverlay').classList.add('show');
+
+            formWindow.focus();
+
+            let checkWindowClosed = setInterval(function () {
+                if (formWindow.closed) {
+                    clearInterval(checkWindowClosed);
+                    document
+                        .getElementById('paymentOverlay')
+                        .classList.remove('show');
+                }
+            }, 500);
+
+            window.onmessage = function (event) {
+                if (event.origin !== window.location.origin) {
+                    console.warn(
+                        'Received message from unknown origin:',
+                        event.origin,
+                    );
+                    return;
+                }
+
+                if (event.data.paymentStatus === 'success') {
+                    clearInterval(checkWindowClosed);
+
+                    document
+                        .getElementById('paymentOverlay')
+                        .classList.add('success');
+
+                    setTimeout(() => {
+                        document
+                            .getElementById('paymentOverlay')
+                            .classList.remove('show');
+                        window.location = SITE_URL;
+                    }, 3000);
+                } else if (event.data.paymentStatus === 'error') {
+                    clearInterval(checkWindowClosed);
+
+                    document
+                        .getElementById('paymentOverlay')
+                        .classList.add('error');
+
+                    setTimeout(() => {
+                        document
+                            .getElementById('paymentOverlay')
+                            .classList.remove('show');
+                        window.location = SITE_URL;
+                    }, 3000);
+                }
+            };
+        } else {
+            toast({
+                type: 'error',
+                message: translate('def.popup_block_error'),
+            });
+        }
+    });
+
+    function createPopupWin(pageURL, pageTitle, popupWinWidth, popupWinHeight) {
+        let left = (screen.width - popupWinWidth) / 2;
+        let top = (screen.height - popupWinHeight) / 4;
+
+        let myWindow = window.open(
+            pageURL,
+            pageTitle,
+            'toolbar=no, location=no, directories=no, status=no, menubar=no, resizable=yes, width=' +
+                popupWinWidth +
+                ', height=' +
+                popupWinHeight +
+                ', top=' +
+                top +
+                ', left=' +
+                left,
+        );
+
+        return myWindow;
+    }
 
     $('.lk-result-content').on('submit', function (e) {
         if (!isAmountValid() || !selectedGateway) {

@@ -141,7 +141,7 @@ Modals.addParser('zipUpload', (config, modalContent) => {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                "x-csrf-token": csrfToken 
+                'x-csrf-token': csrfToken,
             },
             body: formData,
         })
@@ -153,7 +153,7 @@ Modals.addParser('zipUpload', (config, modalContent) => {
                     displayErrors(data);
                 } else {
                     uploadContainer.style.display = 'none';
-                    displayModuleInfo(data.moduleName, data.moduleVersion);
+                    displayModuleInfo(data.moduleName, data.moduleVersion, data.type);
                 }
             })
             .catch((error) => {
@@ -187,7 +187,7 @@ Modals.addParser('zipUpload', (config, modalContent) => {
         modalContent.appendChild(errorContainer);
     }
 
-    function displayModuleInfo(name, version) {
+    function displayModuleInfo(name, version, type = 'install') {
         let infoContainer = document.createElement('div');
         infoContainer.classList.add('info-container');
 
@@ -204,21 +204,21 @@ Modals.addParser('zipUpload', (config, modalContent) => {
         infoContainer.appendChild(moduleVersion);
 
         let installButton = document.createElement('button');
-        installButton.innerHTML = translate('def.install');
+        installButton.innerHTML = type === 'install' ? translate('def.install') : translate('def.update');
         installButton.classList.add('btn', 'primary', 'size-s');
-        installButton.addEventListener('click', () => installModule(name));
+        installButton.addEventListener('click', () => installModule(name, type));
         infoContainer.appendChild(installButton);
 
         modalContent.appendChild(infoContainer);
     }
 
-    function installModule(moduleName) {
-        fetch(u(`admin/api/modules/install/${moduleName}`), {
+    function installModule(moduleName, type = 'install') {
+        fetch(u(`admin/api/modules/${type}/${moduleName}`), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                "x-csrf-token": csrfToken 
+                'x-csrf-token': csrfToken,
             },
         })
             .then((response) => response.json())
@@ -229,10 +229,10 @@ Modals.addParser('zipUpload', (config, modalContent) => {
                     type: 'success',
                     message: data.success ?? translate('def.success'),
                 });
-                
+
                 Modals.clear();
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage();
             })
             .catch((error) => {
                 toast({
@@ -327,23 +327,26 @@ $(document).on('click', '[data-settingsmodule]', (e) => {
     });
 });
 
-$(document).ready(function () {
+$(function () {
     let csrfToken = $('meta[name="csrf-token"]').attr('content');
 
     function ajaxModuleAction(url, method, data = {}) {
         $.ajax({
             url: url,
             type: method,
-            data: {...data, ...{
-                "x-csrf-token": csrfToken
-            }},
+            data: {
+                ...data,
+                ...{
+                    'x-csrf-token': csrfToken,
+                },
+            },
             success: function (response) {
                 toast({
                     type: 'success',
                     message: response.success ?? translate('def.success'),
                 });
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage();
             },
             error: function (xhr, status, error) {
                 toast({
@@ -356,7 +359,7 @@ $(document).ready(function () {
         });
     }
 
-    $(document).on('click', '[data-install]', (e) => {
+    $(document).on('click', '[data-moduleinstall]', (e) => {
         Modals.open({
             title: translate('admin.modules_list.module_install'),
             closeOnBackground: false,
@@ -368,31 +371,83 @@ $(document).ready(function () {
     });
 
     // Handle delete module action
-    $(document).on('click', '.action-button.delete', function () {
-        let moduleId = $(this).data('deletemodule');
-        if (confirm(translate('admin.modules_list.confirm_delete')))
-            ajaxModuleAction(u('admin/api/modules/' + moduleId), 'DELETE');
-    });
+    $(document).on(
+        'click',
+        '.module-action-buttons .action-button.delete',
+        async function () {
+            let moduleId = $(this).data('deletemodule');
+            if (
+                await asyncConfirm(
+                    translate('admin.modules_list.confirm_delete'),
+                )
+            )
+                ajaxModuleAction(u('admin/api/modules/' + moduleId), 'DELETE');
+        },
+    );
 
     // Handle install module action
-    $(document).on('click', '.action-button.install', function () {
-        let moduleId = $(this).data('installmodule');
-        if (confirm(translate('admin.modules_list.confirm_install')))
-            ajaxModuleAction(
-                u('admin/api/modules/install/' + moduleId),
-                'POST',
-            );
-    });
+    $(document).on(
+        'click',
+        '.module-action-buttons .action-button.install',
+        async function () {
+            let moduleId = $(this).data('installmodule');
+            if (
+                await asyncConfirm(
+                    translate('admin.modules_list.confirm_install'),
+                    null,
+                    translate('def.install'),
+                    null,
+                    'primary',
+                )
+            )
+                ajaxModuleAction(
+                    u('admin/api/modules/install/' + moduleId),
+                    'POST',
+                );
+        },
+    );
 
     // Handle disable module action
-    $(document).on('click', '.action-button.disable', function () {
-        let moduleId = $(this).data('disablemodule');
-        ajaxModuleAction(u('admin/api/modules/disable/' + moduleId), 'POST');
-    });
+    $(document).on(
+        'click',
+        '.module-action-buttons .action-button.disable',
+        function () {
+            let moduleId = $(this).data('disablemodule');
+            ajaxModuleAction(
+                u('admin/api/modules/disable/' + moduleId),
+                'POST',
+            );
+        },
+    );
 
     // Handle enable module action
-    $(document).on('click', '.action-button.activate', function () {
-        let moduleId = $(this).data('activatemodule');
-        ajaxModuleAction(u('admin/api/modules/enable/' + moduleId), 'POST');
-    });
+    $(document).on(
+        'click',
+        '.module-action-buttons .action-button.activate',
+        function () {
+            let moduleId = $(this).data('activatemodule');
+            ajaxModuleAction(u('admin/api/modules/enable/' + moduleId), 'POST');
+        },
+    );
+
+    $(document).on(
+        'click',
+        '.module-action-buttons .action-button.update',
+        async function () {
+            let moduleId = $(this).data('updatemodule');
+            if (
+                await asyncConfirm(
+                    translate('admin.modules_list.confirm_update'),
+                    null,
+                    translate('def.update'),
+                    null,
+                    'primary',
+                )
+            )
+                ajaxModuleAction(
+                    u('admin/api/modules/update/' + moduleId),
+                    'POST',
+                );
+        },
+    );
 });

@@ -21,33 +21,18 @@ class IndexView extends AbstractController
 
     public function index(FluteRequest $request)
     {
-        $redirect = $this->checkAndRedirect();
+        return view("Core/Admin/Http/Views/pages/index");
+    }
 
-        if( $redirect instanceof Response ) {
-            return $redirect;
-        }
-
+    public function dashboard(FluteRequest $request)
+    {
         $this->buildWeekArea();
         $this->buildRegistrationsArea();
 
         $this->buildLineChart();
         $this->buildPie();
 
-        return view("Core/Admin/Http/Views/pages/index");
-    }
-
-    protected function checkAndRedirect()
-    {
-        if( !user()->hasPermission('admin.stats') ) {
-            $item = AdminSidebarBuilder::getFirstAccessibleItem();
-
-            if( !empty( $item ) )
-                return response()->redirect(url($item));
-        } else {
-            return;
-        }
-
-        return response()->error(404, __('def.page_not_found'));
+        return view("Core/Admin/Http/Views/pages/dashboard");
     }
 
     protected function buildLineChart()

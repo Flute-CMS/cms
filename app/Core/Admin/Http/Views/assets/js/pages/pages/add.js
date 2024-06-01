@@ -1,10 +1,10 @@
-$(document).ready(function () {
+$(function () {
     var debounceTimer;
     const errorMessage = $('#errorMessage');
 
     let hasError = false;
 
-    $('#route').on('keyup', function () {
+    $(document).on('keyup', '#route', function () {
         let el = $(this);
 
         let route = el.val();
@@ -22,7 +22,9 @@ $(document).ready(function () {
                 data: {
                     route: route,
                     id: $('input[name="id"]').val(),
-                    "x-csrf-token":$('meta[name="csrf-token"]').attr('content'),
+                    'x-csrf-token': $('meta[name="csrf-token"]').attr(
+                        'content',
+                    ),
                 },
                 success: function (response) {
                     parent.addClass('success');
@@ -42,17 +44,17 @@ $(document).ready(function () {
     });
 
     // Проверка при изменении значения
-    $('#og_image').change(function () {
-        var url = $(this).val();
-        if (!isValidUrl(url)) {
-            alert('Invalid URL format!');
-            $(this).val('');
-        }
-    });
+    // $(document).on('change', '#og_image', function () {
+    //     var url = $(this).val();
+    //     if (!isValidUrl(url)) {
+    //         alert('Invalid URL format!');
+    //         $(this).val('');
+    //     }
+    // });
 
     // Переключатель доступа
-    $('#permissions')
-        .change(function () {
+    $(document)
+        .on('change', '#permissions', function () {
             if ($(this).is(':checked')) {
                 $('#permissions_block').show(100);
             } else {
@@ -61,32 +63,37 @@ $(document).ready(function () {
         })
         .change();
 
-    $('form').on('submit', async (e) => {
+    $(document).on('submit', 'form[data-pagesform]', async (e) => {
         e.preventDefault();
 
-        if( hasError ) return;
+        if (hasError) return;
 
         let $form = $(e.currentTarget);
-        
+
         let path = $form.data('pagesform'),
             form = serializeForm($form),
             page = $form.data('page'),
             id = $form.data('id');
-    
+
         let url = `admin/api/${page}/${path}`,
             method = 'POST';
-    
+
         if (path === 'edit') {
             url = `admin/api/${page}/${id}`;
             method = 'PUT';
         }
-    
-        const save = await editor.save();
-    
-        form['blocks'] = JSON.stringify(save.blocks);
-    
+
+        let activeEditorElement = document.querySelector(
+            '.tab-content:not([hidden]) [data-editorjs]',
+        );
+        let activeEditor = window['editorInstance_' + activeEditorElement.id];
+
+        // Сохраняем данные из активного редактора
+        let editorData = await activeEditor.save();
+        form['blocks'] = JSON.stringify(editorData.blocks);
+
         if (e.target.checkValidity()) {
             sendRequest(form, url, method);
         }
-    })
+    });
 });

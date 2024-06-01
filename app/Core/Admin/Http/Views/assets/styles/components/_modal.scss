@@ -82,6 +82,17 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
+
+    .cancel {
+        box-shadow: inset 0 0 0 1px $color-white-5;
+        color: darken($color-text, 60) !important;
+        background-color: transparent !important;
+
+        &:hover {
+            box-shadow: inset 0px 0px 0px 1px #fff !important;
+            color: $color-text !important;
+        }
+    }
 }
 
 .modal.opened {
@@ -106,6 +117,10 @@
 //         order: 2;
 //     }
 // }
+
+.faq-container {
+    margin-bottom: 10px;
+}
 
 .modal-content-note {
     padding: 7px;

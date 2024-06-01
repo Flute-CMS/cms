@@ -26,7 +26,7 @@ class DatabasesController extends AbstractController
             $this->databasesService->store(
                 $request->mod,
                 $request->dbname,
-                $request->editorContent ?? '[]',
+                $request->additional ?? '{}',
                 (int) $request->sid
             );
 
@@ -56,7 +56,7 @@ class DatabasesController extends AbstractController
                 (int) $id,
                 $request->mod,
                 $request->dbname,
-                $request->editorContent ?? '[]',
+                $request->additional ?? '{}',
                 (int) $request->sid
             );
 

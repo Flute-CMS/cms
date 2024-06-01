@@ -22,8 +22,13 @@ class ModulesView extends AbstractController
         $table = table();
         $modules = app(ModuleManager::class)->getModules();
 
-        foreach( $modules as $module ) {
+        foreach ($modules as $module) {
             $module->module_json = Json::encode($module);
+
+            $module->description = __($module->description);
+
+            if ($module->created_at)
+                $module->createdAt = $module->created_at->format(default_date_format());
         }
 
         $modules = $modules->toArray();
@@ -76,6 +81,7 @@ class ModulesView extends AbstractController
                     return div;
                 }"
             ),
+            (new TableColumn('createdAt', __('def.created_at')))->setDefaultOrder()->setDefaultOrderType('desc'),
             (new TableColumn())->setOrderable(false)
         ]);
 
@@ -96,12 +102,43 @@ class ModulesView extends AbstractController
     
                     let btnContainer = make("div");
                     btnContainer.classList.add("module-action-buttons");
+
+                    if( data[5] !== data[6] && status !== "notinstalled" ) {
+                        let updateContainerDiv = make("div");
+                        updateContainerDiv.classList.add("action-button-update");
+                        let updateDiv = make("div");
+                        updateDiv.classList.add("action-button", "update");
+                        updateDiv.setAttribute("data-translate", "admin.modules_list.update_module");
+                        updateDiv.setAttribute("data-translate-attribute", "data-tooltip");
+                        updateDiv.setAttribute("data-tooltip-conf", "left");
+                        updateDiv.setAttribute("data-updatemodule", data[0]);
+                        let updateIcon = make("i");
+                        updateIcon.classList.add("ph", "ph-rocket-launch");
+                        updateDiv.appendChild(updateIcon);
+                        updateContainerDiv.appendChild(updateDiv);
+                        btnContainer.appendChild(updateContainerDiv);
+                    }
         
+                    // Установить модуль (icon: download)
+                    if (status === "notinstalled") {
+                        let installDiv = make("div");
+                        installDiv.classList.add("action-button", "install");
+                        installDiv.setAttribute("data-translate", "admin.modules_list.install_module");
+                        installDiv.setAttribute("data-translate-attribute", "data-tooltip");
+                        installDiv.setAttribute("data-installmodule", data[0]);
+                        installDiv.setAttribute("data-tooltip-conf", "left");
+                        let installIcon = make("i");
+                        installIcon.classList.add("ph-bold", "ph-download");
+                        installDiv.appendChild(installIcon);
+                        btnContainer.appendChild(installDiv);
+                    }
+                    
                     // Удалить модуль (icon: trash)
                     if (["notinstalled", "disabled"].includes(status)) {
                         let deleteDiv = make("div");
                         deleteDiv.classList.add("action-button", "delete");
-                        deleteDiv.setAttribute("data-tooltip", translate("admin.modules_list.delete_module"));
+                        deleteDiv.setAttribute("data-translate", "admin.modules_list.delete_module");
+                        deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         deleteDiv.setAttribute("data-tooltip-conf", "left");
                         deleteDiv.setAttribute("data-deletemodule", data[0]);
                         let deleteIcon = make("i");
@@ -110,37 +147,29 @@ class ModulesView extends AbstractController
                         btnContainer.appendChild(deleteDiv);
                     }
         
-                    if (Object.keys(settings).length > 0 && status !== "notinstalled") {
-                        let settingsDiv = make("div");
-                        settingsDiv.classList.add("action-button", "settings");
-                        settingsDiv.setAttribute("data-tooltip", translate("def.settings"));
-                        settingsDiv.setAttribute("data-settingsmodule", data[2]);
-                        settingsDiv.setAttribute("data-key", data[0]);
-                        settingsDiv.setAttribute("data-tooltip-conf", "left");
-                        let gearIcon = make("i");
-                        gearIcon.classList.add("ph", "ph-gear");
-                        settingsDiv.appendChild(gearIcon);
-                        btnContainer.appendChild(settingsDiv);
-                    }
+                    // if (Object.keys(settings).length > 0 && status !== "notinstalled") {
+                    //     let settingsDiv = make("div");
+                    //     settingsDiv.classList.add("action-button", "settings");
+                    
+                    //     settingsDiv.setAttribute("data-translate", "def.settings");
+                    //     settingsDiv.setAttribute("data-translate-attribute", "data-tooltip");
+
+                    //     settingsDiv.setAttribute("data-settingsmodule", data[2]);
+                    //     settingsDiv.setAttribute("data-key", data[0]);
+                    //     settingsDiv.setAttribute("data-tooltip-conf", "left");
+                    //     let gearIcon = make("i");
+                    //     gearIcon.classList.add("ph", "ph-gear");
+                    //     settingsDiv.appendChild(gearIcon);
+                    //     btnContainer.appendChild(settingsDiv);
+                    // }
     
-                    // Установить модуль (icon: download)
-                    if (status === "notinstalled") {
-                        let installDiv = make("div");
-                        installDiv.classList.add("action-button", "install");
-                        installDiv.setAttribute("data-tooltip", translate("admin.modules_list.install_module"));
-                        installDiv.setAttribute("data-installmodule", data[0]);
-                        installDiv.setAttribute("data-tooltip-conf", "left");
-                        let installIcon = make("i");
-                        installIcon.classList.add("ph-bold", "ph-download");
-                        installDiv.appendChild(installIcon);
-                        btnContainer.appendChild(installDiv);
-                    }
         
                     // Отключить модуль (icon: power)
                     if (status === "active") {
                         let disableDiv = make("div");
                         disableDiv.classList.add("action-button", "disable");
-                        disableDiv.setAttribute("data-tooltip", translate("admin.modules_list.disable_module"));
+                        disableDiv.setAttribute("data-translate", "admin.modules_list.disable_module");
+                        disableDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         disableDiv.setAttribute("data-disablemodule", data[0]);
                         disableDiv.setAttribute("data-tooltip-conf", "left");
                         let disableIcon = make("i");
@@ -153,7 +182,8 @@ class ModulesView extends AbstractController
                     if (status === "disabled") {
                         let activeDiv = make("div");
                         activeDiv.classList.add("action-button", "activate");
-                        activeDiv.setAttribute("data-tooltip", translate("admin.modules_list.enable_module"));
+                        activeDiv.setAttribute("data-translate", "admin.modules_list.enable_module");
+                        activeDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         activeDiv.setAttribute("data-activatemodule", data[0]);
                         activeDiv.setAttribute("data-tooltip-conf", "left");
                         let activeIcon = make("i");

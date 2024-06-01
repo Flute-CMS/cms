@@ -20,9 +20,9 @@
     </div>
 
     @if (sizeof(navbar()->all()) > 0)
-        <ul class="navigation-group nested-sortable">
+        <ul class="navigation-group nav-nested-sortable">
             @foreach (navbar()->all() as $item)
-                <li class="sortable-item sortable-dropdown draggable" data-id="{{ $item['id'] }}" id="{{ $item['id'] }}"
+                <li class="sortable-item sortable-dropdown draggable" data-id="nav-{{ $item['id'] }}" id="nav-{{ $item['id'] }}"
                     style="">
                     <div class="card-sortable">
                         <div class="card-body d-flex justify-content-between">
@@ -47,10 +47,10 @@
                             </div>
                         </div>
                     </div>
-                    <ul class="list-group nested-sortable" id="{{ $item['id'] }}">
+                    <ul class="list-group nav-nested-sortable" id="nav-{{ $item['id'] }}">
                         @foreach ($item['children'] as $child)
-                            <li class="sortable-item sortable-dropdown draggable" data-id="{{ $child['id'] }}"
-                                id="{{ $child['id'] }}" style="">
+                            <li class="sortable-item sortable-dropdown draggable" data-id="nav-{{ $child['id'] }}"
+                                id="nav-{{ $child['id'] }}" style="">
                                 <div class="card-sortable">
                                     <div class="card-body d-flex justify-content-between">
                                         <span class="sortable-text">
@@ -82,7 +82,7 @@
             @endforeach
         </ul>
 
-        <button id="save" class="btn primary size-s mt-4">@t('def.save')</button>
+        <button id="saveNavigation" class="btn primary size-s mt-4">@t('def.save')</button>
     @else
         <div class="table_empty">
             @t('def.no_results_found')

@@ -27,7 +27,7 @@
         @foreach (app('lang.available') as $key => $lang)
             <div id="{{ $lang }}" class="row form-group"
                 @if ($key !== 0) style="display: none;" @endif>
-                <div class="parametersContainer col-md-12">
+                <div class="translatesParametersContainer col-md-12">
                     @foreach ($translations[$lang] as $key => $val)
                         <div class="param-group" id="param-group-{{ $lang }}-{{ $key }}">
                             <input type="text" name="paramNames[]" class="form-control" placeholder="Key" required=""
@@ -51,7 +51,7 @@
     <!-- Кнопка отправки -->
     <div class="position-relative row form-check">
         <div class="col-sm-12">
-            <button type="submit" data-save class="btn size-m btn--with-icon primary">
+            <button type="submit" data-save="translations" class="btn size-m btn--with-icon primary">
                 @t('def.save')
                 <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
             </button>

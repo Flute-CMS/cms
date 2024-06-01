@@ -32,10 +32,10 @@ class FooterController extends AbstractController
             if ($item) {
                 $item->position = $value['position'];
 
-                if ($value['parent_id'] == null) {
+                if (!isset($value['parentId'])) {
                     $item->parent = null;
                 } else {
-                    $parent = rep(FooterItem::class)->select()->where(['id' => (int) $value['parent_id']])->fetchOne();
+                    $parent = rep(FooterItem::class)->select()->where(['id' => (int) $value['parentId']])->fetchOne();
 
                     if ($parent)
                         $item->parent = $parent;

@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     function ajaxModuleAction(url, method, data = {}) {
         $.ajax({
             url: url,
@@ -12,7 +12,7 @@ $(document).ready(function () {
                     message: response.success ?? translate('def.success'),
                 });
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage()
             },
             error: function (xhr, status, error) {
                 toast({
@@ -25,20 +25,20 @@ $(document).ready(function () {
         });
     }
 
-    $(document).on('click', '.action-button.delete', function () {
+    $(document).on('click', '.payment-action-buttons .action-button.delete', async function () {
         let paymentId = $(this).data('deletepayment');
-        if (confirm(translate('admin.payments.confirm_delete')))
+        if (await asyncConfirm(translate('admin.payments.confirm_delete')))
             ajaxModuleAction(u('admin/api/payments/' + paymentId), 'DELETE');
     });
 
     // Handle disable payment action
-    $(document).on('click', '.action-button.disable', function () {
+    $(document).on('click', '.payment-action-buttons .action-button.disable', function () {
         let paymentId = $(this).data('disablepayment');
         ajaxModuleAction(u('admin/api/payments/disable/' + paymentId), 'POST');
     });
 
     // Handle enable payment action
-    $(document).on('click', '.action-button.activate', function () {
+    $(document).on('click', '.payment-action-buttons .action-button.activate', function () {
         let paymentId = $(this).data('activatepayment');
         ajaxModuleAction(u('admin/api/payments/enable/' + paymentId), 'POST');
     });

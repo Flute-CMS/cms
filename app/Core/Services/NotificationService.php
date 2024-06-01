@@ -101,7 +101,7 @@ class NotificationService
         $result = [];
 
         foreach ($list as $subArray) {
-            $date = $subArray->created_at->format('d.m.Y');
+            $date = $subArray->created_at->format(default_date_format(true));
 
             // #TODO: temporary
             unset($subArray->user);

@@ -1,0 +1,39 @@
+.combined-cell {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+
+    >img.img-avatar {
+        width: 35px !important;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    >.combined-content {
+        display: flex;
+        flex-direction: column;
+
+        >p {
+            line-height: 1.2;
+        }
+
+        >small {
+            color: $color-gray;
+        }
+    }
+}
+
+.overflow-table {
+    .skeleton {
+        max-width: 100%;
+        display: block;
+        max-height: 400px;
+    }
+
+    .dt-layout-cell {
+        overflow: auto;
+        max-width: 100%;
+    }
+}

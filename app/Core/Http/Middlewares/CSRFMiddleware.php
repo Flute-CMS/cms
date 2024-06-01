@@ -9,6 +9,8 @@ class CSRFMiddleware extends AbstractMiddleware
 {
     public function __invoke(FluteRequest $request, \Closure $next)
     {
+        if( !is_installed() ) return $next($request);
+
         if( user()->isLoggedIn() && user()->getCurrentUser()->id === 'API_ID' )
             return $next($request);
 

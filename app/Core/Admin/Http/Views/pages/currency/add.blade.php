@@ -3,11 +3,12 @@
 ])
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/currency/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/currency/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.currency.add')</h2>
             <p>@t('admin.currency.add_description')</p>
         </div>
@@ -34,7 +35,7 @@
                     value="1.00" required>
             </div>
         </div>
-        
+
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
                 <label for="exchange_rate">@t('admin.currency.exchange_rate')</label>
@@ -66,6 +67,14 @@
             </div>
         </div>
 
+        <div class="col-sm-9 offset-sm-3 mb-4">
+            <div id="result-currency" class="result-block">
+                <div>@t('admin.currency.created_name'): <b id="currency_name"></b></div>
+                <div>@t('admin.currency.created_rate'): <b id="exchange_rate_display"></b></div>
+                <div>@t('admin.currency.created_min_sum') {!! config('lk.currency_view') !!}: <b id="min_sum"></b></div>
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-9 offset-sm-3">
@@ -76,4 +85,11 @@
             </div>
         </div>
     </form>
+@endpush
+
+@push('footer')
+    <script>
+        var SITE_CURRENCY = "{!! config('lk.currency_view') !!}";
+    </script>
+    @at('Core/Admin/Http/Views/assets/js/pages/currency/add.js')
 @endpush

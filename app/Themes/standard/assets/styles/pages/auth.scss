@@ -46,7 +46,7 @@
     margin: 0 auto;
 
     .auth_social_item {
-        border-radius: $border-radius / 2;
+        border-radius: $border-radius-el;
         transition: $transition;
         display: flex;
         align-items: center;

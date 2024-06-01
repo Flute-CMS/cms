@@ -108,6 +108,22 @@ class Response
     }
 
     /**
+     * Создает новый HTTP-ответ для принудительного перенаправления запроса на другой адрес.
+     *
+     * @param string $url Адрес, на который нужно перенаправить запрос
+     * @param int $status Числовой HTTP-код ответа
+     * @param array $headers Ассоциативный массив с дополнительными заголовками ответа
+     *
+     * @return void
+     */
+    public function forceRedirect(string $url, int $status = 302, array $headers = []): void
+    {
+        $redirect = new RedirectResponse($url, $status, $headers);
+        $redirect->send();
+        exit;
+    }
+
+    /**
      * Создает новый HTTP-ответ, который отправляет файл клиенту.
      *
      * @param string $file Путь к файлу, который нужно отправить

@@ -7,11 +7,12 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/servers/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/servers/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.servers.add_title')</h2>
             <p>@t('admin.servers.add_description')</p>
         </div>
@@ -52,7 +53,20 @@
                 </label>
             </div>
             <div class="col-sm-10">
-                <input name="serverPort" id="serverPort" placeholder="@t('admin.servers.port_placeholder')" type="text" class="form-control"
+                <input name="serverPort" id="serverPort" placeholder="@t('admin.servers.port_placeholder')" type="number"
+                    class="form-control" required>
+            </div>
+        </div>
+
+        <!-- Display IP -->
+        <div class="position-relative row form-group">
+            <div class="col-sm-2 col-form-label required">
+                <label for="displayIp">
+                    @t('admin.servers.display_ip')
+                </label>
+            </div>
+            <div class="col-sm-10">
+                <input name="displayIp" id="displayIp" placeholder="@t('admin.servers.display_ip')" type="text" class="form-control"
                     required>
             </div>
         </div>
@@ -84,7 +98,37 @@
                     <option value="10">Counter-Strike 1.6</option>
                     <option value="440">Team Fortress 2</option>
                     <option value="550">Left 4 Dead 2</option>
+                    <option value="1002">Rag Doll Kung Fu</option>
+                    <option value="2400">The Ship</option>
+                    <option value="4000">Garry's Mod</option>
+                    <option value="17710">Nuclear Dawn</option>
+                    <option value="70000">Dino D-Day</option>
+                    <option value="107410">Arma 3</option>
+                    <option value="115300">Call of Duty: Modern Warfare 3</option>
+                    <option value="162107">DeadPoly</option>
+                    <option value="211820">Starbound</option>
+                    <option value="244850">Space Engineers</option>
+                    <option value="304930">Unturned</option>
+                    <option value="251570">7 Days to Die</option>
+                    <option value="252490">Rust</option>
+                    <option value="282440">Quake Live</option>
+                    <option value="346110">ARK: Survival Evolved</option>
+                    <option value="minecraft">Minecraft</option>
+                    <option value="108600">Project: Zomboid</option>
+                    <option value="all_hl_games_mods">HL1 / HL2 Game</option>
                 </select>
+            </div>
+        </div>
+
+        <div class="position-relative row form-group">
+            <div class="col-sm-2 col-form-label">
+                <label for="enabled">
+                    @t('admin.servers.enabled')</label>
+                <small>@t('admin.servers.enabled_description')</small>
+            </div>
+            <div class="col-sm-10">
+                <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
+                <label for="enabled"></label>
             </div>
         </div>
 

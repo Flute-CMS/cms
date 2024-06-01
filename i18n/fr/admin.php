@@ -428,7 +428,7 @@
         "login_error" => "Format de connexion incorrect",
         "role_priority_error" => "Le rôle 'role' a une priorité supérieure à la vôtre",
         "cannot_remove_highest_role" => "Vous ne pouvez pas supprimer un rôle ayant la même priorité que le vôtre !",
-        "delete_permission_error" => "Selon vos permissions, vous ne pouvez pas effectuer cette suppression",
+        "permission_error" => "Selon vos permissions, vous ne pouvez pas effectuer cette suppression",
         "cannot_delete_self" => "Vous ne pouvez pas vous supprimer vous-même !",
         "invoices" => [
             "title" => "Factures",

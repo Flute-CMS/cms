@@ -95,7 +95,7 @@ class GenerateModuleCommand extends Command
         }
 
         file_put_contents($baseDir . '/Resources/views/index.blade.php', "<!-- Blade Template -->");
-        file_put_contents($baseDir . '/ServiceProviders/' . $moduleName . 'ServiceProvider.php', $this->stubServiceProvider($moduleName));
+        file_put_contents($baseDir . '/ServiceProviders/' . $moduleName . 'ServiceProvider.php', $this->stubServiceProvider($moduleName, $translations));
 
         if ($installer) {
             file_put_contents($baseDir . '/Installer.php', $this->stubInstaller($moduleName));
@@ -107,9 +107,9 @@ class GenerateModuleCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function stubServiceProvider($name)
+    private function stubServiceProvider($name, bool $needTranslations = false)
     {
-        return str_replace('{{MODULE_NAME}}', $name, file_get_contents(BASE_PATH . '/storage/app/stubs/modulesp.stub'));
+        return str_replace(['{{MODULE_NAME}}', '{{TRANSLATES}}'], [$name, $needTranslations ? '$this->loadTranslations();' : ''], file_get_contents(BASE_PATH . '/storage/app/stubs/modulesp.stub'));
     }
 
     private function stubInstaller($name)

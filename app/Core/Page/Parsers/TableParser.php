@@ -31,7 +31,7 @@ class TableParser implements ParserInterface
             
             foreach ($row as $cellData) {
                 $cellType = ($index === 0 && $withHeadings) ? 'th' : 'td';
-                $cell = Html::el($cellType)->setText($cellData);
+                $cell = Html::el($cellType)->setHtml($cellData);
                 $tableRow->addHtml($cell);
             }
 

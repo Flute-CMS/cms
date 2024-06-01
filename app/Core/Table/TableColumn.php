@@ -38,7 +38,7 @@ class TableColumn
      * @var bool Нужно ли по стандарту использовать эту колонку для order'а
      */
     private bool $defaultOrder = false;
-    
+
     /**
      * @var string desc / asc
      */
@@ -68,6 +68,11 @@ class TableColumn
      * @var array Как будет рендерится колонка.
      */
     private array $render = [];
+
+    /**
+     * @var bool Нужно ли сериализировать значения
+     */
+    private bool $clean = true;
 
     /**
      * Конструктор для создания объекта TableColumn.
@@ -111,7 +116,7 @@ class TableColumn
         return $this->searchable;
     }
 
-    public function isDefaultOrder() : bool
+    public function isDefaultOrder(): bool
     {
         return $this->defaultOrder;
     }
@@ -140,6 +145,11 @@ class TableColumn
     {
         return $this->defaultOrderType;
     }
+    
+    public function getClean() : bool
+    {
+        return $this->clean;
+    }
 
     public function image(bool $rounded = true)
     {
@@ -153,10 +163,84 @@ class TableColumn
             ->setClassName('img-avatar' . $class);
 
         return $this->setRender("{{ JS_RENDER_$random }}", 'function (data, type) {
-            console.log(data)
             let image = (data.startsWith("http://") || data.startsWith("https://")) ? data : u(data);
             return `<img class=\'img\' src=\'${image}\' />`;
         }');
+    }
+
+    /**
+     * Настройка рендеринга для колонки типа URL.
+     *
+     * @param int $textKey Ключ для отображаемого текста.
+     * @param int $urlKey Ключ для URL.
+     * 
+     * @return TableColumn
+     */
+    public function url(int $textKey, int $urlKey): TableColumn
+    {
+        $random = Random::generate(10);
+
+        $this->setType('html')
+            ->setSearchable(false)
+            ->setOrderable(false)
+            ->setClassName('url-column');
+
+        $renderJs = '
+            function(data, type, full, meta) {
+                let textData = full["' . $textKey . '"];
+                let urlData = full["' . $urlKey . '"];
+                return `<a href="${urlData}" class="url-content">${textData}</a>`;
+            }
+        ';
+
+        return $this->setRender("{{ JS_RENDER_URL_$random }}", $renderJs);
+    }
+
+    /**
+     * Настройка рендеринга для объединенной колонки.
+     *
+     * @param int $avatarKey Позиция колонки с аватаркой.
+     * @param int $nameKey Позиция колонки с именем.
+     * @param int|null $urlKey Позиция колонки с URL (если есть).
+     * @param bool $ignoreTab
+     * 
+     * @return TableColumn
+     */
+    public function combined(int $avatarKey, int $nameKey, ?int $urlKey = null, $ignoreTab = false): TableColumn
+    {
+        $random = Random::generate(10);
+
+        $this->setType('html')
+            ->setSearchable(false)
+            ->setOrderable(false)
+            ->setClassName('combined-column');
+
+        $stringKey = $urlKey ? $urlKey : '0';
+
+        $renderJs = '
+            function(data, type, full, meta) {
+                let avatarData = full[' . $avatarKey . '];
+                let nameData = full[' . $nameKey . '];
+                let image = (avatarData?.startsWith("http://") || avatarData?.startsWith("https://")) ? avatarData : u(avatarData);
+                let contentHtml;
+                if (' . ($urlKey !== null ? 'true' : 'false') . ') {
+                    contentHtml = `<a '.($ignoreTab === false ? 'data-tab' : '') .' data-miniprofile href="` + full[' . $stringKey . '] + `" class="combined-content">
+                                      <span class="name">${nameData}</span>
+                                      <small>' . __('def.goto') . '</small>
+                                   </a>`;
+                } else {
+                    contentHtml = `<div class="combined-content">
+                                      <span class="name">${nameData}</span>
+                                   </div>`;
+                }
+                return `<div class="combined-cell">
+                    <img class="img-avatar" src="${image}" />
+                    ${contentHtml}
+                </div>`;
+            }
+        ';
+
+        return $this->setRender("{{ JS_RENDER_COMBINED_$random }}", $renderJs);
     }
 
     public function date()
@@ -239,6 +323,16 @@ class TableColumn
         $this->type = $type;
         return $this;
     }
+    public function setName(string $name)
+    {
+        $this->name = $name;
+        return $this;
+    }
+    public function setTitle($title)
+    {
+        $this->title = $title;
+        return $this;
+    }
 
     public function setDefaultOrder()
     {
@@ -249,6 +343,12 @@ class TableColumn
     public function setDefaultOrderType(string $type)
     {
         $this->defaultOrderType = $type;
+        return $this;
+    }
+
+    public function setClean(bool $clean)
+    {
+        $this->clean = $clean;
         return $this;
     }
 
@@ -267,6 +367,7 @@ class TableColumn
             'searchable' => $this->searchable,
             'isDefaultOrder' => $this->isDefaultOrder(),
             'defaultOrderType' => $this->getDefaultOrderType(),
+            'needClean' => $this->getClean()
         ];
 
         if ($this->render !== null) {

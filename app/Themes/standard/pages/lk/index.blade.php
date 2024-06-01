@@ -70,7 +70,7 @@
                         <label for="promo">@t('lk.page.enter_promo')</label>
                         <input type="text" class="with--btn" placeholder="@t('lk.page.placeholder_promo')" name="promo"
                             id="promo">
-                        <button class="btn-absolute">@t('lk.page.apply')</button>
+                        <button class="btn-absolute" type="button">@t('lk.page.apply')</button>
                         <span id="messagePromo" class="message"> </span>
                     </div>
 
@@ -98,6 +98,23 @@
             </div>
         </div>
     </div>
+    <div id="paymentOverlay">
+        <div class="wrapper loaderWrapper">
+            <span class="paymentLoader"></span>
+            <h2>@t('lk.process_in_new_window')</h2>
+        </div>
+        <div class="wrapper successWrapper">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+            <h2>@t('lk.success.sucess_payment')</h2>
+        </div>
+        <div class="wrapper errorWrapper">
+            <i class="ph ph-x-circle"></i>
+            <h2>@t('lk.error.fail_payment')</h2>
+        </div>
+    </div>
 @endpush
 
 @push('footer')
@@ -113,6 +130,8 @@
             let currencyGateways = {!! json_encode($currencyGateways) !!};
             let currencyMinimumAmounts = {!! json_encode($currencyMinimumAmounts) !!};
         @endif
+
+        const IS_NEW_WINDOW = {!! ((bool) config('lk.pay_in_new_window')) ? 1 : 0 !!};
     </script>
 
     @at(tt('assets/js/pages/lk.js'))

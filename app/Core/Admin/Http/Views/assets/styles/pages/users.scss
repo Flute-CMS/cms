@@ -5,8 +5,8 @@
     >div,
     a {
         padding: 10px;
-        width: 30px;
-        height: 30px;
+        width: 31px;
+        height: 31px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;
@@ -164,12 +164,172 @@
 .show_icon {
     div {
         display: flex;
-        align-items: center;    
+        align-items: center;
         justify-content: center;
     }
 
     i {
         font-size: 18px;
         color: $color-primary;
+    }
+}
+
+.user-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+
+    >button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid $color-white-5;
+        cursor: pointer;
+        transition: $transition;
+
+        &.block {
+            border: 1px solid $color-error;
+            color: $color-error;
+
+            &:hover {
+                background-color: $color-error;
+                color: $color-text-inverse;
+            }
+        }
+
+        &.give_money {
+            border: 1px solid rgba($color-success, .2);
+            color: $color-success;
+
+            &:hover {
+                background-color: $color-success;
+                color: $color-text-inverse;
+            }
+        }
+
+        &.take_money {
+            border: 1px solid $color-white-10;
+            color: $color-gray;
+
+            &:hover {
+                background-color: $color-gray;
+                color: $color-text-inverse;
+            }
+        }
+
+        &.unblock {
+            border: 1px solid $color-primary-light;
+            color: $color-primary;
+
+            &:hover {
+                background-color: $color-primary;
+                color: $color-text-inverse;
+            }
+        }
+    }
+}
+
+.give-modal {
+    .confirm-dialog-content-description {
+        opacity: .6;
+    }
+}
+
+.block-modal {
+    .radio-group {
+        display: flex;
+        overflow: hidden;
+
+        label {
+            background: $color-white-10;
+            color: $color-text;
+            padding: 10px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 12px;
+            text-align: center;
+            transition: .1s;
+            border: 1px solid $color-white-10;
+            font-weight: 500;
+
+            &.active {
+                background: $color-primary;
+                color: $color-text-inverse;
+            }
+
+            &:nth-child(2) {
+                border-top-left-radius: 6px;
+                border-bottom-left-radius: 6px;
+            }
+
+            &:last-child {
+                border-top-right-radius: 6px;
+                border-bottom-right-radius: 6px;
+            }
+        }
+
+        input[type="radio"] {
+            display: none;
+
+            &:checked+label {
+                background: $color-primary;
+                color: $color-text-inverse;
+            }
+        }
+    }
+
+    .confirm-dialog-content-description {
+        opacity: .6;
+    }
+
+    .reason-container {
+        margin: 15px 0;
+    }
+}
+
+.success-control {
+    color: $color-success !important;
+}
+
+.error-control {
+    color: $color-error !important;
+}
+
+.blocked-by-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    max-width: min-content;
+    white-space: nowrap;
+    padding: 10px 15px;
+    background-color: $color-card;
+    border-radius: 6px;
+    border: 1px solid $color-white-10;
+
+    > img {
+        width: 30px;
+        height: 30px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+}
+
+.admin-user-socials {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+
+    > svg, i {
+        width: 30px;
+        height: 30px;
+        font-size: 25px;
     }
 }

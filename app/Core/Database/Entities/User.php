@@ -24,6 +24,8 @@ use Cycle\ORM\Relation\Pivoted\PivotedCollection;
  */
 class User
 {
+    protected const IS_ONLINE_TIME = 600;
+
     /** @Column(type="primary") */
     public $id;
 
@@ -86,13 +88,21 @@ class User
      */
     public $created_at;
 
+    /**
+     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
+     */
+    public $last_logged;
+
     public function __construct()
     {
         $this->roles = new PivotedCollection();
         $this->socialNetworks = new PivotedCollection();
         $this->rememberTokens = new PivotedCollection();
         $this->userDevices = new PivotedCollection();
+        $this->blocksGiven = new PivotedCollection();
+        $this->blocksReceived = new PivotedCollection();
         $this->created_at = new \DateTime();
+        $this->last_logged = new \DateTime();
     }
 
     /**
@@ -240,6 +250,60 @@ class User
 
     public function getUrl()
     {
-        return !empty( $this->uri ) ? $this->uri : $this->id;
+        return !empty($this->uri) ? $this->uri : $this->id;
+    }
+
+    /**
+     * Check if the user is currently online.
+     *
+     * @return bool Returns true if the user was last logged in within the last 10 minutes.
+     */
+    public function isOnline(): bool
+    {
+        $now = new \DateTime();
+        $lastLogged = $this->last_logged instanceof \DateTime ? $this->last_logged : new \DateTime($this->last_logged);
+        $interval = $now->getTimestamp() - $lastLogged->getTimestamp();
+        return $interval <= self::IS_ONLINE_TIME;
+    }
+
+    /**
+     * Проверяет, заблокирован ли пользователь.
+     *
+     * @return bool Возвращает true, если пользователь заблокирован.
+     */
+    public function isBlocked(): bool
+    {
+        foreach ($this->blocksReceived as $block) {
+            $now = new \DateTime();
+            $blockedUntil = $block->blockedUntil ? $block->blockedUntil : null;
+
+            if ($blockedUntil === null || $blockedUntil > $now) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Возвращает информацию о блокировке, если она существует.
+     *
+     * @return array|null Массив с информацией о блокировке или null, если блокировки нет.
+     */
+    public function getBlockInfo(): ?array
+    {
+        foreach ($this->blocksReceived as $block) {
+            $now = new \DateTime();
+            $blockedUntil = $block->blockedUntil ? $block->blockedUntil : null;
+
+            if ($blockedUntil === null || $blockedUntil > $now) {
+                return [
+                    'reason' => $block->reason,
+                    'blockedBy' => $block->blockedBy,
+                    'blockedFrom' => $block->blockedFrom,
+                    'blockedUntil' => $block->blockedUntil,
+                ];
+            }
+        }
+        return null;
     }
 }

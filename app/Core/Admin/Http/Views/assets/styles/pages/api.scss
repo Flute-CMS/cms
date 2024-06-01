@@ -1,30 +1,14 @@
-table td:nth-child(2) {
+.api_keys_table table td:nth-child(2) {
     color: transparent;
     text-shadow: 0 0 10px rgb(255 255 255);
-    transition: 0.7s;
+
+    >div {
+        display: block;
+    }
 
     &:hover {
+        transition: 0.4s;
         color: inherit;
         text-shadow: none;
-    }
-}
-
-.checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-
-    .form-checkbox {
-        label {
-            font-size: 16px !important;
-            display: inline-flex !important;
-            flex-direction: column;
-
-            small {
-                font-size: 12px;
-                color: $color-gray;
-                font-weight: 500;
-            }
-        }
     }
 }

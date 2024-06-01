@@ -48,6 +48,22 @@ class ThemesController extends AbstractController
         return $this->success();
     }
 
+    public function changeVariables(FluteRequest $request, string $key)
+    {
+        $theme = $this->themeManager->getTheme($key);
+        $colors = $request->input('colors');
+
+        if (!$theme) {
+            return $this->error(__('admin.themes_list.unknown_theme'));
+        }
+
+        $path = path("app/Themes/{$key}/colors.json");
+
+        file_put_contents($path, json_encode($colors, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $this->success();
+    }
+
     public function enable(FluteRequest $request, string $key): Response
     {
         try {

@@ -35,6 +35,8 @@ class SocialsController extends AbstractController
         $social = new SocialNetwork;
         $social->icon = $request->icon;
         $social->key = $request->key;
+        $social->cooldownTime = (int) $request->cooldownTime;
+        $social->allowToRegister = filter_var($request->allowToRegister, FILTER_VALIDATE_BOOL) ?? true;
         $social->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? false;
         $social->settings = $request->settings;
 
@@ -108,8 +110,10 @@ class SocialsController extends AbstractController
 
         $social->icon = $request->icon;
         $social->key = $request->key;
+        $social->allowToRegister = filter_var($request->allowToRegister, FILTER_VALIDATE_BOOL) ?? true;
         $social->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? false;
         $social->settings = $request->settings;
+        $social->cooldownTime = (int) $request->cooldownTime;
 
         user()->log('events.social_changed', $id);
 

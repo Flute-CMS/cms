@@ -4,11 +4,8 @@ namespace Flute\Core\Admin\Http\Controllers\Views;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\Currency;
-use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Core\Database\Entities\PaymentGateway;
-use Flute\Core\Database\Entities\Server;
 use Flute\Core\Support\AbstractController;
-use Flute\Core\Table\TableColumn;
 use Symfony\Component\HttpFoundation\Response;
 
 class CurrenciesView extends AbstractController
@@ -21,6 +18,12 @@ class CurrenciesView extends AbstractController
     public function list(): Response
     {
         $table = table();
+
+        $table->setPhrases([
+            'code' => __('admin.currency.currency'),
+            'minimum_value' => __('admin.currency.min_value'),
+            'exchange_rate' => __('admin.currency.exchange_rate'),
+        ]);
 
         $result = rep(Currency::class)->select();
 

@@ -69,16 +69,14 @@
     <div class="container">
         <div class="block">
             <div class="header">
-                <h1>Подтверждение вашего аккаунта</h1>
+                <h1>@t('auth.confirmation.subject')</h1>
             </div>
             <div class="content">
-                <p class="white_text">Уважаемый(ая) {{ $name }},</p>
-                <p>Спасибо за регистрацию на нашем веб-сайте! Перед тем как вы сможете начать использовать все
-                    возможности
-                    нашего сайта, пожалуйста, подтвердите ваш аккаунт, нажав на кнопку ниже.</p>
-                <a href="{{ $url }}" class="button">Подтвердить аккаунт</a>
-                <p>Если вы не регистрировались на нашем веб-сайте, пожалуйста, проигнорируйте это письмо.</p>
-                <p class="white_text">С уважением,<br /> {{ app('app.name') }}</p>
+                <p class="white_text">@t('auth.dear', [':name' => $name]),</p>
+                <p>@t('auth.confirmation.thanks_for_register')</p>
+                <a href="{{ $url }}" class="button">@t('auth.confirmation.verify_account')</a>
+                <p>@t('auth.confirmation.ignore')</p>
+                <p class="white_text">@t('auth.with_best', [':name' => app('app.name')])</p>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     // Функция проверки валидности URL или относительного пути
     function isValidPathOrUrl(string) {
         // Проверка на валидность полного URL
@@ -14,7 +14,7 @@ $(document).ready(function () {
     }
 
     // Обработчик события изменения текста в поле URL
-    $('#url').on('input', function () {
+    $(document).on('input', '#url', function () {
         var pathOrUrl = $(this).val();
         if (isValidPathOrUrl(pathOrUrl)) {
             $('#new_tab').closest('.form-group').fadeIn(300);
@@ -24,42 +24,12 @@ $(document).ready(function () {
         }
     });
 
-    // Обработчики событий для переключения видимости
-    $('#visible_only_for_guests').change(function () {
-        if ($(this).is(':checked')) {
-            $('#visible_only_for_logged_in').prop('checked', false);
-        }
-    });
-
-    $('#visible_only_for_logged_in').change(function () {
-        if ($(this).is(':checked')) {
-            $('#visible_only_for_guests').prop('checked', false);
-        }
-    });
-
-    // Обновление состояния чекбокса "visible_only_for_guests"
-    function updateVisibleOnlyForGuestsCheckbox() {
-        // Проверяем, выбран ли хотя бы один чекбокс роли
-        var isAnyRoleChecked = $('.checkboxes .form-check-input').is(
-            ':checked',
-        );
-        $('#visible_only_for_guests').prop('disabled', isAnyRoleChecked);
-        if (isAnyRoleChecked) {
-            $('#visible_only_for_guests').prop('checked', false);
-        }
-    }
-
-    // Обработчик события изменения для чекбоксов ролей
-    $('.checkboxes .form-check-input').change(function () {
-        updateVisibleOnlyForGuestsCheckbox();
-    });
-
-    $(document).on('submit', '#add, #edit', (ev) => {
+    $(document).on('submit', '#footAdd, #footEdit', (ev) => {
         let $form = $(ev.currentTarget);
     
         ev.preventDefault();
         
-        let path = $form.attr('id'), form = serializeForm($form);
+        let path = $form.attr('id') === 'footAdd' ? 'add' : 'edit', form = serializeForm($form);
 
         let url = `admin/api/footer/${path}`,
             method = 'POST';

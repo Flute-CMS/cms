@@ -7,6 +7,7 @@ use Flute\Core\ServiceProviders\AdminServiceProvider;
 use Flute\Core\ServiceProviders\AuthServiceProvider;
 use Flute\Core\ServiceProviders\EventNotificationsServiceProvider;
 use Flute\Core\ServiceProviders\PaymentServiceProvider;
+use Flute\Core\ServiceProviders\SystemHealthServiceProvider;
 use Flute\Core\ServiceProviders\TracyBarServiceProvider;
 use Flute\Core\ServiceProviders\EncryptServiceProvider;
 use Flute\Core\ServiceProviders\FlashServiceProvider;
@@ -74,6 +75,7 @@ $app->serviceProvider(new FileSystemServiceProvider)
     ->serviceProvider(new TracyBarServiceProvider)
     ->serviceProvider(new SessionServiceProvider)
     ->serviceProvider(new DatabaseServiceProvider)
+    ->serviceProvider(new SystemHealthServiceProvider)
     ->serviceProvider(new CookieServiceProvider)
     ->serviceProvider(new TranslationServiceProvider)
     ->serviceProvider(new EncryptServiceProvider)

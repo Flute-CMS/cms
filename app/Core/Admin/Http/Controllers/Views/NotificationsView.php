@@ -9,6 +9,18 @@ use Flute\Core\Support\FluteRequest;
 
 class NotificationsView extends AbstractController
 {
+    public static array $events = [
+        'flute.password_reset_completed' => 'password_reset_completed',
+        'flute.password_reset_requested' => 'password_reset_requested',
+        'flute.social_logged_in' => 'social_logged_in',
+        'flute.user_logged_in' => 'user_logged_in',
+        'flute.user_registered' => 'user_registered',
+        'flute.user_verified' => 'user_verified',
+        'flute.shop.buy' => 'shop_buy',
+        'payment.failed' => 'payment_failed',
+        'payment.success' => 'payment_success'
+    ];
+
     public function __construct()
     {
         HasPermissionMiddleware::permission('admin.notifcations');
@@ -19,7 +31,17 @@ class NotificationsView extends AbstractController
     {
         $table = table();
 
-        $table->fromEntity(rep(EventNotification::class)->findAll())->withActions('notifications');
+        $table->setPhrases([
+            'event' => __('admin.notifications.event'),
+            'icon' => __('admin.notifications.icon'),
+            'url' => __('admin.notifications.url'),
+        ]);
+
+        $table->fromEntity(rep(EventNotification::class)->findAll(), ['content'])->withActions('notifications');
+
+        $table->updateColumn('icon', [
+            'clean' => false
+        ]);
 
         return view("Core/Admin/Http/Views/pages/notifications/list", [
             "notifications" => $table->render(),
@@ -28,7 +50,9 @@ class NotificationsView extends AbstractController
 
     public function add(FluteRequest $request)
     {
-        return view("Core/Admin/Http/Views/pages/notifications/add");
+        return view("Core/Admin/Http/Views/pages/notifications/add", [
+            'events' => self::$events
+        ]);
     }
 
     public function edit(FluteRequest $request, string $id)
@@ -40,6 +64,7 @@ class NotificationsView extends AbstractController
 
         return view("Core/Admin/Http/Views/pages/notifications/edit", [
             "notification" => $notification,
+            'events' => self::$events
         ]);
     }
 }

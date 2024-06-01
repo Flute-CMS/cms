@@ -428,7 +428,7 @@
         "login_error" => "无效的登录格式",
         "role_priority_error" => "角色 'role' 的优先级高于您的角色",
         "cannot_remove_highest_role" => "您无法删除与您优先级相等的角色！",
-        "delete_permission_error" => "首先要长大，然后我们会看到",
+        "permission_error" => "首先要长大，然后我们会看到",
         "cannot_delete_self" => "您不能删除自己！",
         "invoices" => [
             "title" => "充值",

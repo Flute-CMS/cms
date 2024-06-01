@@ -41,20 +41,21 @@ class GenerateMigrationCommand extends Command
         // Ввод названия миграции
         $nameQuestion = new Question('Please enter the name of the migration: ');
         $nameQuestion->setValidator(function ($answer) {
-            if (!preg_match('/^[a-zA-Z]+$/', $answer)) {
+            if (!preg_match('/^[a-zA-Z_]+$/', $answer)) {
                 throw new \RuntimeException(
-                    'The module name must contain only English letters without spaces.'
+                    'The migration name must contain only English letters and underscores without spaces.'
                 );
             }
             return $answer;
         });
         $name = $helper->ask($input, $output, $nameQuestion);
-
-        $directory = BASE_PATH . '/app/Modules/' . $modules[$module] . '/database/migrations/';
-
+        
         // Создание миграции
+        $directory = BASE_PATH . '/app/Modules/' . $modules[$module] . '/database/migrations/';
         $dateTime = new \DateTime();
-        $fileName = $dateTime->format('YmdHis') . '_0_' . $name . '.php';
+        $formattedDate = $dateTime->format('Ymd');
+        $formattedTime = $dateTime->format('His');
+        $fileName = "{$formattedDate}.{$formattedTime}_0_{$name}.php";
         $filePath = $directory . $fileName;
 
         $migrationContent = $this->getMigrationStubContent($name);

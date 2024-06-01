@@ -428,7 +428,7 @@
         "login_error" => "Login formati noto‘g‘ri",
         "role_priority_error" => "Rol 'role' siznikidan ustun turadi",
         "cannot_remove_highest_role" => "Siz ustuvorlikka teng rolni o‘chira olmaysiz!",
-        "delete_permission_error" => "Kotta bola bo‘ganinda gaplashamiz ukam.",
+        "permission_error" => "Kotta bola bo‘ganinda gaplashamiz ukam.",
         "cannot_delete_self" => "Siz o‘zingizni o‘chira olmaysiz!",
         "invoices" => [
             "title" => "To‘ldirishlar",

@@ -25,7 +25,16 @@
                         <div class="d-flex justify-content-center footer_links">
                             @foreach (footer()->all() as $key => $item)
                                 <div class="footer_link">
-                                    <p>{!! __($item['title']) !!}</p>
+                                    <div class="footer_title">
+                                        @if (isset($item['url']) && !empty($item['url']))
+                                            {!! __($item['title']) !!}
+                                        @else
+                                            <a href="{{ $item['url'] }}"
+                                                @if ($item['new_tab']) target="_blank" @endif>
+                                                {!! __($item['title']) !!}
+                                            </a>
+                                        @endif
+                                    </div>
 
                                     <ul class="footer_items">
                                         @foreach ($item['children'] as $child_item)
@@ -47,8 +56,7 @@
                     @endif
 
                     @if (config('app.flute_copyright'))
-                        <a href="https://github.com/Flute-CMS/cms" target="_blank"
-                            class="powered_by_footer">
+                        <a href="https://github.com/Flute-CMS/cms" target="_blank" class="powered_by_footer">
                             <div>
                                 <p class="powered_by">Powered by</p>
                                 <h3>Flute Engine</h3>

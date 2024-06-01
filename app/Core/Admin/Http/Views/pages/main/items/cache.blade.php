@@ -17,7 +17,7 @@
         <small class="form-text text-muted">@t('admin.cache.translate_desc')</small>
     </div>
     <div class="col-sm-8">
-        <a class="btn primary size-s" href="{{ url('admin/api/cache/all') }}">@t('admin.cache.clear_translate')</a>
+        <a class="btn primary size-s" href="{{ url('admin/api/cache/translations') }}">@t('admin.cache.clear_translate')</a>
 
     </div>
 </div>
@@ -29,7 +29,7 @@
         <small class="form-text text-muted">@t('admin.cache.template_desc')</small>
     </div>
     <div class="col-sm-8">
-        <a class="btn primary size-s" href="{{ url('admin/api/cache/all') }}">@t('admin.cache.clear_template')</a>
+        <a class="btn primary size-s" href="{{ url('admin/api/cache/templates') }}">@t('admin.cache.clear_template')</a>
     </div>
 </div>
 <div class="position-relative row form-group">
@@ -40,6 +40,6 @@
         <small class="form-text text-muted">@t('admin.cache.styles_desc')</small>
     </div>
     <div class="col-sm-8">
-        <a class="btn primary size-s" href="{{ url('admin/api/cache/all') }}">@t('admin.cache.clear_styles')</a>
+        <a class="btn primary size-s" href="{{ url('admin/api/cache/styles') }}">@t('admin.cache.clear_styles')</a>
     </div>
 </div>

@@ -9,7 +9,6 @@
 @endsection
 
 @push('profile_edit_sidebar')
-
     @foreach($mods as $key => $val)
         <a href="{{ url('profile/edit', ['mode' => $key]) }}" 
             @if($active === $key) class="active" @endif    

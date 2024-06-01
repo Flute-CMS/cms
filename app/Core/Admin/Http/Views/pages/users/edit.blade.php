@@ -12,15 +12,40 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/users/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/users/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.users.edit_title', [
                 'name' => htmlentities($user->name),
             ])</h2>
             <p>@t('admin.users.edit_description')</p>
+        </div>
+        <div class="user-actions">
+            @if ($user->id !== user()->id)
+                @if ($user->isBlocked())
+                    <button class="unblock" data-useraction="unblock" data-tooltip="@t('admin.users.unblock')">
+                        <i class="ph ph-lock-simple-open"></i>
+                    </button>
+                @else
+                    <button class="block" data-useraction="block" data-tooltip="@t('admin.users.block')">
+                        <i class="ph ph-lock"></i>
+                    </button>
+                @endif
+            @endif
+            <button class="give_money" data-useraction="give_money" data-tooltip="@t('admin.users.give_money')">
+                <i class="ph ph-hand-coins"></i>
+            </button>
+            <button class="take_money" data-useraction="take_money" data-tooltip="@t('admin.users.take_money')"
+                data-tooltip-conf="left">
+                <i class="ph ph-arrow-u-down-left"></i>
+            </button>
+            <a href="{{ url('profile/'.$user->getUrl()) }}" class="btn btn--with-icon size-s outline ignore" target="_blank">
+                @t('def.goto') 
+                <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
+            </a>
         </div>
     </div>
 
@@ -81,10 +106,10 @@
                                     <label class="form-label" for="rolesInput">@t('admin.users.roles')</label>
                                     <div class="chips_container">
                                         <div class="chip-input">
-                                            <div class="chips">
+                                            <div class="chips" id="user_chils">
                                             </div>
                                         </div>
-                                        <div class="dialog hidden"></div>
+                                        <div class="dialog hidden" id="user_dialog"></div>
                                     </div>
                                 </div>
                             </div>
@@ -110,18 +135,71 @@
                             <div class="form-group mb-3">
                                 <label class="form-label">@t('admin.users.created_at')</label>
                                 <input disabled type="text" class="form-control"
-                                    value="{{ $user->created_at->format('Y-m-d H:i:s') }}">
+                                    value="{{ $user->created_at->format(default_date_format()) }}">
                             </div>
                             <div class="form-group mb-3">
                                 <label class="form-label">@t('admin.users.verified')</label>
-                                <input disabled type="text" class="form-control"
+                                <input disabled type="text"
+                                    class="form-control @if ($user->verified) success-control @else error-control @endif"
                                     value="{{ __($user->verified ? 'admin.users.verf' : 'admin.users.not_verf') }}">
                             </div>
-                            <div class="form-group empty mb-3">
+                            <div class="form-group mb-3">
                                 <label class="form-label">@t('admin.users.hidden')</label>
                                 <input disabled type="text" class="form-control"
                                     value="{{ __($user->hidden ? 'admin.users.hid' : 'admin.users.not_hid') }}">
                             </div>
+
+                            @if (sizeof($user->socialNetworks) > 0)
+                                <div class="form-group mb-3">
+                                    <label class="form-label">@t('admin.users.socials')</label>
+                                    <div class="admin-user-socials">
+                                        @foreach ($user->socialNetworks as $network)
+                                        <a href="{{ $network->url }}" target="_blank">
+                                            <div data-tooltip="{{ $network->socialNetwork->key }}"
+                                                data-tooltip-conf="top">
+                                                {!! $network->socialNetwork->icon !!}
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                    </div>
+                                    @stack('admin::profile_socials')
+                                </div>
+                            @endif
+
+                            <div class="form-group @if (!$user->isBlocked()) empty @endif mb-3">
+                                <label class="form-label">@t('admin.users.status')</label>
+                                <input disabled type="text"
+                                    class="form-control @if ($user->isBlocked()) error-control @endif"
+                                    value="{{ __($user->isBlocked() ? 'admin.users.blocked' : 'admin.users.not_blocked') }}">
+                            </div>
+
+                            @if ($user->isBlocked())
+                                <div class="form-group mb-3">
+                                    <label class="form-label">@t('admin.users.blocked_by')</label>
+                                    <a @if (user()->canEditUser($user)) data-tab @endif
+                                        href="{{ url(user()->canEditUser($user) ? 'admin/users/edit/' . $user->getBlockInfo()['blockedBy']->id : 'profile/' . $user->getBlockInfo()['blockedBy']->id) }}"
+                                        class="blocked-by-container">
+                                        <img src="@at($user->getBlockInfo()['blockedBy']->avatar)" alt="" srcset="@at($user->getBlockInfo()['blockedBy']->avatar)">
+                                        <p>{{ $user->getBlockInfo()['blockedBy']->name }}</p>
+                                    </a>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">@t('admin.users.blocked_reason')</label>
+                                    <input disabled type="text" class="form-control"
+                                        value="{{ $user->getBlockInfo()['reason'] }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">@t('admin.users.blocked_from')</label>
+                                    <input disabled type="text" class="form-control"
+                                        value="{{ $user->getBlockInfo()['blockedFrom']->format(default_date_format()) }}">
+                                </div>
+                                <div class="form-group empty mb-3">
+                                    <label class="form-label">@t('admin.users.blocked_until')</label>
+                                    <input disabled type="text"
+                                        class="form-control @if ($user->getBlockInfo()['blockedUntil'] === null) error-control @endif"
+                                        value="{{ $user->getBlockInfo()['blockedUntil'] === null ? __('admin.users.times.0') : $user->getBlockInfo()['blockedUntil']->format(default_date_format()) }}">
+                                </div>
+                            @endif
 
                             @stack('admin-user::info')
                         </div>
@@ -140,18 +218,18 @@
                         <table class="dataTable table">
                             <thead>
                                 <tr role="row">
+                                    <th>@t('admin.users.action_date')</th>
                                     <th>@t('admin.users.action')</th>
                                     <th>@t('admin.users.action_details')</th>
-                                    <th>@t('admin.users.action_date')</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             @foreach ($user->actionLogs as $key => $log)
                                 <tbody>
                                     <tr role="row">
+                                        <td>{{ $log->actionDate->format(default_date_format()) }}</td>
                                         <td>{{ __('action.' . $log->action) }}</td>
                                         <td>{{ $log->details ?? '-' }}</td>
-                                        <td>{{ $log->actionDate->format('Y-m-d H:i:s') }}</td>
                                         <td>
                                             @if ($log->url)
                                                 <a class="goto_btn" href="{{ $log->url }}">@t('def.goto')</a>
@@ -232,9 +310,9 @@
                                 <tr role="row">
                                     <td>{{ $invoice->transactionId }}</td>
                                     <td>{{ $invoice->gateway }}</td>
-                                    <td>{{ $invoice->originalAmount . config('lk.currency_view') }}</td>
+                                    <td>{{ $invoice->originalAmount . ' ' . $invoice->currency->code }}</td>
                                     <td>{{ $invoice->promoCode ? $invoice->promoCode->code : '-' }}</td>
-                                    <td>{{ $invoice->paidAt->format('Y-m-d H:i:s') }}</td>
+                                    <td>{{ $invoice->paidAt->format(default_date_format()) }}</td>
                                 </tr>
                             </tbody>
                         @endforeach
@@ -271,12 +349,18 @@
 
         @stack('admin-user::container')
     </div>
+    <input type="hidden" name="selected-duration" id="selected-duration" value="60">
 @endpush
 
 @push('footer')
-    <script>
-        const roles = {!! json_encode($roles) !!};
-        const user_roles = {!! json_encode($user->roles->toArray()) !!};
+    <script data-loadevery>
+        if (typeof roles === 'undefined' && typeof selectedRoles === 'undefined') {
+            var roles = [],
+                selectedRoles = [];
+        }
+
+        roles = {!! json_encode($roles) !!};
+        selectedRoles[{{ $user->id }}] = {!! json_encode($user->roles->toArray()) !!};
     </script>
 
     @at('Core/Admin/Http/Views/assets/js/pages/users/edit.js')

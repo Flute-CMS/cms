@@ -13,7 +13,7 @@
             <p>@t('admin.themes_list.description')</p>
         </div>
         <div>
-            <button class="btn size-s btn--with-icon outline" data-install>
+            <button class="btn size-s btn--with-icon outline" data-themeinstall>
                 @t('admin.themes.install')
                 <span class="btn__icon"><i class="ph ph-arrow-line-down"></i></span>
             </button>

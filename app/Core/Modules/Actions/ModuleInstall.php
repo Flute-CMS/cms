@@ -30,7 +30,7 @@ class ModuleInstall implements ModuleActionInterface
         $moduleGet = $this->moduleManager->getModule($module->key);
 
         if (!$moduleGet)
-            throw new \Exception("Module {$module->key} wasn't foun in the system");
+            throw new \Exception("Module {$module->key} wasn't found in the system");
 
         if ($moduleGet->status !== 'notinstalled')
             throw new \RuntimeException('Module already installed');

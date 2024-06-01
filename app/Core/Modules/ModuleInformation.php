@@ -21,6 +21,7 @@ class ModuleInformation
     public string $url;
     public array $providers;
     public array $dependencies;
+    public ?\DateTimeImmutable $created_at = null;
     public string $status = ModuleManager::NOTINSTALLED;
 
     /**

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+$(function() {
     let form = document.getElementById('form');
     let button = document.getElementById('continue');
     let inputs = form.querySelectorAll('input, select, textarea');

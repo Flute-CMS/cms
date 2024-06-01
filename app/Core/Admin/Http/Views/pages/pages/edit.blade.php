@@ -11,15 +11,27 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/pages/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/pages/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.pages.edit_title', [
                 ':name' => $page->title,
             ])</h2>
             <p>@t('admin.pages.edit_description')</p>
+        </div>
+        <div>
+            @if ($page->route !== '/')
+                <button data-deleteaction="{{ $page->id }}" data-deletepath="pages" class="btn size-s error outline">
+                    @t('def.delete')
+                </button>
+            @endif
+            <a href="{{ url($page->route) }}" class="btn btn--with-icon size-s outline ignore" target="_blank">
+                @t('def.goto') 
+                <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
+            </a>
         </div>
     </div>
 
@@ -34,8 +46,11 @@
                 <small>@t('admin.pages.route_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="route" id="route" type="text" class="form-control" value="{{ $page->route }}"
-                    required>
+                <div class="input-group">
+                    <div class="input-group-text">{{ app('app.url') }}</div>
+                    <input name="route" id="route" type="text" class="form-control" value="{{ $page->route }}"
+                        required>
+                </div>
                 <div class="error" id="errorMessage"></div>
             </div>
         </div>
@@ -121,7 +136,7 @@
                 </label>
             </div>
             <div class="col-sm-9">
-                <div id="editor"></div>
+                <div data-editorjs id="editorPageEdit-{{ $page->id }}"></div>
             </div>
         </div>
 
@@ -152,10 +167,11 @@
                         @endif
                         <div class="form-checkbox">
                             <input class="form-check-input" name="permissions[{{ $permission->id }}]" type="checkbox"
-                                value="{{ $permission->id }}" id="permissions[{{ $permission->id }}]" @if ($page->hasPermission($permission)) checked @endif>
+                                value="{{ $permission->id }}" id="permissions[{{ $permission->id }}]"
+                                @if ($page->hasPermission($permission)) checked @endif>
                             <label class="form-check-label" for="permissions[{{ $permission->id }}]">
                                 {{ $permission->name }}
-                                <small>{{ $permission->desc }}</small>
+                                <small>{{ __($permission->desc) }}</small>
                             </label>
                         </div>
                     @endforeach
@@ -187,8 +203,8 @@
     <script src="@asset('assets/js/editor/marker.js')"></script>
     @at('Core/Admin/Http/Views/assets/js/editor/additional.js')
 
-    <script>
-        window.editorData = {
+    <script data-loadevery>
+        window.defaultEditorData['editorPageEdit-{{ $page->id }}'] = {
             blocks: {!! $blocks ?? '[]' !!}
         };
     </script>

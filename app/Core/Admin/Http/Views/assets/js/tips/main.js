@@ -1,13 +1,13 @@
-const driverObj = driver({
+const driverObjMain = driver({
     nextBtnText: '<i class="ph ph-arrow-right"></i>',
     prevBtnText: '<i class="ph ph-arrow-left"></i>',
     doneBtnText: '<i class="ph ph-x"></i>',
-    onDestroyStarted: () => {
+    onDestroyStarted: async () => {
         if (
-            !driverObj.hasNextStep() ||
-            confirm(translate('tutorial.are_you_sure'))
+            !driverObjMain.hasNextStep() ||
+            await asyncConfirm(translate('tutorial.are_you_sure'))
         ) {
-            driverObj.destroy();
+            driverObjMain.destroy();
             completeTip('admin_stats');
             $('#start-tour-btn').hide();
         }
@@ -184,13 +184,13 @@ const driverObj = driver({
     ],
 });
 
-$(document).ready(function () {
+$(function() {
     // Создание кнопки
     let tourButton = $('<button/>', {
         id: 'start-tour-btn',
         html: '<i class="ph ph-flag"></i>',
         click: function () {
-            driverObj.drive();
+            driverObjMain.drive();
             $(this).hide()
         },
     })

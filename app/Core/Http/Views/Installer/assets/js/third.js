@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+$(function() {
     let form = document.getElementById('form');
     let button = document.querySelector('.check_data');
     let buttonSend = document.querySelector('#continue');

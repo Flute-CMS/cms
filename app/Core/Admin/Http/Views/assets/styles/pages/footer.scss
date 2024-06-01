@@ -85,26 +85,6 @@
     color: $color-gray;
 }
 
-.checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-
-    .form-checkbox {
-        label {
-            font-size: 16px !important;
-            display: inline-flex !important;
-            flex-direction: column;
-
-            small {
-                font-size: 12px;
-                color: $color-gray;
-                font-weight: 500;
-            }
-        }
-    }
-}
-
 .item-icon {
     width: 30px;
     height: 30px;
@@ -150,8 +130,8 @@
     >div,
     a {
         padding: 10px;
-        width: 30px;
-        height: 30px;
+        width: 31px;
+        height: 31px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;

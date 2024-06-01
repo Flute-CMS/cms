@@ -22,12 +22,12 @@
         color: $color-text;
         font-weight: 500;
         background-color: $color-disabled;
-        border-radius: $border-radius / 2;
+        border-radius: $border-radius-el;
         padding: 20px;
     }
 }
 
 .secret_img {
     max-width: 500px;
-    border-radius: $border-radius / 2;
+    border-radius: $border-radius-el;
 }

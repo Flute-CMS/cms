@@ -113,7 +113,7 @@ class WidgetManager
         if ($widget->isLazyLoad()) {
             $this->addAsyncWidget($loaderClassName, $widget, $settingValues, $asyncId);
 
-            return $widget->placeholder($settingValues);
+            return config('app.widget_placeholders') ? $widget->placeholder($settingValues) : '';
         } else {
             foreach ($widget->getAssets() as $asset) {
                 $linkAsset = template()->getTemplateAssets()->rAssetFunction($asset);
@@ -173,7 +173,7 @@ class WidgetManager
 
         $reload = $widget->getReloadTime() ?? 0;
 
-        template()->section('footer', "<script>$(window).on('load', () => { loadWidget($encoded, '$asyncId', $reload); });</script>");
+        template()->section('footer', "<script>$(window).on('load', () => { addWidgetConfig($encoded, '$asyncId', $reload); });</script>");
     }
 
     /**
@@ -232,7 +232,7 @@ class WidgetManager
                 $widgetLoader->setImage($widget->image);
 
             } catch (RuntimeException $e) {
-                logs()->error($e->getMessage());
+                logs()->error($e);
             }
         }
     }

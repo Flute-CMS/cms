@@ -139,4 +139,14 @@
     max-width: 100px;
     object-fit: cover;
     margin-top: 10px;
+
+    &.bg-image {
+        aspect-ratio: 16/9;
+        max-width: 300px;
+    }
+}
+
+.remove-bg {
+    max-width: min-content;
+    cursor: pointer;
 }

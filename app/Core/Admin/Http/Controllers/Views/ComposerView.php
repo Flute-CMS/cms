@@ -3,13 +3,8 @@
 namespace Flute\Core\Admin\Http\Controllers\Views;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
-use Flute\Core\Database\Entities\composer;
-use Flute\Core\Database\Entities\DatabaseConnection;
-use Flute\Core\Database\Entities\PaymentGateway;
-use Flute\Core\Database\Entities\Server;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Table\TableColumn;
-use GuzzleHttp\Client;
 use Symfony\Component\HttpFoundation\Response;
 
 class ComposerView extends AbstractController
@@ -40,7 +35,7 @@ class ComposerView extends AbstractController
         }
 
         $table->setData($data);
-        $table->withDelete('composer');
+        $table->withDelete('composer', 'deletepackage');
 
         return view("Core/Admin/Http/Views/pages/composer/list", [
             'table' => $table->render()

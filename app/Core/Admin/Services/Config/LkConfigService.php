@@ -13,6 +13,7 @@ class LkConfigService extends AbstractConfigService
             // "min_amount" => (int) $params['min_amount'],
             "currency_view" => $params['currency_view'],
             "oferta_view" => $this->b($params['oferta_view']),
+            "pay_in_new_window" => $this->b($params['pay_in_new_window']),
         ];
 
         try {

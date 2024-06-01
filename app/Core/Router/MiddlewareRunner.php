@@ -50,7 +50,7 @@ class MiddlewareRunner
         if ($index === count($this->middlewares)) {
             $controllerResponse = call_user_func($this->controller, $this->request);
             if (!($controllerResponse instanceof Response)) {
-                throw new Exception('Controller must return a Response object');
+                throw new Exception('Controller '.$this->controller.' must return a Response object');
             }
             return $controllerResponse;
         }

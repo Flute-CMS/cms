@@ -21,7 +21,7 @@ class IndexController extends AbstractController
     {
         $this->tab = request()->input('tab') ?? 'main';
 
-        page()->disablePageEditor();
+        // page()->disablePageEditor();
     }
 
     /**
@@ -52,7 +52,7 @@ class IndexController extends AbstractController
             // logs()->warning($e);
             $tab = '';
         }
-        
+
         // Return profile view with necessary data
         return view('pages/profile/index.blade.php', [
             "id" => $user->id,
@@ -60,7 +60,24 @@ class IndexController extends AbstractController
             "active" => $this->event->getActiveTab(),
             "tab_content" => $tab,
             "tabs" => $profileService->getTabs(),
+            "last_logged" => $this->getLastLoggedPhrase($this->event->getUser()->last_logged)
         ], true);
+    }
+
+    private function getLastLoggedPhrase($lastLoggedDateTime): string
+    {
+        $now = new \DateTime();
+        $interval = $now->getTimestamp() - $lastLoggedDateTime->getTimestamp();
+
+        if ($interval <= 600) {
+            return __('def.online');
+        } elseif ($interval <= 3600) {
+            return __('def.was_in_hour');
+        } else {
+            return __('def.was_in_online', [
+                ':time' => $lastLoggedDateTime->format(default_date_format())
+            ]);
+        }
     }
 
     /**
@@ -70,11 +87,7 @@ class IndexController extends AbstractController
      */
     protected function u($id): User
     {
-        return rep(User::class)->select()
-            ->load(['socialNetworks.socialNetwork', 'actionLogs', 'invoices', 'userDevices'])
-            ->fetchOne([
-                is_numeric($id) ? 'id' : 'uri' => $id
-            ]);
+        return is_numeric($id) ? user()->get($id) : user()->getByRoute($id);
     }
 
     /**

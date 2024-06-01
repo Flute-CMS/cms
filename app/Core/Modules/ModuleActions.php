@@ -6,6 +6,7 @@ use Flute\Core\Modules\Actions\ModuleActivate;
 use Flute\Core\Modules\Actions\ModuleDisable;
 use Flute\Core\Modules\Actions\ModuleInstall;
 use Flute\Core\Modules\Actions\ModuleUninstall;
+use Flute\Core\Modules\Actions\ModuleUpdate;
 
 class ModuleActions
 {
@@ -27,6 +28,11 @@ class ModuleActions
     public function activateModule(ModuleInformation $module, ?ModuleManager $moduleManager = null)
     {
         return $this->action(ModuleActivate::class, $module, $moduleManager);
+    }
+
+    public function updateModule(ModuleInformation $module, ?ModuleManager $moduleManager = null)
+    {
+        return $this->action(ModuleUpdate::class, $module, $moduleManager);
     }
 
     protected function action(string $className, ModuleInformation &$module, ?ModuleManager $moduleManager = null)

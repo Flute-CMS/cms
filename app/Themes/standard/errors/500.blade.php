@@ -1,4 +1,4 @@
 @extends(tt('errors/layout.blade.php'), [
-    "message" => empty($message) ? __("Сайт упал. Смотрите логи.") : $message,
+    "message" => empty($message) ? __("def.critical_error") : $message,
     "code" => 500,
 ])

@@ -1,41 +1,58 @@
-$(document).ready(function () {
-    // Обработчик авторизации через новое окно браузера
-    $(document).ready(function () {
-        // Флаг для проверки, добавлен ли обработчик
-        var listenerAdded = false;
+$(function () {
+    var listenerAdded = false;
 
-        $('[data-connect]').on('click', function (e) {
-            e.preventDefault();
-            let url = $(this).data('connect');
-            let newWindow = window.open(
-                url,
-                'Social bind',
-                'width=1000,height=800',
-            );
+    function createSocialWind(pageURL, pageTitle, popupWinWidth, popupWinHeight) {
+        let left = (screen.width - popupWinWidth) / 2;
+        let top = (screen.height - popupWinHeight) / 4;
 
-            if (!listenerAdded) {
-                // Проверка сообщения от нового окна
-                window.addEventListener('message', function (event) {
-                    if (event.data === 'authorization_success') {
-                        location.reload(); // Обновление страницы
-                    } else if (
-                        event?.data &&
-                        typeof event?.data === 'string' &&
-                        event.data.startsWith('authorization_error')
-                    ) {
-                        let errorMessage = event.data.split(':')[1];
-                        toast({
-                            message: errorMessage,
-                            type: 'error',
-                            duration: 10000,
-                        });
-                    }
-                });
+        let myWindow = window.open(
+            pageURL,
+            pageTitle,
+            'toolbar=no, location=no, directories=no, status=no, menubar=no, resizable=yes, width=' +
+                popupWinWidth +
+                ', height=' +
+                popupWinHeight +
+                ', top=' +
+                top +
+                ', left=' +
+                left,
+        );
 
-                // Устанавливаем флаг в true, чтобы больше не добавлять обработчик
-                listenerAdded = true;
-            }
-        });
+        return myWindow;
+    }
+
+    $('[data-connect]').on('click', function (e) {
+        e.preventDefault();
+        let url = $(this).data('connect');
+        let newWindow = createSocialWind(
+            url,
+            'Social bind',
+            1000,
+            800,
+        );
+
+        if (!listenerAdded) {
+            // Проверка сообщения от нового окна
+            window.addEventListener('message', function (event) {
+                if (event.data === 'authorization_success') {
+                    location.reload(); // Обновление страницы
+                } else if (
+                    event?.data &&
+                    typeof event?.data === 'string' &&
+                    event.data.startsWith('authorization_error')
+                ) {
+                    let errorMessage = event.data.split(':')[1];
+                    toast({
+                        message: errorMessage,
+                        type: 'error',
+                        duration: 10000,
+                    });
+                }
+            });
+
+            // Устанавливаем флаг в true, чтобы больше не добавлять обработчик
+            listenerAdded = true;
+        }
     });
 
     // Обработчик отправки POST-запроса для показа или скрытия социальных сетей
@@ -83,6 +100,5 @@ $(document).ready(function () {
     }
 
     // Обработчик отключения
-    $('[data-disconnect]').on('click', function (e) {
-    });
+    $('[data-disconnect]').on('click', function (e) {});
 });

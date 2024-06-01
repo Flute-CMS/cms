@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded', function () {
-    $(document).on('submit', '#add, #edit', (ev) => {
+$(function() {
+    $(document).on('submit', '#promoAdd, #promoEdit', (ev) => {
         let $form = $(ev.currentTarget);
 
         ev.preventDefault();
 
-        let path = $form.attr('id'), form = serializeForm($form);
+        let path = $form.attr('id') === 'promoAdd' ? 'add' : 'edit', form = serializeForm($form);
 
         let url = `admin/api/payments/promo/${path}`,
             method = 'POST';

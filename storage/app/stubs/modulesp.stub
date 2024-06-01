@@ -11,10 +11,10 @@ class {{MODULE_NAME}}ServiceProvider extends ModuleServiceProvider
     public function boot(\DI\Container $container): void
     {
         // $this->loadEntities();
-        $this->loadTranslations();
     }
 
     public function register(\DI\Container $container): void
     {
+        {{TRANSLATES}}
     }
 }

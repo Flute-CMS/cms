@@ -20,7 +20,7 @@ if (!function_exists("config")) {
                 ($configs->get($key) ?? $default) :
                 $configs;
         } catch (UnknownOptionException $e) {
-            logs()->error($e->getMessage());
+            logs()->error($e);
 
             return $default;
         }

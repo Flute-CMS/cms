@@ -241,7 +241,7 @@ class AuthenticationService
     public function createRememberToken(User $user): ?string
     {
         $deviceDetails = $_SERVER['HTTP_USER_AGENT']; // temporarily
-        $ip = request()->ip();
+        $ip = request()->getClientIp();
 
         // Find if there's already a device with these details and IP
         $userDevice = $this->getUserDeviceRepository()->findOne(['deviceDetails' => $deviceDetails, 'ip' => $ip]);

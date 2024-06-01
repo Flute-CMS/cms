@@ -20,10 +20,28 @@ class PagesView extends AbstractController
     {
         $pages = rep(Page::class)->select()->orderBy('id', 'desc')->fetchAll();
 
-        $table = table()->fromEntity(
+        $table = table();
+
+        $table->setPhrases([
+            'route' => __('admin.pages.route_label')
+        ]);
+        
+        $table = $table->fromEntity(
             $pages,
             ['keywords', 'robots', 'og_title', 'og_description', 'og_image', 'blocks', 'permissions']
-        )->withActions('pages');
+        )->withActions('pages', [
+            [
+                'class' => ['view', 'ignore'],
+                'iconClass' => 'ph-arrow-up-right',
+                'attributes' => [
+                    'data-translate' => '"def.view"',
+                    'target' => '"_blank"',
+                    'data-translate-attribute' => '"data-tooltip"',
+                    'data-tooltip-conf' => '"left"',
+                    'href' => 'u(data[1].replace(/^\/+/, ""))',
+                ]
+            ],
+        ]);
 
         return view("Core/Admin/Http/Views/pages/pages/list", [
             "table" => $table->render(),
@@ -50,7 +68,7 @@ class PagesView extends AbstractController
 
         $blocks = [];
 
-        foreach( $page->blocks as $block ) {
+        foreach ($page->blocks as $block) {
             $blocks[] = json_decode($block->json, true);
         }
 

@@ -5,8 +5,8 @@
     >div,
     a {
         padding: 10px;
-        width: 30px;
-        height: 30px;
+        width: 31px;
+        height: 31px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;
@@ -55,5 +55,77 @@
                 background-color: #ffc04630;
             }
         }
+
+        &.view {
+            > i {
+                transition: $transition;
+            }
+
+            &:hover {
+                background-color: $color-white-20;
+                
+                i {
+                    transform: rotate(45deg);
+                }
+            }
+        }
     }
+}
+
+.combined-cell {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+
+    > img.img-avatar {
+        width: 35px !important;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    >.combined-content {
+        display: flex;
+        flex-direction: column;
+        
+        > p {
+            line-height: 1.2;
+        }
+
+        > small {
+            color: rgb(255 255 255 / 35%);;
+        }
+    }
+}
+
+.table-status {
+    border-radius: 5px;
+    padding: 5px 10px;
+    background-color: $color-white-10;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: max-content;
+
+    &.active {
+        background-color: $color-success;
+        color: $color-text-inverse;
+    }
+
+    &.disabled {
+        background-color: $color-warning;
+        color: $color-text-inverse;
+    }
+
+    &.error {
+        background-color: $color-error;
+        color: $color-text-inverse;
+    }
+}
+
+.paid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
 }

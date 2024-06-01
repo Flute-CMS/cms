@@ -291,6 +291,7 @@ class ModuleManager
                 $this->createModuleInDatabase($module);
             }
             else {
+                $moduleResult->created_at = $this->modulesDatabase[$search]->created_at;
                 $moduleResult->status = $this->modulesDatabase[$search]->status;
                 $moduleResult->installedVersion = $this->modulesDatabase[$search]->installedVersion;
             }

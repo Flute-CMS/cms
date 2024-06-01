@@ -34,13 +34,17 @@ class ModuleRegister
 
             /** @var ModuleServiceProvider */
             $class = app()
-                ->serviceProvider($module)
+                // ->serviceProvider($module)
                 ->get($classPath);
 
             $class->setModuleName($provider['module']);
 
+            $container = app()->getContainer();
+
+            $class->register($container);
+
             if ($provider['active']) {
-                $class->boot(app()->getContainer());
+                $class->boot($container);
 
                 // Если вдруг нам не надо вызывать расширения, то мы не будем настаивать
                 if ($class->isExtensionsCallable()) {

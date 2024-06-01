@@ -45,7 +45,7 @@ class DbModService
     {
         $mode = rep(DatabaseConnection::class)
             ->select()
-            ->load('server', ['where' => ['id' => $sid]])
+            ->with('server', ['where' => ['id' => $sid]])
             ->where('mod', $mode)
             ->fetchOne();
 
@@ -69,7 +69,7 @@ class DbModService
         $databaseConnection = rep(DatabaseConnection::class)
             ->select()
             ->where('mod', $mode)
-            ->load('server')
+            ->with('server')
             ->fetchOne();
 
         if (!$databaseConnection) {
@@ -91,7 +91,7 @@ class DbModService
      */
     private function fetchModes($criteria)
     {
-        $modes = rep(DatabaseConnection::class)->select()->load('server');
+        $modes = rep(DatabaseConnection::class)->select()->with('server');
 
         if (is_array($criteria)) {
             foreach ($criteria as $driver) {

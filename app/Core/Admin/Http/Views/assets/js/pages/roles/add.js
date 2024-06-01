@@ -1,8 +1,8 @@
-$(document).on('submit', '#add, #edit', (ev) => {
+$(document).on('submit', '#roleAdd, #roleEdit', (ev) => {
     let $form = $(ev.currentTarget);
 
     ev.preventDefault();
-    let path = $form.attr('id'),
+    let path = $form.attr('id') === 'roleAdd' ? 'add' : 'edit',
         form = serializeForm($form);
 
     let url = `admin/api/roles/${path}`,

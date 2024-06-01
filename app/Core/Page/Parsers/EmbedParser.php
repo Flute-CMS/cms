@@ -22,7 +22,7 @@ class EmbedParser implements ParserInterface
 
         $embedCaption = Html::el('div');
         $embedCaption->addClass('embed-caption');
-        $embedCaption->setText($array['caption']);
+        $embedCaption->setHtml($array['caption']);
         
         $embedContainer->addHtml($embed);
         $embedContainer->addHtml($embedCaption);

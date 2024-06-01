@@ -1,14 +1,14 @@
 if (!COMPOSER_PAGE) {
-    const driverObj = driver({
+    const driverObjComp = driver({
         nextBtnText: '<i class="ph ph-arrow-right"></i>',
         prevBtnText: '<i class="ph ph-arrow-left"></i>',
         doneBtnText: '<i class="ph ph-x"></i>',
-        onDestroyStarted: () => {
+        onDestroyStarted: async () => {
             if (
-                !driverObj.hasNextStep() ||
-                confirm(translate('tutorial.are_you_sure'))
+                !driverObjComp.hasNextStep() ||
+                await asyncConfirm(translate('tutorial.are_you_sure'))
             ) {
-                driverObj.destroy();
+                driverObjComp.destroy();
                 completeTip('admin_composer');
                 $('#start-tour-btn').hide();
             }
@@ -116,13 +116,13 @@ if (!COMPOSER_PAGE) {
             },
         ],
     });
-    $(document).ready(function () {
+    $(function() {
         // Создание кнопки
         let tourButton = $('<button/>', {
             id: 'start-tour-btn',
             html: '<i class="ph ph-flag"></i>',
             click: function () {
-                driverObj.drive();
+                driverObjComp.drive();
                 $(this).hide();
             },
         })
@@ -133,16 +133,16 @@ if (!COMPOSER_PAGE) {
         $('body').append(tourButton);
     });
 } else {
-    // const driverObj = driver({
+    // const driverObjComp = driver({
     //     nextBtnText: '<i class="ph ph-arrow-right"></i>',
     //     prevBtnText: '<i class="ph ph-arrow-left"></i>',
     //     doneBtnText: '<i class="ph ph-x"></i>',
     //     onDestroyStarted: () => {
     //         if (
-    //             !driverObj.hasNextStep() ||
+    //             !driverObjComp.hasNextStep() ||
     //             confirm(translate('tutorial.are_you_sure'))
     //         ) {
-    //             driverObj.destroy();
+    //             driverObjComp.destroy();
     //             completeTip('admin_composer');
     //         }
     //     },
@@ -163,5 +163,5 @@ if (!COMPOSER_PAGE) {
     //         },
     //     ],
     // });
-    // driverObj.drive();
+    // driverObjComp.drive();
 }

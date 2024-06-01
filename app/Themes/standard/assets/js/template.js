@@ -78,40 +78,38 @@ $(function () {
             );
         }
     });
-});
 
-const customSelect = document.querySelector('.custom-select');
-const selectBtn = document.querySelector('.select-button');
+    $(document).on('click', '.select-button', function () {
+        const customSelect = $(this).closest('.custom-select');
 
-const selectedValue = document.querySelector('.selected-value');
-const optionsList = document.querySelectorAll('.select-dropdown li');
-
-if (selectBtn) {
-    selectBtn.addEventListener('click', () => {
-        customSelect.classList.toggle('active');
-        selectBtn.setAttribute(
+        $('.custom-select').not(customSelect).attr('aria-expanded', 'false').removeClass('active');
+        
+        customSelect.toggleClass('active');
+        $(this).attr(
             'aria-expanded',
-            selectBtn.getAttribute('aria-expanded') === 'true'
-                ? 'false'
-                : 'true',
+            $(this).attr('aria-expanded') === 'true' ? 'false' : 'true',
         );
     });
 
-    optionsList.forEach((option) => {
-        function handler(e) {
-            // Click Events
-            if (e.type === 'click' && e.clientX !== 0 && e.clientY !== 0) {
-                selectedValue.textContent = this.children[1].textContent;
-                customSelect.classList.remove('active');
-            }
-            // Key Events
-            if (e.key === 'Enter') {
-                selectedValue.textContent = this.textContent;
-                customSelect.classList.remove('active');
-            }
+    // Обработчик клика на опции списка
+    $(document).on('click keyup', '.select-dropdown li', function (e) {
+        // Click Events
+        if (e.type === 'click' && e.clientX !== 0 && e.clientY !== 0) {
+            const selectedText = $(this).find('label').text();
+            $(this)
+                .closest('.custom-select')
+                .find('.selected-value')
+                .text(selectedText);
+            $(this).closest('.custom-select').removeClass('active');
         }
-
-        option.addEventListener('keyup', handler);
-        option.addEventListener('click', handler);
+        // Key Events
+        if (e.type === 'keyup' && e.key === 'Enter') {
+            const selectedText = $(this).find('label').text();
+            $(this)
+                .closest('.custom-select')
+                .find('.selected-value')
+                .text(selectedText);
+            $(this).closest('.custom-select').removeClass('active');
+        }
     });
-}
+});

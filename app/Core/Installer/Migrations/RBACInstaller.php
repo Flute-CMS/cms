@@ -2,12 +2,20 @@
 
 namespace Flute\Core\Installer\Migrations;
 
-use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\Permission;
+use Flute\Core\Database\Entities\Role;
+use Flute\Core\Services\System\Migrations\CheckPermissionsMigration;
 use Throwable;
 
 class RBACInstaller
 {
+    private $permissionsManager;
+
+    public function __construct()
+    {
+        $this->permissionsManager = new CheckPermissionsMigration;
+    }
+
     /**
      * Install default roles and permissions.
      * @throws Throwable
@@ -23,36 +31,14 @@ class RBACInstaller
         }
 
         // Create roles
-        $adminRole = $this->createRole('admin');
+        $adminRole = $this->createRole('admin', "#BAFF68");
         $this->createRole('user');
 
-        // Create permissions
-        $permissions = [
-            $this->createPermission('admin.boss', 'This permission has all access to all permissions'),
-
-            $this->createPermission('admin', 'Permission to access the admin panel'),
-
-            $this->createPermission('admin.stats', 'Permission to view financial stats'),
-
-            $this->createPermission('admin.system', 'Permission to change system settings'),
-            $this->createPermission('admin.servers', 'Permission to change server'),
-            $this->createPermission('admin.navigation', 'Permission to CRUD navigation'),
-            $this->createPermission('admin.footer', 'Permission to CRUD footer socials'),
-            $this->createPermission('admin.gateways', 'Permission to CRUD some payments'),
-            $this->createPermission('admin.modules', 'Permission to CRUD modules'),
-            $this->createPermission('admin.templates', 'Permission to CRUD templates'),
-            $this->createPermission('admin.roles', 'Permission to CRUD roles to users'),
-            $this->createPermission('admin.users', 'Permission to manipulate users'),
-            $this->createPermission('admin.pages', 'Permission to CRUD pages'),
-            $this->createPermission('admin.socials', 'Permission to CRUD socials'),
-            $this->createPermission('admin.notifications', 'Permission to create user notifications'),
-
-            $this->createPermission('admin.composer', 'Permission to CRUD composer packages'),
-            $this->createPermission('admin.translate', 'Permission to CRUD translates'),
-            $this->createPermission('admin.currency', 'Permission to CRUD currencies'),
-        ];
+        // Ensure permissions exist
+        $this->permissionsManager->run();
 
         // Assign permissions to admin role
+        $permissions = rep(Permission::class)->findAll();
         $this->assignPermissions($adminRole, $permissions);
     }
 
@@ -93,30 +79,14 @@ class RBACInstaller
      * @return Role The created role.
      * @throws Throwable
      */
-    protected function createRole(string $name): Role
+    protected function createRole(string $name, string $color = "#ffffff"): Role
     {
         $role = new Role;
         $role->name = $name;
         $role->priority = 1;
+        $role->color = $color;
         $this->persistEntity($role);
         return $role;
-    }
-
-    /**
-     * Create a permission.
-     *
-     * @param string $name The name of the permission.
-     * @param string $desc The description of the permission.
-     * @return Permission The created permission.
-     * @throws Throwable
-     */
-    protected function createPermission(string $name, string $desc): Permission
-    {
-        $permission = new Permission;
-        $permission->name = $name;
-        $permission->desc = $desc;
-        $this->persistEntity($permission);
-        return $permission;
     }
 
     /**

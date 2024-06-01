@@ -1,5 +1,5 @@
 $(document).on('submit', '#editServer', (ev) => {
-    let $form = $(ev.currentTarget);
+    let $form = $('#editServer');
 
     ev.preventDefault();
 

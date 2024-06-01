@@ -87,6 +87,13 @@ class SocialController extends AbstractController
         if ($countSocialNetworks === 1 && !$socialNetwork->user->password) {
             return redirect()->back()->withErrors(t('profile.errors.social_only_one'));
         }
+        
+        $lastLinked = $socialNetwork->linkedAt;
+        $now = new \DateTime();
+
+        if ($socialNetwork->socialNetwork->cooldownTime > 0 && ($lastLinked && $now->getTimestamp() - $lastLinked->getTimestamp() < $socialNetwork->socialNetwork->cooldownTime)) {
+            return redirect()->back()->withErrors(t('profile.errors.social_delay'));
+        }
 
         user()->log('profile.unbind_social', $provider);
 

@@ -1,9 +1,11 @@
 $(document).on('submit', '#addServer', (ev) => {
-    let $form = $(ev.currentTarget);
+    let $formServer = $('#addServer');
+
+    console.log($formServer, serializeForm($formServer))
 
     ev.preventDefault();
 
     if (ev.target.checkValidity()) {
-        sendRequest(serializeForm($form), `admin/api/servers/add`);
+        sendRequest(serializeForm($formServer), `admin/api/servers/add`);
     }
 });

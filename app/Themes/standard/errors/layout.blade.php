@@ -9,6 +9,10 @@
 @endsection
 
 @push('content')
+    @navbar
+    @navigation
+    @breadcrumb
+
     <div class="error_container container">
         <div class="error_header"><b>{{ $code }}</b></div>
         <p class="error_text">{{ $message }}</p>
@@ -19,10 +23,14 @@
             @if ($code == 403)
                 <img class="secret_arnold" src="@at(tt('assets/img/secrets/arnold.webp'))" />
             @endif
-            <a class="btn btn--with-icon mt-4 outline" href="/" role="button">
-                {{ __('def.back_home') }}
-                <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
-            </a>
+            @if (!isset($withoutButton))
+                <a class="btn btn--with-icon mt-4 outline" href="{{ url('/') }}" role="button">
+                    {{ __('def.back_home') }}
+                    <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
+                </a>
+            @endif
         </div>
     </div>
 @endpush
+
+@footer

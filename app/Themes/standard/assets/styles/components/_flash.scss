@@ -1,7 +1,7 @@
 .alert {
     padding: 15px 20px;
     margin-bottom: 15px;
-    border-radius: ($border-radius / 2);
+    border-radius: $border-radius-el;
     display: flex;
     align-items: center;
     font-size: 14px;
@@ -14,21 +14,26 @@
     &-success {
         color: $color-text-inverse;
         background-color: $color-success;
+        box-shadow: 0px 0px 20px -10px $color-success;
     }
 
-    &-danger, &-error {
+    &-danger,
+    &-error {
         color: $color-text-inverse;
         background-color: $color-error;
+        box-shadow: 0px 0px 20px -10px $color-error;
     }
 
     &-warning {
         color: $color-text-inverse;
         background-color: $color-warning;
+        box-shadow: 0px 0px 20px -10px $color-warning;
     }
 
     &-info {
         color: $color-text-inverse;
         background-color: $color-secondary;
+        box-shadow: 0px 0px 20px -10px $color-secondary;
         // background-color: $color-info;
     }
 

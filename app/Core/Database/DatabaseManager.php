@@ -27,6 +27,8 @@ class DatabaseManager
      */
     protected function configure(): void
     {
+        $this->convertTimezones();
+
         $config = config("database"); // Get the database configuration
 
         if (!$config) {
@@ -57,5 +59,22 @@ class DatabaseManager
     public function database(string $name = 'default'): DatabaseInterface
     {
         return $this->dbal->database($name);
+    }
+
+    /**
+     * КОСТЫЛЬ ЕБУЧИЙ НА ТАЙМЗОНУ ФИКСИМ ПОТОМ НА ФРОНТЕ СЧРОЧНВЫТЬВТЬ!
+     */
+    protected function convertTimezones()
+    {
+        if( !is_installed() )
+            return;
+
+        foreach (config('database.connections') as $key => $connection) {
+            $db = $connection;
+
+            $db['timezone'] = (string) config('app.timezone');
+
+            config()->set("database.connections.$key", $db);
+        }
     }
 }

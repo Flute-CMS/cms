@@ -1,4 +1,4 @@
-Modals.addParser('zipUpload', (config, modalContent) => {
+Modals.addParser('zipUploadTheme', (config, modalContent) => {
     let uploadContainer = document.createElement('div');
     uploadContainer.classList.add(
         'upload-container',
@@ -77,7 +77,7 @@ Modals.addParser('zipUpload', (config, modalContent) => {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                "x-csrf-token": csrfToken 
+                'x-csrf-token': csrfToken,
             },
             body: formData,
         })
@@ -161,7 +161,7 @@ Modals.addParser('zipUpload', (config, modalContent) => {
 
                 Modals.clear();
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage();
             })
             .catch((error) => {
                 toast({
@@ -231,28 +231,6 @@ Modals.addParser('themeSettings', (config, modalContent) => {
     return container;
 });
 
-$(document).on('click', '[data-settingstheme]', (e) => {
-    let modal = Modals.open({
-        title: translate('admin.themes_list.theme_settings'),
-        content: {
-            themeSettings: {
-                settings: $(e.currentTarget).data('settingstheme'),
-            },
-        },
-        buttons: [
-            {
-                text: translate('def.save'),
-                class: 'primary',
-                callback: (modalInstance) => saveThemeSettings(modalInstance, $(e.currentTarget).data('key')),
-            },
-            {
-                text: translate('def.close'),
-                callback: () => Modals.clear(),
-            },
-        ],
-    });
-});
-
 function saveThemeSettings(modalInstance, theme) {
     let settings = {};
     document
@@ -266,9 +244,9 @@ function saveThemeSettings(modalInstance, theme) {
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            "x-csrf-token": csrfToken 
+            'x-csrf-token': csrfToken,
         },
-        body: JSON.stringify({settings: settings}),
+        body: JSON.stringify({ settings: settings }),
     })
         .then((response) => response.json())
         .then((data) => {
@@ -284,74 +262,104 @@ function saveThemeSettings(modalInstance, theme) {
         .catch((error) => {
             toast({
                 type: 'error',
-                message:
-                    error ??
-                    translate('def.unknown_error'),
+                message: error ?? translate('def.unknown_error'),
             });
         });
 }
 
-$(document).ready(function () {
-    function ajaxModuleAction(url, method, data = {}) {
-        $.ajax({
-            url: url,
-            type: method,
-            data: {...data, ...{
-                "x-csrf-token": csrfToken
-            }},
-            success: function (response) {
-                toast({
-                    type: 'success',
-                    message: response.success ?? translate('def.success'),
-                });
-
-                setTimeout(() => window.location.reload(), 1000);
-            },
-            error: function (xhr, status, error) {
-                toast({
-                    type: 'error',
-                    message:
-                        xhr?.responseJSON?.error ??
-                        translate('def.unknown_error'),
-                });
-            },
-        });
-    }
-
-    $(document).on('click', '[data-install]', (e) => {
+$(function () {
+    $(document).on('click', '[data-themeinstall]', (e) => {
+        console.log('test');
         Modals.open({
             title: translate('admin.themes_list.theme_install'),
             closeOnBackground: false,
             content: {
-                zipUpload: {},
+                zipUploadTheme: {},
             },
             buttons: [],
         });
     });
 
     // Handle delete theme action
-    $(document).on('click', '.action-button.delete', function () {
-        let themeId = $(this).data('deletetheme');
-        if (confirm(translate('admin.themes_list.confirm_delete')))
-            ajaxModuleAction(u('admin/api/themes/' + themeId), 'DELETE');
-    });
+    $(document).on(
+        'click',
+        '.theme-action-buttons .action-button.delete',
+        async function () {
+            let themeId = $(this).data('deletetheme');
+            if (
+                await asyncConfirm(
+                    translate('admin.themes_list.confirm_delete'),
+                )
+            )
+                ajaxModuleAction(u('admin/api/themes/' + themeId), 'DELETE');
+        },
+    );
 
     // Handle install theme action
-    $(document).on('click', '.action-button.install', function () {
-        let themeId = $(this).data('installtheme');
-        if (confirm(translate('admin.themes_list.confirm_install')))
-            ajaxModuleAction(u('admin/api/themes/install/' + themeId), 'POST');
-    });
+    $(document).on(
+        'click',
+        '.theme-action-buttons .action-button.install',
+        async function () {
+            let themeId = $(this).data('installtheme');
+            if (
+                await asyncConfirm(
+                    translate('admin.themes_list.confirm_install'),
+                    null,
+                    translate('def.install'),
+                    null,
+                    'primary',
+                )
+            )
+                ajaxModuleAction(
+                    u('admin/api/themes/install/' + themeId),
+                    'POST',
+                );
+        },
+    );
 
     // Handle disable theme action
-    $(document).on('click', '.action-button.disable', function () {
-        let themeId = $(this).data('disabletheme');
-        ajaxModuleAction(u('admin/api/themes/disable/' + themeId), 'POST');
-    });
+    $(document).on(
+        'click',
+        '.theme-action-buttons .action-button.disable',
+        function () {
+            let themeId = $(this).data('disabletheme');
+            ajaxModuleAction(u('admin/api/themes/disable/' + themeId), 'POST');
+        },
+    );
 
     // Handle enable theme action
-    $(document).on('click', '.action-button.activate', function () {
-        let themeId = $(this).data('activatetheme');
-        ajaxModuleAction(u('admin/api/themes/enable/' + themeId), 'POST');
+    $(document).on(
+        'click',
+        '.theme-action-buttons .action-button.activate',
+        function () {
+            let themeId = $(this).data('activatetheme');
+            ajaxModuleAction(u('admin/api/themes/enable/' + themeId), 'POST');
+        },
+    );
+
+    $(document).on('click', '[data-settingstheme]', (e) => {
+        let modal = Modals.open({
+            title: translate('admin.themes_list.theme_settings'),
+            content: {
+                themeSettings: {
+                    settings: $(e.currentTarget).data('settingstheme'),
+                },
+            },
+            buttons: [
+                {
+                    text: translate('def.save'),
+                    class: 'primary',
+                    callback: (modalInstance) =>
+                        saveThemeSettings(
+                            modalInstance,
+                            $(e.currentTarget).data('key'),
+                        ),
+                },
+                {
+                    text: translate('def.close'),
+                    callback: () => Modals.clear(),
+                },
+            ],
+        });
     });
 });

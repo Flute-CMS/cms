@@ -34,6 +34,8 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     protected $listen = [];
 
+    protected array $updateChannel = [];
+
     /**
      * {@inheritdoc}
      */
@@ -48,6 +50,24 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     public function setModuleName(string $moduleName): void
     {
         $this->moduleName = $moduleName;
+    }
+
+    public function getUpdateChannel()
+    {
+        if (empty($this->updateChannel))
+            return false;
+
+        return "https://api.github.com/repos/{$this->updateChannel['org']}/{$this->updateChannel['rep']}/releases/latest";
+    }
+
+    public function setUpdateChannel(string $org, string $rep)
+    {
+        $this->updateChannel = [
+            "org" => $org,
+            "rep" => $rep
+        ];
+
+        return $this;
     }
 
     /**
@@ -89,7 +109,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 app(DatabaseConnection::class)->addDir($entDir);
             }
         } catch (DirectoryNotFoundException $e) {
-            logs('modules')->error($e->getMessage());
+            logs('modules')->error($e);
         }
     }
 
@@ -113,7 +133,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     private function loadFromDirectory(string $subPath, callable $callback)
     {
         try {
-            $dir = path("app/Modules/{$this->moduleName}/{$subPath}");
+            $dir = path("app/Modules/{$this->getModuleName()}/{$subPath}");
             $finder = finder();
             $finder->files()->in($dir)->name('*.php');
 
@@ -121,7 +141,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 $callback($file);
             }
         } catch (DirectoryNotFoundException $e) {
-            logs('modules')->error($e->getMessage());
+            logs('modules')->error($e);
         }
     }
 }

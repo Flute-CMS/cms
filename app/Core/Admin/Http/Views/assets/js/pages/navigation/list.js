@@ -1,49 +1,63 @@
-document.addEventListener('DOMContentLoaded', function () {
-    var nestedSortables = [].slice.call(
-        document.querySelectorAll('.nested-sortable'),
-    );
+$(function () {
+    const createNavSortableInstances = () => {
+        const nestedSortables = document.querySelectorAll('.nav-nested-sortable');
+        return Array.from(nestedSortables).map(
+            (nestedSortable) =>
+                new Sortable(nestedSortable, {
+                    group: 'nested',
+                    handle: '.sortable-handle',
+                    animation: 150,
+                    fallbackOnBody: true,
+                    swapThreshold: 0.65,
+                    onMove: (event) => {
+                        const level = $(event.to).parents(
+                            '.nav-nested-sortable',
+                        ).length;
+                        const length = $(event.dragged).find(
+                            '.nav-nested-sortable > li',
+                        ).length;
+                        return !((length > 0 && level > 0) || level > 1);
+                    },
+                }),
+        );
+    };
 
-    // Создаем экземпляры Sortable для каждого вложенного списка
-    var sortables = nestedSortables.map(function (nestedSortable) {
-        return new Sortable(nestedSortable, {
-            group: 'nested',
-            handle: '.sortable-handle',
-            animation: 150,
-            fallbackOnBody: true,
-            swapThreshold: 0.65,
-            onMove(event) {
-                const lvl = $(event.to).parents('.nested-sortable').length;
-                const length = $(event.dragged).find(
-                    '.nested-sortable > li',
-                ).length;
+    let sortablesNav = createNavSortableInstances();
 
-                if ((length > 0 && lvl > 0) || lvl > 1) {
-                    return false;
-                }
-            },
+    document
+        .querySelector('.chrome-tabs')
+        .addEventListener('contentRender', () => {
+            sortablesNav = createNavSortableInstances();
         });
+
+    $(document).on('click', '#saveNavigation', () => {
+        const orderedIds = getNestedOrder(sortablesNav);
+        saveNavigationOrder(orderedIds);
     });
 
-    $('#save').on('click', (e) => {
-        let orderedIds = getNestedOrder(sortables);
-        saveRoleOrder(orderedIds);
-    });
-
-    function getNestedOrder(sortables) {
+    function getNestedOrder(sortablesNav) {
         let order = [];
-        sortables.forEach((sortable) => {
+        sortablesNav.forEach((sortable) => {
             let items = sortable.toArray();
             items.forEach((itemId, index) => {
                 let element = document.getElementById(itemId);
-                let parentSortable = element.closest('.nested-sortable');
-                let parentId = parentSortable ? parentSortable.getAttribute('id') : null;
-                order.push({ id: itemId, parentId: parentId, position: index });
+                let parentSortable = element.closest('.nav-nested-sortable');
+                let parentId = parentSortable
+                    ? parentSortable.getAttribute('id')
+                    : null;
+                order.push({
+                    id: itemId.replace('nav-', ''),
+                    parentId: parentId
+                        ? parentId.replace('nav-', '')
+                        : parentId,
+                    position: index,
+                });
             });
         });
         return order;
     }
 
-    function saveRoleOrder(order) {
+    function saveNavigationOrder(order) {
         let data = order.map((item) => ({
             id: item.id,
             parent_id: item.parentId,
@@ -55,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                "x-csrf-token":document
+                'x-csrf-token': document
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute('content'),
             },
@@ -78,41 +92,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function ajaxModuleAction(url, method, data = {}) {
-        $.ajax({
-            url: url,
-            type: method,
-            data: {
-                ...data,
-                ...{
-                    "x-csrf-token":csrfToken,
-                },
-            },
-            success: function (response) {
-                toast({
-                    type: 'success',
-                    message: response.success ?? translate('def.success'),
-                });
-
-                setTimeout(() => window.location.reload(), 1000);
-            },
-            error: function (xhr, status, error) {
-                toast({
-                    type: 'error',
-                    message:
-                        xhr?.responseJSON?.error ??
-                        translate('def.unknown_error'),
-                });
-            },
-        });
-    }
-
-    $(document).on('click', '.delete', function () {
+    $(document).on('click', '.navigation-group .delete', async function () {
         let itemId = $(this).data('deleteitem');
-        if (confirm(translate('admin.navigation.confirm_delete'))) {
-            ajaxModuleAction(u('admin/api/navigation/' + itemId), 'DELETE');
-            // Удаление элемента из DOM
-            $(this).closest('.draggable').remove();
+        if (await asyncConfirm(translate('admin.navigation.confirm_delete'))) {
+            sendRequest({}, 'admin/api/navigation/' + itemId, 'DELETE');
         }
     });
 });

@@ -6,6 +6,10 @@ use DI\Container;
 use Flute\Core\Events\OnRouteFoundEvent;
 use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Events\RoutingStartedEvent;
+use Flute\Core\Exceptions\ForcedRedirectException;
+use Flute\Core\Http\Middlewares\BanCheckMiddleware;
+use Flute\Core\Http\Middlewares\MaintenanceMiddleware;
+use Flute\Core\Http\Middlewares\RedirectsMiddleware;
 use Flute\Core\Router\RouteGroup;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
@@ -29,6 +33,12 @@ class RouteDispatcher
     private Container $container;
     private UrlGenerator $urlGenerator;
     public Template $templateService;
+
+    protected array $defaultMiddlewares = [
+        MaintenanceMiddleware::class,
+        BanCheckMiddleware::class,
+        RedirectsMiddleware::class
+    ];
 
 
     /**
@@ -78,15 +88,15 @@ class RouteDispatcher
             // Resolves the arguments for the controller.
             $arguments = $this->controllerResolver->getArguments($request, $controller);
 
-            $middlwaresRaw = $request->attributes->get('_middlewares') ?? [];
+            $middlewaresRaw = $request->attributes->get('_middlewares') ?? [];
 
             if ($controller[0] instanceof \Flute\Core\Support\AbstractController) {
                 $controllerMiddlewares = $controller[0]->middlewares();
-                $middlwaresRaw = array_merge($middlwaresRaw, $controllerMiddlewares);
+                $middlewaresRaw = array_merge($middlewaresRaw, $controllerMiddlewares, $this->defaultMiddlewares);
             }
 
             // Retrieves the middlewares from the request's attributes.
-            $middlewares = $this->handleMiddlewares($middlwaresRaw);
+            $middlewares = $this->handleMiddlewares($middlewaresRaw);
 
             // Creates a middleware runner and runs the middleware stack.
             $middlewareRunner = new MiddlewareRunner($middlewares, $request, function () use ($controller, $arguments) {
@@ -95,16 +105,44 @@ class RouteDispatcher
 
             $onRouteEvent = events()->dispatch(new OnRouteFoundEvent($request, $request->getPathInfo(), $controller), OnRouteFoundEvent::NAME);
 
-            if ($onRouteEvent->isPropagationStopped())
+            if ($onRouteEvent->isPropagationStopped()) {
                 throw new HttpException($onRouteEvent->getErrorCode(), $onRouteEvent->getErrorMessage());
+            }
 
             $response = $middlewareRunner->run();
         } catch (ResourceNotFoundException $exception) {
             $response = response()->error(404, __('def.page_not_found'));
         } catch (MethodNotAllowedException $exception) {
             $response = response()->error(405, __('def.method_not_allowed'));
+        } catch (ForcedRedirectException $exception) {
+            $response = response()->redirect($exception->getUrl(), $exception->getStatusCode());
         } catch (HttpException $exception) {
-            $response = response()->error($exception->getStatusCode(), $exception->getMessage());
+            return response()->error($exception->getStatusCode(), $exception->getMessage());
+        } catch (\Exception $exception) {
+            if (!is_debug())
+                return response()->error(500, __('def.internal_server_error'));
+            else
+                throw $exception;
+        }
+
+        try {
+            // Ensure middleware is run even on error
+            $middlewares = $this->handleMiddlewares($this->defaultMiddlewares);
+            $middlewareRunner = new MiddlewareRunner($middlewares, $request, function () use ($response) {
+                return $response;
+            });
+            $response = $middlewareRunner->run();
+        } catch (ResourceNotFoundException $exception) {
+            $response = response()->error(404, __('def.page_not_found'));
+        } catch (MethodNotAllowedException $exception) {
+            $response = response()->error(405, __('def.method_not_allowed'));
+        } catch (ForcedRedirectException $exception) {
+            $response = response()->redirect($exception->getUrl(), $exception->getStatusCode());
+        } catch (\Exception $exception) {
+            if (!is_debug())
+                return response()->error(500, __('def.internal_server_error'));
+            else
+                throw $exception;
         }
 
         // Dispatches a routing finished event.
@@ -144,18 +182,19 @@ class RouteDispatcher
     /**
      * Adds a route to the route collection.
      * 
-     * @param string     $method      The HTTP method for the route.
-     * @param string     $path        The path for the route.
-     * @param mixed      $handler     The handler for the route.
-     * @param array|null $middlewares Optional middlewares for the route.
+     * @param string          $methods      The HTTP method(s) for the route, separated by '|'.
+     * @param string          $path         The path for the route.
+     * @param mixed           $handler      The handler for the route.
+     * @param array|null      $middlewares  Optional middlewares for the route.
      * 
      * @return Route The added route.
      */
-    public function add(string $method, string $path, $handler, array $middlewares = null): Route
+    public function add(string $methods, string $path, $handler, array $middlewares = null): Route
     {
-        // Creates a new route and adds it to the route collection.
         $route = new Route($path, ['_controller' => $handler, '_middlewares' => $middlewares]);
-        $this->routeCollection->add($method . '_' . $path, $route->setMethods([$method]));
+        foreach (explode('|', $methods) as $method) {
+            $this->routeCollection->add(trim($method) . '_' . $path, $route->setMethods([trim($method)]));
+        }
 
         return $route;
     }

@@ -1,0 +1,108 @@
+.confirm-dialog {
+    max-width: 35em;
+    min-width: 30rem;
+    padding: 1.5rem;
+    margin: auto;
+    border-radius: $border-radius;
+    border: 0;
+    background-color: $color-card;
+    color: $color-text;
+    font-family: $font-primary;
+    border: 1px solid $color-white-3;
+    opacity: 0;
+
+    &[open] {
+        animation: confirmAnimation .3s forwards;
+    }
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    &-header {
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid $color-white-5;
+
+        &-question {
+            font-size: 24px;
+            font-family: $font-secondary;
+            font-weight: 600;
+            line-height: 1;
+        }
+    }
+
+    &-content {
+        &-description {
+            font-size: 15px;
+            color: darken($color-text, 10);
+        }
+
+        .confirm-dialog-input-label {
+            display: block;
+            padding-bottom: 5px;
+            font-weight: 600;
+            color: darken($color-text, 50);
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .form-group {
+            border-bottom: 0;
+            padding-bottom: 0;
+            border: 0;
+            margin-top: 10px;
+        }
+    }
+
+    &-button {
+        padding: 10px 15px;
+        border-radius: 25px;
+        border: 1px solid $color-white-5;
+        color: darken($color-text, 60);
+        font-size: 14px;
+        font-weight: 500;
+        transition: .3s;
+
+        &--false {
+            &:hover {
+                color: $color-text;
+                border: 1px solid $color-white-10;
+            }
+        }
+
+        &--true {
+            border: 1px solid $color-error;
+            background-color: $color-error;
+            color: $color-text;
+        }
+    }
+
+    &-primary {
+        .confirm-dialog-button--true {
+            border: 1px solid $color-primary;
+            background-color: $color-primary;
+            color: $color-text-inverse;
+        }
+    }
+}
+
+.confirm-dialog-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@keyframes confirmAnimation {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0px) scale(1);
+    }
+}

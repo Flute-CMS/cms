@@ -26,6 +26,12 @@ class SocialNetwork
     /** @Column(type="text") */
     public $settings;
 
+    /** @Column(type="integer", default=0) */
+    public $cooldownTime = 0;
+
+    /** @Column(type="boolean", default=true) */
+    public $allowToRegister;
+
     /** @Column(type="text") */
     public $icon; // svg or png or icon
 

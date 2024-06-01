@@ -21,6 +21,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         'animate' => '/assets/css/libs/animate.min.css',
         'sfpro' => '/assets/fonts/sfpro/sfpro.css',
         'montserrat' => '/assets/fonts/montserrat/montserrat.css',
+        'whitney' => '/assets/fonts/whitney/whitney.css',
         'grid' => '/assets/css/libs/bootstrap-grid.min.css',
         'appjs' => '/assets/js/app.js',
         'jquery' => '/assets/js/jquery.js',
@@ -276,6 +277,17 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         $this->templateClass->register($this);
         $this->templateClass->blade($this->getBlade());
         $this->loadComponents();
+        $this->loadTemplateJson();
+    }
+
+    protected function loadTemplateJson()
+    {
+        $path = path("app/Themes/{$this->templateClass->getKey()}/colors.json");
+
+        if( file_exists( $path ) && is_readable( $path ) ) {
+            $variables = json_decode(file_get_contents($path), true);
+            $this->variables()->addArray($variables);
+        }
     }
 
     protected function initExternalTemplate()
@@ -380,7 +392,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $this->addAssetAliases();
 
-        $this->blade->pushFirst('header', '<script>const SITE_URL = `' . config('app.url') . '`;</script>');
+        $this->blade->pushFirst('header', '<script>let SITE_URL = `' . config('app.url') . '`;</script>');
     }
 
     /**

@@ -22,7 +22,7 @@ class ImageParser implements ParserInterface
 
         // Check if caption is provided and add it
         if (!empty($attributes['caption'])) {
-            $caption = Html::el('figcaption')->setText($attributes['caption']);
+            $caption = Html::el('figcaption')->setHtml($attributes['caption']);
             $figure->addHtml($caption);
         }
 

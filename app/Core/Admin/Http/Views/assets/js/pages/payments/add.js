@@ -1,13 +1,13 @@
-document.addEventListener('DOMContentLoaded', function () {
+$(function() {
     let paramIndex = 0;
 
-    $('#addParam').click(function () {
+    $(document).on('click', '#addParam', function () {
         paramIndex++;
         appendParamFields(paramIndex);
     });
 
     function appendParamFields(index, key = '', value = '') {
-        $('#parametersContainer').append(`
+        $('#paymentsParametersContainer').append(`
             <div class="param-group" id="param-group-${index}">
                 <input type="text" name="paramNames[]" class="form-control" placeholder="Key" value="${key}" required>
                 <input type="text" name="paramValues[]" class="form-control" placeholder="Value" value="${value}" required>
@@ -16,17 +16,17 @@ document.addEventListener('DOMContentLoaded', function () {
         `);
     }
 
-    $(document).on('click', '.removeParam', function () {
+    $(document).on('click', '#paymentsParametersContainer .removeParam', function () {
         let id = $(this).data('id');
         $('#param-group-' + id).remove();
     });
 
-    $(document).on('submit', '#add, #edit', (ev) => {
+    $(document).on('submit', '#gatewayAdd, #gatewayEdit', (ev) => {
         let $form = $(ev.currentTarget);
 
         ev.preventDefault();
 
-        let path = $form.attr('id'),
+        let path = $form.attr('id') === 'gatewayAdd' ? 'add' : 'edit',
             form = serializeForm($form);
 
         let url = `admin/api/payments/${path}`,
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    $('#adapter').change(function () {
+    $(document).on('change', '#adapter', function () {
         var paymentSystem = $(this).val();
         var handleUrl = u(`api/lk/handle/${paymentSystem}`); // Example URL format
         $('#handleUrl').val(handleUrl);
@@ -50,13 +50,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var adapterSelect = document.getElementById('adapter');
-    var parametersContainer = document.getElementById('parametersContainer');
+    var parametersContainer = document.getElementById('paymentsParametersContainer');
 
     function updateParameters() {
         var selectedGatewayKey = adapterSelect.value;
         var params = drivers[selectedGatewayKey]?.parameters || [];
 
-        $('#parametersContainer').empty();
+        $('#paymentsParametersContainer').empty();
 
         params.forEach(function (param) {
             paramIndex++;
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (!$('#parametersContainer').hasClass('parametersEdit'))
+    if (!$('#paymentsParametersContainer').hasClass('parametersEdit'))
         updateParameters();
 
     adapterSelect.addEventListener('change', updateParameters);

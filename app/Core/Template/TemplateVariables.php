@@ -34,7 +34,7 @@ class TemplateVariables
         'color-white-5' => 'rgba(255, 255, 255, 0.05)',
         'color-white-3' => 'rgba(255, 255, 255, 0.03)',
 
-        'color-modal-bg' => '#191919e3',
+        'color-modal-bg' => '#000000d4',
 
         // Шрифты
         'font-primary' => '\'Montserrat\', \'Open Sans\', system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
@@ -48,7 +48,7 @@ class TemplateVariables
 
         // Прочее
         'border-radius' => '25px',
-        'border-radius-el' => '14px',
+        'border-radius-el' => '12px',
         'transition' => '.3s',
 
         // Отступы
@@ -84,7 +84,7 @@ class TemplateVariables
         'color-white-5' => 'rgba(255, 255, 255, 0.05)',
         'color-white-3' => 'rgba(255, 255, 255, 0.03)',
 
-        'color-modal-bg' => '#191919e3',
+        'color-modal-bg' => '#000000d4',
 
         // Шрифты
         'font-primary' => '\'Montserrat\', \'Open Sans\', system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',

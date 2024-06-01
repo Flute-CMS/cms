@@ -81,7 +81,7 @@
         },
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    $(function() {
         let el_chart = document.getElementById("{!! $chart->id() !!}");
 
         (async () => {

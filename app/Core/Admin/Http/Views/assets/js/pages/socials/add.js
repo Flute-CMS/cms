@@ -1,29 +1,18 @@
-$(document).ready(function () {
-    $('#key').change(function () {
+$(function () {
+    $(document).on('change', '#key', function () {
         let socialPlatform = $(this).val();
         let redirectUri1 = u(`social/${socialPlatform}`);
         let redirectUri2 = u(`profile/social/bind/${socialPlatform}`);
-        $('#redirectUri1').val(redirectUri1);
-        $('#redirectUri2').val(redirectUri2);
+        $('#redirectUri1').val(redirectUri1).attr('data-copy', redirectUri1);
+        $('#redirectUri2').val(redirectUri2).attr('data-copy', redirectUri2);
     });
-
-    let editor = ace.edit('editor');
-
-    let unformattedContent = editor.getSession().getValue();
-    let formattedContent = js_beautify(unformattedContent, {
-        indent_size: 4,
-        space_in_empty_paren: true,
-    });
-    editor.getSession().setValue(formattedContent);
-
-    editor.setTheme('ace/theme/solarized_dark');
-    editor.session.setMode('ace/mode/json');
-
-    $(document).on('submit', '#add, #edit', (ev) => {
+    
+    $(document).on('submit', '#socialAdd, #socialEdit', (ev) => {
         let $form = $(ev.currentTarget);
 
         ev.preventDefault();
-        let path = $form.attr('id'),
+        let path =
+                $(ev.currentTarget).attr('id') === 'socialAdd' ? 'add' : 'edit',
             form = serializeForm($form);
 
         let url = `admin/api/socials/${path}`,
@@ -39,7 +28,7 @@ $(document).ready(function () {
                 {
                     ...form,
                     ...{
-                        settings: editor.getValue(),
+                        settings: ace.edit($form.find('.editor-ace')[0]).getValue(),
                     },
                 },
                 url,

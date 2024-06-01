@@ -84,23 +84,3 @@
     font-weight: 500;
     color: $color-gray;
 }
-
-.checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-
-    .form-checkbox {
-        label {
-            font-size: 16px !important;
-            display: inline-flex !important;
-            flex-direction: column;
-
-            small {
-                font-size: 12px;
-                color: $color-gray;
-                font-weight: 500;
-            }
-        }
-    }
-}

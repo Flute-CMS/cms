@@ -164,17 +164,10 @@ class LanguageService
     public function trans(string $key, array $replacements = [], string $locale = null): string
     {
         $translator = $this->getTranslator();
+        $locale = $locale ?? $translator->getLocale();
 
-        // Если локаль не указана, используйте локаль по умолчанию
-        if ($locale === null) {
-            $locale = $translator->getLocale();
-        }
-
-        // Если у нас нет точки, т.е. массива, то мы не разделяем
         if (strpos($key, '.') !== false) {
-            // Разделяем ключ на домен и ключ перевода
-            list($domain, $translationKey) = explode('.', $key, 2);
-
+            [$domain, $translationKey] = explode('.', $key, 2);
             return $translator->trans($translationKey, $replacements, $domain, $locale);
         }
 

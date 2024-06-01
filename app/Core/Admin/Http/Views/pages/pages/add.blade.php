@@ -9,11 +9,12 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/pages/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/pages/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.pages.add_title')</h2>
             <p>@t('admin.pages.add_description')</p>
         </div>
@@ -29,8 +30,10 @@
                 <small>@t('admin.pages.route_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="route" id="route" type="text" class="form-control" placeholder="/test"
-                    required>
+                <div class="input-group">
+                    <div class="input-group-text">{{ app('app.url') }}</div>
+                    <input name="route" id="route" type="text" class="form-control" placeholder="/test" required>
+                </div>
                 <div class="error" id="errorMessage"></div>
             </div>
         </div>
@@ -74,8 +77,7 @@
                 <small>@t('admin.pages.robots_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="robots" id="robots" type="text" class="form-control"
-                    value="all">
+                <input name="robots" id="robots" type="text" class="form-control" value="all">
             </div>
         </div>
 
@@ -116,7 +118,7 @@
                 </label>
             </div>
             <div class="col-sm-9">
-                <div id="editor"></div>
+                <div data-editorjs id="editorPageAdd"></div>
             </div>
         </div>
 
@@ -148,7 +150,7 @@
                                 value="{{ $permission->id }}" id="permissions[{{ $permission->id }}]">
                             <label class="form-check-label" for="permissions[{{ $permission->id }}]">
                                 {{ $permission->name }}
-                                <small>{{ $permission->desc }}</small>
+                                <small>{{ __($permission->desc) }}</small>
                             </label>
                         </div>
                     @endforeach
@@ -179,9 +181,6 @@
     <script src="@asset('assets/js/editor/list.js')"></script>
     <script src="@asset('assets/js/editor/marker.js')"></script>
     @at('Core/Admin/Http/Views/assets/js/editor/additional.js')
-
-    <script>
-    </script>
 
     <script src="@asset('assets/js/editor.js')"></script>
 

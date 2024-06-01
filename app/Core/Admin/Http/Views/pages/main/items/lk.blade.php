@@ -30,7 +30,25 @@
 
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
-            <label for="debug">
+            <label for="pay_in_new_window">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline"
+                    data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.lk.new_window_warning')">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.lk.in_new_window')
+            </label>
+            <small class="form-text text-muted">@t('admin.lk.in_new_window_desc')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="pay_in_new_window" role="switch" id="pay_in_new_window" type="checkbox"
+                class="form-check-input" {{ config('lk.pay_in_new_window') ? 'checked' : '' }}>
+            <label for="pay_in_new_window"></label>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="oferta_view">
                 @t('admin.lk.oferta')</label>
             <small class="form-text text-muted">@t('admin.lk.oferta_description')</small>
         </div>

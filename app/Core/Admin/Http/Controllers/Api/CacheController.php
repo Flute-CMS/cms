@@ -5,6 +5,7 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Support\AbstractController;
 use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 class CacheController extends AbstractController
 {
@@ -49,7 +50,7 @@ class CacheController extends AbstractController
     public function translations()
     {
         $translationsPath = BASE_PATH . '/storage/app/translations/*';
-        
+
         $this->deleteFs($translationsPath);
 
         return redirect(url('admin/settings', [
@@ -72,11 +73,12 @@ class CacheController extends AbstractController
 
     protected function deleteFs($path)
     {
-        try {
-            $filesystem = fs();
+        $filesystem = new Filesystem();
 
+        try {
             $filesystem->remove(glob($path));
-        } catch (IOException $e) {
+        } catch (IOException $exception) {
+            logs()->error($exception);
         }
     }
 }

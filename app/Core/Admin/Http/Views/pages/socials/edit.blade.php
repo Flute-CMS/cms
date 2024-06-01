@@ -11,19 +11,25 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/socials/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/socials/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.socials.edit_title', [
                 'name' => $social->key,
             ])</h2>
             <p>@t('admin.socials.edit_description')</p>
         </div>
+        <div>
+            <button data-deleteaction="{{ $social->id }}" data-deletepath="socials" class="btn size-s error outline">
+                @t('def.delete')
+            </button>
+        </div>
     </div>
 
-    <form id="edit">
+    <form id="socialEdit">
         @csrf
         <input type="hidden" name="id" value="{{ $social->id }}">
         <div class="position-relative row form-group">
@@ -45,6 +51,7 @@
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
                 <label for="icon">@t('admin.socials.social_icon_label')</label>
+                <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
                 <div class="d-flex align-items-center">
@@ -56,13 +63,28 @@
         </div>
 
         <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="cooldownTime">
+                    @t('admin.socials.cooldown_label')
+                </label>
+                <small>@t('admin.socials.cooldown_desc')</small>
+            </div>
+            <div class="col-sm-9">
+                <div class="d-flex align-items-center">
+                    <input name="cooldownTime" id="cooldownTime" placeholder="@t('admin.socials.cooldown_label')" type="number"
+                        class="form-control" value="{{ $social->cooldownTime }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
                 <label for="settings">
                     @t('admin.socials.settings_label')
                 </label>
             </div>
             <div class="col-sm-9">
-                <div id="editor">{!! $social->settings !!}</div>
+                <div id="editorSocial" class="editor-ace">{!! $social->settings !!}</div>
             </div>
         </div>
 
@@ -72,8 +94,9 @@
                 <label for="redirectUri1">Redirect URI 1</label>
             </div>
             <div class="col-sm-9">
-                <input id="redirectUri1" type="text" class="form-control" readonly
-                    value="{{ url('social/' . $social->key) }}">
+                <input id="redirectUri1" type="text" class="form-control" readonly data-tooltip="@t('def.copy')"
+                    data-tooltip-conf="top" value="{{ url('social/' . $social->key) }}"
+                    data-copy="{{ url('social/' . $social->key) }}">
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -81,8 +104,22 @@
                 <label for="redirectUri2">Redirect URI 2</label>
             </div>
             <div class="col-sm-9">
-                <input id="redirectUri2" type="text" class="form-control" readonly
-                    value="{{ url('profile/social/bind/' . $social->key) }}">
+                <input id="redirectUri2" type="text" class="form-control" readonly data-tooltip="@t('def.copy')"
+                    data-tooltip-conf="top" value="{{ url('profile/social/bind/' . $social->key) }}"
+                    data-copy="{{ url('profile/social/bind/' . $social->key) }}">
+            </div>
+        </div>
+
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="allowToRegister">
+                    @t('admin.socials.allow_to_register')</label>
+                <small>@t('admin.socials.allow_to_register_description')</small>
+            </div>
+            <div class="col-sm-9">
+                <input name="allowToRegister" @if ($social->allowToRegister) checked @endif role="switch"
+                    id="allowToRegister" type="checkbox" class="form-check-input">
+                <label for="allowToRegister"></label>
             </div>
         </div>
 
@@ -93,7 +130,8 @@
                 <small>@t('admin.socials.enabled_description')</small>
             </div>
             <div class="col-sm-9">
-                <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
+                <input name="enabled" @if ($social->enabled) checked @endif role="switch" id="enabled"
+                    type="checkbox" class="form-check-input">
                 <label for="enabled"></label>
             </div>
         </div>

@@ -26,17 +26,25 @@ class UsersView extends AbstractController
         $table = table();
         $users = rep(User::class)->select()->load('roles')->fetchAll();
 
-        foreach ($users as $user) {
+        foreach ($users as $key => $user) {
             $roles = $user->getRoles()->toArray();
             $user->roles_json = json_encode($roles);
-            $user->createdAt = $user->created_at->format('Y-m-d H:i:s');
+            $user->user_url = url('profile/'.$user->getUrl())->get();
+            $user->createdAt = $user->created_at->format(default_date_format());
+            $user->lastLoggedPhrase = $this->getLastLoggedPhrase($user->last_logged);
+
+            if (!user()->canEditUser($user)) {
+                unset($users[$key]);
+            }
         }
 
+        $table->addColumn((new TableColumn('id', 'ID')));
+
+        $table->addColumn((new TableColumn('user_url'))->setVisible(false));
+        $table->addCombinedColumn('avatar', 'name', __('def.user'), 'user_url', true);
+
         $table->addColumns([
-            (new TableColumn('id')),
             (new TableColumn('login', __('def.user_login'))),
-            (new TableColumn('avatar'))->image(),
-            (new TableColumn('name', __('def.user_name'))),
             (new TableColumn("roles_json", __('def.roles')))->setRender(
                 '{{ RENDER_ROLES }}',
                 "function(data) {
@@ -56,6 +64,7 @@ class UsersView extends AbstractController
                 }"
             ),
             (new TableColumn('createdAt', __('admin.users.created'))),
+            (new TableColumn('lastLoggedPhrase', __('admin.users.last_logged')))->setClean(false),
             (new TableColumn())->setOrderable(false)
         ]);
 
@@ -73,7 +82,8 @@ class UsersView extends AbstractController
 
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("admin.users.change"));
+                    changeDiv.setAttribute("data-translate", "admin.users.change");
+                    changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     changeDiv.setAttribute("href", u(`admin/users/edit/${data[0]}`));
                     changeDiv.setAttribute("data-tooltip-conf", "left");
                     let changeIcon = make("i");
@@ -83,7 +93,8 @@ class UsersView extends AbstractController
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("admin.users.delete"));
+                    deleteDiv.setAttribute("data-translate", "admin.users.delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-deleteaction", data[0]);
                     deleteDiv.setAttribute("data-deletepath", "users");
                     deleteDiv.setAttribute("data-tooltip-conf", "left");
@@ -105,6 +116,22 @@ class UsersView extends AbstractController
         ]);
     }
 
+    private function getLastLoggedPhrase($lastLoggedDateTime): string
+    {
+        $now = new \DateTime();
+        $interval = $now->getTimestamp() - $lastLoggedDateTime->getTimestamp();
+
+        if ($interval <= 600) {
+            return '<div class="table-status active">'.__('def.online').'</div>';
+        } elseif ($interval <= 3600) {
+            return __('def.was_in_hour');
+        } else {
+            return __('def.was_in_online', [
+                ':time' => $lastLoggedDateTime->format(default_date_format())
+            ]);
+        }
+    }
+
     public function edit(FluteRequest $request, string $id, UserService $userService): Response
     {
         $user = rep(User::class)->select()->load([
@@ -112,7 +139,8 @@ class UsersView extends AbstractController
             'socialNetworks.socialNetwork',
             'roles',
             'userDevices',
-            'invoices.promoCode'
+            'invoices.promoCode',
+            'invoices.currency'
         ])
             ->load('actionLogs', [
                 'load' => function (QueryBuilder $qb) {
@@ -137,8 +165,7 @@ class UsersView extends AbstractController
         $canEdit = $userService->canEditUser(user()->getCurrentUser(), $user);
 
         if (!$canEdit)
-            return $this->error(__('admin.users.delete_permission_error'), 403);
-
+            return $this->error(__('admin.users.permission_error'), 403);
 
         $roles = rep(Role::class)->findAll();
 

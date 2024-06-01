@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Payments;
 
+use Composer\Autoload\ClassLoader;
 use Omnipay\FreeKassa\Message\PurchaseRequest;
 use Omnipay\Omnipay;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
@@ -23,11 +24,16 @@ class GatewayFactory
         }
     }
 
-    // #TODO: Replace it later
     private function freekassaFix()
     {
-        app()->getLoader()->setPsr4('Omnipay\\FreeKassa\\Message\\', BASE_PATH . 'app/Core/Payments/Fixes/FreeKassa/');
-        app()->getLoader()->register();
+        /** @var ClassLoader */
+        $loader = app()->getLoader();
+
+        $loader->addClassMap([
+            'Omnipay\\FreeKassa\\Message\\PurchaseRequest' => BASE_PATH . 'app/Core/Payments/Fixes/FreeKassa/PurchaseRequest.php'
+        ]);
+
+        $loader->register();
     }
 
     private function decryptConfig($encryptedConfig)

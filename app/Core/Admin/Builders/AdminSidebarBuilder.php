@@ -4,66 +4,59 @@ namespace Flute\Core\Admin\Builders;
 
 use Flute\Core\Admin\AdminBuilder;
 use Flute\Core\Admin\Contracts\AdminBuilderInterface;
-use Flute\Core\Admin\Exceptions\UnknownSidebarItemException;
+use Flute\Core\Admin\Contracts\AdminSearchResultInterface;
+use Flute\Core\Admin\Events\AdminSearchEvent;
+use Flute\Core\Admin\Support\AdminSearchResult;
 
 /**
- * Все сводится к тому, что это простой сборщик пунктов...
+ * Class AdminSidebarBuilder
+ * 
+ * This class is responsible for building and managing the admin sidebar items.
  */
-
 class AdminSidebarBuilder implements AdminBuilderInterface
 {
     public const COOKIE_RECENT_KEY = "__admin_recent_items";
 
+    /**
+     * @var array The sidebar items categorized by section.
+     */
     protected static array $items = [
         'main' => [
             [
                 'icon' => 'ph-chart-donut',
-                'title' => 'admin.dashboard',
-                'url' => '/admin/',
-                // 'tag' => 'Бета',
+                'title' => 'admin.dashboard.title',
+                'url' => '/admin/dashboard',
                 'permission' => 'admin.stats'
             ],
             [
                 'icon' => 'ph-gear',
-                'title' => 'admin.settings',
+                'title' => 'admin.settings.title',
                 'url' => '/admin/settings',
                 'permission' => 'admin.system'
             ],
             [
-                'icon' => 'ph-cloud',
-                'title' => 'API',
-                'url' => '/admin/api/list',
-                'permission' => 'admin.boss'
+                'icon' => 'ph-users',
+                'title' => 'admin.users_roles.title',
+                'permission' => 'admin.users',
+                'items' => [
+                    ['title' => 'admin.users.list', 'url' => '/admin/users/list'],
+                    ['title' => 'admin.users_blocks.title', 'url' => '/admin/users_blocks'],
+                    ['title' => 'admin.roles.list', 'url' => '/admin/roles/list', 'permission' => 'admin.roles'],
+                ]
             ],
         ],
-        'additional' => [
+        'resources' => [
             [
                 'icon' => 'ph-cube',
                 'title' => 'admin.modules.title',
                 'permission' => 'admin.modules',
                 'url' => '/admin/modules/list',
-                // 'items' => [
-                //     ['title' => 'admin.modules.list', 'url' => '/admin/modules/list'],
-                // ['title' => 'admin.modules.install', 'url' => '/admin/modules/install'],
-                // ['title' => 'admin.modules.catalog', 'url' => '/admin/modules/catalog']
-                // ]
             ],
             [
                 'icon' => 'ph-palette',
                 'title' => 'admin.themes.title',
                 'permission' => 'admin.templates',
                 'url' => '/admin/themes/list'
-                // 'items' => [
-                // ['title' => 'admin.themes.list', 'url' => '/admin/themes/list'],
-                // ['title' => 'admin.themes.install', 'url' => '/admin/themes/install'],
-                // ['title' => 'admin.themes.catalog', 'url' => '/admin/themes/catalog']
-                // ]
-            ],
-            [
-                'icon' => 'ph-files',
-                'title' => 'admin.pages.title',
-                'permission' => 'admin.pages',
-                'url' => '/admin/pages/list'
             ],
             [
                 'icon' => 'ph-folders',
@@ -72,23 +65,19 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 'url' => '/admin/composer/list'
             ],
             [
-                'icon' => 'ph-translate',
-                'title' => 'admin.translate.title',
-                'permission' => 'admin.translate',
-                'url' => '/admin/translate/list'
-            ],
-            [
-                'icon' => 'ph-currency-circle-dollar',
-                'title' => 'admin.currency.title',
-                'permission' => 'admin.currency',
-                'url' => '/admin/currency/list'
-            ],
-            [
                 'icon' => 'ph-database',
                 'title' => 'admin.databases.title',
                 'permission' => 'admin.system',
                 'url' => '/admin/databases/list'
             ],
+            [
+                'icon' => 'ph-files',
+                'title' => 'admin.pages.title',
+                'permission' => 'admin.pages',
+                'url' => '/admin/pages/list'
+            ],
+        ],
+        'communication' => [
             [
                 'icon' => 'ph-notification',
                 'title' => 'admin.notifications.title',
@@ -96,13 +85,24 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 'url' => '/admin/notifications/list'
             ],
             [
+                'icon' => 'ph-translate',
+                'title' => 'admin.translate.title',
+                'permission' => 'admin.translate',
+                'url' => '/admin/translate/list'
+            ],
+            [
                 'icon' => 'ph-link-simple',
                 'title' => 'admin.navbar.title',
                 'permission' => 'admin.navigation',
                 'url' => '/admin/navigation/list',
-                // 'items' => [
-                //     ['title' => 'admin.navbar.customize', 'url' => '/admin/navigation/list']
-                // ]
+            ],
+        ],
+        'financial' => [
+            [
+                'icon' => 'ph-currency-circle-dollar',
+                'title' => 'admin.currency.title',
+                'permission' => 'admin.currency',
+                'url' => '/admin/currency/list'
             ],
             [
                 'icon' => 'ph-credit-card',
@@ -115,6 +115,8 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                     ['title' => 'admin.payments.payments_header', 'url' => '/admin/payments/payments'],
                 ]
             ],
+        ],
+        'infrastructure' => [
             [
                 'icon' => 'ph-hard-drives',
                 'title' => 'admin.servers.title',
@@ -122,24 +124,6 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 'items' => [
                     ['title' => 'admin.servers.list', 'url' => '/admin/servers/list'],
                     ['title' => 'admin.servers.add', 'url' => '/admin/servers/add']
-                ]
-            ],
-            [
-                'icon' => 'ph-globe-simple',
-                'title' => 'admin.socials.title',
-                'permission' => 'admin.socials',
-                'items' => [
-                    ['title' => 'admin.socials.list', 'url' => '/admin/socials/list'],
-                    ['title' => 'admin.socials.add', 'url' => '/admin/socials/add']
-                ]
-            ],
-            [
-                'icon' => 'ph-users',
-                'title' => 'admin.users_roles.title',
-                'permission' => 'admin.users',
-                'items' => [
-                    ['title' => 'admin.users.list', 'url' => '/admin/users/list'],
-                    ['title' => 'admin.roles.list', 'url' => '/admin/roles/list', 'permission' => 'admin.roles']
                 ]
             ],
             [
@@ -152,24 +136,63 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 ]
             ],
         ],
-        'recent' => [],
+        'socials' => [
+            [
+                'icon' => 'ph-globe-simple',
+                'title' => 'admin.socials.title',
+                'permission' => 'admin.socials',
+                'items' => [
+                    ['title' => 'admin.socials.list', 'url' => '/admin/socials/list'],
+                    ['title' => 'admin.socials.add', 'url' => '/admin/socials/add']
+                ]
+            ],
+            [
+                'icon' => 'ph-cloud',
+                'title' => 'admin.api.title',
+                'url' => '/admin/api/list',
+                'permission' => 'admin.boss'
+            ],
+        ],
+        'advanced' => [
+            [
+                'icon' => 'ph-test-tube',
+                'title' => 'admin.event_testing.title',
+                'permission' => 'admin.event_testing',
+                'url' => '/admin/event_testing'
+            ],
+            [
+                'icon' => 'ph-webhooks-logo',
+                'title' => 'admin.redirects.title',
+                'url' => '/admin/redirects/list',
+                'permission' => 'admin.redirects'
+            ],
+        ],
     ];
+
+    /**
+     * Builds the admin sidebar.
+     *
+     * @param AdminBuilder $adminBuilder The admin builder instance.
+     * @return void
+     */
+    public function build(AdminBuilder $adminBuilder): void
+    {
+        $this->addListener();
+    }
 
     /**
      * Get the first accessible item for the user.
      *
-     * @return string|null URL of the first accessible item or null if none are accessible
+     * @return string|null URL of the first accessible item or null if none are accessible.
      */
     public static function getFirstAccessibleItem(): ?string
     {
         foreach (self::$items as $category => $items) {
             foreach ($items as $item) {
-                // Проверка основных элементов
                 if (isset($item['url']) && self::hasAccess($item)) {
                     return $item['url'];
                 }
 
-                // Проверка подпунктов, если они есть
                 if (!self::hasAccess($item)) {
                     continue;
                 }
@@ -177,7 +200,7 @@ class AdminSidebarBuilder implements AdminBuilderInterface
                 if (!(isset($item['items']) && is_array($item['items']))) {
                     continue;
                 }
-                
+
                 foreach ($item['items'] as $subItem) {
                     if (self::hasAccess($subItem)) {
                         return $subItem['url'];
@@ -192,90 +215,156 @@ class AdminSidebarBuilder implements AdminBuilderInterface
     /**
      * Check if the user has access to a given item.
      *
-     * @param array $item Sidebar item
-     * @return bool
+     * @param array $item Sidebar item.
+     * @return bool True if the user has access, false otherwise.
      */
     protected static function hasAccess(array $item): bool
     {
         return isset($item['permission']) ? user()->hasPermission($item['permission']) : true;
     }
 
-    public function build(AdminBuilder $adminBuilder): void
-    {
-        self::initRecentItems();
-    }
-
-    public static function add(string $key, array $item, string $permission = null)
+    /**
+     * Adds a new item to the sidebar.
+     *
+     * @param string $key The category key.
+     * @param array $item The sidebar item.
+     * @param string|null $permission Optional permission required to add the item.
+     * @return void
+     */
+    public static function add(string $key, array $item, string $permission = null): void
     {
         if ($permission && !user()->hasPermission($permission)) {
             return;
         }
 
-        if (!isset(self::$items[$key]))
-            throw new UnknownSidebarItemException($key);
-
         self::$items[$key][] = $item;
     }
 
-    public static function get(string $key)
+    /**
+     * Gets items for a given category.
+     *
+     * @param string $key The category key.
+     * @return array|null The sidebar items for the given category or null if not found.
+     */
+    public static function get(string $key): ?array
     {
-        if (!isset(self::$items[$key]))
-            throw new UnknownSidebarItemException($key);
-
-        return self::$items[$key];
+        return self::$items[$key] ?? null;
     }
 
+    /**
+     * Gets all sidebar items.
+     *
+     * @return array All sidebar items.
+     */
     public static function all(): array
     {
         return self::$items;
     }
 
-    public static function initRecentItems(): void
+    /**
+     * Adds an event listener for the sidebar search.
+     *
+     * @return void
+     */
+    protected function addListener(): void
     {
-        $items = json_decode(cookie(self::COOKIE_RECENT_KEY) ?? '[]', true) ?? [];
-
-        foreach ($items as $title => $path) {
-            if (self::isValidItem($title, $path)) {
-                self::$items['recent'][$title] = $path;
-            }
-        }
+        events()->addListener(AdminSearchEvent::NAME, [$this, 'searchSidebarItem']);
     }
 
-    protected static function isValidItem($title, $path): bool
+    /**
+     * Searches sidebar items based on the query from the admin search event.
+     *
+     * @param AdminSearchEvent $searchEvent The admin search event.
+     * @return void
+     */
+    public function searchSidebarItem(AdminSearchEvent $searchEvent): void
     {
-        // Проверка существования элемента в основных категориях
-        foreach (['main', 'additional'] as $category) {
-            foreach (self::$items[$category] as $item) {
-                if ($category === 'additional' && isset($item['items'])) {
-                    // Проверка для подпунктов в 'additional'
-                    foreach ($item['items'] as $subItem) {
-                        if (isset($subItem['title']) && $subItem['title'] === $title && isset($subItem['url']) && $subItem['url'] === $path) {
-                            return true;
-                        }
+        $query = mb_strtolower($searchEvent->getValue());
+        $result = [];
+
+        foreach (self::$items as $category => $items) {
+            foreach ($items as $item) {
+                if (isset($item['title']) && stripos(mb_strtolower(__($item['title'])), $query) !== false && self::hasAccess($item) && isset($item['url'])) {
+                    $result[] = $this->formatSearchResult($item);
+                }
+
+                if (isset($item['items']) && is_array($item['items'])) {
+                    if (!self::hasAccess($item)) {
+                        continue;
                     }
-                } else {
-                    // Проверка для пунктов в 'main' и 'additional' без подпунктов
-                    if (isset($item['title']) && $item['title'] === $title && isset($item['url']) && $item['url'] === $path) {
-                        return true;
+
+                    foreach ($item['items'] as $subItem) {
+                        if (isset($subItem['title']) && stripos(mb_strtolower(__($subItem['title'])), $query) !== false && self::hasAccess($subItem)) {
+                            $result[] = $this->formatSearchResult($subItem, $item['title']);
+                        }
                     }
                 }
             }
         }
-        return false;
+
+        foreach ($result as $searchResult) {
+            $searchEvent->add($searchResult);
+        }
     }
 
-    public static function removeRecentItem(string $title): array
+    /**
+     * Formats a sidebar item into an admin search result.
+     *
+     * @param array $item The sidebar item.
+     * @param string|null $category The category title, if any.
+     * @return AdminSearchResultInterface The formatted search result.
+     */
+    private function formatSearchResult(array $item, ?string $category = null): AdminSearchResultInterface
     {
-        self::initRecentItems();
+        $searchResult = new AdminSearchResult();
+        $searchResult->setTitle(__($item['title']));
+        $searchResult->setUrl($item['url']);
 
-        if (isset(self::$items['recent'][$title])) {
-            unset(self::$items['recent'][$title]);
+        if ($category) {
+            $searchResult->setCategory(__($category));
         }
 
-        return self::$items['recent'];
+        if (isset($item['icon'])) {
+            $searchResult->setIcon($item['icon']);
+        }
+
+        return $searchResult;
     }
 
-    public function __get(string $key)
+    /**
+     * Gets the categories that the user has access to.
+     *
+     * @return array The accessible categories.
+     */
+    public function categories(): array
+    {
+        $categories = self::$items;
+
+        foreach ($categories as $key => $category) {
+            $found = false;
+
+            foreach ($category as $item) {
+                if (self::hasAccess($item)) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                unset($categories[$key]);
+            }
+        }
+
+        return array_keys($categories);
+    }
+
+    /**
+     * Magic method to get items for a given category.
+     *
+     * @param string $key The category key.
+     * @return array|null The sidebar items for the given category or null if not found.
+     */
+    public function __get(string $key): ?array
     {
         return self::$items[$key] ?? null;
     }

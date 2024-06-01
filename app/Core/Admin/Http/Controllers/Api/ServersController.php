@@ -28,7 +28,9 @@ class ServersController extends AbstractController
         $server->ip = $request->serverIp;
         $server->port = $request->serverPort;
         $server->mod = $request->gameSelect;
+        $server->display_ip = $request->displayIp;
         $server->rcon = $request->serverRcon;
+        $server->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? true;
 
         user()->log('events.server_added', $request->serverName . ' ' . $request->serverIp . ':' . $request->serverPort);
 
@@ -69,7 +71,9 @@ class ServersController extends AbstractController
         $server->ip = $request->serverIp;
         $server->port = $request->serverPort;
         $server->mod = $request->gameSelect;
+        $server->display_ip = $request->displayIp;
         $server->rcon = $request->serverRcon;
+        $server->enabled = filter_var($request->enabled, FILTER_VALIDATE_BOOL) ?? true;
 
         user()->log('events.server_changed', $id);
 

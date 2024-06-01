@@ -1,114 +1,54 @@
-$(document).ready(function () {
+$(function () {
     if (document.querySelector('.item.opened'))
         document
             .querySelector('.item.opened')
             .scrollIntoView({ behavior: 'smooth' });
 
-    $('.main-menu .item').on('click', function (e) {
-        e.preventDefault();
-        const itemTitle = $(this).data('title');
-        const itemUrl = $(this).data('path');
+    $('.menu-section > .items > button > .head-button:not([href])').on(
+        'click',
+        (e) => {
+            const parent = $(e.currentTarget).parent();
+            $('.menu-section > .items > button')
+                .not(parent)
+                .removeClass('opened');
 
-        if (itemUrl === '#') return;
+            parent.toggleClass('opened');
+        },
+    );
 
-        addToRecent(itemTitle, itemUrl);
-    });
+    const chromeTabs = document.querySelector('.chrome-tabs');
 
-    $('.additional-menu .btn-add-menu a').on('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation(); // Предотвращаем всплытие события, чтобы не активировать родительский элемент
+    chromeTabs.addEventListener('activeTabChange', function (event) {
+        const { tabEl } = event.detail;
 
-        const itemTitle = $(this).data('title');
-        const itemUrl = $(this).data('path');
+        // Deactivate all currently active sidebar items
+        document
+            .querySelectorAll(
+                '.sidebar-menu .item.active, .sidebar-menu .item.opened, .btn-add-menu .submenu-item',
+            )
+            .forEach((activeItem) => {
+                activeItem.classList.remove('active', 'opened');
+            });
 
-        if (itemUrl === '#') return;
+        // Get the new active tab URL
+        const newActiveHref = tabEl.getAttribute('data-tab-url');
 
-        addToRecent(itemTitle, itemUrl);
-    });
+        // Find the corresponding sidebar item
+        const newActiveSidebarItem = document.querySelector(
+            `.sidebar-menu a[href="${newActiveHref}"]`,
+        );
+        if (newActiveSidebarItem) {
+            newActiveSidebarItem.classList.add('active');
+            newActiveSidebarItem.closest('.item').classList.add('active');
 
-    $('[data-hide]').on('click', (e) => {
-        let el = $(e.currentTarget);
-
-        if ($('.recent-menu > .items').hasClass('hidden')) {
-            el.html(el.data('hide'));
-            setCookie('recent_hide', 'false', 365);
-        } else {
-            el.html(el.data('open'));
-            setCookie('recent_hide', 'true', 365);
+            // If it's a submenu item, open the parent menu
+            const parentMenu = newActiveSidebarItem.closest('.btn-add-menu');
+            if (parentMenu) {
+                parentMenu.closest('.item').classList.add('active', 'opened');
+                // parentMenu.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // newActiveSidebarItem.scrollIntoView({ behavior: 'smooth' });
+            }
         }
-
-        $('.recent-menu > .items').toggleClass('hidden');
-    });
-
-    $('[data-delete]').on('click', (e) => {
-        let el = $(e.currentTarget);
-        let pathDelete = el.data('delete');
-
-        if (!pathDelete) return;
-
-        deleteRecent(pathDelete);
-
-        el.parent().remove();
-
-        if ($('[data-delete]').length === 0) $('.recent-menu').remove();
-    });
-
-    $('.additional-menu > .items > button > .head-button').on('click', (e) => {
-        const parent = $(e.currentTarget).parent();
-        $('.additional-menu > .items > button')
-            .not(parent)
-            .removeClass('opened');
-
-        parent.toggleClass('opened');
     });
 });
-
-function addToRecent(itemTitle, itemUrl) {
-    // if ($('.recent-menu > .items').hasClass('hidden'))
-    //     return (window.location.href = itemUrl);
-
-    fetch(u('admin/api/recent'), {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-            title: itemTitle,
-            url: itemUrl,
-        }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (typeof data.success !== 'undefined') {
-                console.log('Item added to recent');
-            } else {
-                console.error('Failed to add item');
-            }
-
-            window.location.href = itemUrl;
-        })
-        .catch((error) => console.error('Error:', error));
-}
-
-function deleteRecent(itemTitle) {
-    fetch(u('admin/api/recent'), {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-            title: itemTitle,
-        }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                console.log('Item deleted');
-            } else {
-                console.error('Failed to add item');
-            }
-        })
-        .catch((error) => console.error('Error:', error));
-}

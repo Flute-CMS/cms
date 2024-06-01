@@ -109,11 +109,54 @@
     }
 }
 
+.form-group-lines {
+    --text-divider-gap: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $color-gray;
+    font-weight: 500;
+    margin-bottom: 40px;
+
+    &::before,
+    &::after {
+        content: '';
+        height: 1px;
+        background-color: $color-white-10;
+        flex-grow: 1;
+    }
+
+    &::before {
+        margin-right: var(--text-divider-gap);
+    }
+
+    &::after {
+        margin-left: var(--text-divider-gap);
+    }
+}
+
 .form-group {
     padding-bottom: 20px;
     margin-bottom: 20px;
-    border-bottom: 1px solid $color-white-3;
     align-items: center;
+    position: relative;
+
+    &::after {
+        content: "";
+        border-bottom: 1px solid $color-white-3;
+        width: calc(100% - 30px);
+        bottom: 0;
+        position: absolute;
+        right: 15px;
+    }
+
+    &.withoutLine {
+        &::after {
+            border: 0;
+        }
+    }
 
     >div:last-child {
         small {
@@ -142,7 +185,7 @@
 
     &.empty {
         border: 0;
-        margin-bottom: 0;
+        margin-bottom: 0 !important;
         padding-bottom: 0;
     }
 
@@ -162,6 +205,7 @@
     input[type="email"],
     input[type="number"],
     input[type="date"],
+    input[type="color"],
     input[type="datetime-local"],
     textarea,
     select {
@@ -173,6 +217,7 @@
         font-size: 14px;
         color: $color-text;
         transition: $transition;
+        min-height: 43px;
 
         &::-webkit-calendar-picker-indicator {
             filter: invert(1);
@@ -184,6 +229,13 @@
 
         option {
             background-color: $color-disabled;
+            font-size: 14px;
+            color: $color-text;
+        }
+
+        optgroup {
+            background-color: $color-disabled;
+            color: rgba($color-text, .5);
         }
 
         &[aria-invalid=false] {
@@ -195,6 +247,17 @@
             border-color: rgba(241, 73, 73, 0.20);
             background: rgba(241, 73, 73, 0.02);
         }
+    }
+
+    textarea {
+        transition: border-color $transition;
+    }
+
+    select {
+        background-repeat: no-repeat;
+        background-position: right .75rem center;
+        background-size: 16px 12px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     }
 
     input[type="file"] {
@@ -322,10 +385,42 @@
     }
 }
 
+.input-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    &-text {
+        height: 100%;
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+        background: $color-white-10;
+        padding: 10px 15px;
+        border: 1px solid $color-white-5;
+        font-size: 14px;
+        color: $color-text;
+        border-right: 0;
+        white-space: nowrap;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="url"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+}
+
 .checkboxes {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 25px;
 
     .form-checkbox {
         label {
@@ -338,6 +433,8 @@
                 font-size: 12px;
                 color: $color-gray;
                 font-weight: 500;
+                max-width: 500px;
+                text-wrap: balance;
             }
 
             .lang_img {
@@ -346,6 +443,168 @@
                 object-fit: cover;
                 border-radius: 50%;
             }
+        }
+    }
+}
+
+$input-border-radius: 18px;
+$input-border-color: #ffffff09;
+$input-border-width: 1px;
+$input-border-focus-color: $color-primary;
+$input-color: $color-text;
+$input-padding: 24px;
+$input-font-size: $font-size-base;
+$input-placeholder-color: $color-inactive;
+
+.input-form {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    &.has-error {
+        .error {
+            color: $color-error;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: normal;
+        }
+    }
+
+    input[type="submit"] {
+        @extend .btn;
+        @extend .primary;
+        @extend .size-s;
+        width: 100%;
+    }
+
+    >div {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 0;
+        align-items: center;
+
+        label {
+            user-select: none;
+            align-items: center;
+            gap: 0;
+            display: flex;
+            flex-direction: row;
+            color: $color-text;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    }
+
+    input[type="checkbox"] {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 1.25em;
+        height: 1.25em;
+        margin-top: -0.125em;
+        margin-inline-end: 0.5em;
+        border-width: 0.125rem;
+        vertical-align: middle;
+        cursor: pointer;
+        accent-color: $color-text;
+        padding: 0;
+        border: 2px solid $color-white-10;
+        border-radius: 4px;
+        outline: 0;
+        background-color: $color-disabled;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        color: $color-text;
+        font-weight: normal;
+        transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+
+        &:checked {
+            border: 2px solid $color-primary-light;
+            background-color: $color-primary;
+            color: $color-text-inverse;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(0, 0, 0)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-position: center;
+            background-size: 0.75em auto;
+            background-repeat: no-repeat;
+        }
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="search"],
+    input[type="number"],
+    select,
+    textarea {
+        background: $color-disabled;
+        border: $input-border-width solid $input-border-color;
+        border-radius: $input-border-radius;
+        color: $input-color;
+        font-size: $input-font-size;
+        padding: $input-padding;
+        width: 100%;
+        transition: $transition;
+        padding-top: $input-padding + 6;
+        padding-bottom: $input-padding - 6;
+
+        &:-webkit-autofill {
+            color: $input-color;
+            background: $color-disabled;
+        }
+
+        &:focus {
+            border-color: $input-border-focus-color;
+            outline: none;
+        }
+
+        &:focus~label,
+        &:valid~label {
+            top: 11px;
+            left: 24px;
+            font-size: 0.8em;
+            color: $color-inactive;
+        }
+
+        &[aria-invalid=false] {
+            border: 1px solid rgba(101, 255, 126, 0.20);
+            background: rgba(101, 255, 126, 0.02);
+
+            &~label {
+                top: 11px;
+                left: 24px;
+                font-size: 0.8em;
+                color: $color-inactive;
+            }
+        }
+
+        &[aria-invalid=true] {
+            border-radius: 18px;
+            border-color: rgba(241, 73, 73, 0.20);
+            background: rgba(241, 73, 73, 0.02);
+
+            &~label {
+                top: 11px;
+                left: 24px;
+                font-size: 0.8em;
+                color: $color-inactive;
+            }
+        }
+
+        option {
+            background-color: $color-disabled;
+        }
+
+        ~label {
+            font-weight: 400;
+            position: absolute;
+            top: 26px;
+            left: 27px;
+            transition: all $transition ease;
+            pointer-events: none;
+            font-size: 15px;
+            color: #ffffff93;
         }
     }
 }

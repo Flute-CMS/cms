@@ -73,15 +73,13 @@
     <div class="container">
         <div class="block">
             <div class="header">
-                <h1>Сброс пароля</h1>
+                <h1>@t('auth.reset.subject')</h1>
             </div>
             <div class="content">
-                <p class="white_text">Уважаемый(ая) {{ $name }},</p>
-                <p>Мы получили запрос на сброс пароля для вашего аккаунта. Если вы не отправляли этот запрос, просто
-                    проигнорируйте это сообщение. В противном случае, вы можете сбросить свой пароль, нажав на кнопку
-                    ниже.</p>
-                <a href="{{ $url }}" class="button">Сбросить пароль</a>
-                <p class="white_text">С уважением,<br />{{ app('app.name') }}</p>
+                <p class="white_text">@t('auth.dear', [':name' => $name]),</p>
+                <p>@t('auth.reset.message')</p>
+                <a href="{{ $url }}" class="button">@t('auth.reset.subject')</a>
+                <p class="white_text">@t('auth.with_best', [':name' => app('app.name')])</p>
             </div>
         </div>
     </div>

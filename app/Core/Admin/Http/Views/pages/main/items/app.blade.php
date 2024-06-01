@@ -78,7 +78,8 @@
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
             <label for="performanceMode">
-                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline"
+                    data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.app.performance_warning')">
                     <i class="ph ph-warning"></i>
                 </div>
                 @t('admin.app.performance_mode_label')
@@ -103,17 +104,6 @@
         <div class="col-sm-9">
             <input name="key" id="key" placeholder="@t('admin.app.key_label')" type="password" class="form-control"
                 value="{{ config('app.key') }}" required>
-        </div>
-    </div> --}}
-
-    <!-- Логотип -->
-    {{-- <div class="position-relative row form-group">
-        <div class="col-sm-3 col-form-label required">
-            <label for="logo">Логотип</label>
-            <small class="form-text text-muted">Загрузите логотип вашего сайта.</small>
-        </div>
-        <div class="col-sm-9">
-            <input name="logo" id="logo" type="file" class="form-control-file">
         </div>
     </div> --}}
 
@@ -156,6 +146,19 @@
             <input name="flute_copyright" role="switch" id="flute_copyright" type="checkbox"
                 class="form-check-input" {{ config('app.flute_copyright') ? 'checked' : '' }}>
             <label for="flute_copyright"></label>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="widget_placeholders">
+                @t('admin.app.widget_placeholders_label')</label>
+            <small class="form-text text-muted">@t('admin.app.widget_placeholders_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="widget_placeholders" role="switch" id="widget_placeholders" type="checkbox"
+                class="form-check-input" {{ config('app.widget_placeholders') ? 'checked' : '' }}>
+            <label for="widget_placeholders"></label>
         </div>
     </div>
 
@@ -218,6 +221,22 @@
             <div class="d-flex flex-column">
                 <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
                 <img class="example-image" src="@asset(config('app.logo'))" alt="">
+            </div>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group align-items-start">
+        <div class="col-sm-3 col-form-label required">
+            <label for="bg_image">
+                @t('admin.app.bg_image')
+            </label>
+        </div>
+        <div class="col-sm-9">
+            <div class="d-flex flex-column">
+                <input type="file" name="bg_image" id="bg_image" class="form-control" accept="image/*">
+                <div class="remove-bg" data-tooltip="@t('def.delete')">
+                    <img class="example-image bg-image" src="@asset(config('app.bg_image'))" alt="">
+                </div>
             </div>
         </div>
     </div>

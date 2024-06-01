@@ -7,17 +7,18 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/navigation/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/navigation/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.navigation.add_title')</h2>
             <p>@t('admin.navigation.add_description')</p>
         </div>
     </div>
 
-    <form id="add">
+    <form id="navAdd">
         @csrf
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">

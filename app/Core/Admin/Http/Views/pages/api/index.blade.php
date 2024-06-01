@@ -19,5 +19,7 @@
         </div>
     </div>
 
-    {!! $table !!}
+    <div class="api_keys_table">
+        {!! $table !!}
+    </div>
 @endpush

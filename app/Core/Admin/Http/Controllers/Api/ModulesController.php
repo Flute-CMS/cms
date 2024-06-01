@@ -3,6 +3,7 @@
 namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
+use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Modules\ModuleActions;
 use Flute\Core\Modules\ModuleManager;
 use Flute\Core\Support\AbstractController;
@@ -51,7 +52,6 @@ class ModulesController extends AbstractController
 
         user()->log('events.module_settings_edited', $key);
 
-
         return $this->success(__('def.success'));
     }
 
@@ -64,9 +64,11 @@ class ModulesController extends AbstractController
             user()->log('events.module_activated', $key);
 
             cache()->delete('flute.deferred_listeners');
+            cache()->delete(DatabaseConnection::CACHE_KEY);
 
             return $this->success();
         } catch (\Exception $e) {
+            logs()->error($e);
             return $this->error($e->getMessage());
         }
     }
@@ -75,14 +77,15 @@ class ModulesController extends AbstractController
     {
         try {
             $mopd = $this->moduleManager->getModule($key);
+            user()->log('events.module_disabled', $key);
 
             $this->actions->disableModule($mopd);
-            user()->log('events.module_disabled', $key);
 
             cache()->delete('flute.deferred_listeners');
 
             return $this->success();
         } catch (\Exception $e) {
+            logs()->error($e);
             return $this->error($e->getMessage());
         }
     }
@@ -93,6 +96,25 @@ class ModulesController extends AbstractController
             $mopd = $this->moduleManager->getModule($key);
 
             if (!$this->actions->installModule($mopd))
+                return $this->error(__('def.unknown_error'));
+
+            cache()->delete('flute.deferred_listeners');
+
+            user()->log('events.module_installed', $key);
+
+            return $this->success();
+        } catch (\Exception $e) {
+            logs()->error($e);
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function update(FluteRequest $request, string $key): Response
+    {
+        try {
+            $mopd = $this->moduleManager->getModule($key);
+
+            if (!$this->actions->updateModule($mopd))
                 return $this->error(__('def.unknown_error'));
 
             cache()->delete('flute.deferred_listeners');
@@ -155,27 +177,33 @@ class ModulesController extends AbstractController
         // Remove '-main' suffix from the folder name
         $originalFolderName = reset($rootFolders);
         $folderName = preg_replace('/(-main|-[\d.]+|_test)$/', '', $originalFolderName);
-        $extractPath = BASE_PATH . 'app/Modules/';
+        $tempExtractPath = BASE_PATH . 'storage/app/temp/' . $folderName;
 
-        if ($this->moduleManager->issetModule($folderName))
-            return $this->error(__('admin.modules_list.module_already_exists'));
-
-        if (!fs()->exists($extractPath . $folderName)) {
-            fs()->mkdir($extractPath . $folderName, 0755);
+        // Ensure temp directory exists
+        if (!fs()->exists($tempExtractPath)) {
+            fs()->mkdir($tempExtractPath, 0755);
         }
 
-        // Extract ZIP contents into the renamed folder
+        // Extract ZIP contents into the temp directory
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $filename = $zip->getNameIndex($i);
             $newFilename = preg_replace('/^' . preg_quote($originalFolderName, '/') . '/', $folderName, $filename);
-            $this->extractFile($zip, $filename, $extractPath . $newFilename);
+            $this->extractFile($zip, $filename, $tempExtractPath . '/' . $newFilename);
         }
 
         $zip->close();
 
         // Navigate into the extracted module folder
-        $modulePath = $extractPath . $folderName . '/';
-        $moduleJsonPath = $modulePath . 'module.json';
+        $modulePath = $tempExtractPath . '/';
+        $innerFolderPath = $modulePath . $folderName . '/';
+        $moduleJsonPath = $innerFolderPath . 'module.json';
+
+        // Check if module.json exists in the inner folder
+        if (!fs()->exists($moduleJsonPath)) {
+            // If not, fallback to checking the outer folder
+            $moduleJsonPath = $modulePath . 'module.json';
+            $innerFolderPath = $modulePath; // Adjust the inner folder path accordingly
+        }
 
         if (!fs()->exists($moduleJsonPath)) {
             fs()->remove($modulePath);
@@ -206,6 +234,43 @@ class ModulesController extends AbstractController
             ]);
         }
 
+        $newVersion = $moduleConfig['version'];
+
+        $extractPath = BASE_PATH . 'app/Modules/' . $folderName;
+
+        if ($this->moduleManager->issetModule($folderName)) {
+            $currentVersion = $this->moduleManager->getModule($folderName)->version;
+
+            if (version_compare($newVersion, $currentVersion, '>')) {
+
+                $mopd = $this->moduleManager->getModule($folderName);
+
+                try {
+                    $this->actions->disableModule($mopd);
+                } catch (\Exception $e) {
+                    //
+                }
+
+                $this->updateModuleFiles($extractPath, $innerFolderPath);
+                fs()->remove($modulePath);
+                return $this->json([
+                    'moduleName' => $folderName,
+                    'moduleVersion' => $newVersion,
+                    'type' => 'update',
+                ]);
+            } else {
+                fs()->remove($modulePath);
+                return $this->error(__('admin.modules_list.no_new_version'));
+            }
+        } else {
+            if (!fs()->exists($extractPath)) {
+                fs()->rename($innerFolderPath, $extractPath); // Move the inner folder to the modules directory
+            } else {
+                fs()->remove($modulePath);
+                return $this->error(__('admin.modules_list.module_already_exists'));
+            }
+        }
+
         cache()->delete('flute.modules.alldb');
         cache()->delete('flute.modules.array');
         cache()->delete('flute.modules.json');
@@ -215,8 +280,39 @@ class ModulesController extends AbstractController
 
         return $this->json([
             'moduleName' => $folderName,
-            'moduleVersion' => $moduleConfig['version']
+            'moduleVersion' => $newVersion,
+            'type' => 'install',
         ]);
+    }
+
+    /**
+     * Update the module files, excluding the config directory.
+     *
+     * @param string $destination
+     * @param string $source
+     */
+    protected function updateModuleFiles(string $destination, string $source)
+    {
+        $dir = opendir($source);
+        if (!fs()->exists($destination)) {
+            fs()->mkdir($destination, 0755);
+        }
+
+        while (($file = readdir($dir)) !== false) {
+            if ($file != '.' && $file != '..') {
+                $srcFile = $source . '/' . $file;
+                $destFile = $destination . '/' . $file;
+
+                if (is_dir($srcFile)) {
+                    if ($file !== 'config') {
+                        $this->updateModuleFiles($destFile, $srcFile);
+                    }
+                } else {
+                    fs()->copy($srcFile, $destFile);
+                }
+            }
+        }
+        closedir($dir);
     }
 
     /**
@@ -232,6 +328,9 @@ class ModulesController extends AbstractController
         if (!$fileStream) {
             throw new \Exception("Unable to retrieve stream for file $filename in ZIP archive.");
         }
+
+        if (is_dir($filename))
+            return;
 
         $dir = dirname($destination);
         if (!is_dir($dir)) {

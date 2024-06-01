@@ -9,9 +9,10 @@ $('.choose_lang').on('click', (e) => {
     openMiniProfile();
     closeNotifications();
     closeSearch();
+    
+    const langContainer = $('.miniprofile_langs_container');
 
     if ($(e.currentTarget).data('auth') == '1') {
-        const langContainer = $('.miniprofile_langs_container');
         const baseContainer = $('.miniprofile_base');
     
         if (!langContainer.is(':visible')) {
@@ -19,6 +20,7 @@ $('.choose_lang').on('click', (e) => {
             baseContainer.hide();
         }
     } else {
+        langContainer.show();
         $('.miniprofile_container').addClass('opened');
     }
 

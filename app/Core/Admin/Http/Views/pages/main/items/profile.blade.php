@@ -122,7 +122,8 @@
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
             <label for="convertToWebp">
-                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline"
+                    data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.form_profile.convert_warning')">
                     <i class="ph ph-warning"></i>
                 </div>
                 @t('admin.form_profile.convert_to_webp_label')

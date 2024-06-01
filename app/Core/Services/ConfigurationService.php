@@ -79,7 +79,7 @@ class ConfigurationService
         }
 
         $this->_configsRaw[$configName] = $customConfig;
-        
+
         $this->configCache->addSchema($configName, $schema ?? Expect::array());
         $this->configCache->set($configName, $customConfig);
     }
@@ -91,7 +91,7 @@ class ConfigurationService
      */
     public function load(): array
     {
-        if( !empty( $this->_configsRaw ) ) {
+        if (!empty($this->_configsRaw)) {
             return $this->_configsRaw;
         }
 
@@ -153,19 +153,23 @@ class ConfigurationService
                 "steam_api" => Expect::string()->required(),
                 "debug_ips" => Expect::array()->required(),
                 "debug" => Expect::bool(true)->required(),
+                "maintenance_mode" => Expect::bool(false),
                 "mode" => Expect::string("performance")->required(),
                 "key" => Expect::string()->required(),
                 "logo" => Expect::string()->required(),
+                "bg_image" => Expect::string(null),
                 "tips" => Expect::bool(false)->required(),
                 "share" => Expect::bool(true)->required(),
                 "flute_copyright" => Expect::bool(true)->required(),
                 "timezone" => Expect::string()->required(),
                 "notifications" => Expect::string('all')->required(),
+                "widget_placeholders" => Expect::bool(true),
             ]),
             "lk" => Expect::structure([
                 // "min_amount" => Expect::int(100)->required(),
                 "currency_view" => Expect::string()->required(),
                 "oferta_view" => Expect::bool(false)->required(),
+                "pay_in_new_window" => Expect::bool(false),
             ]),
             'profile' => Expect::structure([
                 'max_banner_size' => Expect::int()->required(),
@@ -257,6 +261,7 @@ class ConfigurationService
                         "connection" => Expect::string("mysql:host=localhost;dbname=flute")->required(),
                         "username" => Expect::string("root")->required(),
                         "password" => Expect::string("")->required(),
+                        "timezone" => Expect::string("UTC")
                     ])->castTo('array')
                 )->required(),
             ]),

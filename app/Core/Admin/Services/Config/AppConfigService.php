@@ -25,6 +25,7 @@ class AppConfigService extends AbstractConfigService
             "mode" => $this->b($params['performanceMode']) === true ? 'performance' : 'default',
             "share" => $this->b($params['share']),
             "flute_copyright" => $this->b($params['flute_copyright']),
+            "widget_placeholders" => $this->b($params['widget_placeholders']),
         ]);
 
         /** @var FileBag */
@@ -32,6 +33,12 @@ class AppConfigService extends AbstractConfigService
 
         $this->processImageFile($config, $files->get('favicon'), 'favicon');
         $this->processImageFile($config, $files->get('logo'), 'logo');
+
+        if (!isset($params['removeBg'])) {
+            $this->processImageFile($config, $files->get('bg_image'), 'bg_image');
+        } else {
+            $this->deleteBgImage($config);
+        }
 
         try {
             $this->fileSystemService->updateConfig($this->getConfigPath('app'), $config);
@@ -42,6 +49,13 @@ class AppConfigService extends AbstractConfigService
         } catch (\Exception $e) {
             return response()->error(500, $e->getMessage());
         }
+    }
+
+    protected function deleteBgImage(&$config)
+    {
+        unlink(public_path($config['bg_image']));
+
+        $config['bg_image'] = '';
     }
 
     protected function processImageFile(&$config, $file, $type)
@@ -64,6 +78,7 @@ class AppConfigService extends AbstractConfigService
                     }
                 } else {
                     $file->move($destinationPath, $fileName);
+                    $config[$type] = 'assets/uploads/' . $fileName;
                 }
             }
         }

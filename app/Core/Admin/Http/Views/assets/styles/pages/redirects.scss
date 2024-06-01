@@ -1,0 +1,114 @@
+.condition {
+    position: relative;
+
+    &-container {
+        display: flex;
+        gap: 10px;
+
+        >select:nth-child(1),
+        >select:nth-child(2) {
+            width: 150px;
+        }
+
+        .field-container {
+            flex: 150px;
+            flex-grow: 0;
+            flex-shrink: 0;
+        }
+
+        >div {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex: 1;
+        }
+    }
+
+    &-and {
+        margin-top: 50px;
+
+        .label-and {
+            position: absolute;
+            top: -60px;
+            max-width: 60px;
+
+            .line {
+                position: absolute;
+                left: 25px;
+                top: 0;
+                bottom: 0;
+                width: 1px;
+                height: 60px;
+                background: $color-white-10;
+                z-index: 1;
+            }
+
+            .wordwrapper {
+                text-align: center;
+                height: 12px;
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 50%;
+                margin-top: 15px;
+                z-index: 2;
+                min-width: 55px;
+            }
+
+            .word {
+                color: $color-text;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: 12px;
+                background: #171717;
+                border-radius: 6px;
+                padding: 5px 10px;
+                border: 1px solid $color-white-5;
+            }
+        }
+    }
+}
+
+.conditions {
+    display: flex;
+    flex-direction: column;
+    gap: 70px;
+    margin-bottom: 20px;
+}
+
+.condition-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.condition-or {
+    position: absolute;
+    top: -50px;
+    font-size: 12px;
+    color: $color-secondary;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: #171717;
+    border-radius: 6px;
+    padding: 5px 10px;
+    border: 1px solid $color-secondary-light;
+}
+
+.btn-remove {
+    width: 43px;
+    height: 43px;
+} 
+
+.input-with-desc {
+    width: 100%;
+    position: relative;
+
+    > p {
+        margin-top: 2px;
+        font-weight: 500;
+        position: absolute;
+        font-size: 13px;
+        color: $color-gray;
+    }
+}

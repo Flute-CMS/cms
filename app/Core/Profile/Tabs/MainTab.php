@@ -9,8 +9,9 @@ class MainTab implements ProfileTabInterface
 {
     public function render(User $user)
     {
-        // Will be in the future
-        return '';
+        return render('pages/profile/tabs/main', [
+            "user" => $user
+        ], true);
     }
 
     public function getSidebarInfo()

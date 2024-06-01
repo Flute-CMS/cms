@@ -27,8 +27,8 @@ class FooterSocialsView extends AbstractController
         $socials = rep(FooterSocial::class)->findAll();
 
         $table->addColumns([
-            (new TableColumn('id')),
-            (new TableColumn('url'))->setVisible(false),
+            (new TableColumn('id', 'ID')),
+            (new TableColumn('url', ))->setVisible(false),
             (new TableColumn('icon', ''))->setRender(
                 '{{ICON_RENDER}}',
                 "function(data, type, full, meta) {
@@ -71,7 +71,8 @@ class FooterSocialsView extends AbstractController
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("admin.footer.social_delete"));
+                    deleteDiv.setAttribute("data-translate", "admin.footer.social_delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-tooltip-conf", "left");
                     deleteDiv.setAttribute("data-deletesocial", data[0]);
                     let deleteIcon = make("i");
@@ -81,7 +82,8 @@ class FooterSocialsView extends AbstractController
 
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("admin.footer.social_change"));
+                    changeDiv.setAttribute("data-translate", "admin.footer.social_change");
+                    changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     changeDiv.setAttribute("data-tooltip-conf", "left");
                     changeDiv.setAttribute("href", u(`admin/footer/socials/edit/${data[0]}`));
                     let changeIcon = make("i");

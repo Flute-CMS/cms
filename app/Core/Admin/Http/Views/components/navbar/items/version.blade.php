@@ -1,12 +1,18 @@
 @can('admin.system')
     <div class="header_version">
-        <div class="version_text">
-            <p>@t('admin.engine_version'):</p>
-            <a href="#" data-tooltip="@t('admin.will_be_in_beta')" data-tooltip-conf="bottom multiline">@t('admin.check_updates')</a>
+        <div class="version">
+            @if (!admin()->update()->needUpdate())
+                <div class="update-btn" data-tooltip="@t('admin.check_updates')" data-tooltip-conf="bottom multiline">
+                    <i class="ph ph-arrow-clockwise"></i>
+                </div>
+            @endif
+            <p>{{ app()->getVersion() }}</p>
         </div>
-
-        <div class="version" data-tooltip="@t('admin.installed_version')" data-tooltip-conf="bottom multiline">
-            {{ app()->getVersion() }}
-        </div>
+        @if (admin()->update()->needUpdate())
+            <a href="{{ url('admin/update') }}" data-tab class="gradient-text" id="updateBtn">
+                <i class="ph ph-confetti"></i>
+                @t('admin.update_available', [':version' => admin()->update()->latestVersion()])
+            </a>
+        @endif
     </div>
 @endcan

@@ -1,59 +1,64 @@
 <?php return [
     "profile_hidden" => "This profile is hidden, alas :(",
-    "edit_profile" => "Edit profile",
-    "settings_profile" => "Profile settings",
+    "edit_profile" => "Edit Profile",
+    "settings_profile" => "Profile Settings",
     "name_error" => "Invalid name format",
-    "uri_error" => "Invalid link format",
-    "change_banner" => "Change banner",
-    "change_avatar" => "Change avatar",
+    "uri_error" => "Invalid URI format",
+    "change_banner" => "Change Banner",
+    "change_avatar" => "Change Avatar",
+    "main" => [
+        "all_bans" => "All Bans",
+        "bans" => "Bans",
+    ],
     "settings" => [
-        "social" => "Bindings",
+        "social" => "Social Linking",
         "main" => "Main",
         "devices" => "Devices",
-        "main_desc" => "Profile settings",
-        "social_desc" => "Social network settings",
-        "devices_desc" => "Active sessions settings",
-        "security" => "Security",
-        "invoices" => "Invoices",
-        "theme" => "Theme"
+        "main_desc" => "Profile Settings",
+        "social_desc" => "Social Networks Settings",
+        "devices_desc" => "Active Sessions Settings",
+        "security" => "Privacy",
+        "invoices" => "Payments",
+        "theme" => "Appearance"
     ],
     "s_main" => [
-        "info" => "Basic information",
+        "info" => "Basic Information",
         "privacy" => "Privacy",
         "profile_show" => "My profile is visible to everyone",
         "profile_hidden" => "My profile is hidden from everyone",
         "avatar" => "Avatar",
         "max_size" => "Max. size: % MB.",
-        "load_avatar" => "Upload avatar",
+        "load_avatar" => "Upload Avatar",
         "banner" => "Banner",
-        "load_banner" => "Upload banner",
+        "load_banner" => "Upload Banner",
         "nickname" => "Nickname",
         "placeholder" => "Enter value...",
-        "nickname_uri" => "Nickname in link",
+        "nickname_uri" => "Nickname in URL",
     ],
     "s_social" => [
         "info" => "Connections",
-        "connected" => "Connected social networks",
-        "not_connected" => "Not connected social networks",
+        "connected" => "Connected Social Networks",
+        "not_connected" => "Disconnected Social Networks",
         "disconnect" => "Disconnect",
         "connect" => "Connect",
-        "social_disconnected" => "Social network successfully unlinked!",
+        "social_disconnected" => "Social network successfully unlinked!"
     ],
     "errors" => [
-        "social_binded" => "Social network already bound to the profile",
-        "social_not_connected" => "You don\"t have such a social network connected 🤔",
+        "social_binded" => "This social network is already linked to the profile",
+        "social_not_connected" => "This social network is not linked 🤔",
         "social_only_one" => "You cannot unlink the only social network!",
-        "uri_taken" => "A link with this value is already taken!"
+        "uri_taken" => "This URI is already taken!",
+        "social_delay" => "You need to wait a bit before changing the social network 😢"
     ],
     "invoices" => [
-        "info" => "Invoices",
+        "info" => "Payments",
     ],
     "security" => [
         "info" => "Personal Information",
         "main_settings" => "Main Settings"
     ],
     "theme" => [
-        "info" => "Theme Configuration"
+        "info" => "Appearance Settings"
     ],
     "devices" => [
         "info" => "Authorized Devices",

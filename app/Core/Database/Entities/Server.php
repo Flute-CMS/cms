@@ -43,6 +43,11 @@ class Server
     public $rcon;
 
     /**
+     * @Column(type="string", nullable=true)
+     */
+    public $display_ip;
+
+    /**
      * @HasMany(target="DatabaseConnection", cascade=true, nullable=true)
      * @var DatabaseConnection[]|null
      */
@@ -52,6 +57,11 @@ class Server
      * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
      */
     public $created_at;
+
+    /** 
+     * @Column(type="boolean", default=true) 
+     */
+    public $enabled;
 
     public function __construct()
     {

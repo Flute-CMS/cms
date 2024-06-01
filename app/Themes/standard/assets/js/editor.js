@@ -599,12 +599,21 @@ class Widget {
             widgetSettingsContainer.append(widgetSettingsItem);
         }
 
+        const widgetButtonsContainer = this.createElement(
+            'div',
+            'widget-dialog-button-group',
+        );
+
+        const widgetCloseButton = await this.createCancelButton();
         const widgetSettingsButton = await this.createSaveButton();
+
+        widgetButtonsContainer.append(widgetCloseButton);
+        widgetButtonsContainer.append(widgetSettingsButton);
 
         this.widgetSettingsSidebar.append(
             widgetSettingsTitle,
             widgetSettingsContainer,
-            widgetSettingsButton,
+            widgetButtonsContainer,
         );
 
         const widgetBackground = this.createWidgetBackground();
@@ -764,13 +773,33 @@ class Widget {
         return input;
     }
 
+    async createCancelButton() {
+        const widgetSettingsButton = this.createElement(
+            'button',
+            'widget-dialog-button--false',
+            {
+                innerHTML: translate('def.cancel'),
+            },
+        );
+        widgetSettingsButton.onclick = () => {
+            this.closeWithoutSave();
+        };
+        widgetSettingsButton.classList.add('widget-dialog-button');
+        return widgetSettingsButton;
+    }
+
     async createSaveButton() {
-        const widgetSettingsButton = this.createElement('button', 'btn', {
-            innerHTML: translate('def.save'),
-        });
+        const widgetSettingsButton = this.createElement(
+            'button',
+            'widget-dialog-button--true',
+            {
+                innerHTML: translate('def.save'),
+            },
+        );
         widgetSettingsButton.onclick = () => {
             this.closeSettingsSidebar();
         };
+        widgetSettingsButton.classList.add('widget-dialog-button');
         return widgetSettingsButton;
     }
 
@@ -781,6 +810,22 @@ class Widget {
         );
         widgetBackground.onclick = () => this.closeSettingsSidebar();
         return widgetBackground;
+    }
+
+    closeWithoutSave() {
+        document
+            .querySelector('.widget-settings-background')
+            .classList.remove('opened');
+        document
+            .querySelector('.widget-settings-sidebar')
+            .classList.remove('opened');
+
+        setTimeout(() => {
+            document.querySelector('.widget-settings-background').remove();
+            document.querySelector('.widget-settings-sidebar').remove();
+        }, 250);
+
+        this.widgetSettingsSidebar = null;
     }
 
     async closeSettingsSidebar() {
@@ -1035,7 +1080,7 @@ window.editorConfig = {
                       },
 
                       toolNames: {
-                          Text: 'Параграф',
+                          Text: 'Обычный текст',
                           Heading: 'Заголовок',
                           List: 'Список',
                           Warning: 'Примечание',

@@ -1,0 +1,138 @@
+.main-tab-container-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    border-radius: $border-radius-el;
+    padding: 15px;
+    background-color: $color-card;
+
+    >i {
+        width: 40px;
+        height: 40px;
+        background-color: $color-primary-light;
+        color: $color-primary;
+        border-radius: 50%;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    >div {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        >p {
+            color: rgba($color-text, .5);
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+
+            >button {
+                color: rgba($color-primary, .5);
+                font-size: 12px;
+                transition: $transition;
+
+                &:hover {
+                    color: $color-primary;
+                }
+            }
+        }
+    }
+}
+
+.bans-modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    background-color: $color-modal-bg;
+    opacity: 0;
+    visibility: hidden;
+    
+    &.opened {
+        visibility: visible;
+        opacity: 1;
+
+        .bans-modal-card {
+            animation: widgetSettingsAnimation .3s forwards;
+        }
+    }
+
+    &-card {
+        max-width: 45em;
+        min-width: 30rem;
+        padding: 1.5rem;
+        border-radius: $border-radius;
+        border: 0;
+        background-color: $color-card;
+        color: $color-text;
+        border: 1px solid $color-white-3;
+        opacity: 0;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        z-index: 1000;
+    
+        &-header {
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid $color-white-5;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+    
+            &-name {
+                font-size: 24px;
+                font-family: $font-secondary;
+                font-weight: 600;
+                line-height: 1;
+            }
+    
+            &-close {
+                cursor: pointer;
+                display: flex;
+    
+                i {
+                    font-size: 24px;
+                    transition: $transition;
+                    color: $color-inactive;
+    
+                    &:hover {
+                        color: $color-error;
+                    }
+                }
+            }
+        }
+
+        &-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(100vh - 300px);
+            overflow: auto;
+        }
+    }
+}
+
+.bans-content-card {
+    display: flex;
+    justify-content: space-between;
+    background-color: $color-disabled;
+    padding: 10px 15px;
+    border-radius: 6px;
+    gap: 30px;
+    align-items: center;
+
+    a, p {
+        font-size: 14px;
+    }
+}

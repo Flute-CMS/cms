@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     $('.device-endsession').on('click', function () {
         var deviceId = $(this).data('id');
         var button = $(this);

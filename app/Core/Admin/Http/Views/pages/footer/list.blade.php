@@ -20,10 +20,10 @@
     </div>
 
     @if (sizeof(footer()->all()) > 0)
-        <ul class="footer-group nested-sortable">
+        <ul class="footer-group footer-nested-sortable">
             @foreach (footer()->all() as $item)
-                <li class="sortable-item sortable-dropdown draggable" data-id="{{ $item['id'] }}" id="{{ $item['id'] }}"
-                    style="">
+                <li class="sortable-item sortable-dropdown draggable" data-id="fot-{{ $item['id'] }}"
+                    id="fot-{{ $item['id'] }}" style="">
                     <div class="card-sortable">
                         <div class="card-body d-flex justify-content-between">
                             <span class="sortable-text">
@@ -44,10 +44,10 @@
                             </div>
                         </div>
                     </div>
-                    <ul class="list-group nested-sortable" id="{{ $item['id'] }}">
+                    <ul class="list-group footer-nested-sortable" id="fot-{{ $item['id'] }}">
                         @foreach ($item['children'] as $child)
-                            <li class="sortable-item sortable-dropdown draggable" data-id="{{ $child['id'] }}"
-                                id="{{ $child['id'] }}" style="">
+                            <li class="sortable-item sortable-dropdown draggable" data-id="fot-{{ $child['id'] }}"
+                                id="fot-{{ $child['id'] }}" style="">
                                 <div class="card-sortable">
                                     <div class="card-body d-flex justify-content-between">
                                         <span class="sortable-text">
@@ -75,7 +75,7 @@
             @endforeach
         </ul>
 
-        <button id="save" class="btn primary size-s mt-4">@t('def.save')</button>
+        <button id="saveFooter" class="btn primary size-s mt-4">@t('def.save')</button>
     @else
         <div class="table_empty">
             @t('def.no_results_found')

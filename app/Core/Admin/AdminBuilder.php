@@ -5,6 +5,7 @@ namespace Flute\Core\Admin;
 use Flute\Core\Admin\Builders\AdminGateways\AdminGatewaysBuider;
 use Flute\Core\Admin\Builders\AdminSidebarBuilder;
 use Flute\Core\Admin\Builders\AdminThemeBuilder;
+use Flute\Core\Admin\Builders\AdminUpdateBuilder;
 use Flute\Core\Admin\Contracts\AdminBuilderInterface;
 use Flute\Core\Admin\Exceptions\BuilderNotFoundException;
 use Flute\Core\Support\FluteRequest;
@@ -22,11 +23,13 @@ class AdminBuilder
     protected array $builders = [
         AdminSidebarBuilder::class,
         AdminThemeBuilder::class,
+        AdminUpdateBuilder::class,
     ];
 
     protected array $aliases = [
         'sidebar' => AdminSidebarBuilder::class,
         'theme' => AdminThemeBuilder::class,
+        'update' => AdminUpdateBuilder::class,
     ];
 
     public function __construct(FluteRequest $request)
@@ -37,7 +40,20 @@ class AdminBuilder
         if (strpos($path, '/admin') !== 0)
             return;
 
+        $this->checkAndRedirect($path);
         $this->initBuilders();
+    }
+
+    protected function checkAndRedirect(string $currentPath)
+    {
+        if( !user()->hasPermission('admin.stats') ) {
+            $item = AdminSidebarBuilder::getFirstAccessibleItem();
+
+            if( !empty( $item ) && $item && $currentPath === '/admin' )
+                return response()->forceRedirect(url($item));
+        } else {
+            return;
+        }
     }
 
     protected function initBuilders(): void

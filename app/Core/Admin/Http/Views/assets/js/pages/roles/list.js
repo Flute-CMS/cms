@@ -1,15 +1,24 @@
-document.addEventListener('DOMContentLoaded', function () {
-    let el = document.getElementById('roles');
-    let sortable = Sortable.create(el, {
-        handle: '.sortable-handle',
-        ghostClass: 'ghost',
-        animation: 150,
-        filter: '.non-draggable',
-        draggable: '.draggable',
+$(function () {
+    function createRolesSortable() {
+        let elRoles = document.getElementById('roles');
+        let sortableRoles = Sortable.create(elRoles, {
+            handle: '.sortable-handle',
+            ghostClass: 'ghost',
+            animation: 150,
+            filter: '.non-draggable',
+            draggable: '.draggable',
+        });
+        return sortableRoles;
+    }
+
+    let sortableRoles = createRolesSortable();
+
+    document.querySelector('.chrome-tabs').addEventListener('contentRender', () => {
+        sortableRoles = createRolesSortable();
     });
 
-    $('#save').on('click', (e) => {
-        let orderedIds = sortable.toArray();
+    $(document).on('click', '#saveRoles', (e) => {
+        let orderedIds = sortableRoles.toArray();
         saveRoleOrder(orderedIds);
     });
 
@@ -25,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                "x-csrf-token":document
+                'x-csrf-token': document
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute('content'),
             },
@@ -55,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 ...data,
                 ...{
-                    "x-csrf-token":csrfToken,
+                    'x-csrf-token': csrfToken,
                 },
             },
             success: function (response) {
@@ -64,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     message: response.success ?? translate('def.success'),
                 });
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage();
             },
             error: function (xhr, status, error) {
                 toast({
@@ -77,9 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    $(document).on('click', '.delete', function () {
+    $(document).on('click', '.roles-group .delete', async function () {
         let roleId = $(this).data('deleterole');
-        if (confirm(translate('admin.roles.confirm_delete')))
+        if (await asyncConfirm(translate('admin.roles.confirm_delete')))
             ajaxModuleAction(u('admin/api/roles/' + roleId), 'DELETE');
     });
 });

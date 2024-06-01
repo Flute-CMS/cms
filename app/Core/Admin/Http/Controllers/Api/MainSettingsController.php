@@ -37,7 +37,11 @@ class MainSettingsController extends AbstractController
 
         $params['files'] = $request->files;
 
-        return $this->configServices[$tab]->updateConfig($params);
+        $result = $this->configServices[$tab]->updateConfig($params);
+
+        $this->clearContainer();
+
+        return $result;
     }
 
     public function createLog(FluteRequest $fluteRequest)
@@ -46,6 +50,15 @@ class MainSettingsController extends AbstractController
 
         $logFilePath = $logService->generateLogFile();
         return $logService->downloadLogFile($logFilePath);
+    }
+
+    protected function clearContainer(): void
+    {
+        try {
+            fs()->remove(BASE_PATH . 'storage/app/cache/CompiledContainer.php');
+        } catch (\Exception $e) {
+            logs()->warning($e);
+        }
     }
 
     protected function initConfigServices(): void

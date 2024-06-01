@@ -56,12 +56,11 @@ class TableBuilder
                 'last' => '<i class="ph ph-caret-double-right"></i>'
             ]
         ],
-        'order' => [
-            [0, 'desc']
-        ]
+        'order' => []
     ];
 
     public static bool $initialised = false;
+    protected array $phrases = [];
 
     /**
      * TableBuilder constructor.
@@ -91,11 +90,11 @@ class TableBuilder
         }
 
         if (isset($entityArray[0])) {
-            foreach ($entityArray[0] as $key => $value) {
+            foreach ((array) $entityArray[0] as $key => $value) {
                 if (in_array($key, $except))
                     continue;
 
-                $column = new TableColumn($key, ucfirst(__("def.$key")));
+                $column = new TableColumn($key, $this->getTablePhrase($key));
 
                 $this->checkForType($key, $value, $column);
 
@@ -106,6 +105,11 @@ class TableBuilder
         $this->setData($entityArray);
 
         return $this;
+    }
+
+    protected function getTablePhrase(string $key)
+    {
+        return isset($this->phrases[$key]) ? $this->phrases[$key] : ucfirst(__("def.$key"));
     }
 
     protected function checkForType(string $key, $value, TableColumn $column)
@@ -119,19 +123,30 @@ class TableBuilder
 
     protected function checkOrder()
     {
+        $ordered = false;
         foreach ($this->columns as $key => $val) {
-            if ($val['isDefaultOrder']) {
+            if ($val->isDefaultOrder()) {
+                $ordered = true;
+
                 $this->options['order'][] = [
                     $key,
-                    $val['defaultOrderType']
+                    $val->getDefaultOrderType()
                 ];
             }
+        }
+
+        if (!$ordered) {
+            $this->options['order'][] = [
+                0,
+                'desc'
+            ];
         }
     }
 
     protected function checkForId(string $key, $value, TableColumn $column)
     {
-        // if( $key === 'id' ) $column->setType('number');
+        if ($key === 'id')
+            $column->setTitle('ID');
     }
 
     protected function checkForDate($value, TableColumn $column)
@@ -151,9 +166,10 @@ class TableBuilder
      *
      * @return TableBuilder
      */
-    public function withDelete(string $key): TableBuilder
+    public function withDelete(string $key, string $actionKey = 'deleteaction'): TableBuilder
     {
         $this->addColumn((new TableColumn())->setOrderable(false));
+        $action = "deleteDiv.setAttribute('data-$actionKey', data[0]);";
         $this->addColumnDef([
             "targets" => -1,
             "data" => null,
@@ -166,10 +182,11 @@ class TableBuilder
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("def.delete"));
-                    deleteDiv.setAttribute("data-tooltip-conf", "left");
-                    deleteDiv.setAttribute("data-deleteaction", data[0]);
                     deleteDiv.setAttribute("data-deletepath", "{{KEY}}");
+                    ' . $action . '
+                    deleteDiv.setAttribute("data-translate", "def.delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
+                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);
@@ -185,11 +202,13 @@ class TableBuilder
     }
 
     /**
-     * Добавление столбца действий.
+     * Добавление столбца действий с кастомными кнопками.
      *
+     * @param string $key
+     * @param array $customButtons
      * @return TableBuilder
      */
-    public function withActions(string $key): TableBuilder
+    public function withActions(string $key, array $customButtons = []): TableBuilder
     {
         $this->addColumn((new TableColumn())->setOrderable(false));
         $this->addColumnDef([
@@ -197,39 +216,83 @@ class TableBuilder
             "data" => null,
             "render" => [
                 'key' => '{{ ACTIONS_BUTTONS }}',
-                'js' => str_replace('{{KEY}}', $key, '
-                function(data, type, full, meta) {
-                    let btnContainer = make("div");
-                    btnContainer.classList.add("table-action-buttons");
-
-                    let deleteDiv = make("div");
-                    deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("def.delete"));
-                    deleteDiv.setAttribute("data-tooltip-conf", "left");
-                    deleteDiv.setAttribute("data-deleteaction", data[0]);
-                    deleteDiv.setAttribute("data-deletepath", "{{KEY}}");
-                    let deleteIcon = make("i");
-                    deleteIcon.classList.add("ph-bold", "ph-trash");
-                    deleteDiv.appendChild(deleteIcon);
-                    btnContainer.appendChild(deleteDiv);
-
-                    let changeDiv = make("a");
-                    changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("def.edit"));
-                    changeDiv.setAttribute("data-tooltip-conf", "left");
-                    changeDiv.setAttribute("href", u(`admin/{{KEY}}/edit/${data[0]}`));
-                    let changeIcon = make("i");
-                    changeIcon.classList.add("ph", "ph-pencil");
-                    changeDiv.appendChild(changeIcon);
-                    btnContainer.appendChild(changeDiv);
-    
-                    return btnContainer.outerHTML;
-                }
-                ')
+                'js' => $this->generateActionButtonsJs($key, $customButtons)
             ]
         ]);
 
         return $this;
+    }
+
+    /**
+     * Генерация JavaScript для кастомных кнопок действий.
+     *
+     * @param string $key
+     * @param array $customButtons
+     * @return string
+     */
+    protected function generateActionButtonsJs(string $key, array $customButtons): string
+    {
+        $buttonsJs = '';
+
+        foreach ($customButtons as $button) {
+            $class = '"' . (is_array($button['class']) ? implode('","', $button['class']) : ($button['class'] ?? '')) . '"';
+            $iconClass = $button['iconClass'] ?? '';
+            $attributes = '';
+
+            if (isset($button['attributes']) && is_array($button['attributes'])) {
+                foreach ($button['attributes'] as $attrKey => $attrValue) {
+                    $attributes .= sprintf('customDiv.setAttribute("%s", %s);', $attrKey, $attrValue);
+                }
+            }
+
+            $buttonsJs .= sprintf('
+                let customDiv = make("a");
+                customDiv.classList.add("action-button", %s);
+                %s
+                let customIcon = make("i");
+                customIcon.classList.add("ph", "%s");
+                customDiv.appendChild(customIcon);
+                btnContainer.appendChild(customDiv);
+            ',
+                $class,
+                $attributes,
+                $iconClass
+            );
+        }
+
+        return str_replace('{{KEY}}', $key, '
+            function(data, type, full, meta) {
+                let btnContainer = make("div");
+                btnContainer.classList.add("table-action-buttons");
+
+                let deleteDiv = make("div");
+                deleteDiv.classList.add("action-button", "delete");
+                deleteDiv.setAttribute("data-translate", "def.delete");
+                deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
+                deleteDiv.setAttribute("data-tooltip-conf", "left");
+                deleteDiv.setAttribute("data-deleteaction", data[0]);
+                deleteDiv.setAttribute("data-deletepath", "{{KEY}}");
+                let deleteIcon = make("i");
+                deleteIcon.classList.add("ph-bold", "ph-trash");
+                deleteDiv.appendChild(deleteIcon);
+                btnContainer.appendChild(deleteDiv);
+
+                let changeDiv = make("a");
+                changeDiv.classList.add("action-button", "change");
+                changeDiv.setAttribute("data-translate", "def.edit");
+                changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
+                changeDiv.setAttribute("data-tooltip-conf", "left");
+                changeDiv.setAttribute("href", u(`admin/{{KEY}}/edit/${data[0]}`));
+                let changeIcon = make("i");
+                changeIcon.classList.add("ph", "ph-pencil");
+                changeDiv.appendChild(changeIcon);
+                btnContainer.appendChild(changeDiv);
+
+                ' . $buttonsJs . '
+
+                return btnContainer.outerHTML;
+            }
+        ');
     }
 
     protected function generateEmpty(): string
@@ -263,10 +326,12 @@ class TableBuilder
 
         $JSHtml = sprintf("
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    let table = $('#%s');
+                $(function() {
+                    let table = $(document.getElementById('%s'));
                     table.DataTable(%s);
-                    table.removeClass('skeleton')
+                    
+                    // Задержка для предотвращения флекса страницы
+                    setTimeout(() => table.removeClass('skeleton'), 200); 
                 });
             </script>",
             $this->tableId,
@@ -290,14 +355,15 @@ class TableBuilder
      */
     public function addColumn(TableColumn $column)
     {
-        $this->columns[] = $column->toArray();
+        $this->columns[] = $column;
         $this->updateColumnDefs($column);
     }
 
     /**
      * Добавление множества столбцов в таблицу
      * 
-     * @param array[TableColumn] $column
+     * @param array[TableColumn] $columns
+     * @return TableBuilder
      */
     public function addColumns(array $columns): self
     {
@@ -433,6 +499,107 @@ class TableBuilder
         return $this;
     }
 
+    /**
+     * Добавление объединенной колонки.
+     *
+     * @param string $avatarKey Ключ колонки с аватаркой.
+     * @param string $nameKey Ключ колонки с именем.
+     * @param string $title Заголовок объединенной колонки.
+     * @param string|null $urlKey Ключ колонки с URL (если есть).
+     * @param bool $ignoreTab
+     * 
+     * @return TableBuilder
+     */
+    public function addCombinedColumn(string $avatarKey, string $nameKey, string $title, ?string $urlKey = null, $ignoreTab = false): TableBuilder
+    {
+        // Сначала создаем и добавляем отдельные колонки
+        $avatarColumn = new TableColumn($avatarKey, 'Avatar');
+        $nameColumn = new TableColumn($nameKey, 'Name');
+        $this->addColumn($avatarColumn->setVisible(false));
+        $this->addColumn($nameColumn->setVisible(false));
+
+        // Определяем позиции колонок
+        $avatarPosition = $this->findColumnPosition($avatarKey);
+        $namePosition = $this->findColumnPosition($nameKey);
+        $urlPosition = $urlKey ? $this->findColumnPosition($urlKey) : null;
+
+        // Затем создаем объединенную колонку
+        $combinedColumn = new TableColumn(null, $title);
+        $combinedColumn->combined($avatarPosition, $namePosition, $urlPosition, $ignoreTab);
+
+        $this->addColumn($combinedColumn);
+
+        return $this;
+    }
+
+    /**
+     * Определение позиции колонки по ключу.
+     *
+     * @param string $key Ключ колонки.
+     * @return int Позиция колонки.
+     */
+    protected function findColumnPosition(string $key): int
+    {
+        foreach ($this->columns as $index => $column) {
+            if ($column->getName() === $key) {
+                return $index;
+            }
+        }
+        throw new \Exception("Column with key '{$key}' not found.");
+    }
+
+    /**
+     * Метод для получения столбца по его идентификатору или индексу.
+     *
+     * @param string|int $identifier Идентификатор или индекс столбца.
+     * @return TableColumn|null Объект столбца или null, если столбец не найден.
+     */
+    public function getColumn($identifier)
+    {
+        if (is_int($identifier)) {
+            return isset($this->columns[$identifier]) ? $this->columns[$identifier] : null;
+        }
+
+        foreach ($this->columns as $column) {
+            if ($column instanceof TableColumn && $column->getName() === $identifier) {
+                return $column;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Метод для обновления параметров столбца.
+     *
+     * @param string|int $identifier Идентификатор или индекс столбца.
+     * @param array $params Массив параметров для обновления.
+     * @return void
+     */
+    public function updateColumn($identifier, array $params): void
+    {
+        $column = $this->getColumn($identifier);
+
+        if ($column) {
+            foreach ($params as $key => $value) {
+                $setterMethod = 'set' . ucfirst($key);
+                if (method_exists($column, $setterMethod)) {
+                    $column->$setterMethod($value);
+                }
+            }
+
+            // Обновить columnDefs, если столбец был модифицирован
+            $this->updateColumnDefs($column);
+        }
+    }
+
+    public function setPhrases(array $phrases): TableBuilder
+    {
+        $this->phrases = $phrases;
+
+        return $this;
+    }
+
     public function __get($name)
     {
         return isset($this->options[$name]) ? $this->options[$name] : null;
@@ -523,7 +690,7 @@ class TableBuilder
             $thead = Html::el('thead');
             $tr = Html::el('tr');
             foreach ($this->columns as $column) {
-                $tr->create('th')->addText($column['title']);
+                $tr->create('th')->addText($column->getTitle());
             }
             $thead->addHtml($tr);
             $table->addHtml($thead);
@@ -534,14 +701,22 @@ class TableBuilder
             foreach ($this->data as $row) {
                 $tr = Html::el('tr');
                 foreach ($this->columns as $column) {
-                    $columnData = isset($column['name']) && (is_string($column['name']) || is_int($column['name'])) ? $column['name'] : null;
+                    $columnData = (is_string($column->getName()) || is_int($column->getName())) ? $column->getName() : null;
                     if ($columnData !== null && isset($row[$columnData])) {
-                        $tr->create('td')
-                            ->addText(
+                        $td = $tr->create('td');
+                        if ((bool) $column->getClean() === true) {
+                            $td->addText(
                                 is_array($row[$columnData]) ?
                                 Json::encode($row[$columnData]) :
                                 $row[$columnData]
                             );
+                        } else {
+                            $td->addHtml(
+                                is_array($row[$columnData]) ?
+                                Json::encode($row[$columnData]) :
+                                $row[$columnData]
+                            );
+                        }
                     } else {
                         $tr->create('td', '');
                     }

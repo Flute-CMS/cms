@@ -60,7 +60,7 @@ class UserService
             $tokenInfo = $this->authService->getInfoFromToken($this->userToken);
 
             if (empty($tokenInfo->user))
-                $this->sessionExpired();
+                return $this->sessionExpired();
 
             if ((bool) config('auth.security_token') !== true || (bool) config('auth.security_token') === true && ($tokenInfo && $_SERVER['HTTP_USER_AGENT'] === $tokenInfo->userDevice->deviceDetails && $tokenInfo->userDevice->ip === request()->ip())) {
                 $this->currentUser = $this->get($tokenInfo->user->id);
@@ -69,6 +69,7 @@ class UserService
                 $this->sessionExpired();
 
         } catch (\Exception $e) {
+            logs()->info($e);
             $this->sessionExpired();
         }
     }
@@ -91,6 +92,22 @@ class UserService
         }
     }
 
+    public function getByRoute(string $route)
+    {
+        return $this->getUserRepository()->select()
+            ->load([
+                'socialNetworks',
+                'socialNetworks.socialNetwork',
+                'roles',
+                'rememberTokens',
+                'userDevices',
+                'blocksGiven',
+                'blocksReceived'
+            ])->fetchOne([
+                    "uri" => $route
+                ]);
+    }
+
     public function get(int $userId)
     {
         return $this->getUserRepository()->select()
@@ -100,6 +117,8 @@ class UserService
                 'roles',
                 'rememberTokens',
                 'userDevices',
+                'blocksGiven',
+                'blocksReceived'
             ])->fetchOne([
                     "id" => $userId
                 ]);
@@ -114,8 +133,8 @@ class UserService
     protected function sessionExpired()
     {
         session()->clear();
-        cookie()->remove('remember_token');
         flash()->add('info', 'Your session has expired, try logging in again.');
+        cookie()->remove('remember_token');
 
         if ($this->getUserToken())
             $this->authService->deleteAuthToken($this->getUserToken());
@@ -144,7 +163,7 @@ class UserService
      * 
      * @return self
      */
-    public function setCurrentUser( User $user ) : self
+    public function setCurrentUser(User $user): self
     {
         $this->currentUser = $user;
 
@@ -174,10 +193,31 @@ class UserService
 
         $this->userToken ? $this->initializeByToken() : $this->initializeBySession();
 
-        if ($this->currentUser)
+        if ($this->currentUser) {
             template()->getBlade()->setAuth($this->currentUser->name, null, $this->getPermissions());
+            $this->updateLastLogged();
+        }
 
         $this->triedToLogin = true;
+    }
+
+    /**
+     * Update the last_logged timestamp for the current user.
+     *
+     * @return void
+     */
+    public function updateLastLogged(): void
+    {
+        if (!$this->currentUser) {
+            return;
+        }
+
+        try {
+            $this->currentUser->last_logged = new \DateTime();
+            transaction($this->currentUser)->run();
+        } catch (Throwable $e) {
+            // Handle exception if necessary
+        }
     }
 
     /**
@@ -232,18 +272,35 @@ class UserService
         transaction($balanceUser)->run();
     }
 
-    public function getHighestPriority(): int
+    public function getHighestPriority(?User $user = null): int
     {
-        if (!$this->currentUser)
+        $userToCheck = !$user ? $this->currentUser : $user;
+
+        if (!$userToCheck)
             return 0;
 
         $highestPriority = 0;
-        foreach ($this->currentUser->getRoles() as $role) {
+        foreach ($userToCheck->getRoles() as $role) {
             if ($role->priority > $highestPriority) {
                 $highestPriority = $role->priority;
             }
         }
         return $highestPriority;
+    }
+
+    /**
+     * Check if the current user can edit the given user.
+     *
+     * @param User $userToEdit
+     * 
+     * @return bool
+     */
+    public function canEditUser(User $userToEdit): bool
+    {
+        $currentUserHighestPriority = $this->getHighestPriority();
+        $userToEditHighestPriority = $this->getHighestPriority($userToEdit);
+
+        return $currentUserHighestPriority > $userToEditHighestPriority || $this->hasPermission('admin.boss');
     }
 
     /**
@@ -310,13 +367,15 @@ class UserService
         if (!$user)
             throw new UserNotFoundException;
 
-        $userLog = new UserActionLog;
-        $userLog->action = $action;
-        $userLog->details = $details;
-        $userLog->url = $url;
-        $userLog->user = $user;
+        $table = db()->table('user_action_logs');
 
-        transaction($userLog)->run();
+        $table->insertOne([
+            'action' => $action,
+            'details' => $details,
+            'url' => $url,
+            'user_id' => $user->id,
+            'action_date' => new \DateTime()
+        ]);
     }
 
     /**

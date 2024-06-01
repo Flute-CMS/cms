@@ -17,6 +17,16 @@
             <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
         </a>
     </div>
+
+    @if (config('lk.pay_in_new_window'))
+        <script>
+            window.opener.postMessage({
+                paymentStatus: 'success'
+            }, '{{ config("app.url") }}');
+
+            window.close();
+        </script>
+    @endif
 @endpush
 
 @push('footer')

@@ -1,4 +1,5 @@
 const driver = window.driver?.js?.driver;
+const widgetConfigs = [];
 
 let csrfToken = $('meta[name="csrf-token"]').attr('content');
 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
@@ -7,8 +8,22 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 });
 
 $(document).on('click', '[data-copy]', (e) => {
-    let data = $(e.currentTarget).data('copy');
+    let el = $(e.currentTarget);
+    let data = el.attr('data-copy');
+
     navigator.clipboard.writeText(data);
+
+    let parent = el.parent();
+
+    if (el.attr('data-tooltip') || parent.attr('data-tooltip')) {
+        let tEl = el.attr('data-tooltip') ? el : parent;
+        let past = tEl.attr('data-tooltip');
+
+        let copiedPhrase = translate('def.copied');
+
+        tEl.attr('data-tooltip', copiedPhrase);
+        setTimeout(() => tEl.attr('data-tooltip', past), 500);
+    }
 });
 
 function setCookie(name, value, days) {
@@ -51,47 +66,42 @@ function completeTip(tip) {
     $.ajax({
         url: u(`api/tip/complete`),
         type: 'POST',
-        async: false,
         data: { tip },
     });
 }
 
-function getNotifications() {
-    let notifications = [];
-
-    $.ajax({
-        url: u(`api/notifications/unread`),
-        type: 'GET',
-        async: false,
-        success: function (response) {
-            notifications = response.result;
-        },
-        error: function (error) {
-            console.log(error);
-        },
-    });
-    return notifications;
+async function getNotifications() {
+    try {
+        const response = await fetch(u(`api/notifications/unread`));
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.result;
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
 }
 
-function getAllNotifications() {
-    let notifications = [];
-
-    $.ajax({
-        url: u(`api/notifications/all`),
-        type: 'GET',
-        async: false,
-        success: function (response) {
-            notifications = response.result;
-        },
-    });
-    return notifications;
+async function getAllNotifications() {
+    try {
+        const response = await fetch(u(`api/notifications/all`));
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.result;
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
 }
 
 function clearNotifications() {
     $.ajax({
         url: u(`api/notifications`),
         type: 'DELETE',
-        async: false,
     });
 }
 
@@ -99,7 +109,6 @@ function readNotification(id) {
     $.ajax({
         url: u(`api/notifications/${id}`),
         type: 'PUT',
-        async: false,
     });
 }
 
@@ -107,7 +116,6 @@ function deleteNotification(id) {
     $.ajax({
         url: u(`api/notifications/${id}`),
         type: 'DELETE',
-        async: false,
     });
 }
 
@@ -115,8 +123,147 @@ function deleteNotification(id) {
 let queue = [];
 let isProcessing = false;
 
+async function batchTranslate(elements) {
+    const translationsNeeded = [];
+    const cacheResults = new Map();
+
+    elements.forEach((el) => {
+        const key = el.getAttribute('data-translate');
+        const attribute = el.getAttribute('data-translate-attribute');
+        const locale = $('html').attr('lang') || 'default';
+        const replace = {};
+        const serializedReplace = serializeReplace(replace);
+        const cacheKey = `${locale}_${key}_${serializedReplace}`;
+
+        let cachedTranslation = localStorage.getItem(cacheKey);
+        if (cachedTranslation) {
+            cacheResults.set(el, cachedTranslation);
+        } else {
+            translationsNeeded.push({
+                el,
+                key,
+                attribute,
+                locale,
+                replace,
+                cacheKey,
+            });
+        }
+    });
+
+    if (translationsNeeded.length > 0) {
+        const response = await fetch(u(`api/translate`), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                translations: translationsNeeded.map(
+                    ({ key, replace, locale }) => ({
+                        phrase: key,
+                        replace: replace,
+                        locale: locale,
+                    }),
+                ),
+            }),
+        }).then((res) => res.json());
+
+        response.forEach((result, index) => {
+            const { el, cacheKey, attribute } = translationsNeeded[index];
+            if (result.result !== undefined) {
+                localStorage.setItem(cacheKey, result.result);
+                cacheResults.set(el, result.result);
+            }
+        });
+    }
+
+    cacheResults.forEach((translation, element) => {
+        if (element.getAttribute('data-translate-attribute')) {
+            element.setAttribute(
+                element.getAttribute('data-translate-attribute'),
+                translation,
+            );
+        } else {
+            element.textContent = translation;
+        }
+    });
+}
+
+function collectElementsForTranslation(addedNodes) {
+    const elements = [];
+    addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            node.querySelectorAll(
+                '[data-translate]:not([data-translate-loaded])',
+            ).forEach((el) => {
+                el.setAttribute('data-translate-loaded', 'true');
+                elements.push(el);
+            });
+        }
+    });
+    return elements;
+}
+
+const updateTranslationsDebounced = (addedNodes) => {
+    const elements = collectElementsForTranslation(addedNodes);
+    if (elements.length) {
+        batchTranslate(elements);
+    }
+};
+
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length) {
+            updateTranslationsDebounced(mutation.addedNodes);
+        }
+    });
+});
+
+const observerOptions = {
+    childList: true,
+    subtree: true,
+};
+
+observer.observe(document.body, observerOptions);
+
 function serializeReplace(replace) {
     return JSON.stringify(Object.entries(replace).sort());
+}
+
+async function asyncTranslate(key, replace = {}, locale = null) {
+    const serializedReplace = serializeReplace(replace);
+    const cacheKey = `${locale}_${key}_${serializedReplace}`;
+    let localStorageItem = localStorage.getItem(cacheKey);
+
+    if (localStorageItem) {
+        return localStorageItem;
+    }
+
+    try {
+        const response = await $.ajax({
+            url: u(`api/translate`),
+            type: 'POST',
+            data: JSON.stringify({
+                translations: [
+                    {
+                        phrase: key,
+                        replace: replace,
+                        locale: locale,
+                    },
+                ],
+            }),
+            contentType: 'application/json',
+            dataType: 'json',
+        });
+
+        const result = response[0].result;
+
+        localStorage.setItem(`${locale}_${key}_${serializedReplace}`, result);
+
+        return result;
+    } catch (error) {
+        console.log('TRANSLATE ERROR', error);
+        return key;
+    }
 }
 
 function t(key, replace = {}, locale = null) {
@@ -261,45 +408,95 @@ function uuidv4() {
     );
 }
 
-function loadWidget(params, id, interval = 0) {
+function addWidgetConfig(params, id, interval = 0) {
+    widgetConfigs.push({ params, id, interval });
+}
+
+async function loadWidget(params, id, interval = 0) {
     console.log('%cWIDGET LOADING - ' + id, 'color: white; font-size: 16px');
 
-    $.ajax({
-        url: u(`widget/show`),
-        type: 'POST',
-        data: { params },
-        success: function (response) {
-            let el = $(`#${id}`);
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-            if (response?.assets && !el.hasClass('loaded')) {
-                for (let i = 0; i < response.assets.length; i++) {
-                    $('head').append(response.assets[i]);
-                }
+    function handleBeforeUnload() {
+        controller.abort();
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    try {
+        const response = await fetch(u('widget/show'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ params }),
+            signal: signal,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        let el = $(`#${id}`);
+
+        if (data?.assets && !el.hasClass('loaded')) {
+            for (let i = 0; i < data.assets.length; i++) {
+                $('head').append(data.assets[i]);
             }
+        }
 
-            // У меня не хватило фантазии на реализацию ожидания, поэтому мы просто ждем пару МС чтобы все подгрузилось
-            if (response?.assets)
-                setTimeout(() => el.html(response?.html), 500);
-            else el.html(response?.html);
+        if (data?.assets) {
+            setTimeout(() => {
+                el.html(data?.html);
+            }, 500);
+        } else {
+            el.html(data?.html);
+        }
 
-            if (!el.hasClass('loaded')) el.addClass('loaded');
+        if (!el.hasClass('loaded')) el.addClass('loaded');
 
-            if (interval > 0)
-                setInterval(() => {
-                    loadWidget(params, id);
-                }, interval);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
+        if (interval > 0) {
+            setTimeout(() => {
+                loadWidget(params, id, interval);
+            }, interval);
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log(
+                '%cWIDGET LOADING ABORTED - ' + id,
+                'color: red; font-size: 16px',
+            );
+        } else {
             $(`#${id}`).remove();
 
-            let jsonError = jqXHR.responseJSON?.error?.message;
+            let jsonError = error.message;
 
             console.error(
                 '%cWIDGET LOADER ERROR - ' + jsonError,
                 'color: white; font-size: 16px;',
             );
-        },
+        }
+    } finally {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
+}
+
+async function loadWidgets() {
+    const promises = widgetConfigs.map(({ params, id, interval }) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                requestAnimationFrame(async () => {
+                    await loadWidget(params, id, interval);
+                    resolve();
+                });
+            }, 0);
+        });
     });
+
+    await Promise.all(promises);
 }
 
 /**

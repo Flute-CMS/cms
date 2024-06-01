@@ -1,22 +1,3 @@
-.table-status {
-    border-radius: 5px;
-    padding: 5px 10px;
-    background-color: $color-white-10;
-    font-size: 14px;
-    font-weight: 500;
-    max-width: max-content;
-
-    &.active {
-        background-color: $color-success;
-        color: $color-text-inverse;
-    }
-
-    &.disabled {
-        background-color: $color-warning;
-        color: $color-text-inverse;
-    }
-}
-
 .icon-div {
     display: flex;
     align-items: center;
@@ -36,8 +17,8 @@
     >div,
     a {
         padding: 10px;
-        width: 30px;
-        height: 30px;
+        width: 31px;
+        height: 31px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;
@@ -89,7 +70,7 @@
     }
 }
 
-#editor {
+#editorSocial {
     min-height: 200px;
     min-width: 100%;
     background-color: transparent;

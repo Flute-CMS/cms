@@ -113,9 +113,17 @@ if (!function_exists('is_installed')) {
 if (!function_exists('is_debug')) {
     function is_debug(): bool
     {
-        return (bool) app('debug');
+        $debug = (bool) app('debug');
+        $user_ip = request()->ip();
+
+        if (in_array($user_ip, config('app.debug_ips'))) {
+            return true;
+        }
+
+        return $debug;
     }
 }
+
 
 if (!function_exists('is_performance')) {
     function is_performance(): bool
@@ -202,7 +210,7 @@ if (!function_exists('table_lang')) {
 
         $lang = app()->getLang();
 
-        return isset ($locales[$lang]) ? $locales[$lang] : $lang;
+        return isset($locales[$lang]) ? $locales[$lang] : $lang;
     }
 }
 
@@ -215,4 +223,70 @@ if (!function_exists('sq')) {
 
         return $Query;
     }
+}
+
+if (!function_exists('default_date_format')) {
+    function default_date_format(bool $short = false)
+    {
+        switch (app()->getLang()) {
+            case "en":
+                return $short ? "m/d/Y" : "m/d/Y h:i:s A";
+            case "es":
+                return $short ? "d/m/Y" : "d/m/Y H:i:s";
+            case "fr":
+                return $short ? "d/m/Y" : "d/m/Y H:i:s";
+            case "zh":
+                return $short ? "Y-m-d" : "Y-m-d H:i:s";
+            default:
+                return $short ? "d.m.Y" : "d.m.Y H:i:s";
+        }
+    }
+}
+
+function getPluralForm($number, $forms)
+{
+    $n = abs($number) % 100;
+    $n1 = $n % 10;
+    if ($n > 10 && $n < 20) {
+        return $forms[3];
+    }
+    if ($n1 > 1 && $n1 < 5) {
+        return $forms[2];
+    }
+    if ($n1 == 1) {
+        return $forms[1];
+    }
+    return $forms[0];
+}
+
+function secondsToReadable(int $seconds): string
+{
+    $days = floor($seconds / 86400);
+    $hours = floor(($seconds % 86400) / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+    $remainingSeconds = $seconds % 60;
+
+    $result = [];
+
+    if ($days > 0) {
+        $daysForms = explode('|', __('def.days', [], 'messages'));
+        $result[] = $days . ' ' . getPluralForm($days, $daysForms);
+    }
+
+    if ($hours > 0) {
+        $hoursForms = explode('|', __('def.hours', [], 'messages'));
+        $result[] = $hours . ' ' . getPluralForm($hours, $hoursForms);
+    }
+
+    if ($minutes > 0) {
+        $minutesForms = explode('|', __('def.minutes', [], 'messages'));
+        $result[] = $minutes . ' ' . getPluralForm($minutes, $minutesForms);
+    }
+
+    if ($remainingSeconds > 0 || empty($result)) {
+        $secondsForms = explode('|', __('def.seconds', [], 'messages'));
+        $result[] = $remainingSeconds . ' ' . getPluralForm($remainingSeconds, $secondsForms);
+    }
+
+    return implode(', ', $result);
 }

@@ -31,7 +31,7 @@ class DatabasesView extends AbstractController
 
         $table->addColumns([
             (new TableColumn('id'))->setVisible(false),
-            (new TableColumn('mod', 'Driver')),
+            (new TableColumn('mod', __('admin.databases.mod'))),
             (new TableColumn('dbname', __('admin.databases.dbname'))),
             (new TableColumn('server', __('admin.databases.server'))),
         ])->withActions('databases');
@@ -47,27 +47,106 @@ class DatabasesView extends AbstractController
     {
         $connection = rep(DatabaseConnection::class)->findByPK($id);
 
-        if( !$connection )
+        if (!$connection)
             return $this->error(__("admin.databases.not_found"), 404);
+
+        $params = json_decode($connection->additional, true);
 
         return view('Core/Admin/Http/Views/pages/databases/edit', [
             'connection' => $connection,
-            'servers' => $this->getServers()
+            'servers' => $this->getServers(),
+            'mods' => $this->getMods(),
+            'params' => $params
         ]);
     }
 
     public function add(): Response
     {
         return view('Core/Admin/Http/Views/pages/databases/add', [
-            'servers' => $this->getServers()
+            'servers' => $this->getServers(),
+            'mods' => $this->getMods()
         ]);
     }
 
     protected function getServers(): array
     {
-        $servers = rep(Server::class)->select();
-        $drivers = rep(DatabaseConnection::class)->select();
+        return rep(Server::class)->select()->fetchAll();
+    }
 
-        return $servers->fetchAll();
+    protected function getMods(): array
+    {
+        return [
+            __('admin.databases.stats') => [
+                [
+                    'name' => 'LevelsRanks',
+                    'parameters' => [
+                        [
+                            'name' => 'table',
+                            'label' => __('admin.databases.table'),
+                            'type' => 'text',
+                            'default' => 'base'
+                        ],
+                        [
+                            'name' => 'ranks',
+                            'label' => __('admin.databases.ranks'),
+                            'type' => 'text',
+                            'default' => "default"
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'K4',
+                ],
+                [
+                    'name' => 'FabiusRanks',
+                    'parameters' => [
+                        [
+                            'name' => 'table',
+                            'label' => __('admin.databases.table'),
+                            'type' => 'text',
+                        ],
+                        [
+                            'name' => 'ranks',
+                            'label' => __('admin.databases.ranks'),
+                            'type' => 'text',
+                            'default' => "default"
+                        ]
+                    ]
+                ],
+            ],
+            __('admin.databases.banscomms') => [
+                [
+                    'name' => 'MaterialAdmin',
+                ],
+                [
+                    'name' => 'IKSAdmin',
+                    'parameters' => [
+                        [
+                            'name' => 'sid',
+                            'label' => __('admin.databases.sid'),
+                            'type' => 'text'
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'PisexAdmin',
+                ],
+                [
+                    'name' => 'SimpleAdmin',
+                ],
+            ],
+            __('admin.databases.other') => [
+                [
+                    'name' => 'VIP',
+                    'parameters' => [
+                        [
+                            'name' => 'sid',
+                            'label' => __('admin.databases.sid'),
+                            'type' => 'number'
+                        ]
+                    ]
+                ],
+            ]
+        ];
     }
 }

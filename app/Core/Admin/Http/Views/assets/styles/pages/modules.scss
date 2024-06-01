@@ -1,35 +1,16 @@
-.table-status {
-    border-radius: 5px;
-    padding: 5px 10px;
-    background-color: $color-white-10;
-    font-size: 14px;
-    font-weight: 500;
-    max-width: max-content;
-
-    &.active {
-        background-color: $color-success;
-        color: $color-text-inverse;
-    }
-
-    &.disabled {
-        background-color: $color-warning;
-        color: $color-text-inverse;
-    }
-
-    &.notinstalled {
-        background-color: $color-error;
-        color: $color-text-inverse;
-    }
+.table-status.notinstalled {
+    background-color: $color-error;
+    color: $color-text-inverse;
 }
 
 .module-action-buttons {
     display: flex;
     gap: 5px;
 
-    >div {
+    >div:not(.action-button-update) {
         padding: 10px;
-        width: 30px;
-        height: 30px;
+        width: 31px;
+        height: 31px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;
@@ -79,6 +60,79 @@
                 color: $color-text;
             }
         }
+
+        &.update {}
+    }
+}
+
+@property --angle-update {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.action-button-update {
+    position: relative;
+    background: $color-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: $transition;
+
+    >div {
+        padding: 10px;
+        width: 31px;
+        height: 31px;
+        border: 1px solid $color-white-5;
+        color: $color-text-inverse;
+        display: flex;
+        border-radius: $border-radius;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: $transition;
+        border-radius: 50%;
+    }
+
+    &::before,
+    &::after {
+        opacity: 0;
+        content: "";
+        position: absolute;
+        inset: -0.12rem;
+        z-index: -1;
+        background: linear-gradient(var(--angle-update),
+                $color-primary, $color-text, $color-secondary);
+        animation: rotateModuleUpdate 10s linear infinite;
+        border-radius: 50%;
+        transition: .3s;
+    }
+
+    &::after {
+        filter: blur(3px);
+    }
+
+    &:hover {
+        background-color: $color-card;
+
+        &::before {
+            opacity: 1;
+        }
+
+        >div {
+            color: $color-primary;
+        }
+    }
+}
+
+@keyframes rotateModuleUpdate {
+    0% {
+        --angle-update: 0deg;
+    }
+
+    100% {
+        --angle-update: 360deg;
     }
 }
 

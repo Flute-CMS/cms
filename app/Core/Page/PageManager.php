@@ -108,7 +108,7 @@ class PageManager
 
                 template()->clearAllSections();
 
-                template()->getBlade()->pushFirst('header', '<script>const SITE_URL = `' . config('app.url') . '`;</script>');
+                template()->getBlade()->pushFirst('header', '<script>SITE_URL = `' . config('app.url') . '`;</script>');
 
                 $event->setResponse(
                     view(tt('components/page'), [

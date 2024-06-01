@@ -20,7 +20,7 @@
     @at('Core/Admin/Http/Views/assets/js/pages/composer/install.js')
 
     <script>
-        const COMPOSER_PAGE = true;
+        var COMPOSER_PAGE = true;
     </script>
 
     @if (tip_active('admin_composer'))

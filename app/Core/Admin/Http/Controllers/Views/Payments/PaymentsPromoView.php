@@ -23,13 +23,13 @@ class PaymentsPromoView extends AbstractController
         $promos = rep(PromoCode::class)->select()->load('usages')->fetchAll();
 
         foreach ($promos as $promo) {
-            $promo->expires_at = $promo->expires_at->format('Y-m-d H:i:s');
+            $promo->expires_at = $promo->expires_at->format(default_date_format());
 
             $promo->usages = $promo->usages->count();
         }
 
         $table->addColumns([
-            (new TableColumn('id')),
+            (new TableColumn('id', "ID")),
             (new TableColumn('code', __('def.name')))->setType('text'),
             (new TableColumn('max_usages', __('admin.payments.promo.max_use'))),
             (new TableColumn('usages', __('admin.payments.promo.max_use'))),
@@ -56,11 +56,12 @@ class PaymentsPromoView extends AbstractController
                     let status = data[3] == 1 ? "active" : "disabled";
     
                     let btnContainer = make("div");
-                    btnContainer.classList.add("payment-action-buttons");
+                    btnContainer.classList.add("payment-promo-action-buttons");
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("admin.payments.promo.delete"));
+                    deleteDiv.setAttribute("data-translate", "admin.payments.promo.delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-tooltip-conf", "left");
                     deleteDiv.setAttribute("data-deletepromo", data[0]);
                     let deleteIcon = make("i");
@@ -70,7 +71,8 @@ class PaymentsPromoView extends AbstractController
 
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("admin.payments.promo.change"));
+                    changeDiv.setAttribute("data-translate", "admin.payments.promo.change");
+                    changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     changeDiv.setAttribute("data-tooltip-conf", "left");
                     changeDiv.setAttribute("href", u(`admin/payments/promo/edit/${data[0]}`));
                     let changeIcon = make("i");

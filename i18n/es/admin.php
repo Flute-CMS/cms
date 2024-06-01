@@ -428,7 +428,7 @@
         "login_error" => "Formato de inicio de sesión incorrecto",
         "role_priority_error" => "El rol 'role' tiene una prioridad superior a la tuya",
         "cannot_remove_highest_role" => "¡No puedes eliminar un rol igual a tu prioridad!",
-        "delete_permission_error" => "Por derechos crecerás, ¡y luego veremos!",
+        "permission_error" => "Por derechos crecerás, ¡y luego veremos!",
         "cannot_delete_self" => "¡No puedes eliminarte a ti mismo!",
         "invoices" => [
             "title" => "Recibos",

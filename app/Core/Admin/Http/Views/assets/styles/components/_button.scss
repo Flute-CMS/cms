@@ -61,6 +61,7 @@ $padding-small: 10px 20px;
 
     &.size-s {
         @include button-size($padding-small, $icon-size-small, -$icon-size-small);
+        font-size: 15px;
     }
 
     &--with-icon {
@@ -176,9 +177,15 @@ $padding-small: 10px 20px;
         }
     }
 
-    &.error {
+    &.error:not(&.primary) {
         background-color: $color-error;
         box-shadow: inset 0px 0px 0px 1px $color-error;
+
+        &.outline {
+            background-color: transparent;
+            box-shadow: inset 0px 0px 0px 1px $color-error;
+            color: $color-error;
+        }
 
         &:hover,
         &:active {
@@ -217,6 +224,26 @@ $padding-small: 10px 20px;
                 background-color: $color-disabled !important;
                 color: $color-gray !important;
             }
+        }
+    }
+}
+
+.back-btn {
+    display: flex;
+    width: min-content;
+    flex-direction: row;
+    gap: 5px;
+    transition: $transition;
+    align-items: center;
+    margin-bottom: 5px;
+
+    i {
+        transition: $transition;
+    }
+
+    &:hover {
+        i {
+            transform: translateX(-2px);
         }
     }
 }

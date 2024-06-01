@@ -7,7 +7,6 @@ use Flute\Core\Auth\Events\SocialProviderAddedEvent;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserSocialNetwork;
-
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Hybridauth\Exception\InvalidApplicationCredentialsException;
@@ -17,6 +16,8 @@ use Hybridauth\User\Profile;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Throwable;
+use DateTime;
+use DateInterval;
 
 /**
  * Class SocialService
@@ -51,7 +52,7 @@ class SocialService
      */
     public function registerSocial(SocialNetwork $socialNetwork)
     {
-        $this->registeredProviders[$socialNetwork->key] = array_merge([
+        $this->registeredProviders[$this->replaceName($socialNetwork->key)] = array_merge([
             'enabled' => true,
             'entity' => $socialNetwork,
             // 'callback' => url("social/$socialNetwork->key")
@@ -80,9 +81,22 @@ class SocialService
      * 
      * @return array
      */
-    public function getAll(): array
+    public function getAll(bool $onlyAllowed = true): array
     {
-        return $this->registeredProviders;
+        return $onlyAllowed ? $this->getAllowedProviders() : $this->registeredProviders;
+    }
+
+    protected function getAllowedProviders()
+    {
+        $result = [];
+
+        foreach( $this->registeredProviders as $key => $provider ) {
+            if( $provider['entity']->allowToRegister === true ) {
+                $result[$key] = $provider;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -132,8 +146,13 @@ class SocialService
      */
     public function authenticateWithRegister(string $socialNetworkName): User
     {
+        $social = $this->retrieveSocialNetwork($this->replaceName($socialNetworkName));
+        
+        if( $social['entity']->allowToRegister === false ) {
+            throw new Exception(__('def.not_found'));
+        }
+
         $userProfile = $this->authenticate($socialNetworkName);
-        $social = $this->retrieveSocialNetwork($socialNetworkName);
 
         $userSocial = $this->userSocialNetworkRepository->select()->load(['user'])->where([
             'value' => $userProfile->identifier,
@@ -163,7 +182,7 @@ class SocialService
     {
         $this->registerHybridAuth($socialNetworkName, $bind);
 
-        $adapter = $this->hybridauth->authenticate($socialNetworkName);
+        $adapter = $this->hybridauth->authenticate($this->replaceName($socialNetworkName));
 
         $userProfile = $adapter->getUserProfile();
 
@@ -182,6 +201,15 @@ class SocialService
         return $userProfile;
     }
 
+    protected function replaceName(string $socialName)
+    {
+        if ($socialName === 'Steam') {
+            return 'HttpsSteam';
+        }
+
+        return $socialName;
+    }
+
     /**
      * Display the registered social media platforms.
      * @return array
@@ -190,8 +218,12 @@ class SocialService
     {
         $result = [];
 
-        foreach ($this->registeredProviders as $provider) {
-            $result[$provider['entity']->key] = $provider['entity']->icon;
+        foreach ($this->getAll() as $provider) {
+            if ($provider['entity']->key === 'HttpsSteam') {
+                $result['Steam'] = $provider['entity']->icon;
+            } else {
+                $result[$provider['entity']->key] = $provider['entity']->icon;
+            }
         }
 
         return $result;
@@ -258,8 +290,9 @@ class SocialService
 
         $user = new User();
         $user->name = $userProfile->displayName;
-        $user->email = $email;
+        $user->email = !empty($email) ? $email : null;
         $user->uri = null;
+        $user->login = null;
         $user->avatar = $userProfile->photoURL ?? config('profile.default_avatar');
         $user->banner = config('profile.default_banner');
         $user->verified = true;
@@ -271,9 +304,55 @@ class SocialService
 
         $userSocialNetwork->user = $user;
         $userSocialNetwork->socialNetwork = $socialNetwork;
+        $userSocialNetwork->linkedAt = new DateTime();
 
         transaction([$user, $userSocialNetwork])->run();
 
         return $user;
+    }
+
+    /**
+     * Bind a social network to an existing user.
+     * 
+     * @param User $user
+     * @param string $socialNetworkName
+     * @return void
+     * @throws Exception
+     */
+    public function bindSocialNetwork(User $user, string $socialNetworkName): void
+    {
+        $userProfile = $this->authenticate($socialNetworkName, true);
+        $social = $this->retrieveSocialNetwork($socialNetworkName);
+
+        $userSocialNetwork = $this->userSocialNetworkRepository->select()->where([
+            'user' => $user->id,
+            'socialNetwork' => $social['entity']->id,
+        ])->fetchOne();
+
+        if ($userSocialNetwork) {
+            $lastLinked = $userSocialNetwork->linkedAt;
+            $now = new DateTime();
+
+            if ($social['entity']->cooldownTime > 0 && ($lastLinked && $now->getTimestamp() - $lastLinked->getTimestamp() < $social['entity']->cooldownTime)) {
+                throw new Exception(t('profile.errors.social_delay'));
+            }
+
+            $userSocialNetwork->value = $userProfile->identifier;
+            $userSocialNetwork->url = $userProfile->profileURL;
+            $userSocialNetwork->name = $userProfile->displayName;
+            $userSocialNetwork->linkedAt = $now;
+
+            transaction($userSocialNetwork)->run();
+        } else {
+            $userSocialNetwork = new UserSocialNetwork();
+            $userSocialNetwork->value = $userProfile->identifier;
+            $userSocialNetwork->url = $userProfile->profileURL;
+            $userSocialNetwork->name = $userProfile->displayName;
+            $userSocialNetwork->user = $user;
+            $userSocialNetwork->socialNetwork = $social['entity'];
+            $userSocialNetwork->linkedAt = new DateTime();
+
+            transaction($userSocialNetwork)->run();
+        }
     }
 }

@@ -14,7 +14,7 @@
         font-size: 14px;
         gap: 10px;
         padding: 15px 20px;
-        border-radius: ($border-radius / 2);
+        border-radius: $border-radius-el;
         color: darken($color-text, 30);
         font-weight: 500;
         transition: .3s;
@@ -50,16 +50,16 @@
         height: 130px;
         z-index: 1;
         width: 130px;
-        border-radius: ($border-radius / 2);
+        border-radius: $border-radius-el;
         margin-left: 20px;
-    
+
         .profile_avatar {
             height: 100%;
             width: 100%;
             object-fit: cover;
             border: 4px solid transparent;
             position: relative;
-            border-radius: ($border-radius / 2);
+            border-radius: $border-radius-el;
         }
 
         .profile_change_ico {
@@ -72,10 +72,10 @@
             opacity: 0;
             transition: $transition;
         }
-    
+
         &.editable {
             cursor: pointer;
-    
+
             &::before {
                 content: "";
                 position: absolute;
@@ -87,7 +87,7 @@
                 background-color: rgba(0, 0, 0, 0.5);
                 width: 100%;
                 height: 100%;
-                border-radius: ($border-radius / 2);
+                border-radius: $border-radius-el;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -96,7 +96,7 @@
             &:hover .profile_change_ico {
                 opacity: 1;
             }
-    
+
             &:hover::before {
                 opacity: 1;
             }
@@ -183,13 +183,13 @@
         top: 0;
         background-color: $color-card;
         padding: 10px;
-        border-radius: ($border-radius / 2);
+        border-radius: $border-radius-el;
         font-size: 16px;
         display: flex;
         flex-direction: row;
         gap: 10px;
 
-        > a {
+        >a {
             color: $color-inactive;
             transition: $transition;
             display: flex;
@@ -224,7 +224,7 @@
     }
 
     .profile_up_info {
-        margin-top: -130px;
+        margin-top: -125px;
         padding-left: 170px;
         height: 65px;
 
@@ -253,8 +253,13 @@
             margin: 0;
             line-height: 2;
             font-size: 13px;
-            color: #ffffff69;
+            color: $color-gray;
             letter-spacing: 0.5px;
+            font-weight: 500;
+
+            &.online-profile {
+                color: $color-success;
+            }
         }
     }
 
@@ -314,7 +319,7 @@
     margin-left: 20px;
     margin-top: 0px;
     background: $color-card;
-    border-radius: ($border-radius / 2);
+    border-radius: $border-radius-el;
     overflow: hidden;
 
     @media (max-width: 767px) {

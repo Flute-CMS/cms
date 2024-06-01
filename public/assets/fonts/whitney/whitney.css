@@ -1,0 +1,27 @@
+@font-face {
+    font-family: 'Whitney';
+    src: url('whitney-400.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Whitney';
+    src: url('whitney-500.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Whitney';
+    src: url('whitney-600.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Whitney';
+    src: url('whitney-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}

@@ -28,11 +28,11 @@ class ServersView extends AbstractController
             (new TableColumn('mod', __('admin.servers.mod')))->setType('text'),
             (new TableColumn('ip', 'IP')),
             (new TableColumn('port', 'PORT'))->setType('text'),
-            (new TableColumn('rcon', 'Rcon'))->setRender('{{RCON}}', '
-            function(data, type, full, meta) {
-                return `<span class="blurry-text">${data}</span>`;
-            }
-            '),
+            // (new TableColumn('rcon', 'Rcon'))->setRender('{{RCON}}', '
+            // function(data, type, full, meta) {
+            //     return `<span class="blurry-text">${data}</span>`;
+            // }
+            // '),
             (new TableColumn())->setOrderable(false)
         ]);
 
@@ -56,9 +56,9 @@ class ServersView extends AbstractController
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("admin.servers.delete"));
+                    deleteDiv.setAttribute("data-translate", "admin.servers.delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-deleteserver", data[0]);
-                    deleteDiv.setAttribute("data-tooltip-conf", "left");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);
@@ -66,9 +66,10 @@ class ServersView extends AbstractController
 
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("admin.servers.change"));
+                    changeDiv.setAttribute("data-translate", "admin.servers.change");
+                    changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
+
                     changeDiv.setAttribute("href", u(`admin/servers/edit/${data[0]}`));
-                    changeDiv.setAttribute("data-tooltip-conf", "left");
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
                     changeDiv.appendChild(changeIcon);

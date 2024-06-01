@@ -1,9 +1,18 @@
 <div class="content-header">
-    @admin_navbar_contact
-    @admin_navbar_search
-    @admin_navbar_version
+    <div class="content-header-left">
+        @admin_navbar_logo
+        @admin_navbar_search
+    </div>
 
-    @if (user()->hasPermission('admin.system'))
-        @admin_navbar_log
-    @endif
+    <div class="content-header-right">
+        @admin_navbar_version
+
+        @if (user()->hasPermission('admin.system'))
+            @admin_navbar_log
+        @endif
+
+        @admin_navbar_contact
+    </div>
 </div>
+
+@admin_navbar_tabs

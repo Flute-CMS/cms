@@ -62,8 +62,9 @@
             <div class="profile_up_info">
                 <div class="profile_up_name">
                     <h2>{{ $user->name }}</h2>
+                    <p @if((now()->getTimestamp() - $user->last_logged->getTimestamp()) <= 600) class="online-profile" @endif>{{ $last_logged }}</p>
                     @if (user()->hasPermission('admin.users') || $user->id == user()->id)
-                        <p>@t('def.balance'): {{ $user->balance}} {{ app('lk.currency_view') }}</p>
+                        <p>@t('def.balance'): {{ $user->balance }} {{ app('lk.currency_view') }}</p>
                     @endif
                 </div>
                 @if (sizeof($user->socialNetworks) > 0)
@@ -111,7 +112,7 @@
     @navbar
     <div class="container">
         @navigation
-        @breadcrumb()
+        @breadcrumb
         @flash
         @editor
 

@@ -23,7 +23,7 @@ if (!IS_EDITING) {
         ],
     });
 
-    $(document).ready(function () {
+    $(function() {
         // Создание кнопки
         let tourButton = $('<button/>', {
             id: 'start-tour-btn',

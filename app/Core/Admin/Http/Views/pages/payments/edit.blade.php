@@ -11,19 +11,25 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/payments/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/payments/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.payments.edit_title', [
                 'name' => $gateway->name,
             ])</h2>
             <p>@t('admin.payments.edit_description')</p>
         </div>
+        <div>
+            <button data-deleteaction="{{ $gateway->id }}" data-deletepath="payments" class="btn size-s error outline">
+                @t('def.delete')
+            </button>
+        </div>
     </div>
 
-    <form id="edit">
+    <form id="gatewayEdit">
         @csrf
         <input type="hidden" name="id" value="{{ $gateway->id }}">
         <div class="position-relative row form-group">
@@ -59,7 +65,7 @@
                     @t('admin.payments.params')
                 </label>
             </div>
-            <div class="col-sm-9 parametersEdit" id="parametersContainer">
+            <div class="col-sm-9 parametersEdit" id="paymentsParametersContainer">
                 @foreach ($additional as $key => $val)
                     <div class="param-group" id="param-group-{{ $key }}">
                         <input type="text" name="paramNames[]" class="form-control" placeholder="Key" required=""

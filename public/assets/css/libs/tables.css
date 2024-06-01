@@ -274,7 +274,7 @@ div.dt-processing > div:last-child:after {
     animation: left 1s infinite ease-in-out;
 }
 div.dt-processing > div:last-child:after {
-    background: #BAFF68;
+    background: #baff68;
     animation: right 1s infinite ease-in-out;
 }
 
@@ -467,7 +467,7 @@ table.dataTable > tbody > tr.selected a {
 }
 table.dataTable > tbody > tr > th,
 table.dataTable > tbody > tr > td {
-    padding: 8px 10px;
+    padding: 10px 20px;
     font-size: 14px;
 }
 table.dataTable.row-border > tbody > tr > *,
@@ -693,9 +693,14 @@ div.dt-container .dt-search input {
     font-size: 14px;
     margin-left: 3px;
 }
-.dt-length select {
+.dt-length select.dt-input {
     text-align: center;
-    margin-right: 10px;
+    margin-right: 5px;
+    padding-right: 25px !important;
+    background-repeat: no-repeat;
+    background-position: right 0.45rem center;
+    background-size: 14px 10px;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 .dt-length select option {
     text-align: center;

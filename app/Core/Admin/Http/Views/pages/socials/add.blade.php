@@ -7,17 +7,18 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/socials/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/socials/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.socials.add_title')</h2>
             <p>@t('admin.socials.add_description')</p>
         </div>
     </div>
 
-    <form id="add">
+    <form id="socialAdd">
         @csrf
         <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
@@ -39,6 +40,7 @@
                 <label for="icon">
                     @t('admin.socials.social_icon_label')
                 </label>
+                <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
                 <div class="d-flex align-items-center">
@@ -50,13 +52,28 @@
         </div>
 
         <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="cooldownTime">
+                    @t('admin.socials.cooldown_label')
+                </label>
+                <small>@t('admin.socials.cooldown_desc')</small>
+            </div>
+            <div class="col-sm-9">
+                <div class="d-flex align-items-center">
+                    <input name="cooldownTime" id="cooldownTime" placeholder="@t('admin.socials.cooldown_label')" type="number"
+                        class="form-control" required value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="position-relative row form-group">
             <div class="col-sm-3 col-form-label required">
                 <label for="settings">
                     @t('admin.socials.settings_label')
                 </label>
             </div>
             <div class="col-sm-9">
-                <div id="editor">{
+                <div id="editorSocial" class="editor-ace">{
                     "keys": {
                     "secret": "",
                     "id": ""
@@ -70,7 +87,7 @@
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri1">Redirect URI 1</label>
             </div>
-            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="redirectUri1" type="text" class="form-control" readonly
                     value="{{ url('social/' . $drivers[array_key_first($drivers)]) }}"
                     data-copy="{{ url('social/' . $drivers[array_key_first($drivers)]) }}">
@@ -80,7 +97,7 @@
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri2">Redirect URI 2</label>
             </div>
-            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="redirectUri2" type="text" class="form-control" readonly
                     value="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}"
                     data-copy="{{ url('profile/social/bind/' . $drivers[array_key_first($drivers)]) }}">
@@ -96,6 +113,19 @@
             <div class="col-sm-9">
                 <input name="enabled" checked role="switch" id="enabled" type="checkbox" class="form-check-input">
                 <label for="enabled"></label>
+            </div>
+        </div>
+
+        <div class="position-relative row form-group">
+            <div class="col-sm-3 col-form-label">
+                <label for="allowToRegister">
+                    @t('admin.socials.allow_to_register')</label>
+                <small>@t('admin.socials.allow_to_register_description')</small>
+            </div>
+            <div class="col-sm-9">
+                <input name="allowToRegister" checked role="switch" id="allowToRegister" type="checkbox"
+                    class="form-check-input">
+                <label for="allowToRegister"></label>
             </div>
         </div>
 

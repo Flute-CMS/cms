@@ -1,14 +1,14 @@
 (async () => {
-    const driverObj = driver({
+    const driverObjSettings = driver({
         nextBtnText: '<i class="ph ph-arrow-right"></i>',
         prevBtnText: '<i class="ph ph-arrow-left"></i>',
         doneBtnText: '<i class="ph ph-x"></i>',
-        onDestroyStarted: () => {
+        onDestroyStarted: async () => {
             if (
-                !driverObj.hasNextStep() ||
-                confirm(translate('tutorial.are_you_sure', {}, null, false))
+                !driverObjSettings.hasNextStep() ||
+                await asyncConfirm(translate('tutorial.are_you_sure', {}, null, false))
             ) {
-                driverObj.destroy();
+                driverObjSettings.destroy();
                 completeTip('admin_settings');
                 $('#start-tour-btn').hide();
             }
@@ -54,7 +54,7 @@
                     ),
                     onNextClick: () => {
                         $('[data-id="database"]').click();
-                        driverObj.moveNext();
+                        driverObjSettings.moveNext();
                     },
                 },
             },
@@ -186,13 +186,13 @@
         ],
     });
 
-    $(document).ready(function () {
+    $(function() {
         // Создание кнопки
         let tourButton = $('<button/>', {
             id: 'start-tour-btn',
             html: '<i class="ph ph-flag"></i>',
             click: function () {
-                driverObj.drive();
+                driverObjSettings.drive();
                 $(this).hide();
             },
         })

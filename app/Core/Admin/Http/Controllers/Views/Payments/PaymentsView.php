@@ -24,17 +24,39 @@ class PaymentsView extends AbstractController
     {
         $table = table();
 
-        $data = rep(PaymentInvoice::class)->select()->load(['user', 'promoCode'])->fetchAll();
+        $data = rep(PaymentInvoice::class)->select()->load(['user', 'promoCode', 'currency'])->fetchAll();
 
         foreach ($data as $item) {
-            $item->user = $item->user->name;
+            $item->avatar = $item->user->avatar;
+            $item->user_url = url(user()->canEditUser($item->user) ? ('admin/users/edit/' . $item->user->id) : ('profile/' . $item->user->id))->get();
 
-            if ($item->promoCode) {
-                $item->promoCode = $item->promoCode->code;
+            $item->amountWithCurrency = $item->originalAmount . ' ' . $item->currency->code;
+            $item->user_name = $item->user->name;
+
+            $item->promoCode = !empty($item->promoCode) ? $item->promoCode->code : __('def.no');
+
+            if ($item->isPaid) {
+                $item->paidCard = '<div class="paid-container">
+                    <span class="table-status active">' . __('def.paid') . '</span>
+                    <small class="paid-at">' . __('admin.payments.paid_at', [
+                        ':time' => $item->paidAt->format(default_date_format())
+                    ]) . '</small>
+                </div>';
+            } else {
+                $item->paidCard = '<span class="table-status error">' . __('def.not_paid') . '</span>';
             }
         }
 
-        $table->fromEntity($data);
+        // Добавляем объединенную колонку
+        $table->addColumn((new TableColumn('user_url', 'user_url'))->setVisible(false));
+        $table->addCombinedColumn('avatar', 'user_name', __('def.user'), 'user_url');
+        $table->addColumn(new TableColumn('gateway', __('admin.payments.adapter')));
+        $table->addColumn(new TableColumn('transactionId', __('admin.payments.transactionId')));
+        $table->addColumn(new TableColumn('amountWithCurrency', __('admin.payments.amount')));
+        $table->addColumn(new TableColumn('promoCode', __('admin.payments.promoCode')));
+        $table->addColumn((new TableColumn('paidCard', __('admin.payments.isPaid')))->setClean(false));
+
+        $table->setData($data);
 
         return view("Core/Admin/Http/Views/pages/payments/payments", [
             'payments' => $table->render()
@@ -47,9 +69,9 @@ class PaymentsView extends AbstractController
         $payments = rep(PaymentGateway::class)->findAll();
 
         $table->addColumns([
-            (new TableColumn('id')),
+            (new TableColumn('id', "ID")),
             (new TableColumn('name', __('def.name')))->setType('text'),
-            (new TableColumn('adapter', __('def.id')))->setType('text'),
+            (new TableColumn('adapter', __('admin.payments.adapter')))->setType('text'),
             (new TableColumn('enabled', __('def.status')))->setRender(
                 '{{ RENDER_STATUS }}',
                 "function(data, type, full, meta) {
@@ -77,7 +99,8 @@ class PaymentsView extends AbstractController
 
                     let deleteDiv = make("div");
                     deleteDiv.classList.add("action-button", "delete");
-                    deleteDiv.setAttribute("data-tooltip", translate("admin.payments.delete"));
+                    deleteDiv.setAttribute("data-translate", "admin.payments.delete");
+                    deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-deletepayment", data[0]);
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
@@ -86,7 +109,9 @@ class PaymentsView extends AbstractController
 
                     let changeDiv = make("a");
                     changeDiv.classList.add("action-button", "change");
-                    changeDiv.setAttribute("data-tooltip", translate("admin.payments.change"));
+                    changeDiv.setAttribute("data-translate", "admin.payments.change");
+                    changeDiv.setAttribute("data-translate-attribute", "data-tooltip");
+
                     changeDiv.setAttribute("href", u(`admin/payments/edit/${data[0]}`));
                     let changeIcon = make("i");
                     changeIcon.classList.add("ph", "ph-pencil");
@@ -96,7 +121,8 @@ class PaymentsView extends AbstractController
                     if (status === "active") {
                         let disableDiv = make("div");
                         disableDiv.classList.add("action-button", "disable");
-                        disableDiv.setAttribute("data-tooltip", translate("admin.payments.disable_payment"));
+                        disableDiv.setAttribute("data-translate", "admin.payments.disable_payment");
+                        disableDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         disableDiv.setAttribute("data-disablepayment", data[0]);
                         let disableIcon = make("i");
                         disableIcon.classList.add("ph-bold", "ph-power");
@@ -108,7 +134,8 @@ class PaymentsView extends AbstractController
                     if (status === "disabled") {
                         let activeDiv = make("div");
                         activeDiv.classList.add("action-button", "activate");
-                        activeDiv.setAttribute("data-tooltip", translate("admin.payments.enable_payment"));
+                        activeDiv.setAttribute("data-translate", "admin.payments.enable_payment");
+                        activeDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         activeDiv.setAttribute("data-activatepayment", data[0]);
                         let activeIcon = make("i");
                         activeIcon.classList.add("ph-bold", "ph-power");

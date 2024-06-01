@@ -118,24 +118,8 @@ window.editorTools = {
     },
 };
 
-window.editorConfig = {
-    holder: 'editor',
-    tools: window.editorTools,
-    autofocus: true,
-    defaultBlock: 'paragraph',
-    data: window.editorData,
-    onReady: () => {
-        // new Undo({ editor });
-        // new DragDrop(editor);
-        document.body.classList.add('editor-opened');
-    },
-    onChange: (data, test) => {
-        $('.save_container').addClass('opened');
-    },
-    onSave: () => {
-        console.log('Saving');
-    },
-    i18n:
+$(function () {
+    const phrasesEditorJs =
         $('html').attr('lang') !== 'ru'
             ? {}
             : {
@@ -164,7 +148,7 @@ window.editorConfig = {
                       },
 
                       toolNames: {
-                          Text: 'Параграф',
+                          Text: 'Обычный текст',
                           Heading: 'Заголовок',
                           List: 'Список',
                           Warning: 'Примечание',
@@ -211,7 +195,99 @@ window.editorConfig = {
                           },
                       },
                   },
-              },
-};
+              };
 
-const editor = new EditorJS(window.editorConfig);
+    function initializeAllEditors() {
+        setTimeout(() => {
+            const editors = document.querySelectorAll(
+                '.tab-content:not([hidden]) [data-editorjs]',
+            );
+
+            editors.forEach((editorElement) => {
+                const editorId = editorElement.id;
+                if (!editorId) {
+                    console.error('Editor element must have an ID.');
+                    return;
+                }
+
+                const existingEditor = window['editorInstance_' + editorId];
+                if (existingEditor) {
+                    existingEditor.destroy();
+                    console.log(
+                        `Editor ${editorId} destroyed before reinitialization.`,
+                    );
+                }
+
+                const savedData = localStorage.getItem(
+                    'editorData_' + editorId,
+                );
+                const initialData = savedData ? JSON.parse(savedData) : {};
+                const editorDefaults =
+                    window.defaultEditorData &&
+                    window.defaultEditorData[editorId]
+                        ? window.defaultEditorData[editorId]
+                        : {};
+
+                const editorConfig = {
+                    ...window.editorConfig,
+                    tools: window.editorTools,
+                    holder: editorId,
+                    data: { ...initialData, ...editorDefaults },
+                    i18n: phrasesEditorJs,
+                    onReady: () => {
+                        console.log(`Editor ${editorId} is ready.`);
+                        document.body.classList.add('editor-opened');
+                    },
+                    onSave: () => {
+                        localStorage.removeItem('editorData_' + editorId);
+                        console.log(
+                            `Editor ${editorId} is removed from localstorage.`,
+                        );
+                    },
+                    onChange: (api, event) => {
+                        console.log(`Content changed in editor ${editorId}`);
+                        api.saver.save().then((outputData) => {
+                            localStorage.setItem(
+                                'editorData_' + editorId,
+                                JSON.stringify(outputData),
+                            );
+                        });
+                    },
+                };
+
+                const editorInstance = new EditorJS(editorConfig);
+                window['editorInstance_' + editorId] = editorInstance;
+            });
+        }, 300);
+    }
+    
+    initializeAllEditors();
+
+    document
+        .querySelector('.chrome-tabs')
+        .addEventListener('contentRender', ({ detail }) => {
+            initializeAllEditors();
+        });
+});
+
+// window.editorConfig = {
+//     holder: 'editor',
+//     tools: window.editorTools,
+//     autofocus: true,
+//     defaultBlock: 'paragraph',
+//     data: window.editorData,
+//     onReady: () => {
+//         // new Undo({ editor });
+//         // new DragDrop(editor);
+//     },
+//     onChange: (data, test) => {
+//         $('.save_container').addClass('opened');
+//     },
+//     onSave: () => {
+//         console.log('Saving');
+//     },
+//     i18n:
+
+// };
+
+// const editor = new EditorJS(window.editorConfig);

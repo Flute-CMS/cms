@@ -1,10 +1,12 @@
 <?php
 
+use Flute\Core\Admin\Http\Controllers\Api\AdminSearchController;
 use Flute\Core\Admin\Http\Controllers\Api\ApiController;
 use Flute\Core\Admin\Http\Controllers\Api\CacheController;
 use Flute\Core\Admin\Http\Controllers\Api\ComposerController;
 use Flute\Core\Admin\Http\Controllers\Api\CurrencyController;
 use Flute\Core\Admin\Http\Controllers\Api\DatabasesController;
+use Flute\Core\Admin\Http\Controllers\Api\EventsTestingController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterSocialsController;
 use Flute\Core\Admin\Http\Controllers\Api\IndexApi;
@@ -16,17 +18,19 @@ use Flute\Core\Admin\Http\Controllers\Api\NotificationsController;
 use Flute\Core\Admin\Http\Controllers\Api\PagesController;
 use Flute\Core\Admin\Http\Controllers\Api\Payments\PaymentsController;
 use Flute\Core\Admin\Http\Controllers\Api\Payments\PaymentsPromoController;
-use Flute\Core\Admin\Http\Controllers\Api\RecentItemsController;
+use Flute\Core\Admin\Http\Controllers\Api\RedirectsController;
 use Flute\Core\Admin\Http\Controllers\Api\RolesController;
 use Flute\Core\Admin\Http\Controllers\Api\ServersController;
 use Flute\Core\Admin\Http\Controllers\Api\SocialsController;
 use Flute\Core\Admin\Http\Controllers\Api\ThemesController;
 use Flute\Core\Admin\Http\Controllers\Api\TranslateController;
+use Flute\Core\Admin\Http\Controllers\Api\UpdateController;
 use Flute\Core\Admin\Http\Controllers\Api\UsersController;
 use Flute\Core\Admin\Http\Controllers\Views\ApiView;
 use Flute\Core\Admin\Http\Controllers\Views\ComposerView;
 use Flute\Core\Admin\Http\Controllers\Views\CurrenciesView;
 use Flute\Core\Admin\Http\Controllers\Views\DatabasesView;
+use Flute\Core\Admin\Http\Controllers\Views\EventTestingView;
 use Flute\Core\Admin\Http\Controllers\Views\Footer\FooterSocialsView;
 use Flute\Core\Admin\Http\Controllers\Views\Footer\FooterView;
 use Flute\Core\Admin\Http\Controllers\Views\IndexView;
@@ -36,11 +40,14 @@ use Flute\Core\Admin\Http\Controllers\Views\NotificationsView;
 use Flute\Core\Admin\Http\Controllers\Views\PagesView;
 use Flute\Core\Admin\Http\Controllers\Views\Payments\PaymentsPromoView;
 use Flute\Core\Admin\Http\Controllers\Views\Payments\PaymentsView;
+use Flute\Core\Admin\Http\Controllers\Views\RedirectsView;
 use Flute\Core\Admin\Http\Controllers\Views\RolesView;
 use Flute\Core\Admin\Http\Controllers\Views\ServersView;
 use Flute\Core\Admin\Http\Controllers\Views\SocialsView;
 use Flute\Core\Admin\Http\Controllers\Views\ThemesView;
 use Flute\Core\Admin\Http\Controllers\Views\TranslatesView;
+use Flute\Core\Admin\Http\Controllers\Views\UpdateView;
+use Flute\Core\Admin\Http\Controllers\Views\UserBlocksView;
 use Flute\Core\Admin\Http\Controllers\Views\UsersView;
 use Flute\Core\Admin\Http\Controllers\Views\NavbarView;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
@@ -52,9 +59,16 @@ $router->group(function ($router) {
     $router->middleware(HasPermissionMiddleware::class);
 
     $router->group(function (RouteGroup $admin) {
-        $admin->get('', [IndexView::class, 'index']);
+        // $admin->get('', [IndexView::class, 'index']);
         $admin->get('/', [IndexView::class, 'index']);
+
+        $admin->get('/update', [UpdateView::class, 'index']);
+        $admin->get('/event_testing', [EventTestingView::class, 'index']);
+
+        $admin->get('/dashboard', [IndexView::class, 'dashboard']);
         $admin->get('/settings', [MainSettingsView::class, 'index']);
+
+        $admin->get('/users_blocks', [UserBlocksView::class, 'index']);
 
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->get('/list', [ModulesView::class, 'list']);
@@ -62,6 +76,7 @@ $router->group(function ($router) {
 
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->get('/list', [ThemesView::class, 'list']);
+            $adminModule->get('/edit/{theme}', [ThemesView::class, 'edit']);
         }, '/themes');
 
         $admin->group(function (RouteGroup $adminModule) {
@@ -137,6 +152,12 @@ $router->group(function ($router) {
         }, '/currency');
 
         $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->get('/list', [RedirectsView::class, 'list']);
+            $adminModule->get('/add', [RedirectsView::class, 'add']);
+            $adminModule->get('/edit/{id}', [RedirectsView::class, 'update']);
+        }, '/redirects');
+
+        $admin->group(function (RouteGroup $adminModule) {
             $adminModule->get('/list', [ComposerView::class, 'list']);
             $adminModule->get('/add', [ComposerView::class, 'add']);
         }, '/composer');
@@ -156,8 +177,6 @@ $router->group(function ($router) {
                 $adminSocial->get('/edit/{id}', [FooterSocialsView::class, 'edit']);
             }, '/socials');
         }, '/footer');
-
-        // 
     }, 'admin');
 
     $router->group(function (RouteGroup $admin) {
@@ -166,10 +185,14 @@ $router->group(function ($router) {
         
         $admin->get('/getip', [IPController::class, 'getIP']);
 
-        $admin->post('/recent', [RecentItemsController::class, 'add']);
-        $admin->delete('/recent', [RecentItemsController::class, 'remove']);
+        $admin->post('/update', [UpdateController::class, 'update']);
+        $admin->get('/check-update', [UpdateController::class, 'check']);
+
+        $admin->get('/search/{value}', [AdminSearchController::class, 'search']);
 
         $admin->post('/settings/{tab}', [MainSettingsController::class, 'index']);
+        
+        $admin->post('/event_testing/check', [EventsTestingController::class, 'check']);
 
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->post('/install', [ModulesController::class, 'installFirst']);
@@ -177,6 +200,7 @@ $router->group(function ($router) {
             $adminModule->post('/disable/{key}', [ModulesController::class, 'disable']);
             $adminModule->post('/enable/{key}', [ModulesController::class, 'enable']);
             $adminModule->post('/install/{key}', [ModulesController::class, 'install']);
+            $adminModule->post('/update/{key}', [ModulesController::class, 'update']);
 
             $adminModule->put('/{key}', [ModulesController::class, 'changeSettings']);
 
@@ -191,6 +215,7 @@ $router->group(function ($router) {
             $adminModule->post('/install/{key}', [ThemesController::class, 'install']);
 
             $adminModule->put('/{key}', [ThemesController::class, 'changeSettings']);
+            $adminModule->put('/variables/{key}', [ThemesController::class, 'changeVariables']);
 
             $adminModule->delete('/{key}', [ThemesController::class, 'delete']);
         }, '/themes');
@@ -263,6 +288,12 @@ $router->group(function ($router) {
         }, '/currency');
 
         $admin->group(function (RouteGroup $adminModule) {
+            $adminModule->post('/add', [RedirectsController::class, 'add']);
+            $adminModule->put('/{id}', [RedirectsController::class, 'edit']);
+            $adminModule->delete('/{id}', [RedirectsController::class, 'delete']);
+        }, '/redirects');
+
+        $admin->group(function (RouteGroup $adminModule) {
             $adminModule->delete('/{id}', [ComposerController::class, 'delete']);
             $adminModule->post('/install', [ComposerController::class, 'install']);
             $adminModule->post('/uninstall', [ComposerController::class, 'uninstall']);
@@ -290,6 +321,10 @@ $router->group(function ($router) {
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->put('/{id}', [UsersController::class, 'edit']);
             $adminModule->delete('/{id}', [UsersController::class, 'delete']);
+            $adminModule->post('/{id}/ban', [UsersController::class, 'ban']);
+            $adminModule->post('/{id}/unblock', [UsersController::class, 'unblock']);
+            $adminModule->post('/{id}/take-money', [UsersController::class, 'takeMoney']);
+            $adminModule->post('/{id}/give-money', [UsersController::class, 'giveMoney']);
         }, '/users');
 
         $admin->group(function (RouteGroup $adminModule) {

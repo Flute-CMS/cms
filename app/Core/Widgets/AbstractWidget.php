@@ -161,7 +161,7 @@ abstract class AbstractWidget implements WidgetInterface
     }
 
     /**
-     * Set widget reload time
+     * Set widget reload time in seconds
      * 
      * @param int $reloadTime
      * 

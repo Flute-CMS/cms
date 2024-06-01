@@ -428,7 +428,7 @@
         "login_error" => "Ungültiges Login-Format",
         "role_priority_error" => "Die Rolle \"role\" hat eine höhere Priorität als Ihre",
         "cannot_remove_highest_role" => "Sie können keine Rolle mit der gleichen Priorität wie Ihre löschen!",
-        "delete_permission_error" => "Gemäß den Berechtigungen, die du aufwächst, schauen wir mal",
+        "permission_error" => "Gemäß den Berechtigungen, die du aufwächst, schauen wir mal",
         "cannot_delete_self" => "Sie können sich nicht selbst löschen!",
         "invoices" => [
             "title" => "Rechnungen",

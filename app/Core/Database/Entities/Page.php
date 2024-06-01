@@ -31,7 +31,7 @@ class Page
     /** @Column(type="string") */
     public $title;
 
-    /** @Column(type="string", nullable=true) */
+    /** @Column(type="text", nullable=true) */
     public $description;
 
     /** @Column(type="string", nullable=true) */
@@ -43,7 +43,7 @@ class Page
     /** @Column(type="string", nullable=true) */
     public $og_title;
 
-    /** @Column(type="string", nullable=true) */
+    /** @Column(type="text", nullable=true) */
     public $og_description;
 
     /** @Column(type="string", nullable=true) */

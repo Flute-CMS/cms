@@ -12,8 +12,7 @@ class WidgetParser implements ParserInterface
         try {
             $widget = widgets()->get($array['loader']);
 
-            if( $widget->isLazyLoad() )
-            {
+            if ($widget->isLazyLoad()) {
                 $containerDiv = Html::el('div');
                 $containerDiv->id = $id;
                 $containerDiv->setHtml(widgets()->loadAndRenderWidget($array['loader'], $this->normalizeSettings($array['settings']), $id));
@@ -26,7 +25,7 @@ class WidgetParser implements ParserInterface
             logs()->error($e);
 
             flash()->set('warning', __('def.widget_has_errors', ['%name%' => $array['name']]));
-        } 
+        }
     }
 
     protected function normalizeSettings(array $settings)

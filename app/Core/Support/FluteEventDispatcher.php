@@ -61,7 +61,8 @@ class FluteEventDispatcher extends EventDispatcher
 
         foreach ($deferredListeners as $eventName => $listeners) {
             foreach ($listeners as $listenerData) {
-                $this->addListener($eventName, $listenerData['listener'], $listenerData['priority']);
+                if (is_callable($listenerData['listener']))
+                    $this->addListener($eventName, $listenerData['listener'], $listenerData['priority']);
             }
         }
 

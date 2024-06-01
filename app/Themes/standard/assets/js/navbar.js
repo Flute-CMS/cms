@@ -61,7 +61,7 @@ function initializeEventHandlers() {
         let activeElement = document.activeElement;
         let isContentEditable =
             activeElement &&
-            activeElement.getAttribute('contenteditable') === 'true';
+            activeElement.hasAttribute('contenteditable');
 
         // Проверяем, нажаты ли модификаторы (Ctrl, Alt, Meta)
         if (
@@ -365,8 +365,8 @@ async function updateNotifications() {
 
     let notifications =
         NOTIFICATIONS_MODE && NOTIFICATIONS_MODE === 'all'
-            ? getAllNotifications()
-            : getNotifications();
+            ? await getAllNotifications()
+            : await getNotifications();
 
     let count = 0;
     for (let date in notifications) {
@@ -374,7 +374,7 @@ async function updateNotifications() {
 
         // Get or create notification block for this date
         let notificationBlock = $(
-            `#notification_block_${date.replace(/[-.]/g, '')}`,
+            `#notification_block_${date.replace(/[^0-9]/g, '')}`,
         );
         if (notificationBlock.length === 0) {
             // Block doesn't exist, so create it
@@ -484,7 +484,7 @@ function emptyNotifications() {
 function createNotificationBlock(date) {
     let notificationBlock = $('<div>', {
         class: 'notifications_items',
-        id: `notification_block_${date.replace(/[-.]/g, '')}`,
+        id: `notification_block_${date.replace(/[^0-9]/g, '')}`,
     });
     let notificationSpan = $('<span>', {
         class: 'notifications_span',

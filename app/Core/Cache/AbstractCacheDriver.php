@@ -69,7 +69,7 @@ abstract class AbstractCacheDriver implements CacheInterface
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function set(string $key, $value, int $ttl = null): bool
+    public function set(string $key, $value, $ttl = null): bool
     {
         $item = $this->cache->getItem($key);
 
@@ -133,7 +133,7 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * @throws InvalidArgumentException
      */
-    public function callback(string $key, callable $callback, int $ttl = null)
+    public function callback(string $key, callable $callback, $ttl = null)
     {
         // Проверяем, есть ли уже кэш для этого ключа
         $item = $this->cache->getItem($key)->expiresAfter($ttl);

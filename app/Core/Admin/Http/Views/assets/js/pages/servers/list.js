@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     function ajaxModuleAction(url, method, data = {}) {
         $.ajax({
             url: url,
@@ -12,7 +12,7 @@ $(document).ready(function () {
                     message: response.success ?? translate('def.success'),
                 });
 
-                setTimeout(() => window.location.reload(), 1000);
+                refreshCurrentPage()
             },
             error: function (xhr, status, error) {
                 toast({
@@ -25,9 +25,9 @@ $(document).ready(function () {
         });
     }
 
-    $(document).on('click', '.action-button.delete', function () {
+    $(document).on('click', '.servers-action-buttons .action-button.delete', async function () {
         let serverId = $(this).data('deleteserver');
-        if (confirm(translate('admin.servers.confirm_delete')))
+        if (await asyncConfirm(translate('admin.servers.confirm_delete')))
             ajaxModuleAction(u('admin/api/servers/' + serverId), 'DELETE');
     });
 });

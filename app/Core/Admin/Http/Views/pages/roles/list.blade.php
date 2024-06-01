@@ -59,7 +59,7 @@
             @endforeach
         </ul>
 
-        <button id="save" class="btn primary size-s mt-4">@t('def.save')</button>
+        <button id="saveRoles" class="btn primary size-s mt-4">@t('def.save')</button>
     @else
         <div class="table_empty">
             @t('def.no_results_found')
@@ -70,8 +70,8 @@
 @push('footer')
     <script src="https://SortableJS.github.io/Sortable/Sortable.js"></script>
     <script>
-        const adminRoleId = {{ $priority->id }};
-        const adminRolePriority = {{ $priority->priority }};
+        var adminRoleId = {{ $priority->id }};
+        var adminRolePriority = {{ $priority->priority }};
     </script>
     @at('Core/Admin/Http/Views/assets/js/pages/roles/list.js')
 @endpush

@@ -10,7 +10,6 @@ use Cycle\ORM\Factory;
 use Cycle\ORM\ORM;
 use Cycle\ORM\Schema as ORMSchema;
 use Spiral\Database\DatabaseManager;
-use Spiral\Migrations\Capsule;
 use Spiral\Migrations\Config\MigrationConfig;
 use Spiral\Migrations\Exception\MigrationException;
 use Spiral\Migrations\FileRepository;
@@ -142,7 +141,6 @@ class DatabaseConnection
         $schemaNeedsUpdate = false;
 
         foreach ($newEntities as $entityClass) {
-
             if (!$this->isEntityInSchema($entityClass)) {
                 $schemaNeedsUpdate = true;
                 break;

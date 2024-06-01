@@ -27,7 +27,7 @@ class WidgetController extends AbstractController
                 "html" => $widget->render($params['settings'])
             ]);
         } catch (\RuntimeException $e) {
-            logs()->error($e->getMessage());
+            logs()->error($e);
             return $this->error(app()->debug() ? $e->getMessage() : 'Widget loader error.');
         } catch (DecryptException $e) {
             return $this->error('Invalid params for widget');

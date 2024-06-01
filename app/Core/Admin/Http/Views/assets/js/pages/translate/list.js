@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     let paramIndexes = {};
 
     $('.translations-container').each(function () {
@@ -6,14 +6,17 @@ $(document).ready(function () {
         paramIndexes[lang] = 0;
     });
 
-    $(document).on('click', '.addParam', function () {
+    $(document).on('click', '.addParam', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         const lang = $(this).data('lang');
         paramIndexes[lang]++;
         appendParamFields(lang, paramIndexes[lang]);
     });
 
     function appendParamFields(lang, index, key = '', value = '') {
-        $(`#${lang} .parametersContainer`).append(`
+        $(`#${lang} .translatesParametersContainer`).append(`
             <div class="param-group" id="param-group-${lang}-${index}">
                 <input type="text" name="paramNames[]" class="form-control" placeholder="Key" value="${key}" required>
                 <input type="text" name="paramValues[]" class="form-control" placeholder="Value" value="${value}" required>
@@ -22,14 +25,17 @@ $(document).ready(function () {
         `);
     }
 
-    $(document).on('click', '.removeParam', function () {
+    $(document).on('click', '.translatesParametersContainer .removeParam', function (e) {
+        e.stopPropagation();
+
         let lang = $(this).data('lang');
         let id = $(this).data('id');
         $(`#param-group-${lang}-${id}`).remove();
     });
 
-    $('.translations a').on('click', function (e) {
+    $(document).on('click', '.translations a', function (e) {
         e.preventDefault();
+        e.stopPropagation();
 
         let selectedLang = $(this).data('lang');
 
@@ -40,7 +46,9 @@ $(document).ready(function () {
         $('#' + selectedLang).show();
     });
 
-    $('[data-save]').on('click', function () {
+    $(document).on('click', '[data-save="translations"]', function (e) {
+        e.stopPropagation();
+
         let allTranslations = {};
 
         $('.translations-container > div').each(function () {

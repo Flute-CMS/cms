@@ -497,5 +497,14 @@ Modals.addParser('form', (formConfig, modalContent) => {
     return form;
 });
 
+Modals.addParser('faq', (params, modalContent) => {
+    const container = document.createElement('div');
+    container.className = 'faq-container';
+    const answer = document.createElement('p');
+    answer.innerHTML = params.answer;
+    container.appendChild(answer);
+    return container;
+});
+
 const toast = ({ message, type = 'info', duration = 3000 }) =>
     Modals.toast({ message, type, duration });

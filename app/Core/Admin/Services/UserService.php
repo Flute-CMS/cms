@@ -4,6 +4,7 @@ namespace Flute\Core\Admin\Services;
 
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\Role;
+use Flute\Core\Database\Entities\UserBlock;
 use Nette\Utils\Validators;
 use Nette\Utils\AssertionException;
 
@@ -18,6 +19,7 @@ class UserService
      */
     public function editUser(array $input, string $userId): array
     {
+        /** @var User */
         $user = rep(User::class)->findByPK((int) $userId);
 
         if (!$user) {
@@ -35,7 +37,7 @@ class UserService
         if (!$this->canEditUser($currentUser, $user)) {
             return [
                 'status' => 'error',
-                'message' => __('admin.users.edit_permission_error'),
+                'message' => __('admin.users.permission_error'),
                 'code' => 403
             ];
         }
@@ -49,10 +51,10 @@ class UserService
 
         // Update user fields
         $user->name = $input['name'];
-        $user->email = $input['email'];
-        $user->login = $input['login'];
         $user->uri = empty($input['uri']) ? null : $input['uri'];
         $user->balance = $input['balance'];
+        $user->login = empty($input['login']) ? null : $input['login'];
+        $user->email = empty($input['email']) ? null : $input['email'];
 
         $currentUserHighestPriority = $this->getCurrentUserHighestPriority(user()->getCurrentUser());
         $user->clearRoles();
@@ -75,7 +77,7 @@ class UserService
 
         transaction($user)->run();
 
-        return ['status' => 'success', 'message' => 'User updated successfully', 'code' => 200];
+        return ['status' => 'success', 'message' => __('def.success'), 'code' => 200];
     }
 
     /**
@@ -100,7 +102,7 @@ class UserService
         if (!$this->canEditUser($currentUser, $userToDelete)) {
             return [
                 'status' => 'error',
-                'message' => __('admin.users.delete_permission_error'),
+                'message' => __('admin.users.permission_error'),
                 'code' => 403
             ];
         }
@@ -111,6 +113,141 @@ class UserService
         transaction($userToDelete, 'delete')->run();
 
         return ['status' => 'success', 'message' => __('admin.users.deleted_successfully'), 'code' => 200];
+    }
+
+    /**
+     * Ban a user.
+     *
+     * @param int $userId User ID
+     * @param int $duration Duration of the ban in seconds
+     * @param string $reason Reason for the ban
+     * @param User $currentUser Current logged-in user
+     * @return array Result of the operation
+     */
+    public function banUser(int $userId, int $duration, string $reason, User $currentUser): array
+    {
+        $userToBan = rep(User::class)->findByPK($userId);
+
+        if (!$userToBan) {
+            return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
+        }
+
+        if (!$this->canEditUser($currentUser, $userToBan)) {
+            return [
+                'status' => 'error',
+                'message' => __('admin.users.permission_error'),
+                'code' => 403
+            ];
+        }
+
+        $block = new UserBlock();
+        $block->user = $userToBan;
+        $block->blockedBy = $currentUser;
+        $block->reason = $reason;
+        $block->blockedFrom = new \DateTime();
+        $block->blockedUntil = $duration > 0 ? (new \DateTime())->modify("+{$duration} seconds") : null;
+
+        transaction($block)->run();
+
+        user()->log('events.user_banned', $userToBan->id);
+
+        return ['status' => 'success', 'message' => __('admin.users.banned_successfully'), 'code' => 200];
+    }
+
+    /**
+     * Unblock a user.
+     *
+     * @param int $userId User ID
+     * @param User $currentUser Current logged-in user
+     * @return array Result of the operation
+     */
+    public function unblockUser(int $userId, User $currentUser): array
+    {
+        $userToUnblock = rep(User::class)->findByPK($userId);
+
+        if (!$userToUnblock) {
+            return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
+        }
+
+        if (!$this->canEditUser($currentUser, $userToUnblock)) {
+            return [
+                'status' => 'error',
+                'message' => __('admin.users.permission_error'),
+                'code' => 403
+            ];
+        }
+
+        foreach ($userToUnblock->blocksReceived as $block) {
+            if ($block->blockedUntil === null || $block->blockedUntil > new \DateTime()) {
+                transaction($block, 'delete')->run();
+            }
+        }
+
+        user()->log('events.user_unbanned', $userToUnblock->id);
+
+        return ['status' => 'success', 'message' => __('admin.users.unblocked_successfully'), 'code' => 200];
+    }
+
+    /**
+     * Give money to a user.
+     *
+     * @param int $userId User ID
+     * @param float $amount Amount to give
+     * @param User $currentUser Current logged-in user
+     * @return array Result of the operation
+     */
+    public function giveMoney(int $userId, float $amount, User $currentUser): array
+    {
+        $user = rep(User::class)->findByPK($userId);
+
+        if (!$user) {
+            return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
+        }
+
+        if (!$this->canEditUser($currentUser, $user)) {
+            return ['status' => 'error', 'message' => __('admin.users.permission_error'), 'code' => 403];
+        }
+
+        if ($amount <= 0) {
+            return ['status' => 'error', 'message' => __('admin.users.invalid_amount'), 'code' => 400];
+        }
+
+        $user->balance += $amount;
+
+        transaction($user)->run();
+
+        return ['status' => 'success', 'message' => __('admin.users.money_given_successfully'), 'code' => 200];
+    }
+
+    /**
+     * Take money from a user.
+     *
+     * @param int $userId User ID
+     * @param float $amount Amount to take
+     * @param User $currentUser Current logged-in user
+     * @return array Result of the operation
+     */
+    public function takeMoney(int $userId, float $amount, User $currentUser): array
+    {
+        $user = rep(User::class)->findByPK($userId);
+
+        if (!$user) {
+            return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
+        }
+
+        if (!$this->canEditUser($currentUser, $user)) {
+            return ['status' => 'error', 'message' => __('admin.users.permission_error'), 'code' => 403];
+        }
+
+        if ($amount <= 0 || $amount > $user->balance) {
+            return ['status' => 'error', 'message' => __('admin.users.invalid_amount'), 'code' => 400];
+        }
+
+        $user->balance -= $amount;
+
+        transaction($user)->run();
+
+        return ['status' => 'success', 'message' => __('admin.users.money_taken_successfully'), 'code' => 200];
     }
 
     public function getHighestPriorityRole(User $user): ?Role

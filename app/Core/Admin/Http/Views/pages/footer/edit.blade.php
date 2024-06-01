@@ -11,19 +11,25 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/footer/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/footer/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.footer.edit_title', [
                 'name' => $footer->title,
             ])</h2>
             <p>@t('admin.footer.edit_description')</p>
         </div>
+        <div>
+            <button data-deleteaction="{{ $footer->id }}" data-deletepath="footer" class="btn size-s error outline">
+                @t('def.delete')
+            </button>
+        </div>
     </div>
 
-    <form id="edit">
+    <form id="footEdit">
         @csrf
         <input type="hidden" name="id" value="{{ $footer->id }}">
         <div class="position-relative row form-group">

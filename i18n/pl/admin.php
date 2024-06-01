@@ -428,7 +428,7 @@
         "login_error" => "Nieprawidłowy format logowania",
         "role_priority_error" => "Rola 'role' ma wyższy priorytet niż Twój",
         "cannot_remove_highest_role" => "Nie możesz usunąć roli równorzędnego z Twoim priorytetem!",
-        "delete_permission_error" => "Jak dorosniesz do praw, to zobaczymy",
+        "permission_error" => "Jak dorosniesz do praw, to zobaczymy",
         "cannot_delete_self" => "Nie możesz usunąć siebie!",
         "invoices" => [
             "title" => "Doładowania",

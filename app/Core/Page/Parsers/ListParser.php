@@ -27,7 +27,14 @@ class ListParser implements ParserInterface
         $list = Html::el($listType);
 
         foreach ($items as $itemData) {
-            $item = Html::el('li')->setHtml($itemData['content']);
+            $item = Html::el('li');
+
+            if (!empty($itemData['checked'])) {
+                $checkbox = Html::el('div')->class('editor-checkbox');
+                $item->addHtml($checkbox);
+            }
+
+            $item->addHtml($itemData['content']);
             $list->addHtml($item);
 
             // Generate nested list

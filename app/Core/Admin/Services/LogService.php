@@ -52,7 +52,7 @@ class LogService
             $logContent .= $this->getLastLogEntries($loggerConfig['path']) . "\n\n";
         }
 
-        $tempFilePath = tempnam(sys_get_temp_dir(), 'log');
+        $tempFilePath = BASE_PATH . 'storage/logs/' . now()->format('m-d-y-h-i-s') . '.log';
         FileSystem::write($tempFilePath, $logContent);
 
         return $tempFilePath;

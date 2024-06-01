@@ -1,4 +1,12 @@
 function serializeForm($form) {
+    if (
+        $form.closest('.tab-content:not([hidden])').length === 0 &&
+        $form.closest('.modal').length === 0
+    ) {
+        console.log('Форма находится в скрытой вкладке и не будет обработана.');
+        return {};
+    }
+
     let formData = $form.serializeArray();
     let paramObj = {};
     let additionalParams = {};
@@ -38,8 +46,13 @@ function serializeForm($form) {
         }
     });
 
-    if ($('#editorAce').length > 0) {
-        paramObj.editorContent = ace.edit('editorAce').getValue();
+    if (
+        $form.find('.editor-ace').length > 0 &&
+        !$form.find('.editor-ace').closest('.tab-content[hidden]').length
+    ) {
+        paramObj.editorContent = ace
+            .edit($form.find('.editor-ace')[0])
+            .getValue();
     }
 
     // Assign additional parameters to a specific key, or directly to paramObj
@@ -48,37 +61,67 @@ function serializeForm($form) {
     return paramObj;
 }
 
-function sendRequest(data, path = null, method = 'POST') {
+function replaceURLForTab(url) {
+    return url
+        .replace(/\/(edit|delete|add)\/\d+$/, '/list')
+        .replace('/add', '/list');
+}
+
+function transformUrl(url) {
+    const regex = /admin\/api\/([^\/]+\/?[^\/]*)\/(\d+)/;
+
+    const match = url.match(regex);
+    if (match) {
+        const page = match[1];
+        const id = match[2];
+
+        return `/admin/${page}/edit/${id}`;
+    } else {
+        return url;
+    }
+}
+
+function sendRequest(data, path = null, method = 'POST', callback) {
     let result = null;
+
+    // if (method !== 'DELETE' && Object.keys(data).length === 0) return;
 
     $.ajax({
         url: u(path),
         type: method,
         data: data,
-        async: false,
         success: function (response) {
             toast({
                 message: response?.success || translate('def.success'),
                 type: 'success',
             });
 
+            callback && callback(response);
+
             result = response;
 
             Modals.clear();
 
             if (method === 'DELETE') {
-                window.location.reload();
-            } else {
-                if (!path.includes('admin/api/settings')) {
-                    $('button[type="submit"]').attr('disabled', true);
+                tryAndDeleteTab(transformUrl(path));
 
-                    setTimeout(() => {
-                        if ('referrer' in document) {
-                            window.location = document.referrer;
-                        } else {
-                            window.history.back();
-                        }
-                    }, 2000);
+                refreshCurrentPage();
+            } else {
+                refreshCurrentPage();
+
+                if (!path.includes('admin/api/settings')) {
+                    // $('button[type="submit"]').attr('disabled', true);
+
+                    if (
+                        path.includes('edit') ||
+                        path.includes('add') ||
+                        path.includes('delete')
+                    )
+                        fetchContentAndAddTab(
+                            replaceURLForTab(window.location.pathname),
+                        );
+
+                    refreshCurrentPage();
                 }
             }
         },
@@ -91,6 +134,8 @@ function sendRequest(data, path = null, method = 'POST') {
             });
 
             result = jqXHR.responseJSON;
+
+            callback && callback(jqXHR);
         },
     });
 
@@ -98,6 +143,12 @@ function sendRequest(data, path = null, method = 'POST') {
 }
 
 function serializeFormData($form) {
+    // Ensure form is in an active (visible) tab content
+    if ($form.closest('.tab-content:not([hidden])').length === 0) {
+        console.log('Form is in a hidden tab and will not be processed.');
+        return null; // Form is in a hidden tab, do not process data
+    }
+
     let formData = new FormData($form[0]);
     let additionalParams = {};
 
@@ -111,13 +162,17 @@ function serializeFormData($form) {
         }
     });
 
-    // Добавляем неотмеченные чекбоксы
+    // Add unchecked checkboxes
     $form.find('input[type="checkbox"]').each(function () {
         formData.set(this.name, this.checked);
     });
 
-    if ($('#editorAce').length > 0) {
-        formData.set('editorContent', ace.edit('editorAce').getValue());
+    // Include editor content if applicable
+    if ($form.find('.editor-ace').length > 0) {
+        formData.set(
+            'editorContent',
+            ace.edit($form.find('.editor-ace')[0]).getValue(),
+        );
     }
 
     // Append additional parameters to formData
@@ -144,23 +199,32 @@ function sendRequestFormData(data, path = null, method = 'POST') {
                 type: 'success',
             });
 
+            callback && callback(response);
+
             result = response;
 
             Modals.clear();
 
             if (method === 'DELETE') {
-                window.location.reload();
-            } else {
-                if (!path.includes('admin/api/settings')) {
-                    $('button[type="submit"]').attr('disabled', true);
+                tryAndDeleteTab(transformUrl(path));
 
-                    setTimeout(() => {
-                        if ('referrer' in document) {
-                            window.location = document.referrer;
-                        } else {
-                            window.history.back();
-                        }
-                    }, 2000);
+                refreshCurrentPage();
+            } else {
+                refreshCurrentPage();
+
+                if (!path.includes('admin/api/settings')) {
+                    // $('button[type="submit"]').attr('disabled', true);
+
+                    if (
+                        path.includes('edit') ||
+                        path.includes('add') ||
+                        path.includes('delete')
+                    )
+                        fetchContentAndAddTab(
+                            replaceURLForTab(window.location.pathname),
+                        );
+
+                    refreshCurrentPage();
                 }
             }
         },
@@ -173,27 +237,36 @@ function sendRequestFormData(data, path = null, method = 'POST') {
             });
 
             result = jqXHR.responseJSON;
+
+            callback && callback(jqXHR);
         },
     });
 
     return result;
 }
 
-$(document).ready(function () {
-    if ($('#editorAce').length > 0) {
-        let editor = ace.edit('editorAce');
+$(function () {
+    $('.editor-ace').each(function () {
+        let editor = ace.edit(this);
         editor.setTheme('ace/theme/solarized_dark');
         editor.session.setMode('ace/mode/json');
-    }
+    });
 
-    $(document).on('submit', '[data-form]', (ev) => {
+    $(document).on('submit', '[data-form]', async (ev) => {
         let $form = $(ev.currentTarget);
 
         ev.preventDefault();
 
+        if ($form.closest('.tab-content:not([hidden])').length === 0) {
+            console.log('Ignoring submission from a hidden tab.');
+            return;
+        }
+
         let path = $form.data('form'),
             form = serializeForm($form),
             page = $form.data('page');
+
+        if (!form) return;
 
         let url = `admin/api/${page}/${path}`,
             method = 'POST';
@@ -203,25 +276,80 @@ $(document).ready(function () {
             method = 'PUT';
         }
 
+        let activeEditorElement = $form.find('[data-editorjs]');
+
+        if (activeEditorElement) {
+            let editorId = activeEditorElement.attr('id');
+            let activeEditor = window['editorInstance_' + editorId];
+
+            if (activeEditor) {
+                let editorData = await activeEditor.save();
+                form['blocks'] = JSON.stringify(editorData.blocks);
+
+                localStorage.removeItem('editorData_' + editorId);
+                window.defaultEditorData[editorId] = {};
+            }
+        }
+
         if (ev.target.checkValidity()) {
             sendRequest(form, url, method);
         }
     });
 
-    $(document).on('click', '[data-deleteaction]', function () {
+    $(document).on('click', '[data-deleteaction]', async function () {
         let id = $(this).data('deleteaction'),
             path = $(this).data('deletepath');
 
-        if (confirm(translate('admin.confirm_delete'))) {
+        if (await asyncConfirm(translate('admin.confirm_delete'))) {
             sendRequest({}, 'admin/api/' + path + '/' + id, 'DELETE');
 
             // $(this).parent().parent().parent().remove();
         }
     });
 
-    $('#icon').on('input', function () {
+    $(document).on('input', '#icon', function () {
         let val = $(this).val().trim();
         $('#icon-output').html(val);
     });
+
+    $(document).on('click', '[data-faq]', (e) => {
+        e.preventDefault();
+
+        let el = $(e.currentTarget);
+
+        const title = el.data('faq');
+        const answer = el.data('faq-content');
+
+        const content = {
+            faq: {
+                answer: answer,
+            },
+        };
+
+        Modals.open({
+            title: title,
+            content,
+        });
+    });
+
+    const container = document.querySelector('.icon-container');
+    const text = container.querySelector('.icon-text');
+
+    container.addEventListener('mouseenter', function () {
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.whiteSpace = 'nowrap';
+        tempSpan.textContent = text.textContent;
+        document.body.appendChild(tempSpan);
+
+        const textWidth = tempSpan.offsetWidth;
+        container.style.width = `${30 + textWidth}px`;
+        document.body.removeChild(tempSpan);
+    });
+
+    container.addEventListener('mouseleave', function () {
+        container.style.width = '35px';
+    });
 });
 
+window.defaultEditorData = {};

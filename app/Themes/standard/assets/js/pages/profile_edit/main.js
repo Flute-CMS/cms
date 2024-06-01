@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
     $('.privacy_container_buttons > button').click(function () {
         let hasClass = $(this).hasClass('active');
 

@@ -5,6 +5,7 @@ namespace Flute\Core\Profile;
 use Flute\Core\Http\Controllers\Profile\EditController;
 use Flute\Core\Http\Controllers\Profile\ImagesController;
 use Flute\Core\Http\Controllers\Profile\IndexController;
+use Flute\Core\Http\Controllers\Profile\ProfileRedirectController;
 use Flute\Core\Http\Controllers\Profile\SocialController;
 use Flute\Core\Http\Middlewares\isAuthenticatedMiddleware;
 use Flute\Core\Http\Middlewares\ProfileChangeMiddleware;
@@ -16,9 +17,9 @@ class ProfileRoutes
     public function register()
     {
         router()->group(function (RouteGroup $group) {
-            $group->middleware(isAuthenticatedMiddleware::class);
-
             $group->group(function (RouteGroup $edit) {
+                $edit->middleware(isAuthenticatedMiddleware::class);
+
                 $edit->group(function (RouteGroup $editMiddleware) {
                     $editMiddleware->middleware(ProfileChangeMiddleware::class);
 
@@ -37,16 +38,23 @@ class ProfileRoutes
                 $edit->add('get', '', [EditController::class, 'index']);
             }, "edit");
 
-            $group->delete('banner', [ImagesController::class, 'removeBanner']);
-            $group->delete('avatar', [ImagesController::class, 'removeAvatar']);
+            $group->group(function (RouteGroup $removeGroup) {
+                $removeGroup->middleware(isAuthenticatedMiddleware::class);
+
+                $removeGroup->delete('banner', [ImagesController::class, 'removeBanner']);
+                $removeGroup->delete('avatar', [ImagesController::class, 'removeAvatar']);
+            });
 
             $group->group(function (RouteGroup $socialGroup) {
+                $socialGroup->middleware(isAuthenticatedMiddleware::class);
+
                 $socialGroup->get('bind/{provider}', [SocialController::class, 'bindSocial']);
                 $socialGroup->get('unbind/{provider}', [SocialController::class, 'unbindSocial']);
 
                 $socialGroup->post('hide/{provider}', [SocialController::class, 'hideSocial']);
             }, "social/");
 
+            $group->add('get', 'search/{value}', [ProfileRedirectController::class, 'search']);
             $group->add('get', '{id}', [IndexController::class, 'index'], [UserExistsMiddleware::class]);
         }, "/profile/");
     }

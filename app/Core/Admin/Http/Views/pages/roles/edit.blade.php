@@ -11,19 +11,25 @@
 @endpush
 
 @push('content')
-    <div class="admin-header d-flex align-items-center">
-        <a href="{{ url('admin/roles/list') }}" class="back_btn">
-            <i class="ph ph-caret-left"></i>
-        </a>
+    <div class="admin-header d-flex justify-content-between align-items-center">
         <div>
+            <a class="back-btn" href="{{ url('admin/roles/list') }}">
+                <i class="ph ph-arrow-left ignore"></i>
+                @t('def.back')
+            </a>
             <h2>@t('admin.roles.edit_title', [
                 'name' => $role->name,
             ])</h2>
             <p>@t('admin.roles.edit_description')</p>
         </div>
+        <div>
+            <button data-deleteaction="{{ $role->id }}" data-deletepath="roles" class="btn size-s error outline">
+                @t('def.delete')
+            </button>
+        </div>
     </div>
 
-    <form id="edit" data-id="{{ $role->id }}">
+    <form id="roleEdit" data-id="{{ $role->id }}">
         @csrf
         <input type="hidden" name="id" value="{{ $role->id }}">
         <div class="position-relative row form-group">
@@ -65,7 +71,7 @@
                                 @if ($role->hasPermission($permission)) checked @endif>
                             <label class="form-check-label" for="permissions[{{ $permission->id }}]">
                                 {{ $permission->name }}
-                                <small>{{ $permission->desc }}</small>
+                                <small>{{ __($permission->desc) }}</small>
                             </label>
                         </div>
                     @endforeach

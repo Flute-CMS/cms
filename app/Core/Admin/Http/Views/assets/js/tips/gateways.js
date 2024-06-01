@@ -1,14 +1,14 @@
 if (GATEWAY_PAGE) {
-    const driverObj = driver({
+    const driverObjGateways = driver({
         nextBtnText: '<i class="ph ph-arrow-right"></i>',
         prevBtnText: '<i class="ph ph-arrow-left"></i>',
         doneBtnText: '<i class="ph ph-x"></i>',
-        onDestroyStarted: () => {
+        onDestroyStarted: async () => {
             if (
-                !driverObj.hasNextStep() ||
-                confirm(translate('tutorial.are_you_sure'))
+                !driverObjGateways.hasNextStep() ||
+                await asyncConfirm(translate('tutorial.are_you_sure'))
             ) {
-                driverObj.destroy();
+                driverObjGateways.destroy();
                 completeTip('admin_gateways');
             }
         },
@@ -184,16 +184,16 @@ if (GATEWAY_PAGE) {
         ],
     });
 } else {
-    const driverObj = driver({
+    const driverObjGateways = driver({
         nextBtnText: '<i class="ph ph-arrow-right"></i>',
         prevBtnText: '<i class="ph ph-arrow-left"></i>',
         doneBtnText: '<i class="ph ph-x"></i>',
         onDestroyStarted: () => {
             if (
-                !driverObj.hasNextStep() ||
+                !driverObjGateways.hasNextStep() ||
                 confirm(translate('tutorial.are_you_sure'))
             ) {
-                driverObj.destroy();
+                driverObjGateways.destroy();
                 completeTip('admin_gateways');
             }
         },
@@ -219,4 +219,4 @@ if (GATEWAY_PAGE) {
     });
 }
 
-driverObj.drive();
+driverObjGateways.drive();
