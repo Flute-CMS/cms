@@ -2,6 +2,7 @@
   
 [<kbd><br>🌐 Русский README<br><br></kbd>](./README_RU.md)
 [<kbd><br>🌐 English README<br><br></kbd>](./README.md)
+[<kbd><br>🌐 Português README<br><br></kbd>](./README_BR.md)
 </div>
 
 <hr />
@@ -16,11 +17,11 @@
 <br />
 <br />
 <p align="center">
-  <a href="https://demo.flute-cms.com/">🌍 Flute DEMO</a> •
-    <a href="https://docs.flute-cms.com/">📖 Docs</a> •
+  <a href="https://demo.flute-cms.com">🌍 Flute DEMO</a> •
+    <a href="https://docs.flute-cms.com">📖 Docs</a> •
     <a href="https://discord.gg/BcBMeVJJsd">💬 Discord</a>
     <br /><br />
-   <a href="https://github.com/Flute-CMS/cms/releases/">
+   <a href="https://github.com/Flute-CMS/cms/releases">
         <img src="https://img.shields.io/github/release/Flute-CMS/cms.svg" alt="Latest release" />
     </a>
   &nbsp;
@@ -69,6 +70,7 @@ To successfully install and run Flute, ensure your system meets the following re
 # 🚀 Installation of Flute
 
 ### On a VDS (Virtual Dedicated Server):
+
 1. Download Flute from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload the files to your server.
 3. Use the command:
@@ -77,14 +79,17 @@ To successfully install and run Flute, ensure your system meets the following re
    ```
    to install dependencies.
 4. Configure your web server (Apache/Nginx) and the database.
-
+&nbsp;
 ### On Shared Hosting:
+
+> [!TIP]
+> Watch the video tutorial for installation [here](https://www.youtube.com/watch?v=PCSjl2w7A9k)
+
 1. Download Flute and the `vendor` folder from [releases](https://github.com/Flute-CMS/cms/releases).
 2. Upload them to your hosting via FTP or the hosting provider's file manager.
 3. Configure the web server on your hosting to point to the Flute folder.
 
 ![gif_install](https://github.com/Flute-CMS/cms/assets/62756604/62b8a0cb-c7ed-431b-981c-470304c1fbd8)
-
 
 Both installations require setting up the database and configuring Flute.
 
@@ -93,6 +98,7 @@ Both installations require setting up the database and configuring Flute.
 📚 Visit our [documentation](https://docs.flute-cms.com/docs/what_it) for detailed instructions on installation, customization, and module & template development.
 
 &nbsp;
+
 # 👨‍💻 Looking for Opportunities
 
 If you need a skilled developer for your projects, reach out to me on (My stack is React / TS / Node / PHP / JS):
@@ -104,7 +110,6 @@ If you need a skilled developer for your projects, reach out to me on (My stack 
 # 📦 Free Modules List
 
 Discover our range of free modules available for Flute:
-
 - [News module](https://github.com/Flute-CMS/news): Allows you to create news in the Flute
 - [Monitoring](https://github.com/Flute-CMS/monitoring): Gets information about servers and displays it in a widget
 - [Bans And Comms](https://github.com/Flute-CMS/BansComms): Displays the list of bans and mutes on a separate page
@@ -114,8 +119,8 @@ Discover our range of free modules available for Flute:
 
 These modules are designed to enhance your Flute experience and are available at no cost.
 
-
 &nbsp;
+
 # 🆘 Getting help
 
 Need help with installation, customization, or development? Join our [Discord](https://discord.gg/BcBMeVJJsd) for assistance! Report bugs or issues on:
@@ -125,5 +130,5 @@ Need help with installation, customization, or development? Join our [Discord](h
 &nbsp;
 
 # ⭐ Like what you see? Give us a star!
-![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)
 
+![flute-gif](https://github.com/Flute-CMS/cms/assets/62756604/87d18227-41ac-4a7d-9210-d46b9fd56049)
