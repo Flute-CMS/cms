@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+if (version_compare(PHP_VERSION, '7.4.0', '<')) {
+    exit('Flute requires PHP version 7.4 or higher.');
+}
+
+if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
+    exit('Folder "vendor" wasn\'t found. Please, check your files again');
+}
+
 use Flute\Core\App;
 use Flute\Core\ServiceProviders\AdminServiceProvider;
 use Flute\Core\ServiceProviders\AuthServiceProvider;
@@ -40,10 +48,6 @@ use Flute\Core\ServiceProviders\UserServiceProvider;
 use Flute\Core\ServiceProviders\ViewServiceProvider;
 use Flute\Core\ServiceProviders\WidgetServiceProvider;
 use Flute\Core\ServiceProviders\EmailServiceProvider;
-
-if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
-    exit('Folder "vendor" wasn\'t found. Please, check your files again');
-}
 
 /**
  * Include the composer autoloader

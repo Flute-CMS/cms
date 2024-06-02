@@ -89,7 +89,7 @@ class User
     public $created_at;
 
     /**
-     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
+     * @Column(type="timestamp", nullable=true)
      */
     public $last_logged;
 

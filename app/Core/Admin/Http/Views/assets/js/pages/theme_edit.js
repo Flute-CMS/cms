@@ -1,9 +1,10 @@
+var pickerInstances = {};
+
 function updateValue($element, id, value) {
     let unit = id === 'transition' ? 's' : 'px';
     $element.find('#' + id + '-value').text(value + unit);
     $('#theme-editor').css('--' + id, value + unit);
 
-    // Обновление --range у родительского элемента с классом range-control
     let percentage =
         ((value - parseFloat($element.find('#' + id).attr('min'))) /
             (parseFloat($element.find('#' + id).attr('max')) -
@@ -25,7 +26,6 @@ function parseColors() {
     if (!editor) return;
 
     const editorId = editor.getAttribute('id');
-    const pickrInstances = {};
 
     // Initialize Pickr for each color input
     editor.querySelectorAll('.color-picker').forEach(function (pickerElement) {
@@ -73,7 +73,7 @@ function parseColors() {
             },
         });
 
-        pickrInstances[colorVariable] = pickr;
+        pickerInstances[colorVariable] = pickr;
 
         pickr.on('change', (color, source, instance) => {
             const rgbaColor = color.toRGBA().toString();
@@ -84,8 +84,6 @@ function parseColors() {
             pickerElement.value = rgbaColor;
         });
     });
-
-    window.pickrInstances = pickrInstances;
 }
 
 function addUnitsToProperties(settings) {
@@ -125,6 +123,7 @@ $(function () {
                 let $this = $(this).find('input[type="range"]');
                 initRange($(this), $this.attr('id'));
             });
+
             parseColors();
         });
 
@@ -151,7 +150,7 @@ $(function () {
             });
 
         // Get values from Pickr instances
-        for (const [key, pickr] of Object.entries(window.pickrInstances)) {
+        for (const [key, pickr] of Object.entries(pickerInstances)) {
             const color = pickr.getColor().toRGBA().toString();
             themeSettings[key] = color;
         }

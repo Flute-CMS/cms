@@ -80,7 +80,7 @@ class IndexView extends AbstractController
     protected function buildWeekArea()
     {
         $startDate = new \DateTime('monday this week');
-        $endDate = new \DateTime('friday this week');
+        $endDate = new \DateTime('sunday this week');
 
         // Запрос к базе данных
         $payments = rep(PaymentInvoice::class)->select()
@@ -113,7 +113,7 @@ class IndexView extends AbstractController
     protected function buildRegistrationsArea()
     {
         $startDate = new \DateTime('monday this week');
-        $endDate = (new \DateTime('friday this week'))->setTime(23, 59, 59);
+        $endDate = (new \DateTime('sunday this week'))->setTime(23, 59, 59);
 
         // Запрос к базе данных
         $userRegistrations = rep(User::class)->select()

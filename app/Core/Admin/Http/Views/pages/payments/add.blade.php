@@ -65,7 +65,7 @@
             <div class="col-sm-3 col-form-label">
                 <label for="handleUrl">Handle URL</label>
             </div>
-            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="handleUrl" type="text" class="form-control" readonly
                     value="{{ url('/api/lk/handle/' . array_key_first($drivers)) }}"
                     data-copy="{{ url('/api/lk/handle/' . array_key_first($drivers)) }}">
@@ -83,7 +83,7 @@
             <div class="col-sm-3 col-form-label">
                 <label for="successUrl">Success URL</label>
             </div>
-            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="successUrl" type="text" class="form-control" readonly value="{{ url('/lk/success') }}"
                     data-copy="{{ url('/lk/success') }}">
             </div>
@@ -92,7 +92,7 @@
             <div class="col-sm-3 col-form-label">
                 <label for="failUrl">Fail URL</label>
             </div>
-            <div class="col-sm-9" data-tooltip="Copy" data-tooltip-conf="top">
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="failUrl" type="text" class="form-control" readonly value="{{ url('/lk/fail') }}"
                     data-copy="{{ url('/lk/fail') }}">
             </div>

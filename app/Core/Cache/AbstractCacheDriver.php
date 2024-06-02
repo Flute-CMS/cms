@@ -73,16 +73,16 @@ abstract class AbstractCacheDriver implements CacheInterface
     {
         $item = $this->cache->getItem($key);
 
-        // Если кэша с таким ключом нет, устанавливаем новое значение
-        if (!$item->isHit()) {
-            $item->set($value);
-            $item->expiresAfter($ttl);
-            return $this->cache->save($item);
+        $item->set($value);
+        $item->expiresAfter($ttl);
+        $result = $this->cache->save($item);
+
+        if (!$result) {
+            logs()->error("ERROR SAVE CACHE - $key");
         }
 
-        return false;
+        return $result;
     }
-
 
     /**
      * Удаляет значение из кэша по ключу

@@ -198,6 +198,7 @@ class PaymentsView extends AbstractController
                                 $gatewayClassShortName = substr($filename, 0, -4);
                                 $gatewayClass = $namespace . $gatewayClassShortName;
 
+
                                 if (payments()->gatewayExists($gatewayClass) && !Strings::startsWith($gatewayClassShortName, 'Abstract')) {
                                     $gatewayInstance = new $gatewayClass();
 

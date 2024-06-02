@@ -3,7 +3,6 @@
 namespace Flute\Core\Services;
 
 use Flute\Core\Database\Entities\EventNotification;
-use Flute\Core\Database\Entities\Notification;
 
 class EventNotifications
 {
@@ -15,38 +14,99 @@ class EventNotifications
         $events = rep(EventNotification::class)->findAll();
 
         foreach ($events as $event) {
-            events()->addDeferredListener($event->event, function ($eventInstance) use ($event) {
-                $notification = new Notification;
-                $notification->content = $this->replaceContent($event->content, $eventInstance);
-                $notification->url = $event->url;
-                $notification->user = user()->getCurrentUser();
-                $notification->icon = $event->icon;
-                $notification->title = $event->title;
-
-                notification()->create($notification);
-            });
+            events()->addDeferredListener($event->event, [$this, 'handleEvent']);
         }
     }
 
-    private function replaceContent(string $content, $event)
+    public static function handleEvent($eventInstance)
     {
-        $content = $this->replaceUserContent($content);
+        if ($eventInstance::NAME) {
+            $events = rep(EventNotification::class)->select()->where('event', $eventInstance::NAME)->fetchAll();
 
-        return preg_replace_callback('/\{(.*?)\}/', function ($matches) use ($event) {
-            $parts = explode('.', $matches[1]);
-            if (count($parts) == 2 && method_exists($event, $parts[0])) {
-                return $event->{$parts[0]}()->{$parts[1]};
-            } elseif (count($parts) == 1 && method_exists($event, $parts[0])) {
-                return $event->{$parts[0]}();
-            } elseif (property_exists($event, $matches[1])) {
-                return $event->{$matches[1]};
-            } else {
-                return $matches[0];
+            foreach ($events as $event) {
+                $table = db()->table('notifications');
+
+                $table->insertOne([
+                    'content' => self::replaceContent($event->content, $eventInstance),
+                    'icon' => $event->icon,
+                    'url' => $event->url,
+                    'title' => $event->title,
+                    'user_id' => user()->getCurrentUser()->id,
+                    'created_at' => new \DateTime()
+                ]);
             }
+        }
+    }
+
+    private static function replaceContent(string $content, $eventInstance): string
+    {
+        $content = self::replaceUserContent($content);
+
+        return preg_replace_callback('/\{(.*?)\}/', function ($matches) use ($eventInstance) {
+            return self::evaluateExpression($matches[1], $eventInstance);
         }, $content);
     }
 
-    private function replaceUserContent(string $content)
+    private static function evaluateExpression($expression, $eventInstance)
+    {
+        if (preg_match('/^(\w+)\((.*?)\)$/', $expression, $matches)) {
+            $func = $matches[1];
+            $args = self::parseArguments($matches[2]);
+            if (function_exists($func)) {
+                $result = call_user_func_array($func, $args);
+                return is_object($result) ? self::getNestedProperty($result, array_slice(explode('.', $expression), 1)) : $result;
+            }
+        }
+
+        $parts = explode('.', $expression);
+        return self::getNestedProperty($eventInstance, $parts);
+    }
+
+    private static function getNestedProperty($object, array $parts)
+    {
+        $current = $object;
+
+        foreach ($parts as $part) {
+            if (preg_match('/(\w+)\((.*?)\)$/', $part, $matches)) {
+                $func = $matches[1];
+                $args = self::parseArguments($matches[2]);
+                if (is_object($current) && method_exists($current, $func)) {
+                    $current = call_user_func_array([$current, $func], $args);
+                } elseif (function_exists($func)) {
+                    $current = call_user_func_array($func, $args);
+                } else {
+                    return '{' . implode('.', $parts) . '}';
+                }
+            } elseif (is_object($current)) {
+                if (method_exists($current, $part)) {
+                    $current = $current->{$part}();
+                } elseif (property_exists($current, $part)) {
+                    $current = $current->{$part};
+                } else {
+                    return '{' . implode('.', $parts) . '}';
+                }
+            } else {
+                return '{' . implode('.', $parts) . '}';
+            }
+        }
+
+        return $current;
+    }
+
+    private static function parseArguments($argsString)
+    {
+        $args = [];
+        if (!empty($argsString)) {
+            $parts = explode(',', $argsString);
+            foreach ($parts as $part) {
+                $part = trim($part, " \t\n\r\0\x0B'\"");
+                $args[] = $part;
+            }
+        }
+        return $args;
+    }
+
+    private static function replaceUserContent(string $content)
     {
         return str_replace(['{name}', '{login}', '{email}', '{balance}'], [
             user()->getCurrentUser()->name,

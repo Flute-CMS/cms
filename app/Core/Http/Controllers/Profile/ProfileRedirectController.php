@@ -12,9 +12,9 @@ class ProfileRedirectController extends AbstractController
     {
         $redirectUrl = $request->input('else-redirect', null);
 
-        $user = rep(UserSocialNetwork::class)->findOne([
+        $user = rep(UserSocialNetwork::class)->select()->where([
             'value' => $value
-        ]);
+        ])->load('user')->fetchOne();
 
         if (!empty($redirectUrl) && empty($user))
             return redirect($redirectUrl);

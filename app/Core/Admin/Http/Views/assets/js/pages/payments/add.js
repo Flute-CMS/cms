@@ -45,7 +45,7 @@ $(function() {
     $(document).on('change', '#adapter', function () {
         var paymentSystem = $(this).val();
         var handleUrl = u(`api/lk/handle/${paymentSystem}`); // Example URL format
-        $('#handleUrl').val(handleUrl);
+        $('#handleUrl').val(handleUrl).attr('data-copy', handleUrl);
         updateParameters();
     });
 
