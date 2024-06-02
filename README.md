@@ -34,6 +34,7 @@
 
 <a href="https://demo.flute-cms.com">
   <img src="https://github.com/Flute-CMS/cms/assets/62756604/f117eb2a-2ecb-45cd-b2b8-c54ac98897d7" alt="Flute dashboard"/>
+
 </a>
 <p align="center">
   👀 Example of dashboard
