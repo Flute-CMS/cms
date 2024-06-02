@@ -33,7 +33,7 @@
 <hr />
 
 <a href="https://demo.flute-cms.com">
-  <img src="https://github.com/Flute-CMS/cms/assets/62756604/930f27ab-825e-44a4-81dc-5511f881d733" alt="Flute dashboard"/>
+  <img src="https://github.com/Flute-CMS/cms/assets/62756604/f117eb2a-2ecb-45cd-b2b8-c54ac98897d7" alt="Flute dashboard"/>
 </a>
 <p align="center">
   👀 Example of dashboard
