@@ -17,7 +17,7 @@
             "profile" => "Profil",
             "replenishment" => "Toʻldirish",
             "summing_up" => "Necha dona...",
-          ],
+        ],
         "description" => [
             "system_settings_intro" => "Keling, qanday tizim sozlamalari va ular nima bilan ishlatilishini koʻrib chiqaylik.",
             "system_settings_details" => "Ushbu nuqtada siz asosiy vosita sozlamalarini oʻzgartirishingiz mumkin. Muhim narsalarni oʻzgartirish muhim taʻsir koʻrsatadi, shuning uchun ishonchingiz komil boʻlgan narsani oʻzgartiring",
@@ -36,8 +36,8 @@
             "profile_settings" => "Bu yerda profildagi foydalanuvchilar uchun turli xil sozlamalarni sozlashingiz mumkin. Kiring va hamma narsani oʻzingiz tushunib olasiz",
             "balance_replenishment_settings" => "Ushbu element balansni toʻldirish uchun ishlatiladigan sozlamalarni saqlaydi. Koʻrsatiladigan valyuta yoki minimal toʻldirish miqdori va h.k.lar.",
             "tour_ending" => "Ishonmayman, lekin biz asosiy joylar boʻyicha sayohatimizni yakunladik. Bilaman, buni hazm qilish biroz qiyin, lekin men sizga ishonaman, siz albatta uddalaysiz!",
-          ],
-     ],
+        ],
+    ],
     "admin_stats" => [
         "title" => [
             "sidebar" => "Yon panel",
@@ -50,7 +50,7 @@
             "version" => "Versiya",
             "report_generation" => "Hisobot yaratish",
             "final" => "Hammasi shu!",
-          ],
+        ],
         "description" => [
             "sidebar" => "Keling, administrator panelining asosiy navigatsiya panelini koʻrib chiqamiz. Qani, boshladik!",
             "main_menu" => "Ushbu menyuda muhim tizim sozlamalari bilan bogʻliq elementlar mavjud",
@@ -62,8 +62,8 @@
             "version" => "Bu yerda oʻrnatilgan Flutening versiyasi koʻrsatilgan. Shuningdek, kelajakda Fluteni toʻgʻridan-toʻgʻri boshqaruv panelidan yangilash mumkin boʻladi",
             "report_generation" => "Ushbu tugma tizim haqida batafsil hisobot yaratish imkonini beradi. Agar siz tizim xatosi haqida kimgadir maʻlumot yuborishingiz kerak boʻlsa, unda ushbu arxiv xabarga qoʻshilishi kerak",
             "final" => "Men sizga administrator panelidagi asosiy komponentlarni aytdim. Turli sahifalarda sizni boshqa maslahatlar kutmoqda. Foydalanishda omad tilaymiz!",
-          ],
-     ],
+        ]
+    ],
     "home" => [
         "title" => [
             "editor_mode_title" => "Tahrirlash rejimi",
@@ -72,7 +72,7 @@
             "editor_toolbar" => "Muharrir vositalari",
             "save_button" => "Saqlash",
             "editor_course_completed" => "Muharrir kursi yakunlandi",
-          ],
+        ],
         "description" => [
             "editor_mode" => "CMS har bir sahifa uchun tahrirlash rejimiga ega, bu bizga toʻliq moslashtirish imkonini beradi.",
             "editor_title" => "Bu yerda tahrir qilinadigan sahifaning nomi koʻrsatilgan",
@@ -80,24 +80,24 @@
             "editor_toolbar" => "Chapda siz mavjud blokni qoʻshishingiz yoki oʻzgartirishingiz mumkin",
             "save_button" => "Maʻlumotlarni oʻzgartirgandan soʻng, ushbu tugmani bosish orqali saqlashni unutmang",
             "editor_course_completed" => "Bu muharrirning asosiy tushunchasi uchun bilishingiz kerak boʻlgan hamma narsa. Qoʻshimcha maʻlumot olish uchun rasmiy hujjatlarga qarang",
-          ],
-     ],
-     "composer" => [
+        ],
+    ],
+    "composer" => [
         "title" => [
             "composer" => "Composer qanday ishlaydi?",
             "what_is_this" => "Bu nima?",
             "and_then" => "Va keyin?",
-            "package_list" => "Paketlar ro'yxati",
-            "deletion" => "O'chirish",
-            "practice" => "Amaliyotga o'taylik",
+            "package_list" => "Paketlar roʻyxati",
+            "deletion" => "Oʻchirish",
+            "practice" => "Amaliyotga oʻtaylik",
         ],
         "description" => [
-            "composer" => "Composer paketlar menejeri jamoat kutubxonalarini o'rnatishga imkon beradi",
-            "what_is_this" => "Paketlar menejeri <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> jamoat kutubxonalarini o'rnatishga imkon beradi",
-            "and_then" => "Bu paketlar modullar yoki shablonlarni ishlab chiqishda juda foydali bo'ladi. Aslida, siz admin-panel orqali deyarli hamma narsani qo'shishingiz mumkin!",
-            "package_list" => "Bu yerda tizimga o'rnatilgan barcha paketlar joylashgan. Agar siz qaysi paket nima uchun javobgarligini bilmagan bo'lsangiz, HECH NARSA TEKSHIRMANG",
-            "deletion" => "Har bir paket tizimdan o'chirilishi mumkin. Bu narsa biror narsani o'rnatgan bo'lsangiz va u boshqa narsa bilan ziddiyatga kirsa yoki umuman foydalanish talab qilinmasa foydali",
-            "practice" => "Birinchi paketimizni qo'shaylik",
+            "composer" => "Composer paketlar menejeri jamoat kutubxonalarini oʻrnatishga imkon beradi",
+            "what_is_this" => "Paketlar menejeri <a href=\"https://packagist.org/\" target=\"_blank\">composer</a> jamoat kutubxonalarini oʻrnatishga imkon beradi",
+            "and_then" => "Bu paketlar modullar yoki shablonlarni ishlab chiqishda juda foydali boʻladi. Aslida, siz admin-panel orqali deyarli hamma narsani qoʻshishingiz mumkin!",
+            "package_list" => "Bu yerda tizimga oʻrnatilgan barcha paketlar joylashgan. Agar siz qaysi paket nima uchun javobgarligini bilmagan boʻlsangiz, HECH NARSA TEKSHIRMANG",
+            "deletion" => "Har bir paket tizimdan oʻchirilishi mumkin. Bu narsa biror narsani oʻrnatgan boʻlsangiz va u boshqa narsa bilan ziddiyatga kirsa yoki umuman foydalanish talab qilinmasa foydali",
+            "practice" => "Birinchi paketimizni qoʻshaylik",
         ],
     ],  
 ];

@@ -14,11 +14,13 @@
     "submit_reset_success" => "Parolni tiklash havolasi yuborildi",
     "submit_reset_error" => "Formani yuborishda xatolik yuz berdi",
     "duplicate_login" => "Bu loginga ega foydalanuvchi allaqachon mavjud",
+    "with_best" => "Hurmat bilan, <br> :name",
+    "dear" => "Hurmatli :name,",
     "errors" => [
         "user_not_found" => "Foydalanuvchi topilmadi",
         "social_not_found" => "Ijtimoiy tarmoq topilmadi",
         "unknown" => "Nomaʻlum xato",
-     ],
+    ],
     "reset" => [
         "title" => "Parolni tiklash",
         "subject" => "Parolni tiklash",
@@ -26,7 +28,8 @@
         "changed" => "Parol muvaffaqiyatli almashtirildi",
         "token_not_found" => "Parolni tiklash tokeni topilmadi",
         "token_expired" => "Parolni tiklash tokeni muddati tugagan",
-     ],
+        "message" => "Hisobingiz uchun parolni tiklash boʻyicha soʻrov oldik. Agar siz ushbu soʻrovni yubormagan boʻlsangiz, bu xabarni eʻtiborsiz qoldiring. Aks holda, quyidagi tugmani bosish orqali parolingizni tiklashingiz mumkin."
+    ],
     "auth" => [
         "title" => "Kirish",
         "login" => "Login yoki Email",
@@ -35,12 +38,15 @@
         "enter_password" => "Parolni kiriting",
         "button" => "Kirish",
         "via_login" => "Yoki",
-     ],
+    ],
     "confirmation" => [
         "subject" => "Akkauntni tasdiqlash",
         "success" => "Tasdiqlash muvaffaqiyatli boʻldi",
         "verify_old" => "Tasdiqlash allaqachon tugallangan yoki muddati tugagan",
-     ],
+        "verify_account" => "Akkauntni tasdiqlang",
+        "ignore" => "Agar siz bizning veb-saytimizda roʻyxatdan oʻtmagan boʻlsangiz, iltimos, ushbu xatga eʻtibor bermang.",
+        "thanks_for_register" => "Saytimizda roʻyxatdan oʻtganingiz uchun tashakkur! Saytimizning barcha imkoniyatlaridan foydalanishni boshlashdan oldin, iltimos, quyidagi tugmani bosish orqali hisobingizni tasdiqlang."
+    ],
     "registration" => [
         "title" => "Ro‘yxatdan o‘tish",
         "login" => "Login",
@@ -62,5 +68,5 @@
         "name_max_length" => "Ism uzunligi length belgi(-lar)dan oshmasligi kerak",
         "password_min_length" => "Parolda kamida length uzunlikdagi belgi(-lar) bo‘lishi kerak",
         "password_max_length" => "Parol uzunligi length belgi(-lar)dan oshmasligi kerak",
-     ],
+    ],
 ];
