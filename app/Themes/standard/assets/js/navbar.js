@@ -12,8 +12,8 @@ let batchTimeout,
 
 $(document).ready(async () => {
     initializeEventHandlers();
-    // updateNotifications();
-    // setInterval(updateNotifications, 25000);
+    updateNotifications();
+    setInterval(updateNotifications, 25000);
 
     $(document).on('click', function (event) {
         if (!$(event.target).closest('.choose_lang').length) {
