@@ -27,12 +27,12 @@
                                 <div class="footer_link">
                                     <div class="footer_title">
                                         @if (isset($item['url']) && !empty($item['url']))
-                                            {!! __($item['title']) !!}
-                                        @else
                                             <a href="{{ $item['url'] }}"
                                                 @if ($item['new_tab']) target="_blank" @endif>
                                                 {!! __($item['title']) !!}
                                             </a>
+                                        @else
+                                            {!! __($item['title']) !!}
                                         @endif
                                     </div>
 

@@ -37,7 +37,7 @@ class ApiView extends AbstractController
             'clean' => false,
         ]);
 
-        return view("Core/Admin/Http/Views/pages/api/index", [
+        return view("Core/Admin/Http/Views/pages/api/list", [
             'table' => $table->render()
         ]);
     }

@@ -4,6 +4,7 @@ namespace Flute\Core\Http\Controllers\Profile;
 
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\UserSocialNetwork;
+use Flute\Core\DiscordLink\DiscordLinkRoles;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Support\AbstractController;
@@ -22,7 +23,10 @@ class SocialController extends AbstractController
     public function bindSocial(FluteRequest $fluteRequest, string $provider): Response
     {
         try {
-            $userProfile = social()->authenticate(ucfirst($provider), true);
+            $auth = social()->authenticate(ucfirst($provider), true);
+            $token = $auth['adapter']->getAccessToken();
+
+            $userProfile = $auth['profile'];
 
             $duplicateCheck = rep(UserSocialNetwork::class)->select()->load('user')->where([
                 'value' => $userProfile->identifier,
@@ -36,11 +40,24 @@ class SocialController extends AbstractController
             $userSocialNetwork->value = $userProfile->identifier;
             $userSocialNetwork->url = $userProfile->profileURL;
             $userSocialNetwork->name = $userProfile->displayName;
-    
+
             $userSocialNetwork->user = user()->getCurrentUser();
             $userSocialNetwork->socialNetwork = rep(SocialNetwork::class)->findOne(['key' => ucfirst($provider)]);
 
+            if ($token) {
+                $userSocialNetwork->additional = json_encode($token);
+            }
+
             transaction($userSocialNetwork)->run();
+
+            if ($userSocialNetwork->socialNetwork->key === 'Discord') {
+                $user = user()->get(user()->id, true);
+
+                app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+            }
+
+            $auth['adapter']->disconnect();
+            $auth['adapter']->getStorage()->clear();
 
             user()->log('profile.bind_social', $provider);
 
@@ -52,7 +69,7 @@ class SocialController extends AbstractController
         } catch (\Exception $e) {
             logs()->error($e);
 
-            if (app('debug')) {
+            if (is_debug()) {
                 throw $e;
             }
 
@@ -87,7 +104,7 @@ class SocialController extends AbstractController
         if ($countSocialNetworks === 1 && !$socialNetwork->user->password) {
             return redirect()->back()->withErrors(t('profile.errors.social_only_one'));
         }
-        
+
         $lastLinked = $socialNetwork->linkedAt;
         $now = new \DateTime();
 
@@ -98,6 +115,9 @@ class SocialController extends AbstractController
         user()->log('profile.unbind_social', $provider);
 
         transaction($socialNetwork, 'delete')->run();
+
+        if ($provider === 'Discord')
+            app()->get(DiscordLinkRoles::class)->clearRoles(user()->getCurrentUser());
 
         return redirect()->back()->with('success', t('profile.s_social.social_disconnected'));
     }
@@ -141,7 +161,7 @@ class SocialController extends AbstractController
      */
     protected function socialError(string $error): Response
     {
-        return response()->make("<script>;window.opener.postMessage('authorization_error:' + '$error', '*');window.close();</script>");
+        return response()->make("<script>window.opener.postMessage('authorization_error:' + '$error', '*');window.close();</script>");
     }
 
     /**

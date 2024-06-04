@@ -106,19 +106,19 @@ class UpdateController extends AbstractController
 
     protected function clearAllCache()
     {
-        $cachePath = BASE_PATH . '/storage/app/cache/*';
         $proxiesPath = BASE_PATH . '/storage/app/proxies/*';
         $viewsPath = BASE_PATH . '/storage/app/views/*';
         $translationsPath = BASE_PATH . '/storage/app/translations/*';
         $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
         $jsCachePath = BASE_PATH . '/public/assets/js/cache/*';
 
-        $this->deleteFs($cachePath);
         $this->deleteFs($proxiesPath);
         $this->deleteFs($viewsPath);
         $this->deleteFs($translationsPath);
         $this->deleteFs($cssCachePath);
         $this->deleteFs($jsCachePath);
+
+        cache()->clear();
     }
 
     protected function deleteFs($path)

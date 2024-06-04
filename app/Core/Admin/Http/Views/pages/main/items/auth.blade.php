@@ -79,6 +79,21 @@
         </div>
     </div>
 
+    <!-- Токен безопасности -->
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="check_ip">
+                @t('admin.auth_form.check_ip')
+            </label>
+            <small class="form-text text-muted">@t('admin.auth_form.check_ip_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="check_ip" role="switch" id="check_ip" type="checkbox" class="form-check-input"
+                {{ config('auth.check_ip') ? 'checked' : '' }}>
+            <label for="check_ip"></label>
+        </div>
+    </div>
+
     <!-- Регистрация -->
     <!-- Подтверждение Email -->
     <div class="position-relative row form-group">

@@ -32,7 +32,7 @@
                                 @if ($item['icon'])
                                     <i class="item-icon ph {!! $item['icon'] !!}"></i>
                                 @endif
-                                <span class="badge">{{ $item['id'] }} - {{ $item['title'] }}</span>
+                                <span class="badge">{{ $item['id'] }} - {{ __($item['title']) }}</span>
                             </span>
 
                             <div class="sortable-buttons">
@@ -60,7 +60,7 @@
                                                 <i class="item-icon ph {!! $child['icon'] !!}"></i>
                                             @endif
 
-                                            <span class="badge">{{ $child['id'] }} - {{ $child['title'] }}</span>
+                                            <span class="badge">{{ $child['id'] }} - {{ __($child['title']) }}</span>
                                         </span>
 
                                         <div class="sortable-buttons">

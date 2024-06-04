@@ -27,6 +27,7 @@ class UserService
     protected ?User $currentUser = null;
     protected AuthService $authService;
     protected ?UserRepository $userRepository = null;
+    protected array $usersCache = [];
 
     /**
      * UserService constructor.
@@ -62,12 +63,15 @@ class UserService
             if (empty($tokenInfo->user))
                 return $this->sessionExpired();
 
-            if ((bool) config('auth.security_token') !== true || (bool) config('auth.security_token') === true && ($tokenInfo && $_SERVER['HTTP_USER_AGENT'] === $tokenInfo->userDevice->deviceDetails && $tokenInfo->userDevice->ip === request()->ip())) {
+            if ((bool) config('auth.security_token') !== true || (bool) config('auth.security_token') === true && ($tokenInfo && $_SERVER['HTTP_USER_AGENT'] === $tokenInfo->userDevice->deviceDetails)) {
+                if (config('auth.check_ip') && $tokenInfo->userDevice->ip !== request()->ip()) {
+                    return $this->sessionExpired();
+                }
+
                 $this->currentUser = $this->get($tokenInfo->user->id);
                 session()->set('user_id', $tokenInfo->user->id);
             } else
                 $this->sessionExpired();
-
         } catch (\Exception $e) {
             logs()->info($e);
             $this->sessionExpired();
@@ -92,9 +96,13 @@ class UserService
         }
     }
 
-    public function getByRoute(string $route)
+    public function getByRoute(string $route, bool $force = false) : ?User
     {
-        return $this->getUserRepository()->select()
+        if (isset($this->usersCache[$route]) && !$force) {
+            return $this->usersCache[$route];
+        }
+
+        $db = $this->getUserRepository()->select()
             ->load([
                 'socialNetworks',
                 'socialNetworks.socialNetwork',
@@ -106,11 +114,23 @@ class UserService
             ])->fetchOne([
                     "uri" => $route
                 ]);
+
+        if ($db) {
+            $this->usersCache[$db->id] = $db;
+        }
+
+        $this->usersCache[$route] = $db;
+
+        return $this->usersCache[$route];
     }
 
-    public function get(int $userId)
+    public function get(int $userId, bool $force = false) : ?User
     {
-        return $this->getUserRepository()->select()
+        if (isset($this->usersCache[$userId]) && !$force) {
+            return $this->usersCache[$userId];
+        }
+
+        $db = $this->getUserRepository()->select()
             ->load([
                 'socialNetworks',
                 'socialNetworks.socialNetwork',
@@ -122,6 +142,14 @@ class UserService
             ])->fetchOne([
                     "id" => $userId
                 ]);
+
+        if ($db) {
+            $this->usersCache[$db->getUrl()] = $db;
+        }
+
+        $this->usersCache[$userId] = $db;
+
+        return $this->usersCache[$userId];
     }
 
     /**
@@ -132,9 +160,9 @@ class UserService
      */
     protected function sessionExpired()
     {
-        session()->clear();
-        flash()->add('info', 'Your session has expired, try logging in again.');
         cookie()->remove('remember_token');
+        session()->clear();
+        flash()->add('info', __('validator.session_expired'));
 
         if ($this->getUserToken())
             $this->authService->deleteAuthToken($this->getUserToken());
@@ -362,7 +390,7 @@ class UserService
         if (!$this->isLoggedIn())
             return;
 
-        $user = $userId !== 0 ? rep(User::class)->findByPK($userId) : $this->currentUser;
+        $user = $userId !== 0 ? user()->get($userId) : $this->currentUser;
 
         if (!$user)
             throw new UserNotFoundException;

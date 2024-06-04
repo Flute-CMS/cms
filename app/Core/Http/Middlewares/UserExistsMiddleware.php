@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Http\Middlewares;
 
-use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\AbstractMiddleware;
 use Flute\Core\Support\FluteRequest;
 
@@ -12,9 +11,11 @@ class UserExistsMiddleware extends AbstractMiddleware
     {
         $profileId = $request->input('id');
 
-        $user = rep(User::class)->findOne([
-            is_numeric($profileId) ? 'id' : 'uri' => $profileId
-        ]);
+        if( is_numeric($profileId) ) {
+            $user = user()->get(intval($profileId));
+        } else {
+            $user = user()->getByRoute($profileId);
+        }
 
         abort_if(!empty($user), 404);
 

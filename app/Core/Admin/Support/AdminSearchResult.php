@@ -8,8 +8,8 @@ class AdminSearchResult implements AdminSearchResultInterface
 {
     protected ?string $url = null;
     protected ?string $title = null;
-    protected ?string $icon = null;
-    protected ?string $category = null;
+    protected ?string $icon = "";
+    protected ?string $category = "";
 
     /**
      * SearchResult constructor.

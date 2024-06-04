@@ -1067,7 +1067,7 @@ function changeTabIcon(tabEl, container, isLoading) {
         faviconEl.innerHTML = '<span class="tabLoader"></span>';
     } else {
         let originalIcon = tabEl.getAttribute('data-original-icon');
-        if (!originalIcon) {
+        // if (!originalIcon) {
             const tabUrl = tabEl.getAttribute('data-tab-url');
             const matchingLinkIcon = document.querySelector(
                 `.sidebar-menu a[href="${tabUrl}"] i`,
@@ -1075,7 +1075,7 @@ function changeTabIcon(tabEl, container, isLoading) {
             if (matchingLinkIcon) {
                 originalIcon = matchingLinkIcon.outerHTML;
             }
-        }
+        // }
 
         if (originalIcon) {
             faviconEl.innerHTML = originalIcon;

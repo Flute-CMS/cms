@@ -18,7 +18,7 @@ class FooterSocialsView extends AbstractController
 
     public function add(FluteRequest $request)
     {
-        return view("Core/Admin/Http/Views/pages/footer/social/add");
+        return view("Core/Admin/Http/Views/pages/footer/socials/add");
     }
 
     public function list(FluteRequest $request)
@@ -99,7 +99,7 @@ class FooterSocialsView extends AbstractController
 
         $table->setData($socials);
 
-        return view("Core/Admin/Http/Views/pages/footer/social/list", [
+        return view("Core/Admin/Http/Views/pages/footer/socials/list", [
             'socials' => $table->render()
         ]);
     }
@@ -111,7 +111,7 @@ class FooterSocialsView extends AbstractController
         if (!$item)
             return $this->error(__('admin.footer.not_found'), 404);
 
-        return view("Core/Admin/Http/Views/pages/footer/social/edit", [
+        return view("Core/Admin/Http/Views/pages/footer/socials/edit", [
             "item" => $item,
         ]);
     }

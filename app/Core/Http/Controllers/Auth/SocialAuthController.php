@@ -36,7 +36,7 @@ class SocialAuthController extends AbstractController
         catch (\Exception $e) {
             logs()->error($e);
         
-            if( app('debug') )
+            if( is_debug() )
                 throw $e;
 
             return $this->error(__('auth.errors.unknown'));

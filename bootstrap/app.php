@@ -71,9 +71,9 @@ $app->setBasePath(BASE_PATH);
  * Initializes the service providers
  */
 $app->serviceProvider(new FileSystemServiceProvider)
+    ->serviceProvider(new RequestServiceProvider)
     ->serviceProvider(new ConfigurationServiceProvider)
     ->serviceProvider(new LoggerServiceProvider)
-    ->serviceProvider(new RequestServiceProvider)
     ->serviceProvider(new CacheServiceProvider)
     ->serviceProvider(new EventsServiceProvider)
     ->serviceProvider(new TracyBarServiceProvider)

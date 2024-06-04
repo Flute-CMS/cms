@@ -37,4 +37,13 @@ class SocialNetwork
 
     /** @Column(type="boolean", default=false) */
     public $enabled;
+
+    public function getSettings()
+    {
+        if( empty( $this->settings ) ) {
+            return [];
+        }
+
+        return json_decode($this->settings, true)['keys']; // throw??
+    }
 }

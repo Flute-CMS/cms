@@ -12,8 +12,8 @@ let batchTimeout,
 
 $(document).ready(async () => {
     initializeEventHandlers();
-    updateNotifications();
-    setInterval(updateNotifications, 25000);
+    // updateNotifications();
+    // setInterval(updateNotifications, 25000);
 
     $(document).on('click', function (event) {
         if (!$(event.target).closest('.choose_lang').length) {
@@ -60,8 +60,7 @@ function initializeEventHandlers() {
 
         let activeElement = document.activeElement;
         let isContentEditable =
-            activeElement &&
-            activeElement.hasAttribute('contenteditable');
+            activeElement && activeElement.hasAttribute('contenteditable');
 
         // Проверяем, нажаты ли модификаторы (Ctrl, Alt, Meta)
         if (
@@ -606,6 +605,14 @@ function toggleMiniprofileExpanded() {
 
 function toggleLangContainer() {
     toggleMiniprofile();
+
+    const langContainer = $('.miniprofile_langs_container');
+    const baseContainer = $('.miniprofile_base');
+
+    if (!langContainer.is(':visible')) {
+        langContainer.show();
+        baseContainer.hide();
+    }
 }
 
 function toggleLang() {

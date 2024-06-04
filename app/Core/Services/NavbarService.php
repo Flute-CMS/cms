@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Services;
 
+use Cycle\ORM\RepositoryInterface;
 use Flute\Core\App;
 use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Navbar\NavbarItemFormat;
@@ -9,8 +10,9 @@ use Flute\Core\Navbar\NavbarItemFormat;
 class NavbarService
 {
     private NavbarItemFormat $format; // Class to format navbar items
-    protected array $cachedNavbarItems; // Array to hold navbar items
+    protected array $cachedNavbarItems;
     protected bool $performance;
+    protected $navbarItemRepository;
     protected const CACHE_TIME = 24 * 60 * 60;
     public const CACHE_KEY = 'flute.navbar.items';
 
@@ -63,8 +65,7 @@ class NavbarService
      */
     protected function getDefaultNavbarItems(): array
     {
-        $repository = rep(NavbarItem::class);
-        $navbarItems = $repository->select()->load('roles')->orderBy('position', 'asc')->where([
+        $navbarItems = $this->getNavbarItemRepository()->select()->load('roles')->orderBy('position', 'asc')->where([
             'parent_id' => null,
         ])->fetchAll();
 
@@ -90,8 +91,7 @@ class NavbarService
      */
     protected function getChildren(int $parentId): array
     {
-        $repository = rep(NavbarItem::class);
-        $children = $repository->select()->load('roles')->orderBy('position', 'asc')->where([
+        $children = $this->getNavbarItemRepository()->select()->load('roles')->orderBy('position', 'asc')->where([
             'parent_id' => $parentId,
         ])->fetchAll();
 
@@ -143,5 +143,15 @@ class NavbarService
 
         // By default, the item is not accessible
         return false;
+    }
+
+    protected function getNavbarItemRepository()
+    {
+        if ($this->navbarItemRepository !== null)
+            return $this->navbarItemRepository;
+
+        $navbarItemRepository = rep(NavbarItem::class);
+
+        return $this->navbarItemRepository = $navbarItemRepository;
     }
 }

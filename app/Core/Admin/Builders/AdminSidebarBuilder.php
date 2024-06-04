@@ -6,6 +6,7 @@ use Flute\Core\Admin\AdminBuilder;
 use Flute\Core\Admin\Contracts\AdminBuilderInterface;
 use Flute\Core\Admin\Contracts\AdminSearchResultInterface;
 use Flute\Core\Admin\Events\AdminSearchEvent;
+use Flute\Core\Admin\Services\BladeFileParser;
 use Flute\Core\Admin\Support\AdminSearchResult;
 
 /**
@@ -280,31 +281,46 @@ class AdminSidebarBuilder implements AdminBuilderInterface
     public function searchSidebarItem(AdminSearchEvent $searchEvent): void
     {
         $query = mb_strtolower($searchEvent->getValue());
-        $result = [];
+        // $result = [];
 
-        foreach (self::$items as $category => $items) {
-            foreach ($items as $item) {
-                if (isset($item['title']) && stripos(mb_strtolower(__($item['title'])), $query) !== false && self::hasAccess($item) && isset($item['url'])) {
-                    $result[] = $this->formatSearchResult($item);
-                }
+        // foreach (self::$items as $category => $items) {
+        //     foreach ($items as $item) {
+        //         if (isset($item['title']) && stripos(mb_strtolower(__($item['title'])), $query) !== false && self::hasAccess($item) && isset($item['url'])) {
+        //             $result[] = $this->formatSearchResult($item);
+        //         }
 
-                if (isset($item['items']) && is_array($item['items'])) {
-                    if (!self::hasAccess($item)) {
-                        continue;
-                    }
+        //         if (isset($item['items']) && is_array($item['items'])) {
+        //             if (!self::hasAccess($item)) {
+        //                 continue;
+        //             }
 
-                    foreach ($item['items'] as $subItem) {
-                        if (isset($subItem['title']) && stripos(mb_strtolower(__($subItem['title'])), $query) !== false && self::hasAccess($subItem)) {
-                            $result[] = $this->formatSearchResult($subItem, $item['title']);
-                        }
-                    }
-                }
-            }
-        }
+        //             foreach ($item['items'] as $subItem) {
+        //                 if (isset($subItem['title']) && stripos(mb_strtolower(__($subItem['title'])), $query) !== false && self::hasAccess($subItem)) {
+        //                     $result[] = $this->formatSearchResult($subItem, $item['title']);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        foreach ($result as $searchResult) {
+        $parser = new BladeFileParser(BASE_PATH . 'app/Core/Admin/Http/Views/pages', $query);
+        $parser->cachePhrases();
+
+        $filesWithPhrases = $parser->searchPhrasesInCache();
+        $associations = $parser->getAssociations($filesWithPhrases);
+
+        foreach( $associations as $assoc ) {
+            $searchResult = new AdminSearchResult;
+            $searchResult->setTitle($assoc['phrase']);
+            $searchResult->setUrl($assoc['association']['path']);
+            $searchResult->setCategory($assoc['association']['association']);
+
             $searchEvent->add($searchResult);
         }
+
+        // foreach ($result as $searchResult) {
+        //     $searchEvent->add($searchResult);
+        // }
     }
 
     /**

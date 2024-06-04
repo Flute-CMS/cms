@@ -93,19 +93,37 @@
         </div>
     </div>
 
-    <!-- Ключ -->
-    {{-- <div class="position-relative row form-group">
-        <div class="col-sm-3 col-form-label required">
-            <label for="key">
-                @t('admin.app.key_label')
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="maintenance_mode">
+                <div class="may_unstable" data-tooltip="@t('admin.app.will_close_site')" data-tooltip-conf="right multiline"
+                    data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.app.maintenance_warning')">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.app.maintenance_mode')
             </label>
-            <small class="form-text text-muted">@t('admin.app.key_description')</small>
+            <small class="form-text text-muted">@t('admin.app.maintenance_mode_description')</small>
         </div>
         <div class="col-sm-9">
-            <input name="key" id="key" placeholder="@t('admin.app.key_label')" type="password" class="form-control"
-                value="{{ config('app.key') }}" required>
+            <input name="maintenance_mode" role="switch" id="maintenance_mode" type="checkbox" class="form-check-input"
+                {{ config('app.maintenance_mode') == true ? 'checked' : '' }}>
+            <label for="maintenance_mode"></label>
         </div>
-    </div> --}}
+    </div>
+
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="discord_link_roles">
+                @t('admin.app.discord_link_roles')
+            </label>
+            <small class="form-text text-muted">@t('admin.app.discord_link_roles_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="discord_link_roles" role="switch" id="discord_link_roles" type="checkbox" class="form-check-input"
+                {{ config('app.discord_link_roles') == true ? 'checked' : '' }}>
+            <label for="discord_link_roles"></label>
+        </div>
+    </div>
 
     <!-- Подсказки -->
     <div class="position-relative row form-group">

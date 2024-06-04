@@ -215,4 +215,6 @@
     'minutes' => 'minutes|min|minutes|minutes',
     'hours' => 'hours|hour|hours|hours',
     'days' => 'days|day|days|days',
+    "discord_role_id" => "ID of the Role in Flute",
+    "discord_role_desc" => "This role will be automatically issued in Discord"
 ];

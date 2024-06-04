@@ -168,8 +168,10 @@
     top: 50%;
     left: 50%;
     z-index: 1000;
+    visibility: hidden;
 
     &[open] {
+        visibility: visible;
         animation: widgetSettingsAnimation .3s forwards;
     }
 

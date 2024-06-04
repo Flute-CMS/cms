@@ -62,7 +62,7 @@
             <div class="profile_up_info">
                 <div class="profile_up_name">
                     <h2>{{ $user->name }}</h2>
-                    <p @if((now()->getTimestamp() - $user->last_logged->getTimestamp()) <= 600) class="online-profile" @endif>{{ $last_logged }}</p>
+                    <p @if (now()->getTimestamp() - $user->last_logged->getTimestamp() <= 600) class="online-profile" @endif>{{ $last_logged }}</p>
                     @if (user()->hasPermission('admin.users') || $user->id == user()->id)
                         <p>@t('def.balance'): {{ $user->balance }} {{ app('lk.currency_view') }}</p>
                     @endif
@@ -70,7 +70,7 @@
                 @if (sizeof($user->socialNetworks) > 0)
                     <div class="profile_up_socials">
                         @foreach ($user->socialNetworks as $network)
-                            @if ((bool) $network->hidden !== true || user()->hasPermission('admin.users'))
+                            @if (((bool) $network->hidden !== true || user()->hasPermission('admin.users')) && !empty($network->url))
                                 <a href="{{ $network->url }}" target="_blank">
                                     <div data-tooltip="{{ $network->socialNetwork->key }}" data-tooltip-conf="top">
                                         {!! $network->socialNetwork->icon !!}

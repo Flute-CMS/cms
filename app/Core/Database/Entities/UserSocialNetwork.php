@@ -31,6 +31,9 @@ class UserSocialNetwork
      */
     public $linkedAt;
 
+    /** @Column(type="json", nullable=true) */
+    public $additional;
+
     public function __construct()
     {
         $this->linkedAt = new \DateTime();

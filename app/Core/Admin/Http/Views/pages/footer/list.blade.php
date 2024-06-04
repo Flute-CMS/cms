@@ -29,7 +29,7 @@
                             <span class="sortable-text">
                                 <i class="ph ph-arrows-out-cardinal sortable-handle"></i>
 
-                                <span class="badge">{{ $item['id'] }} - {{ $item['title'] }}</span>
+                                <span class="badge">{{ $item['id'] }} - {{ __($item['title']) }}</span>
                             </span>
 
                             <div class="sortable-buttons">
@@ -53,7 +53,7 @@
                                         <span class="sortable-text">
                                             <i class="ph ph-arrows-out-cardinal sortable-handle"></i>
 
-                                            <span class="badge">{{ $child['id'] }} - {{ $child['title'] }}</span>
+                                            <span class="badge">{{ $child['id'] }} - {{ __($child['title']) }}</span>
                                         </span>
 
                                         <div class="sortable-buttons">

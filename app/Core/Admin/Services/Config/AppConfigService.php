@@ -20,6 +20,8 @@ class AppConfigService extends AbstractConfigService
             "debug_ips" => $this->parseDebugIps($params['debugIps'] ?? ''),
             // "key" => $params['key'],
             "tips" => $this->b($params['tips']),
+            "maintenance_mode" => $this->b($params['maintenance_mode']),
+            "discord_link_roles" => $this->b($params['discord_link_roles']),
             "timezone" => $params['timezone'],
             "notifications" => $params['notifications'],
             "mode" => $this->b($params['performanceMode']) === true ? 'performance' : 'default',

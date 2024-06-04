@@ -7,6 +7,7 @@ use Flute\Core\Auth\Events\SocialProviderAddedEvent;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserSocialNetwork;
+use Flute\Core\DiscordLink\DiscordLinkRoles;
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Hybridauth\Exception\InvalidApplicationCredentialsException;
@@ -43,6 +44,7 @@ class SocialService
         $this->userSocialNetworkRepository = rep(UserSocialNetwork::class);
 
         $this->registerSocials();
+        $this->discordReplace();
     }
 
     /**
@@ -90,8 +92,8 @@ class SocialService
     {
         $result = [];
 
-        foreach( $this->registeredProviders as $key => $provider ) {
-            if( $provider['entity']->allowToRegister === true ) {
+        foreach ($this->registeredProviders as $key => $provider) {
+            if ($provider['entity']->allowToRegister === true) {
                 $result[$key] = $provider;
             }
         }
@@ -147,12 +149,14 @@ class SocialService
     public function authenticateWithRegister(string $socialNetworkName): User
     {
         $social = $this->retrieveSocialNetwork($this->replaceName($socialNetworkName));
-        
-        if( $social['entity']->allowToRegister === false ) {
+
+        if ($social['entity']->allowToRegister === false) {
             throw new Exception(__('def.not_found'));
         }
 
-        $userProfile = $this->authenticate($socialNetworkName);
+        $auth = $this->authenticate($socialNetworkName);
+
+        $userProfile = $auth['profile'];
 
         $userSocial = $this->userSocialNetworkRepository->select()->load(['user'])->where([
             'value' => $userProfile->identifier,
@@ -163,6 +167,9 @@ class SocialService
 
         if (app('auth.registration.social_supplement'))
             throw new NeedRegistrationException($userProfile);
+
+        $auth['adapter']->disconnect();
+        $auth['adapter']->getStorage()->clear();
 
         return $this->registerNewUser($userProfile, $social['entity']);
     }
@@ -192,13 +199,13 @@ class SocialService
             logs()->error($e);
         }
 
-        $adapter->disconnect();
-        $adapter->getStorage()->clear();
-
         if (!$userProfile)
             throw new Exception('User profile load failed.');
 
-        return $userProfile;
+        return [
+            'profile' => $userProfile,
+            'adapter' => $adapter
+        ];
     }
 
     protected function replaceName(string $socialName)
@@ -308,6 +315,10 @@ class SocialService
 
         transaction([$user, $userSocialNetwork])->run();
 
+        if ($userSocialNetwork->socialNetwork->key === "Discord") {
+            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+        }
+
         return $user;
     }
 
@@ -329,6 +340,10 @@ class SocialService
             'socialNetwork' => $social['entity']->id,
         ])->fetchOne();
 
+        $profile = $userProfile['profile'];
+
+        $token = $userProfile['adapter']->getAccessToken();
+
         if ($userSocialNetwork) {
             $lastLinked = $userSocialNetwork->linkedAt;
             $now = new DateTime();
@@ -337,22 +352,48 @@ class SocialService
                 throw new Exception(t('profile.errors.social_delay'));
             }
 
-            $userSocialNetwork->value = $userProfile->identifier;
-            $userSocialNetwork->url = $userProfile->profileURL;
-            $userSocialNetwork->name = $userProfile->displayName;
+            $userSocialNetwork->value = $profile->identifier;
+            $userSocialNetwork->url = $profile->profileURL;
+            $userSocialNetwork->name = $profile->displayName;
             $userSocialNetwork->linkedAt = $now;
+
+            if ($token) {
+                $userSocialNetwork->additional = json_encode($token);
+            }
 
             transaction($userSocialNetwork)->run();
         } else {
             $userSocialNetwork = new UserSocialNetwork();
-            $userSocialNetwork->value = $userProfile->identifier;
-            $userSocialNetwork->url = $userProfile->profileURL;
-            $userSocialNetwork->name = $userProfile->displayName;
+            $userSocialNetwork->value = $profile->identifier;
+            $userSocialNetwork->url = $profile->profileURL;
+            $userSocialNetwork->name = $profile->displayName;
             $userSocialNetwork->user = $user;
             $userSocialNetwork->socialNetwork = $social['entity'];
             $userSocialNetwork->linkedAt = new DateTime();
 
+            if ($token) {
+                $userSocialNetwork->additional = json_encode($token);
+            }
+
             transaction($userSocialNetwork)->run();
         }
+
+        if ($userSocialNetwork->socialNetwork->key === "Discord") {
+            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+        }
+
+        $userProfile['adapter']->disconnect();
+        $userProfile['adapter']->getStorage()->clear();
+    }
+
+    private function discordReplace()
+    {
+        $loader = app()->getLoader();
+
+        $loader->addClassMap([
+            'Hybridauth\\Provider\\Discord' => BASE_PATH . 'app/Core/Auth/Hybrid/Discord.php'
+        ]);
+
+        $loader->register();
     }
 }

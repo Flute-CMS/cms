@@ -196,7 +196,7 @@ class User
      * @param string $socialNetworkName The social network name.
      * @return mixed|null The social network entity or null if not found.
      */
-    public function getSocialNetwork(string $socialNetworkName)
+    public function getSocialNetwork(string $socialNetworkName): ?UserSocialNetwork
     {
         foreach ($this->socialNetworks as $socialNetwork) {
             if ($socialNetwork->socialNetwork->key === $socialNetworkName) {

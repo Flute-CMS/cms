@@ -98,7 +98,8 @@ class GitHubUpdater
                             $extractedPath = $extractTo . $filename;
 
                             if (is_dir($extractedPath)) {
-                                mkdir($targetPath, 0777, true);
+                                if (!file_exists($targetPath))
+                                    mkdir($targetPath, 0777, true);
                             } else {
                                 if (!is_dir(dirname($targetPath))) {
                                     mkdir(dirname($targetPath), 0777, true);

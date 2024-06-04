@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Admin;
 
-use Flute\Core\Admin\Builders\AdminGateways\AdminGatewaysBuider;
 use Flute\Core\Admin\Builders\AdminSidebarBuilder;
 use Flute\Core\Admin\Builders\AdminThemeBuilder;
 use Flute\Core\Admin\Builders\AdminUpdateBuilder;
@@ -46,10 +45,10 @@ class AdminBuilder
 
     protected function checkAndRedirect(string $currentPath)
     {
-        if( !user()->hasPermission('admin.stats') ) {
+        if (!user()->hasPermission('admin.stats')) {
             $item = AdminSidebarBuilder::getFirstAccessibleItem();
 
-            if( !empty( $item ) && $item && $currentPath === '/admin' )
+            if (!empty($item) && $item && $currentPath === '/admin')
                 return response()->forceRedirect(url($item));
         } else {
             return;

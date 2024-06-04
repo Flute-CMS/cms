@@ -15,6 +15,7 @@ class AuthConfigService extends AbstractConfigService
             "csrf_enabled" => $this->b($params['csrfEnabled']),
             "reset_password" => $this->b($params['resetPassword']),
             "security_token" => $this->b($params['securityToken']),
+            "check_ip" => $this->b($params['check_ip']),
             "only_social" => $this->b($params['only_social']),
             "registration" => [
                 "confirm_email" => $this->b($params['confirmEmail']),

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Template;
 
+use Nette\Utils\Validators;
 use ScssPhp\ScssPhp\Compiler;
 use MatthiasMullie\Minify;
 use ScssPhp\ScssPhp\Exception\CompilerException;
@@ -196,6 +197,10 @@ class TemplateAssets
             $content = file_get_contents($url);
             if ($content !== false) {
                 file_put_contents($fullLocalPath, $content);
+            } else {
+                if( Validators::isUrl($content) ) {
+                    return $content;
+                }
             }
         }
 

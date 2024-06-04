@@ -118,6 +118,10 @@ class UsersView extends AbstractController
 
     private function getLastLoggedPhrase($lastLoggedDateTime): string
     {
+        if( !$lastLoggedDateTime ) {
+            return "-";
+        }
+
         $now = new \DateTime();
         $interval = $now->getTimestamp() - $lastLoggedDateTime->getTimestamp();
 

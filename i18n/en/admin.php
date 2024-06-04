@@ -166,7 +166,13 @@
         "logo" => "Logo",
         "bg_image" => "Site background image",
         "favicon_desc" => "This is the little icon in your browser tab 👀",
-        "performance_warning" => "This feature caches data whose retrieval time exceeds the norm, so some information may be out of date."
+        "performance_warning" => "This feature caches data whose retrieval time exceeds the norm, so some information may be out of date.",
+        "maintenance_mode" => "Maintenance Mode",
+        "maintenance_mode_description" => "This feature will hide the site from all non-admin users",
+        "will_close_site" => "Users will not be able to access the site",
+        "maintenance_warning" => "While this feature is enabled, users will not be able to access the site or use its functions",
+        "discord_link_roles" => "Linking Roles to Discord",
+        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Must have everything configured according to <a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>instruction</a>!</b>"
     ],
     "lk" => [
         "currency_view_label" => "Currency (view)",
@@ -211,7 +217,9 @@
         "name_validation_label" => "Name validation",
         "only_social" => "Only social networks",
         "only_social_label" => "Enable authorization and registration only through social networks",
-        "csrf_warning" => "This feature adds an extra layer of protection when submitting forms, but may cause issues with constantly expired tokens."
+        "csrf_warning" => "This feature adds an extra layer of protection when submitting forms, but may cause issues with constantly expired tokens.",
+        "check_ip" => "Check IP",
+        "check_ip_description" => "Will check the IP of the session, and if it does not match, log out of the account.",
     ],
     "form_database" => [
         "default_database_label" => "Default database",

@@ -17,19 +17,19 @@ class CacheController extends AbstractController
 
     public function all()
     {
-        $cachePath = BASE_PATH . '/storage/app/cache/*';
         $proxiesPath = BASE_PATH . '/storage/app/proxies/*';
         $viewsPath = BASE_PATH . '/storage/app/views/*';
         $translationsPath = BASE_PATH . '/storage/app/translations/*';
         $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
         $jsCachePath = BASE_PATH . '/public/assets/js/cache/*';
 
-        $this->deleteFs($cachePath);
         $this->deleteFs($proxiesPath);
         $this->deleteFs($viewsPath);
         $this->deleteFs($translationsPath);
         $this->deleteFs($cssCachePath);
         $this->deleteFs($jsCachePath);
+
+        cache()->clear();
 
         return redirect(url('admin/settings', [
             'tab' => 'cache'

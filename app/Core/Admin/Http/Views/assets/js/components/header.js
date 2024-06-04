@@ -64,7 +64,7 @@ $(document).on('click', '.search-result-link', function (event) {
     fetchContentAndAddTab(
         new URL(link.href).pathname,
         link.textContent.trim(),
-        icon ? `<i class="ph ${icon}"></i>` : '',
+        icon.length > 0 ? `<i class="ph ${icon}"></i>` : '',
     );
     hideSearchResults();
     $('#adminSearch').blur();
@@ -83,9 +83,13 @@ $(document).on('keydown', function (e) {
         let current = $('#searchResults .search-result-link.highlight');
         if (current.length === 0) {
             if (e.key === 'ArrowDown') {
-                $('#searchResults .search-result-link')
+                let first = $('#searchResults .search-result-link')
                     .first()
                     .addClass('highlight');
+                first[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                });
             }
         } else {
             let next =
@@ -95,6 +99,10 @@ $(document).on('keydown', function (e) {
             if (next.length) {
                 current.removeClass('highlight');
                 next.addClass('highlight');
+                next[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                });
             }
         }
     } else if (e.key === 'Enter') {
@@ -118,7 +126,7 @@ $(document).on('click', '.update-btn', function () {
                 $('.update-btn').remove();
                 var updateMessage = response.need;
                 var updateButton = $('<a>', {
-                    href: u("admin/update"),
+                    href: u('admin/update'),
                     class: 'gradient-text',
                     id: 'updateBtn',
                     'data-tab': true,
@@ -127,7 +135,7 @@ $(document).on('click', '.update-btn', function () {
                 $('.header_version').append(updateButton);
                 toast({
                     message: translate('admin.update.new_update'),
-                    type: 'success'
+                    type: 'success',
                 });
             } else {
                 toast({

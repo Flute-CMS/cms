@@ -25,6 +25,8 @@ class ThemeManager
     protected array $themesLoaders;
     protected string $themesPath;
     protected bool $performance;
+    protected array $allThemes = [];
+    protected array $allThemesKeys = [];
     public bool $isSafeLoading = false;
     public string $currentTheme;
     protected ThemeFinder $finder;
@@ -67,7 +69,7 @@ class ThemeManager
 
     public function getCurrentTheme(): string
     {
-        if (!isset ($this->currentTheme))
+        if (!isset($this->currentTheme))
             $this->fallbackToDefaultTheme();
 
         return $this->currentTheme;
@@ -80,7 +82,7 @@ class ThemeManager
 
     public function resolveThemeLoader(string $themeName): ThemeLoaderInterface
     {
-        if (!isset ($this->themeLoader) || $this->currentTheme !== $themeName) {
+        if (!isset($this->themeLoader) || $this->currentTheme !== $themeName) {
             $this->themeLoader = $this->finder->getThemeLoader($themeName);
             $this->currentTheme = $themeName;
         }
@@ -95,7 +97,10 @@ class ThemeManager
 
     public function getAllThemes(): array
     {
-        return $this->performance ? cache()->callback(self::C_KEY_ALL, fn() => $this->getRepository()->select()->load('settings')->fetchAll(), self::CACHE_TIME) : (array) $this->getRepository()->select()->load('settings')->fetchAll();
+        if (!$this->allThemes)
+            $this->allThemes = $this->performance ? cache()->callback(self::C_KEY_ALL, fn() => $this->getRepository()->select()->load('settings')->fetchAll(), self::CACHE_TIME) : (array) $this->getRepository()->select()->load('settings')->fetchAll();
+
+        return $this->allThemes;
     }
 
     public function checkTheme(string $themeName): void
@@ -190,7 +195,7 @@ class ThemeManager
 
     protected function addSettingsVars($settings)
     {
-        foreach( $settings as $setting ) {
+        foreach ($settings as $setting) {
             $this->template->addGlobal($setting->key, $setting->value);
         }
     }
@@ -208,10 +213,16 @@ class ThemeManager
      */
     public function getTheme(string $themeName): Theme
     {
+        if (isset($this->allThemesKeys[$themeName]))
+            return $this->allThemesKeys[$themeName];
+
         $theme = $this->performance ? cache()->callback("flute.themes.$themeName", fn() => $this->getRepository()->select()->load('settings')->fetchOne(['key' => $themeName]), self::CACHE_TIME) : $this->getRepository()->select()->load('settings')->fetchOne(['key' => $themeName]);
         if (!$theme) {
             throw new RuntimeException("The theme {$themeName} does not exist");
         }
+
+        $this->allThemesKeys[$themeName] = $theme;
+
         return $theme;
     }
 
@@ -254,7 +265,7 @@ class ThemeManager
     {
         $defaultTheme = 'standard';
 
-        if (!isset ($this->currentTheme) || $this->currentTheme !== $defaultTheme) {
+        if (!isset($this->currentTheme) || $this->currentTheme !== $defaultTheme) {
             // (new ThemeActions($this))->activateTheme('standard');
 
             logs('templates')->warning('Theme was switched to the "standard" for preventing interface error. You need to change theme manually!');
