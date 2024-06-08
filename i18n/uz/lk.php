@@ -13,17 +13,17 @@
         "recharge" => "Toʻldirish",
         "you_receive" => "Qabul qilishga",
         "you_pay" => "Toʻlov uchun",
-     ],
+    ],
     "success" => [
         "title" => "Muvaffaqiyatli",
         "sucess_payment" => "Muvaffaqiyatli toʻlov!",
         "sucess_payment_desc" => "Sizning hisobingiz muvaffaqiyatli toʻldirildi! Siz bosh sahifaga oʻtib, mablagʻlardan foydalanishingiz mumkin",
-     ],
+    ],
     "error" => [
         "title" => "Muvaffaqiyatsizlik",
         "fail_payment" => "Toʻlov tugallanmadi!",
         "fail_payment_desc" => "Baʻzi sabablarga koʻra toʻlov amalga oshmadi. Yana bir bor urinib koʻring",
-     ],
+    ],
     "promo_not_found" => "Promokod topilmadi",
     "promo_limit" => "Promokoddan foydalanish chegarasiga yetdi",
     "promo_expired" => "Promokod muddati tugagan",
@@ -33,4 +33,5 @@
     "promo_percentage" => "Promokod chegirma beradi :percentage%",
     "promo_subtract" => "Promokod miqdorni :value :currency ga kamaytiradi",
     "min_amount" => "Minimal depozit miqdori: soʻm",
+    "process_in_new_window" => "Toʻlovni yangi oynada yakunlang..."
 ];

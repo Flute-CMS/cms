@@ -6,6 +6,10 @@
     "uri_error" => "Havola formati noto‘g‘ri",
     "change_banner" => "Bannerni oʻzgartirish",
     "change_avatar" => "Avatarni oʻzgartirish",
+    "main" => [
+        "all_bans" => "Barcha bloklar",
+        "bans" => "Bloklar",
+    ],
     "settings" => [
         "social" => "Bogʻlash",
         "main" => "Asosiy",
@@ -14,9 +18,9 @@
         "social_desc" => "Ijtimoiy tarmoq sozlamalari",
         "devices_desc" => "Faol sessiyalar sozlamalari",
         "security" => "Maxfiylik",
-        "invoices" => "To'lovlar",
-        "theme" => "Ko'rinish"
-     ],
+        "invoices" => "Toʻlovlar",
+        "theme" => "Koʻrinish"
+    ],
     "s_main" => [
         "info" => "Asosiy maʻlumotlar",
         "privacy" => "Maxfiylik",
@@ -30,7 +34,7 @@
         "nickname" => "Taxallus",
         "placeholder" => "Qiymatni kiriting...",
         "nickname_uri" => "Havoladagi taxallus",
-     ],
+    ],
     "s_social" => [
         "info" => "Ulanishlar",
         "connected" => "Ulangan ijtimoiy tarmoqlar",
@@ -38,22 +42,23 @@
         "disconnect" => "Oʻchirish",
         "connect" => "Ulanish",
         "social_disconnected" => "Ijtimoiy tarmoq muvaffaqiyatli uzildi!",
-     ],
+    ],
     "errors" => [
         "social_binded" => "Ijtimoiy tarmoq allaqachon profilga ulangan",
         "social_not_connected" => "Siz bunday ijtimoiy tarmoqqa ulanmagansiz 🤔",
         "social_only_one" => "Siz yagona ijtimoiy tarmoqni uza olmaysiz!",
-        "uri_taken" => "Bu qiymat bilan bog'lanish allaqachon band!",
+        "uri_taken" => "Bu qiymat bilan bogʻlanish allaqachon band!",
+        "social_delay" => "Ijtimoiy tarmoqni oʻzgartirishdan oldin siz biroz kutishingiz kerak 😢"
     ],
     "invoices" => [
-        "info" => "To'lovlar"
+        "info" => "Toʻlovlar"
     ],
     "security" => [
-        "info" => "Shaxsiy ma'lumot",
+        "info" => "Shaxsiy maʻlumot",
         "main_settings" => "Asosiy sozlamalar"
     ],
     "theme" => [
-        "info" => "Tashqi ko'rinish sozlamalari"
+        "info" => "Tashqi koʻrinish sozlamalari"
     ],
     "devices" => [
         "info" => "Avtorizatsiya qilingan qurilmalar",

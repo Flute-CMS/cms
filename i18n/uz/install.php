@@ -7,7 +7,7 @@
         "card_head" => "Til tanlash",
         "title" => "Flute :: Til tanlash",
         "Несуществующий язык" => "Siz qandaydir sirli tilni tanlaganga o‘xshaysiz: 0",
-     ],
+    ],
     2 => [
         "title" => "Flute :: Talablarni tekshirish",
         "card_head" => "Moslik",
@@ -21,7 +21,7 @@
         "min_php_7" => "Minimal PHP versiyasi 7.4!",
         "php_exts" => "PHP kengaytmalari",
         "other" => "Boshqa",
-     ],
+    ],
     3 => [
         "title" => "Flute :: DB ma‘lumotlarini kiritish",
         "card_head" => "Ma‘lumotlar bazasiga ulanish",
@@ -36,7 +36,7 @@
         "data_invalid" => "Kiritilgan ma‘lumotlar noto‘g‘ri!",
         "check_data" => "Ma‘lumotlarni tekshirish",
         "data_correct" => "Ma‘lumotlar to‘g‘ri",
-     ],
+    ],
     4 => [
         "title" => "Flute :: Ma‘lumotlarni ko‘chirish",
         "card_head" => "Ma‘lumotlarni ko‘chirish",
@@ -52,7 +52,7 @@
             "gateways" => "To‘lov tizimlarining migratsiyasi",
             "payments" => "Hisob to‘ldirish tarixini ko‘chirish",
           ],
-     ],
+    ],
     5 => [
         "title" => "Flute ::Sayt egasini ro‘yxatdan o‘tkazish",
         "card_head" => "Sayt egasini ro‘yxatdan o‘tkazish",
@@ -73,19 +73,19 @@
         "invalid_email" => "Elektron pochtangizni to‘g‘ri kiriting!",
         "pass_diff" => "Kiritilgan parollar to‘g‘ri kelmadi!",
         "error_create_user" => "Foydalanuvchi yaratishda xatolik yuz berdi!",
-     ],
+    ],
     6 => [
         "title" => "Flute :: Maslahatlar yoqilganmi?",
         "card_head" => "Maslahatlarni yoqish",
         "card_head_desc" => "U yoki bu funksiyadan qanday foydalanishni tushunish uchun maslahatlar kerakmi?",
         "yes" => "Ha, yoqamiz, bu yerga birinchi marta kelishim (tavsiya etiladi) 🤯",
         "no" => "Yo‘q, men bu Fluteni chirpirak qilib tashlayman 😎",
-     ],
+    ],
     7 => [
         "title" => "Flute :: Xatolar haqida hisobot",
         "card_head" => "Xato haqida xabar berishni yoqish",
         "card_head_desc" => "Saytda nosozlik bo‘lsa, xatolar bizning serverimizga qayta ishlash uchun yuboriladi. Bir muncha vaqt o‘tgach, siz tufayli tuzatilgan yangilanish chiqishi mumkin 🥰",
         "yes" => "Ha, dvigatelni yaxshilash uchun xatolarni yuboring 😇",
         "no" => "Yo‘q, hech narsa yubormang, meni qiziqtirmaydi 🤐",
-     ],
+    ],
 ];
