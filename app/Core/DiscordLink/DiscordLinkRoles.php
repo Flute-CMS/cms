@@ -146,6 +146,9 @@ class DiscordLinkRoles
         if (!config('app.discord_link_roles'))
             return false;
 
+        if (cache()->has('flute.discord_roles_metadata'))
+            return;
+
         $discordInfo = $this->getDiscordInfo();
 
         if (!$discordInfo) {
@@ -174,6 +177,8 @@ class DiscordLinkRoles
 
             return false;
         }
+
+        cache()->set('flute.discord_roles_metadata', 'true');
 
         return $response->getStatusCode() === 200;
     }

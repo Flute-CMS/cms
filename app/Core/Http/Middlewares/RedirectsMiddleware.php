@@ -12,13 +12,16 @@ class RedirectsMiddleware extends AbstractMiddleware
 {
     public function __invoke(FluteRequest $request, \Closure $next)
     {
-        if( !is_installed() ) return $next($request);
+        if (!is_installed())
+            return $next($request);
 
-        $redirect = rep(Redirect::class)->select()->where('fromUrl', $request->getRequestUri())->load('conditionGroups')->load('conditionGroups.conditions')->fetchOne();
+        $redirects = rep(Redirect::class)->select()->where('fromUrl', $request->getRequestUri())->load('conditionGroups')->load('conditionGroups.conditions')->fetchAll();
 
-        if ($redirect) {
-            if ($this->checkConditions($redirect, $request)) {
-                return new Response('', Response::HTTP_FOUND, ['Location' => $redirect->getToUrl()]);
+        if ($redirects) {
+            foreach ($redirects as $redirect) {
+                if ($this->checkConditions($redirect, $request)) {
+                    return new Response('', Response::HTTP_FOUND, ['Location' => $redirect->getToUrl()]);
+                }
             }
         }
 
@@ -89,7 +92,7 @@ class RedirectsMiddleware extends AbstractMiddleware
             case 'header':
                 return $request->headers->get($conditionValue);
             case 'lang':
-                return $request->getPreferredLanguage();
+                return app()->getLang();
             default:
                 return null;
         }

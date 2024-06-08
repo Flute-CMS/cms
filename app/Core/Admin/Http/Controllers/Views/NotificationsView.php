@@ -23,7 +23,7 @@ class NotificationsView extends AbstractController
 
     public function __construct()
     {
-        HasPermissionMiddleware::permission('admin.notifcations');
+        HasPermissionMiddleware::permission('admin.notifications');
         $this->middleware(HasPermissionMiddleware::class);
     }
 

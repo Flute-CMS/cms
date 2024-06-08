@@ -4,7 +4,7 @@
             <div class="col-md-12">
                 <div class="footer-container">
                     <div class="project-name">
-                        <h1>{{ app('app.name') }}</h1>
+                        <h1>{{ config('app.footer_name', config('app.name')) }}</h1>
 
                         @if (!empty(footer()->socials()->all()))
                             <div class="social_footer">

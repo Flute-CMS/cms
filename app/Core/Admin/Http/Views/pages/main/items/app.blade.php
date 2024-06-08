@@ -15,6 +15,20 @@
         </div>
     </div>
 
+    <!-- footer_name -->
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="footer_name">
+                @t('admin.app.footer_name_label')
+            </label>
+            <small class="form-text text-muted">@t('admin.app.footer_name_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="footer_name" id="footer_name" placeholder="@t('admin.app.footer_name_label')" type="text" class="form-control"
+                value="{{ config('app.footer_name', config('app.name')) }}">
+        </div>
+    </div>
+
     <!-- URL -->
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label required">

@@ -232,7 +232,8 @@ class WidgetManager
                 $widgetLoader->setImage($widget->image);
 
             } catch (RuntimeException $e) {
-                logs()->error($e);
+                // SPAM
+                // logs()->error($e);
             }
         }
     }

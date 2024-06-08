@@ -100,7 +100,7 @@ class TemplateAssets
         }
 
         // $sha1 = config('app.debug') ? basename($expression, ".scss") : sha1($expression);
-        $sha1 = sha1($expression);
+        $sha1 = sha1($scssPath);
 
         $cssPath = "assets/css/cache/" . $sha1 . ".css";
         $cssBasePath = BASE_PATH . "public/assets/css/cache/" . $sha1 . ".css";
@@ -130,7 +130,8 @@ class TemplateAssets
             return;
         }
 
-        $sha1 = config('app.debug') ? basename($expression, ".css") : sha1($expression);
+        // $sha1 = config('app.debug') ? basename($expression, ".css") : sha1($cssPathBase);
+        $sha1 = sha1($cssPathBase);
 
         $cssPath = "assets/css/cache/" . $sha1 . ".css";
         $cssBasePath = BASE_PATH . "public/assets/css/cache/" . $sha1 . ".css";
@@ -160,7 +161,7 @@ class TemplateAssets
         }
 
         // $sha1 = config('app.debug') ? basename($expression, ".js") : sha1($expression);
-        $sha1 = sha1($expression);
+        $sha1 = sha1($jsPathBase);
 
         $jsPath = "assets/js/cache/" . $sha1 . ".js";
         $jsBasePath = BASE_PATH . "public/assets/js/cache/" . $sha1 . ".js";

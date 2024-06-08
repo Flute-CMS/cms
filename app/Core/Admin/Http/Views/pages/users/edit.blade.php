@@ -8,7 +8,7 @@
 
 @push('header')
     @at('Core/Admin/Http/Views/assets/styles/pages/users.scss')
-    <link rel="stylesheet" href="@asset('assets/css/libs/tables.css')" />
+    @at('Core/Admin/Http/Views/assets/styles/components/_tables.scss')
 @endpush
 
 @push('content')

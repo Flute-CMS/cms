@@ -58,6 +58,13 @@ class GitHubUpdater
         $this->extractZip($zipFile, $this->downloadDir, $foldersToExtract);
 
         $this->currentVersion = $latestVersion;
+
+        try {
+            fs()->remove($zipFile);
+        } catch (\Exception $e) {
+            logs()->warning($e);
+        }
+
         return true;
     }
 

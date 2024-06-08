@@ -19,10 +19,6 @@ class TableParser implements ParserInterface
     {
         $table = Html::el('table')->class('dataTable');
 
-        if( !TableBuilder::$initialised ) {
-            template()->addStyle('tables_css');
-        }
-
         $withHeadings = $data['withHeadings'] ?? false;
         $content = $data['content'] ?? [];
 

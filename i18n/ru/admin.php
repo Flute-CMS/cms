@@ -172,7 +172,9 @@
         "will_close_site" => "Пользователи не смогут зайти на сайт",
         "maintenance_warning" => "Пока эта функция включена, пользователи не смогут зайти на сайт и пользоваться функциями",
         "discord_link_roles" => "Связь ролей с Discord",
-        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Нужно иметь настроить все согласно <a href='https://docs.flute-cms.com/docs/instructions/notifications' target='_blank'>инструкции</a>!</b>"
+        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Нужно иметь настроить все согласно <a href='https://docs.flute-cms.com/docs/instructions/notifications' target='_blank'>инструкции</a>!</b>",
+        "footer_name_label" => "Название в подвале",
+        "footer_name_description" => "Название вашего проекта в подвале сайта"
     ],
     "lk" => [
         "currency_view_label" => "Валюта (вид)",

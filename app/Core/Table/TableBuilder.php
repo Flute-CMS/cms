@@ -316,7 +316,7 @@ class TableBuilder
 
         // Pretend multiload table styles on 1 page
         if (!self::$initialised) {
-            template()->addStyle('tables_css');
+            // template()->addStyle('tables_css');
             template()->addScript("tables_js");
 
             self::$initialised = true;

@@ -149,6 +149,7 @@ class ConfigurationService
         return [
             "app" => Expect::structure([
                 "name" => Expect::string("Flute")->required(),
+                "footer_name" => Expect::string(""),
                 "url" => Expect::string()->required(),
                 "steam_api" => Expect::string()->required(),
                 "debug_ips" => Expect::array()->required(),
@@ -263,7 +264,8 @@ class ConfigurationService
                         "connection" => Expect::string("mysql:host=localhost;dbname=flute")->required(),
                         "username" => Expect::string("root")->required(),
                         "password" => Expect::string("")->required(),
-                        "timezone" => Expect::string("UTC")
+                        "timezone" => Expect::string("UTC"),
+                        "options" => Expect::array(),
                     ])->castTo('array')
                 )->required(),
             ]),

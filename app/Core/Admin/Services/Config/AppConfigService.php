@@ -3,6 +3,7 @@
 namespace Flute\Core\Admin\Services\Config;
 
 use Flute\Core\Admin\Support\AbstractConfigService;
+use Flute\Core\DiscordLink\DiscordLinkRoles;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +15,7 @@ class AppConfigService extends AbstractConfigService
     {
         $config = array_merge(config('app'), [
             "name" => $params['name'],
+            "footer_name" => $params['footer_name'] ?? '',
             "url" => $params['url'],
             "steam_api" => $params['steam_api'],
             "debug" => $this->b($params['debug']),
@@ -46,6 +48,8 @@ class AppConfigService extends AbstractConfigService
             $this->fileSystemService->updateConfig($this->getConfigPath('app'), $config);
 
             user()->log('events.config_updated', 'app');
+
+            app(DiscordLinkRoles::class)->registerMetadata();
 
             return response()->success(__('def.success'));
         } catch (\Exception $e) {

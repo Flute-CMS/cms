@@ -29,6 +29,11 @@
                     <span class="btn__icon arrow"><i class="ph ph-arrow-right"></i></span>
                 </a>
             @endif
+            @if (isset($withAuthBtn) && !user()->isLoggedIn())
+                <a class="btn primary mt-4" href="{{ url('/login') }}" role="button">
+                    {{ __('def.auth') }}
+                </a>
+            @endif
         </div>
     </div>
 @endpush

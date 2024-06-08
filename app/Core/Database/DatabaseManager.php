@@ -66,13 +66,15 @@ class DatabaseManager
      */
     protected function convertTimezones()
     {
-        if( !is_installed() )
+        if (!is_installed())
             return;
 
         foreach (config('database.connections') as $key => $connection) {
             $db = $connection;
 
             $db['timezone'] = (string) config('app.timezone');
+
+            $db['options'] = [\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES "utf8mb4"'];
 
             config()->set("database.connections.$key", $db);
         }
