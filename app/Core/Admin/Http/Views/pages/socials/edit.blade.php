@@ -93,9 +93,9 @@
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri1">Redirect URI 1</label>
             </div>
-            <div class="col-sm-9">
-                <input id="redirectUri1" type="text" class="form-control" readonly data-tooltip="@t('def.copy')"
-                    data-tooltip-conf="top" value="{{ url('social/' . $social->key) }}"
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
+                <input id="redirectUri1" type="text" class="form-control" readonly
+                    value="{{ url('social/' . $social->key) }}"
                     data-copy="{{ url('social/' . $social->key) }}">
             </div>
         </div>
@@ -103,9 +103,9 @@
             <div class="col-sm-3 col-form-label">
                 <label for="redirectUri2">Redirect URI 2</label>
             </div>
-            <div class="col-sm-9">
-                <input id="redirectUri2" type="text" class="form-control" readonly data-tooltip="@t('def.copy')"
-                    data-tooltip-conf="top" value="{{ url('profile/social/bind/' . $social->key) }}"
+            <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
+                <input id="redirectUri2" type="text" class="form-control" readonly 
+                    value="{{ url('profile/social/bind/' . $social->key) }}"
                     data-copy="{{ url('profile/social/bind/' . $social->key) }}">
             </div>
         </div>
