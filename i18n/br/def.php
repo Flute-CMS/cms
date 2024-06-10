@@ -43,7 +43,7 @@ return [
     "add_fail" => "Falha na adição",
     "add_error" => "Erro ao adicionar registro",
     "search" => "Buscar",
-    "search_results_for" => "Resultados da busca por "%query%"",
+    "search_results_for" => "Resultados da busca por '%query%'",
     "no_results_found" => "Nenhum resultado encontrado",
     "username" => "Nome de usuário",
     "password" => "Senha",
