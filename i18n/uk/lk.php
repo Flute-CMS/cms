@@ -32,5 +32,6 @@
     "promo_amount" => "Бонус до поповнення :value :currency",
     "promo_percentage" => "Промокод надає знижку :percentage%",
     "promo_subtract" => "Промокод зменшує суму на :value :currency",
-    "min_amount" => "Мінімальна сума поповнення :sum"
+    "min_amount" => "Мінімальна сума поповнення :sum",
+    "process_in_new_window" => "Завершіть оплату в новому вікні..."
 ];
