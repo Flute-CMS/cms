@@ -5,7 +5,7 @@
     left: 0;
     opacity: 0;
     transition: $transition;
-    background-color: $color-modal-bg;
+    background-color: $color-card;
     @include blur();
     border-radius: $border-radius;
 

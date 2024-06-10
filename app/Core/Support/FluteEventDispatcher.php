@@ -14,18 +14,22 @@ class FluteEventDispatcher extends EventDispatcher
     {
         parent::__construct();
         $this->initializeDeferredListeners();
+        $this->cleanDuplicates(); // Очистка дубликатов при инициализации
     }
 
     public function addDeferredListener($eventName, $listener, $priority = 0)
     {
         $listenerId = $this->getListenerId($listener);
 
-        // if ($listener instanceof \Closure) {
-        //     $listener = new SerializableClosure($listener);
-        // }
-
         if (!isset($this->deferredListeners[$eventName])) {
             $this->deferredListeners[$eventName] = [];
+        }
+
+        // Check if listener with the same content already exists
+        foreach ($this->deferredListeners[$eventName] as $existingListenerId => $existingListenerData) {
+            if ($existingListenerId !== $listenerId && $this->compareListeners($listener, $existingListenerData['listener'])) {
+                return;
+            }
         }
 
         if (isset($this->deferredListeners[$eventName][$listenerId]))
@@ -37,6 +41,8 @@ class FluteEventDispatcher extends EventDispatcher
             $this->addListener($eventName, $listener, $priority);
             $this->saveDeferredListenersToCache();
         }
+
+        $this->cleanDuplicates();
     }
 
     public function removeDeferredListener($eventName, $listener)
@@ -54,6 +60,7 @@ class FluteEventDispatcher extends EventDispatcher
         }
 
         $this->removeListener($eventName, $listener);
+        $this->cleanDuplicates(); // Очистка дубликатов после удаления слушателя
     }
 
     public function saveDeferredListenersToCache()
@@ -82,7 +89,9 @@ class FluteEventDispatcher extends EventDispatcher
             }
         }
 
+
         $this->deferredListeners = $deferredListeners;
+        $this->cleanDuplicates(); // Очистка дубликатов при инициализации
     }
 
     private function getListenerId($listener)
@@ -97,14 +106,14 @@ class FluteEventDispatcher extends EventDispatcher
 
         if (is_array($listener)) {
             if (is_object($listener[0])) {
-                return spl_object_hash($listener[0]) . '::' . $listener[1];
+                return get_class($listener[0]) . '::' . $listener[1];
             }
 
             return $listener[0] . '::' . $listener[1];
         }
 
         if (is_object($listener)) {
-            return $this->getClosureId($listener);
+            return get_class($listener);
         }
 
         return $listener;
@@ -116,5 +125,41 @@ class FluteEventDispatcher extends EventDispatcher
         $code = $reflection->getCode();
 
         return md5($code);
+    }
+
+    private function compareListeners($listener1, $listener2)
+    {
+        if (is_array($listener1) && is_array($listener2) && is_object($listener1[0]) && is_object($listener2[0])) {
+            return get_class($listener1[0]) === get_class($listener2[0]);
+        }
+
+        if ($listener1 === $listener2) {
+            return true;
+        }
+
+        if ($listener1 instanceof \Closure && $listener2 instanceof \Closure) {
+            return $this->getClosureId($listener1) === $this->getClosureId($listener2);
+        }
+
+        return false;
+    }
+
+    private function cleanDuplicates()
+    {
+        foreach ($this->deferredListeners as $eventName => $listeners) {
+            $uniqueListeners = [];
+
+            foreach ($listeners as $listenerId => $listenerData) {
+                foreach ($uniqueListeners as $uniqueListenerData) {
+                    if ($this->compareListeners($listenerData['listener'], $uniqueListenerData['listener'])) {
+                        unset($this->deferredListeners[$eventName][$listenerId]);
+                        break;
+                    }
+                }
+                $uniqueListeners[$listenerId] = $listenerData;
+            }
+        }
+
+        $this->saveDeferredListenersToCache();
     }
 }

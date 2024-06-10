@@ -294,7 +294,7 @@ class UserService
     private function validateUserInput(array $input)
     {
         // Validate 'name'
-        if (!isset($input['name']) || !preg_match('/^[a-zA-Z0-9\s\p{L}\p{M},.;:\'"\[\]()\-]+$/u', $input['name'])) {
+        if (!isset($input['name'])) {
             throw new AssertionException(__('profile.name_error'));
         }
 

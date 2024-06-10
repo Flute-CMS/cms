@@ -73,6 +73,10 @@ class AuthenticationService
 
         // Create a new user
         $user = $this->createNewUser($validationResult);
+        
+        $user = user()->get($user->id);
+
+        user()->setCurrentUser($user);
 
         events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
@@ -111,6 +115,10 @@ class AuthenticationService
         if (!$user->verified && config('auth.registration.confirm_email')) {
             throw new AccountNotVerifiedException();
         }
+
+        $user = user()->get($user->id);
+
+        user()->setCurrentUser($user);
 
         events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 
@@ -183,7 +191,7 @@ class AuthenticationService
         $this->throttle('login');
 
         // Retrieve the user
-        $user = $this->getUserRepository()->findByPK($userId);
+        $user = user()->get($userId);
 
         if ($user === null) {
             throw new UserNotFoundException($userId);
@@ -192,6 +200,8 @@ class AuthenticationService
         if (!$user->verified && config('auth.registration.confirm_email')) {
             throw new AccountNotVerifiedException();
         }
+
+        user()->setCurrentUser($user);
 
         events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 

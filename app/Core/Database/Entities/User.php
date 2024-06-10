@@ -206,6 +206,16 @@ class User
         return null;
     }
 
+    public function hasSocialNetwork(string $socialNetworkName): bool
+    {
+        foreach ($this->socialNetworks as $socialNetwork) {
+            if ($socialNetwork->socialNetwork->key === $socialNetworkName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function addSocialNetwork(SocialNetwork $socialNetwork): void
     {
         $this->socialNetworks->add($socialNetwork);

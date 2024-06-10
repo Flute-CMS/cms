@@ -19,17 +19,19 @@
 
             &:not(:last-child),
             &:first-child {
-                .bread__item {
+                .bread__item:not(a) {
                     color: $color-white-20;
                 }
             }
 
             a {
                 transition: $transition;
-                color: darken($color-primary, 40) !important;
+                color: $color-primary;
+                opacity: .8;
+                font-weight: 600;
 
                 &:hover {
-                    color: $color-primary !important;
+                    opacity: 1;
                 }
 
                 &::after {
@@ -41,8 +43,7 @@
             div {
                 padding: 0;
                 margin: 0;
-                font-size: 12px;
-                letter-spacing: 0.4px;
+                font-size: 14px;
             }
         }
     }

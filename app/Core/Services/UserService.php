@@ -214,9 +214,9 @@ class UserService
     /**
      * This method checks if the user has already attempted to login and if not, it initializes the user.
      */
-    public function authSession()
+    public function authSession(bool $force = false)
     {
-        if ($this->triedToLogin)
+        if ($this->triedToLogin && !$force)
             return;
 
         $this->userToken ? $this->initializeByToken() : $this->initializeBySession();

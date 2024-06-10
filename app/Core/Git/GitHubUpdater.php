@@ -17,7 +17,9 @@ class GitHubUpdater
         $this->repoOwner = $repoOwner;
         $this->repoName = $repoName;
         $this->currentVersion = $currentVersion;
-        $this->downloadDir = rtrim($downloadDir, '/') . '/';
+        
+        if ($downloadDir)
+            $this->downloadDir = rtrim($downloadDir, '/') . '/';
     }
 
     public function getLatestRelease()

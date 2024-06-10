@@ -76,7 +76,7 @@ $padding-small: 10px 20px;
         }
     }
 
-    &.outline:not(&.primary) {
+    &.outline:not(.primary) {
         background-color: transparent;
         box-shadow: inset 0px 0px 0px 1px $color-inactive;
         color: $color-text;
@@ -102,7 +102,7 @@ $padding-small: 10px 20px;
 
     &.primary {
         background-color: $color-primary;
-        color: $color-text-inverse !important;
+        color: $color-text-inverse;
 
         .btn__icon {
             background-color: $color-primary;
@@ -116,7 +116,7 @@ $padding-small: 10px 20px;
 
             &:active {
                 background-color: $color-disabled;
-                color: $color-primary !important;
+                color: $color-primary;
 
                 .btn__icon {
                     background-color: $color-disabled;
@@ -159,7 +159,7 @@ $padding-small: 10px 20px;
         &:hover {
             box-shadow: none;
             background-color: $color-primary-light;
-            color: $color-primary
+            color: $color-primary;
         }
     }
 
@@ -177,7 +177,7 @@ $padding-small: 10px 20px;
         }
     }
 
-    &.error:not(&.primary) {
+    &.error:not(.primary) {
         background-color: $color-error;
         box-shadow: inset 0px 0px 0px 1px $color-error;
 
@@ -191,13 +191,13 @@ $padding-small: 10px 20px;
         &:active {
             box-shadow: inset 0px 0px 0px 1px $color-error;
             background-color: darken($color-error, 10);
-            color: $color-text !important;
+            color: $color-text;
         }
     }
 
     &:active {
         background-color: $color-disabled;
-        color: $color-primary !important;
+        color: $color-primary;
 
         .btn__icon {
             background-color: $color-disabled;
@@ -206,23 +206,23 @@ $padding-small: 10px 20px;
     }
 
     &:disabled {
-        background-color: $color-disabled !important;
-        color: $color-gray !important;
+        background-color: $color-disabled;
+        color: $color-gray;
         cursor: not-allowed;
 
         .btn__icon {
-            background-color: $color-disabled !important;
-            color: $color-gray !important;
+            background-color: $color-disabled;
+            color: $color-gray;
         }
 
         &:active {
-            background-color: $color-disabled !important;
-            color: $color-gray !important;
+            background-color: $color-disabled;
+            color: $color-gray;
             cursor: not-allowed;
 
             .btn__icon {
-                background-color: $color-disabled !important;
-                color: $color-gray !important;
+                background-color: $color-disabled;
+                color: $color-gray;
             }
         }
     }

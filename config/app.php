@@ -20,4 +20,5 @@ return array (
   'discord_link_roles' => false,
   'flute_copyright' => true,
   'widget_placeholders' => true,
+  'footer_name' => '',
 );
