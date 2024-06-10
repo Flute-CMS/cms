@@ -87,7 +87,7 @@ class EventsTestingController extends AbstractController
                 $invoice = rep(PaymentInvoice::class)->findOne([
                     'transactionId' => $parameters['invoice_id'] ?? 0
                 ]);
-                return $invoice ? new PaymentSuccessEvent($invoice) : null;
+                return $invoice ? new PaymentSuccessEvent($invoice, user()->get($invoice->user->id)) : null;
             default:
                 return null;
         }

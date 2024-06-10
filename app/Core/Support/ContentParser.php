@@ -2,11 +2,13 @@
 
 namespace Flute\Core\Support;
 
+use Flute\Core\Database\Entities\User;
+
 class ContentParser
 {
-    public static function replaceContent(string $content, $eventInstance): string
+    public static function replaceContent(string $content, $eventInstance, User $user): string
     {
-        $content = self::replaceUserContent($content);
+        $content = self::replaceUserContent($content, $user);
         $content = self::handleConditionalStatements($content, $eventInstance);
 
         return preg_replace_callback('/\{(.*?)\}/', function ($matches) use ($eventInstance) {
@@ -108,13 +110,13 @@ class ContentParser
         return $args;
     }
 
-    private static function replaceUserContent(string $content)
+    private static function replaceUserContent(string $content, User $user)
     {
         return str_replace(['{name}', '{login}', '{email}', '{balance}'], [
-            user()->getCurrentUser()->name,
-            user()->getCurrentUser()->login,
-            user()->getCurrentUser()->email,
-            user()->getCurrentUser()->balance
+            $user->name,
+            $user->login,
+            $user->email,
+            $user->balance
         ], $content);
     }
 }

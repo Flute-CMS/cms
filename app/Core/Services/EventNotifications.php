@@ -27,12 +27,18 @@ class EventNotifications
             foreach ($events as $event) {
                 $table = db()->table('notifications');
 
+                if( method_exists( $eventInstance, "getUser" ) ) {
+                    $user = $eventInstance->getUser();
+                } else {
+                    $user = user()->getCurrentUser();
+                }
+
                 $table->insertOne([
-                    'content' => ContentParser::replaceContent($event->content, $eventInstance),
+                    'content' => ContentParser::replaceContent($event->content, $eventInstance, $user),
                     'icon' => $event->icon,
                     'url' => $event->url,
                     'title' => $event->title,
-                    'user_id' => user()->getCurrentUser()->id,
+                    'user_id' => $user->id,
                     'created_at' => new \DateTime()
                 ]);
             }

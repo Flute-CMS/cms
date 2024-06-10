@@ -148,12 +148,12 @@ class PaymentProcessor
             if ($invoice->isPaid == true)
                 throw new \Exception("Invoice is paid");
 
-            $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice), PaymentSuccessEvent::NAME);
+            $sum = $invoice->amount;
+            $user = user()->get($invoice->user->id);
+
+            $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
 
             $this->markInvoiceAsPaid($invoice);
-
-            $sum = $invoice->amount;
-            $user = $invoice->user;
 
             if ($invoice->promoCode) {
                 $amount = $this->calculateTotalAmount($invoice, $invoice->promoCode, $user);
