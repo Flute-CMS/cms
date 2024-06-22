@@ -166,7 +166,15 @@
         "logo" => "Logotip",
         "bg_image" => "Sayt fon rasmi",
         "favicon_desc" => "Bu brauzeringizning tabida joylashgan kichik ikonka 👀",
-        "performance_warning" => "Bu funksiya qabul qilish uchun odatdagidan ko‘proq vaqt talab qiladigan ma‘lumotlarni keshlaydi, shuning uchun ba‘zi ma‘lumotlar tegishli bo‘lmasligi mumkin."
+        "performance_warning" => "Bu funksiya qabul qilish uchun odatdagidan ko‘proq vaqt talab qiladigan ma‘lumotlarni keshlaydi, shuning uchun ba‘zi ma‘lumotlar tegishli bo‘lmasligi mumkin.",
+        "maintenance_mode" => "Texnik xizmat ko‘rsatish rejimi",
+        "maintenance_mode_description" => "Bu funksiya administrator bo‘lmagan barcha foydalanuvchilardan saytni yashiradi",
+        "will_close_site" => "Foydalanuvchilar saytga kira olmaydi",
+        "maintenance_warning" => "Bu funksiya yoqilganda, foydalanuvchilar saytga kira olmaydi yoki uning funksiyalaridan foydalana olmaydi",
+        "discord_link_roles" => "Rollarni Discord bilan bog‘lash",
+        "discord_link_roles_description" => "Sayt va Discord serverining rollarini bog‘laydi. <b><a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>Ushbu ko‘rsatmalarga</a> muvofiq hamma narsa sozlangan bo‘lishi kerak!</b>",
+        "footer_name_label" => "Sarlavha footerda",
+        "footer_name_description" => "Saytning pastki qismida loyihangiz nomi",
     ],
     "lk" => [
         "currency_view_label" => "Valyuta (turi)",
@@ -211,7 +219,9 @@
         "name_validation_label" => "Ismni tekshirish",
         "only_social" => "Faqat ijtimoiy tarmoqlar",
         "only_social_label" => "Avtorizatsiya va ro‘yxatdan o‘tishni faqat ijtimoiy tarmoqlar orqali amalga oshirish",
-        "csrf_warning" => "Bu xususiyat shakllarni yuborishda alohida xavfsizlik qatlamini qo‘shadi, ammo bu token doimiy ravishda muddati o‘tib ketgan muammoga olib kelishi mumkin."
+        "csrf_warning" => "Bu xususiyat shakllarni yuborishda alohida xavfsizlik qatlamini qo‘shadi, ammo bu token doimiy ravishda muddati o‘tib ketgan muammoga olib kelishi mumkin.",
+        "check_ip" => "IP-ni tekshirish",
+        "check_ip_description" => "Sessiya IP-ni tekshiradi va agar u mos kelmasa, hisobdan chiqadi.",
     ],
     "form_database" => [
         "default_database_label" => "Standart ma‘lumotlar bazasi",

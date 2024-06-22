@@ -210,9 +210,11 @@
     "pictures" => "Rasmlar",
     "choice" => "Tanlash",
     "other" => "Qolganlari",
-    "from" => "Dan",
+    "from" => "Bosh. narx",
     'seconds' => 'soniya|soniya|soniya|soniya',
     'minutes' => 'daqiqa|daqiqa|daqiqa|daqiqa',
     'hours' => 'soat|soat|soat|soat',
     'days' => 'kun|kun|kun|kun',
+    "discord_role_id" => "Flutedagi rolning identifikatori",
+    "discord_role_desc" => "Bu rol avtomatik ravishda Discord-da chiqariladi"
 ];
