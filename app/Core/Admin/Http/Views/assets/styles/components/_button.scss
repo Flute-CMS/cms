@@ -61,7 +61,6 @@ $padding-small: 10px 20px;
 
     &.size-s {
         @include button-size($padding-small, $icon-size-small, -$icon-size-small);
-        font-size: 15px;
     }
 
     &--with-icon {
@@ -76,7 +75,8 @@ $padding-small: 10px 20px;
         }
     }
 
-    &.outline:not(.primary) {
+    &.outline,
+    &.outline.primary {
         background-color: transparent;
         box-shadow: inset 0px 0px 0px 1px $color-inactive;
         color: $color-text;
@@ -110,19 +110,9 @@ $padding-small: 10px 20px;
         }
 
         &.outline {
+            background-color: transparent;
             box-shadow: inset 0px 0px 0px 1px $color-primary;
             color: $color-primary;
-            background-color: $color-primary;
-
-            &:active {
-                background-color: $color-disabled;
-                color: $color-primary;
-
-                .btn__icon {
-                    background-color: $color-disabled;
-                    color: $color-primary;
-                }
-            }
 
             .btn__icon {
                 box-shadow: inset 0px 0px 0px 1px $color-primary;
@@ -154,12 +144,53 @@ $padding-small: 10px 20px;
     &.ghosted {
         background-color: transparent;
         color: $color-text;
-        box-shadow: none;
 
         &:hover {
-            box-shadow: none;
             background-color: $color-primary-light;
-            color: $color-primary;
+            color: $color-primary
+        }
+    }
+
+    &.error {
+        background-color: $color-error;
+        color: $color-text;
+
+        .btn__icon {
+            background-color: $color-error;
+            color: $color-text;
+        }
+
+        &.outline {
+            background-color: transparent;
+            box-shadow: inset 0px 0px 0px 1px $color-error;
+            color: $color-error;
+
+            .btn__icon {
+                box-shadow: inset 0px 0px 0px 1px $color-error;
+                color: $color-error;
+            }
+        }
+
+        &:hover,
+        &:active,
+        &:focus {
+            background-color: darken($color-error, 10%);
+            color: $color-text;
+            box-shadow: inset 0px 0px 0px 1px $color-error;
+
+            .btn__icon {
+                background-color: darken($color-error, 10%);
+            }
+        }
+
+        &:disabled {
+            background-color: lighten($color-error, 10%);
+            color: $color-inactive;
+
+            .btn__icon {
+                background-color: lighten($color-error, 10%);
+                color: $color-inactive;
+            }
         }
     }
 
@@ -177,24 +208,6 @@ $padding-small: 10px 20px;
         }
     }
 
-    &.error:not(.primary) {
-        background-color: $color-error;
-        box-shadow: inset 0px 0px 0px 1px $color-error;
-
-        &.outline {
-            background-color: transparent;
-            box-shadow: inset 0px 0px 0px 1px $color-error;
-            color: $color-error;
-        }
-
-        &:hover,
-        &:active {
-            box-shadow: inset 0px 0px 0px 1px $color-error;
-            background-color: darken($color-error, 10);
-            color: $color-text;
-        }
-    }
-
     &:active {
         background-color: $color-disabled;
         color: $color-primary;
@@ -207,23 +220,12 @@ $padding-small: 10px 20px;
 
     &:disabled {
         background-color: $color-disabled;
-        color: $color-gray;
+        color: $color-inactive;
         cursor: not-allowed;
 
         .btn__icon {
             background-color: $color-disabled;
-            color: $color-gray;
-        }
-
-        &:active {
-            background-color: $color-disabled;
-            color: $color-gray;
-            cursor: not-allowed;
-
-            .btn__icon {
-                background-color: $color-disabled;
-                color: $color-gray;
-            }
+            color: $color-inactive;
         }
     }
 }

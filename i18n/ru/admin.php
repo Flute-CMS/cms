@@ -106,6 +106,7 @@
     "db_port_placeholder" => "Порт",
     "settings_bar" => [
         "system" => "Система",
+        "additional" => "Дополнительно",
         "auth" => "Авторизация",
         "database" => "Базы Данных",
         "language" => "Язык",
@@ -172,9 +173,10 @@
         "will_close_site" => "Пользователи не смогут зайти на сайт",
         "maintenance_warning" => "Пока эта функция включена, пользователи не смогут зайти на сайт и пользоваться функциями",
         "discord_link_roles" => "Связь ролей с Discord",
-        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Нужно настроить все согласно <a href='https://docs.flute-cms.com/docs/instructions/notifications' target='_blank'>инструкции</a>!</b>",
+        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Нужно настроить все согласно <a href='https://docs.flute-cms.com/docs/instructions/discord-roles' target='_blank'>инструкции</a>!</b>",
         "footer_name_label" => "Название в подвале",
-        "footer_name_description" => "Название вашего проекта в подвале сайта"
+        "footer_name_description" => "Название вашего проекта в подвале сайта",
+        "token_incorrect" => "Данный STEAM ключ не валиден"
     ],
     "lk" => [
         "currency_view_label" => "Валюта (вид)",
@@ -877,5 +879,6 @@
     "refresh_page" => "Обновить страницу",
     "what_it_means" => "Что это значит?",
     "what_it" => "Что это?",
-    "update_available" => "Доступна версия :version"
+    "update_available" => "Доступна версия :version",
+    "start_tour" => "Доступно обучение! Нажми на меня чтобы начать!",
 ];

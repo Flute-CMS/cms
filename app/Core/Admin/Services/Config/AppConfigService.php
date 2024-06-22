@@ -14,22 +14,22 @@ class AppConfigService extends AbstractConfigService
     public function updateConfig(array $params): Response
     {
         $config = array_merge(config('app'), [
-            "name" => $params['name'],
-            "footer_name" => $params['footer_name'] ?? '',
-            "url" => $params['url'],
-            "steam_api" => $params['steam_api'],
-            "debug" => $this->b($params['debug']),
-            "debug_ips" => $this->parseDebugIps($params['debugIps'] ?? ''),
-            // "key" => $params['key'],
-            "tips" => $this->b($params['tips']),
-            "maintenance_mode" => $this->b($params['maintenance_mode']),
-            "discord_link_roles" => $this->b($params['discord_link_roles']),
-            "timezone" => $params['timezone'],
-            "notifications" => $params['notifications'],
-            "mode" => $this->b($params['performanceMode']) === true ? 'performance' : 'default',
-            "share" => $this->b($params['share']),
-            "flute_copyright" => $this->b($params['flute_copyright']),
-            "widget_placeholders" => $this->b($params['widget_placeholders']),
+            "name" => $params['name'] ?? config('app.name'),
+            "footer_name" => $params['footer_name'] ?? config('app.footer_name', ''),
+            "url" => $params['url'] ?? config('app.url'),
+            "steam_api" => $params['steam_api'] ?? config('app.steam_api'),
+            "debug" => $this->b($params['debug'] ?? config('app.debug')),
+            "debug_ips" => $this->parseDebugIps($params['debugIps'] ?? implode(', ', config('app.debug_ips', []))),
+            // "key" => $params['key'] ?? config('app.key'),
+            "tips" => $this->b($params['tips'] ?? config('app.tips')),
+            "maintenance_mode" => $this->b($params['maintenance_mode'] ?? config('app.maintenance_mode')),
+            "discord_link_roles" => $this->b($params['discord_link_roles'] ?? config('app.discord_link_roles')),
+            "timezone" => $params['timezone'] ?? config('app.timezone'),
+            "notifications" => $params['notifications'] ?? config('app.notifications'),
+            "mode" => $this->b($params['performanceMode'] ?? (config('app.mode') === 'performance')) ? 'performance' : 'default',
+            "share" => $this->b($params['share'] ?? config('app.share')),
+            "flute_copyright" => $this->b($params['flute_copyright'] ?? config('app.flute_copyright')),
+            "widget_placeholders" => $this->b($params['widget_placeholders'] ?? config('app.widget_placeholders')),
         ]);
 
         /** @var FileBag */

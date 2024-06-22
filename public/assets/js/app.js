@@ -293,7 +293,7 @@ function translate(key, replace = {}, locale = null) {
 
     if (existingRequest) {
         // Возвращаем плейсхолдер, если запрос уже в очереди
-        return `<span data-replaceplaceholder="${existingRequest.placeholder}">🕐</span>`;
+        return `<span data-replaceplaceholder="${existingRequest.placeholder}" aria-busy="true"></span>`;
     }
 
     let placeholderId = `translation-placeholder-${uuidv4()}`;
@@ -309,7 +309,7 @@ function translate(key, replace = {}, locale = null) {
         isProcessing = true;
     }
 
-    return `<span data-replaceplaceholder="${placeholderId}">🕐</span>`;
+    return `<span data-replaceplaceholder="${placeholderId}" aria-busy="true"></span>`;
 }
 
 async function processQueue() {

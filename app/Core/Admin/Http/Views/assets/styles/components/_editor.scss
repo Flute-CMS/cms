@@ -261,17 +261,18 @@
 }
 
 .widgets-container {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    align-items: stretch;
     align-items: center;
-    gap: 15px;
-    max-height: 260px;
+    gap: 10px;
+    max-height: 280px;
     overflow: auto;
+    justify-items: center;
+    overflow-x: hidden;
 
     .widget {
-        height: 100px;
-        width: 140px;
+        width: 150px;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -304,12 +305,11 @@
         }
 
         .widget-image {
-            height: 100%;
             border-radius: ($border-radius / 2);
             background-color: $color-bg;
             position: relative;
             object-fit: cover;
-            height: 75px;
+            height: 90px;
 
             i {
                 position: absolute;
@@ -322,7 +322,6 @@
         }
 
         .widget-title {
-            height: 18px;
             border-radius: 3px;
             font-size: 0.8em;
             text-align: center;

@@ -1068,13 +1068,13 @@ function changeTabIcon(tabEl, container, isLoading) {
     } else {
         let originalIcon = tabEl.getAttribute('data-original-icon');
         // if (!originalIcon) {
-            const tabUrl = tabEl.getAttribute('data-tab-url');
-            const matchingLinkIcon = document.querySelector(
-                `.sidebar-menu a[href="${tabUrl}"] i`,
-            );
-            if (matchingLinkIcon) {
-                originalIcon = matchingLinkIcon.outerHTML;
-            }
+        const tabUrl = tabEl.getAttribute('data-tab-url');
+        const matchingLinkIcon = document.querySelector(
+            `.sidebar-menu a[href="${tabUrl}"] i`,
+        );
+        if (matchingLinkIcon) {
+            originalIcon = matchingLinkIcon.outerHTML;
+        }
         // }
 
         if (originalIcon) {
@@ -1130,7 +1130,16 @@ $(function () {
 
     $(document).on(
         'click',
-        '.admin-header a.btn[href], .table-action-buttons a[href], .social-action-buttons a[href], .payment-action-buttons a[href], .payment-promo-action-buttons a[href], .servers-action-buttons a[href], .user-action-buttons a[href], .sortable-buttons a[href], .back-btn[href], [data-tab]',
+        `.admin-header a.btn[href], 
+        .table-action-buttons a[href], 
+        .social-action-buttons a[href], 
+        .payment-action-buttons a[href], 
+        .payment-promo-action-buttons a[href], 
+        .servers-action-buttons a[href], 
+        .user-action-buttons a[href], 
+        .sortable-buttons a[href], 
+        .back-btn[href], 
+        [data-tab]`,
         (event) => {
             let link = event.currentTarget;
 

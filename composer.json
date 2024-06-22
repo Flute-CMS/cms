@@ -56,7 +56,8 @@
         "hiqdev/omnipay-freekassa": "dev-master",
         "omnipay/stripe": "^3.2",
         "dercoder/omnipay-webmoney": "^5.0",
-        "omnipay/paypal": "^3.0"
+        "omnipay/paypal": "^3.0",
+        "nesbot/carbon": "^2.72"
     },
     "autoload": {
         "psr-4": {

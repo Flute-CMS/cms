@@ -16,13 +16,13 @@ class SteamParser
         $this->connect();
     }
 
-    public function getUser( int $steamid64 ) : array
+    public function getUser( int $steamid64, bool $force = false ) : array
     {
-        $data = $this->getUsers([$steamid64]);
+        $data = $this->getUsers([$steamid64], $force);
         return !empty( $data ) ? $data : $data[0];
     }
 
-    public function getUsers( array $steamIds ) : array
+    public function getUsers( array $steamIds, bool $force = false ) : array
     {
         $needsToGetItems = [];
         $cacheResults = [];
@@ -31,7 +31,7 @@ class SteamParser
         foreach ( $steamIds as $key => $steamid64 ) {
             $cacheItem = cache($this->cacheName( $steamid64, 'GetPlayerSummariesV2' ));
 
-            if( $cacheItem ) {
+            if( $cacheItem && !$force ) {
                 $cacheResults[$key] = $cacheItem;
             } else {
                 $needsToGetItems[$key] = $steamid64;
@@ -84,7 +84,7 @@ class SteamParser
             $this->steamClient = new Client($steam);
             $this->steamUser = new ISteamUser($this->steamClient);
         } else {
-            throw new \Exception('Api key is not configured');
+            throw new \Exception('STEAM API key is not configured. Please set the key in the main settings.');
         }
     }
 }

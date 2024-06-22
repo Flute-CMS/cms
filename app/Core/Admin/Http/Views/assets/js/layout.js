@@ -183,7 +183,12 @@ function serializeFormData($form) {
     return formData;
 }
 
-function sendRequestFormData(data, path = null, method = 'POST') {
+function sendRequestFormData(
+    data,
+    path = null,
+    method = 'POST',
+    callback = null,
+) {
     let result = null;
 
     $.ajax({
@@ -245,12 +250,53 @@ function sendRequestFormData(data, path = null, method = 'POST') {
     return result;
 }
 
+function addToggleButton($input) {
+    if ($input.next('.toggle-visibility').length === 0) {
+        const $container = $('<div class="password-input-container"></div>');
+        const $toggleButton = $(
+            '<button type="button" class="toggle-visibility"><i class="ph ph-eye"></i></button>',
+        );
+
+        $toggleButton.on('click', function () {
+            if ($input.attr('type') === 'password') {
+                $input.attr('type', 'text');
+                $toggleButton.html('<i class="ph ph-eye-closed"></i>');
+            } else {
+                $input.attr('type', 'password');
+                $toggleButton.html('<i class="ph ph-eye"></i>');
+            }
+        });
+
+        $input.wrap($container);
+        $input.after($toggleButton);
+    }
+}
+
 $(function () {
     $('.editor-ace').each(function () {
         let editor = ace.edit(this);
         editor.setTheme('ace/theme/solarized_dark');
         editor.session.setMode('ace/mode/json');
     });
+
+    $('input[type="password"]').each(function () {
+        addToggleButton($(this));
+    });
+
+    // Alternative setup using MutationObserver
+    const inputPasswordObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            if (mutation.addedNodes.length) {
+                $(mutation.addedNodes)
+                    .find('input[type="password"]')
+                    .each(function () {
+                        addToggleButton($(this));
+                    });
+            }
+        });
+    });
+
+    inputPasswordObserver.observe(document.body, { childList: true, subtree: true });
 
     $(document).on('submit', '[data-form]', async (ev) => {
         let $form = $(ev.currentTarget);

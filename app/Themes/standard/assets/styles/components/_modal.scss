@@ -18,7 +18,7 @@
     background: $color-card;
     border-radius: $border-radius;
     max-width: 600px;
-    width: 100%;
+    width: calc(100% - 40px);
     overflow-x: hidden;
     overflow-y: auto;
     transition: all 0.3s ease-in-out;

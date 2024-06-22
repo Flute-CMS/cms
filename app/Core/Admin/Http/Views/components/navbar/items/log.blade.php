@@ -5,7 +5,7 @@
         </a>
     </div> --}}
 
-    <a href="{{ url('/admin/api/createlog') }}" target="_blank" class="icon-container">
+    <a href="{{ url('/admin/api/createlog') }}" target="_blank" class="icon-container report-generate">
         <span class="icon-text">@t('admin.create_log')</span>
         <i class="ph ph-file-plus"></i>
     </a>

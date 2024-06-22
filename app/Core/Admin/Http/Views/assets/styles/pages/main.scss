@@ -1,30 +1,48 @@
+@keyframes iconAnim {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.main-settings-container {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: flex-start;
+}
+
 .settings_bar {
     margin: 0 auto;
-    // background-color: $color-disabled;
-    // border-radius: 12px;
-    // padding: 7px;
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 5px;
     justify-content: center;
     margin-bottom: 20px;
+    flex-direction: column;
+    background-color: $color-disabled;
+    border-radius: 6px;
+    position: sticky;
+    top: 100px;
 
     button {
         color: $color-text;
         opacity: .7;
         transition: $transition;
-        border-radius: 6px;
         font-weight: 500;
         font-size: 14px;
-        padding: 15px;
+        padding: 15px 25px;
         flex: 1;
         display: flex;
         flex-direction: row;
         gap: 10px;
         align-items: center;
-        justify-content: center;
-        border: 1px solid $color-white-3;
         white-space: nowrap;
 
         i {
@@ -41,17 +59,59 @@
             opacity: 1;
             background-color: $color-white-5;
             color: $color-primary;
+
+            i {
+                animation: .3s iconAnim;
+            }
+        }
+
+        &:first-child {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        &:last-child {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
         }
     }
 }
 
-.settings-container {
+.main_settings {
+    width: 100%;
+    position: relative;
+    min-height: 300px;
+
+    &[aria-busy="true"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::before {
+            width: 3.8em;
+            height: 3.8em;
+            vertical-align: 2.875em;
+            border-radius: 50%;
+            border: 3px solid $color-primary;
+            border-right-color: transparent;
+        }
+    }
+
     >div {
         display: none;
+        transition: $transition;
+
+        >h1 {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid $color-white-3;
+            color: $color-primary;
+        }
 
         &.active {
             display: block;
-            animation: contentAppearance .5s ease forwards;
+            animation: contentAppearance .3s ease forwards;
+            opacity: 1;
         }
     }
 }
@@ -76,22 +136,49 @@
     .connection_buttons {
         display: flex;
         gap: 10px;
-        font-size: 20px;
+
+        .btn-change,
+        .btn-delete {
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            border-radius: 50%;
+            border: 1px solid $color-white-3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: .3;
+            transition: $transition;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
 
         .btn-change {
-            color: $color-text;
+            color: $color-warning;
+            border: 1px solid $color-warning;
+
+            &:hover {
+                background-color: $color-warning-light;
+            }
         }
 
         .btn-delete {
             color: $color-error;
+            border: 1px solid $color-error;
+
+            &:hover {
+                background-color: $color-error-light;
+            }
         }
     }
 }
 
 @keyframes contentAppearance {
     0% {
-        opacity: 0;
-        transform: translateY(-10px);
+        opacity: .5;
+        transform: translateY(-5px);
     }
 
     100% {
@@ -117,7 +204,8 @@
     font-weight: 500;
 }
 
-#getMyIp {
+#getMyIp,
+#check_steam_api {
     color: $color-primary;
     transition: $transition;
     cursor: pointer;

@@ -65,6 +65,7 @@ class MainSettingsController extends AbstractController
     {
         $this->configServices = [
             'app' => app(AppConfigService::class),
+            'additional' => app(AppConfigService::class),
             'auth' => app(AuthConfigService::class),
             'database' => app(DatabaseConfigService::class),
             'lang' => app(LangConfigService::class),

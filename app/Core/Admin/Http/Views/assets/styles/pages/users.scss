@@ -96,9 +96,11 @@
             display: flex;
             align-items: center;
 
-            .close {
+            .remove-role {
                 margin-left: 5px;
                 cursor: pointer;
+                font-size: 16px;
+                display: flex;
             }
         }
     }
@@ -113,12 +115,14 @@
     width: 100%;
     opacity: 1;
     transition: $transition;
-    background-color: $color-gray;
+    background-color: $color-modal-bg;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     z-index: 2;
     padding: 10px;
     user-select: none;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 
     .suggestions {
         display: flex;
@@ -126,8 +130,17 @@
         flex-direction: column;
 
         >div {
+            cursor: pointer;
+            padding: 10px;
             font-size: 13px;
             font-weight: 500;
+            transition: $transition;
+            border-radius: 6px;
+
+            &:hover {
+                background-color: $color-primary;
+                color: $color-text-inverse;
+            }
         }
     }
 

@@ -23,7 +23,7 @@ if (!IS_EDITING) {
         ],
     });
 
-    $(function() {
+    $(function () {
         // Создание кнопки
         let tourButton = $('<button/>', {
             id: 'start-tour-btn',
@@ -33,7 +33,8 @@ if (!IS_EDITING) {
                 $(this).hide();
             },
         })
-            .attr('data-tooltip', translate('def.start_tour'))
+            .attr('data-translate', translate('def.start_tour'))
+            .attr('data-translate-attribut', 'data-tooltip')
             .attr('data-tooltip-conf', 'left');
 
         // Добавление кнопки в body

@@ -109,6 +109,7 @@ $padding-small: 10px 20px;
         }
 
         &.outline {
+            background-color: transparent;
             box-shadow: inset 0px 0px 0px 1px $color-primary;
             color: $color-primary;
 

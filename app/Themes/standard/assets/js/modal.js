@@ -5,51 +5,61 @@ class Modal {
         this.modalContainer = document.createElement('div');
         this.onCloseListeners = [];
         this.closeOnBackground = true;
+        this.infoIcons = this.getInfoIcons();
+        this.initializeEventListeners();
+    }
 
-        this.infoIcons = {
+    getInfoIcons() {
+        return {
             info: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M48 80a48 48 0 1 1 96 0A48 48 0 1 1 48 80zM0 224c0-17.7 14.3-32 32-32H96c17.7 0 32 14.3 32 32V448h32c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H64V256H32c-17.7 0-32-14.3-32-32z"/></svg>`,
             warning: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 512"><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>`,
             success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>`,
-            error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`,
+            error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`,
         };
     }
 
-    addParser(name, callback) {
-        let ability = this.parseAbilities.find((parse) => parse.name === name);
-
-        if (ability)
-            this.parseAbilities.splice(this.parseAbilities.indexOf(ability), 1);
-
-        this.parseAbilities.push({
-            name,
-            callback,
+    initializeEventListeners() {
+        document.addEventListener('click', (event) => {
+            if (event.target.matches('[data-modal-open]')) {
+                const modalId = event.target.getAttribute('data-modal-open');
+                const modalElement = document.getElementById(modalId);
+                if (modalElement) {
+                    this.showModal(modalElement);
+                }
+            }
+            if (event.target.matches('[data-modal-close]')) {
+                const modalId = event.target.getAttribute('data-modal-close');
+                this.close(modalId);
+            }
         });
     }
 
-    close(id) {
-        let modal = this.modals.find((modal) => modal.id === id);
+    addParser(name, callback) {
+        const ability = this.parseAbilities.find(
+            (parse) => parse.name === name,
+        );
+        if (ability) {
+            this.parseAbilities.splice(this.parseAbilities.indexOf(ability), 1);
+        }
+        this.parseAbilities.push({ name, callback });
+    }
 
+    close(id) {
+        const modal = this.modals.find((modal) => modal.id === id);
         if (modal) {
-            // удаляем класс 'opened' и ждем конца анимации, прежде чем удалить элементы
             modal.modal.classList.remove('opened');
             this.modals.splice(this.modals.indexOf(modal), 1);
-
             if (this.modals.length === 0) {
                 this.modalContainer.classList.remove('opened');
             }
-
-            let onClose = this.onCloseListeners.find(
+            const onClose = this.onCloseListeners.find(
                 (listener) => listener.id === id,
             );
-
             if (onClose) {
                 onClose.onClose();
             }
-
             setTimeout(() => {
                 modal.modal.remove();
-
-                // Если больше нет активных модальных окон, удаляем
                 if (this.modals.length === 0) {
                     this.modalContainer.remove();
                 }
@@ -58,20 +68,16 @@ class Modal {
     }
 
     clear() {
-        // удаляем класс 'opened' и ждем конца анимации, прежде чем удалить элементы
         this.modals.forEach((modal) => {
             modal.modal.classList.remove('opened');
-
-            let onClose = this.onCloseListeners.find(
+            const onClose = this.onCloseListeners.find(
                 (listener) => listener.id === modal.id,
             );
-
             if (onClose) {
                 onClose.onClose();
             }
         });
         this.modalContainer.classList.remove('opened');
-
         setTimeout(() => {
             this.modals.forEach((modal) => modal.modal.remove());
             this.modals = [];
@@ -91,99 +97,189 @@ class Modal {
         closeOnBackground = true,
     }) {
         this.closeOnBackground = closeOnBackground;
-
-        let modalId = `modal-${uuidv4()}`;
-        let modal = document.createElement('div');
-        modal.id = modalId;
-        modal.classList.add('modal');
-
-        if (title) {
-            let modalTitle = document.createElement('div');
-            modalTitle.classList.add('modal-title');
-
-            let modalTitleText = document.createElement('div');
-            modalTitleText.classList.add('modal-title-text');
-            modalTitleText.innerHTML = title;
-
-            let modalTitleClose = document.createElement('div');
-            modalTitleClose.classList.add('modal-title-close');
-            modalTitleClose.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`;
-            modalTitleClose.onclick = () => this.close(modalId);
-
-            modalTitle.append(modalTitleText);
-            modalTitle.append(modalTitleClose);
-
-            type !== 'modal' && modalTitle.classList.add(`modal-title-${type}`);
-
-            modal.append(modalTitle);
-        }
-
-        let resolve = '';
-
-        let modalContent = document.createElement('div');
-        modalContent.classList.add('modal-content');
-
-        if (content) {
-            resolve = this.resolveContent(content, modalContent);
-        }
-
-        if (type !== 'modal') {
-            let modalContentNote = document.createElement('div');
-            modalContentNote.classList.add('modal-content-note');
-            modalContentNote.classList.add(`modal-content-note-${type}`);
-
-            let modalContentNoteIcon = document.createElement('div');
-            modalContentNoteIcon.classList.add('modal-content-note-icon');
-            modalContentNoteIcon.innerHTML = this.infoIcons[type];
-
-            let modalContentNoteText = document.createElement('div');
-            modalContentNoteText.classList.add('modal-content-note-text');
-            modalContentNoteText.innerHTML = infoTitle;
-
-            modalContentNote.append(modalContentNoteIcon);
-            modalContentNote.append(modalContentNoteText);
-            modalContent.append(modalContentNote);
-        }
-
-        modalContent.append(resolve);
-
-        modal.append(modalContent);
-
-        this.parseButtons(buttons, modal);
+        const modalId = `modal-${this.generateUUID()}`;
+        const modal = this.createModalElement(
+            modalId,
+            title,
+            content,
+            buttons,
+            type,
+            infoTitle,
+        );
         this.addToContainer(modal);
-
-        if (url && onUrlLoaded)
-            await this.fetchUrl(url, onUrlLoaded, modalContent);
-
-        if (onClose)
-            this.onCloseListeners.push({
-                id: modal.id,
-                onClose,
-            });
-
+        if (url && onUrlLoaded) {
+            await this.fetchUrl(
+                url,
+                onUrlLoaded,
+                modal.querySelector('.modal-content'),
+            );
+        }
+        if (onClose) {
+            this.onCloseListeners.push({ id: modalId, onClose });
+        }
         modal.focus();
-
         return modal;
     }
 
     toast({ message, type = 'info', duration = 3000 }) {
-        let toastId = `toast-${uuidv4()}`;
-        let toast = document.createElement('div');
-        toast.id = toastId;
-        toast.classList.add('toast');
-        toast.classList.add(`toast-${type}`);
+        const toastId = `toast-${this.generateUUID()}`;
+        const toast = this.createToastElement(toastId, message, type, duration);
+        this.showToast(toast, duration);
+    }
 
-        let toastContent = document.createElement('div');
+    addToContainer(modal) {
+        if (!document.querySelector('.modals-container')) {
+            this.createModalContainer();
+        }
+        this.modalContainer.prepend(modal);
+        this.modals.push({ id: modal.id, modal });
+        setTimeout(() => {
+            this.modalContainer.classList.add('opened');
+            modal.classList.add('opened');
+        }, 10);
+    }
+
+    createModalContainer() {
+        this.modalContainer.classList.add('modals-container');
+        document.body.appendChild(this.modalContainer);
+        this.modalContainer.onclick = (e) => {
+            if (e.target === this.modalContainer && this.closeOnBackground) {
+                this.clear();
+            }
+        };
+    }
+
+    createModalElement(modalId, title, content, buttons, type, infoTitle) {
+        const modal = document.createElement('div');
+        modal.id = modalId;
+        modal.classList.add('modal');
+        if (title) {
+            modal.append(this.createModalTitleElement(title, type));
+        }
+        const modalContent = document.createElement('div');
+        modalContent.classList.add('modal-content');
+        modalContent.append(this.resolveContent(content));
+        if (type !== 'modal') {
+            modalContent.prepend(this.createModalInfoElement(type, infoTitle));
+        }
+        modal.append(modalContent);
+        this.parseButtons(buttons, modal);
+        return modal;
+    }
+
+    createModalTitleElement(title, type) {
+        const modalTitle = document.createElement('div');
+        modalTitle.classList.add('modal-title');
+        if (type !== 'modal') {
+            modalTitle.classList.add(`modal-title-${type}`);
+        }
+        const modalTitleText = document.createElement('div');
+        modalTitleText.classList.add('modal-title-text');
+        modalTitleText.innerHTML = title;
+        const modalTitleClose = document.createElement('div');
+        modalTitleClose.classList.add('modal-title-close');
+        modalTitleClose.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`;
+        modalTitleClose.onclick = () => this.close(modalTitle.parentElement.id);
+        modalTitle.append(modalTitleText, modalTitleClose);
+        return modalTitle;
+    }
+
+    createModalInfoElement(type, infoTitle) {
+        const modalContentNote = document.createElement('div');
+        modalContentNote.classList.add(
+            'modal-content-note',
+            `modal-content-note-${type}`,
+        );
+        const modalContentNoteIcon = document.createElement('div');
+        modalContentNoteIcon.classList.add('modal-content-note-icon');
+        modalContentNoteIcon.innerHTML = this.infoIcons[type];
+        const modalContentNoteText = document.createElement('div');
+        modalContentNoteText.classList.add('modal-content-note-text');
+        modalContentNoteText.innerHTML = infoTitle;
+        modalContentNote.append(modalContentNoteIcon, modalContentNoteText);
+        return modalContentNote;
+    }
+
+    resolveContent(content) {
+        if (!content) return document.createTextNode('');
+        if (typeof content === 'object' && !(content instanceof Element)) {
+            const contentContainer = document.createElement('div');
+            contentContainer.classList.add('content-container');
+            contentContainer.append(
+                this.getObjectContent(content, contentContainer),
+            );
+            return contentContainer;
+        }
+        return content;
+    }
+
+    parseButtons(buttons, modal) {
+        if (!buttons) return;
+        const modalFooter = document.createElement('div');
+        modalFooter.classList.add('modal-footer');
+        buttons.forEach((button) => {
+            const btn = document.createElement('button');
+            btn.classList.add('btn', 'size-s', 'outline');
+            if (button?.class) {
+                button.class
+                    .split(' ')
+                    .forEach((className) => btn.classList.add(className));
+            }
+            btn.innerHTML = button?.icon
+                ? button.icon + button.text
+                : button.text;
+            if (button?.id) btn.id = button.id;
+            btn.onclick = () => button.callback(this);
+            modalFooter.appendChild(btn);
+        });
+        if (modalFooter.innerHTML === '') modalFooter.style.display = 'none';
+        modal.appendChild(modalFooter);
+    }
+
+    getObjectContent(content, modalContent) {
+        const key = Object.keys(content)[0];
+        if (key == 0) {
+            const test = document.createElement('div');
+            content.forEach((keyContent) =>
+                test.append(this.getObjectContent(keyContent, modalContent)),
+            );
+            return test;
+        }
+        return this.parseAbility(key, content[key], modalContent);
+    }
+
+    parseAbility(key, params, modalContent) {
+        const ability = this.parseAbilities.find(
+            (ability) => ability.name === key,
+        );
+        if (!ability?.callback)
+            throw new Error(`Ability "${key}" is not defined`);
+        return ability.callback(params, modalContent);
+    }
+
+    async fetchUrl(url, onUrlLoaded, modalContent) {
+        try {
+            const response = await fetch(url);
+            const parsed = await response.json();
+            return onUrlLoaded(parsed, modalContent);
+        } catch (error) {
+            return onUrlLoaded(null, modalContent, error);
+        }
+    }
+
+    createToastElement(toastId, message, type, duration) {
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.classList.add('toast', `toast-${type}`);
+        const toastContent = document.createElement('div');
         toastContent.classList.add('toast-content');
         toastContent.innerHTML = message;
-
-        let toastContentIcon = document.createElement('div');
+        const toastContentIcon = document.createElement('div');
         toastContentIcon.classList.add('toast-content-icon');
         toastContentIcon.innerHTML = this.infoIcons[type];
-
-        let progressBar = document.createElement('div');
+        const progressBar = document.createElement('div');
         progressBar.classList.add('toast-progress-bar', 'primary');
-        let progressBarBack = document.createElement('div');
+        const progressBarBack = document.createElement('div');
         progressBarBack.classList.add(
             'toast-progress-bar',
             'progress-bar-back',
@@ -194,21 +290,29 @@ class Modal {
             progressBar,
             progressBarBack,
         );
+        return toast;
+    }
 
+    showToast(toast, duration) {
         if (!document.querySelector('.toast-container')) {
-            let toastContainer = document.createElement('div');
+            const toastContainer = document.createElement('div');
             toastContainer.classList.add('toast-container');
             document.body.appendChild(toastContainer);
         }
+        document.querySelector('.toast-container').prepend(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        this.setToastTimeouts(toast, duration);
+    }
 
-        let isHovered = false; // Flag to track hover state
-        let hoverStartTime; // Time when the hover started
-        let remainingDuration = duration; // Remaining time for the toast
-        let progressBarTimeout; // Timeout to control the progress bar
-        let removeToastTimeout; // Timeout to control toast removal
+    setToastTimeouts(toast, duration) {
+        let isHovered = false;
+        let hoverStartTime;
+        let remainingDuration = duration;
+        let progressBarTimeout;
+        let removeToastTimeout;
 
-        // Function to start the progress bar
-        let startProgressBar = (duration) => {
+        const startProgressBar = (duration) => {
+            const progressBar = toast.querySelector('.toast-progress-bar');
             progressBar.style.transition = `height ${duration}ms linear`;
             progressBar.style.height = '0%';
             progressBarTimeout = setTimeout(
@@ -217,198 +321,59 @@ class Modal {
             );
         };
 
-        // Function to pause the toast progress bar
-        let pauseToast = () => {
-            isHovered = true; // Set the flag when the toast is hovered
-            hoverStartTime = new Date(); // Record the time when the hover started
-            let currentWidth = window.getComputedStyle(progressBar).height;
-            progressBar.style.transition = 'none'; // Pause the transition
-            progressBar.style.height = currentWidth;
-            clearTimeout(removeToastTimeout); // Clear any existing timeout for toast removal
-            clearTimeout(progressBarTimeout); // Clear any existing timeout for progress bar
+        const pauseToast = () => {
+            isHovered = true;
+            hoverStartTime = new Date();
+            const progressBar = toast.querySelector('.toast-progress-bar');
+            const currentHeight = window.getComputedStyle(progressBar).height;
+            progressBar.style.transition = 'none';
+            progressBar.style.height = currentHeight;
+            clearTimeout(removeToastTimeout);
+            clearTimeout(progressBarTimeout);
         };
 
-        // Function to resume the toast progress bar
-        let resumeToast = () => {
-            isHovered = false; // Reset the flag when the mouse leaves the toast
-            remainingDuration -= new Date() - hoverStartTime; // Subtract the hover duration from the remaining duration
-            startProgressBar(remainingDuration); // Start the progress bar with the remaining duration
-            removeToastTimeout = setTimeout(removeToast, remainingDuration); // Set a new timeout for toast removal
+        const resumeToast = () => {
+            isHovered = false;
+            remainingDuration -= new Date() - hoverStartTime;
+            startProgressBar(remainingDuration);
+            removeToastTimeout = setTimeout(removeToast, remainingDuration);
         };
 
-        // Function to remove the toast
-        let removeToast = () => {
+        const removeToast = () => {
             if (!isHovered) {
-                // Only remove the toast if it's not being hovered
                 toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
+                setTimeout(() => toast.remove(), 300);
             }
         };
 
-        // Set the hover event listeners
         toast.addEventListener('mouseenter', pauseToast);
-        toast.addEventListener('mouseleave', resumeToast); // Resume the toast and set removal timeout on mouse leave
-
+        toast.addEventListener('mouseleave', resumeToast);
         toast.onclick = () => {
             toast.classList.remove('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
+            setTimeout(() => toast.remove(), 300);
         };
 
-        document.querySelector('.toast-container').prepend(toast);
-
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
-
-        startProgressBar(remainingDuration); // Start the progress bar with the initial duration
-
-        removeToastTimeout = setTimeout(removeToast, remainingDuration); // Set initial timeout for toast removal
+        startProgressBar(remainingDuration);
+        removeToastTimeout = setTimeout(removeToast, remainingDuration);
     }
 
-    addToContainer(modal) {
-        if (!document.querySelector('.modals-container')) {
-            this.createModalContainer();
-        }
-
-        this.modalContainer.prepend(modal);
-        this.modals.push({
-            id: modal.id,
-            modal,
+    generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
         });
-
-        // добавляем класс 'opened' для анимации
-        setTimeout(() => {
-            this.modalContainer.classList.add('opened');
-            modal.classList.add('opened');
-        }, 10);
-    }
-
-    createModalContainer() {
-        this.modalContainer.classList.add('modals-container');
-        document.body.appendChild(this.modalContainer);
-
-        this.modalContainer.onclick = (e) => {
-            if (e.target === this.modalContainer) {
-                if (this.closeOnBackground) {
-                    this.clear();
-                }
-            }
-        };
-    }
-
-    resolveContent(content, modalContent) {
-        if (!content) return;
-
-        if (typeof content === 'object' && !(content instanceof Element)) {
-            let contentContainer = document.createElement('div');
-            contentContainer.classList.add('content-container');
-
-            let resolvedContent = this.getObjectContent(
-                content,
-                contentContainer,
-            );
-            if (resolvedContent !== contentContainer) {
-                contentContainer.append(resolvedContent);
-            }
-
-            return contentContainer;
-        }
-
-        return content;
-    }
-
-    parseButtons(buttons, modal) {
-        if (!buttons) return;
-
-        let modalFooter = document.createElement('div');
-        modalFooter.classList.add('modal-footer');
-        modal.appendChild(modalFooter);
-
-        buttons.forEach((button) => {
-            let btn = document.createElement('button');
-
-            // btn.classList.add('btn');
-            btn.classList.add('btn', 'size-s', 'outline');
-
-            if (button?.class) {
-                const split = button?.class.split(' ');
-
-                for (let v of split) btn.classList.add(v);
-            }
-
-            btn.innerHTML = button?.icon
-                ? button.icon + button.text
-                : button.text;
-
-            if (button?.id) btn.id = button.id;
-
-            btn.onclick = () => button.callback(this);
-
-            modalFooter.appendChild(btn);
-        });
-
-        if (modalFooter.innerHTML === '') modalFooter.style.display = 'none';
-    }
-
-    getObjectContent(content, modalContent) {
-        let key = Object.keys(content)[0];
-
-        if (key == 0) {
-            let test = make('div');
-
-            for (let keyContent in content)
-                test.append(
-                    this.getObjectContent(content[keyContent], modalContent),
-                );
-
-            return test;
-        }
-
-        return this.parseAbility(key, content[key], modalContent);
-    }
-
-    removeFromContainer() {
-        if (this.modals.length === 0) {
-            this.modalContainer.remove();
-        }
-    }
-
-    parseAbility(key, params, modalContent) {
-        let ability = this.parseAbilities.find(
-            (ability) => ability.name === key,
-        );
-
-        if (!ability?.callback)
-            throw new Error(`Ability "${key}" is not defined`);
-
-        return ability.callback(params, modalContent);
-    }
-
-    async fetchUrl(url, onUrlLoaded, modalContent) {
-        try {
-            let response = await fetch(url);
-            let parsed = await response.json();
-
-            return onUrlLoaded(parsed, modalContent);
-        } catch (error) {
-            return onUrlLoaded(null, modalContent, error);
-        }
     }
 }
 
 const Modals = new Modal();
 
 Modals.addParser('form', (formConfig, modalContent) => {
-    let form = document.createElement('form');
+    const form = document.createElement('form');
+    if (formConfig?.id) form.id = formConfig.id;
 
-    formConfig?.id && form.setAttribute('id', formConfig.id);
-
-    formConfig.fields.forEach((field) => {
-        let formGroup = document.createElement('div');
+    formConfig.fields.forEach((field, index) => {
+        const formGroup = document.createElement('div');
         formGroup.classList.add(
             'position-relative',
             'row',
@@ -416,16 +381,20 @@ Modals.addParser('form', (formConfig, modalContent) => {
             'gx-3',
         );
 
-        let labelCol = document.createElement('div');
+        if( !formConfig.fields[index + 1] ) {
+            formGroup.classList.add('withoutLine');
+        }
+
+        const labelCol = document.createElement('div');
         labelCol.classList.add('col-sm-4', 'col-form-label');
 
-        let label = document.createElement('label');
+        const label = document.createElement('label');
         label.htmlFor = field.id;
-        label.innerHTML = field.label; // Используем innerHTML здесь
+        label.innerHTML = field.label;
         labelCol.appendChild(label);
 
         if (field.helpText) {
-            let small = document.createElement('small');
+            const small = document.createElement('small');
             small.classList.add('form-text', 'text-muted');
             small.innerHTML = field.helpText;
             labelCol.appendChild(small);
@@ -433,21 +402,40 @@ Modals.addParser('form', (formConfig, modalContent) => {
 
         formGroup.appendChild(labelCol);
 
-        let inputCol = document.createElement('div');
+        const inputCol = document.createElement('div');
         inputCol.classList.add('col-sm-8');
 
-        let input, labelAdd;
+        let input;
         if (field.type === 'select') {
             input = document.createElement('select');
-
             if (field.id) input.id = field.id;
             if (field.name) input.name = field.name;
-            if (field.placeholder) input.placeholder = field.placeholder;
 
             field.options.forEach((option) => {
-                let opt = document.createElement('option');
+                const opt = document.createElement('option');
                 opt.value = option.value;
-                opt.innerHTML = option.text;
+
+                // Проверка на наличие HTML в option
+                if (option.text && /<\/?[a-z][\s\S]*>/i.test(option.text)) {
+                    const htmlContainer = document.createElement('div');
+                    htmlContainer.innerHTML = option.text;
+                    opt.textContent = '';
+                    const observer = new MutationObserver(() => {
+                        opt.textContent = htmlContainer.textContent;
+                        htmlContainer.remove();
+                        observer.disconnect();
+                    });
+
+                    form.append(htmlContainer);
+
+                    observer.observe(htmlContainer, {
+                        childList: true,
+                        subtree: true,
+                    });
+                } else {
+                    opt.textContent = option.text;
+                }
+
                 if (option.selected) opt.selected = true;
                 input.appendChild(opt);
             });
@@ -459,17 +447,41 @@ Modals.addParser('form', (formConfig, modalContent) => {
             input.classList.add('form-check-input');
             input.setAttribute('role', 'switch');
 
-            labelAdd = document.createElement('label');
+            const labelAdd = document.createElement('label');
             labelAdd.setAttribute('for', field.id);
-            labelAdd.innerHTML = field.label; // Используем innerHTML здесь
+            labelAdd.textContent = field.label;
 
             if (field.checked) input.checked = true;
+            inputCol.appendChild(labelAdd);
         } else {
             input = document.createElement('input');
             input.type = field.type;
             if (field.id) input.id = field.id;
             if (field.name) input.name = field.name;
-            if (field.placeholder) input.placeholder = field.placeholder;
+
+            // Проверка на наличие HTML в placeholder
+            if (
+                field.placeholder &&
+                /<\/?[a-z][\s\S]*>/i.test(field.placeholder)
+            ) {
+                const htmlContainer = document.createElement('div');
+                htmlContainer.innerHTML = field.placeholder;
+                input.placeholder = '';
+                const observer = new MutationObserver(() => {
+                    input.placeholder = htmlContainer.textContent;
+                    htmlContainer.remove();
+                    observer.disconnect();
+                });
+
+                form.append(htmlContainer);
+
+                observer.observe(htmlContainer, {
+                    childList: true,
+                    subtree: true,
+                });
+            } else {
+                input.placeholder = field.placeholder;
+            }
         }
 
         if (field.required) {
@@ -478,13 +490,9 @@ Modals.addParser('form', (formConfig, modalContent) => {
         }
 
         if (!input.name && input.id) input.name = input.id;
-
         if (field?.default) input.value = field.default;
-
         input.classList.add('form-control');
         inputCol.appendChild(input);
-
-        if (labelAdd) inputCol.appendChild(labelAdd);
 
         if (field.type === 'hidden') {
             form.appendChild(input);

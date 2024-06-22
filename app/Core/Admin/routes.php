@@ -10,7 +10,7 @@ use Flute\Core\Admin\Http\Controllers\Api\EventsTestingController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterSocialsController;
 use Flute\Core\Admin\Http\Controllers\Api\IndexApi;
-use Flute\Core\Admin\Http\Controllers\Api\IPController;
+use Flute\Core\Admin\Http\Controllers\Api\HelperAdminController;
 use Flute\Core\Admin\Http\Controllers\Api\MainSettingsController;
 use Flute\Core\Admin\Http\Controllers\Api\ModulesController;
 use Flute\Core\Admin\Http\Controllers\Api\NavigationController;
@@ -183,7 +183,8 @@ $router->group(function ($router) {
         // $admin->get('/', [IndexApi::class, 'index']);
         $admin->get('/createlog', [MainSettingsController::class, 'createLog']);
         
-        $admin->get('/getip', [IPController::class, 'getIP']);
+        $admin->get('/getip', [HelperAdminController::class, 'getIP']);
+        $admin->post('/check-steam', [HelperAdminController::class, 'checkSteam']);
 
         $admin->post('/update', [UpdateController::class, 'update']);
         $admin->get('/check-update', [UpdateController::class, 'check']);

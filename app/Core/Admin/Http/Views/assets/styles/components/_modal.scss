@@ -12,13 +12,14 @@
     visibility: hidden;
     transition: all 0.3s ease-in-out;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal {
     background: $color-card;
     border-radius: $border-radius;
     max-width: 600px;
-    width: 100%;
+    width: calc(100% - 40px);
     overflow-x: hidden;
     overflow-y: auto;
     transition: all 0.3s ease-in-out;
@@ -84,7 +85,7 @@
     justify-content: flex-end;
 
     .cancel {
-        box-shadow: inset 0 0 0 1px $color-white-5;
+        box-shadow: inset 0 0 0 1px $color-white-10;
         color: darken($color-text, 60) !important;
         background-color: transparent !important;
 

@@ -608,3 +608,17 @@ $input-placeholder-color: $color-inactive;
         }
     }
 }
+
+.toggle-visibility {
+    display: flex;
+    position: absolute;
+    right: 25px;
+    top: 14px;
+    z-index: 10;
+    color: $color-gray;
+    transition: $transition;
+
+    &:hover {
+        color: $color-primary;
+    }
+}

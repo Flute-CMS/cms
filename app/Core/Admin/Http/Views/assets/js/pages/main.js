@@ -1,3 +1,60 @@
+const $steamApiInput = $('#steam_api');
+const $checkButton = $('#check_steam_api');
+
+function checkSteamApiKey() {
+    const apiKey = $steamApiInput.val();
+    if (apiKey) {
+        $checkButton.attr('aria-busy', true);
+        fetch(u('admin/api/check-steam'), {
+            headers: {
+                'x-csrf-token': csrfToken,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({ apiKey }),
+            method: 'POST',
+        })
+            .then((response) => response.json())
+            .then((res) => {
+                $checkButton.attr('aria-busy', false);
+                $checkButton.addClass('d-none');
+
+                if (res.error) {
+                    toast({
+                        type: 'error',
+                        message: res.error,
+                    });
+                } else {
+                    toast({
+                        type: 'success',
+                        message: translate('def.success'),
+                    });
+                }
+            })
+            .catch((error) => {
+                $checkButton.attr('aria-busy', false);
+
+                toast({
+                    type: 'error',
+                    message: translate('def.unknown_error'),
+                });
+            });
+    }
+}
+
+function toggleCheckButton() {
+    if ($steamApiInput.val()) {
+        $checkButton.removeClass('d-none');
+    } else {
+        $checkButton.addClass('d-none');
+    }
+}
+
+$steamApiInput.on('change', toggleCheckButton);
+$checkButton.on('click', checkSteamApiKey);
+
+toggleCheckButton();
+
 $(document).on('change', 'input[type="file"]', function () {
     if (this.files && this.files[0]) {
         var reader = new FileReader();
@@ -41,13 +98,15 @@ $(document).on('click', '[data-id]', function (e) {
     let el = $(this);
     let tabId = el.data('id');
 
+    $('.main_settings').attr('aria-busy', 'false');
+
     if (el.hasClass('active')) return;
 
     // Обновляем классы для вкладок и контента
     $('[data-id]').not(el).removeClass('active');
     el.addClass('active');
-    $('.settings-container > div').removeClass('active');
-    $(`.settings-container > #${tabId}`).addClass('active');
+    $('.main_settings > div').removeClass('active');
+    $(`.main_settings > #${tabId}`).addClass('active');
 
     // Обновляем URL без перезагрузки страницы
     if (history.pushState) {
@@ -70,7 +129,7 @@ function handleTabParameter() {
     if (tab) {
         let el = $(`[data-id=${tab}]`);
         if (el.length) {
-            el.click(); // Активируем вкладку если она существует
+            el.click();
         }
     }
 }
@@ -88,6 +147,7 @@ document
     .querySelector('.chrome-tabs')
     .addEventListener('contentRender', ({ detail }) => {
         handleTabParameter();
+        toggleCheckButton();
 
         db_connections = $('[data-database]')
             .map(function () {
@@ -159,7 +219,7 @@ $(document).on('click', '[data-deleteconnection]', async function () {
     }
 });
 
-$(document).on('submit', '.settings-container > div.active > form', (ev) => {
+$(document).on('submit', '.main_settings > div.active > form', (ev) => {
     let $form = $(ev.currentTarget);
     let id = $('[data-id].active').data('id');
     let rand = Math.random();
@@ -258,7 +318,7 @@ $(document).on('submit', '#dbEditConnectionForm', (ev) => {
 $(document).on('click', '[data-addb]', async () => {
     let modalId = await Modals.open({
         title: translate('admin.add_db_title'),
-        closeOnBackground: false,
+
         content: {
             form: await createDb(),
         },
@@ -289,7 +349,7 @@ $(document).on('click', '[data-changedb]', async function (e) {
 
     let modalId = await Modals.open({
         title: translate('admin.edit_db_title', { name: dbName }),
-        closeOnBackground: false,
+
         content: {
             form: await createDb(connectionData, dbName),
         },
@@ -317,7 +377,7 @@ $(document).on('click', '[data-changedb]', async function (e) {
 $(document).on('click', '[data-addconnection]', async () => {
     let modalId = await Modals.open({
         title: translate('admin.add_connection_title'),
-        closeOnBackground: false,
+
         content: {
             form: await createDbConnectionFormConfig(),
         },
@@ -348,7 +408,7 @@ $(document).on('click', '[data-changeconnection]', async function (e) {
 
     let modalId = await Modals.open({
         title: translate(`admin.edit_connection_title`, { name: connName }),
-        closeOnBackground: false,
+
         content: {
             form: await createDbConnectionFormConfig(connectionData, connName),
         },

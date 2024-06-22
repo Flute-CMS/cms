@@ -20,13 +20,12 @@ class DatabasesView extends AbstractController
     {
         $table = table();
 
-        $result = rep(DatabaseConnection::class)->select();
+        $result = rep(DatabaseConnection::class)->select()->load('server');
 
         $result = $result->fetchAll();
 
         foreach ($result as $key => $row) {
-            // $result[$key]->mod = basename($row->mod);
-            $result[$key]->server = ($result[$key]->server->id . ' - ' . $result[$key]->server->name);
+            $result[$key]->server = $result[$key]->server ? ($result[$key]->server->id . ' - ' . $result[$key]->server->name) : '-';
         }
 
         $table->addColumns([

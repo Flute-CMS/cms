@@ -263,17 +263,18 @@
 }
 
 .widgets-container {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    align-items: stretch;
     align-items: center;
-    gap: 15px;
-    max-height: 260px;
+    gap: 10px;
+    max-height: 280px;
     overflow: auto;
+    justify-items: center;
+    overflow-x: hidden;
 
     .widget {
-        height: 100px;
-        width: 140px;
+        width: 150px;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -306,12 +307,11 @@
         }
 
         .widget-image {
-            height: 100%;
             border-radius: ($border-radius / 2);
             background-color: $color-bg;
             position: relative;
             object-fit: cover;
-            height: 75px;
+            height: 90px;
 
             i {
                 position: absolute;
@@ -324,7 +324,6 @@
         }
 
         .widget-title {
-            height: 18px;
             border-radius: 3px;
             font-size: 0.8em;
             text-align: center;
@@ -347,16 +346,18 @@
         font-weight: bold;
         background: $color-primary;
         color: $color-text-inverse;
-        width: max-content;
         padding: 5px;
         line-height: 1;
         margin-bottom: 10px;
+        display: inline-flex;
     }
 
     .widget-loader {
         font-size: 0.9em;
         letter-spacing: 0.5px;
-        color: var(--muted-color);
+        color: $color-inactive;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .widget-settings {
@@ -551,6 +552,30 @@
     }
 }
 
+@keyframes openSaveAnim {
+    0% {
+        top: calc(100% - 30px);
+    }
+
+    50% {
+        top: calc(100% - 50px);
+    }
+
+    100% {
+        top: calc(100% - 40px);
+    }
+}
+
+@keyframes closeSaveAnim {
+    0% {
+        top: calc(100% - 50px);
+    }
+
+    100% {
+        top: calc(100% - 30px);
+    }
+}
+
 .save_container {
     position: fixed;
     z-index: 1;
@@ -561,24 +586,29 @@
     white-space: nowrap;
     align-items: center;
     gap: 55px;
-    background: $color-disabled;
+    background: $color-modal-bg;
     padding: 7px 7px 7px 15px;
     border-radius: $border-radius;
     visibility: hidden;
     opacity: 0;
     transition: .3s;
     font-weight: 500;
-    box-shadow: 0px 5px 20px 0px $color-disabled;
+    box-shadow: 0px 5px 20px 0px $color-text-inverse;
+    animation: .3s closeSaveAnim forwards;
 
     @media (max-width: 767px) {
         flex-direction: column;
         gap: 10px;
         padding: 10px;
+        white-space: pre-wrap;
+        width: calc(100% - 40px);
+        text-align: center;
     }
 
     &.opened {
-        top: calc(100% - 45px);
+        top: calc(100% - 75px);
         visibility: visible;
+        animation: .3s openSaveAnim forwards;
         opacity: 1;
     }
 

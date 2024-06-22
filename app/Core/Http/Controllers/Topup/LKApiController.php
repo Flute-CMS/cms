@@ -19,9 +19,13 @@ class LKApiController extends AbstractController
             die($redirect);
         } catch (\Exception $e) {
             logs()->error($e);
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
 
-            if( config('lk.pay_in_new_window') ) {
+            if (is_debug())
+                throw $e;
+
+            $message = __('def.unknown_error');
+            
+            if (config('lk.pay_in_new_window')) {
                 return $this->error($message);
             }
 

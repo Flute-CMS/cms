@@ -1,4 +1,4 @@
-<div class="content-header">
+<header class="content-header">
     <div class="content-header-left">
         @admin_navbar_logo
         @admin_navbar_search
@@ -13,6 +13,6 @@
 
         @admin_navbar_contact
     </div>
-</div>
+</header>
 
 @admin_navbar_tabs

@@ -1034,6 +1034,12 @@ window.editorTools = {
     },
 };
 
+function deepEqual(obj1, obj2) {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+}
+
+let initialData;
+
 window.editorConfig = {
     holder: 'editor',
     tools: window.editorTools,
@@ -1041,12 +1047,17 @@ window.editorConfig = {
     defaultBlock: 'paragraph',
     data: window.editorData,
     onReady: () => {
-        // new Undo({ editor });
-        // new DragDrop(editor);
+        setInitialData();
         document.body.classList.add('editor-opened');
     },
-    onChange: (data, test) => {
-        $('.save_container').addClass('opened');
+    onChange: async (data, event) => {
+        const currentData = await data.saver.save();
+
+        if (!deepEqual(initialData, currentData)) {
+            $('.save_container').addClass('opened');
+        } else {
+            $('.save_container').removeClass('opened');
+        }
     },
     onSave: () => {
         console.log('Saving');
@@ -1132,6 +1143,10 @@ window.editorConfig = {
 
 const editor = new EditorJS(window.editorConfig);
 
+async function setInitialData(data) {
+    initialData = data || window.editorData;
+}
+
 $('#saveButton').on('click', (e) => {
     editor.save().then((data) => {
         let button = $('#saveButton');
@@ -1159,8 +1174,8 @@ $('#saveButton').on('click', (e) => {
                 $(button).prop('disabled', false);
 
                 $('.save_container').removeClass('opened');
-
-                console.log(response);
+                
+                setInitialData(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 $(button).attr('aria-busy', false);

@@ -9,7 +9,7 @@ $(function () {
         selectedRoles[userId].forEach(function (role) {
             let backgroundColor = role.color || '';
             $('#user_chils').append(
-                `<div class="chip" data-id="${role.id}" style="background-color: ${backgroundColor}">${role.name}<span class="remove-role">&times;</span></div>`,
+                `<div class="chip" data-id="${role.id}" style="background-color: ${backgroundColor}">${role.name}<span class="remove-role"><i class="ph ph-x"></i></span></div>`,
             );
         });
     }
@@ -17,7 +17,7 @@ $(function () {
     function renderSuggestions() {
         var userId = $('#edit').data('userid');
 
-        if (typeof selectedRoles[userId] === undefined) return;
+        if (!userId || typeof selectedRoles[userId] === undefined || roles === undefined) return;
 
         $('#user_dialog').find('.suggestions').remove();
         let availableRoles = roles.filter(
