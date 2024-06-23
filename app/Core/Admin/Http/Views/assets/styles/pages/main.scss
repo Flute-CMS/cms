@@ -48,11 +48,18 @@
         i {
             font-size: 20px;
             margin-top: -2px;
+            transition: margin-right $transition;
         }
 
         &:hover {
             opacity: 1;
             background-color: $color-white-3;
+
+            &:not(.active) {
+                i {
+                    margin-right: 3px;
+                }
+            }
         }
 
         &.active {

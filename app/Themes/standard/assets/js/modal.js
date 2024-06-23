@@ -15,20 +15,24 @@ class Modal {
             warning: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 512"><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>`,
             success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>`,
             error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`,
+            async: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path d="M25 3C12.1 3 2 13.1 2 26s10.1 23 23 23 23-10.1 23-23S37.9 3 25 3zm0 43C13.5 46 4 36.5 4 25S13.5 4 25 4s21 9.5 21 21-9.5 21-21 21z"><animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 25 25" to="360 25 25" repeatCount="indefinite"/></path></svg>`,
         };
     }
 
     initializeEventListeners() {
         document.addEventListener('click', (event) => {
-            if (event.target.matches('[data-modal-open]')) {
-                const modalId = event.target.getAttribute('data-modal-open');
+            const openButton = event.target.closest('[data-modal-open]');
+            if (openButton) {
+                const modalId = openButton.getAttribute('data-modal-open');
                 const modalElement = document.getElementById(modalId);
                 if (modalElement) {
                     this.showModal(modalElement);
                 }
             }
-            if (event.target.matches('[data-modal-close]')) {
-                const modalId = event.target.getAttribute('data-modal-close');
+
+            const closeButton = event.target.closest('[data-modal-close]');
+            if (closeButton) {
+                const modalId = closeButton.getAttribute('data-modal-close');
                 this.close(modalId);
             }
         });
@@ -119,12 +123,6 @@ class Modal {
         }
         modal.focus();
         return modal;
-    }
-
-    toast({ message, type = 'info', duration = 3000 }) {
-        const toastId = `toast-${this.generateUUID()}`;
-        const toast = this.createToastElement(toastId, message, type, duration);
-        this.showToast(toast, duration);
     }
 
     addToContainer(modal) {
@@ -267,7 +265,7 @@ class Modal {
         }
     }
 
-    createToastElement(toastId, message, type, duration) {
+    createToastElement(toastId, message, type, isAsync = false) {
         const toast = document.createElement('div');
         toast.id = toastId;
         toast.classList.add('toast', `toast-${type}`);
@@ -279,11 +277,13 @@ class Modal {
         toastContentIcon.innerHTML = this.infoIcons[type];
         const progressBar = document.createElement('div');
         progressBar.classList.add('toast-progress-bar', 'primary');
+        progressBar.style.display = !isAsync ? 'block' : 'none';
         const progressBarBack = document.createElement('div');
         progressBarBack.classList.add(
             'toast-progress-bar',
             'progress-bar-back',
         );
+        progressBarBack.style.display = !isAsync ? 'block' : 'none';
         toast.append(
             toastContentIcon,
             toastContent,
@@ -293,7 +293,7 @@ class Modal {
         return toast;
     }
 
-    showToast(toast, duration) {
+    async showToast(toast, duration, isAsync = false) {
         if (!document.querySelector('.toast-container')) {
             const toastContainer = document.createElement('div');
             toastContainer.classList.add('toast-container');
@@ -301,7 +301,27 @@ class Modal {
         }
         document.querySelector('.toast-container').prepend(toast);
         setTimeout(() => toast.classList.add('show'), 10);
-        this.setToastTimeouts(toast, duration);
+        if (!isAsync) {
+            this.setToastTimeouts(toast, duration);
+        }
+    }
+
+    async updateToast(toastId, message, duration, type) {
+        const toast = document.getElementById(toastId);
+        if (toast) {
+            this.setToastTimeouts(toast, duration);
+
+            toast.className = '';
+            toast.classList.add('toast', `toast-${type}`, `show`);
+
+            const toastContent = toast.querySelector('.toast-content');
+            const toastContentIcon = toast.querySelector('.toast-content-icon');
+            toastContent.innerHTML = message;
+            toastContentIcon.innerHTML = this.infoIcons[type];
+
+            toast.querySelector('.toast-progress-bar').style.display = 'block';
+            toast.querySelector('.progress-bar-back').style.display = 'block';
+        }
     }
 
     setToastTimeouts(toast, duration) {
@@ -364,6 +384,32 @@ class Modal {
             return v.toString(16);
         });
     }
+
+    async toast({
+        message,
+        type = 'info',
+        duration = 3000,
+        fetchFunction = null,
+    }) {
+        if (type === 'async') {
+            const toastId = `toast-${this.generateUUID()}`;
+            const toast = this.createToastElement(toastId, message, type, true);
+            await this.showToast(toast, duration, true);
+
+            try {
+                const result = await fetchFunction();
+                await this.updateToast(toastId, result, duration, 'success');
+            } catch (error) {
+                await this.updateToast(toastId, error, duration, 'error');
+            }
+
+            return;
+        }
+
+        const toastId = `toast-${this.generateUUID()}`;
+        const toast = this.createToastElement(toastId, message, type);
+        this.showToast(toast, duration);
+    }
 }
 
 const Modals = new Modal();
@@ -381,7 +427,7 @@ Modals.addParser('form', (formConfig, modalContent) => {
             'gx-3',
         );
 
-        if( !formConfig.fields[index + 1] ) {
+        if (!formConfig.fields[index + 1]) {
             formGroup.classList.add('withoutLine');
         }
 
@@ -514,5 +560,9 @@ Modals.addParser('faq', (params, modalContent) => {
     return container;
 });
 
-const toast = ({ message, type = 'info', duration = 3000 }) =>
-    Modals.toast({ message, type, duration });
+const toast = ({
+    message,
+    type = 'info',
+    duration = 3000,
+    fetchFunction = null,
+}) => Modals.toast({ message, type, duration, fetchFunction });

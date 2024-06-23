@@ -23,7 +23,7 @@ class ServersView extends AbstractController
         $servers = rep(Server::class)->findAll();
 
         $table->addColumns([
-            (new TableColumn('id')),
+            (new TableColumn('id', "ID")),
             (new TableColumn('name', __('def.name')))->setType('text'),
             (new TableColumn('mod', __('admin.servers.mod')))->setType('text'),
             (new TableColumn('ip', 'IP')),

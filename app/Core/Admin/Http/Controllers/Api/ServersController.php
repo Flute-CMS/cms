@@ -4,10 +4,12 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\Server;
+use Flute\Core\Exceptions\RequestValidateException;
 use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use xPaw\SourceQuery\SourceQuery;
 
 class ServersController extends AbstractController
 {
@@ -80,6 +82,74 @@ class ServersController extends AbstractController
         transaction($server)->run();
 
         return $this->success();
+    }
+
+    public function checkIp(FluteRequest $request)
+    {
+        try {
+            $request->validate([
+                'ip' => 'string',
+                'port' => 'numeric',
+                'game' => 'numeric'
+            ]);
+        } catch (RequestValidateException $e) {
+            return $this->error($e->getErrors());
+        }
+
+        $ip = $request->input('ip');
+        $port = $request->input('port');
+        $game = $request->input('game');
+
+        try {
+            $query = new SourceQuery();
+            $query->Connect($ip, $port, 5, ((int) $game === 10) ? SourceQuery::GOLDSOURCE : SourceQuery::SOURCE);
+
+            return $this->success("Успешное подключение. Игроков - " . $query->GetInfo()['Players']);
+        } catch (\Exception $e) {
+            return $this->error("No connection to the server");
+        } finally {
+            if ($query !== null) {
+                $query->Disconnect();
+            }
+        }
+    }
+
+    public function checkRcon(FluteRequest $request)
+    {
+        try {
+            $request->validate([
+                'ip' => 'string',
+                'port' => 'numeric',
+                'game' => 'numeric',
+                'rcon' => 'string',
+                'command' => 'string'
+            ]);
+        } catch (RequestValidateException $e) {
+            return $this->error($e->getErrors());
+        }
+
+        $ip = $request->input('ip');
+        $port = $request->input('port');
+        $game = $request->input('game');
+        $rcon = $request->input('rcon');
+        $command = $request->input('command');
+
+        try {
+            $query = new SourceQuery();
+            $query->Connect($ip, $port, 5, ((int) $game === 10) ? SourceQuery::GOLDSOURCE : SourceQuery::SOURCE);
+
+            $query->SetRconPassword($rcon);
+
+            $rcon = $query->Rcon($command);
+
+            return $this->success($rcon);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        } finally {
+            if ($query !== null) {
+                $query->Disconnect();
+            }
+        }
     }
 
     protected function getServer(int $id)

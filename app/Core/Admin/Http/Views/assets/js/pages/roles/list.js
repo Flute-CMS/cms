@@ -57,38 +57,9 @@ $(function () {
             });
     }
 
-    function ajaxModuleAction(url, method, data = {}) {
-        $.ajax({
-            url: url,
-            type: method,
-            data: {
-                ...data,
-                ...{
-                    'x-csrf-token': csrfToken,
-                },
-            },
-            success: function (response) {
-                toast({
-                    type: 'success',
-                    message: response.success ?? translate('def.success'),
-                });
-
-                refreshCurrentPage();
-            },
-            error: function (xhr, status, error) {
-                toast({
-                    type: 'error',
-                    message:
-                        xhr?.responseJSON?.error ??
-                        translate('def.unknown_error'),
-                });
-            },
-        });
-    }
-
     $(document).on('click', '.roles-group .delete', async function () {
         let roleId = $(this).data('deleterole');
         if (await asyncConfirm(translate('admin.roles.confirm_delete')))
-            ajaxModuleAction(u('admin/api/roles/' + roleId), 'DELETE');
+            sendRequest({},u('admin/api/roles/' + roleId), 'DELETE');
     });
 });

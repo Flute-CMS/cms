@@ -259,7 +259,6 @@ class FluteRequest extends Request
                 try {
                     $this->validateRule($value, $rule);
                 } catch (AssertionException $e) {
-                    dd($e);
                     $errors[$field][] = "The $field field failed validation for rule $rule.";
                 }
             }

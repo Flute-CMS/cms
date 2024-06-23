@@ -153,7 +153,11 @@ Modals.addParser('zipUpload', (config, modalContent) => {
                     displayErrors(data);
                 } else {
                     uploadContainer.style.display = 'none';
-                    displayModuleInfo(data.moduleName, data.moduleVersion, data.type);
+                    displayModuleInfo(
+                        data.moduleName,
+                        data.moduleVersion,
+                        data.type,
+                    );
                 }
             })
             .catch((error) => {
@@ -204,9 +208,14 @@ Modals.addParser('zipUpload', (config, modalContent) => {
         infoContainer.appendChild(moduleVersion);
 
         let installButton = document.createElement('button');
-        installButton.innerHTML = type === 'install' ? translate('def.install') : translate('def.update');
+        installButton.innerHTML =
+            type === 'install'
+                ? translate('def.install')
+                : translate('def.update');
         installButton.classList.add('btn', 'primary', 'size-s');
-        installButton.addEventListener('click', () => installModule(name, type));
+        installButton.addEventListener('click', () =>
+            installModule(name, type),
+        );
         infoContainer.appendChild(installButton);
 
         modalContent.appendChild(infoContainer);
@@ -330,35 +339,6 @@ $(document).on('click', '[data-settingsmodule]', (e) => {
 $(function () {
     let csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-    function ajaxModuleAction(url, method, data = {}) {
-        $.ajax({
-            url: url,
-            type: method,
-            data: {
-                ...data,
-                ...{
-                    'x-csrf-token': csrfToken,
-                },
-            },
-            success: function (response) {
-                toast({
-                    type: 'success',
-                    message: response.success ?? translate('def.success'),
-                });
-
-                refreshCurrentPage();
-            },
-            error: function (xhr, status, error) {
-                toast({
-                    type: 'error',
-                    message:
-                        xhr?.responseJSON?.error ??
-                        translate('def.unknown_error'),
-                });
-            },
-        });
-    }
-
     $(document).on('click', '[data-moduleinstall]', (e) => {
         Modals.open({
             title: translate('admin.modules_list.module_install'),
@@ -381,7 +361,7 @@ $(function () {
                     translate('admin.modules_list.confirm_delete'),
                 )
             )
-                ajaxModuleAction(u('admin/api/modules/' + moduleId), 'DELETE');
+                sendRequest({}, u('admin/api/modules/' + moduleId), 'DELETE');
         },
     );
 
@@ -400,7 +380,8 @@ $(function () {
                     'primary',
                 )
             )
-                ajaxModuleAction(
+                sendRequest(
+                    {},
                     u('admin/api/modules/install/' + moduleId),
                     'POST',
                 );
@@ -413,10 +394,7 @@ $(function () {
         '.module-action-buttons .action-button.disable',
         function () {
             let moduleId = $(this).data('disablemodule');
-            ajaxModuleAction(
-                u('admin/api/modules/disable/' + moduleId),
-                'POST',
-            );
+            sendRequest({}, u('admin/api/modules/disable/' + moduleId), 'POST');
         },
     );
 
@@ -426,7 +404,7 @@ $(function () {
         '.module-action-buttons .action-button.activate',
         function () {
             let moduleId = $(this).data('activatemodule');
-            ajaxModuleAction(u('admin/api/modules/enable/' + moduleId), 'POST');
+            sendRequest({}, u('admin/api/modules/enable/' + moduleId), 'POST');
         },
     );
 
@@ -444,7 +422,8 @@ $(function () {
                     'primary',
                 )
             )
-                ajaxModuleAction(
+                sendRequest(
+                    {},
                     u('admin/api/modules/update/' + moduleId),
                     'POST',
                 );

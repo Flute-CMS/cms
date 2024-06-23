@@ -17,8 +17,14 @@ $(function () {
                         <label>${param.label}</label>
                     </div>
                     <div class="col-sm-9">
-                        <input type="${param.type}" class="form-control" name="${param.name}" placeholder="${param.label}" />
-                        <a type="button" class="enterMine" onclick="setUserId('${param.name}')">${translate('admin.event_testing.enter_mine')}</a>
+                        <input type="${
+                            param.type
+                        }" class="form-control" name="${
+                    param.name
+                }" placeholder="${param.label}" />
+                        <a type="button" class="enterMine" onclick="setUserId('${
+                            param.name
+                        }')">${translate('admin.event_testing.enter_mine')}</a>
                     </div>
                     <div class="col-sm-3">
                     </div>
@@ -77,26 +83,30 @@ $(function () {
             params: params,
         };
 
-        $.ajax({
-            url: u('admin/api/event_testing/check'),
-            type: 'POST',
-            data: requestData,
-            success: function(data) {
-                $('#eventSelect').val('');
-                $('#eventParameters').html('');
-                $('#checkEvent').attr('disabled', true);
+        toast({
+            type: 'async',
+            message: translate('admin.is_loading'),
+            fetchFunction: () =>
+                new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: u('admin/api/event_testing/check'),
+                        type: 'POST',
+                        data: requestData,
+                        success: function (data) {
+                            $('#eventSelect').val('');
+                            $('#eventParameters').html('');
+                            $('#checkEvent').attr('disabled', true);
 
-                toast({
-                    type: 'success',
-                    message: data?.message ?? translate('def.success')
-                })
-            },
-            error: function(response) {
-                toast({
-                    type: 'error',
-                    message: response?.responseJSON?.error ?? translate('def.unknown_error')
-                })
-            }
+                            resolve(data?.message || translate('def.success'));
+                        },
+                        error: function (response) {
+                            reject(
+                                jqXHR.responseJSON?.error ??
+                                    translate('def.unknown_error'),
+                            );
+                        },
+                    });
+                }),
         });
     });
 });

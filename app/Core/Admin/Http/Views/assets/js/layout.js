@@ -82,64 +82,56 @@ function transformUrl(url) {
 }
 
 function sendRequest(data, path = null, method = 'POST', callback) {
-    let result = null;
+    toast({
+        type: 'async',
+        message: translate('admin.is_loading'),
+        fetchFunction: () =>
+            new Promise((resolve, reject) => {
+                $.ajax({
+                    url: u(path),
+                    type: method,
+                    data: data,
+                    success: function (response) {
+                        callback && callback(response);
+                        Modals.clear();
 
-    // if (method !== 'DELETE' && Object.keys(data).length === 0) return;
-
-    $.ajax({
-        url: u(path),
-        type: method,
-        data: data,
-        success: function (response) {
-            toast({
-                message: response?.success || translate('def.success'),
-                type: 'success',
-            });
-
-            callback && callback(response);
-
-            result = response;
-
-            Modals.clear();
-
-            if (method === 'DELETE') {
-                tryAndDeleteTab(transformUrl(path));
-
-                refreshCurrentPage();
-            } else {
-                refreshCurrentPage();
-
-                if (!path.includes('admin/api/settings')) {
-                    // $('button[type="submit"]').attr('disabled', true);
-
-                    if (
-                        path.includes('edit') ||
-                        path.includes('add') ||
-                        path.includes('delete')
-                    )
-                        fetchContentAndAddTab(
-                            replaceURLForTab(window.location.pathname),
+                        if (method === 'DELETE') {
+                            tryAndDeleteTab(transformUrl(path));
+                            refreshCurrentPage();
+                        } else {
+                            refreshCurrentPage();
+                            if (!path.includes('admin/api/settings')) {
+                                if (
+                                    path.includes('edit') ||
+                                    path.includes('add') ||
+                                    path.includes('delete')
+                                )
+                                    fetchContentAndAddTab(
+                                        replaceURLForTab(
+                                            window.location.pathname,
+                                        ),
+                                    );
+                                refreshCurrentPage();
+                            }
+                        }
+                        resolve(response?.success || translate('def.success'));
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error(
+                            'error request',
+                            jqXHR,
+                            textStatus,
+                            errorThrown,
                         );
-
-                    refreshCurrentPage();
-                }
-            }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error('error request', jqXHR, textStatus, errorThrown);
-            toast({
-                message:
-                    jqXHR.responseJSON?.error ?? translate('def.unknown_error'),
-                type: 'error',
-            });
-
-            result = jqXHR.responseJSON;
-
-            callback && callback(jqXHR);
-        },
+                        callback && callback(jqXHR);
+                        reject(
+                            jqXHR.responseJSON?.error ??
+                                translate('def.unknown_error'),
+                        );
+                    },
+                });
+            }),
     });
-
-    return result;
 }
 
 function serializeFormData($form) {
@@ -191,60 +183,67 @@ function sendRequestFormData(
 ) {
     let result = null;
 
-    $.ajax({
-        url: u(path),
-        type: method,
-        data: data,
-        contentType: false,
-        processData: false,
-        async: false,
-        success: function (response) {
-            toast({
-                message: response?.success || translate('def.success'),
-                type: 'success',
-            });
+    toast({
+        type: 'async',
+        message: translate('admin.is_loading'),
+        fetchFunction: () =>
+            new Promise((resolve, reject) => {
+                $.ajax({
+                    url: u(path),
+                    type: method,
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        callback && callback(response);
 
-            callback && callback(response);
+                        result = response;
 
-            result = response;
+                        Modals.clear();
 
-            Modals.clear();
+                        if (method === 'DELETE') {
+                            tryAndDeleteTab(transformUrl(path));
 
-            if (method === 'DELETE') {
-                tryAndDeleteTab(transformUrl(path));
+                            refreshCurrentPage();
+                        } else {
+                            refreshCurrentPage();
 
-                refreshCurrentPage();
-            } else {
-                refreshCurrentPage();
+                            if (!path.includes('admin/api/settings')) {
+                                // $('button[type="submit"]').attr('disabled', true);
 
-                if (!path.includes('admin/api/settings')) {
-                    // $('button[type="submit"]').attr('disabled', true);
+                                if (
+                                    path.includes('edit') ||
+                                    path.includes('add') ||
+                                    path.includes('delete')
+                                )
+                                    fetchContentAndAddTab(
+                                        replaceURLForTab(
+                                            window.location.pathname,
+                                        ),
+                                    );
 
-                    if (
-                        path.includes('edit') ||
-                        path.includes('add') ||
-                        path.includes('delete')
-                    )
-                        fetchContentAndAddTab(
-                            replaceURLForTab(window.location.pathname),
+                                refreshCurrentPage();
+                            }
+                        }
+                        resolve(response?.success || translate('def.success'));
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error(
+                            'error request',
+                            jqXHR,
+                            textStatus,
+                            errorThrown,
                         );
+                        result = jqXHR.responseJSON;
 
-                    refreshCurrentPage();
-                }
-            }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error('error request', jqXHR, textStatus, errorThrown);
-            toast({
-                message:
-                    jqXHR.responseJSON?.error ?? translate('def.unknown_error'),
-                type: 'error',
-            });
-
-            result = jqXHR.responseJSON;
-
-            callback && callback(jqXHR);
-        },
+                        callback && callback(jqXHR);
+                        reject(
+                            jqXHR.responseJSON?.error ??
+                                translate('def.unknown_error'),
+                        );
+                    },
+                });
+            }),
     });
 
     return result;
@@ -296,7 +295,10 @@ $(function () {
         });
     });
 
-    inputPasswordObserver.observe(document.body, { childList: true, subtree: true });
+    inputPasswordObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
 
     $(document).on('submit', '[data-form]', async (ev) => {
         let $form = $(ev.currentTarget);

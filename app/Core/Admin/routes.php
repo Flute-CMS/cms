@@ -224,6 +224,7 @@ $router->group(function ($router) {
         $admin->group(function (RouteGroup $adminModule) {
             $adminModule->delete('/{id}', [ServersController::class, 'delete']);
             $adminModule->post('/add', [ServersController::class, 'add']);
+            $adminModule->post('/check-ip', [ServersController::class, 'checkIp']);
             $adminModule->put('/{id}', [ServersController::class, 'edit']);
         }, '/servers');
 

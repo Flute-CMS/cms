@@ -121,4 +121,29 @@ abstract class AbstractController
             $burstiness
         );
     }
+
+    /**
+     * Validate request parameters for presence and non-emptiness.
+     * 
+     * @param array $requestParams Parameters to validate.
+     * @param array $requiredParams List of required parameter keys.
+     * @return JsonResponse|null
+     */
+    protected function validate(array $requestParams, array $requiredParams): ?JsonResponse
+    {
+        $missingParams = [];
+        foreach ($requiredParams as $param) {
+            if (!isset($requestParams[$param]) || empty($requestParams[$param])) {
+                $missingParams[] = $param;
+            }
+        }
+
+        if (!empty($missingParams)) {
+            return $this->json([
+                'error' => 'Missing or empty parameters: ' . implode(', ', $missingParams)
+            ], 400);
+        }
+
+        return null;
+    }
 }

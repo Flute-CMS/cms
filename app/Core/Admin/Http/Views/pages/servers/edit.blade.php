@@ -138,6 +138,21 @@
             </div>
         </div>
 
+        <div class="position-relative row form-group">
+            <div class="col-sm-2 col-form-label">
+                <label>
+                    @t('admin.servers.check')</label>
+                <small>@t('admin.servers.check_description')</small>
+            </div>
+            <div class="col-sm-10">
+                <div class="d-flex" style="gap: 5px">
+                    <button id="check_ip" type="button" class="btn primary size-s">@t('admin.servers.check_online')</button>
+                    <button id="check_rcon" data-modal-open="check-rcon-{{ $server->id }}" type="button"
+                        class="btn primary size-s">@t('admin.servers.check_rcon')</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Кнопка отправки -->
         <div class="position-relative row form-check">
             <div class="col-sm-10 offset-sm-2">
