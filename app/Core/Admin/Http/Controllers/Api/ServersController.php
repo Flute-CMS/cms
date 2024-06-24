@@ -136,13 +136,15 @@ class ServersController extends AbstractController
 
         try {
             $query = new SourceQuery();
-            $query->Connect($ip, $port, 5, ((int) $game === 10) ? SourceQuery::GOLDSOURCE : SourceQuery::SOURCE);
 
+            $query->Connect($ip, $port, 3, ((int) $game === 10) ? SourceQuery::GOLDSOURCE : SourceQuery::SOURCE);
             $query->SetRconPassword($rcon);
 
             $rcon = $query->Rcon($command);
 
-            return $this->success($rcon);
+            return $this->json([
+                'result' => $rcon
+            ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         } finally {

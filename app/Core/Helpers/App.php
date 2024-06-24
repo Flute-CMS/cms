@@ -8,9 +8,10 @@ if (!function_exists("app")) {
     /**
      * Get the instance of the Application class or resolve a class/interface from the container.
      *
-     * @param string|null $name Entry name or a class name.
+     * @template T
+     * @param class-string<T>|null $name Entry name or a class name.
      *
-     * @return mixed Returns an instance of the type specified by $name, or the Application instance if $name is null.
+     * @return ($name is null ? App : T) Returns an instance of the type specified by $name, or the Application instance if $name is null.
      * @throws DependencyException
      * @throws NotFoundException
      */

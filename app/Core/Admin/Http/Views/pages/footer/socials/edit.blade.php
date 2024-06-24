@@ -48,10 +48,14 @@
                 <label for="icon">
                     @t('admin.footer.social_icon_label')
                 </label>
+                <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="icon" value="{{ $item->icon }}" id="icon" placeholder="@t('admin.footer.social_icon_label')"
-                    type="text" class="form-control" required>
+                <div class="d-flex align-items-center">
+                    <div id="icon-output"></div>
+                    <input name="icon" value="{{ $item->icon }}" id="icon" placeholder="@t('admin.footer.social_icon_label')"
+                        type="text" class="form-control" required>
+                </div>
             </div>
         </div>
         <div class="position-relative row form-group">

@@ -9,7 +9,6 @@ use Flute\Core\Events\RoutingStartedEvent;
 use Flute\Core\Exceptions\ForcedRedirectException;
 use Flute\Core\Http\Middlewares\BanCheckMiddleware;
 use Flute\Core\Http\Middlewares\MaintenanceMiddleware;
-use Flute\Core\Http\Middlewares\RedirectsMiddleware;
 use Flute\Core\Router\RouteGroup;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
@@ -37,7 +36,6 @@ class RouteDispatcher
     protected array $defaultMiddlewares = [
         MaintenanceMiddleware::class,
         BanCheckMiddleware::class,
-        RedirectsMiddleware::class
     ];
 
 
@@ -119,30 +117,11 @@ class RouteDispatcher
         } catch (HttpException $exception) {
             return response()->error($exception->getStatusCode(), $exception->getMessage());
         } catch (\Exception $exception) {
-            if (!is_debug())
+            if (!is_debug()) {
                 return response()->error(500, __('def.internal_server_error'));
-            else
+            } else {
                 throw $exception;
-        }
-
-        try {
-            // Ensure middleware is run even on error
-            $middlewares = $this->handleMiddlewares($this->defaultMiddlewares);
-            $middlewareRunner = new MiddlewareRunner($middlewares, $request, function () use ($response) {
-                return $response;
-            });
-            $response = $middlewareRunner->run();
-        } catch (ResourceNotFoundException $exception) {
-            $response = response()->error(404, __('def.page_not_found'));
-        } catch (MethodNotAllowedException $exception) {
-            $response = response()->error(405, __('def.method_not_allowed'));
-        } catch (ForcedRedirectException $exception) {
-            $response = response()->redirect($exception->getUrl(), $exception->getStatusCode());
-        } catch (\Exception $exception) {
-            if (!is_debug())
-                return response()->error(500, __('def.internal_server_error'));
-            else
-                throw $exception;
+            }
         }
 
         // Dispatches a routing finished event.

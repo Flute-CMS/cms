@@ -18,7 +18,7 @@
         @stack('container')
 
         <div class="lk">
-            @if (sizeof($payments) > 1)
+            @if (sizeof($payments) > 1 || (sizeof($payments) === 1 && sizeof($currencies) > 1))
                 <div class="lk-gateways">
                     <h3 class="lk-header active">@t('lk.page.choose_gateway')</h3>
 
@@ -41,19 +41,17 @@
                         </div>
                     @endif
 
-                    @if (sizeof($payments) > 1)
-                        <div class="lk-gateways-content">
-                            @foreach ($payments as $key => $val)
-                                <button data-selectgateway="{{ $key }}" class="gateway"
-                                    @if (!$currencies[0]->hasPaymentByKey($key)) style="display: none;" @endif>
-                                    <img src="@asset('assets/img/payments/' . $key . '.webp')" alt="{{ $key }}">
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
+                    <div class="lk-gateways-content">
+                        @foreach ($payments as $key => $val)
+                            <button data-selectgateway="{{ $key }}" class="gateway"
+                                @if (!$currencies[0]->hasPaymentByKey($key)) style="display: none;" @endif>
+                                <img src="@asset('assets/img/payments/' . $key . '.webp')" alt="{{ $key }}">
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             @endif
-            <div class="lk-result inactive @if (sizeof($payments) > 1) lk-result-line @else center-block @endif">
+            <div class="lk-result inactive @if (sizeof($payments) > 1 || (sizeof($payments) === 1 && sizeof($currencies) > 1)) lk-result-line @else center-block @endif">
                 <h3 class="lk-header">@t('lk.page.put_amount_and_promo')</h3>
 
                 @flash
@@ -119,7 +117,7 @@
 
 @push('footer')
     <script>
-        @if (sizeof($payments) === 1)
+        @if (sizeof($payments) === 1 && sizeof($currencies) === 1)
             let selectedGatewayInit = "{{ array_key_first($payments) }}";
         @endif
 

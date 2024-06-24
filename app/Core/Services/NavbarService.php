@@ -25,7 +25,7 @@ class NavbarService
         if (!is_installed())
             return;
 
-        $this->performance = (bool) (app('app.mode') == App::PERFORMANCE_MODE);
+        $this->performance = is_performance();
 
         $this->format = $format;
 
@@ -55,15 +55,15 @@ class NavbarService
      *
      * @return array
      */
-    public function all(): array
+    public function all(bool $ignoreAuthRules = false): array
     {
-        return $this->cachedNavbarItems;
+        return $ignoreAuthRules ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
     }
 
     /**
      * Sets the default navbar items by fetching them from the database
      */
-    protected function getDefaultNavbarItems(): array
+    protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
     {
         $navbarItems = $this->getNavbarItemRepository()->select()->load('roles')->orderBy('position', 'asc')->where([
             'parent_id' => null,
@@ -72,7 +72,7 @@ class NavbarService
         $formattedItems = [];
 
         foreach ($navbarItems as $item) {
-            if ($this->hasAccess($item)) {
+            if ($this->hasAccess($item, $ignoreAuth)) {
                 $formattedItem = $this->format->format($item);
                 $formattedItem['children'] = $this->getChildren($item->id);
                 $formattedItems[] = $formattedItem;
@@ -116,17 +116,19 @@ class NavbarService
      *
      * @return bool
      */
-    public function hasAccess(NavbarItem $item): bool
+    public function hasAccess(NavbarItem $item, bool $ignoreAuth = false): bool
     {
         $isLoggedIn = user()->isLoggedIn();
 
-        // Item visibility constraints
-        if ($item->visibleOnlyForGuests && $isLoggedIn) {
-            return false;
-        }
+        if (!$ignoreAuth) {
+            // Item visibility constraints
+            if ($item->visibleOnlyForGuests && $isLoggedIn) {
+                return false;
+            }
 
-        if ($item->visibleOnlyForLoggedIn && !$isLoggedIn) {
-            return false;
+            if ($item->visibleOnlyForLoggedIn && !$isLoggedIn) {
+                return false;
+            }
         }
 
         // If no roles are specified, the item is accessible for logged in user

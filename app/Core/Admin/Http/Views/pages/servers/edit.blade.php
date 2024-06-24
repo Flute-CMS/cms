@@ -147,7 +147,7 @@
             <div class="col-sm-10">
                 <div class="d-flex" style="gap: 5px">
                     <button id="check_ip" type="button" class="btn primary size-s">@t('admin.servers.check_online')</button>
-                    <button id="check_rcon" data-modal-open="check-rcon-{{ $server->id }}" type="button"
+                    <button id="openModal" type="button"
                         class="btn primary size-s">@t('admin.servers.check_rcon')</button>
                 </div>
             </div>

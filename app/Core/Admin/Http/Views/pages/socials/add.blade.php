@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <div class="position-relative row form-group">
+        <div class="position-relative row form-group" id="driverSettings">
             <div class="col-sm-3 col-form-label required">
                 <label for="settings">
                     @t('admin.socials.settings_label')

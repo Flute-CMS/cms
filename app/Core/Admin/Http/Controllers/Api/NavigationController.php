@@ -31,7 +31,7 @@ class NavigationController extends AbstractController
         foreach ($order as $value) {
             $item = rep(NavbarItem::class)->select()->load('roles')->where(['id' => (int) $value['id']])->fetchOne();
 
-            if ($item && navbar()->hasAccess($item)) {
+            if ($item && navbar()->hasAccess($item, true)) {
                 $item->position = $value['position'];
 
                 if ($value['parent_id'] == null) {
@@ -39,7 +39,7 @@ class NavigationController extends AbstractController
                 } else {
                     $parent = rep(NavbarItem::class)->select()->load('roles')->where(['id' => (int) $value['parent_id']])->fetchOne();
 
-                    if ($parent && navbar()->hasAccess($parent))
+                    if ($parent && navbar()->hasAccess($parent, true))
                         $item->parent = $parent;
                 }
 
@@ -151,7 +151,7 @@ class NavigationController extends AbstractController
         if (!$navigation)
             return $this->error(__('admin.navigation.not_found'), 404);
 
-        if (!navbar()->hasAccess($navigation))
+        if (!navbar()->hasAccess($navigation, true))
             return $this->error(__('def.no_access'));
 
         return $navigation;

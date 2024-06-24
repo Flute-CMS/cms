@@ -81,7 +81,13 @@ function transformUrl(url) {
     }
 }
 
-function sendRequest(data, path = null, method = 'POST', callback) {
+function sendRequest(
+    data,
+    path = null,
+    method = 'POST',
+    callback = null,
+    needToRefresh = true,
+) {
     toast({
         type: 'async',
         message: translate('admin.is_loading'),
@@ -93,27 +99,31 @@ function sendRequest(data, path = null, method = 'POST', callback) {
                     data: data,
                     success: function (response) {
                         callback && callback(response);
-                        Modals.clear();
 
-                        if (method === 'DELETE') {
-                            tryAndDeleteTab(transformUrl(path));
-                            refreshCurrentPage();
-                        } else {
-                            refreshCurrentPage();
-                            if (!path.includes('admin/api/settings')) {
-                                if (
-                                    path.includes('edit') ||
-                                    path.includes('add') ||
-                                    path.includes('delete')
-                                )
-                                    fetchContentAndAddTab(
-                                        replaceURLForTab(
-                                            window.location.pathname,
-                                        ),
-                                    );
+                        if (needToRefresh) {
+                            Modals.clear();
+
+                            if (method === 'DELETE') {
+                                tryAndDeleteTab(transformUrl(path));
                                 refreshCurrentPage();
+                            } else {
+                                refreshCurrentPage();
+                                if (!path.includes('admin/api/settings')) {
+                                    if (
+                                        path.includes('edit') ||
+                                        path.includes('add') ||
+                                        path.includes('delete')
+                                    )
+                                        fetchContentAndAddTab(
+                                            replaceURLForTab(
+                                                window.location.pathname,
+                                            ),
+                                        );
+                                    refreshCurrentPage();
+                                }
                             }
                         }
+
                         resolve(response?.success || translate('def.success'));
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -398,6 +408,76 @@ $(function () {
     container.addEventListener('mouseleave', function () {
         container.style.width = '35px';
     });
+
+    let icons = [];
+
+    const $iconMenu = $(
+        '<div id="icon-menu" class="icon-menu"></div>',
+    ).appendTo('body');
+    const $iconMenuHeader = $(`
+        <div class="icon-menu-header">
+            <input type="text" id="icon-search" placeholder="" data-translate="def.search" data-translate-attribute="placeholder">
+            <div class="form-group">
+            <select id="icon-style">
+                <option value="ph-thin">Thin</option>
+                <option value="ph-light">Light</option>
+                <option value="ph" selected>Regular</option>
+                <option value="ph-bold">Bold</option>
+                <option value="ph-duotone">Duotone</option>
+            </select>
+            </div>
+        </div>
+    `).appendTo($iconMenu);
+    const $iconList = $(
+        '<div id="icon-list" class="icon-list"></div>',
+    ).appendTo($iconMenu);
+
+    function fetchIcons() {
+        $.getJSON(u('admin/api/get-icons'), function (data) {
+            icons = data.icons;
+            updateIconList();
+        });
+    }
+
+    function updateIconList() {
+        const searchValue = $('#icon-search').val().toLowerCase();
+        const style = $('#icon-style').val();
+        $iconList.empty();
+        icons
+            .filter((icon) => icon.includes(searchValue))
+            .forEach((icon) => {
+                const iconElement = `<i class="${style} ph-${icon}"></i>`;
+                $iconList.append(iconElement);
+            });
+    }
+
+    $(document).on('focus', '#icon', function () {
+        const inputOffset = $(this).offset();
+        const inputHeight = $(this).outerHeight() + 10;
+        $iconMenu
+            .css({
+                top: inputOffset.top + inputHeight,
+                left: inputOffset.left,
+            })
+            .slideDown(300);
+    });
+
+    $(document).on('click', function (event) {
+        if (!$(event.target).closest('#icon-menu, #icon').length) {
+            $iconMenu.slideUp(300);
+        }
+    });
+
+    $iconMenuHeader.on('input', '#icon-search', updateIconList);
+    $iconMenuHeader.on('change', '#icon-style', updateIconList);
+
+    $iconList.on('click', 'i', function () {
+        const iconClass = $(this).attr('class');
+        $('#icon').val(`<i class="${iconClass}"></i>`).trigger('input');
+        $iconMenu.slideUp();
+    });
+
+    fetchIcons();
 });
 
 window.defaultEditorData = {};

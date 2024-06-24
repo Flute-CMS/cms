@@ -19,7 +19,9 @@ class MaintenanceMiddleware extends AbstractMiddleware
             return $next($request);
         }
 
-        abort_if((bool) config('app.maintenance_mode') === false || is_debug(), 503, __('def.maintenance_mode'));
+        if( config('app.maintenance_mode') && !is_debug() ) {
+            return $this->error(config('app.maintenance_message') ? __(config('app.maintenance_message')) : __('def.maintenance_mode'), 503);
+        }
 
         return $next($request);
     }

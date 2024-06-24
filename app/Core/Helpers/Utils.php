@@ -261,6 +261,10 @@ function getPluralForm($number, $forms)
 
 function secondsToReadable(int $seconds): string
 {
+    if( $seconds === 0 ) {
+        return __('def.forever');
+    }
+
     $days = floor($seconds / 86400);
     $hours = floor(($seconds % 86400) / 3600);
     $minutes = floor(($seconds % 3600) / 60);
@@ -269,22 +273,22 @@ function secondsToReadable(int $seconds): string
     $result = [];
 
     if ($days > 0) {
-        $daysForms = explode('|', __('def.days', [], 'messages'));
+        $daysForms = explode('|', __('def.days'));
         $result[] = $days . ' ' . getPluralForm($days, $daysForms);
     }
 
     if ($hours > 0) {
-        $hoursForms = explode('|', __('def.hours', [], 'messages'));
+        $hoursForms = explode('|', __('def.hours'));
         $result[] = $hours . ' ' . getPluralForm($hours, $hoursForms);
     }
 
     if ($minutes > 0) {
-        $minutesForms = explode('|', __('def.minutes', [], 'messages'));
+        $minutesForms = explode('|', __('def.minutes'));
         $result[] = $minutes . ' ' . getPluralForm($minutes, $minutesForms);
     }
 
     if ($remainingSeconds > 0 || empty($result)) {
-        $secondsForms = explode('|', __('def.seconds', [], 'messages'));
+        $secondsForms = explode('|', __('def.seconds'));
         $result[] = $remainingSeconds . ' ' . getPluralForm($remainingSeconds, $secondsForms);
     }
 

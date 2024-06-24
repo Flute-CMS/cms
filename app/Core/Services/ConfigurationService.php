@@ -150,11 +150,13 @@ class ConfigurationService
             "app" => Expect::structure([
                 "name" => Expect::string("Flute")->required(),
                 "footer_name" => Expect::string(""),
+                "footer_html" => Expect::string(""),
                 "url" => Expect::string()->required(),
                 "steam_api" => Expect::string()->required(),
                 "debug_ips" => Expect::array()->required(),
                 "debug" => Expect::bool(true)->required(),
                 "maintenance_mode" => Expect::bool(false),
+                "maintenance_message" => Expect::string(""),
                 "discord_link_roles" => Expect::bool(false),
                 "mode" => Expect::string("performance")->required(),
                 "key" => Expect::string()->required(),
@@ -165,6 +167,7 @@ class ConfigurationService
                 "flute_copyright" => Expect::bool(true)->required(),
                 "timezone" => Expect::string()->required(),
                 "notifications" => Expect::string('all')->required(),
+                "notifications_new_view" => Expect::bool(false),
                 "widget_placeholders" => Expect::bool(true),
             ]),
             "lk" => Expect::structure([

@@ -622,3 +622,60 @@ $input-placeholder-color: $color-inactive;
         color: $color-primary;
     }
 }
+
+.icon-menu {
+    display: none;
+    position: absolute;
+    background: $color-disabled;
+    border: 1px solid $color-white-5;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 305px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.icon-menu-header {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid $color-white-5;
+    position: sticky;
+    top: 0;
+    background-color: $color-disabled;
+
+    .form-group {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+#icon-search {
+    padding: 5px;
+    color: $color-text;
+    width: 160px;
+}
+
+#icon-style {}
+
+.icon-list {
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.icon-list i {
+    cursor: pointer;
+    font-size: 22px;
+    color: $color-text;
+    padding: 10px;
+    border-radius: 5px;
+    transition: $transition;
+
+    &:hover {
+        background-color: $color-white-5;
+    }
+}

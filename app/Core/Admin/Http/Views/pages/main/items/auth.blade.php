@@ -31,23 +31,21 @@
         </div>
     </div>
 
-    <!-- CSRF защита -->
-    <div class="position-relative row form-group">
+    <div class="position-relative row form-group withoutLine">
         <div class="col-sm-3 col-form-label">
-            <label for="csrfEnabled">
-                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline" data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.auth_form.csrf_warning')">
-                    <i class="ph ph-warning"></i>
-                </div>
-                @t('admin.auth_form.csrf_protection_label')
+            <label for="only_social">
+                @t('admin.auth_form.only_social')
             </label>
-            <small class="form-text text-muted">@t('admin.auth_form.csrf_protection_description')</small>
+            <small class="form-text text-muted">@t('admin.auth_form.only_social_label')</small>
         </div>
         <div class="col-sm-9">
-            <input name="csrfEnabled" role="switch" id="csrfEnabled" type="checkbox" class="form-check-input"
-                {{ config('auth.csrf_enabled') ? 'checked' : '' }}>
-            <label for="csrfEnabled"></label>
+            <input name="only_social" role="switch" id="only_social" type="checkbox" class="form-check-input"
+                {{ config('auth.only_social', false) ? 'checked' : '' }}>
+            <label for="only_social"></label>
         </div>
     </div>
+
+    <div class="form-group-lines">E-Mail</div>
 
     <!-- Сброс пароля -->
     <div class="position-relative row form-group">
@@ -61,6 +59,41 @@
             <input name="resetPassword" role="switch" id="resetPassword" type="checkbox" class="form-check-input"
                 {{ config('auth.reset_password') ? 'checked' : '' }}>
             <label for="resetPassword"></label>
+        </div>
+    </div>
+
+    <!-- Регистрация -->
+    <!-- Подтверждение Email -->
+    <div class="position-relative row form-group withoutLine">
+        <div class="col-sm-3 col-form-label">
+            <label for="confirmEmail">@t('admin.auth_form.confirm_email_label')</label>
+            <small class="form-text text-muted">@t('admin.auth_form.confirm_email_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="confirmEmail" role="switch" id="confirmEmail" type="checkbox" class="form-check-input"
+                {{ config('auth.registration.confirm_email') ? 'checked' : '' }}>
+            <label for="confirmEmail"></label>
+        </div>
+    </div>
+
+    <div class="form-group-lines">@t('def.security')</div>
+
+    <!-- CSRF защита -->
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="csrfEnabled">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline"
+                    data-faq="@t('admin.what_it_means')" data-faq-content="@t('admin.auth_form.csrf_warning')">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.auth_form.csrf_protection_label')
+            </label>
+            <small class="form-text text-muted">@t('admin.auth_form.csrf_protection_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="csrfEnabled" role="switch" id="csrfEnabled" type="checkbox" class="form-check-input"
+                {{ config('auth.csrf_enabled') ? 'checked' : '' }}>
+            <label for="csrfEnabled"></label>
         </div>
     </div>
 
@@ -80,7 +113,7 @@
     </div>
 
     <!-- Токен безопасности -->
-    <div class="position-relative row form-group">
+    <div class="position-relative row form-group withoutLine">
         <div class="col-sm-3 col-form-label">
             <label for="check_ip">
                 @t('admin.auth_form.check_ip')
@@ -91,34 +124,6 @@
             <input name="check_ip" role="switch" id="check_ip" type="checkbox" class="form-check-input"
                 {{ config('auth.check_ip') ? 'checked' : '' }}>
             <label for="check_ip"></label>
-        </div>
-    </div>
-
-    <!-- Регистрация -->
-    <!-- Подтверждение Email -->
-    <div class="position-relative row form-group">
-        <div class="col-sm-3 col-form-label">
-            <label for="confirmEmail">@t('admin.auth_form.confirm_email_label')</label>
-            <small class="form-text text-muted">@t('admin.auth_form.confirm_email_description')</small>
-        </div>
-        <div class="col-sm-9">
-            <input name="confirmEmail" role="switch" id="confirmEmail" type="checkbox" class="form-check-input"
-                {{ config('auth.registration.confirm_email') ? 'checked' : '' }}>
-            <label for="confirmEmail"></label>
-        </div>
-    </div>
-
-    <div class="position-relative row form-group">
-        <div class="col-sm-3 col-form-label">
-            <label for="only_social">
-                @t('admin.auth_form.only_social')
-            </label>
-            <small class="form-text text-muted">@t('admin.auth_form.only_social_label')</small>
-        </div>
-        <div class="col-sm-9">
-            <input name="only_social" role="switch" id="only_social" type="checkbox" class="form-check-input"
-                {{ config('auth.only_social', false) ? 'checked' : '' }}>
-            <label for="only_social"></label>
         </div>
     </div>
 
@@ -134,6 +139,8 @@
             <label for="socialSupplement"></label>
         </div>
     </div> --}}
+
+    <div class="form-group-lines">@t('def.validation')</div>
 
     <!-- Валидация -->
     <!-- Валидация логина -->

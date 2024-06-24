@@ -21,7 +21,7 @@ class DatabasesController extends AbstractController
     public function store(FluteRequest $request): Response
     {
         try {
-            $this->validate($request);
+            $this->validation($request);
 
             $this->databasesService->store(
                 $request->mod,
@@ -50,7 +50,7 @@ class DatabasesController extends AbstractController
     public function update(FluteRequest $request, $id): Response
     {
         try {
-            $this->validate($request);
+            $this->validation($request);
 
             $this->databasesService->update(
                 (int) $id,
@@ -66,7 +66,7 @@ class DatabasesController extends AbstractController
         }
     }
 
-    protected function validate( FluteRequest $request )
+    protected function validation( FluteRequest $request )
     {
         if( empty( $request->input('mod') ) || empty( $request->input('dbname') ) )
             throw new \Exception(__('admin.databases.params_empty'));

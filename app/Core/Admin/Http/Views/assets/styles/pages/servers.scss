@@ -9,6 +9,18 @@
     text-shadow: none;
 }
 
+.error-message {
+    color: $color-error;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.success-message {
+    color: $color-success;
+    font-size: 14px;
+    white-space: break-spaces;
+}
+
 .servers-action-buttons {
     display: flex;
     gap: 5px;

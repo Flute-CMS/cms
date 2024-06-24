@@ -77,7 +77,7 @@
             </div>
         </div>
 
-        <div class="position-relative row form-group">
+        <div class="position-relative row form-group" id="driverSettings">
             <div class="col-sm-3 col-form-label required">
                 <label for="settings">
                     @t('admin.socials.settings_label')
@@ -95,8 +95,7 @@
             </div>
             <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
                 <input id="redirectUri1" type="text" class="form-control" readonly
-                    value="{{ url('social/' . $social->key) }}"
-                    data-copy="{{ url('social/' . $social->key) }}">
+                    value="{{ url('social/' . $social->key) }}" data-copy="{{ url('social/' . $social->key) }}">
             </div>
         </div>
         <div class="position-relative row form-group">
@@ -104,7 +103,7 @@
                 <label for="redirectUri2">Redirect URI 2</label>
             </div>
             <div class="col-sm-9" data-tooltip="@t('def.copy')" data-tooltip-conf="top">
-                <input id="redirectUri2" type="text" class="form-control" readonly 
+                <input id="redirectUri2" type="text" class="form-control" readonly
                     value="{{ url('profile/social/bind/' . $social->key) }}"
                     data-copy="{{ url('profile/social/bind/' . $social->key) }}">
             </div>

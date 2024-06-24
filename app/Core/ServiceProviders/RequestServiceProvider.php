@@ -34,7 +34,7 @@ class RequestServiceProvider extends AbstractServiceProvider
         // Cloudflare bypass
         FluteRequest::setTrustedProxies(
             ['REMOTE_ADDR'],
-            FluteRequest::HEADER_X_FORWARDED_FOR
+            Request::HEADER_X_FORWARDED_FOR
         );
     }
 }

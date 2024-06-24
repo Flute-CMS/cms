@@ -9,6 +9,7 @@ use Flute\Core\Admin\Http\Controllers\Api\DatabasesController;
 use Flute\Core\Admin\Http\Controllers\Api\EventsTestingController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterController;
 use Flute\Core\Admin\Http\Controllers\Api\Footer\FooterSocialsController;
+use Flute\Core\Admin\Http\Controllers\Api\IconsController;
 use Flute\Core\Admin\Http\Controllers\Api\IndexApi;
 use Flute\Core\Admin\Http\Controllers\Api\HelperAdminController;
 use Flute\Core\Admin\Http\Controllers\Api\MainSettingsController;
@@ -183,6 +184,8 @@ $router->group(function ($router) {
         // $admin->get('/', [IndexApi::class, 'index']);
         $admin->get('/createlog', [MainSettingsController::class, 'createLog']);
         
+        $admin->get('/get-icons', [IconsController::class, 'getAll']);
+
         $admin->get('/getip', [HelperAdminController::class, 'getIP']);
         $admin->post('/check-steam', [HelperAdminController::class, 'checkSteam']);
 
@@ -225,6 +228,7 @@ $router->group(function ($router) {
             $adminModule->delete('/{id}', [ServersController::class, 'delete']);
             $adminModule->post('/add', [ServersController::class, 'add']);
             $adminModule->post('/check-ip', [ServersController::class, 'checkIp']);
+            $adminModule->post('/check-rcon', [ServersController::class, 'checkRcon']);
             $adminModule->put('/{id}', [ServersController::class, 'edit']);
         }, '/servers');
 

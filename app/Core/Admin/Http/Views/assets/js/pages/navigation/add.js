@@ -15,7 +15,16 @@ $(function () {
 
     $(document).on('input', '#icon', function () {
         let val = $(this).val().trim();
-        $('#icon-output').html(`<i class='${val}'></i>`);
+        let className = val;
+
+        if (val.includes('<i')) {
+            let match = val.match(/class=['"]([^'"]+)['"]/);
+            if (match && match[1]) {
+                className = match[1];
+            }
+
+            $('#icon').val(className);
+        } else $('#icon-output').html(`<i class='${className}'></i>`);
     });
 
     // Обработчик события изменения текста в поле URL

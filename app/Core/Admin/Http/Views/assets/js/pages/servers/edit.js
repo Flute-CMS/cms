@@ -52,3 +52,84 @@ $(document).on('click', '#check_ip', (ev) => {
             }),
     });
 });
+
+$(document).on('submit', '#commandInputForm', (e) => sendCommand(e));
+
+$(document).on('click', '#openModal', () => {
+    Modals.open({
+        title: translate('admin.servers.rcon_command_placeholder'),
+        content: {
+            form: createCommandInput(),
+        },
+        buttons: [
+            {
+                text: translate('def.close'),
+                class: 'cancel',
+                id: 'closeRconBtn',
+                callback: (modal) => modal.clear(),
+            },
+            {
+                text: translate('def.submit'),
+                class: 'primary',
+                id: 'sendBtn',
+                callback: () => sendCommand(null),
+            },
+        ],
+    });
+});
+
+function createCommandInput() {
+    return {
+        id: 'commandInputForm',
+        fields: [
+            {
+                type: 'text',
+                id: 'commandInput',
+                label: translate('admin.servers.rcon_command'),
+                placeholder: translate(
+                    'admin.servers.rcon_command_placeholder',
+                ),
+                helpText: translate('admin.servers.rcon_command_desc'),
+            },
+        ],
+    };
+}
+
+async function sendCommand(e) {
+    if (e) {
+        e.preventDefault();
+    }
+
+    sendRequest(
+        {
+            command: $('#commandInput').val(),
+            ip: $('#serverIp').val(),
+            port: Number($('#serverPort').val()),
+            rcon: $('#serverRcon').val(),
+            game: $('#gameSelect').val(),
+        },
+        u('admin/api/servers/check-rcon'),
+        'POST',
+        function (res) {
+            if (res?.result) {
+                $('#commandInputForm')
+                    .parent()
+                    .html(`<pre class='success-message'>${res.result}</pre>`);
+                $('#sendBtn').remove();
+                $('#closeRconBtn').removeClass('cancel').addClass('primary');
+            } else {
+                if ($('#commandInputForm > div > .error-message').length > 0) {
+                    $('#commandInputForm > div > .error-message').html(
+                        res.responseJSON?.error,
+                    );
+                    $('#commandInputForm > div > .error-message').remove();
+                } else {
+                    $('#commandInputForm > div').append(
+                        `<span class='error-message'>${res.responseJSON?.error}</span>`,
+                    );
+                }
+            }
+        },
+        false,
+    );
+}

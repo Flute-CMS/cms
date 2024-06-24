@@ -2,6 +2,8 @@
 
 namespace Flute\Core\ServiceProviders;
 
+use Flute\Core\Events\RoutingFinishedEvent;
+use Flute\Core\Listeners\RedirectsListener;
 use Flute\Core\Support\AbstractServiceProvider;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Flute\Core\Support\FluteEventDispatcher;
@@ -32,6 +34,8 @@ class EventsServiceProvider extends AbstractServiceProvider
      * 
      * @return void
      */
-    public function boot( \DI\Container $container ): void
-    {}
+    public function boot(\DI\Container $container): void
+    {
+        $container->get('events')->addListener(RoutingFinishedEvent::NAME, [RedirectsListener::class, 'onRoutingFinished']);
+    }
 }

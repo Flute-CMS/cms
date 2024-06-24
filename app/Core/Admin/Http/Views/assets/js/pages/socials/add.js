@@ -1,12 +1,32 @@
 $(function () {
+    hideSteam();
+
     $(document).on('change', '#key', function () {
         let socialPlatform = $(this).val();
         let redirectUri1 = u(`social/${socialPlatform}`);
         let redirectUri2 = u(`profile/social/bind/${socialPlatform}`);
         $('#redirectUri1').val(redirectUri1).attr('data-copy', redirectUri1);
         $('#redirectUri2').val(redirectUri2).attr('data-copy', redirectUri2);
+
+        hideSteam();
     });
-    
+
+    function hideSteam() {
+        let socialPlatform = $('#key').val();
+
+        if (socialPlatform === 'Steam' || socialPlatform === 'HttpsSteam') {
+            $('#driverSettings').hide();
+        } else {
+            $('#driverSettings').show();
+        }
+    }
+
+    document
+        .querySelector('.chrome-tabs')
+        .addEventListener('contentRender', ({ detail }) => {
+            hideSteam();
+        });
+
     $(document).on('submit', '#socialAdd, #socialEdit', (ev) => {
         let $form = $(ev.currentTarget);
 
@@ -28,7 +48,9 @@ $(function () {
                 {
                     ...form,
                     ...{
-                        settings: ace.edit($form.find('.editor-ace')[0]).getValue(),
+                        settings: ace
+                            .edit($form.find('.editor-ace')[0])
+                            .getValue(),
                     },
                 },
                 url,

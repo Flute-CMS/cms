@@ -1,56 +1,59 @@
 <?php
 
-namespace Flute\Core\Http\Middlewares;
+namespace Flute\Core\Listeners;
 
 use Flute\Core\Database\Entities\Redirect;
 use Flute\Core\Database\Entities\RedirectCondition;
-use Flute\Core\Support\AbstractMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
+use Flute\Core\Events\RoutingFinishedEvent;
 
-class RedirectsMiddleware extends AbstractMiddleware
+class RedirectsListener
 {
-    public function __invoke(FluteRequest $request, \Closure $next)
+    public static function onRoutingFinished(RoutingFinishedEvent $event)
     {
-        if (!is_installed())
-            return $next($request);
+        $request = request();
+
+        if (!is_installed()) {
+            return;
+        }
 
         $redirects = rep(Redirect::class)->select()->where('fromUrl', $request->getRequestUri())->load('conditionGroups')->load('conditionGroups.conditions')->fetchAll();
 
         if ($redirects) {
             foreach ($redirects as $redirect) {
-                if ($this->checkConditions($redirect, $request)) {
-                    return new Response('', Response::HTTP_FOUND, ['Location' => $redirect->getToUrl()]);
+                if (self::checkConditions($redirect, $request)) {
+                    $newResponse = redirect($redirect->getToUrl())->send();
+                    $event->setResponse($newResponse);
+                    return;
                 }
             }
         }
-
-        return $next($request);
     }
 
-    private function checkConditions(Redirect $redirect, FluteRequest $request)
+    private static function checkConditions(Redirect $redirect, FluteRequest $request)
     {
         foreach ($redirect->getConditions() as $group) {
-            if ($this->checkConditionGroup($group, $request)) {
+            if (self::checkConditionGroup($group, $request)) {
                 return true;
             }
         }
         return false;
     }
 
-    private function checkConditionGroup($group, FluteRequest $request)
+    private static function checkConditionGroup($group, FluteRequest $request)
     {
         foreach ($group->getConditions() as $condition) {
-            if (!$this->checkCondition($condition, $request)) {
+            if (!self::checkCondition($condition, $request)) {
                 return false;
             }
         }
         return true;
     }
 
-    private function checkCondition(RedirectCondition $condition, FluteRequest $request)
+    private static function checkCondition(RedirectCondition $condition, FluteRequest $request)
     {
-        $value = $this->getRequestValue($condition->getType(), $condition->getValue(), $request);
+        $value = self::getRequestValue($condition->getType(), $condition->getValue(), $request);
 
         if (empty($condition->getValue())) {
             return true;
@@ -74,15 +77,13 @@ class RedirectsMiddleware extends AbstractMiddleware
         }
     }
 
-    private function getRequestValue($field, $conditionValue, FluteRequest $request)
+    private static function getRequestValue($field, $conditionValue, FluteRequest $request)
     {
         switch ($field) {
             case 'ip':
                 return $request->getClientIp();
             case 'cookie':
                 return $request->cookies->all();
-            // case 'country':
-            //     return $this->getCountryFromIp($request->getClientIp());
             case 'referer':
                 return $request->headers->get('referer');
             case 'request_method':
@@ -97,14 +98,4 @@ class RedirectsMiddleware extends AbstractMiddleware
                 return null;
         }
     }
-
-    // private function getCountryFromIp($ip)
-    // {
-    //     try {
-    //         $record = $this->geoIpReader->country($ip);
-    //         return $record->country->isoCode;
-    //     } catch (\Exception $e) {
-    //         return null;
-    //     }
-    // }
 }

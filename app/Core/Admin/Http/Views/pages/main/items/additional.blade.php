@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <div class="position-relative row form-group">
+    <div class="position-relative row form-group withoutLine">
         <div class="col-sm-3 col-form-label">
             <label for="widget_placeholders">
                 @t('admin.app.widget_placeholders_label')</label>
@@ -103,6 +103,8 @@
             <label for="widget_placeholders"></label>
         </div>
     </div>
+
+    <div class="form-group-lines">@t('admin.app.notifications_label')</div>
 
     <!-- Уведомления -->
     <div class="position-relative row form-group">
@@ -121,6 +123,23 @@
                     @t('admin.app.notifications_unread')
                 </option>
             </select>
+        </div>
+    </div>
+
+    <div class="position-relative row form-group">
+        <div class="col-sm-3 col-form-label">
+            <label for="notifications_new_view">
+                <div class="may_unstable" data-tooltip="@t('admin.may_have_errors')" data-tooltip-conf="right multiline">
+                    <i class="ph ph-warning"></i>
+                </div>
+                @t('admin.app.notifications_new_view_label')
+            </label>
+            <small class="form-text text-muted">@t('admin.app.notifications_new_view_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input name="notifications_new_view" role="switch" id="notifications_new_view" type="checkbox"
+                class="form-check-input" {{ config('app.notifications_new_view') ? 'checked' : '' }}>
+            <label for="notifications_new_view"></label>
         </div>
     </div>
 

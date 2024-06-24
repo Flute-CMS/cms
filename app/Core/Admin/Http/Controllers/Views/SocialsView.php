@@ -138,7 +138,7 @@ class SocialsView extends AbstractController
 
         return view("Core/Admin/Http/Views/pages/socials/edit", [
             'social' => $social,
-            'drivers' => $this->getAllDrivers()
+            'drivers' => $this->getAllDrivers($social->key)
         ]);
     }
 
@@ -147,7 +147,7 @@ class SocialsView extends AbstractController
         return rep(SocialNetwork::class)->findByPK($id);
     }
 
-    protected function getAllDrivers()
+    protected function getAllDrivers(?string $currentDriver = null)
     {
         $namespaceMap = app()->getLoader()->getPrefixesPsr4();
         $result = [];
@@ -175,9 +175,16 @@ class SocialsView extends AbstractController
             return Strings::startsWith($item, "Hybridauth\\Provider");
         }), $result);
 
-        foreach( $result as $key => $item ) {
+        foreach ($result as $key => $item) {
             $ex = explode('\\', $item);
-            $result[$key] = $ex[array_key_last($ex)];
+            $driver = $ex[array_key_last($ex)];
+
+            $find = rep(SocialNetwork::class)->findOne([
+                "key" => $driver
+            ]);
+
+            if (!$find || ($driver === $currentDriver))
+                $result[$key] = $driver;
         }
 
         return $result;

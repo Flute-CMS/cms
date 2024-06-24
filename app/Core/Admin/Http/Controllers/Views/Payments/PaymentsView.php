@@ -173,11 +173,11 @@ class PaymentsView extends AbstractController
         return view("Core/Admin/Http/Views/pages/payments/edit", [
             'gateway' => $payment,
             'additional' => \Nette\Utils\Json::decode($payment->additional),
-            'drivers' => $this->getAllDrivers()
+            'drivers' => $this->getAllDrivers($payment->adapter)
         ]);
     }
 
-    protected function getAllDrivers()
+    protected function getAllDrivers(?string $currentGateway = null)
     {
         $namespaceMap = app()->getLoader()->getPrefixesPsr4();
         $result = [];
@@ -213,6 +213,15 @@ class PaymentsView extends AbstractController
                     }
                 }
             }
+        }
+
+        foreach ($result as $key => $val) {
+            $find = rep(PaymentGateway::class)->findOne([
+                "adapter" => $val['name']
+            ]);
+
+            if ($find && $currentGateway !== $val['name'])
+                unset($result[$key]);
         }
 
         return $result;

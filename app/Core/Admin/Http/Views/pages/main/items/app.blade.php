@@ -24,8 +24,21 @@
             <small class="form-text text-muted">@t('admin.app.footer_name_description')</small>
         </div>
         <div class="col-sm-9">
-            <input name="footer_name" id="footer_name" placeholder="@t('admin.app.footer_name_label')" type="text" class="form-control"
-                value="{{ config('app.footer_name', config('app.name')) }}">
+            <input name="footer_name" id="footer_name" placeholder="@t('admin.app.footer_name_label')" type="text"
+                class="form-control" value="{{ config('app.footer_name', config('app.name')) }}">
+        </div>
+    </div>
+
+    <!-- footer_name -->
+    <div class="position-relative row form-group align-items-start">
+        <div class="col-sm-3 col-form-label">
+            <label for="footer_html">
+                @t('admin.app.footer_html_label')
+            </label>
+            <small class="form-text text-muted">@t('admin.app.footer_html_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <div class="editor-ace" id="editor" data-editor-lang="html">{!! config('app.footer_html') !!}</div>
         </div>
     </div>
 
@@ -43,6 +56,22 @@
         </div>
     </div>
 
+    <!-- Часовой пояс -->
+    <div class="position-relative row form-group withoutLine">
+        <div class="col-sm-3 col-form-label required">
+            <label for="timezone">
+                @t('admin.app.timezone_label')
+            </label>
+            <small class="form-text text-muted">@t('admin.app.timezone_description')</small>
+        </div>
+        <div class="col-sm-9">
+            <input required name="timezone" id="timezone" placeholder="@t('admin.app.timezone_label')" type="text"
+                class="form-control" value="{{ config('app.timezone') }}">
+        </div>
+    </div>
+
+    <div class="form-group-lines">@t('admin.app.debug_mode_label')</div>
+
     <!-- Режим отладки -->
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
@@ -58,7 +87,7 @@
     </div>
 
     <!-- Debug IP's -->
-    <div class="position-relative row form-group">
+    <div class="position-relative row form-group withoutLine">
         <div class="col-sm-3 col-form-label">
             <label for="debugIps">
                 @t('admin.app.debug_ips_label')
@@ -73,6 +102,8 @@
             <small id="myIp" class="form-text text-muted"></small>
         </div>
     </div>
+
+    <div class="form-group-lines">@t('admin.app.maintenance_mode')</div>
 
     <div class="position-relative row form-group">
         <div class="col-sm-3 col-form-label">
@@ -92,19 +123,20 @@
         </div>
     </div>
 
-    <!-- Часовой пояс -->
-    <div class="position-relative row form-group">
-        <div class="col-sm-3 col-form-label required">
-            <label for="timezone">
-                @t('admin.app.timezone_label')
+    <div class="position-relative row form-group withoutLine">
+        <div class="col-sm-3 col-form-label">
+            <label for="maintenance_message">
+                @t('admin.app.maintenance_message')
             </label>
-            <small class="form-text text-muted">@t('admin.app.timezone_description')</small>
+            <small class="form-text text-muted">@t('admin.app.maintenance_message_description')</small>
         </div>
         <div class="col-sm-9">
-            <input required name="timezone" id="timezone" placeholder="@t('admin.app.timezone_label')" type="text"
-                class="form-control" value="{{ config('app.timezone') }}">
+            <input required name="maintenance_message" id="maintenance_message" placeholder="@t('admin.app.maintenance_message')"
+                type="text" class="form-control" value="{{ config('app.maintenance_message') }}">
         </div>
     </div>
+
+    <div class="form-group-lines">@t('def.pictures')</div>
 
     <div class="position-relative row form-group align-items-start">
         <div class="col-sm-3 col-form-label required">
@@ -135,7 +167,7 @@
         </div>
     </div>
 
-    <div class="position-relative row form-group align-items-start">
+    <div class="position-relative row form-group align-items-start withoutLine">
         <div class="col-sm-3 col-form-label required">
             <label for="bg_image">
                 @t('admin.app.bg_image')
@@ -161,3 +193,8 @@
         </div>
     </div>
 </form>
+
+@push('footer')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
+@endpush

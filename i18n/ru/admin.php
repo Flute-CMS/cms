@@ -156,6 +156,8 @@
         "timezone_description" => "Укажите часовой пояс для сайта.",
         "notifications_label" => "Уведомления",
         "notifications_description" => "Настройте параметры уведомлений.",
+        "notifications_new_view_label" => "Новый вид уведомлений",
+        "notifications_new_view_description" => "Показывать уведомления движка в новом формате (сайдбар справа)",
         "notifications_all" => "Все уведомления",
         "notifications_unread" => "Только непрочитанные",
         "save_button" => "Сохранить",
@@ -170,13 +172,17 @@
         "performance_warning" => "Данная функция кеширует данные, время на получение которых превышает норму, поэтому некоторая информация может быть неактуальна.",
         "maintenance_mode" => "Режим тех.работ",
         "maintenance_mode_description" => "Эта функция скроет сайт для всех не-админов",
+        "maintenance_message" => "Сообщение тех.работ",
+        "maintenance_message_description" => "Это сообщение будет показываться пользователям в режиме тех.работ",
         "will_close_site" => "Пользователи не смогут зайти на сайт",
         "maintenance_warning" => "Пока эта функция включена, пользователи не смогут зайти на сайт и пользоваться функциями",
         "discord_link_roles" => "Связь ролей с Discord",
         "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Нужно настроить все согласно <a href='https://docs.flute-cms.com/docs/instructions/discord-roles' target='_blank'>инструкции</a>!</b>",
         "footer_name_label" => "Название в подвале",
         "footer_name_description" => "Название вашего проекта в подвале сайта",
-        "token_incorrect" => "Данный STEAM ключ не валиден"
+        "token_incorrect" => "Данный STEAM ключ не валиден",
+        "footer_html_label" => "Кастомный HTML в подвале",
+        "footer_html_description" => "Вы можете написать свой собственный HTML в подвал сайта, и тот будет автоматически добавлен на сайт"
     ],
     "lk" => [
         "currency_view_label" => "Валюта (вид)",
@@ -416,7 +422,10 @@
         "check_online" => "Проверить подключение",
         "check_rcon" => "Проверить RCON",
         "check" => "Проверка подключений",
-        "check_description" => "Вы можете проверить работает ли подключение к серверу через Flute."
+        "check_description" => "Вы можете проверить работает ли подключение к серверу через Flute.",
+        "rcon_command" => "RCON команда",
+        "rcon_command_placeholder" => "Введите RCON команду",
+        "rcon_command_desc" => "Эта RCON команда будет отправлена на сервер"
     ],
     "payments" => [
         "header" => "Платежные шлюзы",

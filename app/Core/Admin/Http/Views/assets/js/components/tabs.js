@@ -74,6 +74,7 @@ const contentCache = {};
         constructor() {
             this.draggabillies = [];
             this.contentContainers = {};
+            this.abortControllers = {};
         }
 
         init(el) {
@@ -425,6 +426,12 @@ const contentCache = {};
             // Получаем ID вкладки
             const tabId = tabEl.getAttribute('data-tab-id');
 
+            // Отмена загрузки контента при закрытии вкладки
+            if (this.abortControllers[tabId]) {
+                this.abortControllers[tabId].abort();
+                delete this.abortControllers[tabId];
+            }
+
             // Удаляем контейнер контента, связанный с этой вкладкой
             const contentContainer = document.getElementById(
                 `content-${tabId}`,
@@ -758,27 +765,34 @@ function refreshCurrentPage() {
 }
 
 function fetchContent(url, container, tabEl, reload = false, title = null) {
-    fetch(appendGet(url, 'loadByTab', '1'))
+    const tabId = tabEl.getAttribute('data-tab-id');
+    const abortController = new AbortController();
+    chromeTabs.abortControllers[tabId] = abortController;
+
+    fetch(appendGet(url, 'loadByTab', '1'), { signal: abortController.signal })
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Not 2xx response', { cause: response });
             }
-
             return response.text();
         })
         .then((html) => {
-            const containerId = container.getAttribute('id');
+            if (!container) return; // Check if container is still in DOM
 
+            const containerId = container.getAttribute('id');
             container.classList.remove('loading');
             container.innerHTML = html;
 
             loadScriptsFromContainer(containerId);
-
             recoverContainerIDS(containerId);
         })
         .catch((error) => {
-            console.error('Error loading the page: ', error);
-            showErrorPage(true);
+            if (error.name === 'AbortError') {
+                console.log('Content load aborted:', url);
+            } else {
+                console.error('Error loading the page: ', error);
+                showErrorPage(true);
+            }
         })
         .finally(() => {
             setTimeout(() => {
@@ -793,6 +807,7 @@ function fetchContent(url, container, tabEl, reload = false, title = null) {
             }, 700);
         });
 }
+
 function displayLoading(show) {
     const loadingElement = document.getElementById('loading');
     loadingElement.style.setProperty('--animate-duration', '.3s');
@@ -1048,6 +1063,7 @@ function removeScriptsByContainerId(containerId) {
 function initEditor(container) {
     container.find('.editor-ace').each(function () {
         let editor = ace.edit(this);
+        let mode = $(this).data('editor-lang') || 'json';
         let unformattedContent = editor.getSession().getValue();
         let formattedContent = js_beautify(unformattedContent, {
             indent_size: 4,
@@ -1055,7 +1071,7 @@ function initEditor(container) {
         });
         editor.getSession().setValue(formattedContent);
         editor.setTheme('ace/theme/solarized_dark');
-        editor.session.setMode('ace/mode/json');
+        editor.session.setMode(`ace/mode/${mode}`);
     });
 }
 

@@ -19,9 +19,9 @@
         </div>
     </div>
 
-    @if (sizeof(navbar()->all()) > 0)
+    @if (sizeof(navbar()->all(true)) > 0)
         <ul class="navigation-group nav-nested-sortable">
-            @foreach (navbar()->all() as $item)
+            @foreach (navbar()->all(true) as $item)
                 <li class="sortable-item sortable-dropdown draggable" data-id="nav-{{ $item['id'] }}" id="nav-{{ $item['id'] }}"
                     style="">
                     <div class="card-sortable">
@@ -91,6 +91,6 @@
 @endpush
 
 @push('footer')
-    <script src="https://SortableJS.github.io/Sortable/Sortable.js"></script>
+    @at('https://SortableJS.github.io/Sortable/Sortable.js')
     @at('Core/Admin/Http/Views/assets/js/pages/navigation/list.js')
 @endpush

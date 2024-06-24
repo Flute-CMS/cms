@@ -41,7 +41,7 @@ class NavbarView extends AbstractController
     {
         $navigation = rep(NavbarItem::class)->select()->load('roles')->where('id', (int) $id)->fetchOne();
 
-        if (!navbar()->hasAccess($navigation))
+        if (!navbar()->hasAccess($navigation, true))
             return $this->error(__('def.no_access'));
 
         if (!$navigation)

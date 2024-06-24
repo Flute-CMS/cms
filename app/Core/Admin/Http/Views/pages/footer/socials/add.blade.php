@@ -36,10 +36,14 @@
                 <label for="icon">
                     @t('admin.footer.social_icon_label')
                 </label>
+                <small>@t('admin.notifications.icon_desc')</small>
             </div>
             <div class="col-sm-9">
-                <input name="icon" id="icon" required placeholder="@t('admin.footer.social_icon_label')" type="text"
-                    class="form-control">
+                <div class="d-flex align-items-center">
+                    <div id="icon-output"></div>
+                    <input name="icon" id="icon" required placeholder="@t('admin.footer.social_icon_label')" type="text"
+                        class="form-control">
+                </div>
             </div>
         </div>
         <div class="position-relative row form-group">

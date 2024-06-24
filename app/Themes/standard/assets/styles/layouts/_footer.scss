@@ -3,13 +3,16 @@
     border-radius: $border-radius;
     background-color: $color-disabled;
     box-shadow: inset 0px 0px 0px 1px $color-white-5;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     margin: 20px 0;
 
-    @media (max-width: 768px) {
-        flex-direction: column;
+    &-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+        }
     }
 
     .project-name {
@@ -132,7 +135,7 @@
         opacity: 1;
     }
 
-    > div {
+    >div {
         display: flex;
         flex-direction: column;
         text-align: right;

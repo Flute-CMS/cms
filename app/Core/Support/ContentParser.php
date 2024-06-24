@@ -9,31 +9,13 @@ class ContentParser
     public static function replaceContent(string $content, $eventInstance, User $user): string
     {
         $content = self::replaceUserContent($content, $user);
-        $content = self::handleConditionalStatements($content, $eventInstance);
 
-        return preg_replace_callback('/\{(.*?)\}/', function ($matches) use ($eventInstance) {
+        return template()->getBlade()->runString(preg_replace_callback('/\{(.*?)\}/', function ($matches) use ($eventInstance) {
             return self::evaluateExpression($matches[1], $eventInstance);
-        }, $content);
-    }
-
-    private static function handleConditionalStatements(string $content, $eventInstance): string
-    {
-        $pattern = '/@if\s*\(([^()]*(?:\((?:[^()]*(?:\([^()]*\))*[^()]*)*\))*[^()]*)\)(.*?)@endif/s';
-        return preg_replace_callback($pattern, function ($matches) use ($eventInstance) {
-            $condition = trim($matches[1]);
-            $ifContent = $matches[2];
-
-            if (strpos($ifContent, '@else') !== false) {
-                list($ifContent, $elseContent) = explode('@else', $ifContent);
-            } else {
-                $elseContent = '';
-            }
-
-            // Evaluate the condition
-            $result = self::evaluateExpression($condition, $eventInstance);
-
-            return $result ? $ifContent : $elseContent;
-        }, $content);
+        }, $content), [
+            "event" => $eventInstance,
+            "user" => user()->getCurrentUser()
+        ]);
     }
 
     private static function evaluateExpression($expression, $eventInstance = null)
@@ -68,7 +50,7 @@ class ContentParser
                     $current = call_user_func_array($func, $args);
                 } elseif (is_object($current) && method_exists($current, $func)) {
                     $current = call_user_func_array([$current, $func], $args);
-                } elseif(function_exists($func)) {
+                } elseif (function_exists($func)) {
                     $current = call_user_func_array($func, $args);
                 } else {
                     return null;

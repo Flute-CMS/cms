@@ -199,8 +199,8 @@ class TemplateAssets
             if ($content !== false) {
                 file_put_contents($fullLocalPath, $content);
             } else {
-                if( Validators::isUrl($content) ) {
-                    return $content;
+                if( Validators::isUrl($url) ) {
+                    return $url;
                 }
             }
         }

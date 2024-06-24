@@ -84,6 +84,6 @@
 @endpush
 
 @push('footer')
-    <script src="https://SortableJS.github.io/Sortable/Sortable.js"></script>
+    @at('https://SortableJS.github.io/Sortable/Sortable.js')
     @at('Core/Admin/Http/Views/assets/js/pages/footer/list.js')
 @endpush
