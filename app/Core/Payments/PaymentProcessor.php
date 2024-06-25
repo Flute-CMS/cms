@@ -121,54 +121,71 @@ class PaymentProcessor
 
     public function handlePayment(string $gatewayName)
     {
-        if (!payments()->gatewayExists($gatewayName))
-            throw new \Exception('Gateway is not exists');
+        if (!payments()->gatewayExists($gatewayName)) {
+            throw new \Exception('Gateway does not exist');
+        }
 
         $gatewayEntity = rep(PaymentGateway::class)
             ->findOne(['enabled' => true, 'adapter' => $gatewayName]);
 
-        if (!$gatewayEntity)
+        if (!$gatewayEntity) {
             throw new \Exception("Gateway wasn't found");
+        }
 
-        $gatewayFactory = $this->gatewayFactory->create($gatewayEntity);
-
-        $response = $gatewayFactory->completePurchase(request()->input())->send();
+        $gateway = $this->gatewayFactory->create($gatewayEntity);
+        $response = $this->completePayment($gateway, request()->input());
 
         if ($response->isSuccessful()) {
-            /** 
-             * @var PaymentInvoice
-             */
-            $invoice = rep(PaymentInvoice::class)->select()->where([
-                'transactionId' => $response->getTransactionId()
-            ])->load(['user', 'promoCode'])->fetchOne();
-
-            if (!$invoice)
-                throw new \Exception("Invoice wasn't found");
-
-            if ($invoice->isPaid == true)
-                throw new \Exception("Invoice is paid");
-
-            $sum = $invoice->amount;
-            $user = user()->get($invoice->user->id);
-
-            $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
-
-            $this->markInvoiceAsPaid($invoice);
-
-            if ($invoice->promoCode) {
-                $amount = $this->calculateTotalAmount($invoice, $invoice->promoCode, $user);
-
-                $sum = $amount;
-            }
-
-            user()->topup($sum, $user);
-
-            return true;
+            $this->processSuccessfulPayment($response);
         } else {
-            $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
-
-            throw new PaymentException($response->getMessage());
+            $this->processFailedPayment($response);
         }
+    }
+
+    protected function completePayment($gateway, $input)
+    {
+        if (method_exists($gateway, 'acceptNotification')) {
+            return $gateway->acceptNotification()->send();
+        } elseif (method_exists($gateway, 'completePurchase')) {
+            return $gateway->completePurchase(request()->input())->send();
+        } elseif (method_exists($gateway, 'notification')) {
+            return $gateway->notification(['request' => $input])->send();
+        } else {
+            throw new \Exception('Unsupported gateway');
+        }
+    }
+
+    protected function processSuccessfulPayment($response)
+    {
+        $invoice = rep(PaymentInvoice::class)->select()->where([
+            'transactionId' => $response->getTransactionId()
+        ])->load(['user', 'promoCode'])->fetchOne();
+
+        if (!$invoice) {
+            throw new \Exception("Invoice wasn't found");
+        }
+
+        if ($invoice->isPaid) {
+            throw new \Exception("Invoice is already paid");
+        }
+
+        $sum = $invoice->amount;
+        $user = user()->get($invoice->user->id);
+
+        $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
+        $this->markInvoiceAsPaid($invoice);
+
+        if ($invoice->promoCode) {
+            $sum = $this->calculateTotalAmount($invoice, $invoice->promoCode, $user);
+        }
+
+        user()->topup($sum, $user);
+    }
+
+    protected function processFailedPayment($response)
+    {
+        $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
+        throw new PaymentException($response->getMessage());
     }
 
     public function markInvoiceAsPaid(PaymentInvoice $invoice)
