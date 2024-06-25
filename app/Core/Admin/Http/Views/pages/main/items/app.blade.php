@@ -131,7 +131,7 @@
             <small class="form-text text-muted">@t('admin.app.maintenance_message_description')</small>
         </div>
         <div class="col-sm-9">
-            <input required name="maintenance_message" id="maintenance_message" placeholder="@t('admin.app.maintenance_message')"
+            <input name="maintenance_message" id="maintenance_message" placeholder="@t('admin.app.maintenance_message')"
                 type="text" class="form-control" value="{{ config('app.maintenance_message') }}">
         </div>
     </div>

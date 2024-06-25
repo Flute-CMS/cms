@@ -13,9 +13,11 @@ $(function () {
 
     let sortableRoles = createRolesSortable();
 
-    document.querySelector('.chrome-tabs').addEventListener('contentRender', () => {
-        sortableRoles = createRolesSortable();
-    });
+    document
+        .querySelector('.chrome-tabs')
+        .addEventListener('contentRender', () => {
+            if ($('#roles').length) sortableRoles = createRolesSortable();
+        });
 
     $(document).on('click', '#saveRoles', (e) => {
         let orderedIds = sortableRoles.toArray();
@@ -60,6 +62,6 @@ $(function () {
     $(document).on('click', '.roles-group .delete', async function () {
         let roleId = $(this).data('deleterole');
         if (await asyncConfirm(translate('admin.roles.confirm_delete')))
-            sendRequest({},u('admin/api/roles/' + roleId), 'DELETE');
+            sendRequest({}, u('admin/api/roles/' + roleId), 'DELETE');
     });
 });

@@ -16,17 +16,20 @@ if (!function_exists('__')) {
     {
         $translator = translation();
 
-        // Если локаль не указана, используйте локаль по умолчанию
         if ($locale === null) {
             $locale = $translator->getLocale();
         }
 
-        // Если у нас нет точки, т.е. массива, то мы не разделяем
-        if( strpos( $key, '.' ) !== false ) {
-            // Разделяем ключ на домен и ключ перевода
+        if (strpos($key, '.') !== false) {
             list($domain, $translationKey) = explode('.', $key, 2);
 
-            return $translator->trans($translationKey, $replacements, $domain, $locale);
+            $result = $translator->trans($translationKey, $replacements, $domain, $locale);
+
+            if ($result === $translationKey) {
+                return $key;
+            }
+
+            return $result;
         }
 
         return $translator->trans($key, $replacements, null, $locale);

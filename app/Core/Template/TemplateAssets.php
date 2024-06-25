@@ -110,7 +110,7 @@ class TemplateAssets
         }
 
         // Даже если сработало исключение, мы должны вернуть CSS
-        echo sprintf('<link href="%s" rel="stylesheet">', url($cssPath));
+        echo sprintf('<link href="%s?%s" rel="stylesheet">', url($cssPath), filemtime($cssBasePath));
     }
 
     private function processCssAsset(string $expression, string $cssPathBase): void
@@ -140,7 +140,7 @@ class TemplateAssets
             $this->saveAsset($cssBasePath, $cssPathBase);
         }
 
-        echo sprintf('<link href="%s" rel="stylesheet">', url($cssPath));
+        echo sprintf('<link href="%s?%s" rel="stylesheet">', url($cssPath), filemtime($cssBasePath));
     }
 
     private function processJsAsset(string $expression, string $jsPathBase): void
@@ -170,7 +170,7 @@ class TemplateAssets
             $this->saveAsset($jsBasePath, $jsPathBase);
         }
 
-        echo sprintf('<script src="%s" defer></script>', url($jsPath));
+        echo sprintf('<script src="%s?%s" defer></script>', url($jsPath), filemtime($jsBasePath));
     }
 
     /**
@@ -205,7 +205,7 @@ class TemplateAssets
             }
         }
 
-        return url($localPath);
+        return url($localPath) . "?" . filemtime($localPath);
     }
 
     private function processImageAsset(string $expression, string $imgPathBase, string $extension): void

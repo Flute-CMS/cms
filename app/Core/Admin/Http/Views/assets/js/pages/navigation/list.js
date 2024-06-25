@@ -1,6 +1,8 @@
 $(function () {
     const createNavSortableInstances = () => {
-        const nestedSortables = document.querySelectorAll('.nav-nested-sortable');
+        const nestedSortables = document.querySelectorAll(
+            '.nav-nested-sortable',
+        );
         return Array.from(nestedSortables).map(
             (nestedSortable) =>
                 new Sortable(nestedSortable, {
@@ -27,7 +29,8 @@ $(function () {
     document
         .querySelector('.chrome-tabs')
         .addEventListener('contentRender', () => {
-            sortablesNav = createNavSortableInstances();
+            if ($('#saveNavigation').length)
+                sortablesNav = createNavSortableInstances();
         });
 
     $(document).on('click', '#saveNavigation', () => {
