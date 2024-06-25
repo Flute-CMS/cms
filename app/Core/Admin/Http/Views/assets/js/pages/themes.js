@@ -338,6 +338,7 @@ $(function () {
     );
 
     $(document).on('click', '[data-settingstheme]', (e) => {
+        let key = $(e.currentTarget).data('key');
         let modal = Modals.open({
             title: translate('admin.themes_list.theme_settings'),
             content: {
@@ -349,11 +350,12 @@ $(function () {
                 {
                     text: translate('def.save'),
                     class: 'primary',
-                    callback: (modalInstance) =>
+                    callback: (modalInstance) => {
                         saveThemeSettings(
                             modalInstance,
-                            $(e.currentTarget).data('key'),
-                        ),
+                            key,
+                        );
+                    },
                 },
                 {
                     text: translate('def.close'),
