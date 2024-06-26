@@ -280,21 +280,6 @@ $(function () {
         });
     });
 
-    // Handle delete theme action
-    $(document).on(
-        'click',
-        '.theme-action-buttons .action-button.delete',
-        async function () {
-            let themeId = $(this).data('deletetheme');
-            if (
-                await asyncConfirm(
-                    translate('admin.themes_list.confirm_delete'),
-                )
-            )
-                ajaxModuleAction(u('admin/api/themes/' + themeId), 'DELETE');
-        },
-    );
-
     // Handle install theme action
     $(document).on(
         'click',

@@ -29,7 +29,7 @@ class NotificationsView extends AbstractController
 
     public function list(FluteRequest $request)
     {
-        $table = table();
+        $table = table()->setSelectable(true);
 
         $table->setPhrases([
             'event' => __('admin.notifications.event'),

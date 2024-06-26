@@ -106,6 +106,7 @@
     "db_port_placeholder" => "Port",
     "settings_bar" => [
         "system" => "System",
+        "additional" => "Additional",
         "auth" => "Authorization",
         "database" => "Databases",
         "language" => "Language",
@@ -155,6 +156,8 @@
         "timezone_description" => "Specify the site's timezone.",
         "notifications_label" => "Notifications",
         "notifications_description" => "Configure notification settings.",
+        "notifications_new_view_label" => "New view of notifications",
+        "notifications_new_view_description" => "Show user notifications in a new format (sidebar on the right)",
         "notifications_all" => "All notifications",
         "notifications_unread" => "Only unread",
         "save_button" => "Save",
@@ -169,12 +172,17 @@
         "performance_warning" => "This feature caches data whose retrieval time exceeds the norm, so some information may be out of date.",
         "maintenance_mode" => "Maintenance Mode",
         "maintenance_mode_description" => "This feature will hide the site from all non-admin users",
+        "maintenance_message" => "Maintenance message",
+        "maintenance_message_description" => "This message will be shown to users in maintenance mode",
         "will_close_site" => "Users will not be able to access the site",
         "maintenance_warning" => "While this feature is enabled, users will not be able to access the site or use its functions",
         "discord_link_roles" => "Linking Roles to Discord",
         "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Must have everything configured according to <a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>instruction</a>!</b>",
         "footer_name_label" => "Title in the footer",
         "footer_name_description" => "The name of your project in the footer of the site",
+        "token_incorrect" => "This STEAM key is not valid",
+        "footer_html_label" => "Custom HTML in the footer",
+        "footer_html_description" => "You can write your own custom HTML in the footer of the site, and it will be automatically added to the site"
     ],
     "lk" => [
         "currency_view_label" => "Currency (view)",
@@ -410,7 +418,14 @@
         "server_duplicate" => "A server with these details already exists!",
         "display_ip" => "Displayed IP:PORT",
         "enabled" => "Active",
-        "enabled_description" => "Whether the server will be displayed in modules/widgets"
+        "enabled_description" => "Whether the server will be displayed in modules/widgets",
+        "check_online" => "Check connection",
+        "check_rcon" => "Check RCON",
+        "check" => "Check connections",
+        "check_description" => "You can check if the connection to the server via Flute is working.",
+        "rcon_command" => "RCON command.",
+        "rcon_command_placeholder" => "Enter RCON command",
+        "rcon_command_desc" => "This RCON command will be sent to the server"
     ],
     "payments" => [
         "header" => "Payment gateways",
@@ -877,5 +892,7 @@
     "refresh_page" => "Refresh Page",
     "what_it_means" => "What does it mean?",
     "what_it" => "What is it?",
-    "update_available" => "Version :version available"
+    "update_available" => "Version :version available",
+    "start_tour" => "Guide is available! Click on me to get started!",
+    "selected_rows" => "Selected cells:"
 ];

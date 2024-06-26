@@ -1,14 +1,5 @@
 $(function () {
-    $(document).on(
-        'click',
-        '.social-action-buttons .action-button.delete',
-        async function () {
-            let socialId = $(this).data('deletesocial');
-            if (await asyncConfirm(translate('admin.socials.confirm_delete')))
-                sendRequest({}, u('admin/api/socials/' + socialId), 'DELETE');
-        },
-    );
-
+    
     // Handle disable social action
     $(document).on(
         'click',

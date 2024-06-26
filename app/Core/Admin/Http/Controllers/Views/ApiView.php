@@ -21,7 +21,7 @@ class ApiView extends AbstractController
     {
         $apikeys = rep(ApiKey::class)->findAll();
 
-        $table = table();
+        $table = table()->setSelectable(true);
 
         $table->setPhrases([
             'key' => __('admin.api.key'),

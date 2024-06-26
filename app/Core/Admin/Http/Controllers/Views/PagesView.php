@@ -20,7 +20,7 @@ class PagesView extends AbstractController
     {
         $pages = rep(Page::class)->select()->orderBy('id', 'desc')->fetchAll();
 
-        $table = table();
+        $table = table()->setSelectable(true);
 
         $table->setPhrases([
             'route' => __('admin.pages.route_label')

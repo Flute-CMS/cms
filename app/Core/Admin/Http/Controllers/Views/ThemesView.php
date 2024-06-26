@@ -72,7 +72,8 @@ class ThemesView extends AbstractController
                         deleteDiv.classList.add("action-button", "delete");
                         deleteDiv.setAttribute("data-translate", "admin.themes_list.delete_theme");
                         deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
-                        deleteDiv.setAttribute("data-deletetheme", data[0]);
+                        deleteDiv.setAttribute("data-deleteaction", data[0]);
+                        deleteDiv.setAttribute("data-deletepath", "themes");
                         deleteDiv.setAttribute("data-tooltip-conf", "left");
                         let deleteIcon = make("i");
                         deleteIcon.classList.add("ph-bold", "ph-trash");

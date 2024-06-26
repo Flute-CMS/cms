@@ -1,13 +1,4 @@
 $(function () {
-    $(document).on(
-        'click',
-        '.payment-action-buttons .action-button.delete',
-        async function () {
-            let paymentId = $(this).data('deletepayment');
-            if (await asyncConfirm(translate('admin.payments.confirm_delete')))
-                sendRequest({}, u('admin/api/payments/' + paymentId), 'DELETE');
-        },
-    );
 
     // Handle disable payment action
     $(document).on(

@@ -18,7 +18,7 @@ class RedirectsView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $table->setPhrases([
             'fromUrl' => __('admin.redirects.from'),
             'toUrl' => __('admin.redirects.to'),

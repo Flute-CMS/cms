@@ -2,7 +2,7 @@
 
 :root {
     --dt-row-selected: 186, 255, 104;
-    --dt-row-selected-text: 255, 255, 255;
+    --dt-row-selected-text: 0, 0, 0, 0;
     --dt-row-selected-link: 11, 11, 11;
     --dt-row-stripe: 105, 105, 105;
     --dt-row-hover: 255, 255, 255;
@@ -47,6 +47,19 @@ table.dataTable {
             &.rounded img {
                 width: 30px;
                 border-radius: 50px;
+            }
+        }
+    }
+
+    &.selectable {
+        tbody tr {
+            &:hover {
+                background-color: $color-white-10;
+            }
+
+            &.selected {
+                background-color: rgba($color-primary, .2);
+                color: $color-text;
             }
         }
     }
@@ -800,20 +813,6 @@ table.dataTable {
                 border-bottom: none;
             }
 
-            &.selected {
-                >* {
-                    box-shadow: inset 0 0 0 9999px $color-primary-light;
-                    box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.9);
-                    color: $color-text;
-                    color: rgb(var(--dt-row-selected-text));
-                }
-
-                a {
-                    color: $color-text-inverse;
-                    color: rgb(var(--dt-row-selected-link));
-                }
-            }
-
             > {
 
                 th,
@@ -833,12 +832,6 @@ table.dataTable {
     &.row-border>tbody>tr:first-child>*,
     &.display>tbody>tr:first-child>* {
         border-top: none;
-    }
-
-    &.row-border>tbody>tr.selected+tr.selected>td,
-    &.display>tbody>tr.selected+tr.selected>td {
-        border-top-color: rgba(186, 255, 104, 0.65);
-        border-top-color: rgba(var(--dt-row-selected), 0.65);
     }
 
     &.cell-border>tbody>tr {
@@ -862,22 +855,10 @@ table.dataTable {
         box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-stripe), 0.023);
     }
 
-    &.stripe>tbody>tr:nth-child(odd).selected>*,
-    &.display>tbody>tr:nth-child(odd).selected>* {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.923);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.923);
-    }
-
     &.hover>tbody>tr:hover>*,
     &.display>tbody>tr:hover>* {
         box-shadow: inset 0 0 0 9999px rgba(255, 255, 255, 0.035);
         box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0.035);
-    }
-
-    &.hover>tbody>tr.selected:hover>*,
-    &.display>tbody>tr.selected:hover>* {
-        box-shadow: inset 0 0 0 9999px $color-primary !important;
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 1) !important;
     }
 
     &.order-column>tbody tr> {
@@ -900,26 +881,7 @@ table.dataTable {
         }
     }
 
-    &.order-column>tbody tr.selected> {
-
-        .sorting_1,
-        .sorting_2,
-        .sorting_3 {
-            box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.919);
-            box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.919);
-        }
-    }
-
     &.display>tbody {
-        tr.selected> {
-
-            .sorting_1,
-            .sorting_2,
-            .sorting_3 {
-                box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.919);
-                box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.919);
-            }
-        }
 
         >tr:nth-child(odd)>.sorting_1 {
             box-shadow: inset 0 0 0 9999px rgba(105, 105, 105, 0.054);
@@ -944,24 +906,6 @@ table.dataTable {
         box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), 0.039);
     }
 
-    &.display>tbody>tr:nth-child(odd).selected>.sorting_1,
-    &.order-column.stripe>tbody>tr:nth-child(odd).selected>.sorting_1 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.954);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.954);
-    }
-
-    &.display>tbody>tr:nth-child(odd).selected>.sorting_2,
-    &.order-column.stripe>tbody>tr:nth-child(odd).selected>.sorting_2 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.947);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.947);
-    }
-
-    &.display>tbody>tr:nth-child(odd).selected>.sorting_3,
-    &.order-column.stripe>tbody>tr:nth-child(odd).selected>.sorting_3 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.939);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.939);
-    }
-
     &.display>tbody>tr.even>.sorting_1,
     &.order-column.stripe>tbody>tr.even>.sorting_1 {
         box-shadow: inset 0 0 0 9999px rgba(105, 105, 105, 0.019);
@@ -980,24 +924,6 @@ table.dataTable {
         box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), 0.003);
     }
 
-    &.display>tbody>tr.even.selected>.sorting_1,
-    &.order-column.stripe>tbody>tr.even.selected>.sorting_1 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.919);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.919);
-    }
-
-    &.display>tbody>tr.even.selected>.sorting_2,
-    &.order-column.stripe>tbody>tr.even.selected>.sorting_2 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.911);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.911);
-    }
-
-    &.display>tbody>tr.even.selected>.sorting_3,
-    &.order-column.stripe>tbody>tr.even.selected>.sorting_3 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.903);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.903);
-    }
-
     &.display tbody tr:hover>.sorting_1,
     &.order-column.hover tbody tr:hover>.sorting_1 {
         box-shadow: inset 0 0 0 9999px rgba(255, 255, 255, 0.082);
@@ -1014,24 +940,6 @@ table.dataTable {
     &.order-column.hover tbody tr:hover>.sorting_3 {
         box-shadow: inset 0 0 0 9999px rgba(255, 255, 255, 0.062);
         box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0.062);
-    }
-
-    &.display tbody tr:hover.selected>.sorting_1,
-    &.order-column.hover tbody tr:hover.selected>.sorting_1 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.982);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.982);
-    }
-
-    &.display tbody tr:hover.selected>.sorting_2,
-    &.order-column.hover tbody tr:hover.selected>.sorting_2 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.974);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.974);
-    }
-
-    &.display tbody tr:hover.selected>.sorting_3,
-    &.order-column.hover tbody tr:hover.selected>.sorting_3 {
-        box-shadow: inset 0 0 0 9999px rgba(186, 255, 104, 0.962);
-        box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.962);
     }
 
     &.compact {
@@ -1341,10 +1249,6 @@ html.dark {
     --dt-column-ordering: 255, 255, 255;
 }
 
-table.dataTable>tbody>tr {
-    opacity: 0.8;
-}
-
 html.dark {
     table.dataTable {
         > {
@@ -1378,12 +1282,6 @@ html.dark {
         &.row-border>tbody>tr:first-child>*,
         &.display>tbody>tr:first-child>* {
             border-top: none;
-        }
-
-        &.row-border>tbody>tr.selected+tr.selected>td,
-        &.display>tbody>tr.selected+tr.selected>td {
-            border-top-color: rgba(186, 255, 104, 0.65);
-            border-top-color: rgba(var(--dt-row-selected), 0.65);
         }
 
         &.cell-border>tbody>tr> {
@@ -1493,5 +1391,79 @@ html.dark {
         &.dt-search input {
             margin: 0 3px 0 0;
         }
+    }
+}
+
+#selection-info {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    bottom: 10px;
+    visibility: hidden;
+    opacity: 0;
+    transition: $transition;
+    animation: .3s closeContextMenu forwards ease-in-out;
+    background-color: $color-disabled;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    border-radius: 50px;
+    width: max-content;
+    padding: 10px;
+    padding-left: 20px;
+
+    >p {
+        font-size: 16px;
+
+        > span {
+            margin-left: 5px;
+            font-weight: bold;
+            color: $color-primary;
+        }
+    }
+
+    &.opened {
+        z-index: 10;
+        animation: .3s openContextMenu forwards ease-in-out;
+        visibility: visible;
+    }
+
+    >button {}
+}
+
+@keyframes closeContextMenu {
+    0% {
+        bottom: 20px;
+        opacity: 1;
+    }
+
+    50% {
+        bottom: 25px;
+    }
+
+    100% {
+        bottom: 10px;
+        opacity: 0;
+    }
+}
+
+@keyframes openContextMenu {
+    0% {
+        bottom: 10px;
+        opacity: 0;
+    }
+
+    50% {
+        bottom: 25px;
+        opacity: 1;
+    }
+
+    100% {
+        bottom: 20px;
+        opacity: 1;
     }
 }

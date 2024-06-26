@@ -23,7 +23,7 @@ class UsersView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $users = rep(User::class)->select()->load('roles')->fetchAll();
 
         foreach ($users as $key => $user) {

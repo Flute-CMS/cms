@@ -18,7 +18,7 @@ class DatabasesView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
 
         $result = rep(DatabaseConnection::class)->select()->load('server');
 

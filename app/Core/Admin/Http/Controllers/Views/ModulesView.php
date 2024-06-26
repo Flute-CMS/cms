@@ -140,7 +140,8 @@ class ModulesView extends AbstractController
                         deleteDiv.setAttribute("data-translate", "admin.modules_list.delete_module");
                         deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                         deleteDiv.setAttribute("data-tooltip-conf", "left");
-                        deleteDiv.setAttribute("data-deletemodule", data[0]);
+                        deleteDiv.setAttribute("data-deleteaction", data[0]);
+                        deleteDiv.setAttribute("data-deletepath", "modules");
                         let deleteIcon = make("i");
                         deleteIcon.classList.add("ph-bold", "ph-trash");
                         deleteDiv.appendChild(deleteIcon);

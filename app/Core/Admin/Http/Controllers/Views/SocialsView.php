@@ -20,7 +20,7 @@ class SocialsView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $socials = rep(SocialNetwork::class)->findAll();
 
         $table->addColumns([
@@ -68,7 +68,8 @@ class SocialsView extends AbstractController
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-translate", "admin.socials.delete");
                     deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
-                    deleteDiv.setAttribute("data-deletesocial", data[0]);
+                    deleteDiv.setAttribute("data-deleteaction", data[0]);
+                    deleteDiv.setAttribute("data-deletepath", "socials");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

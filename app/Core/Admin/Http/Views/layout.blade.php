@@ -62,7 +62,12 @@
                             {{-- @stack('content') --}}
                         </div>
 
-                        @breadcrumb
+                        <div id="selection-info">
+                            <p id="count-rows">@t('admin.selected_rows')<span>0</span></p>
+                            <button class="btn size-s error" id="delete-rows">
+                                @t('def.delete')
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>

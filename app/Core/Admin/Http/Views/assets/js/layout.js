@@ -477,6 +477,142 @@ $(function () {
         $iconMenu.slideUp();
     });
 
+    let isMouseDown = false;
+    let isCtrlKey = false;
+    let isShiftKey = false;
+    let lastSelectedIndex = null;
+    let $table, $rows;
+
+    $(document)
+        .on(
+            'mousedown',
+            'table.selectable.dataTable > tbody > tr',
+            function (e) {
+                isMouseDown = true;
+                isCtrlKey = e.ctrlKey || e.metaKey;
+                isShiftKey = e.shiftKey;
+                $table = $(this).closest('table');
+                $rows = $table.find('tbody > tr');
+
+                const $row = $(this);
+                const currentIndex = $rows.index($row);
+
+                if (isCtrlKey) {
+                    $row.toggleClass('selected');
+                } else if (isShiftKey && lastSelectedIndex !== null) {
+                    const start = Math.min(lastSelectedIndex, currentIndex);
+                    const end = Math.max(lastSelectedIndex, currentIndex);
+                    $rows.slice(start, end + 1).addClass('selected');
+                } else {
+                    if ($row.hasClass('selected')) {
+                        $row.removeClass('selected');
+                    } else {
+                        $rows.removeClass('selected');
+                        $row.addClass('selected');
+                    }
+                }
+
+                lastSelectedIndex = currentIndex;
+                updateSelectionInfo();
+
+                return false; // prevent text selection
+            },
+        )
+        .on(
+            'mousemove',
+            'table.selectable.dataTable > tbody > tr',
+            function (e) {
+                if (isMouseDown && !isCtrlKey && !isShiftKey) {
+                    const $row = $(this);
+                    const currentIndex = $rows.index($row);
+                    const start = Math.min(lastSelectedIndex, currentIndex);
+                    const end = Math.max(lastSelectedIndex, currentIndex);
+                    $rows.slice(start, end + 1).addClass('selected');
+                }
+            },
+        );
+
+    $(document).on('mouseup', function (e) {
+        isMouseDown = false;
+    });
+
+    // Сброс выделения при клике вне таблицы
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('table.selectable.dataTable').length) {
+            $('table.selectable.dataTable > tbody > tr').removeClass(
+                'selected',
+            );
+            updateSelectionInfo();
+        }
+    });
+
+    // Сброс выделения при нажатии клавиши Esc
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape') {
+            $('table.selectable.dataTable > tbody > tr').removeClass(
+                'selected',
+            );
+            updateSelectionInfo();
+        }
+    });
+
+    // Обновление div с информацией о выделении
+    function updateSelectionInfo() {
+        if ($('table.selectable.dataTable > tbody > tr.selected').length > 0) {
+            $('#selection-info').addClass('opened');
+            $('#count-rows > span').text(
+                $('table.selectable.dataTable > tbody > tr.selected').length,
+            );
+        } else {
+            $('#selection-info').removeClass('opened');
+        }
+    }
+
+    // Получение HTML содержимого всех выделенных ячеек
+    $('#delete-rows').on('click', async function () {
+        const selectedCells = $(
+            'table.selectable.dataTable > tbody > tr.selected',
+        );
+        const ids = [];
+
+        let path = null,
+            count = 0;
+
+        selectedCells.each(function () {
+            let find = $(this).find('.action-button.delete');
+
+            if (find.length) {
+                ids.push(find.attr('data-deleteaction'));
+
+                if (!path) {
+                    path = find.attr('data-deletepath');
+                }
+            }
+        });
+
+        const callback = (res) => {
+            count++;
+
+            if (count === ids.length) {
+                refreshCurrentPage();
+            }
+        };
+
+        if (path && ids) {
+            if (await asyncConfirm(translate('admin.confirm_delete'))) {
+                for (let id of ids) {
+                    sendRequest(
+                        {},
+                        'admin/api/' + path + '/' + id,
+                        'DELETE',
+                        callback,
+                        false,
+                    );
+                }
+            }
+        }
+    });
+
     fetchIcons();
 });
 

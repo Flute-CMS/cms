@@ -216,5 +216,9 @@
     'hours' => 'hours|hour|hours|hours',
     'days' => 'days|day|days|days',
     "discord_role_id" => "ID of the Role in Flute",
-    "discord_role_desc" => "This role will be automatically issued in Discord"
+    "discord_role_desc" => "This role will be automatically issued in Discord",
+    "check" => "Validate",
+    "validation" => "validation",
+    "security" => "security",
+    "forever" => "forever"
 ];

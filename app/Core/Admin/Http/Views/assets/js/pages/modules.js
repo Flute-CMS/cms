@@ -350,21 +350,6 @@ $(function () {
         });
     });
 
-    // Handle delete module action
-    $(document).on(
-        'click',
-        '.module-action-buttons .action-button.delete',
-        async function () {
-            let moduleId = $(this).data('deletemodule');
-            if (
-                await asyncConfirm(
-                    translate('admin.modules_list.confirm_delete'),
-                )
-            )
-                sendRequest({}, u('admin/api/modules/' + moduleId), 'DELETE');
-        },
-    );
-
     // Handle install module action
     $(document).on(
         'click',

@@ -43,6 +43,11 @@ class TableBuilder
     protected array $data = [];
 
     /**
+     * @var bool Добавляет возможность выбора строк через чекбоксы.
+     */
+    protected bool $selectable = false;
+
+    /**
      * @var array Опции конфигурации DataTables.
      */
     protected array $options = [
@@ -600,16 +605,6 @@ class TableBuilder
         return $this;
     }
 
-    public function __get($name)
-    {
-        return isset($this->options[$name]) ? $this->options[$name] : null;
-    }
-
-    public function __set($name, $value)
-    {
-        $this->options[$name] = $value;
-    }
-
     protected function setJSRenderers(string $encodedHTML): string
     {
         foreach ($this->options['columnDefs'] as $column) {
@@ -681,14 +676,27 @@ class TableBuilder
         return $encodedHTML;
     }
 
+    /**
+     * Устанавливает возможность выбора строк через чекбоксы.
+     *
+     * @param bool $selectable Включить или отключить чекбоксы.
+     * @return TableBuilder
+     */
+    public function setSelectable(bool $selectable): TableBuilder
+    {
+        $this->selectable = $selectable;
+        return $this;
+    }
+
     protected function generateHtml(): string
     {
         $overflowDiv = Html::el('div')->addClass('overflow-table');
-        $table = Html::el('table')->id($this->tableId)->addClass("{$this->tableClass} skeleton");
+        $table = Html::el('table')->id($this->tableId)->addClass("{$this->tableClass} skeleton" . ($this->selectable ? ' selectable' : ''));
 
         if (!empty($this->columns)) {
             $thead = Html::el('thead');
             $tr = Html::el('tr');
+
             foreach ($this->columns as $column) {
                 $tr->create('th')->addText($column->getTitle());
             }
@@ -698,7 +706,7 @@ class TableBuilder
 
         if (!empty($this->data)) {
             $tbody = Html::el('tbody');
-            foreach ($this->data as $row) {
+            foreach ($this->data as $key => $row) {
                 $tr = Html::el('tr');
                 foreach ($this->columns as $column) {
                     $columnData = (is_string($column->getName()) || is_int($column->getName())) ? $column->getName() : null;
@@ -729,6 +737,16 @@ class TableBuilder
         $overflowDiv->addHtml($table);
 
         return $overflowDiv->render();
+    }
+
+    public function __get($name)
+    {
+        return isset($this->options[$name]) ? $this->options[$name] : null;
+    }
+
+    public function __set($name, $value)
+    {
+        $this->options[$name] = $value;
     }
 
     protected function generateTableId(): void

@@ -54,7 +54,7 @@ class UserService
      */
     protected function initializeByToken()
     {
-        if (!$this->userToken)
+        if (!$this->userToken || !is_installed())
             return;
 
         try {
@@ -86,6 +86,9 @@ class UserService
      */
     public function initializeBySession()
     {
+        if (!is_installed())
+            return;
+
         if ($userId = session()->get('user_id')) {
             $this->currentUser = $this->get($userId);
 
@@ -96,7 +99,7 @@ class UserService
         }
     }
 
-    public function getByRoute(string $route, bool $force = false) : ?User
+    public function getByRoute(string $route, bool $force = false): ?User
     {
         if (isset($this->usersCache[$route]) && !$force) {
             return $this->usersCache[$route];
@@ -124,7 +127,7 @@ class UserService
         return $this->usersCache[$route];
     }
 
-    public function get(int $userId, bool $force = false) : ?User
+    public function get(int $userId, bool $force = false): ?User
     {
         if (isset($this->usersCache[$userId]) && !$force) {
             return $this->usersCache[$userId];

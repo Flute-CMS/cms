@@ -21,4 +21,7 @@ return array (
   'flute_copyright' => true,
   'widget_placeholders' => true,
   'footer_name' => '',
+  'footer_html' => '',
+  'maintenance_message' => '',
+  'notifications_new_view' => false,
 );

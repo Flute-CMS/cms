@@ -3,7 +3,6 @@
 namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
-use Flute\Core\DiscordLink\DiscordLinkRoles;
 use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
@@ -37,10 +36,6 @@ class UsersController extends AbstractController
             return $this->error($result['message'], $result['code']);
         }
 
-        $user = user()->get((int) $id, true);
-
-        app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
-
         return $this->success();
     }
 
@@ -51,8 +46,6 @@ class UsersController extends AbstractController
         if ($result['status'] === 'error') {
             return $this->error($result['message'], $result['code']);
         }
-
-        app()->get(DiscordLinkRoles::class)->clearRoles(user()->get((int) $id, true), );
 
         return $this->success();
     }

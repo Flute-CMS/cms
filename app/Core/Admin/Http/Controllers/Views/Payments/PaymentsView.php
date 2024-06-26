@@ -65,7 +65,7 @@ class PaymentsView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $payments = rep(PaymentGateway::class)->findAll();
 
         $table->addColumns([
@@ -101,7 +101,8 @@ class PaymentsView extends AbstractController
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-translate", "admin.payments.delete");
                     deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
-                    deleteDiv.setAttribute("data-deletepayment", data[0]);
+                    deleteDiv.setAttribute("data-deleteaction", data[0]);
+                    deleteDiv.setAttribute("data-deletepath", "payments");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

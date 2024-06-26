@@ -5,6 +5,7 @@ namespace Flute\Core\Admin\Services;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\UserBlock;
+use Flute\Core\DiscordLink\DiscordLinkRoles;
 use Nette\Utils\Validators;
 use Nette\Utils\AssertionException;
 
@@ -20,7 +21,7 @@ class UserService
     public function editUser(array $input, string $userId): array
     {
         /** @var User */
-        $user = rep(User::class)->findByPK((int) $userId);
+        $user = user()->get((int) $userId, true);
 
         if (!$user) {
             return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
@@ -77,6 +78,8 @@ class UserService
 
         transaction($user)->run();
 
+        app(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+
         return ['status' => 'success', 'message' => __('def.success'), 'code' => 200];
     }
 
@@ -89,7 +92,7 @@ class UserService
      */
     public function deleteUser(string $userId, User $currentUser): array
     {
-        $userToDelete = rep(User::class)->findByPK((int) $userId);
+        $userToDelete = user()->get((int) $userId, true);
 
         if (!$userToDelete) {
             return ['status' => 'error', 'message' => __('admin.users.not_found'), 'code' => 404];
@@ -108,6 +111,8 @@ class UserService
         }
 
         user()->log('events.user_deleted', $userToDelete->id);
+
+        app(DiscordLinkRoles::class)->clearRoles($userToDelete);
 
         // Фактическое удаление пользователя
         transaction($userToDelete, 'delete')->run();

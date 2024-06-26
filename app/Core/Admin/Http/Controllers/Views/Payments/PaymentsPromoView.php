@@ -19,7 +19,7 @@ class PaymentsPromoView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $promos = rep(PromoCode::class)->select()->load('usages')->fetchAll();
 
         foreach ($promos as $promo) {
@@ -63,7 +63,8 @@ class PaymentsPromoView extends AbstractController
                     deleteDiv.setAttribute("data-translate", "admin.payments.promo.delete");
                     deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-tooltip-conf", "left");
-                    deleteDiv.setAttribute("data-deletepromo", data[0]);
+                    deleteDiv.setAttribute("data-deleteaction", data[0]);
+                    deleteDiv.setAttribute("data-deletepath", "payments/promo");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

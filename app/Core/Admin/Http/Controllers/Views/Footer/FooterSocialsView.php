@@ -23,7 +23,7 @@ class FooterSocialsView extends AbstractController
 
     public function list(FluteRequest $request)
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $socials = rep(FooterSocial::class)->findAll();
 
         $table->addColumns([
@@ -74,7 +74,8 @@ class FooterSocialsView extends AbstractController
                     deleteDiv.setAttribute("data-translate", "admin.footer.social_delete");
                     deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
                     deleteDiv.setAttribute("data-tooltip-conf", "left");
-                    deleteDiv.setAttribute("data-deletesocial", data[0]);
+                    deleteDiv.setAttribute("data-deleteaction", data[0]);
+                    deleteDiv.setAttribute("data-deletepath", "footer/socials");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

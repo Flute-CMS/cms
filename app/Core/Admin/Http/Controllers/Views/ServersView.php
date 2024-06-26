@@ -19,7 +19,7 @@ class ServersView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
         $servers = rep(Server::class)->findAll();
 
         $table->addColumns([
@@ -58,7 +58,8 @@ class ServersView extends AbstractController
                     deleteDiv.classList.add("action-button", "delete");
                     deleteDiv.setAttribute("data-translate", "admin.servers.delete");
                     deleteDiv.setAttribute("data-translate-attribute", "data-tooltip");
-                    deleteDiv.setAttribute("data-deleteserver", data[0]);
+                    deleteDiv.setAttribute("data-deleteaction", data[0]);
+                    deleteDiv.setAttribute("data-deletepath", "servers");
                     let deleteIcon = make("i");
                     deleteIcon.classList.add("ph-bold", "ph-trash");
                     deleteDiv.appendChild(deleteIcon);

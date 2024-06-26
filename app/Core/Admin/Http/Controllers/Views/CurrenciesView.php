@@ -17,7 +17,7 @@ class CurrenciesView extends AbstractController
 
     public function list(): Response
     {
-        $table = table();
+        $table = table()->setSelectable(true);
 
         $table->setPhrases([
             'code' => __('admin.currency.currency'),
