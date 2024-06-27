@@ -14,7 +14,6 @@ use Flute\Core\Auth\Events\{
     UserRegisteredEvent,
     UserVerifiedEvent
 };
-use Flute\Modules\Shop\src\Events\BuyProductEvent;
 use Flute\Core\Payments\Events\{
     PaymentFailedEvent,
     PaymentSuccessEvent
@@ -77,9 +76,9 @@ class EventsTestingController extends AbstractController
                 return new UserRegisteredEvent($user);
             case UserVerifiedEvent::NAME:
                 return new UserVerifiedEvent($user);
-            case BuyProductEvent::NAME:
+            case 'flute.shop.buy':
                 $product = rep(ShopProduct::class)->findByPK($parameters['product_id'] ?? 0);
-                return $product ? new BuyProductEvent($product) : null;
+                return $product ? new \Flute\Modules\Shop\src\Events\BuyProductEvent($product) : null;
             case PaymentFailedEvent::NAME:
                 $response = app(ResponseInterface::class);
                 return new PaymentFailedEvent($response);

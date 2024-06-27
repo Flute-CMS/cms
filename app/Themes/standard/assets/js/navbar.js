@@ -424,10 +424,11 @@ async function updateNotifications() {
         $('.notifications_header_clear').show();
         $('.notifications_body > i').remove();
     } else {
-        $('.notifications_header_clear').hide();
-
-        if ($('.notifications_body > .notifications_items').length === 0)
+        
+        if ($('.notifications_body > .notifications_items').length === 0) {
             emptyNotifications();
+            $('.notifications_header_clear').hide();// -кнопка очистки пропадает, только если нет уведомлений
+        }
 
         removeNotificationCount();
 

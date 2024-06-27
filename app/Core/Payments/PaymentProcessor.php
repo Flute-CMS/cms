@@ -73,7 +73,7 @@ class PaymentProcessor
 
         $invoice->promoCode = payments()->promo()->get($promo);
         $invoice->gateway = $gateway->name;
-        $invoice->transactionId = uniqid();
+        $invoice->transactionId = \time();
         $invoice->isPaid = false;
         $invoice->user = user()->getCurrentUser();
 

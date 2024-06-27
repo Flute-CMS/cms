@@ -30,7 +30,8 @@ class GatewayFactory
         $loader = app()->getLoader();
 
         $loader->addClassMap([
-            'Omnipay\\FreeKassa\\Message\\PurchaseRequest' => BASE_PATH . 'app/Core/Payments/Fixes/FreeKassa/PurchaseRequest.php'
+            'Omnipay\\FreeKassa\\Message\\PurchaseRequest' => BASE_PATH . 'app/Core/Payments/Fixes/FreeKassa/PurchaseRequest.php',
+            'Omnipay\\FreeKassa\\Message\\PurchaseResponse' => BASE_PATH . 'app/Core/Payments/Fixes/FreeKassa/PurchaseResponse.php',
         ]);
 
         $loader->register();
