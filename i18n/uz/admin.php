@@ -106,6 +106,7 @@
     "db_port_placeholder" => "Port",
     "settings_bar" => [
         "system" => "Tizim",
+        "additional" => "Qo‘shimcha",
         "auth" => "Avtorizatsiya",
         "database" => "Ma‘lumotlar bazasi",
         "language" => "Til",
@@ -155,6 +156,8 @@
         "timezone_description" => "Sayt uchun vaqt zonasini belgilang.",
         "notifications_label" => "Bildirishnomalar",
         "notifications_description" => "Bildirishnoma sozlamalarini sozlang.",
+        "notifications_new_view_label" => "Bildirishnomalarning yangi ko‘rinishi",
+        "notifications_new_view_description" => "Foydalanuvchi bildirishnomalarini yangi formatda ko‘rsatish (o‘ngdagi yon panel)",
         "notifications_all" => "Barcha bildirishnomalar",
         "notifications_unread" => "Faqat o‘qilmagan",
         "save_button" => "Saqlash",
@@ -169,12 +172,17 @@
         "performance_warning" => "Bu funksiya qabul qilish uchun odatdagidan ko‘proq vaqt talab qiladigan ma‘lumotlarni keshlaydi, shuning uchun ba‘zi ma‘lumotlar tegishli bo‘lmasligi mumkin.",
         "maintenance_mode" => "Texnik xizmat ko‘rsatish rejimi",
         "maintenance_mode_description" => "Bu funksiya administrator bo‘lmagan barcha foydalanuvchilardan saytni yashiradi",
+        "maintenance_message" => "Texnik xizmat ko‘rsatish xabari",
+        "maintenance_message_description" => "Ushbu xabar foydalanuvchilarga texnik xizmat ko‘rsatish rejimida ko‘rsatiladi",
         "will_close_site" => "Foydalanuvchilar saytga kira olmaydi",
         "maintenance_warning" => "Bu funksiya yoqilganda, foydalanuvchilar saytga kira olmaydi yoki uning funksiyalaridan foydalana olmaydi",
         "discord_link_roles" => "Rollarni Discord bilan bog‘lash",
         "discord_link_roles_description" => "Sayt va Discord serverining rollarini bog‘laydi. <b><a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>Ushbu ko‘rsatmalarga</a> muvofiq hamma narsa sozlangan bo‘lishi kerak!</b>",
         "footer_name_label" => "Sarlavha footerda",
         "footer_name_description" => "Saytning pastki qismida loyihangiz nomi",
+        "token_incorrect" => "Bu STEAM kaliti yaroqsiz",
+        "footer_html_label" => "Footerda maxsus HTML",
+        "footer_html_description" => "Siz o‘zingizning shaxsiy HTML-ni saytning pastki qismiga yozishingiz mumkin va u avtomatik ravishda saytga qo‘shiladi"
     ],
     "lk" => [
         "currency_view_label" => "Valyuta (turi)",
@@ -410,7 +418,14 @@
         "server_duplicate" => "Bunday ma‘lumotlarga ega server allaqachon mavjud!",
         "display_ip" => "Chiqarilgan IP:PORT",
         "enabled" => "Aktiv",
-        "enabled_description" => "Server modullarda/vidjetlarda ko‘rsatilsinmi?"
+        "enabled_description" => "Server modullarda/vidjetlarda ko‘rsatilsinmi?",
+        "check_online" => "Ulanishni tekshirish",
+        "check_rcon" => "RCONni tekshirish",
+        "check" => "Ulanishlarni tekshirish",
+        "check_description" => "Flute orqali serverga ulanish ishlayotganligini tekshirishingiz mumkin.",
+        "rcon_command" => "RCON buyrug‘i.",
+        "rcon_command_placeholder" => "RCON buyrug‘ini kiriting",
+        "rcon_command_desc" => "Ushbu RCON buyrug‘i serverga yuboriladi"
     ],
     "payments" => [
         "header" => "To‘lov shlyuzlari",
@@ -877,5 +892,7 @@
     "refresh_page" => "Sahifani yangilash",
     "what_it_means" => "Bu nimani anglatadi?",
     "what_it" => "Bu nima?",
-    "update_available" => "Versiya mavjud :version"
+    "update_available" => "Versiya mavjud :version",
+    "start_tour" => "Qo‘llanma mavjud! Boshlash uchun bu yerga bosing!",
+    "selected_rows" => "Tanlangan kataklar:"
 ];
