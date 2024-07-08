@@ -62,7 +62,7 @@
     "tags" => "Tags",
     "required" => "Required Field",
     "optional" => "Optional Field",
-    "auth" => "Auth",
+    "auth" => "Login",
     "register" => "Register",
     "exit_without_saving" => "Exit without saving?",
     "not_authorized" => "Not Authorized",
