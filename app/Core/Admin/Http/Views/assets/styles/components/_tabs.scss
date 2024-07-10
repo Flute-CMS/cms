@@ -60,9 +60,20 @@
     pointer-events: auto;
     transition: padding 0.35s;
     margin-bottom: 5px;
+    
+    &:hover {
+        >.close-tabs-button {
+            display: inline-block;
+            
+            &:hover {
+                color: #c00;
+                font-size: 16px;
+            }
+        }
+    }
 }
 
-.chrome-tabs .new-tab-button-wrapper .new-tab-button {
+.chrome-tabs .new-tab-button-wrapper .new-tab-button, .close-tabs-button {
     height: 28px;
     width: 28px;
     line-height: 0;
@@ -78,7 +89,14 @@
     cursor: default;
 }
 
-.chrome-tabs .new-tab-button-wrapper .new-tab-button:hover {
+.close-tabs-button {
+    display: none;
+    color: #a00;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.chrome-tabs .new-tab-button-wrapper .new-tab-button:hover, .close-tabs-button:hover {
     background: rgba(150, 150, 150, 0.25);
 }
 
