@@ -118,6 +118,7 @@
                             <div class="notification_title">{!! $notification->title !!}</div>
                             <div class="notification_text">{!! $notification->content !!}</div>
                         </div>
+                        <span class="ph ph-x icon-close" id="close-notification"></span>
                     </div>
                     @if ($notification->url)
                         <a class="notifications_item_link" href="{{ $notification->url }}"

@@ -25,6 +25,11 @@ $(document).ready(async () => {
                 closeAllHandle();
             }
         }
+
+        if ($(event.target).closest('#close-notification').length) {
+            let id = $(event.target).closest('#close-notification').attr('data-id');
+            deleteNavbarNotification(id);
+        }
     });
 });
 
@@ -337,7 +342,7 @@ function readNotificationsBatch() {
                 readNavbarNotification(batch[i]);
             }
         }
-    }, 200); // Задержка в 100 миллисекунд
+    }, 200); // Задержка в 200 миллисекунд
 }
 
 async function selectNotificationPhrase(count) {
@@ -521,6 +526,14 @@ async function createNotificationItem(notification) {
     notificationContent.append(notificationTitle, notificationText);
     notificationFlex.append(notificationContent);
 
+    let closeIcon = $('<span>', {
+        class: 'ph ph-x icon-close',
+        id: `close-notification`,
+        'data-id': notification.id,
+    });
+
+    notificationFlex.append(closeIcon);
+
     notificationItem.append(notificationFlex);
 
     if (notification.url) {
@@ -544,6 +557,17 @@ function readNavbarNotification(id) {
     readNotification(id.replace('notification_', ''));
 
     removeNotificationCount();
+}
+
+function deleteNavbarNotification(id) {
+    deleteNotification(id);
+
+    $(`#notification_${id}`).remove();
+    if ($('.notifications_item').length === 0) {
+        $('.notifications_body').html('<i class="ph ph-bell-simple-slash"></i>');
+    }
+
+    updateNotifications();
 }
 
 function closeNotifications() {

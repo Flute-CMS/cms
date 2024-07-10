@@ -59,6 +59,18 @@
                 white-space: break-spaces;
             }
         }
+
+        #close-notification {
+            color: #fff;
+            cursor: pointer;
+            padding: 2px;
+            opacity: 0.4;
+            transition: 0.3s;
+            
+            &:hover {
+                opacity: 0.7;
+            }
+        }
     }
 }
 
