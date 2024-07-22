@@ -101,7 +101,7 @@ $(function () {
                         },
                         error: function (response) {
                             reject(
-                                jqXHR.responseJSON?.error ??
+                                response.responseJSON?.error ??
                                     translate('def.unknown_error'),
                             );
                         },

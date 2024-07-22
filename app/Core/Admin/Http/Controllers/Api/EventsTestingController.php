@@ -20,7 +20,6 @@ use Flute\Core\Payments\Events\{
 };
 use Omnipay\Common\Message\ResponseInterface;
 use Flute\Core\Database\Entities\PaymentInvoice;
-use Flute\Modules\Shop\database\Entities\ShopProduct;
 use Flute\Core\Database\Entities\PasswordResetToken;
 
 class EventsTestingController extends AbstractController
@@ -77,8 +76,11 @@ class EventsTestingController extends AbstractController
             case UserVerifiedEvent::NAME:
                 return new UserVerifiedEvent($user);
             case 'flute.shop.buy':
-                $product = rep(ShopProduct::class)->findByPK($parameters['product_id'] ?? 0);
-                return $product ? new \Flute\Modules\Shop\src\Events\BuyProductEvent($product) : null;
+                if (class_exists(\Flute\Modules\Shop\src\Events\BuyProductEvent::class)) {
+                    $product = rep(\Flute\Modules\Shop\database\Entities\ShopProduct::class)->findByPK($parameters['product_id'] ?? 0);
+                    return $product ? new \Flute\Modules\Shop\src\Events\BuyProductEvent($product) : null;
+                }
+                return false;
             case PaymentFailedEvent::NAME:
                 $response = app(ResponseInterface::class);
                 return new PaymentFailedEvent($response);

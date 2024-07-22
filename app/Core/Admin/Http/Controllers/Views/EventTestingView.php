@@ -60,13 +60,6 @@ class EventTestingView extends AbstractController
                 ]
             ],
             [
-                'name' => 'flute.shop.buy',
-                'label' => __('admin.event_testing.buy_product'),
-                'parameters' => [
-                    ['name' => 'product_id', 'label' => __('admin.event_testing.product_id'), 'type' => 'text']
-                ]
-            ],
-            [
                 'name' => 'payment.success',
                 'label' => __('admin.event_testing.payment_success'),
                 'parameters' => [
@@ -74,6 +67,16 @@ class EventTestingView extends AbstractController
                 ]
             ]
         ];
+
+        if (class_exists(\Flute\Modules\Shop\src\Events\BuyProductEvent::class)) {
+            $events[] = [
+                'name' => 'flute.shop.buy',
+                'label' => __('admin.event_testing.buy_product'),
+                'parameters' => [
+                    ['name' => 'product_id', 'label' => __('admin.event_testing.product_id'), 'type' => 'text']
+                ]
+            ];
+        }
 
         return view("Core/Admin/Http/Views/pages/event_testing/index", [
             'events' => $events,

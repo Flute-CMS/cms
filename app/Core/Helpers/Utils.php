@@ -259,8 +259,11 @@ function getPluralForm($number, $forms)
     return $forms[0];
 }
 
-function secondsToReadable(int $seconds): string
+function secondsToReadable($seconds): string
 {
+    // For exclude types missmatch
+    $seconds = intval($seconds);
+
     if( $seconds === 0 ) {
         return __('def.forever');
     }

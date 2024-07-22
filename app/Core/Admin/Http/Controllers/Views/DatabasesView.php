@@ -112,6 +112,22 @@ class DatabasesView extends AbstractController
                         ]
                     ]
                 ],
+                [
+                    'name' => 'FirePlayerStats',
+                    'parameters' => [
+                        [
+                            'name' => 'server_id',
+                            'label' => __('admin.databases.sid'),
+                            'type' => 'text',
+                        ],
+                        [
+                            'name' => 'ranks',
+                            'label' => __('admin.databases.ranks'),
+                            'type' => 'text',
+                            'default' => "default"
+                        ]
+                    ]
+                ],
             ],
             __('admin.databases.banscomms') => [
                 [
