@@ -216,5 +216,9 @@
     'hours' => 'soat|soat|soat|soat',
     'days' => 'kun|kun|kun|kun',
     "discord_role_id" => "Flutedagi rolning identifikatori",
-    "discord_role_desc" => "Bu rol avtomatik ravishda Discord-da chiqariladi"
+    "discord_role_desc" => "Bu rol avtomatik ravishda Discord-da chiqariladi",
+    "check" => "Tekshirish",
+    "validation" => "Tasdiqlash",
+    "security" => "Xavfsizlik",
+    "forever" => "Abadiy"
 ];

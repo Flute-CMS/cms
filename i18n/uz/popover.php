@@ -17,6 +17,8 @@
             "profile" => "Profil",
             "replenishment" => "Toʻldirish",
             "summing_up" => "Necha dona...",
+            "additional" => "Qoʻshimcha sozlamalar",
+            "cache" => "Keshni tozalash",
         ],
         "description" => [
             "system_settings_intro" => "Keling, qanday tizim sozlamalari va ular nima bilan ishlatilishini koʻrib chiqaylik.",
@@ -35,6 +37,8 @@
             "mail_server_settings" => "Ushbu nuqtada siz pochta serverini xat yuborish uchun sozlaysiz (parolni qayta oʻrnatish va h.k. uchun).",
             "profile_settings" => "Bu yerda profildagi foydalanuvchilar uchun turli xil sozlamalarni sozlashingiz mumkin. Kiring va hamma narsani oʻzingiz tushunib olasiz",
             "balance_replenishment_settings" => "Ushbu element balansni toʻldirish uchun ishlatiladigan sozlamalarni saqlaydi. Koʻrsatiladigan valyuta yoki minimal toʻldirish miqdori va h.k.lar.",
+            "additional_settings" => "Qoʻshimcha Flute CMS sozlamalari bu yerda toʻplangan. Masalan, STEAM API-ga kirish va hokazo.",
+            "cache_settings" => "Ushbu sahifada siz Flute CMS keshini toʻliq yoki qisman tozalashingiz mumkin.",
             "tour_ending" => "Ishonmayman, lekin biz asosiy joylar boʻyicha sayohatimizni yakunladik. Bilaman, buni hazm qilish biroz qiyin, lekin men sizga ishonaman, siz albatta uddalaysiz!",
         ],
     ],
@@ -50,6 +54,7 @@
             "version" => "Versiya",
             "report_generation" => "Hisobot yaratish",
             "final" => "Hammasi shu!",
+            "contacts" => "Havolalar",
         ],
         "description" => [
             "sidebar" => "Keling, administrator panelining asosiy navigatsiya panelini koʻrib chiqamiz. Qani, boshladik!",

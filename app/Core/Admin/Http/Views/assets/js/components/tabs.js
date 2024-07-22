@@ -59,6 +59,7 @@ const contentCache = {};
     const newTabButtonTemplate = `
       <div class="new-tab-button-wrapper">
         <button class="new-tab-button">✚</button>
+        <button class="close-tabs-button" title="Закрыть все">✕</button>
       </div>
     `;
 
@@ -142,6 +143,8 @@ const contentCache = {};
 
             this.el.addEventListener('click', ({ target }) => {
                 if (target.classList.contains('new-tab-button')) this.addTab();
+                if (target.classList.contains('close-tabs-button')) 
+                    this.tabEls.forEach(tab => this.removeTab(tab));
             });
 
             this.tabEls.forEach((tabEl) =>
