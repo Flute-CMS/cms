@@ -60,17 +60,19 @@ class UserService
         $currentUserHighestPriority = $this->getCurrentUserHighestPriority(user()->getCurrentUser());
         $user->clearRoles();
 
-        foreach ($input['selectedRoles'] as $roleInput) {
-            $roleToAdd = rep(Role::class)->findByPK($roleInput['id']);
-            if ($roleToAdd) {
-                if ($roleToAdd->priority > $currentUserHighestPriority && !user()->hasPermission('admin.boss')) {
-                    return [
-                        'status' => 'error',
-                        'message' => __('admin.users.role_priority_error', ['role' => $roleToAdd->name]),
-                        'code' => 403
-                    ];
+        if (isset($input['selectedRoles']) && !empty($input['selectedRoles'])) {
+            foreach ($input['selectedRoles'] as $roleInput) {
+                $roleToAdd = rep(Role::class)->findByPK($roleInput['id']);
+                if ($roleToAdd) {
+                    if ($roleToAdd->priority > $currentUserHighestPriority && !user()->hasPermission('admin.boss')) {
+                        return [
+                            'status' => 'error',
+                            'message' => __('admin.users.role_priority_error', ['role' => $roleToAdd->name]),
+                            'code' => 403
+                        ];
+                    }
+                    $user->addRole($roleToAdd);
                 }
-                $user->addRole($roleToAdd);
             }
         }
 

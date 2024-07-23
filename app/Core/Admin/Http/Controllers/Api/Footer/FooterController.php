@@ -4,7 +4,6 @@ namespace Flute\Core\Admin\Http\Controllers\Api\Footer;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\FooterItem;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Services\FooterService;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
@@ -16,7 +15,6 @@ class FooterController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.footer');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function saveOrder(FluteRequest $request)

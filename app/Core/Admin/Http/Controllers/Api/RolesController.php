@@ -6,7 +6,6 @@ use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Admin\Services\UserService;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -16,7 +15,6 @@ class RolesController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.roles');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function saveOrder(FluteRequest $request, UserService $userService)

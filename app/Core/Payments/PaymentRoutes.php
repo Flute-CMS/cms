@@ -3,7 +3,6 @@
 namespace Flute\Core\Payments;
 use Flute\Core\Http\Controllers\Topup\LKApiController;
 use Flute\Core\Http\Controllers\Topup\LKViewController;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Http\Middlewares\isAuthenticatedMiddleware;
 use Flute\Core\Router\RouteDispatcher;
 use Flute\Core\Router\RouteGroup;
@@ -32,7 +31,6 @@ class PaymentRoutes
         $this->router->group(function( RouteGroup $api) {
             $api->group(function (RouteGroup $apiGroup) {
                 $apiGroup->middleware(isAuthenticatedMiddleware::class);
-                $apiGroup->middleware(CSRFMiddleware::class); 
                 
                 $apiGroup->post('/validate-promo', [LKApiController::class, 'validatePromo']);
                 $apiGroup->post('/buy/{gateway}', [LKApiController::class, 'purchase']);

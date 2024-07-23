@@ -18,7 +18,7 @@ class FormService extends Form
     public function csrf()
     {
         return $this['x_csrf_token'] = (new HiddenField)
-			->setDefaultValue(template()->getBlade()->getCsrfToken());
+			->setDefaultValue(csrf_token());
     }
 
     public function gy(int $val): self

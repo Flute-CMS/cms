@@ -163,8 +163,8 @@ class UserService
      */
     protected function sessionExpired()
     {
-        cookie()->remove('remember_token');
-        session()->clear();
+        auth()->logout();
+        
         flash()->add('info', __('validator.session_expired'));
 
         if ($this->getUserToken())

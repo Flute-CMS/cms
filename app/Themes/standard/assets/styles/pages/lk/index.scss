@@ -47,9 +47,9 @@
                 }
 
                 >img {
-                    max-width: 90px;
-                    max-height: 90px;
                     object-fit: cover;
+                    width: 100%;
+                    height: 100%;
                 }
 
                 &.active {
@@ -253,7 +253,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        
+
         p {
             font-size: 14px;
             color: $color-inactive;
@@ -328,8 +328,8 @@
     .errorWrapper {
         display: none;
         color: $color-error;
-        
-        > i {
+
+        >i {
             color: inherit;
             font-size: 60px;
         }
@@ -345,7 +345,8 @@
             display: block;
         }
 
-        .loaderWrapper, .errorWrapper {
+        .loaderWrapper,
+        .errorWrapper {
             display: none;
         }
     }
@@ -355,7 +356,8 @@
             display: block;
         }
 
-        .successWrapper, .loaderWrapper {
+        .successWrapper,
+        .loaderWrapper {
             display: none;
         }
     }

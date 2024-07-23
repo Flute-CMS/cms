@@ -2,11 +2,16 @@
     display: flex;
     gap: 5px;
 
+    i,
+    svg {
+        pointer-events: none;
+    }
+
     >div,
     a {
         padding: 10px;
-        width: 31px;
-        height: 31px;
+        width: 32px;
+        height: 32px;
         border: 1px solid $color-white-5;
         color: $color-text;
         display: flex;
@@ -57,13 +62,13 @@
         }
 
         &.view {
-            > i {
+            >i {
                 transition: $transition;
             }
 
             &:hover {
                 background-color: $color-white-20;
-                
+
                 i {
                     transform: rotate(45deg);
                 }
@@ -78,7 +83,7 @@
     gap: 15px;
     align-items: center;
 
-    > img.img-avatar {
+    >img.img-avatar {
         width: 35px !important;
         height: 35px;
         border-radius: 50%;
@@ -88,13 +93,14 @@
     >.combined-content {
         display: flex;
         flex-direction: column;
-        
-        > p {
+
+        >p {
             line-height: 1.2;
         }
 
-        > small {
-            color: rgb(255 255 255 / 35%);;
+        >small {
+            color: rgb(255 255 255 / 35%);
+            ;
         }
     }
 }

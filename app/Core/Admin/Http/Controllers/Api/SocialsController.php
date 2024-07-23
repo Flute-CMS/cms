@@ -4,7 +4,6 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\SocialNetwork;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -14,7 +13,6 @@ class SocialsController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.socials');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

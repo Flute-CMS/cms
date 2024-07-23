@@ -226,14 +226,16 @@ $(document).on('submit', '.main_settings > div.active > form', (ev) => {
 
     ev.preventDefault();
 
-    if (
-        rand < 0.2 &&
-        id === 'app' &&
-        !$('input[name="flute_copyright"]').is(':checked')
-    ) {
-        let audio = new Audio(u('assets/sounds/fnaf.mp3'));
-        audio.play();
-    }
+    // SCARY
+
+    // if (
+    //     rand < 0.2 &&
+    //     id === 'app' &&
+    //     !$('input[name="flute_copyright"]').is(':checked')
+    // ) {
+    //     let audio = new Audio(u('assets/sounds/fnaf.mp3'));
+    //     audio.play();
+    // }
 
     if (ev.target.checkValidity()) {
         sendRequestFormData(

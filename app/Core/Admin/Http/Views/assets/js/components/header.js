@@ -19,7 +19,7 @@ $(document).on(
         $('#searchBg').addClass('show');
         if (searchValue.length >= 3) {
             $.ajax({
-                url: '/admin/api/search/' + encodeURIComponent(searchValue),
+                url: u('admin/api/search/' + encodeURIComponent(searchValue)),
                 type: 'GET',
                 success: function (data) {
                     $('#searchResults').empty();

@@ -1,6 +1,5 @@
 <?php
 
-use Flute\Core\App;
 use Flute\Core\Services\LoggerService;
 use Monolog\Logger;
 
@@ -15,6 +14,6 @@ if( !function_exists("logs") )
      */
     function logs(string $name = "flute") : Logger
     {
-        return App::getInstance()->get(LoggerService::class)->getLogger($name);
+        return app(LoggerService::class)->getLogger($name);
     }
 }

@@ -3,7 +3,6 @@
 namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Nette\Utils\FileSystem;
@@ -14,8 +13,6 @@ class TranslateController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.translate');
         $this->middleware(HasPermissionMiddleware::class);
-
-        // $this->middleware(CSRFMiddleware::class);
     }
     public function edit(FluteRequest $request)
     {

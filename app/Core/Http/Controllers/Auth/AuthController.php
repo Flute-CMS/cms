@@ -9,7 +9,6 @@ use Flute\Core\Exceptions\IncorrectPasswordException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Http\Controllers\Auth\Controls\RememberMeControl;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Services\FormService;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;

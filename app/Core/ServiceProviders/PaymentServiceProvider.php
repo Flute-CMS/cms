@@ -4,6 +4,7 @@ namespace Flute\Core\ServiceProviders;
 
 use Flute\Core\Payments\GatewayInitializer;
 use Flute\Core\Payments\PaymentRoutes;
+use Flute\Core\Payments\PaymentsCleaner;
 use Flute\Core\Support\AbstractServiceProvider;
 
 class PaymentServiceProvider extends AbstractServiceProvider
@@ -12,6 +13,7 @@ class PaymentServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             GatewayInitializer::class => \DI\autowire(),
+            PaymentsCleaner::class => \DI\autowire(),
             PaymentRoutes::class => \DI\autowire(),
         ]);
     }
@@ -22,6 +24,7 @@ class PaymentServiceProvider extends AbstractServiceProvider
             return;
         
         $container->get(GatewayInitializer::class);
+        $container->get(PaymentsCleaner::class)->cleanOldPayments();
         $container->get(PaymentRoutes::class)->init();
     }
 }

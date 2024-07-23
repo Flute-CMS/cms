@@ -75,7 +75,7 @@
                             </div>
 
                             <div class="col-md-3 text-center">
-                                <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="avatar mb-3">
+                                <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="avatar mb-3" data-page-icon>
                             </div>
                         </div>
 

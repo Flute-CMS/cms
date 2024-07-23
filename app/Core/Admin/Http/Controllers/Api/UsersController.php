@@ -3,7 +3,6 @@
 namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +16,6 @@ class UsersController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.users');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
         $this->userService = $userService;
     }
 

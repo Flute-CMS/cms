@@ -11,7 +11,6 @@ use Flute\Core\Admin\Services\Config\LkConfigService;
 use Flute\Core\Admin\Services\Config\MailConfigService;
 use Flute\Core\Admin\Services\Config\ProfileConfigService;
 use Flute\Core\Admin\Services\LogService;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -22,7 +21,6 @@ class MainSettingsController extends AbstractController
     public function __construct()
     {
         HasPermissionMiddleware::permission('admin.system');
-        $this->middleware(CSRFMiddleware::class);
 
         $this->initConfigServices();
     }

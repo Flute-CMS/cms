@@ -5,7 +5,6 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Database\Entities\PaymentGateway;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -15,7 +14,6 @@ class CurrencyController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.currency');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

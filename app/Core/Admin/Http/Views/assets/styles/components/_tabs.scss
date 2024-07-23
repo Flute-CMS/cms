@@ -60,20 +60,19 @@
     pointer-events: auto;
     transition: padding 0.35s;
     margin-bottom: 5px;
-    
+
     &:hover {
         >.close-tabs-button {
             display: inline-block;
-            
+
             &:hover {
-                color: #c00;
-                font-size: 16px;
             }
         }
     }
 }
 
-.chrome-tabs .new-tab-button-wrapper .new-tab-button, .close-tabs-button {
+.chrome-tabs .new-tab-button-wrapper .new-tab-button,
+.close-tabs-button {
     height: 28px;
     width: 28px;
     line-height: 0;
@@ -91,13 +90,20 @@
 
 .close-tabs-button {
     display: none;
-    color: #a00;
+    color: $color-error;
     font-weight: bold;
     font-size: 12px;
 }
 
-.chrome-tabs .new-tab-button-wrapper .new-tab-button:hover, .close-tabs-button:hover {
+.chrome-tabs .new-tab-button-wrapper i {
+    transition: .3s;
+    pointer-events: none;
+}
+
+.chrome-tabs .new-tab-button-wrapper .new-tab-button:hover,
+.close-tabs-button:hover {
     background: rgba(150, 150, 150, 0.25);
+    color: $color-text;
 }
 
 .chrome-tabs .chrome-tabs-content {
@@ -244,6 +250,13 @@
     background-size: 16px;
     margin-left: 4px;
     font-size: 14px;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
 }
 
 .chrome-tabs .chrome-tab[is-small] .chrome-tab-favicon {
@@ -576,7 +589,7 @@ only screen and (min-resolution: 2dppx) {
     top: 0;
     width: 100%;
     height: 100%;
-    z-index: 100;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;

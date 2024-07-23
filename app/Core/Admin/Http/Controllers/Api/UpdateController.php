@@ -6,8 +6,6 @@ use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\App;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 use Flute\Core\Git\GitHubUpdater;
 use Symfony\Component\Filesystem\Exception\IOException;
 
@@ -68,7 +66,7 @@ class UpdateController extends AbstractController
         if ($zip->open($backupPath, \ZipArchive::CREATE) === TRUE) {
             $this->addFolderToZip(path('app'), $zip, 'app');
             $this->addFolderToZip(path('bootstrap'), $zip, 'bootstrap');
-            $this->addFolderToZip(path('public'), $zip, 'public');
+            $this->addFolderToZip(path('public'), $zip, 'public', ['favicon.ico']);
             $this->addFolderToZip(path('i18n'), $zip, 'i18n');
             $zip->close();
         } else {
@@ -76,7 +74,7 @@ class UpdateController extends AbstractController
         }
     }
 
-    protected function addFolderToZip($source, &$zip, $folderName)
+    protected function addFolderToZip($source, &$zip, $folderName, $excludeFiles = [])
     {
         if (extension_loaded('zip')) {
             if (file_exists($source)) {
@@ -91,11 +89,11 @@ class UpdateController extends AbstractController
                         $relativePath = $folderName . '/' . substr($file, strlen($source) + 1);
                         if (is_dir($file)) {
                             $zip->addEmptyDir($relativePath);
-                        } else if (is_file($file)) {
+                        } else if (is_file($file) && !in_array(basename($file), $excludeFiles)) {
                             $zip->addFile($file, $relativePath);
                         }
                     }
-                } else if (is_file($source)) {
+                } else if (is_file($source) && !in_array(basename($source), $excludeFiles)) {
                     $zip->addFile($source, $folderName . '/' . basename($source));
                 }
             }

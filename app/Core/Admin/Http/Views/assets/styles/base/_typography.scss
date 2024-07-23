@@ -84,14 +84,12 @@ table {
 .admin-container {
     height: 100%;
     display: flex;
-    gap: 20px;
 
     >section {
         flex: 1;
         width: 100%;
         margin: 0 auto;
         max-width: 1920px;
-        padding-left: 350px;
         margin-top: 90px;
         position: relative;
         padding-bottom: 15px;
@@ -190,6 +188,7 @@ a {
 }
 
 .overflow-table {
+    overflow: hidden;
 
     .dt-layout-cell,
     .skeleton {

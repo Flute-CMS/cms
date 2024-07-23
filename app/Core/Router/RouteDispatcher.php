@@ -8,6 +8,7 @@ use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Events\RoutingStartedEvent;
 use Flute\Core\Exceptions\ForcedRedirectException;
 use Flute\Core\Http\Middlewares\BanCheckMiddleware;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Http\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Router\RouteGroup;
 use Flute\Core\Support\FluteRequest;
@@ -36,8 +37,8 @@ class RouteDispatcher
     protected array $defaultMiddlewares = [
         MaintenanceMiddleware::class,
         BanCheckMiddleware::class,
+        CSRFMiddleware::class
     ];
-
 
     /**
      * Constructor for RouteDispatcher.

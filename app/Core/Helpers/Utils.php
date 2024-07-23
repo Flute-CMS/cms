@@ -1,6 +1,7 @@
 <?php
 
 use Flute\Core\Installer\InstallerFinder;
+use Flute\Core\Services\CsrfTokenService;
 use Flute\Core\Support\UrlSupport;
 use Nette\Utils\Validators;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -194,7 +195,7 @@ if (!function_exists('e')) {
 if (!function_exists('csrf_token')) {
     function csrf_token()
     {
-        return template()->getBlade()->getCsrfToken();
+        return app(CsrfTokenService::class)->getToken();
     }
 }
 

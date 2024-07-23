@@ -1,6 +1,6 @@
 function parseUpdateContent() {
-    document.querySelector('.update-container-body-content').innerHTML =
-        marked.parse(updateContent);
+    let el = document.querySelector('.update-container-body-content');
+    if (el) el.innerHTML = marked.parse(updateContent);
 }
 
 document
@@ -49,6 +49,8 @@ $(document).on('click', '#updateButton', async (e) => {
                     message: result.success,
                     type: 'success',
                 });
+
+                setTimeout(() => window.location.reload(), 6000);
             } else {
                 toast({
                     message: result.error,

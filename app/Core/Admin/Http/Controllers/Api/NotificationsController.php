@@ -4,7 +4,6 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\EventNotification;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -14,7 +13,6 @@ class NotificationsController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.notifications');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

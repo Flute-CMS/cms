@@ -1,10 +1,18 @@
 const driver = window.driver?.js?.driver;
 const widgetConfigs = [];
 
-let csrfToken = $('meta[name="csrf-token"]').attr('content');
-$.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-    if (options.type !== 'GET')
-        jqXHR.setRequestHeader('x-csrf-token', csrfToken);
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+$(document).ready(function () {
+    $.ajaxSetup({
+        dataType: 'json',
+    });
+
+    $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+        if (options.type !== 'GET') {
+            jqXHR.setRequestHeader('X-CSRF-Token', csrfToken);
+        }
+    });
 });
 
 $(document).on('click', '[data-copy]', (e) => {
@@ -155,6 +163,7 @@ async function batchTranslate(elements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Csrf-Token': csrfToken,
             },
             body: JSON.stringify({
                 translations: translationsNeeded.map(
@@ -429,6 +438,7 @@ async function loadWidget(params, id, interval = 0) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Csrf-Token': csrfToken,
             },
             body: JSON.stringify({ params }),
             signal: signal,

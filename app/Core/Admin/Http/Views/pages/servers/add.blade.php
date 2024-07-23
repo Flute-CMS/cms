@@ -115,6 +115,8 @@
                     <option value="346110">ARK: Survival Evolved</option>
                     <option value="minecraft">Minecraft</option>
                     <option value="108600">Project: Zomboid</option>
+                    <option value="gta5">GTA 5</option>
+                    <option value="samp">SAMP</option>
                     <option value="all_hl_games_mods">HL1 / HL2 Game</option>
                 </select>
             </div>

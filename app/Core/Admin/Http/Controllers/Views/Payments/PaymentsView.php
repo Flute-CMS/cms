@@ -32,6 +32,7 @@ class PaymentsView extends AbstractController
 
             $item->amountWithCurrency = $item->originalAmount . ' ' . $item->currency->code;
             $item->user_name = $item->user->name;
+            $item->created_at = $item->created_at->format(default_date_format());
 
             $item->promoCode = !empty($item->promoCode) ? $item->promoCode->code : __('def.no');
 
@@ -50,6 +51,7 @@ class PaymentsView extends AbstractController
         // Добавляем объединенную колонку
         $table->addColumn((new TableColumn('user_url', 'user_url'))->setVisible(false));
         $table->addCombinedColumn('avatar', 'user_name', __('def.user'), 'user_url');
+        $table->addColumn(new TableColumn('created_at', __('def.created_at')));
         $table->addColumn(new TableColumn('gateway', __('admin.payments.adapter')));
         $table->addColumn(new TableColumn('transactionId', __('admin.payments.transactionId')));
         $table->addColumn(new TableColumn('amountWithCurrency', __('admin.payments.amount')));

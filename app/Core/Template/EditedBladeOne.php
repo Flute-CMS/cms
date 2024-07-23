@@ -3,6 +3,7 @@
 namespace Flute\Core\Template;
 
 use eftec\bladeone\BladeOne;
+use Flute\Core\Services\CsrfTokenService;
 
 /**
  * Class for extending blade for required cms functionality.
@@ -98,13 +99,7 @@ class EditedBladeOne extends BladeOne
 
     public function getCsrfToken($fullToken = false, $tokenId = 'x-csrf-token'): string
     {
-        if ($this->csrf_token == '') {
-            $this->regenerateToken($tokenId);
-        }
-        if ($fullToken) {
-            return $this->csrf_token . '|' . $this->ipClient();
-        }
-        return $this->csrf_token;
+        return app(CsrfTokenService::class)->getToken();
     }
 
     public function regenerateToken($tokenId = 'x-csrf-token'): void

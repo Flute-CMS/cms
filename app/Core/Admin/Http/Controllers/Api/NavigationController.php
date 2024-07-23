@@ -6,7 +6,6 @@ use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Admin\Services\UserService;
 use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Database\Entities\Role;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Services\NavbarService;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
@@ -18,7 +17,6 @@ class NavigationController extends AbstractController
     public function __construct()
     {
         HasPermissionMiddleware::permission('admin.navigation');
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function saveOrder(FluteRequest $request)

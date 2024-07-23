@@ -6,7 +6,6 @@ use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\ConditionGroup;
 use Flute\Core\Database\Entities\Redirect;
 use Flute\Core\Database\Entities\RedirectCondition;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -15,7 +14,6 @@ class RedirectsController extends AbstractController
     public function __construct()
     {
         HasPermissionMiddleware::permission('admin.redirects');
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

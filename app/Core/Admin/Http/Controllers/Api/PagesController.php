@@ -6,7 +6,6 @@ use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Database\Entities\Permission;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 
@@ -16,7 +15,6 @@ class PagesController extends AbstractController
     {
         HasPermissionMiddleware::permission('admin.pages');
         $this->middleware(HasPermissionMiddleware::class);
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

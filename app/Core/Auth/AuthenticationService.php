@@ -343,7 +343,7 @@ class AuthenticationService
             $rep && transaction($rep, 'delete')->run();
         }
 
-        session()->clear();
+        session()->remove('user_id');
         cookie()->remove('remember_token');
 
         events()->dispatch(new UserLoggedOutEvent(), UserLoggedOutEvent::NAME);

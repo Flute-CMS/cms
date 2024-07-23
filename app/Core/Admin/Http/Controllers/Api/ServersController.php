@@ -5,7 +5,6 @@ namespace Flute\Core\Admin\Http\Controllers\Api;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
 use Flute\Core\Database\Entities\Server;
 use Flute\Core\Exceptions\RequestValidateException;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +15,6 @@ class ServersController extends AbstractController
     public function __construct()
     {
         HasPermissionMiddleware::permission('admin.servers');
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function add(FluteRequest $request)

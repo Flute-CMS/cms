@@ -6,7 +6,6 @@ use Flute\Core\Exceptions\PasswordResetTokenExpiredException;
 use Flute\Core\Exceptions\PasswordResetTokenNotFoundException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
 use Nette\Schema\ValidationException;
@@ -26,8 +25,6 @@ class PasswordResetController extends AbstractController
 
     public function postReset(FluteRequest $request)
     {
-        $this->middleware(CSRFMiddleware::class);
-
         $form = $this->getResetForm();
 
         if ($form->isSuccess()) {
@@ -79,8 +76,6 @@ class PasswordResetController extends AbstractController
 
     public function postResetWithToken(FluteRequest $request, string $token)
     {
-        $this->middleware(CSRFMiddleware::class);
-
         $form = $this->getResetFormWithToken();
 
         if ($form->isSuccess()) {

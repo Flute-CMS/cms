@@ -3,7 +3,6 @@
 namespace Flute\Core\Http\Controllers\Profile;
 
 use Flute\Core\Database\Entities\UserDevice;
-use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Services\ProfileService;
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
@@ -17,8 +16,6 @@ class EditController extends AbstractController
         $this->currentMode = request()->input('mode', 'main');
 
         page()->disablePageEditor();
-
-        $this->middleware(CSRFMiddleware::class);
     }
 
     public function index(FluteRequest $request, ProfileService $profileService)
