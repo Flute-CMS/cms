@@ -337,14 +337,14 @@ class AuthenticationService
      */
     public function logout(): void
     {
-        if (config('auth.remember_me') && $token = user()->getUserToken()) {
+        if (config('auth.remember_me') && $token = cookie()->get('remember_token')) {
             $rep = $this->getRememberTokenRepository()->findOne(['token' => $token]);
 
             $rep && transaction($rep, 'delete')->run();
         }
 
         session()->remove('user_id');
-        cookie()->remove('remember_token');
+        setcookie("remember_token", "", time()-3600);
 
         events()->dispatch(new UserLoggedOutEvent(), UserLoggedOutEvent::NAME);
     }
