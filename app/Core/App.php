@@ -273,7 +273,6 @@ final class App
 
                 $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
             } catch (Exception $e) {
-                dd($e);
                 logs()->error($e);
             }
         }
