@@ -1,18 +1,55 @@
 function serializeForm($form) {
-    if (isFormInHiddenTab($form)) {
+    if (
+        $form.closest('.tab-content:not([hidden])').length === 0 &&
+        $form.closest('.modal').length === 0
+    ) {
         console.log('Форма находится в скрытой вкладке и не будет обработана.');
         return {};
     }
 
     let formData = $form.serializeArray();
-    let paramObj = serializeStandardFields(formData);
-    let additionalParams = serializeDynamicParams($form);
+    let paramObj = {};
+    let additionalParams = {};
+
+    // Process standard fields
+    formData.forEach(function (kv) {
+        if (kv.name === 'paramNames[]' || kv.name === 'paramValues[]') {
+            // Skip processing here, handle in additional parameters
+        } else {
+            paramObj[kv.name] = kv.value;
+        }
+    });
+
+    // Process dynamic additional parameters
+    let paramNames = $form
+        .find('input[name="paramNames[]"]')
+        .map(function () {
+            return $(this).val();
+        })
+        .get();
+    let paramValues = $form
+        .find('input[name="paramValues[]"]')
+        .map(function () {
+            return $(this).val();
+        })
+        .get();
 
     // Добавляем неотмеченные чекбоксы
-    addUncheckedCheckboxes($form, paramObj);
+    $form.find('input[type="checkbox"]').each(function () {
+        paramObj[this.name] = this.checked;
+    });
 
-    // Include editor content if applicable
-    if (shouldIncludeEditorContent($form)) {
+    paramNames.forEach(function (name, index) {
+        if (name) {
+            // Only add parameter if name is not empty
+            additionalParams[name] = paramValues[index] || '';
+        }
+    });
+
+    if (
+        $form.find('.editor-ace').length > 0 &&
+        !$form.find('.editor-ace').closest('.tab-content[hidden]').length
+    ) {
         paramObj.editorContent = ace
             .edit($form.find('.editor-ace')[0])
             .getValue();
@@ -164,17 +201,42 @@ function handleRequestError(jqXHR, callback) {
 }
 
 function serializeFormData($form) {
-    if (isFormInHiddenTab($form)) {
+    // Ensure form is in an active (visible) tab content
+    if ($form.closest('.tab-content:not([hidden])').length === 0) {
         console.log('Form is in a hidden tab and will not be processed.');
-        return null;
+        return null; // Form is in a hidden tab, do not process data
     }
 
     let formData = new FormData($form[0]);
-    let additionalParams = serializeDynamicParams($form);
+    let additionalParams = {};
 
-    addUncheckedCheckboxes($form, formData);
-    includeEditorContentIfApplicable($form, formData);
-    appendAdditionalParams(formData, additionalParams);
+    // Process dynamic additional parameters
+    $form.find('input[name="paramNames[]"]').each(function (index) {
+        let name = $(this).val();
+        let value =
+            $form.find('input[name="paramValues[]"]').eq(index).val() || '';
+        if (name) {
+            additionalParams[name] = value;
+        }
+    });
+
+    // Add unchecked checkboxes
+    $form.find('input[type="checkbox"]').each(function () {
+        formData.set(this.name, this.checked);
+    });
+
+    // Include editor content if applicable
+    if ($form.find('.editor-ace').length > 0) {
+        formData.set(
+            'editorContent',
+            ace.edit($form.find('.editor-ace')[0]).getValue(),
+        );
+    }
+
+    // Append additional parameters to formData
+    Object.keys(additionalParams).forEach((key) => {
+        formData.append(key, additionalParams[key]);
+    });
 
     return formData;
 }
