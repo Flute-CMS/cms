@@ -922,6 +922,9 @@ window.editorTools = {
             endpoints: {
                 byFile: u('page/saveimage'),
             },
+            additionalRequestHeaders: {
+                'x-csrf-token': csrfToken,
+            },
         },
     },
     list: {
@@ -965,6 +968,9 @@ window.editorTools = {
                     config: {
                         endpoints: {
                             byFile: u('page/saveimage'),
+                        },
+                        additionalRequestHeaders: {
+                            'x-csrf-token': csrfToken,
                         },
                     },
                 },

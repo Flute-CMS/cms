@@ -1,7 +1,12 @@
 $(function () {
     var listenerAdded = false;
 
-    function createSocialWind(pageURL, pageTitle, popupWinWidth, popupWinHeight) {
+    function createSocialWind(
+        pageURL,
+        pageTitle,
+        popupWinWidth,
+        popupWinHeight,
+    ) {
         let left = (screen.width - popupWinWidth) / 2;
         let top = (screen.height - popupWinHeight) / 4;
 
@@ -24,12 +29,7 @@ $(function () {
     $('[data-connect]').on('click', function (e) {
         e.preventDefault();
         let url = $(this).data('connect');
-        let newWindow = createSocialWind(
-            url,
-            'Social bind',
-            1000,
-            800,
-        );
+        let newWindow = createSocialWind(url, 'Social bind', 1000, 800);
 
         if (!listenerAdded) {
             // Проверка сообщения от нового окна
@@ -70,6 +70,7 @@ $(function () {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
+                        'x-csrf-token': csrfToken,
                     },
                     body: JSON.stringify({ key: key, show: action === 'show' }),
                 })

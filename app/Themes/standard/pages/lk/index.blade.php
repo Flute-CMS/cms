@@ -57,6 +57,7 @@
                 @flash
 
                 <form method="POST" class="lk-result-content">
+                    @csrf
                     <div class="input-lk">
                         <label for="amount">@t('lk.page.enter_amount')</label>
                         <input type="number" name="amount"

@@ -160,6 +160,7 @@ function deleteItem(el, value) {
         method: 'DELETE',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
+            'x-csrf-token': csrfToken,
         },
     })
         .then((response) => response.json())

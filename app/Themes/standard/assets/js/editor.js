@@ -927,6 +927,9 @@ window.editorTools = {
                 endpoints: {
                     byFile: u('page/saveimage'),
                 },
+                additionalRequestHeaders: {
+                    'x-csrf-token': csrfToken,
+                },
             },
         },
         list: {
@@ -975,6 +978,9 @@ window.editorTools = {
                         config: {
                             endpoints: {
                                 byFile: u('page/saveimage'),
+                            },
+                            additionalRequestHeaders: {
+                                'x-csrf-token': csrfToken,
                             },
                         },
                     },
@@ -1174,7 +1180,7 @@ $('#saveButton').on('click', (e) => {
                 $(button).prop('disabled', false);
 
                 $('.save_container').removeClass('opened');
-                
+
                 setInitialData(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {

@@ -83,6 +83,9 @@ window.editorTools = {
                 endpoints: {
                     byFile: u('page/saveimage'),
                 },
+                additionalRequestHeaders: {
+                    'x-csrf-token': csrfToken,
+                },
             },
         },
         list: {
@@ -260,7 +263,7 @@ $(function () {
             });
         }, 300);
     }
-    
+
     initializeAllEditors();
 
     document

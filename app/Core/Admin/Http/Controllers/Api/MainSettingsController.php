@@ -46,8 +46,14 @@ class MainSettingsController extends AbstractController
     {
         $logService = app(LogService::class);
 
-        $logFilePath = $logService->generateLogFile();
-        return $logService->downloadLogFile($logFilePath);
+        try {
+            $logFilePath = $logService->generateLogFile();
+            return $logService->downloadLogFile($logFilePath);
+        } catch (\Exception $e) {
+            logs()->error($e);
+
+            return $this->error($e->getMessage());
+        }
     }
 
     protected function clearContainer(): void

@@ -13,30 +13,45 @@ class LogService
 {
     public function generateLogFile(): string
     {
-        $loggers = config('logging.loggers');
+        try {
+            $loggers = config('logging.loggers');
 
-        $htmlContent = $this->generateHtmlHeader();
-        $htmlContent .= $this->generateSystemInformation();
-        $htmlContent .= $this->generateRequirementsCheck();
-        $htmlContent .= $this->generateExtensionsCheck();
-        $htmlContent .= $this->generateComposerDependenciesCheck();
-        $htmlContent .= $this->generateEngineInformation();
-        $htmlContent .= $this->generateTemplates();
-        $htmlContent .= $this->generateModules();
-        $htmlContent .= $this->generateLogEntries($loggers);
-        $htmlContent .= $this->generateHtmlFooter();
+            $htmlContent = $this->generateHtmlHeader();
+            $htmlContent .= $this->generateSystemInformation();
+            $htmlContent .= $this->generateRequirementsCheck();
+            $htmlContent .= $this->generateExtensionsCheck();
+            $htmlContent .= $this->generateComposerDependenciesCheck();
+            $htmlContent .= $this->generateEngineInformation();
+            $htmlContent .= $this->generateTemplates();
+            $htmlContent .= $this->generateModules();
+            $htmlContent .= $this->generateLogEntries($loggers);
+            $htmlContent .= $this->generateHtmlFooter();
 
-        $tempFilePath = BASE_PATH . 'storage/logs/' . now()->format('m-d-y-h-i-s') . '.html';
-        FileSystem::write($tempFilePath, $htmlContent);
+            $logDirectory = BASE_PATH . 'storage/logs/';
+            if (!is_dir($logDirectory)) {
+                mkdir($logDirectory, 0775, true);
+            }
 
-        return $tempFilePath;
+            $tempFilePath = $logDirectory . now()->format('Y-m-d_H-i-s') . '.html';
+            FileSystem::write($tempFilePath, $htmlContent);
+
+            chmod($tempFilePath, 0644);
+
+            return $tempFilePath;
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Ошибка при генерации файла лога: ' . $e->getMessage());
+        }
     }
 
     public function downloadLogFile(string $filePath): BinaryFileResponse
     {
+        if (!file_exists($filePath)) {
+            throw new \RuntimeException('Файл не найден: ' . $filePath);
+        }
+
         $response = new BinaryFileResponse($filePath, Response::HTTP_OK, [
             'Content-Type' => 'text/html',
-            'Content-Disposition' => 'attachment; filename="system_log.html"'
+            'Content-Disposition' => 'attachment; filename="system_log_'.now()->format('Y-m-d_H-i-s').'.html"'
         ], true, null, false, true);
 
         $response->deleteFileAfterSend(true);
@@ -381,14 +396,22 @@ class LogService
 
     private function getLastLogEntries(string $logFilePath): string
     {
-        $file = new \SplFileObject($logFilePath, 'r');
-        $file->seek(PHP_INT_MAX);
-        $lastLine = $file->key();
+        if (!file_exists($logFilePath) || !is_readable($logFilePath)) {
+            return 'Log file is missing or not readable';
+        }
 
         $lines = [];
-        for ($i = 0; $i < 20 && $lastLine - $i > 0; $i++) {
-            $file->seek($lastLine - $i);
-            array_unshift($lines, trim($file->current()));
+        try {
+            $file = new \SplFileObject($logFilePath, 'r');
+            $file->seek(PHP_INT_MAX);
+            $lastLine = $file->key();
+
+            for ($i = 0; $i < 20 && $lastLine - $i > 0; $i++) {
+                $file->seek($lastLine - $i);
+                array_unshift($lines, trim($file->current()));
+            }
+        } catch (\Exception $e) {
+            return 'Error reading log file: ' . $e->getMessage();
         }
 
         return implode("\n\n", $lines);

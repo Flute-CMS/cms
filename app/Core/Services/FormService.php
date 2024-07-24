@@ -12,6 +12,8 @@ class FormService extends Form
     {
         parent::__construct();
 
+        $this->csrf();
+
         $this->setRenderer(new CustomFormRenderer());
     }
 
