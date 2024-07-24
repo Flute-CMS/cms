@@ -177,7 +177,7 @@
         "will_close_site" => "Users will not be able to access the site",
         "maintenance_warning" => "While this feature is enabled, users will not be able to access the site or use its functions",
         "discord_link_roles" => "Linking Roles to Discord",
-        "discord_link_roles_description" => "Будет связывать роли сайта и Discord сервера. <b>Must have everything configured according to <a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>instruction</a>!</b>",
+        "discord_link_roles_description" => "Will link the roles of the site and the Discord server. <b>Must have everything configured according to <a href='https://docs.flute-cms.com/docs/instructions/discord-roles' target='_blank'>instruction</a>!</b>",
         "footer_name_label" => "Title in the footer",
         "footer_name_description" => "The name of your project in the footer of the site",
         "token_incorrect" => "This STEAM key is not valid",

@@ -177,7 +177,7 @@
         "will_close_site" => "Foydalanuvchilar saytga kira olmaydi",
         "maintenance_warning" => "Bu funksiya yoqilganda, foydalanuvchilar saytga kira olmaydi yoki uning funksiyalaridan foydalana olmaydi",
         "discord_link_roles" => "Rollarni Discord bilan bog‘lash",
-        "discord_link_roles_description" => "Sayt va Discord serverining rollarini bog‘laydi. <b><a href='https://docs.flute-cms.com/docs/instructions/discord' target='_blank'>Ushbu ko‘rsatmalarga</a> muvofiq hamma narsa sozlangan bo‘lishi kerak!</b>",
+        "discord_link_roles_description" => "Sayt va Discord serverining rollarini bog‘laydi. <b><a href='https://docs.flute-cms.com/docs/instructions/discord-roles' target='_blank'>Ushbu ko‘rsatmalarga</a> muvofiq hamma narsa sozlangan bo‘lishi kerak!</b>",
         "footer_name_label" => "Sarlavha footerda",
         "footer_name_description" => "Saytning pastki qismida loyihangiz nomi",
         "token_incorrect" => "Bu STEAM kaliti yaroqsiz",
