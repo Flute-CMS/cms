@@ -18,7 +18,6 @@ use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Throwable;
 use DateTime;
-use DateInterval;
 
 /**
  * Class SocialService
@@ -296,7 +295,7 @@ class SocialService
         }
 
         $user = new User();
-        $user->name = $userProfile->displayName;
+        $user->name = utf8_encode($userProfile->displayName);
         $user->email = !empty($email) ? $email : null;
         $user->uri = null;
         $user->login = null;
@@ -307,7 +306,7 @@ class SocialService
         $userSocialNetwork = new UserSocialNetwork();
         $userSocialNetwork->value = $userProfile->identifier;
         $userSocialNetwork->url = $userProfile->profileURL;
-        $userSocialNetwork->name = $userProfile->displayName;
+        $userSocialNetwork->name = utf8_encode($userProfile->displayName);
 
         $userSocialNetwork->user = $user;
         $userSocialNetwork->socialNetwork = $socialNetwork;
@@ -354,7 +353,7 @@ class SocialService
 
             $userSocialNetwork->value = $profile->identifier;
             $userSocialNetwork->url = $profile->profileURL;
-            $userSocialNetwork->name = $profile->displayName;
+            $userSocialNetwork->name = utf8_encode($profile->displayName);
             $userSocialNetwork->linkedAt = $now;
 
             if ($token) {
@@ -366,7 +365,7 @@ class SocialService
             $userSocialNetwork = new UserSocialNetwork();
             $userSocialNetwork->value = $profile->identifier;
             $userSocialNetwork->url = $profile->profileURL;
-            $userSocialNetwork->name = $profile->displayName;
+            $userSocialNetwork->name = utf8_encode($profile->displayName);
             $userSocialNetwork->user = $user;
             $userSocialNetwork->socialNetwork = $social['entity'];
             $userSocialNetwork->linkedAt = new DateTime();
