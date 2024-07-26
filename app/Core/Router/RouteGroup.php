@@ -207,7 +207,7 @@ class RouteGroup
             $this->resource($name, $controller);
         }
     }
-    
+
     /**
      * Add array of apiResource routes to the route collection.
      * 
@@ -256,6 +256,35 @@ class RouteGroup
         } else {
             throw new \InvalidArgumentException('Invalid middleware provided. It should be a callable or a class name of an existing middleware class.');
         }
+
+        return $this;
+    }
+
+    /**
+     * Removes a middleware from the group.
+     * 
+     * @param mixed $middleware The middleware to remove.
+     * 
+     * @return RouteGroup The current RouteGroup object.
+     */
+    public function removeMiddleware($middleware): self
+    {
+        // Remove from this group's middlewares
+        $this->middlewares = array_filter($this->middlewares, function ($existingMiddleware) use ($middleware) {
+            if (is_callable($existingMiddleware) && is_callable($middleware)) {
+                return $existingMiddleware !== $middleware;
+            }
+
+            if (is_object($existingMiddleware) && is_object($middleware)) {
+                return get_class($existingMiddleware) !== get_class($middleware);
+            }
+
+            if (is_string($existingMiddleware) && is_string($middleware)) {
+                return $existingMiddleware !== $middleware;
+            }
+
+            return true;
+        });
 
         return $this;
     }

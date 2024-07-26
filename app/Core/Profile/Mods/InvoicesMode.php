@@ -25,6 +25,7 @@ class InvoicesMode implements ProfileModInterface
         foreach ($invoices as $item) {
             $item->amountWithCurrency = $item->originalAmount . ' ' . $item->currency->code;
             $item->promoCode = !empty($item->promoCode) ? $item->promoCode->code : __('def.no');
+            $item->created_at = $item->created_at->format(default_date_format());
 
             if ($item->isPaid) {
                 $item->paidCard = '<div class="paid-container">
@@ -39,7 +40,7 @@ class InvoicesMode implements ProfileModInterface
         }
 
         // Добавляем объединенную колонку
-        $table->addColumn(new TableColumn('id', 'ID'));
+        $table->addColumn(new TableColumn('created_at', __('def.created_at')));
         $table->addColumn(new TableColumn('gateway', __('admin.payments.adapter')));
         $table->addColumn(new TableColumn('transactionId', __('admin.payments.transactionId')));
         $table->addColumn(new TableColumn('amountWithCurrency', __('admin.payments.amount')));

@@ -4,6 +4,7 @@
     border-radius: 5px;
     color: $color-text-inverse;
     font-weight: 500;
+    white-space: nowrap;
 
     &.paid {
         background-color: $color-success;

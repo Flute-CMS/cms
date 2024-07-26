@@ -7,6 +7,7 @@ use Flute\Core\Database\Entities\User;
 use Flute\Core\Exceptions\DuplicateEmailException;
 use Flute\Core\Exceptions\DuplicateLoginException;
 use Flute\Core\Exceptions\TooManyRequestsException;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Http\Middlewares\isAuthenticatedMiddleware;
 use Flute\Core\Support\FluteRequest;
 
@@ -14,7 +15,7 @@ class SecurityMode implements ProfileModInterface
 {
     public function __construct()
     {
-        router()->post('profile/edit/security', [$this, 'handleSave'], [isAuthenticatedMiddleware::class]);
+        router()->post('profile/edit/security', [$this, 'handleSave'], [isAuthenticatedMiddleware::class, CSRFMiddleware::class]);
     }
 
     public function handleSave(FluteRequest $fluteRequest)

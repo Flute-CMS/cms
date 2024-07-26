@@ -36,8 +36,7 @@ class RouteDispatcher
 
     protected array $defaultMiddlewares = [
         MaintenanceMiddleware::class,
-        BanCheckMiddleware::class,
-        CSRFMiddleware::class
+        BanCheckMiddleware::class
     ];
 
     /**
@@ -418,5 +417,33 @@ class RouteDispatcher
     public function getRoutes(): array
     {
         return $this->routeCollection->all();
+    }
+
+    /**
+     * Removes a middleware from the default middlewares.
+     * 
+     * @param mixed $middleware The middleware to remove.
+     * 
+     * @return RouteDispatcher The current RouteDispatcher object.
+     */
+    public function removeDefaultMiddleware($middleware): self
+    {
+        $this->defaultMiddlewares = array_filter($this->defaultMiddlewares, function ($existingMiddleware) use ($middleware) {
+            if (is_callable($existingMiddleware) && is_callable($middleware)) {
+                return $existingMiddleware !== $middleware;
+            }
+
+            if (is_object($existingMiddleware) && is_object($middleware)) {
+                return get_class($existingMiddleware) !== get_class($middleware);
+            }
+
+            if (is_string($existingMiddleware) && is_string($middleware)) {
+                return $existingMiddleware !== $middleware;
+            }
+
+            return true;
+        });
+
+        return $this;
     }
 }

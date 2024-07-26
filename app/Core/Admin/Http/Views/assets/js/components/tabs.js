@@ -69,6 +69,7 @@ class ChromeTabs {
         this.contentContainers = {};
         this.abortControllers = {};
         this.instanceId = 0;
+        this.shouldUpdateTabs = true; // Флаг для отслеживания необходимости обновления ширины вкладок
     }
 
     init(el) {
@@ -81,6 +82,15 @@ class ChromeTabs {
         this.layoutTabs();
         this.setupNewTabButton();
         this.setupDraggabilly();
+
+        // Добавляем обработчики событий для мыши
+        this.el.addEventListener('mouseenter', () => {
+            this.shouldUpdateTabs = false;
+        });
+        this.el.addEventListener('mouseleave', () => {
+            this.shouldUpdateTabs = true;
+            this.layoutTabs();
+        });
     }
 
     createContentContainerForTab(tabEl) {
@@ -213,12 +223,12 @@ class ChromeTabs {
         let styleHTML = '';
         this.tabPositions.forEach((position, i) => {
             styleHTML += `
-                    .chrome-tabs[data-chrome-tabs-instance-id="${
-                        this.instanceId
-                    }"] .chrome-tab:nth-child(${i + 1}) {
-                        transform: translate3d(${position}px, 0, 0)
-                    }
-                `;
+                .chrome-tabs[data-chrome-tabs-instance-id="${
+                    this.instanceId
+                }"] .chrome-tab:nth-child(${i + 1}) {
+                    transform: translate3d(${position}px, 0, 0)
+                }
+            `;
         });
         this.styleEl.innerHTML = styleHTML;
 
@@ -276,8 +286,8 @@ class ChromeTabs {
             this.setCurrentTab(tabEl);
         }
 
-        this.layoutTabs();
         this.cleanUpPreviouslyDraggedTabs();
+        this.layoutTabs();
         this.setupDraggabilly();
         this.saveTabs();
     }
@@ -402,7 +412,9 @@ class ChromeTabs {
         }
 
         this.cleanUpPreviouslyDraggedTabs();
-        this.layoutTabs();
+
+        if (this.shouldUpdateTabs) this.layoutTabs();
+
         this.setupDraggabilly();
         this.saveTabs();
     }

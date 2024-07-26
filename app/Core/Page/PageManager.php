@@ -8,7 +8,9 @@ use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Database\Repositories\PageRepository;
 use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Http\Controllers\PagesController;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Router\RouteDispatcher;
+use Flute\Core\Router\RouteGroup;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 
@@ -241,8 +243,11 @@ class PageManager
     protected function loadRoutes(): void
     {
         if ($this->hasAccessToEdit()) {
-            $this->routeDispatcher->post('page/save', [PagesController::class, 'saveEdit']);
-            $this->routeDispatcher->post('page/saveimage', [PagesController::class, 'saveImage']);
+            $this->routeDispatcher->group(function (RouteGroup $routeGroup) {
+                $routeGroup->middleware(CSRFMiddleware::class);
+                $routeGroup->post('save', [PagesController::class, 'saveEdit']);
+                $routeGroup->post('saveimage', [PagesController::class, 'saveImage']);
+            }, 'page/');
         }
     }
 

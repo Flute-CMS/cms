@@ -16,6 +16,7 @@ use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Http\Controllers\Auth\AuthController;
 use Flute\Core\Http\Controllers\Auth\PasswordResetController;
 use Flute\Core\Http\Controllers\Auth\SocialAuthController;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Http\Middlewares\GuestMiddleware;
 use Flute\Core\Http\Middlewares\isAuthenticatedMiddleware;
 use Flute\Core\Router\RouteDispatcher;
@@ -289,6 +290,8 @@ class AuthService
             // Post routes with CSRF protection
             $routeGroup->group(function (RouteGroup $routeGroup) {
                 $routeGroup->middleware(GuestMiddleware::class);
+                $routeGroup->middleware(CSRFMiddleware::class);
+
                 if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty())) {
                     $routeGroup->post('/register', [AuthController::class, 'postRegister']);
                     $routeGroup->post('/login', [AuthController::class, 'postLogin']);

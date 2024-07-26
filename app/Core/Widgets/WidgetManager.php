@@ -9,6 +9,7 @@ use Flute\Core\App;
 use Flute\Core\Contracts\WidgetInterface;
 use Flute\Core\Database\Entities\Widget;
 use Flute\Core\Http\Controllers\WidgetController;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Router\RouteDispatcher;
 use Flute\Core\Router\RouteGroup;
 use Nette\Utils\Json;
@@ -57,6 +58,8 @@ class WidgetManager
     protected function loadAllRoutes(): void
     {
         $this->routeDispatcher->group(function (RouteGroup $routeGroup) {
+            $routeGroup->middleware(CSRFMiddleware::class);
+
             $routeGroup->post('show', [WidgetController::class, 'showWidget']);
             $routeGroup->get('all', [WidgetController::class, 'getAllWidgets']);
         }, 'widget/');

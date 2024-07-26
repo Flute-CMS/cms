@@ -52,6 +52,7 @@ use Flute\Core\Admin\Http\Controllers\Views\UserBlocksView;
 use Flute\Core\Admin\Http\Controllers\Views\UsersView;
 use Flute\Core\Admin\Http\Controllers\Views\NavbarView;
 use Flute\Core\Admin\Http\Middlewares\HasPermissionMiddleware;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Router\RouteGroup;
 
 $router->group(function ($router) {
@@ -181,6 +182,8 @@ $router->group(function ($router) {
     }, 'admin');
 
     $router->group(function (RouteGroup $admin) {
+        $admin->middleware(CSRFMiddleware::class);
+
         // $admin->get('/', [IndexApi::class, 'index']);
         $admin->get('/createlog', [MainSettingsController::class, 'createLog']);
         

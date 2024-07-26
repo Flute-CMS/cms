@@ -7,6 +7,7 @@ use Flute\Core\Http\Controllers\Profile\ImagesController;
 use Flute\Core\Http\Controllers\Profile\IndexController;
 use Flute\Core\Http\Controllers\Profile\ProfileRedirectController;
 use Flute\Core\Http\Controllers\Profile\SocialController;
+use Flute\Core\Http\Middlewares\CSRFMiddleware;
 use Flute\Core\Http\Middlewares\isAuthenticatedMiddleware;
 use Flute\Core\Http\Middlewares\ProfileChangeMiddleware;
 use Flute\Core\Http\Middlewares\UserExistsMiddleware;
@@ -17,6 +18,8 @@ class ProfileRoutes
     public function register()
     {
         router()->group(function (RouteGroup $group) {
+            $group->middleware(CSRFMiddleware::class);
+
             $group->group(function (RouteGroup $edit) {
                 $edit->middleware(isAuthenticatedMiddleware::class);
 
