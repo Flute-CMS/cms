@@ -30,7 +30,7 @@ jobs:
         uses: vimtor/action-zip@v1.1
         with:
           files: vendor/
-          recursive: true
+          recursive: false
           dest: vendor.zip
 
       - name: Upload Artifact
@@ -38,6 +38,14 @@ jobs:
         with:
           name: vendor
           path: vendor.zip
+
+      - name: Get version from composer.json
+        id: get_version
+        run: echo "VERSION=$(jq -r .version composer.json)" >> $GITHUB_ENV
+
+      - name: Set output version
+        id: set_version
+        run: echo "::set-output name=version::${{ env.VERSION }}"
           
   release:
     name: Create Release 🚀
@@ -45,18 +53,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
           name: vendor
           path: .
-
-      - name: Get version from composer.json
-        id: get_version
-        run: echo "VERSION=$(jq -r .version composer.json)" >> $GITHUB_ENV
           
       - name: Create Release
         id: create_release
@@ -64,8 +65,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
+          tag_name: ${{ needs.build.outputs.version }}
+          release_name: ${{ needs.build.outputs.version }}
           draft: false
           prerelease: false
 
