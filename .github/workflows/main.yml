@@ -3,7 +3,7 @@ name: 🚀 Build and Release
 on:
   push:
     branches:
-      - master
+      - cicd
   pull_request:
     branches:
       - master
