@@ -3,11 +3,8 @@ name: 🚀 Build and Release
 on:
   push:
     branches:
-      - cicd
-  pull_request:
-    branches:
-      - master
-
+      - main
+      
 jobs:
   build:
     name: Build 🌐
