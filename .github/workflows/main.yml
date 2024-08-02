@@ -39,6 +39,10 @@ jobs:
           name: vendor
           path: vendor.zip
 
+      - name: Get version from composer.json
+        id: get_version
+        run: echo "VERSION=$(jq -r .version .composer.json)" >> $GITHUB_ENV
+
   release:
     name: Create Release 🚀
     needs: build
@@ -50,11 +54,7 @@ jobs:
         with:
           name: vendor
           path: .
-
-      - name: Get version from composer.json
-        id: get_version
-        run: echo "VERSION=$(jq -r .version .composer.json)" >> $GITHUB_ENV
-
+          
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
