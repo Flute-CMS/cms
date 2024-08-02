@@ -1,6 +1,7 @@
 {
     "name": "flute-cms/cms",
     "description": "CMS written on PHP for game servers",
+    "v9.9.9-dev",
     "type": "project",
     "authors": [
         {
