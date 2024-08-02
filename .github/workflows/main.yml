@@ -41,11 +41,9 @@ jobs:
 
       - name: Get version from composer.json
         id: get_version
-        run: echo "VERSION=$(jq -r .version composer.json)" >> $GITHUB_ENV
-
-      - name: Set output version
-        id: set_version
-        run: echo "::set-output name=version::${{ env.VERSION }}"
+        run: |
+          VERSION=$(jq -r .version composer.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           
   release:
     name: Create Release 🚀
