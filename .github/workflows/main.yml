@@ -44,6 +44,9 @@ jobs:
         run: |
           VERSION=$(jq -r .version composer.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
           
   release:
     name: Create Release 🚀
