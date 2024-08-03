@@ -51,7 +51,7 @@
         "user_banned" => "Foydalanuvchi bloklandi",
         "user_unbanned" => "Foydalanuvchi blokdan chiqarildi",
         "profile_deleted_device" => "Profil qurilmasi o‘chirildi",
-        "profile_name_changed" => "Profil nomi o‘zgartirild",
+        "profile_name_changed" => "Profil nomi o‘zgartirildi",
         "profile_hidden_changed" => "Profilning yashirinligi o‘zgartirildi",
         "profile_uri_changed" => "Profil havolasi o‘zgartirildi",
         "profile_avatar_updated" => "Avatar o‘zgartirildi",
