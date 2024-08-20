@@ -6,17 +6,15 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class NavbarItemRole
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="NavbarItem", nullable=false) */
-    public $navbarItem;
+    #[BelongsTo(target: "NavbarItem", nullable: false)]
+    public NavbarItem $navbarItem;
 
-    /** @BelongsTo(target="Role", nullable=false) */
-    public $role;
+    #[BelongsTo(target: "Role", nullable: false)]
+    public Role $role;
 }

@@ -7,6 +7,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
+use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 
 class SessionService implements SessionInterface
 {
@@ -24,13 +26,13 @@ class SessionService implements SessionInterface
     }
 
     /**
-     * Listen change lang event
+     * Listen to change lang event.
      * 
      * @param EventDispatcher $eventDispatcher
      * 
      * @return void
      */
-    public function listen(EventDispatcher $eventDispatcher)
+    public function listen(EventDispatcher $eventDispatcher): void
     {
         $eventDispatcher->addListener(LangChangedEvent::class, [$this, 'onLangChanged']);
     }
@@ -83,11 +85,11 @@ class SessionService implements SessionInterface
     /**
      * Start the session.
      * 
-     * @return void
+     * @return bool
      */
-    public function start()
+    public function start(): bool
     {
-        $this->session->start();
+        return $this->session->start();
     }
 
     /**
@@ -108,7 +110,7 @@ class SessionService implements SessionInterface
      * @param mixed|null $default The default value to return if the session variable is not set.
      * @return mixed The value of the session variable or the default value.
      */
-    public function get(string $name, $default = null)
+    public function get(string $name, $default = null): mixed
     {
         return $this->session->get($name, $default);
     }
@@ -139,9 +141,9 @@ class SessionService implements SessionInterface
      *
      * @param string $name The name of the session variable.
      */
-    public function remove(string $name): void
+    public function remove(string $name): mixed
     {
-        $this->session->remove($name);
+        return $this->session->remove($name);
     }
 
     /**
@@ -152,62 +154,98 @@ class SessionService implements SessionInterface
         $this->session->clear();
     }
 
-    public function getId()
+    /**
+     * Get the session ID.
+     */
+    public function getId(): string
     {
         return $this->session->getId();
     }
 
-    public function setId(string $id)
+    /**
+     * Set the session ID.
+     */
+    public function setId(string $id): void
     {
         $this->session->setId($id);
     }
 
-    public function getName()
+    /**
+     * Get the session name.
+     */
+    public function getName(): string
     {
         return $this->session->getName();
     }
 
-    public function setName(string $name)
+    /**
+     * Set the session name.
+     */
+    public function setName(string $name): void
     {
         $this->session->setName($name);
     }
 
-    public function invalidate(?int $lifetime = null)
+    /**
+     * Invalidate the session.
+     */
+    public function invalidate(?int $lifetime = null): bool
     {
         return $this->session->invalidate($lifetime);
     }
 
-    public function migrate(bool $destroy = false, ?int $lifetime = null)
+    /**
+     * Migrate the session to a new session ID.
+     */
+    public function migrate(bool $destroy = false, ?int $lifetime = null): bool
     {
         return $this->session->migrate($destroy, $lifetime);
     }
 
-    public function save()
+    /**
+     * Save and close the session.
+     */
+    public function save(): void
     {
         $this->session->save();
     }
 
-    public function replace(array $attributes)
+    /**
+     * Replace session attributes.
+     */
+    public function replace(array $attributes): void
     {
         $this->session->replace($attributes);
     }
 
-    public function isStarted()
+    /**
+     * Check if the session has started.
+     */
+    public function isStarted(): bool
     {
         return $this->session->isStarted();
     }
 
-    public function registerBag(\Symfony\Component\HttpFoundation\Session\SessionBagInterface $bag)
+    /**
+     * Register a session bag.
+     */
+    public function registerBag(SessionBagInterface $bag): void
     {
         $this->session->registerBag($bag);
     }
 
-    public function getBag(string $name)
+    /**
+     * Get a session bag.
+     */
+    public function getBag(string $name): SessionBagInterface
     {
         return $this->session->getBag($name);
     }
 
-    public function getMetadataBag()
+    /**
+     * Get the session metadata bag.
+     */
+    public function getMetadataBag(): MetadataBag
     {
         return $this->session->getMetadataBag();
     }

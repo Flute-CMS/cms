@@ -5,69 +5,53 @@ namespace Flute\Core\Database\Entities;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
-use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Table\Index;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
+use Cycle\Annotated\Annotation\Table;
 
-/**
- * @Entity(
- *      repository="Flute\Core\Database\Repositories\WidgetRepository",
- * )
- * @Table(
- *      indexes={
- *          @Index(columns={"loader"}, unique=true)
- *      }
- * )
- */
+#[Entity(repository: "Flute\Core\Database\Repositories\WidgetRepository")]
+#[Table(
+    indexes: [
+        new Index(columns: ["loader"], unique: true)
+    ]
+)]
 class Widget
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $loader;
+    #[Column(type: "string")]
+    public string $loader;
 
-    /** @Column(type="string") */
-    public $name;
+    #[Column(type: "string")]
+    public string $name;
 
-    /** @Column(type="string", nullable=true) */
-    public $image;
+    #[Column(type: "string", nullable: true)]
+    public ?string $image = null;
 
-    /** @Column(type="boolean", default="false") */
-    public $lazyload;
+    #[Column(type: "boolean", default: false)]
+    public bool $lazyload = false;
 
-    /** @HasMany(target="WidgetSettings") */
-    public $settings;
+    #[HasMany(target: "WidgetSettings")]
+    public array $settings = [];
 
-    public function __construct()
+    public function addSetting(WidgetSettings $setting): void
     {
-        $this->settings = new PivotedCollection();
-    }
-
-    public function addSetting(WidgetSettings $setting)
-    {
-        if (!$this->settings->contains($setting)) {
-            $this->settings->add($setting);
+        if (!in_array($setting, $this->settings, true)) {
+            $this->settings[] = $setting;
         }
     }
 
-    public function removeSetting(WidgetSettings $setting)
+    public function removeSetting(WidgetSettings $setting): void
     {
-        if ($this->settings->contains($setting)) {
-            $this->settings->removeElement($setting);
-        }
+        $this->settings = array_filter(
+            $this->settings,
+            fn($s) => $s !== $setting
+        );
     }
 
-    public function changeSetting(WidgetSettings $setting)
+    public function changeSetting(WidgetSettings $setting): void
     {
-        if ($this->settings->contains($setting)) {
-            $this->settings->removeElement($setting);
-            $this->settings->add($setting);
-        }
-    }
-
-    public function getSettings()
-    {
-        return $this->settings;
+        $this->removeSetting($setting);
+        $this->addSetting($setting);
     }
 }

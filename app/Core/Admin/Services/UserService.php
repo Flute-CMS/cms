@@ -80,7 +80,7 @@ class UserService
 
         transaction($user)->run();
 
-        app(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+        app(DiscordLinkRoles::class)->linkRoles($user, $user->roles);
 
         return ['status' => 'success', 'message' => __('def.success'), 'code' => 200];
     }
@@ -151,7 +151,7 @@ class UserService
         $block->user = $userToBan;
         $block->blockedBy = $currentUser;
         $block->reason = $reason;
-        $block->blockedFrom = new \DateTime();
+        $block->blockedFrom = new \DateTimeImmutable();
         $block->blockedUntil = $duration > 0 ? (new \DateTime())->modify("+{$duration} seconds") : null;
 
         transaction($block)->run();
@@ -262,7 +262,7 @@ class UserService
         $highestPriority = null;
         $highestPriorityRole = null;
 
-        foreach ($user->getRoles() as $role) {
+        foreach ($user->roles as $role) {
             if (is_null($highestPriority) || $role->priority > $highestPriority) {
                 $highestPriority = $role->priority;
                 $highestPriorityRole = $role;
@@ -275,7 +275,7 @@ class UserService
     public function getCurrentUserHighestPriority(User $user): int
     {
         $highestPriority = 0;
-        foreach ($user->getRoles() as $role) {
+        foreach ($user->roles as $role) {
             if ($role->priority > $highestPriority) {
                 $highestPriority = $role->priority;
             }

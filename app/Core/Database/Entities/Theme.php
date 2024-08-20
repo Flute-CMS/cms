@@ -4,82 +4,68 @@ namespace Flute\Core\Database\Entities;
 
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
-use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Relation\HasMany;
 use Cycle\Annotated\Annotation\Table\Index;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
+use Cycle\Annotated\Annotation\Table;
 
-/**
- * @Entity()
- * @Table(
- *      indexes={
- *          @Index(columns={"key"}, unique=true)
- *      }
- * )
- */
+#[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["key"], unique: true)
+    ]
+)]
 class Theme
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string", unique=true) */
-    public $key;
+    #[Column(type: "string", unique: true)]
+    public string $key;
 
-    /** @Column(type="string") */
-    public $name;
+    #[Column(type: "string")]
+    public string $name;
 
-    /** @Column(type="string") */
-    public $version;
+    #[Column(type: "string")]
+    public string $version;
 
-    /** @Column(type="string") */
-    public $author;
+    #[Column(type: "string")]
+    public string $author;
 
-    /** @Column(type="string") */
-    public $description;
+    #[Column(type: "string")]
+    public string $description;
 
-    /**
-     * @Column(type = "enum(active,disabled,notinstalled)", default = "notinstalled")
-     */
-    public $status;
+    #[Column(type: "enum(active,disabled,notinstalled)", default: "notinstalled")]
+    public string $status;
 
-    /**
-     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
-     */
-    public $created_at;
+    #[Column(type: "timestamp", default: "CURRENT_TIMESTAMP")]
+    public \DateTimeImmutable $created_at;
 
-    /** @HasMany(target="ThemeSettings") */
-    public $settings;
+    #[HasMany(target: "ThemeSettings")]
+    public array $settings = [];
 
     public function __construct()
     {
-        $this->settings = new PivotedCollection();
-        $this->created_at = new \DateTime();
+        $this->created_at = new \DateTimeImmutable();
     }
 
-    public function addSetting(ThemeSettings $setting)
+    public function addSetting(ThemeSettings $setting): void
     {
-        if (!$this->settings->contains($setting)) {
-            $this->settings->add($setting);
+        if (!in_array($setting, $this->settings, true)) {
+            $this->settings[] = $setting;
         }
     }
 
-    public function removeSetting(ThemeSettings $setting)
+    public function removeSetting(ThemeSettings $setting): void
     {
-        if ($this->settings->contains($setting)) {
-            $this->settings->removeElement($setting);
-        }
+        $this->settings = array_filter(
+            $this->settings,
+            fn($s) => $s !== $setting
+        );
     }
 
-    public function changeSetting(ThemeSettings $setting)
+    public function changeSetting(ThemeSettings $setting): void
     {
-        if ($this->settings->contains($setting)) {
-            $this->settings->removeElement($setting);
-            $this->settings->add($setting);
-        }
-    }
-
-    public function getSettings()
-    {
-        return $this->settings;
+        $this->removeSetting($setting);
+        $this->addSetting($setting);
     }
 }

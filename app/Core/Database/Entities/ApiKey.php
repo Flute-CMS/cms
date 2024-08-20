@@ -5,63 +5,45 @@ namespace Flute\Core\Database\Entities;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\ManyToMany;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 use DateTime;
 
-/**
- * @Entity()
- */
+#[Entity]
 class ApiKey
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $key;
+    #[Column(type: "string")]
+    public string $key;
 
-    /** @Column(type="datetime") */
-    public $createdAt;
+    #[Column(type: "datetime")]
+    public DateTime $createdAt;
 
-    /** @ManyToMany(target="Permission", though="ApiKeyPermission") */
-    public $permissions;
+    #[ManyToMany(target: Permission::class, through: ApiKeyPermission::class)]
+    public array $permissions = [];
 
     public function __construct()
     {
         $this->createdAt = new DateTime();
-        $this->permissions = new PivotedCollection();
     }
 
-    /**
-     * Add a permission to the API key.
-     *
-     * @param Permission $permission The permission to add.
-     */
     public function addPermission(Permission $permission): void
     {
-        if (!$this->permissions->contains($permission)) {
-            $this->permissions->add($permission);
+        if (!in_array($permission, $this->permissions, true)) {
+            $this->permissions[] = $permission;
         }
     }
 
-    /**
-     * Check if the API key has a specific permission.
-     *
-     * @param Permission $permission The permission to check.
-     */
     public function hasPermission(Permission $permission): bool
     {
-        return $this->permissions->contains($permission);
+        return in_array($permission, $this->permissions, true);
     }
 
-    /**
-     * Remove a permission from the API key.
-     *
-     * @param Permission $permission The permission to remove.
-     */
     public function removePermission(Permission $permission): void
     {
-        if ($this->permissions->contains($permission)) {
-            $this->permissions->removeElement($permission);
-        }
+        $this->permissions = array_filter(
+            $this->permissions,
+            fn($p) => $p !== $permission
+        );
     }
 }

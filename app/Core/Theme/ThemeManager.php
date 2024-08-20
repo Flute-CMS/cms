@@ -57,9 +57,9 @@ class ThemeManager
         events()->dispatch(new ThemesInitialized($this), ThemesInitialized::NAME);
     }
 
-    public function getThemeSettings(string $themeName): PivotedCollection
+    public function getThemeSettings(string $themeName)
     {
-        return $this->getTheme($themeName)->getSettings();
+        return $this->getTheme($themeName)->settings;
     }
 
     public function getThemeInfo(): Theme

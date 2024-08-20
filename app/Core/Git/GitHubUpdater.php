@@ -4,6 +4,8 @@ namespace Flute\Core\Git;
 
 use Flute\Core\Git\Exceptions\AlreadyInstalledException;
 use Flute\Core\Git\Exceptions\FailedToExtractException;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class GitHubUpdater
 {
@@ -11,42 +13,59 @@ class GitHubUpdater
     protected string $repoName;
     protected ?string $currentVersion;
     protected ?string $downloadDir;
+    protected Client $httpClient;
 
     public function __construct(string $repoOwner, string $repoName, ?string $currentVersion = null, ?string $downloadDir = null)
     {
         $this->repoOwner = $repoOwner;
         $this->repoName = $repoName;
         $this->currentVersion = $currentVersion;
-        
-        if ($downloadDir)
+
+        if ($downloadDir) {
             $this->downloadDir = rtrim($downloadDir, '/') . '/';
+        }
+
+        // Initialize Guzzle HTTP Client
+        $this->httpClient = new Client([
+            'base_uri' => 'https://api.github.com/',
+            'timeout' => 60.0,
+            'headers' => [
+                'User-Agent' => 'PHP'
+            ],
+        ]);
     }
 
     public function getLatestRelease()
     {
         return cache()->callback('flute.git.' . $this->repoOwner . $this->repoName, function () {
-            $url = "https://api.github.com/repos/{$this->repoOwner}/{$this->repoName}/releases";
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'PHP');
-            $response = curl_exec($ch);
-            curl_close($ch);
+            $url = "repos/{$this->repoOwner}/{$this->repoName}/releases";
 
-            $decode = json_decode($response, true);
+            try {
+                $response = $this->httpClient->get($url);
+                $decode = json_decode($response->getBody()->getContents(), true);
 
-            return isset($decode[0]) ? $decode[0] : $decode;
+                return isset($decode[0]) ? $decode[0] : $decode;
+            } catch (RequestException $e) {
+                logs()->error("Failed to fetch latest release: {$e->getMessage()}");
+                return null;
+            }
         }, 300);
     }
 
     public function getLatestVersion()
     {
         $release = $this->getLatestRelease();
-        return str_replace('v', '', $release['tag_name']);
+        return isset($release['tag_name']) ? str_replace('v', '', $release['tag_name']) : '';
     }
 
     public function update(array $foldersToExtract = ["*"])
     {
         $release = $this->getLatestRelease();
+
+        if (!$release) {
+            throw new \Exception('Unable to get the latest release.');
+        }
+
         $latestVersion = str_replace('v', '', $release['tag_name']);
 
         if (!version_compare($this->currentVersion, $latestVersion, '<')) {
@@ -73,15 +92,17 @@ class GitHubUpdater
     protected function downloadFile($url, $path)
     {
         set_time_limit(0);
-        $fp = fopen($path, 'w+');
-        $ch = curl_init(str_replace(" ", "%20", $url));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 600);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'PHP');
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_exec($ch);
-        curl_close($ch);
-        fclose($fp);
+
+        try {
+            $response = $this->httpClient->get($url, ['sink' => $path]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \Exception("Failed to download file: HTTP " . $response->getStatusCode());
+            }
+        } catch (RequestException $e) {
+            logs()->error("Failed to download file: {$e->getMessage()}");
+            throw $e;
+        }
     }
 
     protected function extractZip($zipFile, $extractTo, array $foldersToExtract)

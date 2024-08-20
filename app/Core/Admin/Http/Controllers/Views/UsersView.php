@@ -27,7 +27,7 @@ class UsersView extends AbstractController
         $users = rep(User::class)->select()->load('roles')->fetchAll();
 
         foreach ($users as $key => $user) {
-            $roles = $user->getRoles()->toArray();
+            $roles = $user->roles;
             $user->roles_json = json_encode($roles);
             $user->user_url = url('profile/'.$user->getUrl())->get();
             $user->createdAt = $user->created_at->format(default_date_format());
@@ -38,7 +38,7 @@ class UsersView extends AbstractController
             }
         }
 
-        $table->addColumn((new TableColumn('id', 'ID')));
+        $table->addColumn(new TableColumn('id', 'ID'));
 
         $table->addColumn((new TableColumn('user_url'))->setVisible(false));
         $table->addCombinedColumn('avatar', 'name', __('def.user'), 'user_url', true);

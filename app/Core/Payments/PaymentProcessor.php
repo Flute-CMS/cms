@@ -234,7 +234,7 @@ class PaymentProcessor
         $usage->promoCode = $promo;
         $usage->invoice = $invoice;
         $usage->user = $user;
-        $usage->used_at = new \DateTime;
+        $usage->used_at = new \DateTimeImmutable();
         transaction($usage)->run();
     }
 

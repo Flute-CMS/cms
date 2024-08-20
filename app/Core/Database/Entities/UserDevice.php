@@ -7,33 +7,21 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 use Cycle\Annotated\Annotation\Relation\HasMany;
 
-/**
- * @Entity()
- */
+#[Entity]
 class UserDevice
 {
-    /**
-     * @Column(type="primary")
-     */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /**
-     * @BelongsTo(target="User", nullable=false)
-     */
-    public $user;
+    #[BelongsTo(target: "User", nullable: false)]
+    public User $user;
 
-    /**
-     * @HasMany(target="RememberToken")
-     */
-    public $rememberTokens;
+    #[HasMany(target: "RememberToken")]
+    public array $rememberTokens = [];
 
-    /**
-     * @Column(type="string")
-     */
-    public $deviceDetails;
+    #[Column(type: "string")]
+    public string $deviceDetails;
 
-    /**
-     * @Column(type="string")
-     */
-    public $ip;
+    #[Column(type: "string")]
+    public string $ip;
 }

@@ -174,7 +174,7 @@ if (!function_exists('tip_active')) {
 if (!function_exists('now')) {
     function now()
     {
-        return new DateTime();
+        return new DateTimeImmutable();
     }
 }
 

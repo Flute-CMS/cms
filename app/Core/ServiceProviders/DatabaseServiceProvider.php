@@ -13,7 +13,7 @@ class DatabaseServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             DatabaseManager::class => \DI\autowire(DatabaseManager::class),
-            DatabaseConnection::class => \DI\autowire(DatabaseConnection::class)->lazy(),
+            DatabaseConnection::class => \DI\autowire(DatabaseConnection::class),
             "db.connection" => \DI\get(DatabaseConnection::class),
         ]);
     }

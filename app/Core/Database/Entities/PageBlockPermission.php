@@ -6,14 +6,12 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class PageBlockPermission
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="Permission", nullable=false) */
-    public $permission;
+    #[BelongsTo(target: "Permission", nullable: false)]
+    public Permission $permission;
 }

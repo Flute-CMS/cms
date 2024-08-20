@@ -5,74 +5,38 @@ namespace Flute\Core\Database\Entities;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 
-/**
- * @Entity
- */
+#[Entity]
 class Redirect
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $fromUrl;
+    #[Column(type: "string")]
+    public string $fromUrl;
 
-    /** @Column(type="string") */
-    public $toUrl;
+    #[Column(type: "string")]
+    public string $toUrl;
 
-    /**
-     * @HasMany(target="ConditionGroup", cascade=true)
-     */
-    public $conditionGroups;
+    #[HasMany(target: "ConditionGroup", cascade: true)]
+    public array $conditionGroups = [];
 
     public function __construct(string $fromUrl, string $toUrl)
     {
         $this->fromUrl = $fromUrl;
         $this->toUrl = $toUrl;
-        $this->conditionGroups = new PivotedCollection();
     }
 
-    public function getId()
+    public function addConditionGroup(ConditionGroup $conditionGroup): void
     {
-        return $this->id;
-    }
-
-    public function getFromUrl()
-    {
-        return $this->fromUrl;
-    }
-
-    public function setFromUrl($fromUrl)
-    {
-        $this->fromUrl = $fromUrl;
-    }
-
-    public function getToUrl()
-    {
-        return $this->toUrl;
-    }
-
-    public function setToUrl($toUrl)
-    {
-        $this->toUrl = $toUrl;
-    }
-
-    public function getConditions()
-    {
-        return $this->conditionGroups;
-    }
-
-    public function addConditionGroup(ConditionGroup $conditionGroup)
-    {
-        if (!$this->conditionGroups->contains($conditionGroup)) {
-            $this->conditionGroups->add($conditionGroup);
+        if (!in_array($conditionGroup, $this->conditionGroups, true)) {
+            $this->conditionGroups[] = $conditionGroup;
             $conditionGroup->redirect = $this;
         }
     }
 
-    public function removeConditions()
+    public function removeConditions(): void
     {
-        $this->conditionGroups->clear();
+        $this->conditionGroups = [];
     }
 }

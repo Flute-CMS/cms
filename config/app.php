@@ -2,7 +2,7 @@
 
 return array (
   'name' => 'Flute',
-  'url' => '',
+  'url' => 'http://localhost:8088',
   'debug' => false,
   'maintenance_mode' => false,
   'steam_api' => '',

@@ -8,138 +8,108 @@ use Cycle\Annotated\Annotation\Relation\HasMany;
 use Cycle\Annotated\Annotation\Relation\ManyToMany;
 use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Table\Index;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 
-/**
- * @Entity(
- *      repository="Flute\Core\Database\Repositories\UserRepository",
- * )
- * @Table(
- *      indexes={
- *          @Index(columns={"login"}, unique=true),
- *          @Index(columns={"uri"}, unique=true),
- *          @Index(columns={"email"}, unique=true)
- *      }
- * )
- */
+#[Entity(repository: "Flute\Core\Database\Repositories\UserRepository")]
+#[Table(
+    indexes: [
+        new Index(columns: ["login"], unique: true),
+        new Index(columns: ["uri"], unique: true),
+        new Index(columns: ["email"], unique: true)
+    ]
+)]
 class User
 {
     protected const IS_ONLINE_TIME = 600;
 
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string", nullable=true) */
-    public $login;
+    #[Column(type: "string", nullable: true)]
+    public ?string $login = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $uri = null;
+    #[Column(type: "string", nullable: true)]
+    public ?string $uri = null;
 
-    /** @Column(type="string") */
-    public $name;
+    #[Column(type: "string")]
+    public string $name;
 
-    /** @Column(type="string", nullable=true) */
-    public $avatar;
+    #[Column(type: "string", nullable: true)]
+    public ?string $avatar = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $banner;
+    #[Column(type: "string", nullable: true)]
+    public ?string $banner = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $email;
+    #[Column(type: "string", nullable: true)]
+    public ?string $email = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $password;
+    #[Column(type: "string", nullable: true)]
+    public ?string $password = null;
 
-    /** @Column(type="boolean", default=false) */
-    public $verified = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $verified = false;
 
-    /** @Column(type="boolean", default=false) */
-    public $hidden = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $hidden = false;
 
-    /** @Column(type = "decimal(10,2)") */
-    public $balance = 0;
+    #[Column(type: "decimal(10,2)")]
+    public float $balance = 0;
 
-    /** @HasMany(target="UserSocialNetwork", cascade=true) */
-    public $socialNetworks;
+    #[HasMany(target: "UserSocialNetwork", cascade: true)]
+    public array $socialNetworks = [];
 
-    /** @ManyToMany(target="Role", though="UserRole", cascade=true) */
-    public $roles;
+    #[ManyToMany(target: "Role", through: "UserRole", cascade: true)]
+    public array $roles = [];
 
-    /** @HasMany(target="RememberToken", cascade=true) */
-    public $rememberTokens;
+    #[HasMany(target: "RememberToken", cascade: true)]
+    public array $rememberTokens = [];
 
-    /** @HasMany(target="UserDevice", cascade=true) */
-    public $userDevices;
+    #[HasMany(target: "UserDevice", cascade: true)]
+    public array $userDevices = [];
 
-    /** @HasMany(target="UserBlock", cascade=true) */
-    public $blocksGiven;
+    #[HasMany(target: "UserBlock", cascade: true)]
+    public array $blocksGiven = [];
 
-    /** @HasMany(target="UserBlock", cascade=true) */
-    public $blocksReceived;
+    #[HasMany(target: "UserBlock", cascade: true)]
+    public array $blocksReceived = [];
 
-    /** @HasMany(target="UserActionLog", cascade=true) */
-    public $actionLogs;
+    #[HasMany(target: "UserActionLog", cascade: true)]
+    public array $actionLogs = [];
 
-    /** @HasMany(target="PaymentInvoice", cascade=true) */
-    public $invoices;
+    #[HasMany(target: "PaymentInvoice", cascade: true)]
+    public array $invoices = [];
 
-    /**
-     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
-     */
-    public $created_at;
+    #[Column(type: "timestamp", default: "CURRENT_TIMESTAMP")]
+    public \DateTimeImmutable $created_at;
 
-    /**
-     * @Column(type="timestamp", nullable=true)
-     */
-    public $last_logged;
+    #[Column(type: "timestamp", nullable: true)]
+    public ?\DateTimeImmutable $last_logged = null;
 
     public function __construct()
     {
-        $this->roles = new PivotedCollection();
-        $this->socialNetworks = new PivotedCollection();
-        $this->rememberTokens = new PivotedCollection();
-        $this->userDevices = new PivotedCollection();
-        $this->blocksGiven = new PivotedCollection();
-        $this->blocksReceived = new PivotedCollection();
-        $this->created_at = new \DateTime();
-        $this->last_logged = new \DateTime();
+        $this->created_at = new \DateTimeImmutable();
+        $this->last_logged = new \DateTimeImmutable();
     }
 
-    /**
-     * Add a role to the user.
-     *
-     * @param Role $role The role to add.
-     */
     public function addRole(Role $role): void
     {
-        if (!$this->roles->contains($role)) {
-            $this->roles->add($role);
+        if (!in_array($role, $this->roles, true)) {
+            $this->roles[] = $role;
         }
     }
 
-    /**
-     * Remove a role from the user.
-     *
-     * @param Role $role The role to remove.
-     */
     public function removeRole(Role $role): void
     {
-        if ($this->roles->contains($role)) {
-            $this->roles->removeElement($role);
-        }
+        $this->roles = array_filter(
+            $this->roles,
+            fn($r) => $r !== $role
+        );
     }
 
     public function clearRoles(): void
     {
-        $this->roles->clear();
+        $this->roles = [];
     }
 
-    /**
-     * Check if the user has a specific role.
-     *
-     * @param string $roleName The role name to check.
-     * @return bool Returns true if the user has the role.
-     */
     public function hasRole(string $roleName): bool
     {
         foreach ($this->roles as $role) {
@@ -150,34 +120,18 @@ class User
         return false;
     }
 
-    /**
-     * Set the password for the user.
-     *
-     * @param string $password The password to set.
-     */
     public function setPassword(string $password): void
     {
         $this->password = password_hash($password, PASSWORD_BCRYPT);
     }
 
-    /**
-     * Serialize the user object to JSON.
-     *
-     * @return array The serialized user object.
-     */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         $user = get_object_vars($this);
         unset($user['password']);
         return $user;
     }
 
-    /**
-     * Check if the user has a specific permission.
-     *
-     * @param string $permissionName The permission name to check.
-     * @return bool Returns true if the user has the permission.
-     */
     public function hasPermission(string $permissionName): bool
     {
         foreach ($this->roles as $role) {
@@ -190,12 +144,21 @@ class User
         return false;
     }
 
-    /**
-     * Get the social network associated with the user.
-     *
-     * @param string $socialNetworkName The social network name.
-     * @return mixed|null The social network entity or null if not found.
-     */
+    public function getPermissions()
+    {
+        $permissions = [];
+
+        foreach ($this->roles as $role) {
+            foreach ($role->permissions as $permission) {
+                if (!in_array($permission, $permissions)) {
+                    $permissions[] = $permission;
+                }
+            }
+        }
+
+        return $permissions;
+    }
+
     public function getSocialNetwork(string $socialNetworkName): ?UserSocialNetwork
     {
         foreach ($this->socialNetworks as $socialNetwork) {
@@ -218,56 +181,14 @@ class User
 
     public function addSocialNetwork(SocialNetwork $socialNetwork): void
     {
-        $this->socialNetworks->add($socialNetwork);
+        $this->socialNetworks[] = $socialNetwork;
     }
 
-    /**
-     * Get all user devices associated with the user.
-     */
-    public function getUserDevices()
+    public function getUrl(): string
     {
-        return $this->userDevices;
+        return !empty($this->uri) ? $this->uri : (string) $this->id;
     }
 
-    /**
-     * Get all roles of the user.
-     */
-    public function getRoles()
-    {
-        return $this->roles;
-    }
-
-    /**
-     * Get all permissions of the user.
-     *
-     * @return PivotedCollection The permissions of the user.
-     */
-    public function getPermissions()
-    {
-        $permissions = new PivotedCollection();
-
-        /** @var Role $role */
-        foreach ($this->roles as $role) {
-            foreach ($role->permissions as $permission) {
-                if (!$permissions->contains($permission)) {
-                    $permissions->add($permission);
-                }
-            }
-        }
-
-        return $permissions;
-    }
-
-    public function getUrl()
-    {
-        return !empty($this->uri) ? $this->uri : $this->id;
-    }
-
-    /**
-     * Check if the user is currently online.
-     *
-     * @return bool Returns true if the user was last logged in within the last 10 minutes.
-     */
     public function isOnline(): bool
     {
         $now = new \DateTime();
@@ -276,16 +197,11 @@ class User
         return $interval <= self::IS_ONLINE_TIME;
     }
 
-    /**
-     * Проверяет, заблокирован ли пользователь.
-     *
-     * @return bool Возвращает true, если пользователь заблокирован.
-     */
     public function isBlocked(): bool
     {
         foreach ($this->blocksReceived as $block) {
             $now = new \DateTime();
-            $blockedUntil = $block->blockedUntil ? $block->blockedUntil : null;
+            $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
                 return true;
@@ -294,16 +210,11 @@ class User
         return false;
     }
 
-    /**
-     * Возвращает информацию о блокировке, если она существует.
-     *
-     * @return array|null Массив с информацией о блокировке или null, если блокировки нет.
-     */
     public function getBlockInfo(): ?array
     {
         foreach ($this->blocksReceived as $block) {
             $now = new \DateTime();
-            $blockedUntil = $block->blockedUntil ? $block->blockedUntil : null;
+            $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
                 return [

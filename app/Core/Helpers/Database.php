@@ -5,16 +5,14 @@ use Cycle\ORM\RepositoryInterface;
 use Cycle\ORM\Transaction;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\DatabaseManager;
-use Spiral\Database\DatabaseInterface;
 
-if( !function_exists("dbal") )
-{
+if (!function_exists("dbal")) {
     /**
      * Get the spiral database manager
      * 
-     * @return \Spiral\Database\DatabaseManager
+     * @return \Cycle\Database\DatabaseManager
      */
-    function dbal() : \Spiral\Database\DatabaseManager
+    function dbal(): \Cycle\Database\DatabaseManager
     {
         /** @var DatabaseManager $db */
         $db = app(DatabaseManager::class);
@@ -23,29 +21,27 @@ if( !function_exists("dbal") )
     }
 }
 
-if( !function_exists("db") )
-{
+if (!function_exists("db")) {
     /**
      * Get the current database instance
      * 
      * @param string $connection
      * 
-     * @return DatabaseInterface
+     * @return \Cycle\Database\DatabaseInterface
      */
-    function db( string $connection = "default" ) : DatabaseInterface
+    function db(string $connection = "default"): \Cycle\Database\DatabaseInterface
     {
         return app(DatabaseManager::class)->database($connection);
     }
 }
 
-if( !function_exists("orm") )
-{
+if (!function_exists("orm")) {
     /**
      * Get the orm instance
      * 
      * @return ORM
      */
-    function orm() : ORM
+    function orm(): ORM
     {
         /** @var ORM $orm */
         $orm = app(DatabaseConnection::class)->getOrm();
@@ -54,16 +50,15 @@ if( !function_exists("orm") )
     }
 }
 
-if( !function_exists("ormdb") )
-{
+if (!function_exists("ormdb")) {
     /**
      * Get the orm database instance
      * 
      * @param string|object $entity
      * 
-     * @return DatabaseInterface
+     * @return \Cycle\Database\DatabaseInterface
      */
-    function ormdb( $entity ) : DatabaseInterface
+    function ormdb($entity): \Cycle\Database\DatabaseInterface
     {
         /** @var ORM $orm */
         $orm = orm();
@@ -72,8 +67,7 @@ if( !function_exists("ormdb") )
     }
 }
 
-if( !function_exists("rep") )
-{
+if (!function_exists("rep")) {
     /**
      * Get the orm repository instance
      * 
@@ -81,7 +75,7 @@ if( !function_exists("rep") )
      * 
      * @return RepositoryInterface
      */
-    function rep( $entity ) : RepositoryInterface
+    function rep($entity): RepositoryInterface
     {
         /** @var ORM $orm */
         $orm = orm();
@@ -90,8 +84,7 @@ if( !function_exists("rep") )
     }
 }
 
-if( !function_exists("transaction") )
-{
+if (!function_exists("transaction")) {
     /**
      * Run entity in transaction
      * 
@@ -102,7 +95,7 @@ if( !function_exists("transaction") )
      * @return Transaction
      * @throws InvalidArgumentException If an unsupported operation is specified.
      */
-    function transaction($entity, string $operation = 'persist', string $mode = Transaction::MODE_CASCADE) : Transaction
+    function transaction($entity, string $operation = 'persist', string $mode = Transaction::MODE_CASCADE): Transaction
     {
         /** @var ORM $orm */
         $orm = orm();
@@ -110,17 +103,17 @@ if( !function_exists("transaction") )
         $transaction = new Transaction($orm);
 
         // Сделано чтобы не возникало проблем с циклом
-        if( !is_array($entity) )
+        if (!is_array($entity))
             $entity = [$entity];
 
         foreach ($entity as $key => $value) {
             switch ($operation) {
                 case 'persist':
                     $transaction->persist($value, $mode);
-                break;
+                    break;
                 case 'delete':
                     $transaction->delete($value, $mode);
-                break;
+                    break;
                 default:
                     throw new InvalidArgumentException('Unsupported operation: ' . $operation);
             }

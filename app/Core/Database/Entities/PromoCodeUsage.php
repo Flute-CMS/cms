@@ -6,29 +6,21 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity
- */
+#[Entity]
 class PromoCodeUsage
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="datetime") */
-    public $used_at;
+    #[Column(type: "datetime")]
+    public \DateTimeImmutable $used_at;
 
-    /**
-     * @BelongsTo(target="User", cascade=true)
-     */
-    public $user;
+    #[BelongsTo(target: "User", cascade: true)]
+    public User $user;
 
-    /**
-     * @BelongsTo(target="PromoCode", cascade=true)
-     */
-    public $promoCode;
+    #[BelongsTo(target: "PromoCode", cascade: true)]
+    public PromoCode $promoCode;
 
-    /**
-     * @BelongsTo(target="PaymentInvoice", cascade=true)
-     */
-    public $invoice;
+    #[BelongsTo(target: "PaymentInvoice", cascade: true)]
+    public PaymentInvoice $invoice;
 }

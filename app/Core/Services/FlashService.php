@@ -197,7 +197,7 @@ class FlashService implements FlashBagInterface
     /**
      * Clears all flash messages.
      */
-    public function clear()
+    public function clear(): mixed
     {
         return $this->flashBag->clear();
     }

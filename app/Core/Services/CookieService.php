@@ -108,13 +108,13 @@ class CookieService
     /**
      * Отдает корректный DateTime для установки куки
      * 
-     * @param \DateTime|int|null $expire
+     * @param \DateTimeImmutable|int|null $expire
      * 
-     * @return \DateTime
+     * @return \DateTimeImmutable
      */
     protected function getDateTime($expire)
     {
-        if ($expire instanceof \DateTime) {
+        if ($expire instanceof \DateTimeImmutable) {
             return $expire;
         }
 

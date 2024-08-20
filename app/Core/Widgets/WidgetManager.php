@@ -229,7 +229,7 @@ class WidgetManager
                 $widgetLoader = $this->getWidgetLoader($widget->loader);
 
                 $widgetLoader->setSettings(
-                    $this->settingsToNormalView($widget->settings->toArray())
+                    $this->settingsToNormalView($widget->settings)
                 );
                 $widgetLoader->setLazyLoad((bool) $widget->lazyload);
                 $widgetLoader->setImage($widget->image);

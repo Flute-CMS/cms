@@ -8,109 +8,85 @@ use Cycle\Annotated\Annotation\Relation\HasMany;
 use Cycle\Annotated\Annotation\Relation\ManyToMany;
 use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Table\Index;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 
-/**
- * @Entity(
- *      repository="Flute\Core\Database\Repositories\PageRepository",
- * )
- * @Table(
- *      indexes={
- *          @Index(columns={"route"}, unique=true)
- *      }
- * )
- */
+#[Entity(repository: "Flute\Core\Database\Repositories\PageRepository")]
+#[Table(
+    indexes: [
+        new Index(columns: ["route"], unique: true)
+    ]
+)]
 class Page
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $route;
+    #[Column(type: "string")]
+    public string $route;
 
-    /** @Column(type="string") */
-    public $title;
+    #[Column(type: "string")]
+    public string $title;
 
-    /** @Column(type="text", nullable=true) */
-    public $description;
+    #[Column(type: "text", nullable: true)]
+    public ?string $description = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $keywords;
+    #[Column(type: "string", nullable: true)]
+    public ?string $keywords = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $robots;
+    #[Column(type: "string", nullable: true)]
+    public ?string $robots = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $og_title;
+    #[Column(type: "string", nullable: true)]
+    public ?string $og_title = null;
 
-    /** @Column(type="text", nullable=true) */
-    public $og_description;
+    #[Column(type: "text", nullable: true)]
+    public ?string $og_description = null;
 
-    /** @Column(type="string", nullable=true) */
-    public $og_image;
+    #[Column(type: "string", nullable: true)]
+    public ?string $og_image = null;
 
-    /** @HasMany(target="PageBlock") */
-    public $blocks;
+    #[HasMany(target: "PageBlock")]
+    public array $blocks = [];
 
-    /** @ManyToMany(target="Permission", though="PagePermission") */
-    public $permissions;
+    #[ManyToMany(target: "Permission", through: "PagePermission")]
+    public array $permissions = [];
 
-    public function __construct()
+    public function addBlock(PageBlock $block): void
     {
-        $this->permissions = new PivotedCollection();
-        $this->blocks = new PivotedCollection();
-    }
-
-    public function addBlock(PageBlock $block)
-    {
-        if (!$this->blocks->contains($block)) {
-            $this->blocks->add($block);
+        if (!in_array($block, $this->blocks, true)) {
+            $this->blocks[] = $block;
         }
     }
 
-    public function removeBlock(PageBlock $block)
+    public function removeBlock(PageBlock $block): void
     {
-        if ($this->blocks->contains($block)) {
-            $this->blocks->removeElement($block);
-        }
+        $this->blocks = array_filter(
+            $this->blocks,
+            fn($b) => $b !== $block
+        );
     }
 
-    public function removeAllBlocks()
+    public function removeAllBlocks(): void
     {
-        $this->blocks->clear();
+        $this->blocks = [];
     }
 
-    /**
-     * Add a permission to the page.
-     *
-     * @param Permission $permission The permission to add.
-     */
     public function addPermission(Permission $permission): void
     {
-        if (!$this->permissions->contains($permission)) {
-            $this->permissions->add($permission);
+        if (!in_array($permission, $this->permissions, true)) {
+            $this->permissions[] = $permission;
         }
     }
 
-    /**
-     * Exists permission
-     *
-     * @param Permission $permission The permission to add.
-     */
     public function hasPermission(Permission $permission): bool
     {
-        return $this->permissions->contains($permission);
+        return in_array($permission, $this->permissions, true);
     }
 
-    /**
-     * Remove a permission from the page.
-     *
-     * @param Permission $permission The permission to remove.
-     */
     public function removePermission(Permission $permission): void
     {
-        if ($this->permissions->contains($permission)) {
-            $this->permissions->removeElement($permission);
-        }
+        $this->permissions = array_filter(
+            $this->permissions,
+            fn($p) => $p !== $permission
+        );
     }
 }

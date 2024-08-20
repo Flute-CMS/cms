@@ -6,54 +6,44 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class PaymentInvoice
 {
-    /** 
-     * @BelongsTo(target="User")
-     */
-    public $user;
+    #[BelongsTo(target: "User")]
+    public User $user;
 
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $gateway;
+    #[Column(type: "string")]
+    public string $gateway;
 
-    /** @Column(type="string") */
-    public $transactionId;
+    #[Column(type: "string")]
+    public string $transactionId;
 
-    /** @Column(type="float") */
-    public $amount;
+    #[Column(type: "float")]
+    public float $amount;
 
-    /** @Column(type="float") */
-    public $originalAmount;
+    #[Column(type: "float")]
+    public float $originalAmount;
 
-    /**
-     * @BelongsTo(target="PromoCode", nullable=true)
-     */
-    public $promoCode;
+    #[BelongsTo(target: "PromoCode", nullable: true)]
+    public ?PromoCode $promoCode;
 
-    /**
-     * @BelongsTo(target="Currency", nullable=true)
-     */
-    public $currency;
+    #[BelongsTo(target: "Currency", nullable: true)]
+    public ?Currency $currency;
 
-    /** @Column(type="boolean", default="false") */
-    public $isPaid;
+    #[Column(type: "boolean", default: false)]
+    public bool $isPaid;
 
-    /** @Column(type="datetime", nullable=true) */
-    public $paidAt;
+    #[Column(type: "datetime", nullable: true)]
+    public ?\DateTime $paidAt = null;
 
-    /**
-     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
-     */
-    public $created_at;
+    #[Column(type: "timestamp", default: "CURRENT_TIMESTAMP")]
+    public \DateTimeImmutable $created_at;
 
     public function __construct()
     {
-        $this->created_at = new \DateTime();
+        $this->created_at = new \DateTimeImmutable();
     }
 }

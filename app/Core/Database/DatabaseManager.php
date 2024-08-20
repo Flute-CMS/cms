@@ -3,15 +3,18 @@
 namespace Flute\Core\Database;
 
 use Flute\Core\App;
-use Spiral\Database\Config\DatabaseConfig;
-use Spiral\Database\DatabaseInterface;
-use Spiral\Database\DatabaseManager as SpiralDatabaseManager;
+use Cycle\Database\Config\DatabaseConfig as CycleDatabaseConfig;
+use Cycle\Database\DatabaseManager as CycleDatabaseManager;
 use Exception;
+use Spiral\Database\Driver\MySQL\MySQLDriver;
+use Spiral\Database\Driver\Postgres\PostgresDriver;
+use Cycle\Database;
+use Cycle\Database\Config;
 
 class DatabaseManager
 {
     protected App $app;
-    protected SpiralDatabaseManager $dbal;
+    protected CycleDatabaseManager $dbal;
 
     /**
      * @throws Exception
@@ -35,17 +38,88 @@ class DatabaseManager
             throw new Exception('Database configuration not found.');
         }
 
-        $dbalConfig = new DatabaseConfig($config); // Create a database configuration object
+        // Convert configuration if necessary
+        $dbalConfig = $this->convertConfig($config);
 
-        $this->dbal = new SpiralDatabaseManager($dbalConfig); // Create the Spiral Database Manager
+        // Create the Cycle Database Manager
+        $this->dbal = new CycleDatabaseManager($dbalConfig);
     }
 
     /**
-     * Get the Spiral Database Manager instance.
+     * Convert the configuration from Cycle ORM 1.x format to 2.x format if needed.
      *
-     * @return SpiralDatabaseManager
+     * @param array $config
+     * @return CycleDatabaseConfig
      */
-    public function getDbal(): SpiralDatabaseManager
+    protected function convertConfig(array $config): CycleDatabaseConfig
+    {
+        $connections = [];
+
+        foreach ($config['connections'] as $name => $connection) {
+            switch ($connection['driver']) {
+                case MySQLDriver::class:
+                    $connections[$name] = new Config\MySQLDriverConfig(
+                        connection: new Config\MySQL\TcpConnectionConfig(
+                            database: $this->extractDatabaseFromDsn($connection['connection']),
+                            host: $connection['host'] ?? '127.0.0.1',
+                            port: $connection['port'] ?? 3306,
+                            user: $connection['username'] ?? 'root',
+                            password: $connection['password'] ?? ''
+                        ),
+                        queryCache: $connection['queryCache'] ?? false
+                    );
+                    break;
+                case PostgresDriver::class:
+                    $connections[$name] = new Config\PostgresDriverConfig(
+                        connection: new Config\Postgres\TcpConnectionConfig(
+                            database: $connection['database'] ?? $this->extractDatabaseFromDsn($connection['connection']),
+                            host: $connection['host'] ?? '127.0.0.1',
+                            port: $connection['port'] ?? 5432,
+                            user: $connection['username'] ?? 'postgres',
+                            password: $connection['password'] ?? ''
+                        ),
+                        queryCache: $connection['queryCache'] ?? false
+                    );
+                    break;
+            }
+        }
+
+        $config['connections'] = $connections;
+
+        return new CycleDatabaseConfig($config);
+    }
+
+    private function extractDatabaseFromDsn(string $dsn): ?string
+    {
+        $parsed = parse_url($dsn);
+        if (isset($parsed['path'])) {
+            return ltrim($parsed['path'], '/');
+        }
+        return null;
+    }
+
+    /**
+     * Convert specific driver options to match Cycle 2.x requirements.
+     *
+     * @param array $options
+     * @return array
+     */
+    protected function convertDriverOptions(array $options): array
+    {
+        // Example: Update charset options if required by the new version
+        if (isset($options[\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+            $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES "utf8mb4" COLLATE "utf8mb4_unicode_ci"';
+        }
+
+        return $options;
+    }
+
+    /**
+     * Get the Cycle Database Manager instance.
+     *
+     * @return CycleDatabaseManager
+     */
+    public function getDbal(): CycleDatabaseManager
     {
         return $this->dbal;
     }
@@ -54,20 +128,21 @@ class DatabaseManager
      * Get a specific database connection.
      *
      * @param string $name The name of the database connection.
-     * @return DatabaseInterface
+     * @return \Cycle\Database\DatabaseInterface
      */
-    public function database(string $name = 'default'): DatabaseInterface
+    public function database(string $name = 'default'): \Cycle\Database\DatabaseInterface
     {
         return $this->dbal->database($name);
     }
 
     /**
-     * КОСТЫЛЬ ЕБУЧИЙ НА ТАЙМЗОНУ ФИКСИМ ПОТОМ НА ФРОНТЕ СЧРОЧНВЫТЬВТЬ!
+     * Temporary timezone fix, refactor later.
      */
-    protected function convertTimezones()
+    protected function convertTimezones(): void
     {
-        if (!is_installed())
+        if (!is_installed()) {
             return;
+        }
 
         foreach (config('database.connections') as $key => $connection) {
             $db = $connection;

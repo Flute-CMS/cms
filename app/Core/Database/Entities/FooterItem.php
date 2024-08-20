@@ -6,62 +6,45 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 use Cycle\Annotated\Annotation\Relation\HasMany;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
 
-/**
- * @Entity()
- */
+#[Entity]
 class FooterItem
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $title;
+    #[Column(type: "string")]
+    public string $title;
 
-    /** @Column(type="string", nullable=true) */
-    public $url;
+    #[Column(type: "string", nullable: true)]
+    public ?string $url;
 
-    /** @Column(type="boolean", default=false) */
-    public $new_tab;
+    #[Column(type: "boolean", default: false)]
+    public bool $new_tab;
 
-    /** @Column(type="integer", default=0) */
-    public $position = 0;
+    #[Column(type: "integer", default: 0)]
+    public int $position = 0;
 
-    /** @BelongsTo(target="FooterItem", nullable=true, innerKey="parent_id") */
-    public $parent;
+    #[BelongsTo(target: "FooterItem", nullable: true, innerKey: "parent_id")]
+    public ?FooterItem $parent;
 
-    /** @HasMany(target="FooterItem", nullable=true, outerKey="parent_id") */
-    public $children;
+    #[HasMany(target: "FooterItem", nullable: true, outerKey: "parent_id")]
+    public array $children = [];
 
-    public function __construct()
+    public function addChild(FooterItem $child): void
     {
-        $this->children = new PivotedCollection();
-    }
-
-    /**
-     * Add a child to the navbar item.
-     *
-     * @param NavbarItem $child The child to add.
-     */
-    public function addChild(NavbarItem $child): void
-    {
-        if (!$this->children->contains($child)) {
-            $this->children->add($child);
+        if (!in_array($child, $this->children, true)) {
+            $this->children[] = $child;
             $child->parent = $this;
         }
     }
 
-    /**
-     * Remove a child from the navbar item.
-     *
-     * @param NavbarItem $child The child to remove.
-     */
-    public function removeChild(NavbarItem $child): void
+    public function removeChild(FooterItem $child): void
     {
-        if ($this->children->contains($child)) {
-            $this->children->removeElement($child);
-            $child->parent = null;
-        }
+        $this->children = array_filter(
+            $this->children,
+            fn($c) => $c !== $child
+        );
+        $child->parent = null;
     }
 }

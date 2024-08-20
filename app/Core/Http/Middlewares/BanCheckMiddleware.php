@@ -39,9 +39,7 @@ class BanCheckMiddleware extends AbstractMiddleware
         $ipAddress = $request->getClientIp();
         if ($ipAddress) {
             $userRepository = rep(UserDevice::class);
-            $users = $userRepository->select()->where(['ip' => $ipAddress])->load([
-                'user.blocksReceived'
-            ])->fetchAll();
+            $users = $userRepository->select()->where(['ip' => $ipAddress])->fetchAll();
 
             foreach ($users as $userDevice) {
                 if ($userDevice->user->isBlocked()) {
@@ -57,9 +55,7 @@ class BanCheckMiddleware extends AbstractMiddleware
     {
         if ($ipAddress) {
             $userRepository = rep(UserDevice::class);
-            $users = $userRepository->select()->where(['ip' => $ipAddress])->load([
-                'user.blocksReceived'
-            ])->fetchAll();
+            $users = $userRepository->select()->where(['ip' => $ipAddress])->fetchAll();
 
             foreach ($users as $userDevice) {
                 if ($userDevice->user->isBlocked()) {

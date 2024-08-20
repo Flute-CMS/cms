@@ -2,21 +2,23 @@
 
 namespace Flute\Core\Database;
 
+use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
+use Cycle\Annotated\Locator\TokenizerEntityLocator;
 use Cycle\ORM\ORMInterface;
-use Cycle\ORM\Promise\ProxyFactory;
+use Cycle\ORM\ORM;
 use Cycle\Schema;
 use Cycle\Annotated;
-use Cycle\ORM\Factory;
-use Cycle\ORM\ORM;
-use Cycle\ORM\Schema as ORMSchema;
-use Spiral\Database\DatabaseManager;
-use Spiral\Migrations\Config\MigrationConfig;
-use Spiral\Migrations\Exception\MigrationException;
-use Spiral\Migrations\FileRepository;
-use Spiral\Migrations\Migrator;
-use Spiral\Tokenizer;
-use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
+use Cycle\Schema\Registry;
+use Cycle\Schema\Compiler;
+use Cycle\Database\DatabaseManager;
+use Cycle\Migrations\Config\MigrationConfig;
+use Cycle\Migrations\Exception\MigrationException;
+use Cycle\Migrations\FileRepository;
+use Cycle\Migrations\Migrator;
+use Spiral\Tokenizer\Config\TokenizerConfig;
+use Spiral\Tokenizer\Tokenizer;
 use Spiral\Tokenizer\ClassLocator;
+use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 
 class DatabaseConnection
 {
@@ -53,20 +55,16 @@ class DatabaseConnection
      */
     protected function connect(): void
     {
-        // Get the Database Abstraction Layer (DBAL) from the DatabaseManager
         $dbal = $this->databaseManager->getDbal();
 
-        if (config('database.debug'))
+        if (config('database.debug')) {
             $dbal->setLogger(logs('database'));
+        }
 
         $this->dbal = $dbal;
 
-        $orm = new ORM(new Factory($this->dbal));
-
-        // Cache the database schema
-        $orm->withPromiseFactory(app()->make(ProxyFactory::class));
-
-        $this->recompileOrmSchema($orm, true);
+        // Compile the ORM schema
+        $this->recompileOrmSchema(true);
     }
 
     public function rollbackMigrations(string $directory)
@@ -74,7 +72,7 @@ class DatabaseConnection
         $config = new MigrationConfig([
             'directory' => path($directory),
             'table' => 'migrations',
-            'safe' => true
+            'safe' => true,
         ]);
 
         $migrator = new Migrator($config, $this->dbal, new FileRepository($config));
@@ -82,7 +80,6 @@ class DatabaseConnection
         $migrator->configure();
         $migrations = $migrator->getMigrations();
 
-        // Последовательное выполнение каждой миграции
         foreach ($migrations as $migration) {
             $migrator->rollback();
         }
@@ -91,9 +88,9 @@ class DatabaseConnection
     public function runMigrations(string $directory)
     {
         $config = new MigrationConfig([
-            'directory' => path($directory), // Указывает директорию миграций
-            'table' => 'migrations', // Имя таблицы для отслеживания миграций
-            'safe' => true
+            'directory' => path($directory),
+            'table' => 'migrations',
+            'safe' => true,
         ]);
 
         $migrator = new Migrator($config, $this->dbal, new FileRepository($config));
@@ -101,7 +98,6 @@ class DatabaseConnection
         $migrator->configure();
         $migrations = $migrator->getMigrations();
 
-        // Последовательное выполнение каждой миграции
         foreach ($migrations as $migration) {
             try {
                 $migrator->run();
@@ -113,9 +109,9 @@ class DatabaseConnection
     }
 
     /**
-     * Проверка наличия сущности в схеме ORM.
+     * Check if an entity is present in the ORM schema.
      *
-     * @param string $entityClass Имя класса сущности.
+     * @param string $entityClass The class name of the entity.
      * @return bool
      */
     protected function isEntityInSchema(string $entityClass): bool
@@ -125,11 +121,11 @@ class DatabaseConnection
     }
 
     /**
-     * Добавление директории с сущностями и возможная перекомпиляция схемы.
+     * Add a directory of entities and recompile the schema if necessary.
      *
-     * @param string $directory Директория с сущностями.
+     * @param string $directory The directory containing entity classes.
      */
-    public function addDir(string $directory)
+    public function addDir(string $directory): void
     {
         $this->entitiesDirs[] = $directory;
 
@@ -148,15 +144,14 @@ class DatabaseConnection
         }
 
         if ($schemaNeedsUpdate) {
-            // logs('database')->info('Schema recompiling...');
-            $this->recompileOrmSchema($this->orm);
+            $this->recompileOrmSchema();
         }
     }
 
     /**
-     * Получение списка сущностей из директории.
+     * Get a list of entities from a directory.
      *
-     * @param string $directory Директория с сущностями.
+     * @param string $directory The directory to scan for entities.
      * @return array
      */
     protected function getEntitiesFromDirectory(string $directory): array
@@ -173,34 +168,32 @@ class DatabaseConnection
     }
 
     /**
-     * Перекомпиляция схемы ORM.
+     * Recompile the ORM schema.
+     *
+     * @param bool $cache Whether to use cache or not.
      */
-    public function recompileOrmSchema($orm, bool $cache = false): void
+    public function recompileOrmSchema(bool $cache = false): void
     {
         if ($cache && cache()->has(self::CACHE_KEY)) {
-            $this->orm = $orm->with(cache(self::CACHE_KEY));
+            $this->orm = new ORM(new \Cycle\ORM\Factory($this->dbal), cache(self::CACHE_KEY));
             $this->ormIntoContainer();
-
             return;
         }
 
         cache()->delete(self::CACHE_KEY);
 
-        $classLocator = (new Tokenizer\Tokenizer(new Tokenizer\Config\TokenizerConfig([
+        $classLocator = (new Tokenizer(new TokenizerConfig([
             'directories' => $this->entitiesDirs,
         ])))->classLocator();
 
         $schemaArray = $this->compileSchema($classLocator);
 
-        // Создаем новую схему ORM
-        $ormSchema = new ORMSchema($schemaArray);
+        $ormSchema = new \Cycle\ORM\Schema($schemaArray);
 
         cache()->set(self::CACHE_KEY, $ormSchema, 86400);
 
-        // Обновляем схему в текущем экземпляре ORM
-        $this->orm = $orm->with($ormSchema);
+        $this->orm = new ORM(new \Cycle\ORM\Factory($this->dbal), $ormSchema);
 
-        // Обновляем ORM в контейнере приложения
         $this->ormIntoContainer();
     }
 
@@ -212,32 +205,29 @@ class DatabaseConnection
      */
     public function compileSchema(ClassLocator $classLocator): array
     {
-        $params = [
-            new Annotated\Embeddings($classLocator),
-            // register annotated embeddings
-            new Annotated\Entities($classLocator),
-            // register annotated entities
+        $embeddingLocator = new TokenizerEmbeddingLocator($classLocator);
+        $entityLocator = new TokenizerEntityLocator($classLocator);
+
+        $schemaGenerators = [
             new Schema\Generator\ResetTables(),
-            // re-declared table schemas (remove columns)
+            new Annotated\Embeddings($embeddingLocator),
+            new Annotated\Entities($entityLocator),
+            new Annotated\TableInheritance(),
             new Annotated\MergeColumns(),
-            // register non field columns (table level)
             new Schema\Generator\GenerateRelations(),
-            // generate entity relations
+            new Schema\Generator\GenerateModifiers(),
             new Schema\Generator\ValidateEntities(),
-            // make sure all entity schemas are correct
             new Schema\Generator\RenderTables(),
-            // declare table schemas
             new Schema\Generator\RenderRelations(),
-            // declare relation keys and indexes
+            new Schema\Generator\RenderModifiers(),
+            new Schema\Generator\ForeignKeys(),
             new Annotated\MergeIndexes(),
-            new Schema\Generator\SyncTables(),
-            new Schema\Generator\GenerateTypecast(), // typecast non string columns
+            new Schema\Generator\GenerateTypecast(),
         ];
 
-        // if( !is_installed() )
-        //     $params[] = new Schema\Generator\SyncTables();
+        $registry = new Registry($this->dbal);
 
-        return(new Schema\Compiler())->compile(new Schema\Registry($this->dbal), $params);
+        return (new Compiler())->compile($registry, $schemaGenerators);
     }
 
     /**
@@ -251,7 +241,7 @@ class DatabaseConnection
     }
 
     /**
-     * Get the Spiral Database Manager instance.
+     * Get the Cycle Database Manager instance.
      *
      * @return DatabaseManager
      */

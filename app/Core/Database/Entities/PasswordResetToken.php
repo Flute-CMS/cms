@@ -6,20 +6,18 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class PasswordResetToken
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="User", nullable=false, cascade=true) */
-    public $user;
+    #[BelongsTo(target: "User", nullable: false, cascade: true)]
+    public User $user;
 
-    /** @Column(type="string") */
-    public $token;
+    #[Column(type: "string")]
+    public string $token;
 
-    /** @Column(type="datetime") */
-    public $expiry;
+    #[Column(type: "datetime")]
+    public \DateTimeImmutable $expiry;
 }

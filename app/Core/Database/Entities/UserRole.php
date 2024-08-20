@@ -6,17 +6,15 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class UserRole
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="User", nullable=false) */
-    public $user;
+    #[BelongsTo(target: "User", nullable: false)]
+    public User $user;
 
-    /** @BelongsTo(target="Role", nullable=false) */
-    public $role;
+    #[BelongsTo(target: "Role", nullable: false)]
+    public Role $role;
 }

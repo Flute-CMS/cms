@@ -231,7 +231,7 @@ class AuthenticationService
         $tokenEntity->user = $user;
         $tokenEntity->userDevice = $device;
         $tokenEntity->token = $rememberToken;
-        $tokenEntity->lastUsedAt = new \DateTime();
+        $tokenEntity->lastUsedAt = new \DateTimeImmutable();
 
         transaction($tokenEntity)->run();
 
@@ -317,7 +317,7 @@ class AuthenticationService
         $verificationTokenValue = $this->generateRandomToken();
 
         // Set expiration date to 24 hours from now
-        $expiresAt = new \DateTime();
+        $expiresAt = new \DateTimeImmutable();
         $expiresAt->modify('+24 hours');
 
         // Create a new VerificationToken entity
@@ -358,7 +358,7 @@ class AuthenticationService
         $this->throttle('reset_password', 3, 60, 1);
 
         // Set expiration date to 24 hours from now
-        $expiresAt = new \DateTime();
+        $expiresAt = new \DateTimeImmutable();
         $expiresAt->modify('+24 hours');
 
         // Retrieve the user

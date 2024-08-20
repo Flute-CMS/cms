@@ -5,73 +5,65 @@ namespace Flute\Core\Services;
 use Exception;
 use Flute\Core\Auth\Events\PasswordResetRequestedEvent;
 use Flute\Core\Auth\Events\UserRegisteredEvent;
-use PHPMailer\PHPMailer\PHPMailer;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mime\Email;
 
 class EmailService
 {
-    private PHPMailer $mail;
+    private MailerInterface $mailer;
 
     /**
      * EmailService constructor.
-     * Set up PHPMailer with config details.
      */
     public function __construct()
     {
-        $this->mail = new PHPMailer(true);
         $this->configureMail();
     }
 
     /**
-     * Configure mail parameters.
-     * Set SMTP, Host, Auth, Username, Password, Security and Port based on config.
+     * Configure mail parameters programmatically.
      */
-    private function configureMail() : void
+    private function configureMail(): void
     {
         $mailConfig = config('mail');
-        
+
+        $transport = new EsmtpTransport(
+            $mailConfig['host'],
+            $mailConfig['port'],
+            $mailConfig['secure'] === 'ssl' // SSL or TLS
+        );
+
         if ($mailConfig['smtp']) {
-            $this->mail->isSMTP();
+            $transport->setUsername($mailConfig['username']);
+            $transport->setPassword($mailConfig['password']);
         }
 
-        $this->mail->CharSet    = "utf-8";
-        $this->mail->Host       = $mailConfig['host'];
-        $this->mail->SMTPAuth   = true;
-        $this->mail->Username   = $mailConfig['username'];
-        $this->mail->Password   = $mailConfig['password'];
-        $this->mail->SMTPSecure = $mailConfig['secure'];
-        $this->mail->Port       = $mailConfig['port'];
-    }
-
-    /**
-     * Get PHPMailer instance.
-     * 
-     * @return PHPMailer
-     */
-    public function mailer() : PHPMailer
-    {
-        return $this->mail;
+        $this->mailer = new Mailer($transport);
     }
 
     /**
      * Send an email.
-     * 
+     *
      * @param string $to      Recipient's email address.
      * @param string $subject Email subject.
      * @param string $body    Email body.
-     * 
+     *
      * @throws Exception If email sending fails.
      */
-    public function send(string $to, string $subject, string $body) : void
+    public function send(string $to, string $subject, string $body): void
     {
         try {
-            $this->mail->setFrom(config('mail.from'));
-            $this->mail->addAddress($to);
-            $this->mail->isHTML(true);
-            $this->mail->Subject = $subject;
-            $this->mail->Body    = $body;
-            $this->mail->send();
+            $email = (new Email())
+                ->from(config('mail.from'))
+                ->to($to)
+                ->subject($subject)
+                ->html($body);
+
+            $this->mailer->send($email);
         } catch (Exception $e) {
-            throw new Exception($this->mail->ErrorInfo);
+            throw new Exception($e->getMessage());
         }
     }
 

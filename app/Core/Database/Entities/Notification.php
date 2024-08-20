@@ -6,37 +6,35 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class Notification
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $icon;
+    #[Column(type: "string")]
+    public string $icon;
 
-    /** @Column(type="string", nullable=true) */
-    public $url;
+    #[Column(type: "string", nullable: true)]
+    public ?string $url = null;
 
-    /** @Column(type="string") */
-    public $title;
+    #[Column(type: "string")]
+    public string $title;
 
-    /** @Column(type="string") */
-    public $content;
+    #[Column(type: "string")]
+    public string $content;
 
-    /** @Column(type="boolean", default=false) */
-    public $viewed = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $viewed = false;
 
-    /** @Column(type="timestamp") */
-    public $created_at;
+    #[Column(type: "timestamp")]
+    public \DateTimeImmutable $created_at;
 
-    /** @BelongsTo(target="User", nullable=false, cascade=true) */
-    public $user;
+    #[BelongsTo(target: "User", nullable: false, cascade: true)]
+    public User $user;
 
     public function __construct()
     {
-        $this->created_at = new \DateTime();
+        $this->created_at = new \DateTimeImmutable();
     }
 }

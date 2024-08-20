@@ -53,7 +53,7 @@ class SocialController extends AbstractController
             if ($userSocialNetwork->socialNetwork->key === 'Discord') {
                 $user = user()->get(user()->id, true);
 
-                app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+                app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->roles);
             }
 
             $auth['adapter']->disconnect();

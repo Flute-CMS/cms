@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Steam;
 
+use xPaw\SteamID\SteamID;
 use Zyberspace\SteamWebApi\Client;
 use Zyberspace\SteamWebApi\Interfaces\ISteamUser;
 
@@ -61,9 +62,9 @@ class SteamParser
         return $result;
     }
 
-    public function steamid( $steam ) : \SteamID
+    public function steamid( $steam ) : SteamID
     {
-        return new \SteamID( $steam );
+        return new SteamID( $steam );
     }
 
     public function client() : ISteamUser

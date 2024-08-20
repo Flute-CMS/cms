@@ -6,29 +6,27 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
 
-/**
- * @Entity
- */
+#[Entity]
 class PromoCode
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $code;
+    #[Column(type: "string")]
+    public string $code;
 
-    /** @Column(type="integer") */
-    public $max_usages;
+    #[Column(type: "integer")]
+    public int $max_usages;
 
-    /** @Column(type="enum(amount, percentage, subtract)") */
-    public $type;
+    #[Column(type: "enum(amount, percentage, subtract)")]
+    public string $type;
 
-    /** @Column(type="float") */
-    public $value;
+    #[Column(type: "float")]
+    public float $value;
 
-    /** @Column(type="datetime") */
-    public $expires_at;
+    #[Column(type: "datetime")]
+    public \DateTimeImmutable $expires_at;
 
-    /** @HasMany(target="PromoCodeUsage") */
-    public $usages;
+    #[HasMany(target: "PromoCodeUsage")]
+    public array $usages = [];
 }

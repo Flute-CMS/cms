@@ -623,6 +623,11 @@ class TableBuilder
 
     protected function convertToArray($object): array
     {
+        dd(array_values($object));
+
+        if (is_array($object))
+            return $object;
+
         return json_decode(json_encode($object), true);
     }
 

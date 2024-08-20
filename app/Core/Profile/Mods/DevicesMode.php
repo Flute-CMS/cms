@@ -15,7 +15,7 @@ class DevicesMode implements ProfileModInterface
 
     public function render(User $user): string
     {
-        $devices = $user->getUserDevices();
+        $devices = $user->userDevices;
         $data = [];
 
         foreach ($devices as $key => $val) {

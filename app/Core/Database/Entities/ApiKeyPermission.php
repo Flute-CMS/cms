@@ -6,17 +6,15 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class ApiKeyPermission
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="ApiKey", nullable=false) */
-    public $apiKey;
+    #[BelongsTo(target: ApiKey::class)]
+    public ApiKey $apiKey;
 
-    /** @BelongsTo(target="Permission", nullable=false) */
-    public $permission;
+    #[BelongsTo(target: Permission::class)]
+    public Permission $permission;
 }

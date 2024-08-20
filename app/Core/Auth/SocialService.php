@@ -310,12 +310,12 @@ class SocialService
 
         $userSocialNetwork->user = $user;
         $userSocialNetwork->socialNetwork = $socialNetwork;
-        $userSocialNetwork->linkedAt = new DateTime();
+        $userSocialNetwork->linkedAt = new \DateTimeImmutable();
 
         transaction([$user, $userSocialNetwork])->run();
 
         if ($userSocialNetwork->socialNetwork->key === "Discord") {
-            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->roles);
         }
 
         return $user;
@@ -368,7 +368,7 @@ class SocialService
             $userSocialNetwork->name = utf8_encode($profile->displayName);
             $userSocialNetwork->user = $user;
             $userSocialNetwork->socialNetwork = $social['entity'];
-            $userSocialNetwork->linkedAt = new DateTime();
+            $userSocialNetwork->linkedAt = new \DateTimeImmutable();
 
             if ($token) {
                 $userSocialNetwork->additional = json_encode($token);
@@ -378,7 +378,7 @@ class SocialService
         }
 
         if ($userSocialNetwork->socialNetwork->key === "Discord") {
-            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->getRoles()->toArray());
+            app()->get(DiscordLinkRoles::class)->linkRoles($user, $user->roles);
         }
 
         $userProfile['adapter']->disconnect();

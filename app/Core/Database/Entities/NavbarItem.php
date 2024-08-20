@@ -4,117 +4,85 @@ namespace Flute\Core\Database\Entities;
 
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
-use Cycle\Annotated\Annotation\Relation\ManyToMany;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 use Cycle\Annotated\Annotation\Relation\HasMany;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
+use Cycle\Annotated\Annotation\Relation\ManyToMany;
 
-/**
- * @Entity()
- */
+#[Entity]
 class NavbarItem
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @Column(type="string") */
-    public $title;
+    #[Column(type: "string")]
+    public string $title;
 
-    /** @Column(type="string", nullable=true) */
-    public $url;
+    #[Column(type: "string", nullable: true)]
+    public ?string $url = null;
 
-    /** @Column(type="boolean", default=false) */
-    public $new_tab = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $new_tab = false;
 
-    /** @Column(type="string", nullable=true) */
-    public $icon;
+    #[Column(type: "string", nullable: true)]
+    public ?string $icon = null;
 
-    /** @Column(type="integer") */
-    public $position = 0;
+    #[Column(type: "integer")]
+    public int $position = 0;
 
-    /** @Column(type="boolean", default=false) */
-    public $visibleOnlyForGuests = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $visibleOnlyForGuests = false;
 
-    /** @Column(type="boolean", default=false) */
-    public $visibleOnlyForLoggedIn = false;
+    #[Column(type: "boolean", default: false)]
+    public bool $visibleOnlyForLoggedIn = false;
 
-    /** @BelongsTo(target="NavbarItem", nullable=true, innerKey="parent_id") */
-    public $parent;
+    #[BelongsTo(target: "NavbarItem", nullable: true, innerKey: "parent_id")]
+    public ?NavbarItem $parent = null;
 
-    /** @HasMany(target="NavbarItem", nullable=true, outerKey="parent_id") */
-    public $children;
+    #[HasMany(target: "NavbarItem", nullable: true, outerKey: "parent_id")]
+    public array $children = [];
 
-    /** @ManyToMany(target="Role", though="NavbarItemRole") */
-    public $roles;
+    #[ManyToMany(target: "Role", through: "NavbarItemRole")]
+    public array $roles = [];
 
-    public function __construct()
-    {
-        $this->roles = new PivotedCollection();
-        $this->children = new PivotedCollection();
-    }
-
-    /**
-     * Add a role to the navbar item.
-     *
-     * @param Role $role The role to add.
-     */
     public function addRole(Role $role): void
     {
-        if (!$this->roles->contains($role)) {
-            $this->roles->add($role);
+        if (!in_array($role, $this->roles, true)) {
+            $this->roles[] = $role;
         }
     }
 
     public function clearRoles(): void
     {
-        $this->roles->clear();
+        $this->roles = [];
     }
 
-    /**
-     * has a role
-     *
-     * @param Role $role The role to add.
-     */
     public function hasRole(Role $role): bool
     {
-        return $this->roles->contains($role);
+        return in_array($role, $this->roles, true);
     }
 
-    /**
-     * Remove a role from the navbar item.
-     *
-     * @param Role $role The role to remove.
-     */
     public function removeRole(Role $role): void
     {
-        if ($this->roles->contains($role)) {
-            $this->roles->removeElement($role);
-        }
+        $this->roles = array_filter(
+            $this->roles,
+            fn($r) => $r !== $role
+        );
     }
 
-    /**
-     * Add a child to the navbar item.
-     *
-     * @param NavbarItem $child The child to add.
-     */
     public function addChild(NavbarItem $child): void
     {
-        if (!$this->children->contains($child)) {
-            $this->children->add($child);
+        if (!in_array($child, $this->children, true)) {
+            $this->children[] = $child;
             $child->parent = $this;
         }
     }
 
-    /**
-     * Remove a child from the navbar item.
-     *
-     * @param NavbarItem $child The child to remove.
-     */
     public function removeChild(NavbarItem $child): void
     {
-        if ($this->children->contains($child)) {
-            $this->children->removeElement($child);
-            $child->parent = null;
-        }
+        $this->children = array_filter(
+            $this->children,
+            fn($c) => $c !== $child
+        );
+        $child->parent = null;
     }
 }

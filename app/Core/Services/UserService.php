@@ -244,7 +244,7 @@ class UserService
         }
 
         try {
-            $this->currentUser->last_logged = new \DateTime();
+            $this->currentUser->last_logged = new \DateTimeImmutable();
             transaction($this->currentUser)->run();
         } catch (Throwable $e) {
             // Handle exception if necessary
@@ -260,7 +260,7 @@ class UserService
     {
         $result = [];
 
-        foreach ($this->currentUser->getPermissions()->toArray() as $permission) {
+        foreach ($this->currentUser->getPermissions() as $permission) {
             $result[] = $permission->name;
         }
 
@@ -311,7 +311,7 @@ class UserService
             return 0;
 
         $highestPriority = 0;
-        foreach ($userToCheck->getRoles() as $role) {
+        foreach ($userToCheck->roles as $role) {
             if ($role->priority > $highestPriority) {
                 $highestPriority = $role->priority;
             }

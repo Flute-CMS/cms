@@ -7,34 +7,22 @@ use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Table\Index;
 
-/**
- * @Entity(repository="Flute\Core\Database\Repositories\BucketRepository")
- * @Table(
- *     indexes={
- *         @Index(columns={"id"}, unique=true)
- *     }
- * )
- */
+#[Entity(repository: "Flute\Core\Database\Repositories\BucketRepository")]
+#[Table(
+    indexes: [new Index(columns: ["id"], unique: true)]
+)]
 class Bucket
 {
-    /**
-     * @Column(type="string", nullable=false, primary=true)
-     */
+    #[Column(type: "string", primary: true)]
     private string $id;
 
-    /**
-     * @Column(type="integer", nullable=false)
-     */
+    #[Column(type: "integer")]
     private int $tokens;
 
-    /**
-     * @Column(type="integer", nullable=false)
-     */
+    #[Column(type: "integer")]
     private int $replenishedAt;
 
-    /**
-     * @Column(type="integer", nullable=false)
-     */
+    #[Column(type: "integer")]
     private int $expiresAt = 0;
 
     public function getId(): string

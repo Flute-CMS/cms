@@ -37,7 +37,7 @@ class ThemesController extends AbstractController
             return $this->error(__('admin.themes_list.unknown_theme'));
         }
 
-        foreach ($theme->getSettings() as $key => $setting) {
+        foreach ($theme->settings as $key => $setting) {
             $setting->value = $settings[$setting->key] ?? $setting->value;
         }
 

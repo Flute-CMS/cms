@@ -6,17 +6,15 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 
-/**
- * @Entity()
- */
+#[Entity]
 class CurrencyPaymentGateway
 {
-    /** @Column(type="primary") */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /** @BelongsTo(target="Currency", nullable=false) */
-    public $currency;
+    #[BelongsTo(target: "Currency", nullable: false)]
+    public Currency $currency;
 
-    /** @BelongsTo(target="PaymentGateway", nullable=false) */
-    public $paymentGateway;
+    #[BelongsTo(target: "PaymentGateway", nullable: false)]
+    public PaymentGateway $paymentGateway;
 }

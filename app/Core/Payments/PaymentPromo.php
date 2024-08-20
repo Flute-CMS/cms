@@ -31,7 +31,7 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_not_found'));
         }
 
-        if ($promoCode->usages->count() >= $promoCode->max_usages) {
+        if (sizeof($promoCode->usages) >= $promoCode->max_usages) {
             throw new PaymentPromoException(__('lk.promo_limit'));
         }
 
@@ -112,10 +112,10 @@ class PaymentPromo
      * @param string $code Promo code to create.
      * @param string $type Type of the promo (amount, percentage, subtract).
      * @param float $value Value of the promo.
-     * @param \DateTime $expires_at Expiration date of the promo code.
+     * @param \DateTimeImmutable  $expires_at Expiration date of the promo code.
      * @return PromoCode Returns the newly created PromoCode entity.
      */
-    public function create(string $code, string $type, float $value, \DateTime $expires_at): PromoCode
+    public function create(string $code, string $type, float $value, \DateTimeImmutable $expires_at): PromoCode
     {
         $promoCode = new PromoCode();
         $promoCode->code = $code;

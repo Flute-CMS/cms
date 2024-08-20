@@ -5,71 +5,47 @@ namespace Flute\Core\Database\Entities;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
-use Cycle\ORM\Relation\Pivoted\PivotedCollection;
+use Cycle\ORM\Collection\Pivoted\PivotedCollection;
 
-/**
- * @Entity()
- */
+#[Entity]
 class Server
 {
-    /**
-     * @Column(type="primary")
-     */
-    public $id;
+    #[Column(type: "primary")]
+    public int $id;
 
-    /**
-     * @Column(type="string")
-     */
-    public $name;
+    #[Column(type: "string")]
+    public string $name;
 
-    /**
-     * @Column(type="string")
-     */
-    public $ip;
+    #[Column(type: "string")]
+    public string $ip;
 
-    /**
-     * @Column(type="int")
-     */
-    public $port;
+    #[Column(type: "int")]
+    public int $port;
 
-    /**
-     * @Column(type="string")
-     */
-    public $mod;
+    #[Column(type: "string")]
+    public string $mod;
 
-    /**
-     * @Column(type="string", nullable=true)
-     */
-    public $rcon;
+    #[Column(type: "string", nullable: true)]
+    public ?string $rcon = null;
 
-    /**
-     * @Column(type="string", nullable=true)
-     */
-    public $display_ip;
+    #[Column(type: "string", nullable: true)]
+    public ?string $display_ip = null;
 
-    /**
-     * @HasMany(target="DatabaseConnection", cascade=true, nullable=true)
-     * @var DatabaseConnection[]|null
-     */
-    public $dbconnections;
+    #[HasMany(target: "DatabaseConnection", cascade: true, nullable: true)]
+    public array $dbconnections;
 
-    /**
-     * @Column(type="timestamp", default="CURRENT_TIMESTAMP")
-     */
-    public $created_at;
+    #[Column(type: "timestamp", default: "CURRENT_TIMESTAMP")]
+    public \DateTimeImmutable $created_at;
 
-    /** 
-     * @Column(type="boolean", default=true) 
-     */
-    public $enabled;
+    #[Column(type: "boolean", default: true)]
+    public bool $enabled = true;
 
     public function __construct()
     {
-        $this->dbconnections = new PivotedCollection();
-        $this->created_at = new \DateTime();
+        $this->created_at = new \DateTimeImmutable();
     }
 
-    public function getDbConnection(string $mod)
+    public function getDbConnection(string $mod): ?DatabaseConnection
     {
         foreach ($this->dbconnections as $dbConnection) {
             if ($dbConnection->mod === $mod) {
