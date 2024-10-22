@@ -29,8 +29,7 @@
         </div>
     </div>
 
-    <!-- footer_name -->
-    <div class="position-relative row form-group align-items-start">
+    {{-- <div class="position-relative row form-group align-items-start">
         <div class="col-sm-3 col-form-label">
             <label for="footer_html">
                 @t('admin.app.footer_html_label')
@@ -40,7 +39,7 @@
         <div class="col-sm-9">
             <div class="editor-ace" id="editor" data-editor-lang="html">{!! config('app.footer_html') !!}</div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- URL -->
     <div class="position-relative row form-group">

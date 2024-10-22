@@ -101,7 +101,7 @@ class ImagesController extends AbstractController
         $file = $request->files->get($imageType);
 
         if ($file === null) {
-            return $this->error(__('validator.upload_control_valid'));
+            return $this->error(__('validator.image'));
         }
 
         $maxSize = app('profile.max_' . $imageType . '_size') * 1000000;
@@ -110,52 +110,58 @@ class ImagesController extends AbstractController
             return $this->error(__('validator.max_post_size', ['%d' => $maxSize]));
         }
 
-        try {
-            $mimeType = $file->getMimeType();
-        } catch (\Exception $e) {
-            logs()->error($e);
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
-            return response()->error(500, $message);
+        $allowedMimeTypes = app('profile.' . $imageType . '_types');
+        $mimeType = $file->getMimeType();
+        if (!in_array($mimeType, $allowedMimeTypes)) {
+            return $this->error(__('validator.mime_type'));
         }
 
-        if (!in_array($mimeType, app('profile.' . $imageType . '_types'))) {
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, $allowedExtensions)) {
             return $this->error(__('validator.image'));
         }
 
-        $fileName = hash('sha256', user()->id . $file->getBasename()) . '.' . $file->getClientOriginalExtension();
+        $imageInfo = getimagesize($file->getPathname());
+        if ($imageInfo === false) {
+            return $this->error(__('validator.image'));
+        }
+
+        // Generate a secure file name
+        $fileName = hash('sha256', user()->id . time()) . '.' . $extension;
 
         $destination = BASE_PATH . '/public/assets/uploads';
 
         if (!fs()->exists($destination)) {
-            fs()->mkdir($destination, 0700);
+            fs()->mkdir($destination, 0755);
         }
 
         $newFileDestination = 'assets/uploads/' . $fileName;
 
-        // If banner, check for possible conversion to webp
+        $file->move($destination, $fileName);
+
         if (in_array($mimeType, ['image/png', 'image/jpeg']) && config('profile.convert_to_webp')) {
-            $file->move($destination, $fileName);
-
-            $newFileDestination = 'assets/uploads/' . hash('sha256', user()->id . $file->getBasename()) . '.webp';
-
+            $originalFilePath = $destination . '/' . $fileName;
+            $webpFileName = hash('sha256', user()->id . time()) . '.webp';
+            $webpFilePath = $destination . '/' . $webpFileName;
             try {
-                \WebPConvert\WebPConvert::convert('assets/uploads/' . $fileName, $newFileDestination);
+                \WebPConvert\WebPConvert::convert($originalFilePath, $webpFilePath);
+                fs()->remove($originalFilePath); // Remove original file after conversion
+                $newFileDestination = 'assets/uploads/' . $webpFileName;
             } catch (\Exception $e) {
                 logs()->error($e);
-
-                fs()->remove('assets/uploads/' . $fileName);
+                fs()->remove($originalFilePath);
                 return $this->error(__('validator.image_conversion_failed'));
             }
-
-            fs()->remove('assets/uploads/' . $fileName);
-        } else {
-            $file->move($destination, $fileName);
         }
 
-        $user = rep(User::class)->findByPK(user()->id);
+        $user = user()->getCurrentUser();
 
-        if ($user->{$imageType} !== config('profile.default_' . $imageType)) {
-            fs()->remove($user->{$imageType});
+        $oldFilePath = BASE_PATH . '/public/' . $user->{$imageType};
+        $uploadsDir = realpath(BASE_PATH . '/public/assets/uploads');
+        $oldFileRealPath = realpath($oldFilePath);
+        if ($oldFileRealPath && strpos($oldFileRealPath, $uploadsDir) === 0 && fs()->exists($oldFileRealPath) && $user->{$imageType} !== config('profile.default_' . $imageType)) {
+            fs()->remove($oldFileRealPath);
         }
 
         $user->{$imageType} = $newFileDestination;

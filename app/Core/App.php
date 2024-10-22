@@ -47,7 +47,7 @@ final class App
      * 
      * @var string
      */
-    public const VERSION = '0.2.3.6-alpha';
+    public const VERSION = '0.2.4-alpha';
 
     /**
      * Set the base path of the application

@@ -16,7 +16,7 @@ class AppConfigService extends AbstractConfigService
         $config = array_merge(config('app'), [
             "name" => $params['name'] ?? config('app.name'),
             "footer_name" => $params['footer_name'] ?? config('app.footer_name', ''),
-            "footer_html" => $params['editorContent'] ?? config('app.footer_html', ''),
+            // "footer_html" => $params['editorContent'] ?? config('app.footer_html', ''),
             "url" => $params['url'] ?? config('app.url'),
             "steam_api" => $params['steam_api'] ?? config('app.steam_api'),
             "debug" => $this->b($params['debug'] ?? config('app.debug')),
@@ -70,20 +70,44 @@ class AppConfigService extends AbstractConfigService
     protected function processImageFile(&$config, $file, $type)
     {
         if ($file instanceof UploadedFile && !$file->getError()) {
+            // Validate file
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'ico'];
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/x-icon'];
+            $extension = strtolower($file->getClientOriginalExtension());
+            $mimeType = $file->getMimeType();
+
+            if (!in_array($extension, $allowedExtensions) || !in_array($mimeType, $allowedMimeTypes)) {
+                throw new \Exception(__('validator.invalid_file'));
+            }
+
+            $imageInfo = getimagesize($file->getPathname());
+            if ($imageInfo === false) {
+                throw new \Exception(__('validator.invalid_image'));
+            }
+
+            // Generate secure file name
+            $fileName = hash('sha256', uniqid('', true)) . '.' . $extension;
+
             if ($type === 'favicon') {
-                $destinationPath = public_path();
-                $file->move($destinationPath, 'favicon.ico');
+                $destinationPath = public_path('assets/uploads');
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
+                $file->move($destinationPath, $fileName);
+                $config[$type] = 'assets/uploads/' . $fileName;
             } else {
                 $destinationPath = public_path('assets/uploads');
-                $fileName = $this->generateFileName($file, $type);
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
 
                 if ($this->shouldConvertToWebP($file)) {
                     try {
                         $webp = $this->convertToWebP($file, $destinationPath, $fileName);
                         $config[$type] = 'assets/uploads/' . $webp;
-
                     } catch (\Exception $e) {
-                        //
+                        logs()->error($e);
+                        throw new \Exception(__('validator.image_conversion_failed'));
                     }
                 } else {
                     $file->move($destinationPath, $fileName);

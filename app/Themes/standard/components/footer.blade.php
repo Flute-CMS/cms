@@ -67,7 +67,6 @@
                             </a>
                         @endif
                     </div>
-                    {!! config('app.footer_html') !!}
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace Flute\Core\Http\Controllers;
 
 use Flute\Core\Support\AbstractController;
 use Flute\Core\Support\FluteRequest;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class PagesController extends AbstractController
 {
@@ -46,14 +47,20 @@ class PagesController extends AbstractController
         }
     }
 
-    protected function uploadImage($file)
+    protected function uploadImage(UploadedFile $file)
     {
-        // if (!$file instanceof UploadedFile || !$file->isValid()) {
-        //     return $this->error('Invalid image file');
-        // }
+        if (!$file->isValid()) {
+            throw new \Exception(__('validator.invalid_file'));
+        }
 
         $maxSize = 5000000;
-        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];;
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, $allowedExtensions)) {
+            throw new \Exception(__('validator.invalid_file_extension'));
+        }
 
         if ($file->getSize() > $maxSize) {
             throw new \Exception(__('validator.max_post_size', ['%d' => $maxSize]));
@@ -62,37 +69,45 @@ class PagesController extends AbstractController
         try {
             $mimeType = $file->getMimeType();
         } catch (\Exception $e) {
-            logs()->error($file->getErrorMessage());
-
+            logs()->error($e);
             throw new \Exception(__('def.unknown_error'));
         }
 
         if (!in_array($mimeType, $allowedMimeTypes)) {
-            throw new \Exception(__('validator.image'));
+            throw new \Exception(__('validator.mime_type'));
         }
 
-        $fileName = hash('sha256', uniqid()) . '.' . $file->getClientOriginalExtension();
-        $destination = BASE_PATH . '/public/assets/uploads';
+        $imageInfo = getimagesize($file->getPathname());
+        if ($imageInfo === false) {
+            throw new \Exception(__('validator.invalid_image'));
+        }
+
+        $fileName = hash('sha256', uniqid('', true)) . '.' . $extension;
+        $destination = public_path('assets/uploads');
 
         if (!file_exists($destination)) {
-            mkdir($destination, 0700, true);
+            mkdir($destination, 0755, true);
         }
 
         $file->move($destination, $fileName);
+        chmod($destination . '/' . $fileName, 0644);
 
-        // Конвертация в WebP при необходимости
         $newFileDestination = 'assets/uploads/' . $fileName;
+
+        // Convert to WebP if necessary
         if (in_array($mimeType, ['image/png', 'image/jpeg']) && config('profile.convert_to_webp')) {
-            $webPFileName = hash('sha256', uniqid()) . '.webp';
+            $webPFileName = hash('sha256', uniqid('', true)) . '.webp';
             try {
                 \WebPConvert\WebPConvert::convert($destination . '/' . $fileName, $destination . '/' . $webPFileName);
-                fs()->remove($destination . '/' . $fileName); // Удаление исходного файла
+                unlink($destination . '/' . $fileName);
                 $newFileDestination = 'assets/uploads/' . $webPFileName;
             } catch (\Exception $e) {
-                // Обработка ошибок конвертации
+                logs()->error($e);
+                throw new \Exception(__('validator.image_conversion_failed'));
             }
         }
 
         return $newFileDestination;
     }
+
 }
