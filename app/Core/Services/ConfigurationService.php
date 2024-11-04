@@ -161,6 +161,7 @@ class ConfigurationService
                 "mode" => Expect::string("performance")->required(),
                 "key" => Expect::string()->required(),
                 "logo" => Expect::string()->required(),
+                "favicon" => Expect::string(''),
                 "bg_image" => Expect::string(''),
                 "tips" => Expect::bool(false)->required(),
                 "share" => Expect::bool(true)->required(),
