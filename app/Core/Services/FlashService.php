@@ -94,7 +94,7 @@ class FlashService implements FlashBagInterface
      *
      * @return array The flash messages
      */
-    public function peek(string $type, array $default = []): array
+    public function peek(string $type, array $default = []) : array
     {
         return $this->flashBag->peek($type, $default);
     }
@@ -104,7 +104,7 @@ class FlashService implements FlashBagInterface
      *
      * @return array All flash messages
      */
-    public function peekAll(): array
+    public function peekAll() : array
     {
         return $this->flashBag->peekAll();
     }
@@ -117,7 +117,7 @@ class FlashService implements FlashBagInterface
      *
      * @return array The flash messages
      */
-    public function get(string $type, array $default = []): array
+    public function get(string $type, array $default = []) : array
     {
         return $this->flashBag->get($type, $default);
     }
@@ -127,7 +127,7 @@ class FlashService implements FlashBagInterface
      *
      * @return array All flash messages
      */
-    public function all(): array
+    public function all() : array
     {
         return $this->flashBag->all();
     }
@@ -149,7 +149,7 @@ class FlashService implements FlashBagInterface
      *
      * @return bool True if flash messages exist, false otherwise
      */
-    public function has(string $type): bool
+    public function has(string $type) : bool
     {
         return $this->flashBag->has($type);
     }
@@ -159,7 +159,7 @@ class FlashService implements FlashBagInterface
      *
      * @return array A list of flash message types
      */
-    public function keys(): array
+    public function keys() : array
     {
         return $this->flashBag->keys();
     }
@@ -169,7 +169,7 @@ class FlashService implements FlashBagInterface
      *
      * @return string The flash bag name
      */
-    public function getName(): string
+    public function getName() : string
     {
         return $this->flashBag->getName();
     }
@@ -189,7 +189,7 @@ class FlashService implements FlashBagInterface
      *
      * @return string The flash bag storage key
      */
-    public function getStorageKey(): string
+    public function getStorageKey() : string
     {
         return $this->flashBag->getStorageKey();
     }
@@ -197,7 +197,7 @@ class FlashService implements FlashBagInterface
     /**
      * Clears all flash messages.
      */
-    public function clear()
+    public function clear() : mixed
     {
         return $this->flashBag->clear();
     }
