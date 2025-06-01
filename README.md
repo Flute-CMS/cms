@@ -17,7 +17,10 @@
 ## Demo
 
 
-https://github.com/user-attachments/assets/5c9c561f-68eb-486a-b1c4-f80b60b50ad9
+
+https://github.com/user-attachments/assets/fd0d42df-ad08-45d3-8603-e20993c5e071
+
+
 
 
 ## Discord channel
