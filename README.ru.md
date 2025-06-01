@@ -16,7 +16,11 @@
 
 ## Демонстрация
 
-[Здесь будет видео-демонстрация функционала CMS](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+
+
+
+https://github.com/user-attachments/assets/769bb4a8-a5d0-4dc5-8356-2729b9e697d4
+
 
 ## Сообщество
 
