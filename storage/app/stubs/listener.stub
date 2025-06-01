@@ -1,0 +1,31 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Listeners;
+
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class {{MODULE_NAME}}Listener implements EventSubscriberInterface
+{
+    /**
+     * Returns an array of event names this subscriber wants to listen to.
+     *
+     * @return array
+     */
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            // 'event.name' => 'methodName',
+        ];
+    }
+
+    /**
+     * Handle the event.
+     *
+     * @param mixed $event
+     * @return void
+     */
+    public function handle($event): void
+    {
+        // TODO: Implement event handling logic
+    }
+} 

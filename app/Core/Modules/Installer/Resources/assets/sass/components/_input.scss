@@ -1,0 +1,60 @@
+.input-wrapper {
+    position: relative;
+    width: 100%;
+
+    .input__label {
+        display: block;
+        margin-bottom: 0.3em;
+        font-weight: 500;
+        text-align: left;
+        transition: color var(--transition);
+        font-size: var(--p);
+        color: var(--text-200);
+    }
+
+    input,
+    textarea {
+        width: 100%;
+        padding: 0.5rem 0.85rem;
+        border: 1px solid var(--transp-1);
+        border-radius: 0.5rem;
+        color: var(--text);
+        font-size: var(--p);
+        transition: border-color var(--transition);
+        background-color: var(--transp-05);
+
+        &:focus {
+            outline: none;
+            border-color: var(--transp-5);
+        }
+
+        &::placeholder {
+            color: var(--text-600);
+        }
+    }
+
+    .installer-input__required {
+        color: var(--error);
+    }
+
+    .installer-input__error {
+        color: var(--error);
+        font-size: var(--small);
+        animation: fadeIn 0.3s ease-out;
+        line-height: 1.2;
+    }
+
+    &.has-error {
+        input {
+            border-color: var(--error);
+        }
+
+        .input__label {
+            color: var(--error);
+        }
+    }
+}
+
+.form-text {
+    @extend .text-muted;
+}

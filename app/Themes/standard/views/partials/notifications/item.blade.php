@@ -1,0 +1,33 @@
+<li class="notification-item {{ $notification->viewed ? 'viewed' : 'unread' }} {{ $notification->url ? 'hovered' : '' }}"
+    data-id="{{ $notification->id }}"
+    @if (!$notification->viewed) hx-put="{{ url('api/notifications/' . $notification->id) }}"
+            hx-trigger="load"
+            hx-swap="none" @endif
+    @if ($notification->url) onclick="location.href='{{ url($notification->url) }}'" @endif>
+    <div class="notification-icon">
+        @if (str_starts_with($notification->icon, 'http://') ||
+                str_starts_with($notification->icon, 'https://') ||
+                str_starts_with($notification->icon, 'assets/'))
+            <img src="{{ url($notification->icon) }}" alt="{{ $notification->title }}" loading="lazy">
+        @else
+            <x-icon path="{{ $notification->icon }}" />
+        @endif
+    </div>
+    <div class="notification-content">
+        <div class="notification-header">
+            <div class="notification-name">
+                <h6>{{ $notification->title }}</h6>
+                <small class="notification-date">{{ carbon($notification->createdAt)->diffForHumans() }}</small>
+            </div>
+
+            @if (!$notification->viewed)
+                <span class="notification-unread-indicator"></span>
+            @endif
+        </div>
+
+        {{-- FOR NOW, SUPPORTS ONLY TEXT --}}
+        @if ($notification->type == 'text')
+            <p class="notification-text">{!! $notification->content !!}</p>
+        @endif
+    </div>
+</li>

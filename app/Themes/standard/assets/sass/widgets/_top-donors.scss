@@ -1,0 +1,139 @@
+.top-donors {
+    &-header {
+        @extend .d-flex, .gap-2;
+
+        h5 {
+            @extend .d-flex, .align-center, .gap-2;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        
+        small {
+            opacity: 0.7;
+        }
+    }
+
+    &-icon {
+        @extend .flex-center;
+        color: var(--accent);
+        font-size: 1.3rem;
+    }
+
+    &-list {
+        @extend .d-flex, .flex-column;
+    }
+
+    &-item {
+        @extend .d-flex, .justify-between, .align-center;
+        padding: 0.9rem 1.5rem;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        
+        &:hover {
+            background: var(--transp-05);
+        }
+        
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1.5rem;
+            right: 1.5rem;
+            height: 1px;
+            background-color: var(--transp-1);
+            opacity: 0.6;
+        }
+        
+        position: relative;
+    }
+
+    &-user {
+        @extend .d-flex, .align-center, .gap-2;
+        font-weight: 600;
+        color: var(--text-100);
+        text-decoration: none;
+        
+        &:hover {
+            color: var(--accent);
+        }
+    }
+    
+    &-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: var(--transp-2);
+        border: 1px solid var(--transp-1);
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &-amount {
+        color: var(--success);
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        font-size: var(--p-small);
+        border-radius: 4px;
+        background-color: var(--success-light);
+        opacity: 0.9;
+        
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    &-rank {
+        @extend .flex-center;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: var(--small);
+        
+        &-1, &-2, &-3 {
+            color: white;
+        }
+        
+        &-1 {
+            background: #FFD700;
+            color: #000;
+        }
+        
+        &-2 {
+            background: #C0C0C0;
+            color: #000;
+        }
+        
+        &-3 {
+            background: #CD7F32;
+            color: #000;
+        }
+        
+        &-other {
+            background-color: var(--transp-1);
+            color: var(--text-400);
+        }
+    }
+
+    &-empty {
+        @extend .flex-center, .flex-column;
+        padding: 3rem 0;
+        color: var(--text-400);
+        gap: 0.75rem;
+
+        svg {
+            font-size: 1.75rem;
+            opacity: 0.6;
+            color: var(--text-400);
+        }
+
+        p {
+            margin-bottom: 0;
+            font-size: var(--p-small);
+        }
+    }
+}

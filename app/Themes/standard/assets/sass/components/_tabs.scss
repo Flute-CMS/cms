@@ -1,0 +1,202 @@
+.tabs-container {
+    position: relative;
+    width: 100%;
+
+    .tabs-nav-wrapper {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 1px;
+            background-color: var(--transp-1);
+            z-index: 0;
+        }
+    }
+
+    .tabs-nav {
+        @extend .flex-row;
+
+        flex-wrap: nowrap;
+        position: relative;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        scrollbar-width: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        z-index: 1;
+        scroll-behavior: smooth;
+        
+        &::-webkit-scrollbar {
+            height: 0;
+            width: 0;
+            display: none;
+        }
+
+        .tab-item {
+            position: relative;
+            flex-shrink: 0;
+
+            a {
+                cursor: pointer;
+                padding: 10px 25px;
+                text-decoration: none;
+                color: var(--text-400);
+                display: flex;
+                align-items: center;
+                font-size: var(--p);
+                gap: 8px;
+                @include transition(all);
+                will-change: color;
+
+                @include media(mobile) {
+                    padding: 12px 20px;
+                    font-size: calc(var(--p) - 1px);
+                }
+
+                svg {
+                    font-size: var(--h5);
+                }
+
+                .tab-badge {
+                    display: inline-block;
+                    background-color: var(--transp-3);
+                    color: var(--text);
+                    border-radius: 4px;
+                    padding: 6px 8px;
+                    font-size: var(--small);
+                    line-height: 1;
+                    font-weight: 600;
+                    @include transition(all);
+                }
+
+                &:hover {
+                    color: var(--text-200);
+                }
+                
+                &:active {
+                    opacity: 0.8; // Visual feedback for touch
+                }
+                
+                &:focus {
+                    outline: none;
+                }
+                
+                &:focus-visible {
+                    outline: 2px solid var(--primary);
+                    outline-offset: 2px;
+                    border-radius: 4px;
+                }
+            }
+
+            &.active a {
+                color: var(--text);
+                font-weight: 500;
+
+                .tab-badge {
+                    color: var(--text-950);
+                    background-color: var(--accent);
+                }
+            }
+        }
+    }
+
+    .underline {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        background-color: var(--primary);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        will-change: transform, width, left;
+        transform: translateZ(0);
+        z-index: 2;
+        
+        @include media(mobile) {
+            height: 3px; // Slightly thicker on mobile for better visibility
+        }
+    }
+
+    &.pills {
+        .tabs-nav-wrapper {
+            overflow: visible;
+            
+            &::after {
+                display: none;
+            }
+        }
+
+        .tabs-nav {
+            border-bottom: none;
+            gap: 8px;
+            flex-wrap: wrap;
+            
+            @include media(mobile) {
+                gap: 6px;
+            }
+        }
+
+        .tab-item {
+            a {
+                padding: 0.7rem 1.2rem;
+                border-radius: var(--border05);
+                color: var(--text-300);
+                @include transition(all);
+
+                &:hover {
+                    background-color: var(--transp-3);
+                    color: var(--text);
+                }
+
+                @include media(mobile) {
+                    padding: 0.8rem 1rem;
+                    display: flex;
+                    justify-content: center;
+                }
+            }
+
+            &.active a {
+                background-color: var(--primary);
+                color: var(--primary-900);
+
+                .tab-badge {
+                    background-color: var(--primary-950);
+                    color: var(--primary);
+                }
+            }
+        }
+
+        .underline {
+            display: none;
+        }
+    }
+    
+    &.scrollable-tabs {
+        .tabs-nav {
+            -ms-overflow-style: none;
+            position: relative;
+            padding-bottom: 2px;
+        }
+    }
+}
+
+.tabs-content {
+    position: relative;
+    
+    .tab-content {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+
+        &.active {
+            display: block;
+            opacity: 1;
+        }
+    }
+}

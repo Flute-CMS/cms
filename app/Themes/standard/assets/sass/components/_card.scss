@@ -1,0 +1,41 @@
+.card {
+    @extend .blur-bg;
+
+    border-radius: var(--border1);
+    border: 1px solid var(--transp-1);
+    background-color: var(--transp-05);
+    overflow: hidden;
+    box-shadow: var(--shadow-small);
+
+    &-img-top {
+        width: 100%;
+        height: auto;
+    }
+
+    &-header {
+        padding: 1.2em 1.5em;
+        border-bottom: 1px solid var(--transp-1);
+
+        .card-title {
+            margin: 0;
+        }
+
+        .card-subtitle {
+            margin-top: 0.25rem;
+            color: var(--text-200);
+        }
+    }
+
+    &-body {
+        &:not(.withoutPadding) {
+            padding: 1em 1.5em;
+        }
+    }
+
+    &-footer {
+        padding: 1em 1.5em;
+        padding-bottom: 1.25em;
+        // background-color: var(--background-800);
+        border-top: 1px solid var(--transp-1);
+    }
+}

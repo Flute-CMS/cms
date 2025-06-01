@@ -1,0 +1,12 @@
+.api-key {
+    display: flex;
+
+    span {
+        filter: blur(5px);
+        transition: filter 0.2s ease;
+
+        &:hover {
+            filter: blur(0);
+        }
+    }
+}

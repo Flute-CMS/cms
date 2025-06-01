@@ -1,0 +1,34 @@
+.invalid__widget {
+    @extend .card, .flex-center, .flex-column;
+
+    border: 1px solid var(--error) !important;
+    border-radius: var(--border1);
+    padding: 1.5rem 1rem;
+
+    &-icon {
+        @extend .d-flex;
+
+        font-size: var(--h1);
+        opacity: .3;
+    }
+
+    &-title {
+        color: var(--error);
+        margin-top: .7rem;
+    }
+
+    &-small {
+        color: var(--text-300);
+    }
+
+    &-error {
+        background-color: var(--transp-1);
+        border-radius: var(--border05);
+        font-size: var(--p-small);
+        color: var(--text-100);
+        padding: .6rem .8rem;
+        margin: 1rem 0;
+        margin-bottom: 1.5rem;
+        user-select: all;
+    }
+}

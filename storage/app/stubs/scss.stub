@@ -1,0 +1,16 @@
+/**
+ * {{MODULE_NAME}} Module Styles
+ */
+
+// Variables
+$module-prefix: '{{MODULE_NAME_LOWER}}';
+
+// Component imports
+@import 'components/index';
+
+// Module styles
+.#{$module-prefix} {
+    &-container {
+        margin: 1rem 0;
+    }
+} 

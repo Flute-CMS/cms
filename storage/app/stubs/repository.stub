@@ -1,0 +1,37 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Repositories;
+
+class {{MODULE_NAME}}Repository
+{
+    /**
+     * Create a new {{MODULE_NAME}}Repository instance.
+     */
+    public function __construct()
+    {
+        // TODO: Inject dependencies
+    }
+
+    /**
+     * Get all items.
+     *
+     * @return array
+     */
+    public function all(): array
+    {
+        // TODO: Implement repository logic
+        return [];
+    }
+
+    /**
+     * Find an item by ID.
+     *
+     * @param int $id
+     * @return mixed|null
+     */
+    public function find(int $id)
+    {
+        // TODO: Implement repository logic
+        return null;
+    }
+} 

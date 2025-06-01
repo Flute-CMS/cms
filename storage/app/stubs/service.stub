@@ -1,0 +1,24 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Services;
+
+class {{MODULE_NAME}}
+{
+    /**
+     * Create a new {{MODULE_NAME}} service instance.
+     */
+    public function __construct()
+    {
+        // TODO: Inject dependencies
+    }
+
+    /**
+     * Example service method.
+     *
+     * @return void
+     */
+    public function process(): void
+    {
+        // TODO: Implement service logic
+    }
+} 

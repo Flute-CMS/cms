@@ -1,0 +1,104 @@
+.legend-block {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    position: relative;
+
+    legend {
+        @extend .d-flex;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 0 var(--space-md) 0;
+        background: transparent;
+        position: relative;
+
+        .legend-content {
+            @extend .d-flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .legend-text {
+            @extend .d-flex;
+            flex-direction: column;
+        }
+
+        .legend-icon {
+            @extend .d-inline-flex;
+            width: 1.5rem;
+            height: 1.5rem;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent);
+            opacity: 0.85;
+            transition: opacity var(--transition);
+
+            &:hover {
+                opacity: 1;
+            }
+
+            svg {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        h4 {
+            font-weight: 700;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            margin: 0;
+            color: var(--text);
+            font-size: var(--h3);
+            letter-spacing: -0.01em;
+        }
+
+        small {
+            color: var(--text-600);
+            max-width: 80ch;
+        }
+
+        .legend-actions {
+            @extend .d-flex;
+            gap: var(--space-sm);
+            margin-left: auto;
+            padding-left: 1rem;
+        }
+
+        @include media(mobile) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            margin-left: 0.5rem;
+
+            &::before {
+                left: -0.5rem;
+                top: 0.75rem;
+                transform: none;
+            }
+
+            &::after {
+                left: -0.25rem;
+                height: calc(100% - 0.5rem);
+                top: 1rem;
+            }
+
+            .legend-content {
+                width: 100%;
+            }
+
+            .legend-actions {
+                width: 100%;
+                justify-content: center;
+                padding: 0.5rem 0 0 0;
+                margin-top: 0.5rem;
+                border-left: none;
+                border-top: 1px dashed var(--transp-3);
+            }
+        }
+    }
+}

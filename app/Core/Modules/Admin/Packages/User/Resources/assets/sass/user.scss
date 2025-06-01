@@ -1,0 +1,16 @@
+.admin-user-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-bottom: 3px;
+    margin-left: 2px;
+
+    &.error {
+        background-color: var(--error);
+    }
+
+    &.success {
+        background-color: var(--success);
+    }
+}

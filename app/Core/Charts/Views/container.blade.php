@@ -1,0 +1,1 @@
+<div style="min-height: {{ is_int($height) ? $height . 'px' : $height }}; min-width: {{ is_int($width) ? $width . 'px' : $width }}" id="{!! $id !!}"></div>

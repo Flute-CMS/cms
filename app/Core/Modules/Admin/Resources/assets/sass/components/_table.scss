@@ -1,0 +1,194 @@
+tbody,
+td,
+tfoot,
+th,
+thead,
+tr {
+    border: 0 solid;
+    border-color: inherit;
+}
+
+.table {
+    vertical-align: top;
+    width: 100%;
+    // Set table space 0
+    border-spacing: 0;
+
+    &-card {
+        >div {
+            border-top-left-radius: var(--border1);
+            border-top-right-radius: var(--border1);
+        }
+    }
+
+    thead {
+        vertical-align: bottom;
+        background-color: var(--transp-05);
+
+        tr {
+            th {
+                border-top: 0;
+                color: var(--text-200);
+                font-size: var(--p);
+                font-weight: 600;
+                vertical-align: baseline;
+                border-bottom: 1px solid var(--transp-1);
+                padding: 1em;
+
+                &:first-child {
+                    padding-left: 1.5rem;
+                }
+            }
+        }
+    }
+
+    tbody {
+        vertical-align: inherit;
+
+        tr {
+            td {
+                border-top: 0;
+                font-size: var(--p-small);
+                padding: .8rem 1rem;
+                vertical-align: middle;
+                word-break: break-all;
+
+                &:first-child {
+                    padding-left: 1.5rem !important;
+                }
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            >td {
+                border-bottom: 1px solid var(--transp-1);
+                padding: 8px 15px;
+            }
+
+            &:last-of-type>td {
+                border-bottom: 0;
+            }
+        }
+    }
+
+    &.table-compact {
+        tbody {
+            tr {
+                >td:first-child {
+                    padding-left: 0.4rem!important;
+                }
+            }
+        }
+    }
+
+    &__pagination {
+        @extend .flex-row, .align-center;
+
+        &-item {
+            @extend .flex-center;
+
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--transp-1);
+            border-left-width: 0;
+            color: var(--text-200);
+            @include transition();
+
+            a,
+            span {
+                @extend .flex-center;
+
+                height: 100%;
+                width: 100%;
+                color: inherit;
+                font-size: var(--p-small);
+
+                &.link-icon {
+                    font-size: var(--h5);
+                }
+            }
+
+            &:not(.disabled) {
+                &:hover {
+                    background-color: var(--transp-1);
+                    color: var(--text-100);
+                }
+
+                &.active {
+                    color: var(--text-900);
+                    background-color: var(--accent);
+                }
+            }
+
+            &.disabled {
+                pointer-events: none;
+                opacity: .7;
+            }
+
+            &:first-child {
+                border-top-left-radius: var(--border1);
+                border-bottom-left-radius: var(--border1);
+                border-left-width: 1px;
+            }
+
+            &:last-child {
+                border-top-right-radius: var(--border1);
+                border-bottom-right-radius: var(--border1);
+            }
+        }
+    }
+
+    &__footer {
+        @extend .d-flex, .flex-row, .align-center, .flex-between;
+
+        border-top: 1px solid var(--transp-1);
+        padding: .8rem 1rem;
+        padding-left: 1.5rem;
+    }
+
+    &__columns {
+        @extend .flex-column;
+
+        gap: 10px;
+
+        padding: .7rem;
+
+        label {
+            width: 100%;
+        }
+    }
+
+    &__search {
+        max-width: 400px;
+    }
+}
+
+.table-compact>:not(caption)>*>* {
+    padding: .4rem !important
+}
+
+.sortable-column {
+    cursor: pointer;
+
+    a {
+        color: inherit;
+
+        &:hover {
+            color: var(--primary);
+        }
+    }
+
+    .sort-indicator {
+        display: inline-flex;
+        align-items: center;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover {
+        .sort-indicator {
+            opacity: 1 !important;
+        }
+    }
+}

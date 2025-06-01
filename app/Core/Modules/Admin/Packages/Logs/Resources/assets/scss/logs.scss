@@ -1,0 +1,216 @@
+#logger-select {
+    min-width: 250px;
+}
+
+.logs-container {
+    .logs-toolbar {
+        padding-bottom: var(--space-md);
+        margin-bottom: var(--space-md);
+        border-bottom: 1px solid var(--transp-1);
+    }
+
+    .log-filter {
+        min-width: 200px;
+    }
+
+    .log-info {
+        &-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+
+            @media (max-width: 768px) {
+                margin-bottom: var(--space-xs);
+            }
+        }
+
+        &-label {
+            font-weight: 600;
+            color: var(--text-400);
+        }
+
+        &-value {
+            color: var(--text-200);
+        }
+    }
+
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: var(--border05);
+
+        th,
+        td {
+            padding: var(--space-md) var(--space-sm);
+            text-align: left;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--transp-1);
+            line-height: 1.4;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-300);
+            font-size: var(--p-small);
+            text-transform: uppercase;
+            background-color: var(--transp-05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            font-size: var(--p);
+        }
+    }
+
+    .log-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35em 0.7em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 4px;
+        min-width: 80px;
+        text-align: center;
+
+        &.debug {
+            background-color: var(--text-500);
+            color: var(--background-50);
+        }
+
+        &.info {
+            background-color: var(--info-light);
+            color: var(--info);
+        }
+
+        &.notice {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        &.warning {
+            background-color: var(--warning-light);
+            color: var(--warning);
+        }
+
+        &.error,
+        &.critical,
+        &.alert,
+        &.emergency {
+            background-color: var(--error-light);
+            color: var(--error);
+        }
+    }
+
+    .log-message {
+        position: relative;
+        word-break: break-word;
+        font-size: var(--p-small);
+
+        &-toggle {
+            background: none;
+            border: none;
+            color: var(--primary);
+            padding: var(--space-xs);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-xs);
+            border-radius: var(--border05);
+            transition: 0.2s ease;
+
+            &:hover {
+                background-color: var(--transp-1);
+            }
+
+            .toggle-text {
+                font-size: 0.8em;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .error-level td,
+    .critical-level td,
+    .alert-level td,
+    .emergency-level td {
+        background-color: var(--error-light);
+    }
+
+    .warning-level td {
+        background-color: var(--warning-light);
+    }
+
+    .info-level td {
+        background-color: var(--info-light);
+    }
+
+    .notice-level td {
+        background-color: var(--success-light);
+    }
+
+    .context-row {
+        display: none;
+
+        &.show {
+            display: table-row;
+        }
+    }
+
+    .context-data {
+        background: var(--background-950);
+        border: 1px solid var(--transp-1);
+        padding: var(--space-md);
+        border-radius: 5px;
+        font-size: 0.85rem;
+        max-height: 300px;
+        overflow: auto;
+        white-space: pre-wrap;
+        font-family: monospace;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 768px) {
+    .logs-container {
+        .logs-toolbar {
+            flex-direction: column;
+
+            .log-filter {
+                width: 100%;
+            }
+        }
+
+        .log-info {
+            width: 100%;
+        }
+
+        .logs-table {
+
+            th,
+            td {
+                padding: var(--space-xs);
+                font-size: 0.9em;
+            }
+
+            th:nth-child(2),
+            td:nth-child(2),
+            th:nth-child(3),
+            td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        .log-message {
+            &-toggle {
+                .toggle-text {
+                    display: none;
+                }
+            }
+        }
+    }
+}

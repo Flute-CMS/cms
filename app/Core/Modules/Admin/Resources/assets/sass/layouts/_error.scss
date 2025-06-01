@@ -1,0 +1,28 @@
+#page-error-container {
+    @extend .flex-center, .gap-4, .flex-row;
+
+    height: 100%;
+    position: relative;
+    margin-top: 30px;
+    height: calc(100vh - 400px);
+
+    @include media(mobile) {
+        flex-direction: column;
+    }
+
+    >div:not(.not-found-image) {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h1 {
+        font-size: calc(var(--h1) * var(--font-scale));
+    }
+
+    .not-found-image {
+        position: relative;
+        width: 250px;
+    }
+}

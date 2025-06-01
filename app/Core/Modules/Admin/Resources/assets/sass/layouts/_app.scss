@@ -1,0 +1,64 @@
+body {
+    background: radial-gradient(circle at 57.5% 50%, var(--primary-900), var(--background));
+    margin-left: 270px;
+    transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    @include media(mobile) {
+        margin-left: 0;
+    }
+
+    &.sidebar-collapsed {
+        margin-left: 70px;
+
+        @include media(mobile) {
+            margin-left: 0;
+        }
+    }
+}
+
+main {
+    overflow: auto;
+    flex: 1;
+}
+
+#main * {
+    view-transition-name: none !important;
+}
+
+.base-legend {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 20px;
+
+    @include media(mobile) {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+
+        >ul {
+            width: 100%;
+
+            a,
+            button {
+                width: 100%;
+            }
+        }
+    }
+}
+
+.icon-container {
+    border-radius: 50%;
+    background-color: var(--transp-1);
+    padding: 10px;
+}
+
+.container {
+    transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.container-wide {
+        max-width: 99% !important;
+    }
+}

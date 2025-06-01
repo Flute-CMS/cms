@@ -1,0 +1,16 @@
+<?php return [
+    "edit_page"         => "Edit page",
+    "edit_colors"       => "Edit colors",
+    "select_color"      => "Select color",
+    "hex"               => "HEX",
+    "rgb"               => "RGB",
+    "hsl"               => "HSL",
+    "background"        => "Background",
+    "text"              => "Text",
+    "contrast_rating"   => "Color readability",
+    "primary"           => "Primary",
+    "secondary"         => "Secondary",
+    "accent"            => "Accent",
+    "border_radius"     => "Border radius",
+    "reset"             => "Reset",
+];

@@ -1,0 +1,124 @@
+.promo-codes {
+    &-header {
+        @extend .d-flex, .gap-2;
+
+        h5 {
+            @extend .d-flex, .align-center, .gap-2;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        
+        small {
+            opacity: 0.7;
+        }
+    }
+
+    &-icon {
+        @extend .flex-center;
+        
+        color: var(--accent);
+        font-size: 1.3rem;
+    }
+
+    .promo-code {
+        &-list {
+            @extend .d-flex, .flex-column, .gap-2;
+        }
+
+        &-copy {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--transp-1);
+            width: 24px;
+            height: 24px;
+            border-radius: var(--border05);
+            font-size: var(--small);
+            color: var(--text-600);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+
+            &:hover {
+                background-color: var(--transp-2);
+                color: var(--primary);
+            }
+
+            &:active {
+                transform: scale(0.95);
+            }
+        }
+
+        &-item {
+            @extend .d-flex, .flex-column;
+            padding: 1em 1.5em;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--transp-1);
+
+            &:last-of-type {
+                border-bottom: none;
+            }
+        }
+
+        &-info {
+            @extend .d-flex, .justify-between, .align-center;
+        }
+
+        &-code {
+            @extend .d-flex, .align-center, .gap-2;
+            font-weight: 600;
+            font-size: var(--h6);
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        &-discount {
+            font-weight: 600;
+            font-size: var(--p-small);
+            color: var(--accent);
+            position: relative;
+        }
+
+        &-expiry {
+            text-align: right;
+
+            small {
+                font-size: var(--small);
+                color: var(--text-600);
+            }
+        }
+    }
+
+    &-empty {
+        @extend .flex-center, .flex-column, .gap-2;
+        padding: 1.5rem 0;
+        color: var(--text-600);
+
+        svg {
+            font-size: 1.5rem;
+            opacity: 0.6;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        p {
+            margin-bottom: 0;
+            font-size: var(--small);
+        }
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

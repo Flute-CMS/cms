@@ -1,0 +1,57 @@
+<?php
+
+namespace Flute\Admin\Packages\{{MODULE_NAME}}\Screens;
+
+use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\Select;
+use Flute\Admin\Platform\Layouts\LayoutFactory;
+use Flute\Admin\Platform\Screen;
+use Flute\Admin\Platform\Support\Color;
+
+class {{MODULE_NAME}}Screen extends Screen
+{
+    public ?string $name = 'admin-{{MODULE_NAME_LOWER}}.title.index';
+    public ?string $description = 'admin-{{MODULE_NAME_LOWER}}.title.description';
+    public ?string $permission = 'admin.{{MODULE_NAME_LOWER}}';
+
+    public function mount() : void
+    {
+        breadcrumb()
+            ->add(__('def.admin_panel'), url('/admin'))
+            ->add(__('admin-{{MODULE_NAME_LOWER}}.title.menu'), url('/admin/{{MODULE_NAME_LOWER}}'));
+    }
+
+    public function commandBar() : array
+    {
+        return [
+            Button::make(__('def.create'))
+                ->icon('ph.bold.plus-bold')
+                ->color(Color::SUCCESS)
+                ->route('admin.{{MODULE_NAME_LOWER}}.create'),
+        ];
+    }
+
+    public function layout() : array
+    {
+        return [
+            LayoutFactory::table('items')
+                ->title(__('admin-{{MODULE_NAME_LOWER}}.title.list'))
+                ->columns([
+                    'id' => __('def.id'),
+                    'name' => __('def.name'),
+                    'actions' => __('def.actions'),
+                ])
+                ->actions([
+                    Button::make(__('def.edit'))
+                        ->icon('ph.bold.pencil-simple-bold')
+                        ->route('admin.{{MODULE_NAME_LOWER}}.edit', ['id' => 'id']),
+                    Button::make(__('def.delete'))
+                        ->icon('ph.bold.trash-bold')
+                        ->color(Color::DANGER)
+                        ->confirm(__('def.confirm_delete'))
+                        ->method('delete', ['id' => 'id']),
+                ]),
+        ];
+    }
+} 

@@ -1,0 +1,28 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Providers\Extensions;
+
+use Flute\Core\Support\Extension;
+
+class {{MODULE_NAME}}Extension extends Extension
+{
+    /**
+     * Register the extension services.
+     *
+     * @return void
+     */
+    public function register(): void
+    {
+        // Register extension services here
+    }
+    
+    /**
+     * Bootstrap the extension.
+     *
+     * @return void
+     */
+    public function boot(): void
+    {
+        // Bootstrap extension here
+    }
+} 

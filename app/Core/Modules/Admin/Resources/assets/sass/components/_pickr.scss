@@ -1,0 +1,508 @@
+// Main container
+.pickr {
+    position: relative;
+    overflow: visible;
+    transform: translateY(0);
+
+    * {
+        box-sizing: border-box;
+        outline: none;
+        border: none;
+        -webkit-appearance: none;
+    }
+
+    // Color picker button
+    .pcr-button {
+        position: relative;
+        height: 2.5em;
+        width: 2.5em;
+        padding: 0;
+        cursor: pointer;
+        font-family: var(--font);
+        border-radius: var(--border05);
+        border: 1px solid var(--transp-2);
+        transition: all var(--transition);
+        overflow: hidden;
+
+        &::before {
+            position: absolute;
+            content: "";
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+            background-size: 0.5em;
+            border-radius: calc(var(--border05) - 1px);
+            z-index: initial;
+        }
+
+        &::after {
+            position: absolute;
+            content: "";
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            transition: background var(--transition);
+            background: var(--pcr-color);
+            border-radius: calc(var(--border05) - 1px);
+        }
+
+        &:hover {
+            border-color: var(--primary-300);
+            transform: scale(1.05);
+        }
+
+        &.clear {
+            background-size: 70%;
+
+            &::before {
+                opacity: 0;
+            }
+
+            &:focus {
+                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+            }
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+}
+
+// Common styles for picker elements
+.pickr,
+.pcr-app {
+    * {
+        box-sizing: border-box;
+        outline: none;
+        border: none;
+        -webkit-appearance: none;
+    }
+
+    input:focus,
+    input.pcr-active,
+    button:focus,
+    button.pcr-active {
+        box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+    }
+
+    .pcr-palette,
+    .pcr-slider {
+        transition: box-shadow var(--transition);
+
+        &:focus {
+            box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--transp-4);
+        }
+    }
+}
+
+// Color picker dialog
+.pcr-app {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    border-radius: var(--border05);
+    background: var(--background);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), visibility 0s var(--transition);
+    font-family: var(--font);
+    box-shadow: 0 0.25em 2em 0 var(--transp-4), 0 0 1em 0 var(--transp-2);
+    left: 0;
+    top: 0;
+    width: 16em;
+    max-width: 95vw;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--transp-2);
+
+    &.visible {
+        transition: opacity var(--transition);
+        visibility: visible;
+        opacity: 1;
+    }
+
+    // Selection area - contains color palette, preview, chooser, and opacity sliders
+    .pcr-selection {
+        display: grid;
+        grid-gap: 0.8em;
+        grid-template-columns: 1fr 4fr;
+        grid-template-rows: 5fr auto auto;
+        align-items: center;
+        height: 12em;
+        width: 100%;
+        align-self: flex-start;
+        padding: 1em;
+
+        // Circle picker indicator for all sliders
+        .pcr-picker {
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            border: 2px solid white;
+            border-radius: 100%;
+            box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+
+        // Color preview section
+        .pcr-color-preview {
+            grid-area: 2/1/4/1;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+
+            .pcr-last-color {
+                display: none;
+                position: relative;
+                background: var(--pcr-color);
+                width: 2em;
+                height: 2em;
+                border-radius: 50em;
+                overflow: hidden;
+                box-shadow: 0 0 3px var(--transp-3);
+
+                &::before {
+                    position: absolute;
+                    content: "";
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                    background-size: 0.5em;
+                    border-radius: 0.15em;
+                    z-index: -1;
+                }
+            }
+
+            .pcr-current-color {
+                position: relative;
+                background: var(--pcr-color);
+                width: 2.5em;
+                height: 2.5em;
+                border-radius: var(--border05);
+                overflow: hidden;
+                box-shadow: 0 0 3px var(--transp-3);
+
+                &::before {
+                    position: absolute;
+                    content: "";
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                    background-size: 0.5em;
+                    border-radius: var(--border05);
+                    z-index: -1;
+                }
+            }
+        }
+
+        // Main color selection palette
+        .pcr-color-palette {
+            grid-area: 1/1/2/3;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+
+            .pcr-palette {
+                border-radius: var(--border05);
+                width: 100%;
+                height: 100%;
+                box-shadow: 0 0 3px var(--transp-3);
+
+                &::before {
+                    position: absolute;
+                    content: "";
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                    background-size: 0.5em;
+                    border-radius: var(--border05);
+                    z-index: -1;
+                }
+            }
+        }
+
+        // Hue slider section
+        .pcr-color-chooser {
+            grid-area: 2/2/2/2;
+            height: 0.75em;
+            margin: 0 0.6em;
+
+            .pcr-picker {
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .pcr-slider {
+                flex-grow: 1;
+                border-radius: 50em;
+                background: linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(0, 100%, 50%));
+                box-shadow: 0 0 3px var(--transp-3);
+            }
+        }
+
+        // Opacity slider section
+        .pcr-color-opacity {
+            grid-area: 3/2/3/2;
+            height: 0.75em;
+            margin: 0 0.6em;
+
+            .pcr-picker {
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .pcr-slider {
+                flex-grow: 1;
+                border-radius: 50em;
+                background: linear-gradient(to right, transparent, black), url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                background-size: 100%, 0.25em;
+                box-shadow: 0 0 3px var(--transp-3);
+            }
+        }
+
+        // Common styles for color slider areas
+        .pcr-color-palette,
+        .pcr-color-chooser,
+        .pcr-color-opacity {
+            position: relative;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+
+            &:active {
+                cursor: grabbing;
+            }
+        }
+    }
+
+    // Color swatches section
+    .pcr-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 0.6em;
+        padding: 0 1em;
+        gap: 0.5em;
+
+        &.pcr-last {
+            margin: 0;
+        }
+
+        @supports(display: grid) {
+            display: grid;
+            align-items: center;
+            grid-template-columns: repeat(auto-fit, 1.75em);
+            grid-gap: 0.5em;
+        }
+
+        >button {
+            font-size: var(--p);
+            position: relative;
+            width: 1.75em;
+            height: 1.75em;
+            border-radius: var(--border05);
+            cursor: pointer;
+            flex-shrink: 0;
+            justify-self: center;
+            transition: all var(--transition);
+            overflow: hidden;
+            background: transparent;
+            z-index: 1;
+            box-shadow: 0 0 3px var(--transp-3);
+
+            &::before {
+                position: absolute;
+                content: "";
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                background-size: 6px;
+                border-radius: var(--border05);
+                z-index: -1;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: var(--pcr-color);
+                border: 1px solid var(--transp-2);
+                border-radius: var(--border05);
+                box-sizing: border-box;
+            }
+
+            &:hover {
+                transform: scale(1.15);
+                z-index: 2;
+            }
+
+            &:not(.pcr-active) {
+                box-shadow: none;
+            }
+        }
+    }
+
+    // Color input and controls section
+    .pcr-interaction {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0.75em 1em 1em;
+        gap: 0.5em;
+        justify-content: center;
+
+        // Hide the default result input
+        .pcr-result {
+            display: none;
+        }
+
+        // Format buttons (HEXA, RGBA, etc.)
+        .pcr-type {
+            letter-spacing: 0.07em;
+            font-size: var(--small);
+            text-align: center;
+            cursor: pointer;
+            color: var(--text);
+            background: var(--transp-05);
+            border-radius: var(--border05);
+            transition: all var(--transition);
+            padding: 0.45em 0.75em;
+            margin-top: 0.75em;
+            font-weight: 500;
+
+            &:hover {
+                background: var(--transp-1);
+            }
+
+            &:focus {
+                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+            }
+
+            &.active {
+                color: var(--text-light);
+                background: var(--primary);
+            }
+        }
+
+        // Action buttons (Save, Clear, Cancel)
+        .pcr-save,
+        .pcr-cancel,
+        .pcr-clear {
+            color: var(--text-light);
+            width: auto;
+            letter-spacing: 0.07em;
+            font-size: var(--small);
+            text-align: center;
+            cursor: pointer;
+            border-radius: var(--border05);
+            transition: all var(--transition);
+            padding: 0.45em 0.75em;
+            margin-top: 0.75em;
+            font-weight: 500;
+
+            &:hover {
+                filter: brightness(0.925);
+                transform: translateY(-2px);
+            }
+        }
+
+        .pcr-save {
+            background: var(--primary);
+            box-shadow: 0 2px 4px var(--transp-2);
+
+            &:focus {
+                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+            }
+        }
+
+        .pcr-clear,
+        .pcr-cancel {
+            background: var(--error);
+            box-shadow: 0 2px 4px var(--transp-2);
+
+            &:focus {
+                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--error-light);
+            }
+        }
+    }
+}
+
+// Custom color field
+.input__field-color {
+    cursor: pointer;
+    color: var(--text);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding-right: 3em !important;
+}
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    height: 2em;
+    width: 2em;
+    border-radius: var(--border05);
+    overflow: hidden;
+    margin-right: 0.5em;
+    border: 1px solid var(--transp-2);
+    box-shadow: 0 1px 3px var(--transp-1);
+    transition: all var(--transition);
+
+    &:hover {
+        transform: scale(1.05);
+        border-color: var(--primary-300);
+    }
+
+    .color-preview {
+        width: 100%;
+        height: 100%;
+        transition: background-color var(--transition);
+    }
+}
+
+// Custom color display
+.color-value-display {
+    color: var(--text);
+    font-size: var(--p);
+    font-family: var(--font);
+    margin-left: 0.5em;
+    background-color: var(--transp-05);
+    padding: 0.25em 0.5em;
+    border-radius: var(--border05);
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 0.02em;
+
+    &:hover {
+        background-color: var(--transp-1);
+    }
+}
+
+// Better input container for color fields
+.input__field-container {
+    &:has(.input__field-color) {
+        display: flex;
+        align-items: center;
+        padding: 0.5em 1em;
+    }
+}

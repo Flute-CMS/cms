@@ -1,0 +1,93 @@
+.scrollup {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background-color: var(--transp-2);
+    border: none;
+    border-radius: 50%;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(1rem);
+    transition: all var(--transition);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at center, var(--transp-2), transparent);
+        opacity: 0;
+        transition: opacity var(--transition);
+    }
+
+    &:hover {
+        background-color: var(--transp-3);
+        transform: translateY(-2px);
+
+        &::before {
+            opacity: 1;
+        }
+
+        .scrollup__icon {
+            transform: translateY(-2px);
+            color: var(--accent);
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+
+        .scrollup__icon {
+            transform: translateY(0);
+        }
+    }
+
+    &.is-visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    &__icon {
+        position: relative;
+        width: 1.5rem;
+        height: 1.5rem;
+        color: var(--text-400);
+        transition: all var(--transition);
+    }
+}
+
+// Темная тема
+[data-theme="dark"] {
+    .scrollup {
+        background-color: var(--transp-3);
+
+        &:hover {
+            background-color: var(--transp-4);
+        }
+    }
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+    .scrollup {
+        right: 1rem;
+        bottom: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
+
+        &__icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+}

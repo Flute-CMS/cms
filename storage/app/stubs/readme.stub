@@ -1,0 +1,27 @@
+# {{MODULE_NAME}} Module
+
+{{MODULE_DESCRIPTION}}
+
+## Installation
+
+```bash
+php flute module:enable {{MODULE_NAME}}
+```
+
+## Usage
+
+Describe how to use the module here.
+
+## Configuration
+
+Describe configuration options here.
+
+## Features
+
+- Feature 1
+- Feature 2
+- Feature 3
+
+## License
+
+This module is part of the Flute CMS and is licensed under the same license. 

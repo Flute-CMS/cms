@@ -1,0 +1,20 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Providers;
+
+use Flute\Core\Support\ModuleServiceProvider;
+
+class {{MODULE_NAME}}Provider extends ModuleServiceProvider
+{
+    public array $extensions = [];
+
+    public function boot(\DI\Container $container): void
+    {
+        $this->bootstrapModule();
+    }
+
+    public function register(\DI\Container $container): void
+    {
+        {{TRANSLATES}}
+    }
+}

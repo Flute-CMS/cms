@@ -1,0 +1,70 @@
+<?php
+
+return [
+    'labels' => [
+        'home' => 'Панель управления',
+        'welcome_back' => 'С возвращением, :name',
+        'current_time' => 'Текущее время',
+    ],
+
+    'descriptions' => [
+        'key_metrics' => 'Ключевые показатели и статистика',
+        'welcome_message' => 'Добро пожаловать в панель управления',
+        'user_registrations' => 'Динамика регистраций пользователей',
+        'user_activity' => 'Активность пользователей по дням',
+        'notifications' => 'Статистика уведомлений',
+        'activity_by_hour' => 'Активность по часам',
+        'system_load' => 'Нагрузка на систему',
+        'network_traffic' => 'Сетевой трафик',
+        'payment_stats' => 'Статистика платежей за последние 7 дней',
+        'payment_methods' => 'Распределение платежных методов',
+    ],
+
+    'metrics' => [
+        'total_users' => 'Всего пользователей',
+        'active_users' => 'Активные пользователи',
+        'online_users' => 'Онлайн пользователи',
+        'new_users_today' => 'Новые пользователи',
+        'total_notifications' => 'Всего уведомлений',
+        'unread_notifications' => 'Непрочитанные',
+        'actions_today' => 'Действий за день',
+        'active_sessions' => 'Активные сессии',
+        'cpu_load' => 'Загрузка CPU',
+        'memory_usage' => 'Использование памяти',
+        'disk_usage' => 'Использование диска',
+        'network_load' => 'Сетевая нагрузка',
+        'total_revenue' => 'Общий доход',
+        'today_revenue' => 'Доход за сегодня',
+        'successful_payments' => 'Успешные платежи',
+        'promo_usage' => 'Использование промокодов',
+    ],
+
+    'charts' => [
+        'user_registrations' => 'Регистрации пользователей',
+        'user_activity' => 'Активность пользователей',
+        'notifications' => 'Уведомления',
+        'activity_by_hour' => 'Почасовая активность',
+        'system_load' => 'Системная нагрузка',
+        'network_traffic' => 'Сетевой трафик',
+        'new_users' => 'Новые пользователи',
+        'active_users' => 'Активные пользователи',
+        'online_users' => 'Онлайн пользователи',
+        'activity' => 'Активность',
+        'cpu' => 'CPU',
+        'memory' => 'Память',
+        'disk' => 'Диск',
+        'incoming' => 'Входящий',
+        'outgoing' => 'Исходящий',
+        'payment_stats' => 'Статистика платежей',
+        'payment_methods' => 'Способы оплаты',
+        'daily_revenue' => 'Ежедневный доход',
+        'daily_payments' => 'Количество платежей',
+    ],
+
+    'tabs' => [
+        'main' => 'Основная информация',
+        'activity' => 'Активность',
+        'system' => 'Система',
+        'payments' => 'Платежи',
+    ],
+]; 

@@ -1,0 +1,170 @@
+<?php
+
+namespace Flute\Core\Services;
+
+use Flute\Core\Database\Entities\NavbarItem;
+use Flute\Core\Navbar\NavbarItemFormat;
+use Jenssegers\Agent\Agent;
+
+class NavbarService
+{
+    private NavbarItemFormat $format;
+    protected array $cachedNavbarItems;
+    protected bool $performance;
+    protected $navbarItemRepository;
+    protected const CACHE_TIME = 24 * 60 * 60;
+    public const CACHE_KEY = 'flute.navbar.items';
+
+    private Agent $agent;
+
+    public function __construct(NavbarItemFormat $format, Agent $agent)
+    {
+        if (!is_installed())
+            return;
+
+        $this->performance = is_performance();
+
+        $this->format = $format;
+        $this->agent = $agent;
+
+        $this->cachedNavbarItems = $this->performance ? cache()->callback(self::CACHE_KEY, function () {
+            return $this->getDefaultNavbarItems();
+        }, self::CACHE_TIME) : $this->getDefaultNavbarItems();
+    }
+
+    /**
+     * Add navbar item to cached items if user has access to it
+     *
+     * @param NavbarItem $item Navbar item to add
+     *
+     * @return self
+     */
+    public function add(NavbarItem $item): self
+    {
+        if ($this->hasAccess($item)) {
+            $this->cachedNavbarItems[] = $this->format->format($item);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns all cached navbar items
+     *
+     * @param bool $ignoreAuthRules Ignore auth rules
+     *
+     * @return array
+     */
+    public function all(bool $ignoreAuthRules = false): array
+    {
+        return $ignoreAuthRules ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
+    }
+
+    /**
+     * Sets default navbar items, getting them from the database
+     *
+     * @param bool $ignoreAuth Ignore auth rules
+     *
+     * @return array
+     */
+    protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
+    {
+        // Fetch all navbar items with roles in a single query - prevent N+1
+        $navbarItems = NavbarItem::query()
+            ->load(['roles', 'children', 'children.roles'])
+            ->orderBy('position', 'asc')
+            ->where([
+                'parent_id' => null,
+            ])->fetchAll();
+
+        $formattedItems = [];
+
+        foreach ($navbarItems as $item) {
+            if ($this->hasAccess($item, $ignoreAuth)) {
+                $formattedItem = $this->format->format($item);
+                $formattedItem['children'] = $this->formatChildren($item->children);
+                $formattedItems[] = $formattedItem;
+            }
+        }
+
+        return $formattedItems;
+    }
+
+    /**
+     * Format children items without additional database queries
+     *
+     * @param array $children Children items already loaded
+     *
+     * @return array
+     */
+    protected function formatChildren(array $children): array
+    {
+        $formattedChildren = [];
+
+        foreach ($children as $child) {
+            if ($this->hasAccess($child)) {
+                $formattedChild = $this->format->format($child);
+                // Recursively format children's children if they exist
+                if (!empty($child->children)) {
+                    $formattedChild['children'] = $this->formatChildren($child->children);
+                } else {
+                    $formattedChild['children'] = [];
+                }
+                $formattedChildren[] = $formattedChild;
+            }
+        }
+
+        return $formattedChildren;
+    }
+
+    /**
+     * Checks if user has access to navbar item
+     *
+     * @param NavbarItem $item Navbar item to check
+     *
+     * @return bool
+     */
+    public function hasAccess(NavbarItem $item, bool $ignoreAuth = false): bool
+    {
+        $isLoggedIn = user()->isLoggedIn();
+        $isMobile = $this->agent->isMobile();
+
+        if (!$ignoreAuth) {
+            if ($item->visibleOnlyForGuests && $isLoggedIn) {
+                return false;
+            }
+
+            if ($item->visibleOnlyForLoggedIn && !$isLoggedIn) {
+                return false;
+            }
+        }
+
+        switch ($item->visibility) {
+            case 'desktop':
+                if ($isMobile) {
+                    return false;
+                }
+                break;
+            case 'mobile':
+                if (!$isMobile) {
+                    return false;
+                }
+                break;
+            case 'all':
+            default:
+                break;
+        }
+
+        if (sizeof($item->roles) === 0) {
+            return true;
+        }
+
+        foreach ($item->roles as $role) {
+            if ((user()->hasRole($role->name) || user()->getHighestPriority() > $role->priority)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

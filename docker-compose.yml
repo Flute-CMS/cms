@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  db:
+    image: mariadb
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: flute
+      MYSQL_DATABASE: flute
+      MYSQL_USER: flute
+      MYSQL_PASSWORD: flute
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www/html
+    restart: always
+    ports:
+      - 80:8080
+    expose:
+      - 9000
+    depends_on:
+      - db
+
+volumes:
+  db_data:
