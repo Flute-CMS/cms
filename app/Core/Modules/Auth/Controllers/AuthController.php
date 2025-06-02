@@ -57,12 +57,11 @@ class AuthController extends BaseController
     public function getConfirmation(FluteRequest $request, string $token)
     {
         try {
-            if (auth()->verify($token)) {
-                flash()->add('success', __('auth.confirmation.success'));
-                return response()->redirect('/');
-            }
-
-            return response()->error(404);
+            auth()->verify($token);
+            flash()->add('success', __('auth.confirmation.success'));
+            return response()->redirect('/');
+        } catch (\Exception $e) {
+            return response()->error(404, __('auth.confirmation.verify_old'));
         } catch (AccountNotVerifiedException $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         }

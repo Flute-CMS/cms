@@ -12,9 +12,9 @@ use Flute\Core\Support\AbstractServiceProvider;
 class UserServiceProvider extends AbstractServiceProvider
 {
     /**
-     * Регистрирует сервисы, предоставляемые сервис-провайдером.
+     * Registers services provided by the service provider.
      */
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             UserService::class => \DI\autowire(),
@@ -22,7 +22,7 @@ class UserServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
         if (is_installed()) {
             $container->get(UserService::class)->getCurrentUser();

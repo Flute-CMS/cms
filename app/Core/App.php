@@ -47,7 +47,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.1.1';
 
     /**
      * Set the base path of the application
@@ -358,8 +358,9 @@ final class App
             return;
         }
 
-        if (!defined('FLUTE_ROUTER_START'))
+        if (!defined('FLUTE_ROUTER_START')) {
             define('FLUTE_ROUTER_START', microtime(true));
+        }
 
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
 
@@ -368,8 +369,9 @@ final class App
 
         $res = $this->responseEvent($router->dispatch($this->get(FluteRequest::class)));
 
-        if (!defined('FLUTE_ROUTER_END'))
+        if (!defined('FLUTE_ROUTER_END')) {
             define('FLUTE_ROUTER_END', microtime(true));
+        }
 
         $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
 

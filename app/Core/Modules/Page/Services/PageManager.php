@@ -90,7 +90,7 @@ class PageManager
             $this->registerSinglePageRoute($page);
         }
     }
-    
+
     /**
      * Renders content for a specific page.
      *
@@ -370,8 +370,12 @@ class PageManager
             return;
         }
 
+        if ($this->router->hasRoute($page->route, 'GET')) {
+            return;
+        }
+
         foreach ($page->getPermissions() as $permission) {
-            if(!user()->can($permission)) {
+            if (!user()->can($permission)) {
                 return;
             }
         }

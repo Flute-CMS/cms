@@ -229,11 +229,20 @@ class WidgetController extends BaseController
     /**
      * Get available buttons for a widget.
      *
-     * @param FluteRequest $request     The incoming request.
-     * @param string       $widgetName  The name of the widget.
+     * @param FluteRequest $request The incoming request.
      */
-    public function getButtons(FluteRequest $request, string $widgetName)
+    public function getButtons(FluteRequest $request)
     {
+        $rules = [
+            'widget_name' => 'required|string',
+        ];
+
+        if (! $this->validator->validate($request->input(), $rules)) {
+            return $this->handleValidationError();
+        }
+
+        $widgetName = $request->input('widget_name');
+
         try {
             $widget = $this->widgetManager->getWidget($widgetName);
             $buttons = $widget->getButtons();
@@ -253,12 +262,12 @@ class WidgetController extends BaseController
     /**
      * Handle widget action.
      *
-     * @param FluteRequest $request     The incoming request.
-     * @param string       $widgetName  The name of the widget.
+     * @param FluteRequest $request The incoming request.
      */
-    public function handleAction(FluteRequest $request, string $widgetName)
+    public function handleAction(FluteRequest $request)
     {
         $rules = [
+            'widget_name' => 'required|string',
             'action' => 'required|string',
             'widgetId' => 'nullable|string'
         ];
@@ -271,6 +280,7 @@ class WidgetController extends BaseController
             ], 422);
         }
 
+        $widgetName = $request->input('widget_name');
         $action = $request->input('action');
         $widgetId = $request->input('widgetId');
 
@@ -290,12 +300,21 @@ class WidgetController extends BaseController
     /**
      * Displays the settings form for a specific widget.
      *
-     * @param FluteRequest $request     The incoming request instance.
-     * @param string       $widgetName  The name of the widget.
-     * @param array        $errors      Optional validation errors.
+     * @param FluteRequest $request The incoming request instance.
      */
-    public function settingsForm(FluteRequest $request, string $widgetName, array $errors = []) : string
+    public function settingsForm(FluteRequest $request)
     {
+        $rules = [
+            'widget_name' => 'required|string',
+            'settings' => 'nullable|string',
+        ];
+
+        if (! $this->validator->validate($request->input(), $rules)) {
+            return $this->handleValidationError();
+        }
+
+        $widgetName = $request->input('widget_name');
+
         try {
             $widget = $this->widgetManager->getWidget($widgetName);
 
@@ -322,11 +341,20 @@ class WidgetController extends BaseController
     /**
      * Saves the settings for a specific widget and returns the updated widget.
      *
-     * @param FluteRequest $request     The incoming request containing widget settings.
-     * @param string       $widgetName  The name of the widget.
+     * @param FluteRequest $request The incoming request containing widget settings.
      */
-    public function saveSettings(FluteRequest $request, string $widgetName)
+    public function saveSettings(FluteRequest $request)
     {
+        $rules = [
+            'widget_name' => 'required|string',
+        ];
+
+        if (! $this->validator->validate($request->input(), $rules)) {
+            return $this->handleValidationError();
+        }
+
+        $widgetName = $request->input('widget_name');
+
         try {
             $widget = $this->widgetManager->getWidget($widgetName);
             $input = $request->input();

@@ -120,9 +120,21 @@ abstract class Table extends Layout
 
         $content = $repository->getContent($this->target);
 
-        $this->sortColumn = request()->input('sort', '');
-        $this->sortDirection = str_starts_with($this->sortColumn, '-') ? 'desc' : 'asc';
-        $this->sortColumn = ltrim($this->sortColumn, '-');
+        $requestSort = request()->input('sort', '');
+        
+        if (empty($requestSort)) {
+            $defaultSortColumn = $columns->first(fn(TD $column) => $column->getAttribute('defaultSort', false));
+            if ($defaultSortColumn) {
+                $this->sortColumn = $defaultSortColumn->getName();
+                $this->sortDirection = $defaultSortColumn->getAttribute('defaultSortDirection', 'asc');
+            } else {
+                $this->sortColumn = '';
+                $this->sortDirection = 'asc';
+            }
+        } else {
+            $this->sortColumn = ltrim($requestSort, '-');
+            $this->sortDirection = str_starts_with($requestSort, '-') ? 'desc' : 'asc';
+        }
 
         if ($this->isSearchable() && $this->searchQuery) {
             $content = $this->applySearch($content);

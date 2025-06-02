@@ -20,6 +20,11 @@
         color: var(--primary-950);
     }
 
+    &.info {
+        background-color: var(--info-light);
+        color: var(--info);
+    }
+
     &.error {
         background-color: var(--error-light);
         color: var(--error);

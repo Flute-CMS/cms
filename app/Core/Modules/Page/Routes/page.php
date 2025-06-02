@@ -22,16 +22,16 @@ router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], f
     $router->post('render-widget', [WidgetController::class, 'renderWidget'])
         ->name('pages.renderWidget');
 
-    $router->get('widgets/{widgetName}/settings-form', [WidgetController::class, 'settingsForm'])
+    $router->post('widgets/settings-form', [WidgetController::class, 'settingsForm'])
         ->name('pages.widgetSettingsForm');
 
-    $router->post('widgets/{widgetName}/save-settings', [WidgetController::class, 'saveSettings'])
+    $router->post('widgets/save-settings', [WidgetController::class, 'saveSettings'])
         ->name('pages.saveWidgetSettings');
 
-    $router->post('widgets/{widgetName}/handle-action', [WidgetController::class, 'handleAction'])
+    $router->post('widgets/handle-action', [WidgetController::class, 'handleAction'])
         ->name('pages.handleWidgetAction');
 
-    $router->get('widgets/{widgetName}/buttons', [WidgetController::class, 'getButtons'])
+    $router->post('widgets/buttons', [WidgetController::class, 'getButtons'])
         ->name('pages.getWidgetButtons');
 
     $router->post('save-colors', [ColorController::class, 'saveColors'])

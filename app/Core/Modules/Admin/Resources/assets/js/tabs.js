@@ -1,4 +1,3 @@
-
 function isMobile() {
     return window.innerWidth < 768;
 }
@@ -106,7 +105,7 @@ function initializeTabContents(container) {
 
     if (tabsContentContainer) {
         const tabContents =
-            tabsContentContainer.querySelectorAll('.tab-content');
+            tabsContentContainer.querySelectorAll(':scope > .tab-content');
         tabContents.forEach(function (tabContent) {
             tabContent.classList.remove('active');
             tabContent.style.display = 'none';
@@ -117,12 +116,73 @@ function initializeTabContents(container) {
             targetTab.classList.add('active');
             targetTab.style.display = '';
 
-            targetTab
-                .querySelectorAll('.tabs-container')
-                .forEach((nestedContainer) => {
-                    updateUnderline(nestedContainer);
-                    initializeTabContents(nestedContainer);
+            // Recursively initialize all nested tabs
+            initializeNestedTabs(targetTab);
+        }
+    }
+}
+
+function initializeNestedTabs(element) {
+    if (!element) return;
+
+    // Find all nested tab containers
+    const nestedContainers = element.querySelectorAll('.tabs-container');
+
+    nestedContainers.forEach((nestedContainer) => {
+        updateUnderline(nestedContainer);
+        initializeTabContents(nestedContainer);
+
+        // Handle lazy-loaded nested tabs
+        initializeLazyNestedTabs(nestedContainer);
+
+        // Also check for deeply nested containers
+        const deepNested = nestedContainer.querySelectorAll('.tabs-container');
+        deepNested.forEach(deepContainer => {
+            updateUnderline(deepContainer);
+            initializeTabContents(deepContainer);
+            initializeLazyNestedTabs(deepContainer);
+        });
+    });
+}
+
+function initializeLazyNestedTabs(container) {
+    if (!container) return;
+
+    const activeTabItem = container.querySelector('.tab-item.active');
+    if (!activeTabItem) return;
+
+    const activeTabLink = activeTabItem.querySelector('a[hx-get]');
+    if (!activeTabLink) return;
+
+    const tabId = activeTabLink.dataset.tabId;
+    const targetElement = document.getElementById(tabId);
+
+    if (targetElement && targetElement.classList.contains('lazy-content')) {
+        const targetSelector = activeTabLink.getAttribute('hx-target');
+        const actualTarget = targetSelector ? document.querySelector(targetSelector) : targetElement;
+
+        if (!actualTarget) {
+            console.warn('HTMX target not found:', targetSelector || '#' + tabId);
+            return;
+        }
+
+        if (activeTabLink.hasAttribute('hx-trigger') && activeTabLink.getAttribute('hx-trigger').includes('load')) {
+            if (typeof htmx !== 'undefined') {
+                htmx.trigger(activeTabLink, 'load');
+            }
+        } else {
+            if (typeof htmx !== 'undefined') {
+                const url = activeTabLink.getAttribute('hx-get');
+                const target = activeTabLink.getAttribute('hx-target') || '#' + tabId;
+                const swap = activeTabLink.getAttribute('hx-swap') || 'innerHTML';
+
+                htmx.ajax('GET', url, {
+                    target: target,
+                    swap: swap
+                }).catch(error => {
+                    console.error('HTMX request failed for nested tab:', error);
                 });
+            }
         }
     }
 }
@@ -133,8 +193,22 @@ function processAllTabs() {
         initializeTabContents(container);
     };
 
-    const rootContainers = document.querySelectorAll('.tabs-container');
+    const rootContainers = document.querySelectorAll('.tabs-container:not(.tabs-container .tabs-container)');
     rootContainers.forEach(processContainer);
+
+    const allContainers = document.querySelectorAll('.tabs-container');
+    allContainers.forEach(container => {
+        if (!container.classList.contains('processed')) {
+            processContainer(container);
+            container.classList.add('processed');
+        }
+    });
+
+    setTimeout(() => {
+        allContainers.forEach(container => {
+            container.classList.remove('processed');
+        });
+    }, 100);
 }
 
 let resizeTimeout;
@@ -149,6 +223,32 @@ document.addEventListener('DOMContentLoaded', function () {
     processAllTabs();
     handleTabsFix();
 });
+
+if (typeof htmx !== 'undefined') {
+    htmx.on('htmx:targetError', function (event) {
+        console.error('HTMX target error:', {
+            target: event.detail.target,
+            xhr: event.detail.xhr,
+            element: event.target
+        });
+
+        const element = event.target;
+        const targetAttr = element.getAttribute('hx-target');
+        const selectAttr = element.getAttribute('hx-select');
+
+        if (selectAttr && !document.querySelector(targetAttr)) {
+            const selectTarget = document.querySelector(selectAttr);
+            if (selectTarget) {
+                console.log('Found select target, using as fallback');
+                element.setAttribute('hx-target', selectAttr);
+            }
+        }
+    });
+
+    htmx.on('htmx:responseError', function (event) {
+        console.error('HTMX response error:', event.detail);
+    });
+}
 
 htmx.on('htmx:afterSwap', function (event) {
     const swappedElement =
@@ -167,8 +267,6 @@ htmx.on('htmx:afterSwap', function (event) {
         initializeTabContents(container);
     });
 
-    processAllTabs();
-
     if (swappedElement.classList.contains('tab-content')) {
         const contentEl = swappedElement;
         const tabId = contentEl.id;
@@ -183,30 +281,50 @@ htmx.on('htmx:afterSwap', function (event) {
             `[data-name="${tabsContainer.dataset.tabsId}"]`,
         );
 
-        tabsContainer
-            .querySelectorAll('.tab-item')
-            .forEach((li) => li.classList.remove('active'));
-        headingLink.parentElement.classList.add('active');
+        if (wrapper) {
+            tabsContainer
+                .querySelectorAll('.tab-item')
+                .forEach((li) => li.classList.remove('active'));
+            headingLink.parentElement.classList.add('active');
 
-        wrapper.querySelectorAll('.tab-content').forEach((tc) => {
-            tc.classList.remove('active');
-            tc.style.display = 'none';
-        });
-        contentEl.classList.add('active');
-        contentEl.style.display = '';
-
-        updateUnderline(tabsContainer);
-
-        contentEl
-            .querySelectorAll('.tabs-container')
-            .forEach((nestedContainer) => {
-                updateUnderline(nestedContainer);
-                initializeTabContents(nestedContainer);
+            wrapper.querySelectorAll(':scope > .tab-content').forEach((tc) => {
+                tc.classList.remove('active');
+                tc.style.display = 'none';
             });
+            contentEl.classList.add('active');
+            contentEl.style.display = '';
+
+            updateUnderline(tabsContainer);
+
+            initializeNestedTabs(contentEl);
+
+            contentEl.classList.remove('lazy-content');
+        }
     }
 
     setTimeout(() => {
+        processAllTabs();
         handleTabsFix();
+
+        document.querySelectorAll('.tab-content.active.lazy-content').forEach(lazyTab => {
+            const tabId = lazyTab.id;
+            const link = document.querySelector(`.tabs-nav a[data-tab-id="${tabId}"][hx-get]`);
+            if (link && typeof htmx !== 'undefined') {
+                const url = link.getAttribute('hx-get');
+                const target = link.getAttribute('hx-target') || '#' + tabId;
+                const swap = link.getAttribute('hx-swap') || 'innerHTML';
+
+                // Verify target exists
+                if (document.querySelector(target)) {
+                    htmx.ajax('GET', url, {
+                        target: target,
+                        swap: swap
+                    }).catch(error => {
+                        console.error('Failed to load lazy tab content:', error);
+                    });
+                }
+            }
+        });
     }, 100);
 });
 
@@ -229,7 +347,7 @@ document.addEventListener('click', function (e) {
 
     if (tabsContentContainer) {
         const tabContents =
-            tabsContentContainer.querySelectorAll('.tab-content');
+            tabsContentContainer.querySelectorAll(':scope > .tab-content');
         tabContents.forEach(function (tabContent) {
             tabContent.classList.remove('active');
             tabContent.style.display = 'none';
@@ -240,12 +358,23 @@ document.addEventListener('click', function (e) {
             targetTab.classList.add('active');
             targetTab.style.display = '';
 
-            targetTab
-                .querySelectorAll('.tabs-container')
-                .forEach((nestedContainer) => {
-                    updateUnderline(nestedContainer);
-                    initializeTabContents(nestedContainer);
-                });
+            // Initialize all nested tabs recursively
+            initializeNestedTabs(targetTab);
+
+            // If this is a lazy-loaded tab that hasn't been loaded yet
+            if (targetTab.classList.contains('lazy-content') && link.hasAttribute('hx-get')) {
+                // Let HTMX handle the loading, then initialize nested tabs
+                if (typeof htmx !== 'undefined') {
+                    htmx.on('htmx:afterSwap', function handler(evt) {
+                        if (evt.detail.target === targetTab) {
+                            setTimeout(() => {
+                                initializeNestedTabs(targetTab);
+                            }, 50);
+                            htmx.off('htmx:afterSwap', handler);
+                        }
+                    });
+                }
+            }
         }
     }
 

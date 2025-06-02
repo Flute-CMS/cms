@@ -16,6 +16,8 @@ return array (
     8 => 'uz',
     9 => 'pt',
     10 => 'br',
+    11 => 'sv',
+    12 => 'ja',
   ),
   'all' => 
   array (
@@ -30,5 +32,7 @@ return array (
     8 => 'uz',
     9 => 'pt',
     10 => 'br',
+    11 => 'sv',
+    12 => 'ja',
   ),
 );

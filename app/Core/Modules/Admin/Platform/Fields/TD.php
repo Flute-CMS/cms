@@ -63,6 +63,19 @@ class TD extends Cell
      */
     protected $defaultHidden = false;
 
+    /**
+     * @var bool
+     */
+    protected $defaultSort = false;
+
+    /**
+     * @var string
+     */
+    protected $defaultSortDirection = 'asc';
+
+    /**
+     * @var bool
+     */
     protected $searchable = true;
 
     /**
@@ -78,14 +91,14 @@ class TD extends Cell
     /**
      * @param string|int $width
      */
-    public function width($width) : self
+    public function width($width): self
     {
         $this->width = $width;
 
         return $this;
     }
 
-    public function minWidth($width) : self
+    public function minWidth($width): self
     {
         $this->minWidth = $width;
 
@@ -95,7 +108,7 @@ class TD extends Cell
     /**
      * @param string $style
      */
-    public function style(string $style) : self
+    public function style(string $style): self
     {
         $this->style = $style;
 
@@ -105,7 +118,7 @@ class TD extends Cell
     /**
      * @param string $class
      */
-    public function class(string $class) : self
+    public function class(string $class): self
     {
         $this->class = $class;
 
@@ -117,7 +130,7 @@ class TD extends Cell
      *
      * @param bool $sort
      */
-    public function sort(bool $sort = true) : self
+    public function sort(bool $sort = true): self
     {
         $this->sort = $sort;
 
@@ -129,7 +142,7 @@ class TD extends Cell
      *
      * @param string $align
      */
-    public function align(string $align) : self
+    public function align(string $align): self
     {
         $this->align = $align;
 
@@ -139,7 +152,7 @@ class TD extends Cell
     /**
      * Align the column to the left
      */
-    public function alignLeft() : self
+    public function alignLeft(): self
     {
         $this->align = self::ALIGN_LEFT;
 
@@ -149,7 +162,7 @@ class TD extends Cell
     /**
      * Align the column to the right
      */
-    public function alignRight() : self
+    public function alignRight(): self
     {
         $this->align = self::ALIGN_RIGHT;
 
@@ -159,7 +172,7 @@ class TD extends Cell
     /**
      * Align the column to the center
      */
-    public function alignCenter() : self
+    public function alignCenter(): self
     {
         $this->align = self::ALIGN_CENTER;
 
@@ -171,7 +184,7 @@ class TD extends Cell
      *
      * @param int $colspan
      */
-    public function colspan(int $colspan) : self
+    public function colspan(int $colspan): self
     {
         $this->colspan = $colspan;
 
@@ -183,15 +196,15 @@ class TD extends Cell
      *
      * @return Factory|View
      */
-    public function buildTh() : Factory|View
+    public function buildTh(): Factory|View
     {
         $style = $this->style;
-        $width = is_numeric($this->width) ? $this->width.'px' : $this->width;
-        $minWidth = is_numeric($this->minWidth) ? $this->minWidth.'px' : $this->minWidth;
+        $width = is_numeric($this->width) ? $this->width . 'px' : $this->width;
+        $minWidth = is_numeric($this->minWidth) ? $this->minWidth . 'px' : $this->minWidth;
 
         // Add hidden style if needed
         if ($this->hasAttribute('hidden')) {
-            $style = ($style ? $style.'; ' : '').'display: none;';
+            $style = ($style ? $style . '; ' : '') . 'display: none;';
         }
 
         $tableId = $this->getAttribute('tableId', 'default');
@@ -209,6 +222,8 @@ class TD extends Cell
             'data_column' => $this->sluggable(),
             'aria_hidden' => $this->hasAttribute('hidden') ? 'true' : null,
             'tableId' => $tableId,
+            'defaultSort' => $this->defaultSort,
+            'defaultSortDirection' => $this->defaultSortDirection,
         ]);
     }
 
@@ -219,14 +234,14 @@ class TD extends Cell
      * @param object|null $loop
      * @return Factory|View
      */
-    public function buildTd($source, ?object $loop = null) : Factory|View
+    public function buildTd($source, ?object $loop = null): Factory|View
     {
         $value = null;
         $style = $this->style;
 
         // Add hidden style if needed
         if ($this->hasAttribute('hidden')) {
-            $style = ($style ? $style.'; ' : '').'display: none;';
+            $style = ($style ? $style . '; ' : '') . 'display: none;';
         }
 
         if ($source instanceof Repository) {
@@ -245,7 +260,7 @@ class TD extends Cell
             'value' => $value,
             'render' => $this->render,
             'slug' => $this->sluggable(),
-            'width' => is_numeric($this->width) ? $this->width.'px' : $this->width,
+            'width' => is_numeric($this->width) ? $this->width . 'px' : $this->width,
             'style' => $style,
             'class' => $this->class,
             'colspan' => $this->colspan,
@@ -259,12 +274,12 @@ class TD extends Cell
      *
      * @return string
      */
-    protected function sluggable() : string
+    protected function sluggable(): string
     {
         return Str::slug($this->name);
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -274,7 +289,7 @@ class TD extends Cell
      *
      * @return bool
      */
-    public function isAllowUserHidden() : bool
+    public function isAllowUserHidden(): bool
     {
         return $this->allowUserHidden;
     }
@@ -284,7 +299,7 @@ class TD extends Cell
      *
      * @return Factory|View|null
      */
-    public function buildItemMenu() : Factory|View|null
+    public function buildItemMenu(): Factory|View|null
     {
         if (! $this->isAllowUserHidden()) {
             return null;
@@ -302,7 +317,7 @@ class TD extends Cell
      *
      * @param bool $hidden
      */
-    public function cantHide(bool $hidden = false) : self
+    public function cantHide(bool $hidden = false): self
     {
         $this->allowUserHidden = $hidden;
 
@@ -314,7 +329,7 @@ class TD extends Cell
      *
      * @param bool $hidden
      */
-    public function defaultHidden(bool $hidden = true) : self
+    public function defaultHidden(bool $hidden = true): self
     {
         $this->defaultHidden = $hidden;
 
@@ -326,10 +341,10 @@ class TD extends Cell
      *
      * @return string
      */
-    public function buildSortUrl() : string
+    public function buildSortUrl(): string
     {
         $currentSort = request()->input('sort', '');
-        $newSort = ($currentSort === $this->column) ? '-'.$this->column : $this->column;
+        $newSort = ($currentSort === $this->column) ? '-' . $this->column : $this->column;
 
         $query = array_merge(request()->input(), ['sort' => $newSort]);
 
@@ -339,7 +354,7 @@ class TD extends Cell
     /**
      * Disable search for this column.
      */
-    public function disableSearch(bool $disable = true) : self
+    public function disableSearch(bool $disable = true): self
     {
         $this->searchable = ! $disable;
 
@@ -351,7 +366,7 @@ class TD extends Cell
      *
      * @return bool
      */
-    public function isSearchable() : bool
+    public function isSearchable(): bool
     {
         return $this->searchable;
     }
@@ -361,7 +376,7 @@ class TD extends Cell
      *
      * @param bool $searchable
      */
-    public function searchable(bool $searchable = true) : self
+    public function searchable(bool $searchable = true): self
     {
         $this->searchable = $searchable;
 
@@ -374,9 +389,9 @@ class TD extends Cell
      * @param TD[] $columns
      * @return bool
      */
-    public static function isShowVisibleColumns(array $columns) : bool
+    public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(fn($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
     /**
@@ -385,7 +400,7 @@ class TD extends Cell
      * @param string $tableId The table identifier
      * @return bool
      */
-    public function isHiddenByUserPreference(string $tableId) : bool
+    public function isHiddenByUserPreference(string $tableId): bool
     {
         if (! $this->isAllowUserHidden()) {
             return false;
@@ -418,7 +433,7 @@ class TD extends Cell
      * @param mixed $value
      * @return $this
      */
-    public function setAttribute(string $name, $value) : self
+    public function setAttribute(string $name, $value): self
     {
         $this->attributes[$name] = $value;
         return $this;
@@ -442,8 +457,23 @@ class TD extends Cell
      * @param string $name
      * @return bool
      */
-    public function hasAttribute(string $name) : bool
+    public function hasAttribute(string $name): bool
     {
         return isset($this->attributes[$name]);
+    }
+
+    public function defaultSort(bool $defaultSort = true, string $defaultSortDirection = 'asc'): self
+    {
+        if ($defaultSort) {
+            $this->sort = true;
+        }
+
+        $this->defaultSort = $defaultSort;
+        $this->defaultSortDirection = $defaultSortDirection;
+        
+        $this->setAttribute('defaultSort', $defaultSort);
+        $this->setAttribute('defaultSortDirection', $defaultSortDirection);
+        
+        return $this;
     }
 }

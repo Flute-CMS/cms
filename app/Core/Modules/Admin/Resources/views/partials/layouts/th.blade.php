@@ -10,9 +10,16 @@
                 $currentSort = request()->input('sort', '');
                 $isCurrentColumn = ltrim($currentSort, '-') === $column;
                 $direction = str_starts_with($currentSort, '-') ? 'desc' : 'asc';
+                
+                $isDefaultSort = empty($currentSort) && isset($defaultSort) && $defaultSort;
+                $isActiveSortColumn = $isCurrentColumn || $isDefaultSort;
+                
+                if ($isDefaultSort) {
+                    $direction = $defaultSortDirection ?? 'asc';
+                }
             @endphp
 
-            @if ($isCurrentColumn)
+            @if ($isActiveSortColumn)
                 <span class="sort-indicator">
                     @if ($direction === 'asc')
                         <x-icon path="ph.regular.sort-ascending" />

@@ -117,12 +117,12 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(PaymentServiceProvider::class)
     ->serviceProvider(SteamServiceProvider::class)
     ->serviceProvider(ModulesServiceProvider::class)
+    ->serviceProvider(ProfileServiceProvider::class)
     ->serviceProvider(PageServiceProvider::class)
     ->serviceProvider(TipsServiceProvider::class)
     ->serviceProvider(SearchServiceProvider::class)
     ->serviceProvider(HomeServiceProvider::class)
     ->serviceProvider(AdminServiceProvider::class)
-    ->serviceProvider(ProfileServiceProvider::class)
     ->serviceProvider(IconServiceProvider::class);
 
 /**

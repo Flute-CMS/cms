@@ -25,7 +25,6 @@ return array (
   'flute_copyright' => true,
   'discord_link_roles' => false,
   'bg_image' => '',
-  'unsafe_functions' => true,
   'maintenance_message' => '',
   'footer_description' => '',
   'csrf_enabled' => true,

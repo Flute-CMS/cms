@@ -132,7 +132,7 @@
     <link rel="alternate" href="{{ url()->current() }}" hreflang="x-default">
 
     @foreach (config('lang.available') as $lang)
-        <link rel="alternate" href="{{ url()->addParams(['lang' => $lang]) }}" hreflang="{{ strtolower($lang) }}">
+        <link rel="alternate" href="{{ url() }}?lang={{ $lang }}" hreflang="{{ strtolower($lang) }}">
     @endforeach
 
     @include('flute::partials.background')

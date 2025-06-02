@@ -846,19 +846,18 @@ class PageEditor {
 
         try {
             const res = await fetch(
-                u(
-                    `api/pages/widgets/${encodeURIComponent(
-                        widgetName,
-                    )}/buttons`,
-                ),
+                u('api/pages/widgets/buttons'),
                 {
-                    method: 'GET',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN':
                             document.querySelector('meta[name="csrf-token"]')
                                 ?.content || '',
                     },
+                    body: JSON.stringify({
+                        widget_name: widgetName,
+                    }),
                 },
             );
 
@@ -1024,7 +1023,7 @@ class PageEditor {
 
         try {
             const res = await fetch(
-                u(`api/pages/widgets/${encodeURIComponent(widgetName)}/action`),
+                u('api/pages/widgets/action'),
                 {
                     method: 'POST',
                     headers: {
@@ -1034,6 +1033,7 @@ class PageEditor {
                                 ?.content || '',
                     },
                     body: JSON.stringify({
+                        widget_name: widgetName,
                         action: button.action,
                         widgetId: widgetEl.getAttribute('data-widget-id'),
                     }),
@@ -2012,21 +2012,19 @@ class PageEditor {
 
         try {
             const response = await fetch(
-                u(
-                    `api/pages/widgets/${encodeURIComponent(
-                        widgetName,
-                    )}/settings-form?settings=${encodeURIComponent(
-                        widgetEl.dataset.widgetSettings || '{}',
-                    )}`,
-                ),
+                u('api/pages/widgets/settings-form'),
                 {
-                    method: 'GET',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN':
                             document.querySelector('meta[name="csrf-token"]')
                                 ?.content || '',
                     },
+                    body: JSON.stringify({
+                        widget_name: widgetName,
+                        settings: widgetEl.dataset.widgetSettings || '{}',
+                    }),
                 },
             );
 
@@ -2036,11 +2034,7 @@ class PageEditor {
             sidebarContent.innerHTML = html;
 
             if (saveButton) {
-                const settingsUrl = u(
-                    `api/pages/widgets/${encodeURIComponent(
-                        widgetName,
-                    )}/save-settings`,
-                );
+                const settingsUrl = u('api/pages/widgets/save-settings');
                 saveButton.setAttribute('hx-post', settingsUrl);
 
                 const csrfToken =
@@ -2050,6 +2044,12 @@ class PageEditor {
                     'hx-headers',
                     JSON.stringify({
                         'X-CSRF-TOKEN': csrfToken,
+                    }),
+                );
+                saveButton.setAttribute(
+                    'hx-vals',
+                    JSON.stringify({
+                        widget_name: widgetName,
                     }),
                 );
 

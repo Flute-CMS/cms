@@ -39,7 +39,7 @@
         'slot' => $slot,
     ])
  @elseif(request()->htmx()->isBoosted() || $boosted)
-     <div hx-swap-oob="beforeend:#modals">
+     <div hx-swap-oob="beforeend:#modals" hx-trigger="none">
          @include('flute::components._modal-body', [
             'attributes' => $attributes,
             'id' => $id,

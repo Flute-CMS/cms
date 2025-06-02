@@ -4,7 +4,7 @@ namespace Flute\Admin\Packages\Pages\Screens;
 
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
-use Flute\Admin\Platform\Fields\Textarea;
+use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layouts\LayoutFactory;

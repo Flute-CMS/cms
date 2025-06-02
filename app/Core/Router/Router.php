@@ -57,6 +57,7 @@ class Router implements RouterInterface
         'maintenance' => MaintenanceMiddleware::class,
     ];
     protected ?RouteInterface $currentRoute = null;
+    protected array $registeredDynamicRoutes = [];
 
     public function __construct(Container $container)
     {
@@ -264,6 +265,8 @@ class Router implements RouterInterface
     {
         $methods = (array) $methods;
         $uri = '/'.trim($uri, '/');
+
+        $this->trackDynamicRoute($uri, $methods);
 
         $route = new Route($methods, $uri, $action);
 
@@ -507,5 +510,74 @@ class Router implements RouterInterface
     {
         $loader = new AttributeRouteLoader($this);
         return $loader->loadFromClass($controllerClass);
+    }
+
+    /**
+     * Check if a route already exists for the given URI and methods
+     *
+     * @param string $uri The URI to check
+     * @param array|string $methods HTTP methods to check (empty means check all)
+     * @return bool True if route exists, false otherwise
+     */
+    public function hasRoute(string $uri, array|string $methods = []): bool
+    {
+        $uri = '/'.trim($uri, '/');
+        $methods = (array) $methods;
+        
+        if (isset($this->registeredDynamicRoutes[$uri])) {
+            if (empty($methods)) {
+                return true;
+            }
+            
+            $existingMethods = $this->registeredDynamicRoutes[$uri];
+            foreach ($methods as $method) {
+                if (in_array(strtoupper($method), $existingMethods)) {
+                    return true;
+                }
+            }
+        }
+        
+        foreach ($this->routes->all() as $route) {
+            $routePath = $route->getPath();
+            
+            if ($routePath === $uri) {
+                if (empty($methods)) {
+                    return true;
+                }
+                
+                $routeMethods = $route->getMethods();
+                if (empty($routeMethods)) {
+                    return true;
+                }
+                
+                foreach ($methods as $method) {
+                    if (in_array(strtoupper($method), $routeMethods)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Track a dynamically registered route
+     *
+     * @param string $uri
+     * @param array|string $methods
+     */
+    protected function trackDynamicRoute(string $uri, array|string $methods): void
+    {
+        $uri = '/'.trim($uri, '/');
+        $methods = array_map('strtoupper', (array) $methods);
+        
+        if (!isset($this->registeredDynamicRoutes[$uri])) {
+            $this->registeredDynamicRoutes[$uri] = [];
+        }
+        
+        $this->registeredDynamicRoutes[$uri] = array_unique(
+            array_merge($this->registeredDynamicRoutes[$uri], $methods)
+        );
     }
 }
