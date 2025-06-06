@@ -163,6 +163,54 @@
     }
 }
 
+.update-all-button {
+    @include flex(row, center, center, 0.5rem);
+    font-size: var(--p);
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border1);
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        
+        &::before {
+            opacity: 1;
+        }
+    }
+    
+    &:active {
+        transform: translateY(-1px);
+    }
+    
+    i, span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    i {
+        font-size: calc(var(--p) * 1.2);
+        animation: pulse 2s infinite;
+    }
+}
+
 %card-base {
     border: 1px solid var(--transp-2);
     border-radius: var(--border1);

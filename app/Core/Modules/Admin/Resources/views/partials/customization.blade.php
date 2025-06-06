@@ -72,8 +72,8 @@
                     <x-icon path="ph.regular.paint-brush" class="me-2" />
                     {{ __('admin.customization') }}
                 </h5>
-                <button class="right_sidebar__close" aria-label="Close modal"
-                    data-a11y-dialog-hide="right-sidebar"></button>
+                <button class="right_sidebar__close" aria-label="Close modal" data-a11y-dialog-hide="right-sidebar"
+                    data-original-tabindex="null"></button>
             </header>
 
             <div class="right_sidebar__content">
@@ -152,7 +152,8 @@
             </div>
 
             <div class="right_sidebar__footer">
-                <x-button type="outline-primary" class="w-100" data-a11y-dialog-hide="right-sidebar">
+                <x-button type="outline-primary" class="w-100" data-a11y-dialog-hide="right-sidebar"
+                    data-original-tabindex="null">
                     {{ __('def.close') }}
                 </x-button>
             </div>

@@ -64,6 +64,7 @@ return [
         'lk_only_modal'                      => 'Balance Top-Up in Modal',
         'change_theme'                       => 'Change Theme',
         'logo_light'                         => 'Logo for Light Theme',
+        'default_theme'                      => 'Default Theme',
     ],
 
     'options' => [
@@ -72,6 +73,10 @@ return [
             'index_nofollow' => 'Show page in Google, but do not follow links',
             'noindex_nofollow' => 'Do not show page in Google and do not follow links',
             'noindex_follow' => 'Do not show page in Google, but follow links',
+        ],
+        'theme' => [
+            'dark' => 'Dark',
+            'light' => 'Light',
         ],
     ],
 
@@ -201,6 +206,7 @@ return [
         'seo'                       => 'These settings affect search engine indexing.',
         'lk_only_modal'             => 'Replaces user dashboard with a modal.',
         'change_theme'              => 'Enable manual theme switching.',
+        'default_theme'             => 'Default theme used when manual theme switching is disabled or for new users.',
         'prefix'                    => 'Adds a prefix to all tables in the database. Allows multiple applications to share a single database without table name conflicts.',
     ],
 

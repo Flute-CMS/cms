@@ -115,16 +115,24 @@ class MainSettingsPackageScreen extends Screen
                                 ->value(config('app.url'))
                         )->label(__('admin-main-settings.labels.site_url'))->required(),
                     ]),
+                    LayoutFactory::field(
+                        Input::make('timezone')
+                            ->placeholder(__('admin-main-settings.placeholders.timezone'))
+                            ->value(config('app.timezone'))
+                    )->label(__('admin-main-settings.labels.timezone'))->required()->small(__('admin-main-settings.examples.timezone')),
                     LayoutFactory::split([
-                        LayoutFactory::field(
-                            Input::make('timezone')
-                                ->placeholder(__('admin-main-settings.placeholders.timezone'))
-                                ->value(config('app.timezone'))
-                        )->label(__('admin-main-settings.labels.timezone'))->required()->small(__('admin-main-settings.examples.timezone')),
                         LayoutFactory::field(
                             Toggle::make('change_theme')
                                 ->checked(config('app.change_theme'))
                         )->addClass('mt-2')->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
+                        LayoutFactory::field(
+                            Select::make('default_theme')
+                                ->options([
+                                    'dark' => __('admin-main-settings.options.theme.dark'),
+                                    'light' => __('admin-main-settings.options.theme.light'),
+                                ])
+                                ->value(config('app.default_theme', 'dark'))
+                        )->label(__('admin-main-settings.labels.default_theme'))->popover(__('admin-main-settings.popovers.default_theme')),
                     ])->ratio('50/50'),
                     LayoutFactory::field(
                         Input::make('flute_key')

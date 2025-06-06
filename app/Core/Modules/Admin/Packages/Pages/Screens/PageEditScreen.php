@@ -158,7 +158,7 @@ class PageEditScreen extends Screen
                 ->required(),
 
             LayoutFactory::field(
-                Textarea::make('description')
+                TextArea::make('description')
                     ->value($this->page?->description ?? '')
                     ->disabled(!$canEditPage)
                     ->placeholder(__('admin-pages.fields.description.placeholder'))
@@ -325,7 +325,7 @@ class PageEditScreen extends Screen
                 ->required(),
 
             LayoutFactory::field(
-                Textarea::make('gridstack')
+                TextArea::make('gridstack')
                     ->placeholder(__('admin-pages.blocks.fields.gridstack.placeholder'))
                     ->rows(4)
                     ->value('{}')
@@ -334,7 +334,7 @@ class PageEditScreen extends Screen
                 ->small(__('admin-pages.blocks.fields.gridstack.help')),
 
             LayoutFactory::field(
-                Textarea::make('settings')
+                TextArea::make('settings')
                     ->placeholder(__('admin-pages.blocks.fields.settings.placeholder'))
                     ->rows(6)
                     ->value('{}')
@@ -374,7 +374,7 @@ class PageEditScreen extends Screen
                 ->required(),
 
             LayoutFactory::field(
-                Textarea::make('gridstack')
+                TextArea::make('gridstack')
                     ->value($block->gridstack)
                     ->placeholder(__('admin-pages.blocks.fields.gridstack.placeholder'))
                     ->rows(4)
@@ -383,7 +383,7 @@ class PageEditScreen extends Screen
                 ->small(__('admin-pages.blocks.fields.gridstack.help')),
 
             LayoutFactory::field(
-                Textarea::make('settings')
+                TextArea::make('settings')
                     ->value($block->settings)
                     ->placeholder(__('admin-pages.blocks.fields.settings.placeholder'))
                     ->rows(6)

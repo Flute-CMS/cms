@@ -31,7 +31,7 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_not_found'));
         }
 
-        if (sizeof($promoCode->usages) >= $promoCode->max_usages) {
+        if ($promoCode->max_usages !== null && sizeof($promoCode->usages) >= $promoCode->max_usages) {
             throw new PaymentPromoException(__('lk.promo_limit'));
         }
 

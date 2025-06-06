@@ -613,10 +613,10 @@ class ServerEditScreen extends Screen
             $connection->additional = json_encode($additional);
             $connection->server = $this->server;
             $connection->save();
-
+    
+            $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
             $this->flashMessage(__('admin-server.messages.connection_add_success'), 'success');
             $this->closeModal();
-            $this->initServer();
         } catch (\Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
@@ -717,7 +717,7 @@ class ServerEditScreen extends Screen
             $connection->additional = json_encode($additional);
             $connection->save();
 
-            $this->initServer();
+            $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
             $this->flashMessage(__('admin-server.messages.connection_update_success'), 'success');
             $this->closeModal();
         } catch (\Exception $e) {
@@ -735,7 +735,7 @@ class ServerEditScreen extends Screen
         try {
             $this->serversService->deleteDbConnection($connectionId);
             $this->flashMessage(__('admin-server.messages.connection_delete_success'), 'success');
-            $this->initServer();
+            $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
         } catch (\Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }

@@ -56,7 +56,7 @@ class PaymentService
     public function savePromoCode(PromoCode $promoCode, array $data) : void
     {
         $promoCode->code = $data['code'];
-        $promoCode->max_usages = (int) $data['max_usages'];
+        $promoCode->max_usages = $data['max_usages'] ? (int) $data['max_usages'] : null;
         $promoCode->type = $data['type'];
         $promoCode->value = (float) $data['value'];
         $promoCode->expires_at = $data['expires_at'] ? new \DateTimeImmutable($data['expires_at']) : null;
@@ -132,7 +132,7 @@ class PaymentService
 
         return [
             'total_usages' => $totalUsages,
-            'remaining_usages' => $promoCode->max_usages - $totalUsages,
+            'remaining_usages' => $promoCode->max_usages !== null ? $promoCode->max_usages - $totalUsages : null,
             'total_amount' => $totalAmount,
             'is_expired' => $promoCode->expires_at !== null && $promoCode->expires_at < new \DateTimeImmutable(),
         ];

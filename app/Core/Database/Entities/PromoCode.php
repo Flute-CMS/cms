@@ -30,8 +30,8 @@ class PromoCode extends ActiveRecord
     #[Column(type: "string")]
     public string $code;
 
-    #[Column(type: "integer")]
-    public int $max_usages;
+    #[Column(type: "integer", nullable: true)]
+    public ?int $max_usages = null;
 
     #[Column(type: "enum(amount, percentage)")]
     public string $type;

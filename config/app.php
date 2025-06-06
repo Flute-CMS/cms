@@ -13,6 +13,7 @@ return array (
   'maintenance_mode' => false,
   'steam_api' => '',
   'change_theme' => true,
+  'default_theme' => 'dark',
   'debug_ips' => 
   array (
   ),

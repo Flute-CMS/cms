@@ -41,11 +41,16 @@
                         </div>
                     </div>
 
-                    <x-button class="update-button" data-action="update" data-type="theme" data-id="{{ $themeId }}"
-                        type="accent">
-                        <x-icon path="ph.bold.arrow-circle-up-bold" />
-                        {{ __('admin-update.update') }}
-                    </x-button>
+                    <div yoyo:vals='{"id": "{{ $themeId }}", "version": "{{ $themeUpdate["version"] }}", "type": "theme"}'>
+                        <x-button class="update-button" yoyo:post="handleUpdate"
+                            hx-flute-confirm="{{ __('admin-update.update_confirm') }}"
+                            hx-flute-confirm-type="info"
+                            hx-flute-action-key="theme_update_{{ $themeId }}_{{ str_replace('.', '_', $themeUpdate['version']) }}"
+                            hx-trigger="confirmed" type="accent">
+                            <x-icon path="ph.bold.arrow-circle-up-bold" />
+                            {{ __('admin-update.update') }}
+                        </x-button>
+                    </div>
                 </div>
 
                 <div class="update-history" id="theme-history-{{ $themeId }}"
@@ -63,9 +68,11 @@
                                 <span class="timeline-date"
                                     aria-label="{{ __('admin-update.release_date') }}">{{ $themeUpdate['release_date'] ?? date(default_date_format(true)) }}</span>
                                 <div class="timeline-tags" aria-label="{{ __('def.tags') }}">
-                                    @foreach ($themeUpdate['tags'] as $tag)
-                                        <span class="timeline-tag {{ $tag['type'] }}">{{ $tag['label'] }}</span>
-                                    @endforeach
+                                    @if (!empty($themeUpdate['tags']))
+                                        @foreach ($themeUpdate['tags'] as $tag)
+                                            <span class="timeline-tag {{ $tag['type'] }}">{{ $tag['label'] }}</span>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
                             <div class="timeline-content">
@@ -91,16 +98,23 @@
                                             aria-label="{{ __('admin-update.version') }}">v{{ $version['version'] }}</span>
                                         <span class="timeline-date"
                                             aria-label="{{ __('admin-update.release_date') }}">{{ $version['release_date'] ?? date(default_date_format(true)) }}</span>
-                                        <button class="install-button" yoyo:post="handleUpdate" yoyo:val.type="theme" yoyo:val.version="{{ $version['version'] }}"
-                                            hx-flute-confirm="{{ __('admin-update.install_old_confirm') }}" hx-flute-confirm-type="warning" hx-trigger="confirmed">
-                                            <x-icon path="ph.bold.arrow-circle-down-bold" />
-                                            {{ __('admin-update.install_version') }}
-                                        </button>
+                                        <div class="timeline-actions" yoyo:vals='{"id": "{{ $themeId }}", "version": "{{ $version['version'] }}", "type": "theme"}'>
+                                            <button class="install-button" yoyo:post="handleUpdate"
+                                                hx-flute-confirm="{{ __('admin-update.install_old_confirm') }}"
+                                                hx-flute-confirm-type="warning"
+                                                hx-flute-action-key="theme_update_{{ $themeId }}_{{ str_replace('.', '_', $version['version']) }}"
+                                                hx-trigger="confirmed">
+                                                <x-icon path="ph.bold.arrow-circle-down-bold" />
+                                                {{ __('admin-update.install_version') }}
+                                            </button>
+                                        </div>
                                         <div class="timeline-tags" aria-label="{{ __('def.tags') }}">
-                                            @foreach ($version['tags'] as $tag)
-                                                <span
-                                                    class="timeline-tag {{ $tag['type'] }}">{{ $tag['label'] }}</span>
-                                            @endforeach
+                                            @if (!empty($version['tags']))
+                                                @foreach ($version['tags'] as $tag)
+                                                    <span
+                                                        class="timeline-tag {{ $tag['type'] }}">{{ $tag['label'] }}</span>
+                                                @endforeach
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="timeline-content">

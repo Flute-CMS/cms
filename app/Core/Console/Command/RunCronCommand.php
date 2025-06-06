@@ -39,9 +39,11 @@ class RunCronCommand extends Command
             $this->scheduler->run();
 
             $output->writeln('<info>All cron tasks completed successfully.</info>');
+            logs('cron')->info('All cron tasks completed successfully.');
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $output->writeln('<error>Error running cron tasks: ' . $e->getMessage() . '</error>');
+            logs('cron')->error($e);
             return Command::FAILURE;
         }
     }

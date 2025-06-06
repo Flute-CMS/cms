@@ -37,11 +37,16 @@ class WidgetManager
     /**
      * Registers a widget class by name.
      */
-    public function registerWidget(string $name, string $class) : void
+    public function registerWidget(string $name, string $class): void
     {
-        if (!is_subclass_of($class, WidgetInterface::class)) {
+        if (! class_exists($class)) {
+            throw new InvalidArgumentException("Class {$class} does not exist.");
+        }
+
+        if (! in_array(WidgetInterface::class, class_implements($class ?? []))) {
             throw new InvalidArgumentException("Class {$class} must implement WidgetInterface.");
         }
+
         if (isset($this->widgets[$name])) {
             throw new InvalidArgumentException("Widget already exists - {$name}");
         }
@@ -51,7 +56,7 @@ class WidgetManager
     /**
      * Returns all registered widgets as name->instance.
      */
-    public function getWidgets() : array
+    public function getWidgets(): array
     {
         $instances = [];
         foreach ($this->widgets as $name => $class) {
@@ -63,7 +68,7 @@ class WidgetManager
     /**
      * Returns a single widget instance by name.
      */
-    public function getWidget(string $name) : WidgetInterface
+    public function getWidget(string $name): WidgetInterface
     {
         if (!isset($this->widgets[$name])) {
             throw new InvalidArgumentException("Widget {$name} is not registered in the system.");
@@ -74,7 +79,7 @@ class WidgetManager
     /**
      * Registers default widgets.
      */
-    public function registerDefaultWidgets() : void
+    public function registerDefaultWidgets(): void
     {
         $this->registerWidget('UsersNew', UsersNewWidget::class);
         $this->registerWidget('UsersOnline', UsersOnlineWidget::class);
@@ -90,7 +95,7 @@ class WidgetManager
     /**
      * Returns widgets grouped by their categories.
      */
-    public function getWidgetsByCategory() : array
+    public function getWidgetsByCategory(): array
     {
         $categories = [];
         foreach ($this->getWidgets() as $name => $widget) {

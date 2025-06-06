@@ -32,6 +32,7 @@ main {
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 20px;
+    width: 100%;
 
     @include media(mobile) {
         align-items: flex-start;

@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Page\Widgets;
 
 use Flute\Core\Database\Entities\User;
-use Flute\Core\Modules\Page\Widgets\AbstractWidget;
 use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersNewWidget extends AbstractWidget
@@ -28,7 +27,7 @@ class UsersNewWidget extends AbstractWidget
         return 'ph.regular.user-circle-plus';
     }
 
-    public function render(array $settings) : string
+    public function render(array $settings) : string|null
     {
         $maxDisplay = $settings['max_display'] ?? 10;
         $newUsers = $this->userRepository->getLatestUsers($maxDisplay);

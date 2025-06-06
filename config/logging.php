@@ -23,5 +23,10 @@ return array (
       'path' => path('storage/logs/database.log'),
       'level' => 200,
     ),
+    'cron' => 
+    array (
+      'path' => path('storage/logs/cron.log'),
+      'level' => 200,
+    ),
   ),
 );

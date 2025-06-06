@@ -2,14 +2,14 @@
 
 namespace Flute\Core\Modules\Auth\Components;
 
-use Clickfwd\Yoyo\Component;
+use Flute\Core\Support\FluteComponent;
 use Flute\Core\Exceptions\DuplicateEmailException;
 use Flute\Core\Exceptions\DuplicateLoginException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Services\CaptchaService;
 use Nette\Schema\ValidationException;
 
-class RegisterComponent extends Component
+class RegisterComponent extends FluteComponent
 {
     public ?string $name = null;
     public ?string $email = null;
@@ -18,11 +18,6 @@ class RegisterComponent extends Component
     public ?string $password_confirmation = null;
     public ?string $token = null;
     public $rememberMe;
-
-    public function validate()
-    {
-        $this->validator();
-    }
 
     public function register()
     {

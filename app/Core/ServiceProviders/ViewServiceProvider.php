@@ -11,7 +11,7 @@ use Flute\Core\Theme\ThemeManager;
 
 class ViewServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             TemplateAssets::class => \DI\create(),
@@ -26,7 +26,7 @@ class ViewServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
         if (! is_cli()) {
             $container->get(FluteEventDispatcher::class)->addListener(ThemeChangedEvent::NAME, function (ThemeChangedEvent $event) {

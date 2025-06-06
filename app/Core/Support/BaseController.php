@@ -59,7 +59,7 @@ abstract class BaseController
     /**
      * Return success for API
      * 
-     * @param string|array $message Error message
+     * @param string|array $message Success message
      * @param int $status HTTP Status code
      * 
      * @return JsonResponse

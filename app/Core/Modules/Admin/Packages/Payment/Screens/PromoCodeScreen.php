@@ -179,7 +179,7 @@ class PromoCodeScreen extends Screen
                     ->width('150px'),
 
                 TD::make('expires_at', __('admin-payment.table.expires_at'))
-                    ->render(fn(PromoCode $code) => $code->expires_at->format('d.m.Y H:i'))
+                    ->render(fn(PromoCode $code) => $code->expires_at ? $code->expires_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
 
                 TD::make('status', __('admin-payment.table.status'))
@@ -320,7 +320,7 @@ class PromoCodeScreen extends Screen
             LayoutFactory::field(
                 Input::make('max_usages')
                     ->type('text')
-                    ->value($code->max_usages)
+                    ->value($code->max_usages ?? 0)
                     ->readOnly()
             )
                 ->label(__('admin-payment.fields.promo.max_usages.label')),
@@ -380,7 +380,6 @@ class PromoCodeScreen extends Screen
                     ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
             )
                 ->label(__('admin-payment.fields.promo.max_usages.label'))
-                ->required()
                 ->small(__('admin-payment.fields.promo.max_usages.help')),
 
             LayoutFactory::field(
@@ -408,7 +407,7 @@ class PromoCodeScreen extends Screen
             'code' => ['required', 'string', 'max-str-len:255', 'unique:promo_codes,code'],
             'type' => ['required', 'string', 'in:amount,percentage'],
             'value' => ['required', 'numeric', 'min:0'],
-            'max_usages' => ['required', 'integer', 'min:1'],
+            'max_usages' => ['nullable', 'min:1'],
             'expires_at' => ['nullable', 'datetime'],
         ], $data);
 
@@ -475,11 +474,10 @@ class PromoCodeScreen extends Screen
                 Input::make('max_usages')
                     ->type('number')
                     ->min(1)
-                    ->value($promoCode->max_usages)
+                    ->value($promoCode->max_usages ?? 0)
                     ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
             )
                 ->label(__('admin-payment.fields.promo.max_usages.label'))
-                ->required()
                 ->small(__('admin-payment.fields.promo.max_usages.help')),
 
             LayoutFactory::field(
@@ -515,7 +513,7 @@ class PromoCodeScreen extends Screen
             'code' => ['required', 'string', 'max-str-len:255', 'unique:promo_codes,code,' . $promoCode->id],
             'type' => ['required', 'string', 'in:amount,percentage'],
             'value' => ['required', 'numeric', 'min:0'],
-            'max_usages' => ['required', 'integer', 'min:1'],
+            'max_usages' => ['nullable', 'min:1'],
             'expires_at' => ['nullable', 'datetime'],
         ], $data);
 
@@ -560,7 +558,7 @@ class PromoCodeScreen extends Screen
 
                 TD::make('used_at', __('admin-payment.table.created_at'))
                     ->sort()
-                    ->render(fn(PromoCodeUsage $usage) => $usage->used_at->format('d.m.Y H:i'))
+                    ->render(fn(PromoCodeUsage $usage) => $usage->used_at ? $usage->used_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
             ])->compact(),
         ])

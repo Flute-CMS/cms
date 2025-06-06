@@ -48,4 +48,8 @@
     'themes_updated_description'         => 'You have the latest versions of all themes',
     'install_version'                    => 'Install Version',
     'install_old_confirm'                => 'Are you sure you want to install an older version?',
+    'update_all'                         => 'Update All',
+    'update_all_confirm'                 => 'Are you sure you want to update all available components? A backup will be created before proceeding.',
+    'update_all_complete'                => 'All updates installed successfully',
+    'update_all_preparing'               => 'Preparing bulk update...',
 ];

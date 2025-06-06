@@ -59,6 +59,7 @@ class MainSettingsPackageService
                 'description' => 'app.description',
                 'robots' => 'app.robots',
                 'change_theme' => 'app.change_theme',
+                'default_theme' => 'app.default_theme',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'app.share',
@@ -182,6 +183,7 @@ class MainSettingsPackageService
                 'description',
                 'robots',
                 'change_theme',
+                'default_theme',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share',
@@ -261,6 +263,7 @@ class MainSettingsPackageService
                 'robots' => 'required|string',
                 'description' => 'nullable|string',
                 'change_theme' => 'boolean',
+                'default_theme' => 'nullable|string',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'boolean',

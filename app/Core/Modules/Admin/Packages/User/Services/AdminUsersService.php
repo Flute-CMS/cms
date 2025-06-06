@@ -12,17 +12,17 @@ use Flute\Core\Support\FileUploader;
 
 class AdminUsersService
 {
-    public function getRoles() : array
+    public function getRoles(): array
     {
         return Role::findAll();
     }
 
-    public function getUserById(int $id) : ?User
+    public function getUserById(int $id): ?User
     {
         return User::findByPK($id);
     }
 
-    public function getAllUsers() : array
+    public function getAllUsers(): array
     {
         return User::findAll();
     }
@@ -30,7 +30,7 @@ class AdminUsersService
     /**
      * Сохранение пользователя.
      */
-    public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files) : void
+    public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files): void
     {
         if (isset($data['roles']) && sizeof($data['roles']) !== sizeof($user->roles)) {
             $this->handleRoles($user, $data['roles']);
@@ -45,24 +45,24 @@ class AdminUsersService
     /**
      * Обработка ролей пользователя.
      */
-    private function handleRoles(User $user, array $roleIds) : void
+    private function handleRoles(User $user, array $roleIds): void
     {
         $userHighestPriority = user()->getHighestPriority();
         $currentRoles = $user->roles;
 
         $hasBossAccess = user()->can('admin.boss');
-        
+
         if ($hasBossAccess) {
             $untouchableRoles = [];
             $selectedRoles = array_filter(
                 Role::findAll(),
-                fn ($role) => in_array($role->id, $roleIds)
+                fn($role) => in_array($role->id, $roleIds)
             );
         } else {
-            $untouchableRoles = array_filter($currentRoles, fn ($role) => $role->priority >= $userHighestPriority);
+            $untouchableRoles = array_filter($currentRoles, fn($role) => $role->priority >= $userHighestPriority);
             $selectedRoles = array_filter(
                 Role::findAll(),
-                fn ($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
+                fn($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
             );
         }
 
@@ -82,7 +82,7 @@ class AdminUsersService
     /**
      * Обработка загруженных файлов.
      */
-    private function handleFiles(User $user, \Symfony\Component\HttpFoundation\FileBag $files) : void
+    private function handleFiles(User $user, \Symfony\Component\HttpFoundation\FileBag $files): void
     {
         /** @var FileUploader $uploader */
         $uploader = app(FileUploader::class);
@@ -113,13 +113,19 @@ class AdminUsersService
     /**
      * Обновление данных пользователя.
      */
-    private function updateUserData(User $user, array $data) : void
+    private function updateUserData(User $user, array $data): void
     {
         $user->name = $data['name'];
-        $user->login = $data['login'];
-        $user->uri = $data['uri'];
-        $user->email = $data['email'];
-        $user->balance = (float) $data['balance'];
+        if (! empty($data['login'])) {
+            $user->login = $data['login'];
+        }
+        if (! empty($data['uri'])) {
+            $user->uri = $data['uri'];
+        }
+        if (! empty($data['email'])) {
+            $user->email = $data['email'];
+        }
+        $user->balance = floatval($data['balance']);
         $user->verified = isset($data['verified']) ? filter_var($data['verified'], FILTER_VALIDATE_BOOLEAN) : false;
         $user->hidden = isset($data['hidden']) ? filter_var($data['hidden'], FILTER_VALIDATE_BOOLEAN) : false;
 
@@ -129,7 +135,7 @@ class AdminUsersService
     /**
      * Блокировка пользователя.
      */
-    public function blockUser(User $user, array $data) : void
+    public function blockUser(User $user, array $data): void
     {
         $block = new UserBlock();
         $block->user = $user;
@@ -143,7 +149,7 @@ class AdminUsersService
     /**
      * Разблокировка пользователя.
      */
-    public function unblockUser(User $user) : void
+    public function unblockUser(User $user): void
     {
         foreach ($user->blocksReceived as $block) {
             if ($block->isActive && ($block->blockedUntil > new \DateTimeImmutable() || $block->blockedUntil === null)) {
@@ -156,7 +162,7 @@ class AdminUsersService
     /**
      * Сброс пароля пользователя.
      */
-    public function resetPassword(User $user, string $password) : void
+    public function resetPassword(User $user, string $password): void
     {
         $user->password = password_hash($password, PASSWORD_DEFAULT);
         $user->save();
@@ -167,7 +173,7 @@ class AdminUsersService
     /**
      * Очистка сессий пользователя.
      */
-    public function clearUserSessions(User $user) : void
+    public function clearUserSessions(User $user): void
     {
         foreach ($user->rememberTokens as $token) {
             $token->delete();
@@ -181,7 +187,7 @@ class AdminUsersService
     /**
      * Завершение конкретной сессии.
      */
-    public function terminateSession(User $user, int $deviceId) : void
+    public function terminateSession(User $user, int $deviceId): void
     {
         $device = UserDevice::findByPK($deviceId);
 
@@ -199,7 +205,7 @@ class AdminUsersService
     /**
      * Добавление социальной сети.
      */
-    public function addSocialNetwork(User $user, array $data) : void
+    public function addSocialNetwork(User $user, array $data): void
     {
         $socialNetwork = SocialNetwork::findByPK($data['socialNetwork']);
         if (! $socialNetwork) {
@@ -218,7 +224,7 @@ class AdminUsersService
     /**
      * Обновление социальной сети.
      */
-    public function updateSocialNetwork(int $networkId, array $data) : void
+    public function updateSocialNetwork(int $networkId, array $data): void
     {
         $network = UserSocialNetwork::findByPK($networkId);
         if (! $network) {
@@ -234,7 +240,7 @@ class AdminUsersService
     /**
      * Переключение видимости социальной сети.
      */
-    public function toggleSocialNetworkVisibility(int $networkId) : void
+    public function toggleSocialNetworkVisibility(int $networkId): void
     {
         $network = UserSocialNetwork::findByPK($networkId);
         if (! $network) {
@@ -248,7 +254,7 @@ class AdminUsersService
     /**
      * Удаление социальной сети.
      */
-    public function deleteSocialNetwork(int $networkId) : void
+    public function deleteSocialNetwork(int $networkId): void
     {
         $network = rep(UserSocialNetwork::class)->findByPK($networkId);
         if (! $network) {

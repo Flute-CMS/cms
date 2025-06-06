@@ -17,6 +17,11 @@ class LoggerService
 
     public function __construct(array $loggersConfig)
     {
+        $loggersConfig['cron'] = [
+            'path' => BASE_PATH . '/storage/logs/cron.log',
+            'level' => 100,
+        ];
+
         foreach ($loggersConfig as $name => $config) {
             $this->addLogger($name, $config['path'], $config['level']);
         }
@@ -25,27 +30,27 @@ class LoggerService
     public function addLogger(string $name, string $logFile, int $logLevel = Logger::DEBUG)
     {
         $logger = new Logger($name);
-        
+
         $logger->pushProcessor(new IntrospectionProcessor());
         $logger->pushProcessor(new WebProcessor());
-        
+
         $handler = new RotatingFileHandler(
-            $logFile, 
-            self::MAX_FILES, 
+            $logFile,
+            self::MAX_FILES,
             $logLevel,
             true,
             0666,
             true
         );
-        
+
         $lineFormatter = new LineFormatter(
             "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
             "Y-m-d H:i:s"
         );
         $handler->setFormatter($lineFormatter);
-        
+
         $logger->pushHandler($handler);
-        
+
         $this->loggers[$name] = $logger;
     }
 
@@ -57,7 +62,7 @@ class LoggerService
         if (!isset($this->loggers[$name])) {
             throw new \Exception("Logger $name is not found");
         }
-        
+
         return $this->loggers[$name];
     }
 
@@ -65,7 +70,7 @@ class LoggerService
     {
         return array_keys($this->loggers);
     }
-    
+
     /**
      * Manually clean up old log files
      * This can be called from a cron job
@@ -82,7 +87,7 @@ class LoggerService
             }
         }
     }
-    
+
     /**
      * Setup cron job for log maintenance
      */

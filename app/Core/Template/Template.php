@@ -255,6 +255,88 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     }
 
     /**
+     * Render content and add to section immediately.
+     *
+     * @param string $section The name of the section.
+     * @param callable $callback A callback that returns the content when called.
+     * @return void
+     */
+    public function prependToSectionDeferred(string $section, callable $callback) : void
+    {
+        try {
+            $content = $callback();
+            $this->prependToSection($section, $content);
+        } catch (\Exception $e) {
+            logs('templates')->error("Error rendering section '{$section}': " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Prepend a template render to a section with basic optimization.
+     *
+     * @param string $section The name of the section.
+     * @param string $template The template to render.
+     * @param array $data The data to pass to the template.
+     * @return void
+     */
+    public function prependTemplateToSection(string $section, string $template, array $data = []) : void
+    {
+        if (!$this->shouldRenderSection($section)) {
+            return;
+        }
+        
+        $this->prependToSectionDeferred($section, function() use ($template, $data) {
+            try {
+                return $this->render($template, $data)->render();
+            } catch (\Exception $e) {
+                logs('templates')->error("Error rendering template '{$template}': " . $e->getMessage());
+                return '';
+            }
+        });
+    }
+
+    /**
+     * Prepend a Yoyo component to a section with lazy loading.
+     *
+     * @param string $section The name of the section.
+     * @param string $component The Yoyo component name.
+     * @param array $data The data to pass to the component.
+     * @return void
+     */
+    public function prependYoyoToSection(string $section, string $component, array $data = []) : void
+    {
+        $this->prependToSectionDeferred($section, function() use ($component, $data) {
+            try {
+                return \Yoyo\yoyo_render($component, $data);
+            } catch (\Exception $e) {
+                logs('templates')->error("Error rendering Yoyo component '{$component}': " . $e->getMessage());
+                return '';
+            }
+        });
+    }
+
+    /**
+     * Check if a section should be rendered based on current context.
+     *
+     * @param string $section The section name to check.
+     * @return bool Whether the section should be rendered.
+     */
+    public function shouldRenderSection(string $section) : bool
+    {
+        $path = request()->getPathInfo();
+        
+        if (strpos($section, 'profile_') === 0 && !str_contains($path, '/profile')) {
+            return false;
+        }
+        
+        if (strpos($section, 'navbar') === 0 && is_admin_path()) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
      * Flush the content of a section.
      *
      * @return void
@@ -488,6 +570,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             return "<?php echo asset($expression); ?>";
         });
 
+
+
         $this->addGlobal('app', app());
 
         $this->fluteBladeApp->bind('view', function () {
@@ -515,6 +599,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         Yoyo::getViewProvider()->getProviderInstance()->composer('*', function ($view) {
             $sections = [];
+            
             foreach ($this->sectionPushes as $section => $contents) {
                 $sections[$section] = implode('', $contents);
             }
@@ -637,4 +722,20 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     {
         return is_admin_path() && user()->can('admin');
     }
+
+    /**
+     * Get template rendering statistics for debugging.
+     *
+     * @return array
+     */
+    public function getRenderStats() : array
+    {
+        return [
+            'section_pushes' => count($this->sectionPushes),
+            'memory_usage' => memory_get_usage(true),
+            'memory_peak' => memory_get_peak_usage(true),
+        ];
+    }
+
+
 }

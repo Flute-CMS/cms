@@ -50,7 +50,7 @@ class CacheClearCommand extends Command
 
             $filesystem->remove(glob($logsPath));
 
-            $io->success('Flute cache have been deleted successfully.');
+            $io->success('Flute cache has been deleted successfully.');
 
             return Command::SUCCESS;
         } catch (IOException $e) {
