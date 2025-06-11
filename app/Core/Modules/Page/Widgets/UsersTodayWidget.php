@@ -33,6 +33,12 @@ class UsersTodayWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $todayUsers = $this->userRepository->getTodayUsers();
 
+        $todayUsers = array_filter($todayUsers, static fn ($u) => !$u->hidden);
+
+        usort($todayUsers, static function ($a, $b) {
+            return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
+        });
+
         if (count($todayUsers) > $maxDisplay) {
             $todayUsers = array_slice($todayUsers, 0, $maxDisplay);
         }

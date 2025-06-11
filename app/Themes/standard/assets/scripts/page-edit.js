@@ -12,6 +12,8 @@ class PageEditorConfig {
             undoBtn: '#page-edit-undo',
             redoBtn: '#page-edit-redo',
             saveBtn: '#page-edit-save',
+            autoPositionBtn: '#page-edit-auto-position',
+            heightModeToggle: '#height-mode-toggle',
             seoBtn: '#page-change-seo',
             ...options.selectors,
         };
@@ -311,12 +313,16 @@ class PageEditor {
         this.hasUnsavedChanges = false;
         this.isProcessing = false;
         this.animationDuration = 300;
+        this.autoSave = false;
+        this.autoSaveInterval = null;
+        this.heightMode = 'auto'; // 'auto' or 'manual'
 
         this.elements = {};
         this.initializeElements();
 
         this.onboarding = new OnboardingManager(this);
         this.setupEventListeners();
+        this.setupHeightModeToggle();
 
         this.isEditorFocused = false;
         this.pendingOperations = 0;
@@ -343,13 +349,26 @@ class PageEditor {
                 onClick: (widgetEl, editor) => {
                     editor.refreshWidget(widgetEl);
                 },
+                shouldShow: (widgetEl) => {
+                    const widgetName = widgetEl.getAttribute('data-widget-name');
+                    return widgetName !== 'Content';
+                },
             },
             delete: {
                 icon: this.config.icons.delete,
                 tooltip: this.config.translations.delete,
                 order: 100,
                 onClick: (widgetEl, editor) => {
+                    // Prevent deletion of Content widget
+                    const widgetName = widgetEl.getAttribute('data-widget-name');
+                    if (widgetName === 'Content') {
+                        return;
+                    }
                     editor.grid.removeWidget(widgetEl);
+                },
+                shouldShow: (widgetEl) => {
+                    const widgetName = widgetEl.getAttribute('data-widget-name');
+                    return widgetName !== 'Content';
                 },
             },
         };
@@ -364,6 +383,83 @@ class PageEditor {
         };
 
         this.attemptRecoveryFromLocalStorage();
+    }
+
+    setupHeightModeToggle() {
+        if (!this.elements.heightModeToggle) return;
+
+        const savedMode = localStorage.getItem('pageEditHeightMode') || 'auto';
+        this.heightMode = savedMode;
+        this.updateHeightModeButton();
+
+        this.elements.heightModeToggle.addEventListener('click', (e) => {
+            this.heightMode = this.heightMode === 'auto' ? 'manual' : 'auto';
+            localStorage.setItem('pageEditHeightMode', this.heightMode);
+            this.updateHeightModeButton();
+            this.applyHeightModeToGrid();
+        });
+    }
+
+    updateHeightModeButton() {
+        if (!this.elements.heightModeToggle) return;
+
+        if (this.heightMode === 'auto') {
+            this.elements.heightModeToggle.classList.add('active');
+            this.elements.heightModeToggle.classList.remove('manual');
+            // Update tooltip
+            const autoTooltip = this.elements.heightModeToggle.getAttribute('data-tooltip-auto');
+            this.elements.heightModeToggle.setAttribute('data-tooltip', autoTooltip);
+        } else {
+            this.elements.heightModeToggle.classList.remove('active');
+            this.elements.heightModeToggle.classList.add('manual');
+            // Update tooltip
+            const manualTooltip = this.elements.heightModeToggle.getAttribute('data-tooltip-manual');
+            this.elements.heightModeToggle.setAttribute('data-tooltip', manualTooltip);
+        }
+    }
+
+    applyHeightModeToGrid() {
+        if (!this.grid) return;
+
+        if (this.heightMode === 'auto') {
+            this.grid.opts.sizeToContent = true;
+            this.grid.opts.cellHeight = 100;
+        } else {
+            this.grid.opts.sizeToContent = false;
+            this.grid.opts.cellHeight = 100;
+        }
+
+        const widgets = this.elements.widgetGrid.querySelectorAll('.grid-stack-item');
+        widgets.forEach(widget => {
+            const content = widget.querySelector('.grid-stack-item-content');
+            if (content) {
+                content.style.overflow = this.heightMode === 'auto' ? 'visible' : 'auto';
+            }
+
+            this.grid.resizable(widget, true);
+            if (this.heightMode === 'auto') {
+                setTimeout(() => this.resizeWidgetToContentSafe(widget), 120);
+            } else {
+                this.forceContentReflow(widget);
+            }
+        });
+    }
+
+    autoFitWidgetHeights() {
+        if (!this.grid || this.heightMode !== 'auto') return;
+
+        const widgets = this.elements.widgetGrid.querySelectorAll('.grid-stack-item');
+        widgets.forEach(widget => {
+            const content = widget.querySelector('.grid-stack-item-content');
+            if (content) {
+                let cellPx = parseFloat(this.grid.cellHeight() || 60);
+                if (isNaN(cellPx) || cellPx <= 0) cellPx = 60;
+                const contentHeight = content.scrollHeight;
+                const gridHeight = Math.max(2, Math.ceil(contentHeight / cellPx));
+
+                this.grid.update(widget, { h: gridHeight });
+            }
+        });
     }
 
     /**
@@ -430,6 +526,11 @@ class PageEditor {
             this.elements.saveBtn?.addEventListener('click', () =>
                 this.saveLayout(),
             );
+
+            // Auto-position button
+            this.elements.autoPositionBtn?.addEventListener('click', () => {
+                this.autoPositionGrid();
+            });
 
             // Add SEO button event listener
             this.elements.seoBtn?.addEventListener('click', () =>
@@ -550,7 +651,7 @@ class PageEditor {
         try {
             this.currentPath = this.getCurrentPath();
             this.localStorageKey = this.getLocalStorageKey();
-            
+
             this.onboarding.initialize();
             document.body.classList.add('page-edit-mode');
 
@@ -585,6 +686,8 @@ class PageEditor {
 
             this.activeCategory = null;
             this.setupCategoryHandlers();
+
+            this.updateHeightModeButton();
         } catch (err) {
             this.isProcessing = false;
             this.logError('enable', err);
@@ -637,9 +740,11 @@ class PageEditor {
 
             const gridOptions = {
                 ...this.config.gridOptions,
-                minRow: 1,
+                cellHeight: this.heightMode === 'auto' ? 'auto' : 100,
+                sizeToContent: this.heightMode === 'auto',
+                float: false,
                 column: 12,
-                animate: true,
+                minRow: 1,
             };
 
             this.grid = GridStack.init(gridOptions, this.elements.widgetGrid);
@@ -649,7 +754,7 @@ class PageEditor {
             }
 
             try {
-                GridStack.setupDragIn('.page-edit-widgets-item', {
+                GridStack.setupDragIn('.page-edit-widgets-item:not([data-widget-name="Content"])', {
                     helper: 'clone',
                     scroll: true,
                     appendTo: 'body',
@@ -668,6 +773,8 @@ class PageEditor {
             if (!savedLayout) {
                 this.fetchLayoutFromServer();
             }
+
+            this.applyHeightModeToGrid();
         } catch (err) {
             this.logError('initializeGrid', err);
             this.showErrorNotification(
@@ -694,6 +801,18 @@ class PageEditor {
                 } catch (err) {
                     this.logError('widgetDrop event', err);
                 }
+            });
+
+            // Prevent Content widget from being removed
+            this.grid.on('removed', (ev, items) => {
+                items.forEach(item => {
+                    if (item.el && item.el.getAttribute('data-widget-name') === 'Content') {
+                        // Re-add the content widget if it was removed
+                        setTimeout(() => {
+                            this.addContentWidget();
+                        }, 100);
+                    }
+                });
             });
         } catch (err) {
             this.logError('setupGridEvents', err);
@@ -793,6 +912,13 @@ class PageEditor {
                 widgetElement: widgetEl,
                 content: contentResponse
             });
+
+            // Auto-fit height if in auto mode
+            if (this.heightMode === 'auto') {
+                setTimeout(() => {
+                    this.autoFitSingleWidget(widgetEl, true);
+                }, 100);
+            }
         } catch (err) {
             this.logError(`initializeWidget ${widgetName}`, err);
 
@@ -1269,76 +1395,33 @@ class PageEditor {
 
         try {
             this.grid.removeAll();
-
+            const filtered = this.getCurrentPath() === '/' ? data.filter(i => i.widgetName !== 'Content') : data;
             const promises = [];
-
-            data.forEach((nd, index) => {
+            filtered.forEach((nd, idx) => {
                 try {
                     const div = document.createElement('div');
                     div.classList.add('grid-stack-item');
-
-                    div.style.opacity = '0';
-                    div.style.transition = `opacity ${this.animationDuration}ms ease-out, 
-                                          transform ${this.animationDuration}ms ease-out`;
-                    div.style.transitionDelay = `${index * 50}ms`;
-
-                    if (nd.id) div.setAttribute('data-widget-id', nd.id);
                     div.setAttribute('data-widget-name', nd.widgetName || '');
-                    div.dataset.widgetSettings = JSON.stringify(
-                        nd.settings || {},
-                    );
-
-                    Object.entries(nd.gridstack || {}).forEach(
-                        ([key, value]) => {
-                            if (value !== undefined) {
-                                div.setAttribute(`gs-${key}`, value);
-                            }
-                        },
-                    );
-
+                    if (nd.id) div.setAttribute('data-widget-id', nd.id);
+                    div.dataset.widgetSettings = JSON.stringify(nd.settings || {});
+                    div.setAttribute('gs-w', nd.gridstack?.w || 12);
+                    div.setAttribute('gs-h', nd.gridstack?.h || 4);
+                    if (typeof nd.gridstack?.x === 'number') {
+                        div.setAttribute('gs-x', nd.gridstack.x);
+                    }
+                    if (typeof nd.gridstack?.y === 'number') {
+                        div.setAttribute('gs-y', nd.gridstack.y);
+                    }
+                    if (nd.widgetName === 'Content') div.setAttribute('gs-no-move', 'true');
                     const content = document.createElement('div');
                     content.classList.add('grid-stack-item-content');
-                    content.style.pointerEvents = 'auto';
-
                     div.appendChild(content);
-                    const widget = this.grid.makeWidget(div);
-
-                    if (nd.gridstack) {
-                        this.grid.update(widget, {
-                            x: nd.gridstack.x,
-                            y: nd.gridstack.y,
-                            w: nd.gridstack.w,
-                            h: nd.gridstack.h,
-                        });
-                    }
-
-                    setTimeout(() => {
-                        div.style.opacity = '1';
-                    }, 10);
-
-                    setTimeout(() => {
-                        div.style.transition = '';
-                    }, this.animationDuration + index * 50);
-
-                    promises.push(
-                        new Promise((resolve) => {
-                            setTimeout(() => {
-                                this.initializeWidget(div, content);
-                                resolve();
-                            }, Math.min(index * 100, 500)); // Cap stagger at 500ms
-                        }),
-                    );
-                } catch (widgetErr) {
-                    this.logError(`loadLayoutJson widget ${index}`, widgetErr);
-                }
+                    this.grid.makeWidget(div);
+                    promises.push(new Promise(res => { setTimeout(() => { this.initializeWidget(div, content); res(); }, Math.min(idx * 100, 500)); }));
+                } catch (err) { this.logError('widget load', err); }
             });
-
-            Promise.all(promises).catch((err) =>
-                this.logError('loadLayoutJson promises', err),
-            );
-        } catch (err) {
-            this.logError('loadLayoutJson', err);
-        }
+            Promise.all(promises).then(() => { });
+        } catch (err) { this.logError('loadLayoutJson', err); }
     }
 
     handleGridChange() {
@@ -1575,7 +1658,7 @@ class PageEditor {
         ) {
             this.currentPath = this.getCurrentPath();
             this.localStorageKey = this.getLocalStorageKey();
-            
+
             this.elements.widgetGrid = document.getElementById('widget-grid');
             if (
                 document.body.classList.contains('page-edit-mode') &&
@@ -1702,7 +1785,15 @@ class PageEditor {
 
     resetLayout() {
         if (!confirm(this.config.translations.resetConfirm)) return;
-        this.grid.removeAll();
+
+        // Remove all widgets except Content widget
+        const items = Array.from(this.grid.getGridItems());
+        items.forEach(item => {
+            if (item.getAttribute('data-widget-name') !== 'Content') {
+                this.grid.removeWidget(item);
+            }
+        });
+
         this.handleGridChange();
     }
 
@@ -1855,7 +1946,13 @@ class PageEditor {
                 );
             });
 
-        const firstCategory = document.querySelector('.widget-category:first-child .widget-category-header');
+        // Hide system category with Content widget from user selection
+        const systemCategory = document.querySelector('.widget-category[data-category="system"]');
+        if (systemCategory) {
+            systemCategory.style.display = 'none';
+        }
+
+        const firstCategory = document.querySelector('.widget-category:not([data-category="system"]):first-child .widget-category-header');
         if (firstCategory) {
             setTimeout(() => {
                 this.toggleCategory(firstCategory, true);
@@ -2093,9 +2190,98 @@ class PageEditor {
             this.history.clear();
             this.updateUndoRedoButtons();
         }
-        
+
         this.currentPath = this.getCurrentPath();
         this.localStorageKey = this.getLocalStorageKey();
+    }
+
+    addContentWidget() {
+        if (!this.grid) return;
+        if (this.getCurrentPath() === '/') return;
+        const existingContentWidget = this.elements.widgetGrid.querySelector('[data-widget-name="Content"]');
+        if (existingContentWidget) return;
+        try {
+            const div = document.createElement('div');
+            div.classList.add('grid-stack-item');
+            div.setAttribute('data-widget-name', 'Content');
+            div.setAttribute('data-widget-id', 'content-widget');
+            div.setAttribute('data-system-widget', 'true');
+            div.setAttribute('gs-w', '12');
+            div.setAttribute('gs-h', '4');
+            div.setAttribute('gs-no-move', 'true');
+            div.dataset.widgetSettings = '{}';
+            const content = document.createElement('div');
+            content.classList.add('grid-stack-item-content');
+            content.innerHTML = this.createSkeleton();
+            div.appendChild(content);
+            this.grid.makeWidget(div);
+            this.initializeWidget(div, content);
+        } catch (e) { this.logError('addContentWidget', e); }
+    }
+
+    autoFitSingleWidget(widgetElement, force = false) {
+        if (!this.grid || this.heightMode !== 'auto') return;
+
+        if (!force && widgetElement.dataset.autoFitApplied === 'true') return;
+
+        const content = widgetElement.querySelector('.grid-stack-item-content');
+        if (content) {
+            let cellPx = parseFloat(this.grid.cellHeight() || 60);
+            if (isNaN(cellPx) || cellPx <= 0) cellPx = 60;
+            const contentHeight = content.scrollHeight;
+            const gridHeight = Math.max(2, Math.ceil(contentHeight / cellPx));
+
+            this.grid.update(widgetElement, { h: gridHeight });
+
+            widgetElement.dataset.autoFitApplied = 'true';
+        }
+    }
+
+    resizeWidgetToContentSafe(widgetEl) {
+        try {
+            this.autoFitSingleWidget(widgetEl, true);
+        } catch (err) {
+            this.logError('resizeWidgetToContentSafe', err);
+        }
+    }
+
+    forceContentReflow(widgetEl) {
+        if (!widgetEl) return;
+        const content = widgetEl.querySelector('.grid-stack-item-content');
+        if (content) {
+            void content.offsetHeight;
+        }
+    }
+
+    /**
+     * Show a user-friendly error message.
+     */
+    showUserError(message) {
+        notyf.error(message);
+    }
+
+    /**
+     * Handle promise rejections with grace
+     */
+    handlePromiseRejection(reason) {
+        this.logError('promise rejection', reason);
+    }
+
+    /**
+     * Compact grid and fix heights – on user demand
+     */
+    autoPositionGrid() {
+        if (!this.grid) return;
+        try {
+            this.grid.compact();
+            if (this.heightMode === 'auto') {
+                this.autoFitWidgetHeights();
+            }
+            this.handleGridChange();
+        } catch (err) {
+            this.logError('autoPositionGrid', err);
+            this.showUserError('Failed to auto-position widgets');
+        }
     }
 }
 
@@ -2175,7 +2361,7 @@ function initializePageEditor() {
 
         window.toggleEditMode = () => {
             alert(
-                'Page editor failed to initialize. Please refresh the page.',
+                'Page editor failed to initialize. Please refresh the page.'
             );
         };
     }

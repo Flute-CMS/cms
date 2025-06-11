@@ -5,7 +5,8 @@
             <h5 class="right_sidebar__title" id="modal-1-title">
                 @t('def.my_profile')
             </h5>
-            <button class="right_sidebar__close" aria-label="Close modal" data-a11y-dialog-hide="right-sidebar"></button>
+            <button class="right_sidebar__close" aria-label="Close modal" data-a11y-dialog-hide="right-sidebar"
+                data-original-tabindex="null"></button>
         </header>
         <div class="right_sidebar__content miniprofile__content">
             <div class="miniprofile__user">

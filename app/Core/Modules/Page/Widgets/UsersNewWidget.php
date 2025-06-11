@@ -32,6 +32,8 @@ class UsersNewWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $newUsers = $this->userRepository->getLatestUsers($maxDisplay);
 
+        $newUsers = array_filter($newUsers, static fn ($u) => !$u->hidden);
+
         return view('flute::widgets.users-new', [
             'users' => $newUsers,
             'display_type' => $settings['display_type'] ?? 'text'

@@ -1,5 +1,26 @@
 const root = document.documentElement;
 
+const defaultValues = {
+    'dark': {
+        '--accent': '#A5FF75',
+        '--primary': '#f2f2f7',
+        '--secondary': '#2c2c2e',
+        '--background': '#1c1c1e',
+        '--text': '#f2f2f7',
+        '--border1': '1',
+        '--background-type': 'solid'
+    },
+    'light': {
+        '--accent': '#34c759',
+        '--primary': '#1d1d1f',
+        '--secondary': '#f5f5f7',
+        '--background': '#ffffff',
+        '--text': '#1d1d1f',
+        '--border1': '1',
+        '--background-type': 'solid'
+    }
+};
+
 function parseCurrentThemeColors() {
     const currentTheme = root.getAttribute('data-theme');
     const isLightTheme = currentTheme === 'light';
@@ -10,12 +31,13 @@ function parseCurrentThemeColors() {
         '--secondary': getRootColor('--secondary'),
         '--background': getRootColor('--background'),
         '--text': getRootColor('--text'),
-        '--border1': getRootColor('--border1').replace('rem', '')
+        '--border1': getRootColor('--border1').replace('rem', ''),
+        '--background-type': getCurrentBackgroundType()
     };
 
     const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
     Object.entries(colors).forEach(([variable, baseColor]) => {
-        if (variable.startsWith('--') && !variable.includes('border')) {
+        if (variable.startsWith('--') && !variable.includes('border') && !variable.includes('background-type')) {
             const shades = generateShades(baseColor, isLightTheme);
             steps.forEach((step) => {
                 colors[`${variable}-${step}`] = shades[step];
@@ -124,6 +146,167 @@ function oldGenerateShadesLight(baseColor, isLightTheme) {
     return shades;
 }
 
+function getCurrentBackgroundType() {
+    const backgroundOptions = document.querySelectorAll('.background-option');
+    for (const option of backgroundOptions) {
+        if (option.classList.contains('active')) {
+            return option.getAttribute('data-type');
+        }
+    }
+    return 'solid';
+}
+
+function setBackgroundType(type) {
+    const backgroundOptions = document.querySelectorAll('.background-option');
+    backgroundOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.getAttribute('data-type') === type) {
+            option.classList.add('active');
+        }
+    });
+    
+    updateBackgroundPreview();
+}
+
+function updateBackgroundPreview() {
+    const currentType = getCurrentBackgroundType();
+    const bgColor = getRootColor('--background');
+    const accentColor = getRootColor('--accent');
+    const primaryColor = getRootColor('--primary');
+    
+    let backgroundStyle = '';
+    
+    switch (currentType) {
+        case 'linear-gradient':
+            backgroundStyle = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}12 100%)`;
+            break;
+        case 'radial-gradient':
+            backgroundStyle = `radial-gradient(ellipse at top right, ${bgColor} 0%, ${accentColor}08 70%, ${bgColor} 100%)`;
+            break;
+        case 'mesh-gradient':
+            backgroundStyle = `
+                radial-gradient(at 20% 20%, ${accentColor}08 0px, transparent 40%),
+                radial-gradient(at 80% 80%, ${primaryColor}06 0px, transparent 40%),
+                radial-gradient(at 40% 70%, ${accentColor}04 0px, transparent 40%),
+                ${bgColor}
+            `;
+            break;
+        case 'subtle-gradient':
+            backgroundStyle = `linear-gradient(160deg, ${bgColor} 0%, ${accentColor}06 50%, ${primaryColor}04 100%)`;
+            break;
+        case 'aurora-gradient':
+            backgroundStyle = `
+                linear-gradient(45deg, 
+                    ${accentColor}15 0%, 
+                    ${primaryColor}10 25%, 
+                    ${accentColor}20 50%, 
+                    ${primaryColor}15 75%, 
+                    ${accentColor}10 100%),
+                ${bgColor}
+            `;
+            break;
+        case 'sunset-gradient':
+            backgroundStyle = `linear-gradient(180deg, 
+                ${accentColor}20 0%, 
+                ${accentColor}15 30%, 
+                ${primaryColor}10 70%, 
+                ${bgColor} 100%)`;
+            break;
+        case 'ocean-gradient':
+            backgroundStyle = `
+                radial-gradient(ellipse at top, ${accentColor}08 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, ${primaryColor}06 0%, transparent 50%),
+                linear-gradient(180deg, ${bgColor} 0%, ${accentColor}04 100%)
+            `;
+            break;
+        case 'spotlight-gradient':
+            backgroundStyle = `radial-gradient(circle at 70% 30%, 
+                ${accentColor}12 0%, 
+                ${accentColor}06 30%, 
+                ${bgColor} 70%)`;
+            break;
+        default:
+            backgroundStyle = bgColor;
+    }
+    
+    if (currentType !== 'solid') {
+        document.body.style.background = backgroundStyle;
+    } else {
+        document.body.style.backgroundColor = bgColor;
+        document.body.style.background = '';
+    }
+
+    updateBackgroundThumbnails();
+}
+
+function updateBackgroundThumbnails() {
+    const bgColor = getRootColor('--background');
+    const accentColor = getRootColor('--accent');
+    const primaryColor = getRootColor('--primary');
+
+    // Update solid preview
+    const solidPreview = document.querySelector('.solid-preview');
+    if (solidPreview) {
+        solidPreview.style.backgroundColor = bgColor;
+    }
+
+    // Update linear preview
+    const linearPreview = document.querySelector('.linear-preview');
+    if (linearPreview) {
+        linearPreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}40 100%)`;
+    }
+
+    // Update radial preview
+    const radialPreview = document.querySelector('.radial-preview');
+    if (radialPreview) {
+        radialPreview.style.background = `radial-gradient(circle, ${bgColor} 0%, ${accentColor}30 70%)`;
+    }
+
+    // Update mesh preview
+    const meshPreview = document.querySelector('.mesh-preview');
+    if (meshPreview) {
+        meshPreview.style.background = `
+            radial-gradient(at 30% 30%, ${accentColor}25 0px, transparent 40%),
+            radial-gradient(at 70% 70%, ${primaryColor}20 0px, transparent 40%),
+            ${bgColor}
+        `;
+    }
+
+    // Update subtle preview
+    const subtlePreview = document.querySelector('.subtle-preview');
+    if (subtlePreview) {
+        subtlePreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}15 50%, ${primaryColor}10 100%)`;
+    }
+
+    // Update aurora preview
+    const auroraPreview = document.querySelector('.aurora-preview');
+    if (auroraPreview) {
+        auroraPreview.style.background = `linear-gradient(45deg, ${accentColor}40 0%, ${primaryColor}30 25%, ${accentColor}50 50%, ${primaryColor}40 75%, ${accentColor}30 100%)`;
+    }
+
+    // Update sunset preview
+    const sunsetPreview = document.querySelector('.sunset-preview');
+    if (sunsetPreview) {
+        sunsetPreview.style.background = `linear-gradient(180deg, ${accentColor}50 0%, ${accentColor}40 30%, ${primaryColor}30 70%, ${bgColor} 100%)`;
+    }
+
+    // Update ocean preview
+    const oceanPreview = document.querySelector('.ocean-preview');
+    if (oceanPreview) {
+        oceanPreview.style.background = `
+            radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 40%),
+            radial-gradient(ellipse at bottom, ${primaryColor}15 0%, transparent 40%),
+            linear-gradient(180deg, ${bgColor} 0%, ${accentColor}10 100%)
+        `;
+    }
+
+    // Update spotlight preview
+    const spotlightPreview = document.querySelector('.spotlight-preview');
+    if (spotlightPreview) {
+        spotlightPreview.style.background = `radial-gradient(circle at 70% 30%, ${accentColor}30 0%, ${accentColor}15 30%, ${bgColor} 70%)`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const colorBlocks = document.querySelectorAll('.color-block');
     const undoButton = document.getElementById('undo-button');
@@ -138,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const borderEditorSave = document.getElementById('border-editor-save');
     const borderDisplay = document.querySelector('.border-display');
     const previewBox = document.querySelector('.range-preview .preview-box');
+    const backgroundOptions = document.querySelectorAll('.background-option');
 
     let history = [];
     let historyIndex = -1;
@@ -222,6 +406,11 @@ document.addEventListener('DOMContentLoaded', () => {
             immediateUpdateUI(variable, color);
         } else {
             debouncedUpdateUI(variable, color);
+        }
+
+        // Update background preview when accent, primary, or background colors change
+        if (variable === '--accent' || variable === '--primary' || variable === '--background') {
+            updateBackgroundPreview();
         }
     }
 
@@ -341,6 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
             borderInput.nextElementSibling.textContent = `${currentColors['--border1']}rem`;
             updateBorderPreview();
         }
+
+        // Initialize background type
+        const currentBgType = currentColors['--background-type'] || 'solid';
+        setBackgroundType(currentBgType);
+        updateBackgroundThumbnails();
     }
 
     function updateShades(variable, baseColor) {
@@ -615,6 +809,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function cancelColorChanges() {
         root.removeAttribute('style');
+        document.body.style.background = '';
+        document.body.style.backgroundColor = '';
 
         editColorsPanel.classList.remove('show');
         pageEditButton.classList.remove('hide');
@@ -716,11 +912,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 removeInlineColor('--background');
                 removeInlineColor('--text');
                 removeInlineColor('--border1');
+                document.body.style.background = '';
+                document.body.style.backgroundColor = '';
+                
                 if (editColorsPanel && editColorsPanel.classList.contains('show')) {
                     const newThemeColors = parseCurrentThemeColors();
                     applyColors(newThemeColors);
                     updateTextColorsForTheme();
                     updateBorderPreview();
+                    updateBackgroundPreview();
                     recordHistory();
                 }
             }
@@ -799,6 +999,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaults = defaultValues[currentTheme];
 
         root.removeAttribute('style');
+        document.body.style.background = '';
+        document.body.style.backgroundColor = '';
 
         const borderInput = document.getElementById('border-input');
 
@@ -825,8 +1027,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Reset background type
+        setBackgroundType('solid');
+
         updateAllContrastRatings();
 
         recordHistory();
     }
+
+    // Background type selection
+    backgroundOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const selectedType = option.getAttribute('data-type');
+            setBackgroundType(selectedType);
+            recordHistory();
+        });
+    });
 });

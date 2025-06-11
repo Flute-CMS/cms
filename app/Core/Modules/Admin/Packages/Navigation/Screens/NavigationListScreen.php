@@ -25,7 +25,7 @@ class NavigationListScreen extends Screen
     public $navbarItems;
     public $roles;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->name = __('admin-navigation.title');
         $this->description = __('admin-navigation.description');
@@ -50,14 +50,14 @@ class NavigationListScreen extends Screen
         ];
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::sortable('navbarItems', [
-                Sight::make('title', __('admin-navigation.table.title'))->render(fn (NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
+                Sight::make('title', __('admin-navigation.table.title'))->render(fn(NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
                 Sight::make('actions', __('admin-navigation.table.actions'))
                     ->render(
-                        fn (NavbarItem $navbarItem) => DropDown::make()
+                        fn(NavbarItem $navbarItem) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-navigation.buttons.edit'))
@@ -100,24 +100,33 @@ class NavigationListScreen extends Screen
         }
 
         $this->reorderItems($sortableResult);
+
+        orm()->getHeap()->clean();
+
         $this->loadNavbarItems();
     }
 
     /**
-     * Рекурсивное обновление позиций и родительских связей
+     * Recalculate positions recursively without sharing the counter between sibling groups.
+     * This guarantees that each parent has its own contiguous ordering so the UI doesn't get
+     * out of sync after drag-and-drop.
      */
-    private function reorderItems(array $items, ?NavbarItem $parent = null, &$position = 0)
+    private function reorderItems(array $items, ?NavbarItem $parent = null): void
     {
+        $position = 0;
+
         foreach ($items as $item) {
             $navbarItem = NavbarItem::findByPK($item['id']);
-            if ($navbarItem) {
-                $navbarItem->position = ++$position;
-                $navbarItem->parent = $parent;
-                $navbarItem->save();
+            if (! $navbarItem) {
+                continue;
+            }
 
-                if (! empty($item['children'])) {
-                    $this->reorderItems($item['children'], $navbarItem, $position);
-                }
+            $navbarItem->position = ++$position;
+            $navbarItem->parent   = $parent;
+            $navbarItem->save();
+
+            if (! empty($item['children'])) {
+                $this->reorderItems($item['children'], $navbarItem);
             }
         }
     }
@@ -198,10 +207,10 @@ class NavigationListScreen extends Screen
             ]),
 
             $rolesCheckboxes ?
-            LayoutFactory::block([
-                LayoutFactory::split($rolesCheckboxes),
-            ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
-            : null,
+                LayoutFactory::block([
+                    LayoutFactory::split($rolesCheckboxes),
+                ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
+                : null,
         ])
             ->title(__('admin-navigation.modal.item.create_title'))
             ->applyButton(__('admin-navigation.buttons.create'))
@@ -295,7 +304,7 @@ class NavigationListScreen extends Screen
         $priority = user()->getHighestPriority();
 
         $roles = array_map(fn($role) => $role->id, $navbarItem->roles);
-        
+
         foreach ($this->roles as $role) {
             if ($role->priority <= $priority) {
                 $rolesCheckboxes[] = LayoutFactory::field(
@@ -378,10 +387,10 @@ class NavigationListScreen extends Screen
             ]),
 
             $rolesCheckboxes ?
-            LayoutFactory::block([
-                LayoutFactory::split($rolesCheckboxes),
-            ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
-            : null,
+                LayoutFactory::block([
+                    LayoutFactory::split($rolesCheckboxes),
+                ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
+                : null,
         ])
             ->title(__('admin-navigation.modal.item.edit_title'))
             ->applyButton(__('def.save'))

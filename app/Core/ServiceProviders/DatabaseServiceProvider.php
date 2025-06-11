@@ -11,8 +11,15 @@ class DatabaseServiceProvider extends AbstractServiceProvider
     public function register(\DI\ContainerBuilder $containerBuilder) : void
     {
         $containerBuilder->addDefinitions([
-            DatabaseManager::class => \DI\autowire(DatabaseManager::class),
-            DatabaseConnection::class => \DI\autowire(DatabaseConnection::class),
+            DatabaseManager::class => \DI\factory(function() {
+                return DatabaseManager::getInstance();
+            }),
+            
+            DatabaseConnection::class => \DI\factory(function(\DI\Container $c) {
+                $manager = $c->get(DatabaseManager::class);
+                return new DatabaseConnection($manager);
+            }),
+            
             "db.connection" => \DI\get(DatabaseConnection::class),
         ]);
     }

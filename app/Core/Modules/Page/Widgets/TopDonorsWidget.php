@@ -50,10 +50,10 @@ class TopDonorsWidget extends AbstractWidget
 
         $query->columns([
             'user_id',
-            'amount' => new \Cycle\Database\Injection\Expression('COALESCE(SUM(original_amount), 0)')
+            'total' => new \Cycle\Database\Injection\Expression('COALESCE(SUM(original_amount), 0)')
         ]);
         $query->groupBy('user_id');
-        $query->orderBy('original_amount', 'DESC');
+        $query->orderBy('total', 'DESC');
         $query->limit($limit);
 
         $results = $query->fetchAll();
@@ -64,7 +64,7 @@ class TopDonorsWidget extends AbstractWidget
             if ($user) {
                 $users[] = [
                     'user' => $user,
-                    'donated' => $result['COALESCE(SUM(`original_amount`), 0)']
+                    'donated' => (float) $result['total']
                 ];
             }
         }

@@ -33,7 +33,7 @@ class CacheClearCommandTest extends TestCase
                 $filesystem = $this->fs;
                 try {
                     $filesystem->remove(\glob(BASE_PATH . '/storage/app/cache/*'));
-                    $output->writeln('<info>Flute cache have been deleted successfully.</info>');
+                    $output->writeln('<info>Flute cache has been deleted successfully.</info>');
                     return self::SUCCESS;
                 } catch (\Symfony\Component\Filesystem\Exception\IOException $e) {
                     $output->writeln('<error>' . $e->getMessage() . '</error>');
@@ -56,7 +56,7 @@ class CacheClearCommandTest extends TestCase
         $tester = new CommandTester($app->find('cache:clear'));
         $tester->execute([]);
 
-        $this->assertStringContainsString('Flute cache have been deleted successfully.', $tester->getDisplay());
+        $this->assertStringContainsString('Flute cache has been deleted successfully.', $tester->getDisplay());
         $this->assertEquals(0, $tester->getStatusCode());
     }
 }

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ cookie()->get('theme', 'dark') }}">
+<html lang="{{ strtolower(app()->getLang()) }}"
+    @if (config('app.change_theme', true)) data-theme="{{ cookie()->get('theme', config('app.default_theme', 'dark')) }}"
+    @else data-theme="{{ config('app.default_theme', 'dark') }}" @endif>
 
 <head hx-head="append">
     @php
@@ -76,6 +78,8 @@
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() ? 'true' : 'false' }}">
     <meta name="auth-token" content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
     <meta name="google" content="notranslate" />
+    <meta name="default-theme" content="{{ config('app.default_theme', 'dark') }}">
+    <meta name="change-theme" content="{{ config('app.change_theme', true) ? 'true' : 'false' }}">
     <meta name="description" content="{{ $_final_description }}">
     <meta name="keywords" content="{{ $_final_keywords }}">
     <meta name="robots" content="{{ $_final_robots }}">
@@ -184,9 +188,13 @@
 
 <body hx-ext="head-support, loading-states, morph, response-targets" hx-history="false"
     hx-headers='{"X-CSRF-Token": "{{ csrf_token() }}"}' itemscope itemtype="https://schema.org/WebPage">
-    @can('admin.pages')
-        <x-page-edit-nav />
-    @endcan
+
+    @if (!request()->htmx()->isHtmxRequest())
+        @can('admin.pages')
+            <x-page-edit-nav />
+            <x-page-edit-controls />
+        @endcan
+    @endif
 
     @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.header')
 
@@ -211,14 +219,32 @@
             {!! $sections['before-content'] !!}
         @endif
 
+        @if (is_debug())
+            @include('flute::components.debug-message')
+        @endif
+
         @include('flute::partials.breadcrumb')
         @include('flute::partials.flash')
         @include('flute::partials.widgets')
 
-        @stack('content')
+        @php
+            $hasContentWidget = false;
+            if (!empty(page()->getBlocks())) {
+                foreach (page()->getBlocks() as $block) {
+                    if ($block->getWidget() === 'Content') {
+                        $hasContentWidget = true;
+                        break;
+                    }
+                }
+            }
+        @endphp
 
-        @if (isset($sections['content']))
-            {!! $sections['content'] !!}
+        @if (empty(page()->getBlocks()) || !$hasContentWidget)
+            @stack('content')
+
+            @if (isset($sections['content']))
+                {!! $sections['content'] !!}
+            @endif
         @endif
 
         @can('admin.pages')

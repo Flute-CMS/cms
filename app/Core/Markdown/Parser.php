@@ -24,6 +24,16 @@ class Parser
      */
     public function parse(string $markdown, bool $safe = true, bool $setMarkupEscaped = true) : string
     {
+        // Resolve translation placeholders before converting to HTML.
+        // Supports two syntaxes: {{ __("lang.key") }} and [[trans:lang.key]]
+        $markdown = preg_replace_callback('/\{\{\s*__\([\'\"]([^\'\"]+)[\'\"]\)\s*\}\}/', function ($matches) {
+            return __($matches[1]);
+        }, $markdown);
+
+        $markdown = preg_replace_callback('/\[\[trans:([a-zA-Z0-9_.-]+)]]/', function ($matches) {
+            return __($matches[1]);
+        }, $markdown);
+
         $this->converter->setSafeMode($safe);
         $this->converter->setMarkupEscaped($setMarkupEscaped);
         

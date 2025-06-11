@@ -191,25 +191,53 @@ class PageManager
     {
         try {
             $page = Page::findOne(['route' => $path]);
-            if (!$page) {
-                return [];
-            }
-
             $layout = [];
-            foreach ($page->getBlocks() as $block) {
-                try {
-                    $settings = json_decode($block->getSettings(), true);
-                    $layout[] = [
-                        'id' => $block->getId(),
-                        'widgetName' => $block->getWidget(),
-                        'settings' => $settings,
-                        'gridstack' => json_decode($block->gridstack, true),
-                        'content' => $this->widgetManager->getWidget($block->getWidget())->render($settings),
-                    ];
-                } catch (Exception $e) {
-                    $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
-
-                    logs()->error($e);
+            
+            $hasPushContent = $this->hasPushContent();
+            $hasContentWidget = false;
+            $contentPosition = ['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0];
+            
+            if ($page) {
+                foreach ($page->getBlocks() as $block) {
+                    if ($block->getWidget() === 'Content') {
+                        $hasContentWidget = true;
+                        $contentPosition = json_decode($block->gridstack, true) ?: $contentPosition;
+                        break;
+                    }
+                }
+            }
+            
+            if ($hasPushContent || $hasContentWidget) {
+                $layout[] = [
+                    'id' => 'content-widget',
+                    'widgetName' => 'Content',
+                    'settings' => [],
+                    'gridstack' => $contentPosition,
+                    'content' => $this->widgetManager->getWidget('Content')->render([]),
+                    'isSystem' => true,
+                ];
+            }
+            
+            if ($page) {
+                foreach ($page->getBlocks() as $block) {
+                    try {
+                        if ($block->getWidget() === 'Content') {
+                            continue;
+                        }
+                        
+                        $settings = json_decode($block->getSettings(), true);
+                        
+                        $layout[] = [
+                            'id' => $block->getId(),
+                            'widgetName' => $block->getWidget(),
+                            'settings' => $settings,
+                            'gridstack' => json_decode($block->gridstack, true),
+                            'content' => $this->widgetManager->getWidget($block->getWidget())->render($settings),
+                        ];
+                    } catch (Exception $e) {
+                        $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
+                        logs()->error($e);
+                    }
                 }
             }
 
@@ -217,6 +245,19 @@ class PageManager
         } catch (Exception $e) {
             $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Check if there's actual push content
+     */
+    private function hasPushContent(): bool
+    {
+        try {
+            $pushContent = view()->yieldPushContent('content');
+            return !empty(trim(strip_tags($pushContent)));
+        } catch (Exception $e) {
+            return true;
         }
     }
 
@@ -294,6 +335,27 @@ class PageManager
         foreach ($layout as $item) {
             $widgetName = $item['widgetName'] ?? '';
             $settings = $item['settings'] ?? [];
+
+            if ($widgetName === 'Content') {
+                $block = new PageBlock();
+                $block->setWidget($widgetName);
+                $block->setSettings('{}');
+                $block->setPage($page);
+
+                $block->gridstack = isset($item['gridstack'])
+                    ? Json::encode([
+                        'h' => $item['gridstack']['h'] ?? 4,
+                        'w' => $item['gridstack']['w'] ?? 12,
+                        'x' => $item['gridstack']['x'] ?? 0,
+                        'y' => $item['gridstack']['y'] ?? 0,
+                        'minW' => 4,
+                    ])
+                    : Json::encode(['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0, 'minW' => 4]);
+
+                $page->addBlock($block);
+                continue;
+            }
+
             $widgetSettingsJson = Json::encode($settings);
 
             $widget = $this->widgetManager->getWidget($widgetName);

@@ -243,6 +243,17 @@ class FluteRichTextEditor {
                 className: 'fullscreen',
                 title: 'Toggle Fullscreen (F11)',
             },
+            {
+                name: 'translation',
+                action: function insertTranslation(editor) {
+                    const key = prompt('Translation key (e.g., app.welcome):');
+                    if (key) {
+                        editor.codemirror.replaceSelection('{{ __("' + key + '") }}');
+                    }
+                },
+                className: 'translation',
+                title: 'Insert Translation',
+            },
             '|',
             {
                 name: 'custom-clear',

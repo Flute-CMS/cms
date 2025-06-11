@@ -21,4 +21,5 @@
     "insert_image"     => "Insert image",
     "insert_table"     => "Insert table",
     "create_link"      => "Create link",
+    "translation"      => "Translation",
 ];

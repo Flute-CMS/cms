@@ -33,6 +33,13 @@ class UsersOnlineWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $onlineUsers = $this->userRepository->getOnlineUsers();
 
+        // Exclude hidden users and sort by last_logged desc
+        $onlineUsers = array_filter($onlineUsers, static fn ($u) => !$u->hidden);
+
+        usort($onlineUsers, static function ($a, $b) {
+            return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
+        });
+
         if (count($onlineUsers) > $maxDisplay) {
             $onlineUsers = array_slice($onlineUsers, 0, $maxDisplay);
         }

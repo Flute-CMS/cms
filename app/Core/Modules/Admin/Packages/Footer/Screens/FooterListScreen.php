@@ -26,7 +26,7 @@ class FooterListScreen extends Screen
     public $footerItems;
     public $socials;
 
-    public function mount() : void
+    public function mount(): void
     {
         // $this->name = __('admin-footer.title');
         // $this->description = __('admin-footer.description');
@@ -39,7 +39,7 @@ class FooterListScreen extends Screen
         $this->loadSocials();
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::tabs([
@@ -153,24 +153,32 @@ class FooterListScreen extends Screen
         }
 
         $this->reorderItems($sortableResult);
+
+        orm()->getHeap()->clean();
+
         $this->loadFooterItems();
     }
 
     /**
-     * Рекурсивное обновление позиций и родительских связей
+     * Recalculate positions recursively without sharing the counter between sibling groups.
+     * Ensures stable ordering after drag-and-drop.
      */
-    private function reorderItems(array $items, ?FooterItem $parent = null, &$position = 0)
+    private function reorderItems(array $items, ?FooterItem $parent = null): void
     {
+        $position = 0;
+
         foreach ($items as $item) {
             $footerItem = FooterItem::findByPK($item['id']);
-            if ($footerItem) {
-                $footerItem->position = ++$position;
-                $footerItem->parent = $parent;
-                $footerItem->save();
+            if (! $footerItem) {
+                continue;
+            }
 
-                if (!empty($item['children'])) {
-                    $this->reorderItems($item['children'], $footerItem, $position);
-                }
+            $footerItem->position = ++$position;
+            $footerItem->parent   = $parent;
+            $footerItem->save();
+
+            if (! empty($item['children'])) {
+                $this->reorderItems($item['children'], $footerItem);
             }
         }
     }

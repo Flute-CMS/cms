@@ -1,7 +1,7 @@
-<section class="container">
-    <div class="row">
-        <div class="col-md-12">
-            @if (!empty(page()->getBlocks()))
+@if (!empty(page()->getBlocks()))
+    <section class="container mb-4">
+        <div class="row">
+            <div class="col-md-12">
                 <div class="page-widgets" id="page-widgets">
                     @foreach (page()->getBlocks() as $block)
                         @php
@@ -14,7 +14,7 @@
                                 ($gridstack['y'] ?? 0) + 1,
                                 $gridstack['h'] ?? 1,
                             );
-                            
+
                             $widgetContent = page()->renderWidget((int) $block->getId());
                         @endphp
 
@@ -26,7 +26,7 @@
                         @endif
                     @endforeach
                 </div>
-            @endif
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+@endif

@@ -9,7 +9,7 @@
         <div class="row"></div>
         <div class="col-md-12">
             @auth
-                @if (!$user->password && user()->id === $user->id)
+                @if (!$user->password && user()->id === $user->id && !config('auth.only_social'))
                     <x-alert type="warning" onlyBorders withClose="false" hx-boost="true" hx-target="#main"
                         hx-swap="outerHTML transition:true">
                         {!! __('profile.protection_warning', [':link' => url('/profile/settings?tab=main#password-settings')]) !!}

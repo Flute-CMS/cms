@@ -55,15 +55,6 @@ class PageController extends BaseController
         }
 
         try {
-            $pageParameters = [
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'keywords' => $request->input('keywords'),
-                'robots' => $request->input('robots'),
-                'og_image' => $request->input('og_image'),
-                'route' => $request->input('route'),
-            ];
-
             $page = Page::findOne(['route' => $request->input('route')]);
 
             if (!$page) {

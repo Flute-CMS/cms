@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Template;
 
+use Flute\Core\Theme\ThemeManager;
 use Nette\Utils\Validators;
 use Padaliyajay\PHPAutoprefixer\Autoprefixer;
 use ScssPhp\ScssPhp\Compiler;
@@ -27,6 +28,11 @@ class TemplateAssets
         'app/Core/Template/Resources/sass/_mixins.scss',
         'app/Core/Template/Resources/sass/_helpers.scss',
     ];
+
+    protected array $assetPathCache = [];
+    protected array $compilationCache = [];
+    protected array $fallbackAssetPaths = [];
+    protected string $standardTheme = 'standard';
 
     private const CSS_CACHE_DIR = 'assets/css/cache/';
     private const JS_CACHE_DIR = 'assets/js/cache/';
@@ -69,6 +75,50 @@ class TemplateAssets
     }
 
     /**
+     * Find asset file with fallback support across themes.
+     *
+     * @param string $relativePath Relative path from theme directory
+     * @param string $type Asset type (scripts, images, sass, etc.)
+     * @return string|null Found file path or null
+     */
+    protected function findAssetWithFallback(string $relativePath, string $type = 'scripts') : ?string
+    {
+        $cacheKey = "asset:{$type}:{$relativePath}";
+        
+        if (isset($this->assetPathCache[$cacheKey])) {
+            return $this->assetPathCache[$cacheKey];
+        }
+
+        $themes = $this->getThemeFallbackOrder();
+        
+        foreach ($themes as $theme) {
+            $assetPath = BASE_PATH . "app/Themes/{$theme}/assets/{$type}/{$relativePath}";
+            if (file_exists($assetPath)) {
+                return $this->assetPathCache[$cacheKey] = $assetPath;
+            }
+        }
+
+        return $this->assetPathCache[$cacheKey] = null;
+    }
+
+    /**
+     * Get theme fallback order.
+     *
+     * @return array
+     */
+    protected function getThemeFallbackOrder() : array
+    {
+        $currentTheme = app(ThemeManager::class)->getCurrentTheme() ?? $this->standardTheme;
+        $themes = [$currentTheme];
+        
+        if ($currentTheme !== $this->standardTheme) {
+            $themes[] = $this->standardTheme;
+        }
+        
+        return $themes;
+    }
+
+    /**
      * Generates the appropriate URL or HTML tag for an asset based on its type (CSS, JS, image).
      *
      * @param string $expression The path or URL of the asset.
@@ -105,14 +155,33 @@ class TemplateAssets
     }
 
     /**
-     * Resolves the file path for a given asset expression, ensuring it includes the base path if needed.
+     * Resolves the file path for a given asset expression with fallback support.
      *
      * @param string $expression The relative or absolute path of the asset.
      * @return string The resolved file path.
      */
     private function resolveFilePath(string $expression) : string
     {
-        return strpos($expression, BASE_PATH) !== false ? $expression : BASE_PATH . "app/" . $expression;
+        if (strpos($expression, BASE_PATH) !== false) {
+            return $expression;
+        }
+
+        // Try to find with fallback for theme assets
+        if (strpos($expression, 'Themes/') === 0) {
+            $pathParts = explode('/', $expression);
+            if (count($pathParts) >= 4) {
+                $theme = $pathParts[1];
+                $type = $pathParts[3]; // assets/scripts, assets/sass, etc.
+                $relativePath = implode('/', array_slice($pathParts, 4));
+                
+                $foundPath = $this->findAssetWithFallback($relativePath, $type);
+                if ($foundPath) {
+                    return $foundPath;
+                }
+            }
+        }
+
+        return BASE_PATH . "app/" . $expression;
     }
 
     /**
@@ -209,39 +278,45 @@ class TemplateAssets
         return "assets/{$type}/cache/{$this->context}/";
     }
 
-    public function addImportPath(string $path, string $context = 'main') : void
-    {
-        if ($context === $this->context) {
-            $this->scssCompiler->addImportPath($path);
-        }
-    }
-
     /**
-     * Compiles and caches a SCSS file, including additional files for the context, if it needs recompilation.
-     *
-     * @param string $expression The asset expression.
-     * @param string $scssPath The path to the SCSS file.
-     * @return string The generated HTML link tag for the compiled CSS.
+     * Optimized SCSS compilation with enhanced caching and fallback.
      */
     private function processScssAsset(string $expression, string $scssPath) : string
     {
+        // Try fallback resolution if file doesn't exist
         if (!file_exists($scssPath)) {
-            return '';
+            $pathParts = explode('/', $expression);
+            if (count($pathParts) >= 4 && $pathParts[0] === 'Themes') {
+                $relativePath = implode('/', array_slice($pathParts, 4));
+                $fallbackPath = $this->findAssetWithFallback($relativePath, 'sass');
+                if ($fallbackPath) {
+                    $scssPath = $fallbackPath;
+                } else {
+                    return '';
+                }
+            } else {
+                return '';
+            }
         }
 
-        $hash = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]));
+        $cacheKey = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]) . $this->context);
+        
+        // Check compilation cache first
+        if (isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
+            return $this->compilationCache[$cacheKey];
+        }
+
         $cssCacheDir = $this->getCacheDir('css');
-        $cssPath = $cssCacheDir . "{$hash}.css";
+        $cssPath = $cssCacheDir . "{$cacheKey}.css";
         $cssFullPath = BASE_PATH . "public/" . $cssPath;
 
         $this->ensureDirectoryExists(dirname($cssFullPath));
 
-        // $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath);
         $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
 
         if (!$needsRecompile) {
             foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-                if (filemtime($additionalFile) > filemtime($cssFullPath)) {
+                if (file_exists($additionalFile) && filemtime($additionalFile) > filemtime($cssFullPath)) {
                     $needsRecompile = true;
                     break;
                 }
@@ -249,27 +324,7 @@ class TemplateAssets
         }
 
         if ($needsRecompile) {
-            $scssContents = [];
-
-            $partialsContent = $this->loadSharedPartials();
-            $scssContents[] = $partialsContent;
-
-            $mainScssContent = file_get_contents($scssPath);
-            if ($mainScssContent === false) {
-                logs()->error("Unable to read SCSS file: {$scssPath}");
-                return '';
-            }
-            $scssContents[] = $mainScssContent;
-
-            foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-                $additionalContent = file_get_contents($additionalFile);
-                if ($additionalContent === false) {
-                    logs()->warning("Unable to read additional SCSS file: {$additionalFile}");
-                    continue;
-                }
-                $scssContents[] = $additionalContent;
-            }
-
+            $scssContents = $this->gatherScssContents($scssPath);
             $css = $this->compileScss($scssContents);
 
             if ($css !== '') {
@@ -279,20 +334,47 @@ class TemplateAssets
 
         $version = filemtime($cssFullPath);
         $url = url($cssPath) . "?v={$version}";
+        $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
 
-        return "<link href=\"{$url}\" rel=\"stylesheet\">";
+        $this->compilationCache[$cacheKey] = $result;
+        return $result;
     }
 
     /**
-     * Ensures that a specified directory exists, creating it if necessary.
+     * Gather SCSS contents with fallback support.
      *
-     * @param string $directory The path of the directory to check or create.
+     * @param string $mainScssPath
+     * @return array
      */
-    protected function ensureDirectoryExists(string $directory) : void
+    protected function gatherScssContents(string $mainScssPath) : array
     {
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        $scssContents = [];
+
+        // Load shared partials first
+        $partialsContent = $this->loadSharedPartials();
+        $scssContents[] = $partialsContent;
+
+        // Main SCSS content
+        $mainScssContent = file_get_contents($mainScssPath);
+        if ($mainScssContent === false) {
+            logs()->error("Unable to read SCSS file: {$mainScssPath}");
+            return [];
         }
+        $scssContents[] = $mainScssContent;
+
+        // Additional SCSS files for context
+        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+            if (file_exists($additionalFile)) {
+                $additionalContent = file_get_contents($additionalFile);
+                if ($additionalContent !== false) {
+                    $scssContents[] = $additionalContent;
+                } else {
+                    logs()->warning("Unable to read additional SCSS file: {$additionalFile}");
+                }
+            }
+        }
+
+        return $scssContents;
     }
 
     /**
@@ -385,11 +467,7 @@ class TemplateAssets
     }
 
     /**
-     * Processes a JS file, ensuring it's cached and returning the appropriate HTML script tag.
-     *
-     * @param string $expression The asset expression.
-     * @param string $jsPathBase The path to the JS file.
-     * @return string The generated HTML script tag for the JS file.
+     * Process JS asset with fallback support.
      */
     private function processJsAsset(string $expression, string $jsPathBase) : string
     {
@@ -397,8 +475,20 @@ class TemplateAssets
             return $this->processRemoteAsset($expression, 'js');
         }
 
+        // Try fallback resolution if file doesn't exist
         if (!file_exists($jsPathBase)) {
-            return '';
+            $pathParts = explode('/', $expression);
+            if (count($pathParts) >= 4 && $pathParts[0] === 'Themes') {
+                $relativePath = implode('/', array_slice($pathParts, 4));
+                $fallbackPath = $this->findAssetWithFallback($relativePath, 'scripts');
+                if ($fallbackPath) {
+                    $jsPathBase = $fallbackPath;
+                } else {
+                    return '';
+                }
+            } else {
+                return '';
+            }
         }
 
         $hash = sha1($jsPathBase);
@@ -421,13 +511,7 @@ class TemplateAssets
     }
 
     /**
-     * Processes an image file, caching and converting it to WebP if necessary, and returns an HTML img tag.
-     *
-     * @param string $expression The asset expression.
-     * @param string $imgPathBase The path to the image file.
-     * @param string $extension The image file extension.
-     * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
-     * @return string The generated HTML img tag or the URL of the image.
+     * Process image asset with fallback support.
      */
     private function processImageAsset(string $expression, string $imgPathBase, string $extension, bool $urlOnly = false) : string
     {
@@ -435,8 +519,20 @@ class TemplateAssets
             return $this->processRemoteAsset($expression, 'img');
         }
 
+        // Try fallback resolution if file doesn't exist
         if (!file_exists($imgPathBase) || !in_array($extension, self::SUPPORTED_IMAGE_EXTENSIONS)) {
-            return 'not found';
+            $pathParts = explode('/', $expression);
+            if (count($pathParts) >= 4 && $pathParts[0] === 'Themes') {
+                $relativePath = implode('/', array_slice($pathParts, 4));
+                $fallbackPath = $this->findAssetWithFallback($relativePath, 'images');
+                if ($fallbackPath && in_array($extension, self::SUPPORTED_IMAGE_EXTENSIONS)) {
+                    $imgPathBase = $fallbackPath;
+                } else {
+                    return 'not found';
+                }
+            } else {
+                return 'not found';
+            }
         }
 
         $hash = $this->debugMode ? pathinfo($expression, PATHINFO_FILENAME) : sha1($expression);
@@ -620,5 +716,54 @@ class TemplateAssets
     public function getCompiler() : Compiler
     {
         return $this->scssCompiler;
+    }
+
+    /**
+     * Ensure that a specified directory exists, creating it if necessary.
+     *
+     * @param string $directory The path of the directory to check or create.
+     */
+    protected function ensureDirectoryExists(string $directory) : void
+    {
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+    }
+
+    /**
+     * Add import path with context support.
+     */
+    public function addImportPath(string $path, string $context = 'main') : void
+    {
+        if ($context === $this->context && is_dir($path)) {
+            $this->scssCompiler->addImportPath($path);
+        }
+    }
+
+    /**
+     * Clear all caches.
+     *
+     * @return void
+     */
+    public function clearCache() : void
+    {
+        $this->assetPathCache = [];
+        $this->compilationCache = [];
+        $this->fallbackAssetPaths = [];
+    }
+
+    /**
+     * Get cache statistics.
+     *
+     * @return array
+     */
+    public function getCacheStats() : array
+    {
+        return [
+            'asset_path_cache_size' => count($this->assetPathCache),
+            'compilation_cache_size' => count($this->compilationCache),
+            'debug_mode' => $this->debugMode,
+            'context' => $this->context,
+        ];
     }
 }

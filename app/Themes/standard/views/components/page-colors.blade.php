@@ -1,4 +1,36 @@
 <div class="color-picker-panel" id="page-colors-panel">
+    <div class="background-type-selector">
+        <div class="background-options">
+            <div class="background-option" data-type="solid" title="{{ __('page-edit.solid') }}">
+                <div class="background-preview solid-preview"></div>
+            </div>
+            <div class="background-option" data-type="linear-gradient" title="{{ __('page-edit.linear') }}">
+                <div class="background-preview linear-preview"></div>
+            </div>
+            <div class="background-option" data-type="radial-gradient" title="{{ __('page-edit.radial') }}">
+                <div class="background-preview radial-preview"></div>
+            </div>
+            <div class="background-option" data-type="mesh-gradient" title="{{ __('page-edit.mesh') }}">
+                <div class="background-preview mesh-preview"></div>
+            </div>
+            <div class="background-option" data-type="subtle-gradient" title="{{ __('page-edit.subtle') }}">
+                <div class="background-preview subtle-preview"></div>
+            </div>
+            <div class="background-option" data-type="aurora-gradient" title="{{ __('page-edit.aurora') }}">
+                <div class="background-preview aurora-preview"></div>
+            </div>
+            <div class="background-option" data-type="sunset-gradient" title="{{ __('page-edit.sunset') }}">
+                <div class="background-preview sunset-preview"></div>
+            </div>
+            <div class="background-option" data-type="ocean-gradient" title="{{ __('page-edit.ocean') }}">
+                <div class="background-preview ocean-preview"></div>
+            </div>
+            <div class="background-option" data-type="spotlight-gradient" title="{{ __('page-edit.spotlight') }}">
+                <div class="background-preview spotlight-preview"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="color-picker-blocks">
         <div class="color-block" data-variable="--accent">
             <div class="color-display" style="background-color: var(--accent);">
@@ -40,6 +72,9 @@
                 <p>{{ __('page-edit.border_radius') }}</p>
             </div>
         </div>
+    </div>
+
+    <div class="color-picker-controls">
         <x-button type="outline-primary" size="small" id="undo-button" disabled>
             <x-icon path="ph.regular.arrow-bend-up-left" />
         </x-button>
@@ -73,7 +108,8 @@
             <div class="preview-box"></div>
         </div>
         <div class="range-control">
-            <input type="range" id="border-input" class="range-input" min="0.25" max="4" step="0.25" value="1" />
+            <input type="range" id="border-input" class="range-input" min="0.25" max="4"
+                step="0.25" value="1" />
             <span class="range-value">1rem</span>
         </div>
         <div class="border-editor-buttons">

@@ -20,6 +20,7 @@ use Spiral\Tokenizer\Config\TokenizerConfig;
 use Spiral\Tokenizer\Tokenizer;
 use Spiral\Tokenizer\ClassLocator;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
+
 class DatabaseConnection
 {
     protected FluteDatabaseManager $databaseManager;
@@ -36,9 +37,9 @@ class DatabaseConnection
     /**
      * Constructor DatabaseConnection.
      */
-    public function __construct(FluteDatabaseManager $databaseManager)
+    public function __construct(?FluteDatabaseManager $databaseManager = null)
     {
-        $this->databaseManager = $databaseManager;
+        $this->databaseManager = $databaseManager ?? FluteDatabaseManager::getInstance();
         $this->addDir(self::ENTITIES_DIR);
 
         \Cycle\ActiveRecord\Facade::setContainer(app()->getContainer());
@@ -58,13 +59,11 @@ class DatabaseConnection
      */
     protected function connect(): void
     {
-        $dbal = $this->databaseManager->getDbal();
+        $this->dbal = $this->databaseManager->getDbal();
 
         if (config('database.debug')) {
-            $dbal->setLogger(logs('database'));
+            $this->dbal->setLogger(logs('database'));
         }
-
-        $this->dbal = $dbal;
 
         $this->recompileOrmSchema(true);
     }

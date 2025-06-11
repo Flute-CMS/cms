@@ -63,7 +63,7 @@
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
         <link rel="stylesheet" href="@asset('assets/css/libs/easymde.min.css')">
 
-        {{-- Подключение SCSS ассетов --}}
+        {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
         <script src="@asset('assets/js/htmx/core.js')"></script>

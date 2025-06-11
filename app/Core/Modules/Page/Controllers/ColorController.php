@@ -43,6 +43,7 @@ class ColorController extends BaseController
             '--background' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--text' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--border1' => 'required|numeric|min:0.25|max:4',
+            '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
             'theme' => 'required|string|in:dark,light'
         ];
 
@@ -62,6 +63,11 @@ class ColorController extends BaseController
             if (isset($colors['--border1'])) {
                 $colors['--border1'] = $colors['--border1'] . 'rem';
                 $colors['--border05'] = (floatval($colors['--border1']) / 2) . 'rem';
+            }
+
+            // Set default background type if not provided
+            if (!isset($colors['--background-type'])) {
+                $colors['--background-type'] = 'solid';
             }
 
             $currentTheme = app('flute.view.manager')->getCurrentTheme();

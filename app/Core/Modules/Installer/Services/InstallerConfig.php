@@ -105,6 +105,7 @@ class InstallerConfig
     public function setParam(string $key, $value): void
     {
         $this->configService->set("installer.params.{$key}", $value);
+        $this->configService->save();
     }
 
     /**
@@ -116,7 +117,9 @@ class InstallerConfig
     public function setParams(array $params): void
     {
         foreach ($params as $key => $value) {
-            $this->setParam($key, $value);
+            $this->configService->set("installer.params.{$key}", $value);
         }
+
+        $this->configService->save();
     }
 } 

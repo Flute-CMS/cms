@@ -4,9 +4,9 @@ return [
     'users_new' => "New users",
     'users_today' => 'Users today',
     'users_online' => 'Users online',
-    'no_widgets' => 'Widgets not found',
-    'no_widgets_description' => 'There are no widgets on this page yet.',
-    'no_widgets_description_home' => 'Use the editor to add them.',
+    'no_widgets' => 'No widgets here yet',
+    'no_widgets_description' => 'Add widgets to personalize this page.',
+    'no_widgets_description_home' => 'Start by editing the page to add your first widget.',
     'active_promo_codes' => 'Active promo codes',
     'no_promo_codes' => 'No active promo codes',
     'expires' => 'Expires',
@@ -45,5 +45,11 @@ return [
         'banner_image' => 'Banner image',
         'prev_slide' => 'Previous slide',
         'next_slide' => 'Next slide',
+    ],
+    
+    'content' => [
+        'name' => 'Page Content',
+        'description' => 'Main page content from templates',
+        'no_content' => 'No content available',
     ],
 ];

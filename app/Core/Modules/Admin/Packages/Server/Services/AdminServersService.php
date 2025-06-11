@@ -92,6 +92,7 @@ class AdminServersService
         $server->enabled = $data['enabled'] === 'true';
         $server->ranks = $data['ranks'] ?? 'default';
         $server->ranks_format = $data['ranks_format'] ?? 'webp';
+        $server->ranks_premier = $data['ranks_premier'] ?? false;
 
         if (isset($data['mod']) && $this->hasDriver($data['mod'])) {
             $settings = [];

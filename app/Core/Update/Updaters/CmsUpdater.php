@@ -20,6 +20,19 @@ class CmsUpdater extends AbstractUpdater
         'storage'
     ];
 
+    /**
+     * Файлы, которые нужно исключить из обновления
+     * 
+     * @var array
+     */
+    protected array $excludedFiles = [
+        'favicon.ico',
+        'social-image.jpg',
+        'social-image.png',
+        'social-image.jpeg',
+        'social-image.webp'
+    ];
+
     public function getCurrentVersion(): string
     {
         return App::VERSION;
@@ -155,7 +168,7 @@ class CmsUpdater extends AbstractUpdater
         $directory = opendir($source);
 
         while (($file = readdir($directory)) !== false) {
-            if ($file === '.' || $file === '..' || $file === 'favicon.ico') {
+            if ($file === '.' || $file === '..' || $this->shouldExcludeFile($file)) {
                 continue;
             }
 
@@ -174,6 +187,17 @@ class CmsUpdater extends AbstractUpdater
 
         closedir($directory);
         return true;
+    }
+
+    /**
+     * Проверить, нужно ли исключить файл из обновления
+     * 
+     * @param string $filename
+     * @return bool
+     */
+    protected function shouldExcludeFile(string $filename): bool
+    {
+        return in_array($filename, $this->excludedFiles);
     }
 
     /**

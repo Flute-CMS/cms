@@ -41,6 +41,8 @@
             path="ph.bold.question-bold" /></span>
     <span data-icon="custom-clear" data-tooltip="@t('editor.clear')" class="editor-icon-template"><x-icon
             path="ph.bold.eraser-bold" /></span>
+    <span data-icon="translation" data-tooltip="@t('editor.translation')" class="editor-icon-template"><x-icon
+            path="ph.bold.translate-bold" /></span>
 </div>
 
 <style>

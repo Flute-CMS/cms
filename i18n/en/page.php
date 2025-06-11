@@ -14,6 +14,10 @@ return [
     ],
     "edit_nav" => [
         "title" => "Editing page — :url",
+        "height_mode" => "Widget Height Mode",
+        "auto_height" => "Auto Height",
+        "manual_height" => "Manual Height",
+        "auto_position" => "Auto position"
     ],
     "onboarding" => [
         "colors"            => [

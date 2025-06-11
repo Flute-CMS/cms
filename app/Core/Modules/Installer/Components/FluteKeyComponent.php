@@ -42,6 +42,7 @@ class FluteKeyComponent extends FluteComponent
     public function validateKey()
     {
         $this->error = null;
+        $body = null; // prepare variable to avoid undefined notices
 
         if (empty($this->fluteKey)) {
             $this->isValid = true; // we allow empty key
@@ -56,24 +57,25 @@ class FluteKeyComponent extends FluteComponent
                 ],
             ]);
 
-            if ($response->getStatusCode() === 200) {
-                $body = json_decode($response->getBody(), true);
-                if ($body['valid'] === true) {
-                    $app = config('app');
-                    $app['flute_key'] = $this->fluteKey;
+            $body = json_decode($response->getBody(), true);
 
-                    $this->isValid = true;
+            if ($response->getStatusCode() === 200 && isset($body['valid']) && $body['valid'] === true) {
+                $app = config('app');
+                $app['flute_key'] = $this->fluteKey;
 
-                    config()->set('app', $app);
-                    config()->save();
-                    
-                    return $this->redirectTo(route('installer.step', ['id' => 4]), 500);
-                }
+                $this->isValid = true;
+
+                config()->set('app', $app);
+                config()->save();
+
+                return $this->redirectTo(route('installer.step', ['id' => 4]), 500);
             }
-        } catch (\Exception $e) {
+
+            $this->error = $body['message'] ?? __('install.flute_key.error_invalid');
+        } catch (\Throwable $e) {
+            $this->error = $e->getMessage();
         }
 
-        $this->error = $body['message'] ?? __('install.flute_key.error_invalid');
         $this->isValid = false;
     }
 

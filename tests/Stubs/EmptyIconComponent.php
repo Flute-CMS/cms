@@ -8,8 +8,6 @@ class EmptyIconComponent extends Component
 {
     public function render()
     {
-        return <<<'BLADE'
-            <!-- no icon -->
-            BLADE;
+        return '<!-- no icon -->';
     }
 }

@@ -12,6 +12,7 @@ use Flute\Core\Modules\Page\Widgets\UsersNewWidget;
 use Flute\Core\Modules\Page\Widgets\UsersOnlineWidget;
 use Flute\Core\Modules\Page\Widgets\UsersTodayWidget;
 use Flute\Core\Modules\Page\Widgets\EditorWidget;
+use Flute\Core\Modules\Page\Widgets\ContentWidget;
 use Psr\Container\ContainerInterface;
 use InvalidArgumentException;
 
@@ -60,7 +61,14 @@ class WidgetManager
     {
         $instances = [];
         foreach ($this->widgets as $name => $class) {
-            $instances[$name] = $this->container->get($class);
+
+            $instance = $this->container->get($class);
+
+            if (method_exists($instance, 'isVisible') && !$instance->isVisible()) {
+                continue;
+            }
+
+            $instances[$name] = $instance;
         }
         return $instances;
     }
@@ -90,6 +98,7 @@ class WidgetManager
         $this->registerWidget('Empty', EmptyWidget::class);
         $this->registerWidget('UserMiniProfile', UserMiniProfileWidget::class);
         $this->registerWidget('Editor', EditorWidget::class);
+        $this->registerWidget('Content', ContentWidget::class);
     }
 
     /**

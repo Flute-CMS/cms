@@ -12,7 +12,7 @@ if (!function_exists("app")) {
     {
         $app = App::getInstance();
 
-        if (is_null($name)) {
+        if ($name === null) {
             return $app;
         }
 

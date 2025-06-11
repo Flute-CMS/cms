@@ -2,7 +2,7 @@
     <div class="page-edit-nav-content">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="page-edit-nav-block">
                         <h6>{{ __('page.edit_nav.title', ['url' => request()->getBaseUrl()]) }}</h6>
                         <x-button type="outline-primary" size="small" id="page-edit-undo" disabled>
@@ -13,7 +13,11 @@
                         </x-button>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="page-edit-nav-block">
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="page-edit-nav-block save">
                         <x-button class="page-edit-cancel" id="page-change-cancel" size="medium"
                             type="outline-primary">

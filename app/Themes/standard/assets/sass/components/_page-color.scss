@@ -26,6 +26,13 @@
     .color-picker-blocks {
         @extend .d-flex, .flex-row, .gap-2;
         justify-content: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .color-picker-controls {
+        @extend .d-flex, .flex-row, .gap-2;
+        justify-content: center;
 
         #undo-button,
         #redo-button {
@@ -255,5 +262,89 @@
         display: flex;
         justify-content: center;
         gap: 12px;
+    }
+}
+
+.background-type-selector {
+    @extend .d-flex, .flex-row, .gap-1;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.background-options {
+    @extend .d-flex, .flex-row, .gap-1;
+    align-items: center;
+    margin-top: var(--space-md);
+}
+
+.background-option {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--border05);
+    transition: all var(--transition);
+    position: relative;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+
+    &.active {
+        .background-preview {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-300);
+            transform: scale(1.1);
+        }
+    }
+}
+
+.background-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--transp-3);
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+
+    &.solid-preview {
+        background-color: var(--background);
+    }
+
+    &.linear-preview {
+        background: linear-gradient(135deg, var(--background) 0%, var(--accent-400) 100%);
+    }
+
+    &.radial-preview {
+        background: radial-gradient(circle, var(--background) 0%, var(--accent-300) 70%);
+    }
+
+    &.mesh-preview {
+        background: 
+            radial-gradient(at 30% 30%, var(--accent-200) 0px, transparent 40%),
+            radial-gradient(at 70% 70%, var(--primary-200) 0px, transparent 40%),
+            var(--background);
+    }
+
+    &.subtle-preview {
+        background: linear-gradient(135deg, var(--background) 0%, var(--accent-100) 50%, var(--primary-100) 100%);
+    }
+
+    &.aurora-preview {
+        background: linear-gradient(45deg, var(--accent-300) 0%, var(--primary-200) 25%, var(--accent-400) 50%, var(--primary-300) 75%, var(--accent-200) 100%);
+    }
+
+    &.sunset-preview {
+        background: linear-gradient(180deg, var(--accent-400) 0%, var(--accent-300) 30%, var(--primary-200) 70%, var(--background) 100%);
+    }
+
+    &.ocean-preview {
+        background: 
+            radial-gradient(ellipse at top, var(--accent-100) 0%, transparent 40%),
+            radial-gradient(ellipse at bottom, var(--primary-100) 0%, transparent 40%),
+            linear-gradient(180deg, var(--background) 0%, var(--accent-50) 100%);
+    }
+
+    &.spotlight-preview {
+        background: radial-gradient(circle at 70% 30%, var(--accent-200) 0%, var(--accent-100) 30%, var(--background) 70%);
     }
 }

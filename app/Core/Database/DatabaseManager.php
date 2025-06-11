@@ -11,6 +11,28 @@ class DatabaseManager
 {
     protected App $app;
     protected CycleDatabaseManager $dbal;
+    
+    // Static instance for singleton pattern
+    protected static ?self $instance = null;
+    
+    /**
+     * Get the singleton instance of DatabaseManager
+     *
+     * @param App|null $app
+     * @return self
+     * @throws Exception
+     */
+    public static function getInstance(App $app = null): self
+    {
+        if (self::$instance === null) {
+            if ($app === null) {
+                $app = app();
+            }
+            self::$instance = new self($app);
+        }
+        
+        return self::$instance;
+    }
 
     /**
      * @throws Exception

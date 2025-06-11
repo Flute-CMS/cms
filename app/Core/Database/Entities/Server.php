@@ -43,6 +43,9 @@ class Server extends ActiveRecord
     #[Column(type: "string", default: "default")]
     public string $ranks = 'default';
 
+    #[Column(type: "boolean", default: false)]
+    public bool $ranks_premier = false;
+
     #[Column(type: "string", default: "webp")]
     public string $ranks_format = 'webp';
 
@@ -96,5 +99,22 @@ class Server extends ActiveRecord
     public function getSettings(): array
     {
         return json_decode($this->additional ?? '{}', true) ?: [];
+    }
+
+    public function getRank(string $rank, int $points): string
+    {
+        if ($this->ranks_premier && $points > 0) {
+            $rankClass = 'gray-rank';
+            
+            if ($points > 30000) $rankClass = 'gold-rank';
+            else if ($points > 25000) $rankClass = 'red-rank';
+            else if ($points > 20000) $rankClass = 'pink-rank';
+            else if ($points > 15000) $rankClass = 'purple-rank';
+            else if ($points > 10000) $rankClass = 'blue-rank';
+            else if ($points > 5000) $rankClass = 'wblue-rank';
+            return '<div class="premier-rank ' . $rankClass . '">' . (!empty($points) ? $points : '0') . '</div>';
+        }
+
+        return '<img src="' . asset('assets/img/ranks/' . ($this->ranks ?? 'default') . '/' . (!empty($rank) ? $rank : '0') . '.' . ($this->ranks_format ?? 'webp')) . '" alt="' . $rank . '" loading="lazy">';
     }
 }

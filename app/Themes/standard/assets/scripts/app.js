@@ -121,13 +121,29 @@ class FluteApp {
                 const navbarItems = document.querySelectorAll('.navbar__items-item');
                 navbarItems.forEach((item) => item.classList.remove('active'));
 
-                const currentURL = event.detail.pathInfo.requestPath;
-                const activeItem = Array.from(navbarItems).find((item) =>
-                    currentURL.includes(item.getAttribute('href')),
-                );
+                const currentPath = event.detail.pathInfo.requestPath || '/';
 
-                if (activeItem) {
-                    activeItem.classList.add('active');
+                let bestMatch = null;
+                let bestMatchLength = -1;
+
+                navbarItems.forEach((item) => {
+                    const href = item.getAttribute('href');
+                    if (!href) return;
+
+                    const itemPath = new URL(href, window.location.origin).pathname;
+
+                    if (itemPath === '/' && currentPath !== '/') {
+                        return;
+                    }
+
+                    if (currentPath.startsWith(itemPath) && itemPath.length > bestMatchLength) {
+                        bestMatch = item;
+                        bestMatchLength = itemPath.length;
+                    }
+                });
+
+                if (bestMatch) {
+                    bestMatch.classList.add('active');
                 }
             }
         });
@@ -907,21 +923,32 @@ class ThemeManager {
         this.sunIcon = this.themeToggleButton.find('.sun-icon');
         this.moonIcon = this.themeToggleButton.find('.moon-icon');
 
-        // Set initial theme
-        const currentTheme = getCookie('theme') || this.detectSystemTheme();
+        const changeThemeEnabled = document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
+        
+        if (!changeThemeEnabled) {
+            this.themeToggleButton.hide();
+        }
+
+        const defaultTheme = document.querySelector('meta[name="default-theme"]')?.getAttribute('content') || 'dark';
+        const currentTheme = changeThemeEnabled ? 
+            (getCookie('theme') || this.detectSystemTheme() || defaultTheme) : 
+            defaultTheme;
         this.applyTheme(currentTheme);
 
-        // Theme toggle button
         this.themeToggleButton.on('click', () => {
+            const changeThemeEnabled = document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
+            
+            if (!changeThemeEnabled) {
+                return;
+            }
+            
             const currentTheme = $('html').attr('data-theme') === 'light' ? 'dark' : 'light';
             this.applyTheme(currentTheme);
             setCookie('theme', currentTheme, 365);
         });
 
-        // System theme changes
         this.initSystemThemeListener();
 
-        // Custom theme event
         window.addEventListener('switch-theme', (event) => {
             const theme = event.detail?.theme;
             if (theme) {
@@ -955,8 +982,11 @@ class ThemeManager {
         if (darkModeMediaQuery.addEventListener) {
             darkModeMediaQuery.addEventListener('change', (e) => {
                 if (!getCookie('theme')) {
+                    const defaultTheme = document.querySelector('meta[name="default-theme"]')?.getAttribute('content') || 'dark';
                     const newTheme = e.matches ? 'dark' : 'light';
-                    this.applyTheme(newTheme);
+                    const changeThemeEnabled = document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
+                    const finalTheme = changeThemeEnabled ? newTheme : defaultTheme;
+                    this.applyTheme(finalTheme);
                 }
             });
         }

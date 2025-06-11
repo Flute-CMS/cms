@@ -7,5 +7,5 @@
 </a>
 
 @if (!empty(config('app.footer_description')))
-    <p class="footer__description" itemprop="description">{!! config('app.footer_description') !!}</p>
+    <p class="footer__description" itemprop="description">{!! __(config('app.footer_description', '')) !!}</p>
 @endif

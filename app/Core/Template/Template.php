@@ -14,6 +14,7 @@ use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Template\Contracts\ViewServiceInterface;
 use Flute\Core\Template\Controllers\YoyoController;
 use Flute\Core\Template\Events\TemplateInitialized;
+use Flute\Core\Template\ThemeFallbackResolver;
 use Flute\Core\Theme\ThemeManager;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\ViewErrorBag;
@@ -48,6 +49,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     protected ThemeManager $themeManager;
     protected array $sectionPushes = [];
     protected static self $instance;
+    
+    // New properties for optimization and fallback
+    protected array $componentCache = [];
+    protected array $pathCache = [];
+    protected array $fallbackPaths = [];
+    protected string $standardTheme = 'standard';
 
     /**
      * Create a new Template instance.
@@ -91,11 +98,65 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->currentTheme = $this->themeManager->getCurrentTheme();
             $this->themeData = $this->themeManager->getThemeData($this->currentTheme) ?? [];
 
+            $this->clearThemeCache();
+            
             $this->loadComponents();
         } catch (Exception $e) {
             logs('templates')->error("Failed to set theme '{$themeName}': ".$e->getMessage());
             $this->fallbackToDefaultTheme();
         }
+    }
+
+    /**
+     * Clear theme-related cache.
+     *
+     * @return void
+     */
+    protected function clearThemeCache() : void
+    {
+        $this->componentCache = [];
+        $this->pathCache = [];
+        $this->fallbackPaths = [];
+    }
+
+    /**
+     * Find file with fallback to standard theme.
+     *
+     * @param string $relativePath Relative path from theme directory
+     * @param string $type File type (views, assets, etc.)
+     * @return string|null Found file path or null
+     */
+    protected function findFileWithFallback(string $relativePath, string $type = 'views') : ?string
+    {
+        $cacheKey = "{$type}:{$relativePath}";
+        
+        if (isset($this->pathCache[$cacheKey])) {
+            return $this->pathCache[$cacheKey];
+        }
+
+        $currentThemePath = $this->getTemplatePath("Themes/{$this->currentTheme}/{$type}/{$relativePath}");
+        if (file_exists($currentThemePath)) {
+            return $this->pathCache[$cacheKey] = $currentThemePath;
+        }
+
+        if ($this->currentTheme !== $this->standardTheme) {
+            $standardThemePath = $this->getTemplatePath("Themes/{$this->standardTheme}/{$type}/{$relativePath}");
+            if (file_exists($standardThemePath)) {
+                return $this->pathCache[$cacheKey] = $standardThemePath;
+            }
+        }
+
+        return $this->pathCache[$cacheKey] = null;
+    }
+
+    /**
+     * Get all available themes for fallback resolution.
+     *
+     * @return array
+     */
+    protected function getThemeFallbackOrder() : array
+    {
+        return ThemeFallbackResolver::getThemeHierarchy($this->currentTheme, $this->standardTheme);
     }
 
     /**
@@ -163,7 +224,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     }
 
     /**
-     * Render a Blade template.
+     * Render a Blade template with enhanced replacement system.
      *
      * @param string $template
      * @param array  $context
@@ -637,37 +698,112 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     }
 
     /**
-     * Load and register Blade components.
+     * Load and register Blade components with fallback support.
      *
      * @return void
      */
     protected function loadComponents() : void
     {
-        if ( $this->isAdminPath() || ! is_installed())
+        if ($this->isAdminPath() || !is_installed()) {
             return;
+        }
 
-        $componentsDir = $this->getTemplatePath("Themes/{$this->currentTheme}/views/components");
+        $cacheKey = "components:{$this->currentTheme}";
+        
+        if (isset($this->componentCache[$cacheKey])) {
+            $this->registerCachedComponents($this->componentCache[$cacheKey]);
+            return;
+        }
 
-        if (is_dir($componentsDir)) {
-            $componentFiles = $this->getBladeFiles($componentsDir);
+        $components = [];
+        $themes = $this->getThemeFallbackOrder();
 
-            foreach ($componentFiles as $componentFile) {
-                $relativePath = str_replace([$componentsDir.DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
-                $alias = str_replace(DIRECTORY_SEPARATOR, '.', $relativePath);
-
-                $componentView = "Themes.{$this->currentTheme}.views.components.".$alias;
-                $this->blade->compiler()->component($componentView, $alias);
+        foreach ($themes as $theme) {
+            $componentsDir = $this->getTemplatePath("Themes/{$theme}/views/components");
+            
+            if (is_dir($componentsDir)) {
+                $themeComponents = $this->discoverComponents($componentsDir, $theme);
+                
+                foreach ($themeComponents as $alias => $componentData) {
+                    if (!isset($components[$alias])) {
+                        $components[$alias] = $componentData;
+                    }
+                }
             }
         }
 
-        // e.g., flute::pages.home
-        $this->addNamespace('flute', $this->getTemplatePath("Themes/{$this->currentTheme}/views"));
+        $this->componentCache[$cacheKey] = $components;
+        $this->registerCachedComponents($components);
 
-        // For styles
-        $sassPath = $this->getTemplatePath("Themes/{$this->currentTheme}/assets/sass");
+        $this->setupThemeNamespaces();
+    }
 
-        if (is_dir($sassPath)) {
-            $this->templateAssets->getCompiler()->addImportPath($sassPath);
+    /**
+     * Discover components in a theme directory.
+     *
+     * @param string $componentsDir
+     * @param string $theme
+     * @return array
+     */
+    protected function discoverComponents(string $componentsDir, string $theme) : array
+    {
+        $components = [];
+        $componentFiles = $this->getBladeFiles($componentsDir);
+
+        foreach ($componentFiles as $componentFile) {
+            $relativePath = str_replace([$componentsDir.DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
+            $alias = str_replace(DIRECTORY_SEPARATOR, '.', $relativePath);
+            $componentView = "Themes.{$theme}.views.components.".$alias;
+            
+            $components[$alias] = [
+                'view' => $componentView,
+                'theme' => $theme,
+                'path' => $componentFile
+            ];
+        }
+
+        return $components;
+    }
+
+    /**
+     * Register cached components.
+     *
+     * @param array $components
+     * @return void
+     */
+    protected function registerCachedComponents(array $components) : void
+    {
+        foreach ($components as $alias => $componentData) {
+            $this->blade->compiler()->component($componentData['view'], $alias);
+        }
+    }
+
+    /**
+     * Setup theme namespaces with fallback support.
+     *
+     * @return void
+     */
+    protected function setupThemeNamespaces() : void
+    {
+        $themes = $this->getThemeFallbackOrder();
+        $viewPaths = [];
+
+        foreach ($themes as $theme) {
+            $themePath = $this->getTemplatePath("Themes/{$theme}/views");
+            if (is_dir($themePath)) {
+                $viewPaths[] = $themePath;
+            }
+        }
+
+        if (!empty($viewPaths)) {
+            $this->addNamespace('flute', $viewPaths);
+        }
+
+        foreach ($themes as $theme) {
+            $sassPath = $this->getTemplatePath("Themes/{$theme}/assets/sass");
+            if (is_dir($sassPath)) {
+                $this->templateAssets->addImportPath($sassPath);
+            }
         }
     }
 
@@ -706,7 +842,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     }
 
     /**
-     * Search for a replacement path based on the theme's interface replacements.
+     * Enhanced search for replacement based on theme configuration.
      *
      * @param string $interfacePath
      * @return string
@@ -714,8 +850,25 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     protected function searchReplacementForInterface(string $interfacePath) : string
     {
         $replacements = $this->themeData['replacements'] ?? [];
+        if (isset($replacements[$interfacePath])) {
+            return $replacements[$interfacePath];
+        }
 
-        return $replacements[$interfacePath] ?? $interfacePath;
+        $moduleReplacements = $this->themeData['module_replacements'] ?? [];
+        foreach ($moduleReplacements as $pattern => $replacement) {
+            if (preg_match($pattern, $interfacePath)) {
+                return preg_replace($pattern, $replacement, $interfacePath);
+            }
+        }
+
+        $wildcardReplacements = $this->themeData['wildcard_replacements'] ?? [];
+        foreach ($wildcardReplacements as $pattern => $replacement) {
+            if (fnmatch($pattern, $interfacePath)) {
+                return str_replace('*', basename($interfacePath), $replacement);
+            }
+        }
+
+        return $interfacePath;
     }
 
     protected function isAdminPath() : bool
@@ -734,6 +887,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             'section_pushes' => count($this->sectionPushes),
             'memory_usage' => memory_get_usage(true),
             'memory_peak' => memory_get_peak_usage(true),
+            'component_cache_size' => count($this->componentCache),
+            'path_cache_size' => count($this->pathCache),
+            'current_theme' => $this->currentTheme,
+            'fallback_themes' => $this->getThemeFallbackOrder(),
         ];
     }
 

@@ -507,7 +507,6 @@ class UserEditScreen extends Screen
             'banner' => ['nullable', 'image', 'max-file-size:10'],
             'balance' => ['required', 'numeric', 'min:0'],
             'roles' => ['nullable', 'array'],
-            'roles.*' => ['required', 'integer', 'exists:roles,id'],
             'verified' => ['sometimes', 'boolean'],
             'hidden' => ['sometimes', 'boolean'],
         ], $data);

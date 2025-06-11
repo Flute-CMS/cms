@@ -32,14 +32,12 @@ class AdminUsersService
      */
     public function saveUser(User $user, array $data, \Symfony\Component\HttpFoundation\FileBag $files): void
     {
-        if (isset($data['roles']) && sizeof($data['roles']) !== sizeof($user->roles)) {
-            $this->handleRoles($user, $data['roles']);
-        }
+        $this->handleRoles($user, $data['roles'] ?? []);
 
         $this->handleFiles($user, $files);
         $this->updateUserData($user, $data);
 
-        $user->save();
+        $user->saveOrFail();
     }
 
     /**
@@ -52,28 +50,34 @@ class AdminUsersService
 
         $hasBossAccess = user()->can('admin.boss');
 
-        if ($hasBossAccess) {
-            $untouchableRoles = [];
-            $selectedRoles = array_filter(
-                Role::findAll(),
-                fn($role) => in_array($role->id, $roleIds)
-            );
-        } else {
-            $untouchableRoles = array_filter($currentRoles, fn($role) => $role->priority >= $userHighestPriority);
-            $selectedRoles = array_filter(
-                Role::findAll(),
-                fn($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
-            );
-        }
-
         $user->clearRoles();
 
-        foreach ($untouchableRoles as $role) {
-            $user->addRole($role);
-        }
+        if ($hasBossAccess) {
+            $selectedRoles = array_filter(
+                Role::findAll(),
+                static fn ($role) => in_array($role->id, $roleIds)
+            );
 
-        foreach ($selectedRoles as $role) {
-            $user->addRole($role);
+            foreach ($selectedRoles as $role) {
+                $user->addRole($role);
+            }
+        } else {
+            foreach ($currentRoles as $role) {
+                if ($role->priority >= $userHighestPriority) {
+                    $user->addRole($role);
+                }
+            }
+
+            if (! empty($roleIds)) {
+                $allowedRoles = array_filter(
+                    Role::findAll(),
+                    static fn ($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
+                );
+
+                foreach ($allowedRoles as $role) {
+                    $user->addRole($role);
+                }
+            }
         }
 
         $user->saveOrFail();

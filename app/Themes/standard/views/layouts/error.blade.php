@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ cookie()->get('theme', 'dark') }}">
+<html lang="{{ strtolower(app()->getLang()) }}"
+    @if (config('app.change_theme', true)) data-theme="{{ cookie()->get('theme', config('app.default_theme', 'dark')) }}" @else data-theme="{{ config('app.default_theme', 'dark') }}" @endif>
 
 <head hx-head="append">
     <title>
@@ -23,16 +24,14 @@
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() }}">
     <meta name="google" content="notranslate" />
 
-    <meta name="description"
-        content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
+    <meta name="description" content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
     <meta name="keywords" content="@yield('keywords', page()->keywords ?? config('app.keywords'))">
     <meta name="robots"
-        content="@if(config('app.maintenance_mode')) noindex, nofollow @else @yield('robots', page()->robots ?? config('app.robots', 'index, follow')) @endif">
+        content="@if (config('app.maintenance_mode')) noindex, nofollow @else @yield('robots', page()->robots ?? config('app.robots', 'index, follow')) @endif">
     <meta name="author" content="Flames">
 
     <meta property="og:title" content="@yield('title', __(empty(page()->title) ? config('app.name') : page()->title))">
-    <meta property="og:description"
-        content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
+    <meta property="og:description" content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
     <meta property="og:image" content="@yield('og_image', page()->og_image ?? asset('assets/img/social-image.png'))">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="@yield('og_type', 'website')">
@@ -41,12 +40,11 @@
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title', __(empty(page()->title) ? config('app.name') : page()->title))">
-    <meta name="twitter:description"
-        content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
-    <meta name="twitter:image"
-        content="@yield('twitter_image', page()->og_image ?? asset('assets/img/social-image.png'))">
+    <meta name="twitter:description" content="@yield('description', __(empty(page()->description) ? config('app.description') : page()->description))">
+    <meta name="twitter:image" content="@yield('twitter_image', page()->og_image ?? asset('assets/img/social-image.png'))">
 
-    <meta name="htmx-config" content='{
+    <meta name="htmx-config"
+        content='{
         "defaultFocusScroll": false,
         "scrollIntoViewOnBoost": false,
         "refreshOnHistoryMiss": true,
@@ -101,7 +99,7 @@
         @endif
     @endif
 
-    @if (! request()->htmx()->isHtmxRequest())
+    @if (!request()->htmx()->isHtmxRequest())
         <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
         <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
@@ -128,10 +126,10 @@
         <x-page-edit-nav />
     @endcan
 
-    @includeWhen(! request()->htmx()->isHtmxRequest(), 'flute::layouts.header')
+    @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.header')
 
     <main id="main" class="main-animation">
-        @includeWhen(! request()->htmx()->isHtmxRequest(), 'flute::partials.loader')
+        @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::partials.loader')
 
         @stack('before-content')
 
@@ -154,7 +152,7 @@
         {!! $sections['content-after'] !!}
     @endif
 
-    @if (! request()->htmx()->isHtmxRequest())
+    @if (!request()->htmx()->isHtmxRequest())
         <x-right-sidebar />
 
         <div id="alerts-container">
@@ -174,9 +172,9 @@
         @endif
     </div>
 
-    @includeWhen(! request()->htmx()->isHtmxRequest(), 'flute::layouts.footer')
+    @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.footer')
 
-    @if (! request()->htmx()->isHtmxRequest())
+    @if (!request()->htmx()->isHtmxRequest())
         <footer>
             @php
                 if (is_debug()) {

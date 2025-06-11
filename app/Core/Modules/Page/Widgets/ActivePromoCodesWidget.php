@@ -21,9 +21,18 @@ class ActivePromoCodesWidget extends AbstractWidget
     {
         $now = new \DateTimeImmutable();
 
-        $promoCodes = PromoCode::findAll([
-            'expires_at' => ['>' => $now]
-        ]);
+        $promoCodes = PromoCode::query()
+            ->where('expires_at', '>', $now)
+            ->orWhere('expires_at', null)
+            ->fetchAll();
+
+        $promoCodes = array_filter($promoCodes, static function (PromoCode $code) {
+            if ($code->max_usages === null) {
+                return true;
+            }
+
+            return \count($code->usages) < $code->max_usages;
+        });
 
         return view('flute::widgets.active-promo-codes', ['promoCodes' => $promoCodes])->render();
     }

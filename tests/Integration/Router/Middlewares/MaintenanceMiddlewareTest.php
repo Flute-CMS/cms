@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 use Flute\Core\Router\Router;
 use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Support\FluteRequest;
-use Psr\Container\ContainerInterface;
 
 class MaintenanceMiddlewareTest extends TestCase
 {
@@ -17,8 +16,13 @@ class MaintenanceMiddlewareTest extends TestCase
         parent::setUp();
 
         config()->set('app.maintenance_mode', true);
+        config()->set('installer.finished', true);
 
-        $this->router = new Router($this->createMock(ContainerInterface::class));
+        $container = new \DI\Container();
+        $container->set(MaintenanceMiddleware::class, new MaintenanceMiddleware());
+
+        $this->router = new Router($container);
+        $this->router->middlewareGroup('default', ['maintenance']);
         $this->router->aliasMiddleware('maintenance', MaintenanceMiddleware::class);
 
         $this->router->get('/dashboard', function () {
@@ -38,12 +42,17 @@ class MaintenanceMiddlewareTest extends TestCase
 
     public function testAdminAllowed() : void
     {
-        // Имитируем, что user()->can('admin')
-        // => middleware должен пропустить
         $req = FluteRequest::create('/dashboard', 'GET');
-        // ... mock auth ...
+
+        $user = $this->createMock(\Flute\Core\Services\UserService::class);
+        $user->method('can')
+            ->with('admin')
+            ->willReturn(true);
+
+        app()->bind(\Flute\Core\Services\UserService::class, $user);
 
         $res = $this->router->dispatch($req);
+
         $this->assertEquals(200, $res->getStatusCode());
         $this->assertEquals('Dashboard', $res->getContent());
     }

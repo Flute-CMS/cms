@@ -42,7 +42,7 @@ class ServerEditScreen extends Screen
     /**
      * Инициализация экрана при загрузке.
      */
-    public function mount() : void
+    public function mount(): void
     {
         $this->serversService = app(AdminServersService::class);
         $this->serverId = (int) request()->input('id');
@@ -61,7 +61,7 @@ class ServerEditScreen extends Screen
             ->add($this->serverId ? $this->server->name : __('admin-server.title.create'));
     }
 
-    protected function initServer() : void
+    protected function initServer(): void
     {
         $this->server = Server::findByPK($this->serverId);
 
@@ -78,7 +78,7 @@ class ServerEditScreen extends Screen
     /**
      * Командная панель с кнопками действий.
      */
-    public function commandBar() : array
+    public function commandBar(): array
     {
         $buttons = [
             Button::make(__('admin-server.buttons.cancel'))
@@ -99,7 +99,7 @@ class ServerEditScreen extends Screen
     /**
      * Определение макета экрана с использованием вкладок.
      */
-    public function layout() : array
+    public function layout(): array
     {
         $tabs = [];
 
@@ -204,7 +204,7 @@ class ServerEditScreen extends Screen
                     ->small(__('admin-server.fields.display_ip.help')),
             ]),
 
-            LayoutFactory::split([
+            LayoutFactory::columns([
                 LayoutFactory::field(
                     Select::make('ranks')
                         ->options($this->serversService->getListRanks())
@@ -224,13 +224,21 @@ class ServerEditScreen extends Screen
                     ->required(),
 
                 LayoutFactory::field(
-                    Toggle::make('enabled')
-                        ->checked($this->server?->enabled ?? true)
-                        ->disabled(!$canEditServer)
+                    Toggle::make('ranks_premier')
+                        ->checked($this->server?->ranks_premier ?? false)
+                        ->placeholder(__('admin-server.fields.ranks_premier.placeholder'))
                 )
-                    ->label(__('admin-server.fields.enabled.label'))
-                    ->popover(__('admin-server.fields.enabled.help')),
+                    ->label(__('admin-server.fields.ranks_premier.label')),
+
             ]),
+
+            LayoutFactory::field(
+                Toggle::make('enabled')
+                    ->checked($this->server?->enabled ?? true)
+                    ->disabled(!$canEditServer)
+            )
+                ->label(__('admin-server.fields.enabled.label'))
+                ->popover(__('admin-server.fields.enabled.help')),
         ];
 
         return LayoutFactory::block($fields)
@@ -310,7 +318,7 @@ class ServerEditScreen extends Screen
     /**
      * Действия над подключением к БД через выпадающее меню.
      */
-    private function dbConnectionActionsDropdown(DatabaseConnection $connection) : string
+    private function dbConnectionActionsDropdown(DatabaseConnection $connection): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -446,7 +454,7 @@ class ServerEditScreen extends Screen
     /**
      * Получить список доступных драйверов (модов).
      */
-    private function getAvailableDrivers(?string $mod = null) : array
+    private function getAvailableDrivers(?string $mod = null): array
     {
         if ($this->availableDrivers !== null) {
             return $this->availableDrivers;
@@ -473,7 +481,7 @@ class ServerEditScreen extends Screen
         return $result;
     }
 
-    private function getDriverView(string $driverName) : string
+    private function getDriverView(string $driverName): string
     {
         $driver = $this->serversService->makeDriver($driverName);
         return $driver->getSettingsView();
@@ -482,13 +490,13 @@ class ServerEditScreen extends Screen
     /**
      * Get database options from config/database.php
      */
-    private function getDatabaseOptions() : array
+    private function getDatabaseOptions(): array
     {
         $databases = config('database.databases', []);
         $options = [];
 
         foreach ($databases as $key => $value) {
-            if($key === 'default') {
+            if ($key === 'default') {
                 continue;
             }
 
@@ -505,7 +513,7 @@ class ServerEditScreen extends Screen
     {
         $data = request()->input();
 
-        if(request()->input('tab-server-edit') === Str::slug(__('admin-server.tabs.db_connections'))) {
+        if (request()->input('tab-server-edit') === Str::slug(__('admin-server.tabs.db_connections'))) {
             $this->flashMessage(__('admin-server.messages.save_not_for_db_connections'), 'error');
             return;
         }
@@ -520,13 +528,14 @@ class ServerEditScreen extends Screen
             'enabled' => ['required', 'boolean'],
             'ranks' => ['required', 'string', 'max-str-len:255'],
             'ranks_format' => ['required', 'string', 'max-str-len:255'],
+            'ranks_premier' => ['nullable', 'boolean'],
         ], $data);
 
         if (!$validation) {
             return;
         }
 
-        if(str_contains($data['ip'], ':')) {
+        if (str_contains($data['ip'], ':')) {
             $this->inputError('ip', __('admin-server.messages.invalid_ip'));
             return;
         }
@@ -613,7 +622,7 @@ class ServerEditScreen extends Screen
             $connection->additional = json_encode($additional);
             $connection->server = $this->server;
             $connection->save();
-    
+
             $this->dbConnections = DatabaseConnection::query()->where('server_id', $this->serverId)->fetchAll();
             $this->flashMessage(__('admin-server.messages.connection_add_success'), 'success');
             $this->closeModal();
@@ -622,17 +631,17 @@ class ServerEditScreen extends Screen
         }
     }
 
-    private function getDriverParams(string $driverName) : array
+    private function getDriverParams(string $driverName): array
     {
         $driver = $this->serversService->makeDriver($driverName);
         return $driver->getValidationRules();
     }
 
-    private function prepareData(array $data) : array
+    private function prepareData(array $data): array
     {
         $driver = $this->serversService->makeDriver($data['mod']);
 
-        if(method_exists($driver, 'prepareData')) {
+        if (method_exists($driver, 'prepareData')) {
             // custom method for prepare data
             return $driver->prepareData($data);
         }

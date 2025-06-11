@@ -110,9 +110,9 @@ if (!function_exists("transaction")) {
 
         $transaction = new EntityManager($orm);
 
-        // Сделано чтобы не возникало проблем с циклом
-        if (!is_array($entity))
+        if (!is_array($entity)) {
             $entity = [$entity];
+        }
 
         foreach ($entity as $key => $value) {
             switch ($operation) {

@@ -1,7 +1,7 @@
 @php
     // $phpPath = PHP_BINARY;
     $phpPath = 'php';
-    $basePath = str_replace(['\\', '..//'], ['/', ''], path());
+    $basePath = str_replace(['\\', '..//', 'bootstrap/'], ['/', '', ''], path());
     $cronCommand = "* * * * * $phpPath $basePath"."flute cron:run >> /dev/null 2>&1";
 @endphp
 

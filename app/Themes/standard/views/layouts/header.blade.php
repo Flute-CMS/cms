@@ -42,7 +42,7 @@
                         @auth
                             <ul class="navbar__actions" aria-label="User actions">
                                 <x-header.language-selector />
-                                @if (!config('app.maintenance_mode'))
+                                @if (!config('app.maintenance_mode') || (config('app.maintenance_mode') && is_debug()))
                                     <x-header.notifications />
 
                                     @stack('navbar-actions')

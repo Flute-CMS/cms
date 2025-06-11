@@ -14,6 +14,10 @@ return [
     ],
     'edit_nav' => [
         'title' => 'Редактирование страницы — :url',
+        'height_mode' => 'Режим высоты виджетов',
+        'auto_height' => 'Автоматическая высота',
+        'manual_height' => 'Ручная высота',
+        "auto_position" => "Автоматическая расстановка"
     ],
     'onboarding' => [
         'colors' => [

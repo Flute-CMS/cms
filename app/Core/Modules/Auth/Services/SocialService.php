@@ -362,8 +362,17 @@ class SocialService implements SocialServiceInterface
 
         $this->findAndDeleteTemporaryUser($socialNetwork->key, $userProfile->identifier);
 
+        $displayName = trim($userProfile->displayName ?? '');
+
+        if ($displayName === '') {
+            $identifierSuffix = substr($userProfile->identifier ?? bin2hex(random_bytes(3)), -6);
+            $displayName = $socialNetwork->key . '_' . $identifierSuffix;
+        }
+
+        $displayName = mb_substr($displayName, 0, 255);
+
         $user = new User();
-        $user->name = $userProfile->displayName;
+        $user->name = $displayName;
         $user->email = $email;
         $user->uri = null;
         $user->login = null;

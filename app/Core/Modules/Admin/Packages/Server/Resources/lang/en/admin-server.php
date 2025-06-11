@@ -53,6 +53,10 @@ return [
             'label'       => 'Rank File Format',
             'placeholder' => 'Select rank file format',
         ],
+        'ranks_premier' => [
+            'label' => 'Premier Ranks',
+            'placeholder' => 'Should the server use premier ranks',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help'  => 'Should the server be visible in the public list',

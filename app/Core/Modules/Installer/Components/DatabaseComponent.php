@@ -101,6 +101,25 @@ class DatabaseComponent extends FluteComponent
                     return;
                 }
                 $this->isConnected = true;
+
+                $installerConfig = app(InstallerConfig::class);
+                $installerConfig->setParam('database', [
+                    'driver' => $this->driver,
+                    'host' => $this->host,
+                    'port' => $this->port,
+                    'database' => $this->database,
+                    'username' => $this->username,
+                    'password' => $this->password,
+                    'prefix' => $this->prefix,
+                ]);
+
+                try {
+                    $this->saveConfig();
+                } catch (\Throwable $e) {
+                    $this->errorMessage = $e->getMessage();
+                    $this->isConnected = false;
+                }
+
                 return;
             }
 
@@ -151,7 +170,7 @@ class DatabaseComponent extends FluteComponent
             ]);
 
             $this->saveConfig();
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             $this->errorMessage = $e->getMessage();
             $this->isConnected = false;
         }

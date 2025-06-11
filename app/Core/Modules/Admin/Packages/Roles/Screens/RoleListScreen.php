@@ -84,6 +84,9 @@ class RoleListScreen extends Screen
         }
 
         $this->reorderRoles($sortableResult);
+
+        orm()->getHeap()->clean();
+
         $this->loadRoles();
     }
 
