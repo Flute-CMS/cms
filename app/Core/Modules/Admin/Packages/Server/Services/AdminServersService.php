@@ -5,6 +5,7 @@ namespace Flute\Admin\Packages\Server\Services;
 use Flute\Core\Database\Entities\Server;
 use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Admin\Packages\Server\Factories\ModDriverFactory;
+use Flute\Admin\Packages\Server\Contracts\ModDriverInterface;
 
 class AdminServersService
 {
@@ -92,7 +93,7 @@ class AdminServersService
         $server->enabled = $data['enabled'] === 'true';
         $server->ranks = $data['ranks'] ?? 'default';
         $server->ranks_format = $data['ranks_format'] ?? 'webp';
-        $server->ranks_premier = $data['ranks_premier'] ?? false;
+        $server->ranks_premier = filter_var($data['ranks_premier'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (isset($data['mod']) && $this->hasDriver($data['mod'])) {
             $settings = [];
@@ -137,7 +138,7 @@ class AdminServersService
     /**
      * Make a mod driver instance.
      */
-    public function makeDriver(string $key)
+    public function makeDriver(string $key) : ModDriverInterface
     {
         return $this->driverFactory->make($key);
     }

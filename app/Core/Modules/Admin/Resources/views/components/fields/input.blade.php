@@ -61,15 +61,20 @@
             @elseif ($type === 'icon')
                 <div class="icon-input-container">
                     <div class="icon-input-preview">
-                        @if($value)
+                        @if ($value)
                             {!! app(\Flute\Core\Modules\Icons\Services\IconFinder::class)->loadFile($value) !!}
                         @endif
                     </div>
+
                     <input type="text" name="{{ $name }}" id="{{ $inputId }}"
                         value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
                         data-icon-picker="true" data-icon-packs='@json($iconPacks)'
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-icon']) }} />
+
+                    <button type="button" class="input__icon-picker-btn icon-hover" style="width: 30px; height: 30px; font-size: var(--p); padding: 0;" aria-label="{{ __('def.select_icon') }}">
+                        <x-icon path="ph.regular.magnifying-glass" />
+                    </button>
                 </div>
             @else
                 <input type="{{ $type }}" name="{{ $name }}" id="{{ $inputId }}"

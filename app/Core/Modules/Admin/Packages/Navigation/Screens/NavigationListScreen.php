@@ -227,7 +227,7 @@ class NavigationListScreen extends Screen
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
-            'icon' => ['nullable', 'string', 'max-str-len:255'],
+            'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],
             'visibility' => ['required', 'in:all,desktop,mobile'],
             'parent_id' => ['nullable', 'integer', 'exists:navbar_items,id'],
@@ -261,13 +261,13 @@ class NavigationListScreen extends Screen
         $navbarItem->visibility = $data['visibility'];
         $navbarItem->position = $position;
 
-        if ($data['visibility_auth'] == 'guests') {
+        $navbarItem->visibleOnlyForGuests   = false;
+        $navbarItem->visibleOnlyForLoggedIn = false;
+
+        if ($data['visibility_auth'] === 'guests') {
             $navbarItem->visibleOnlyForGuests = true;
-        } elseif ($data['visibility_auth'] == 'logged_in') {
+        } elseif ($data['visibility_auth'] === 'logged_in') {
             $navbarItem->visibleOnlyForLoggedIn = true;
-        } elseif ($data['visibility_auth'] == 'all') {
-            $navbarItem->visibleOnlyForGuests = false;
-            $navbarItem->visibleOnlyForLoggedIn = false;
         }
 
         $navbarItem->save();
@@ -414,7 +414,7 @@ class NavigationListScreen extends Screen
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
-            'icon' => ['nullable', 'string', 'max-str-len:255'],
+            'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],
             'visibility' => ['required', 'in:all,desktop,mobile'],
             'parent_id' => ['nullable', 'integer', 'exists:navbar_items,id', "not_in:{$navbarItem->id}"],
@@ -440,13 +440,14 @@ class NavigationListScreen extends Screen
         $navbarItem->icon = $data['icon'] ?? null;
         $navbarItem->visibility = $data['visibility'];
 
-        if ($data['visibility_auth'] == 'guests') {
+        // Reset flags to ensure mutually exclusive state
+        $navbarItem->visibleOnlyForGuests   = false;
+        $navbarItem->visibleOnlyForLoggedIn = false;
+
+        if ($data['visibility_auth'] === 'guests') {
             $navbarItem->visibleOnlyForGuests = true;
-        } elseif ($data['visibility_auth'] == 'logged_in') {
+        } elseif ($data['visibility_auth'] === 'logged_in') {
             $navbarItem->visibleOnlyForLoggedIn = true;
-        } elseif ($data['visibility_auth'] == 'all') {
-            $navbarItem->visibleOnlyForGuests = false;
-            $navbarItem->visibleOnlyForLoggedIn = false;
         }
 
         $navbarItem->save();

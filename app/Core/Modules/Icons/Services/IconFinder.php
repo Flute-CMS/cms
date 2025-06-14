@@ -52,8 +52,12 @@ class IconFinder
      */
     public function loadFile(string $name): ?string
     {
-        if (Str::contains($name, ['<svg'])) {
-            return $name;
+        if (Str::contains($name, 'svg')) {
+            $decoded = html_entity_decode($name, ENT_QUOTES | ENT_HTML5);
+
+            if (Str::contains($decoded, ['<svg']) && Str::contains($decoded, ['</svg>'])) {
+                return $decoded;
+            }
         }
 
         $prefix = Str::of($name)->before('.')->toString();
@@ -163,7 +167,7 @@ class IconFinder
                         $relativePath = str_replace($dir . DIRECTORY_SEPARATOR, '', $file);
                         $iconName = pathinfo($relativePath, PATHINFO_FILENAME);
                         $pathParts = explode(DIRECTORY_SEPARATOR, $relativePath);
-                        
+
                         if (count($pathParts) > 1) {
                             $categoryName = $pathParts[0];
                             $icons[] = $categoryName . '.' . $iconName;
@@ -201,7 +205,7 @@ class IconFinder
                     if ($item === '.' || $item === '..') {
                         continue;
                     }
-                    
+
                     $path = $dir . DIRECTORY_SEPARATOR . $item;
                     if (is_dir($path)) {
                         $categories[] = $item;
@@ -223,27 +227,27 @@ class IconFinder
     protected function scanDirectory(string $dir): array
     {
         $files = [];
-        
+
         if (!is_dir($dir)) {
             return $files;
         }
-        
+
         $items = scandir($dir);
-        
+
         foreach ($items as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
-            
+
             $path = $dir . DIRECTORY_SEPARATOR . $item;
-            
+
             if (is_dir($path)) {
                 $files = array_merge($files, $this->scanDirectory($path));
             } else {
                 $files[] = $path;
             }
         }
-        
+
         return $files;
     }
 

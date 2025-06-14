@@ -25,7 +25,7 @@ class Role extends ActiveRecord
     #[Column(type: "string")]
     public string $name;
 
-    #[Column(type: "string", nullable: true)]
+    #[Column(type: "text", nullable: true)]
     public ?string $icon = null;
 
     #[Column(type: "string", nullable: true)]

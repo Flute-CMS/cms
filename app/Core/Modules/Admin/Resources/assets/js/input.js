@@ -48,9 +48,7 @@ $(document).ready(function () {
 
             const iconPacks = JSON.parse(input.dataset.iconPacks || '[]');
 
-            input.addEventListener('focus', function () {
-                createAndOpenPicker(this, iconPacks);
-            });
+            // Auto-opening picker on focus prevented to allow manual SVG input.
 
             input.addEventListener('input', function () {
                 const event = new Event('change', { bubbles: true });
@@ -71,7 +69,16 @@ $(document).ready(function () {
             if (container) {
                 const preview = container.querySelector('.icon-input-preview');
                 if (preview) {
-                    preview.addEventListener('click', function () {
+                    preview.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        createAndOpenPicker(input, iconPacks);
+                    });
+                }
+
+                const pickerBtn = container.querySelector('.input__icon-picker-btn');
+                if (pickerBtn) {
+                    pickerBtn.addEventListener('click', function (event) {
+                        event.stopPropagation();
                         createAndOpenPicker(input, iconPacks);
                     });
                 }

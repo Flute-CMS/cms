@@ -256,5 +256,6 @@
     "widget_not_found"        => "Widget not found!",
     "change_theme"            => "Change theme",
     "debug_message"           => "The site is in debug mode. All site data may be available to third parties. Also, in debug mode, some functions may be available that are not available in maintenance mode.",
-    "never"                   => "Never"
+    "never"                   => "Never",
+    "not_online"              => "Not online"
 ];

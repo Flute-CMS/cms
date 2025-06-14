@@ -114,7 +114,7 @@
                             <div class="profile__hero-meta">
                                 @if (!$user->isOnline())
                                     <span class="profile__status profile__status--offline">
-                                        {{ __('profile.was_online', [':date' => carbon($user->last_logged)->diffForHumans()]) }}
+                                        {{ $user->getLastLoggedPhrase() }}
                                     </span>
                                 @endif
                                 <span itemprop="memberOf" itemscope itemtype="https://schema.org/Organization">

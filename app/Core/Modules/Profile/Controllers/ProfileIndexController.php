@@ -95,8 +95,10 @@ class ProfileIndexController extends BaseController
 
         if ($interval <= 600) {
             return __('def.online');
-        } else {
+        } elseif($lastLoggedDateTime->getTimestamp() > 0) {
             return \Carbon\Carbon::parse($lastLoggedDateTime)->diffForHumans();
+        } else {
+            return __('def.not_online');
         }
     }
 

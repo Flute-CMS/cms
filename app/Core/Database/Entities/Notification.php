@@ -22,7 +22,7 @@ class Notification extends ActiveRecord
     #[Column(type: "primary")]
     public int $id;
 
-    #[Column(type: "string")]
+    #[Column(type: "text")]
     public ?string $icon = null;
 
     #[Column(type: "string", nullable: true)]

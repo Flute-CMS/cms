@@ -275,4 +275,19 @@ class User extends ActiveRecord
         $maxPriorityRole = collect($this->roles)->sortByDesc('priority')->first();
         return $maxPriorityRole ? $maxPriorityRole->name : null;
     }
+
+    public function getLastLoggedPhrase() : string
+    {
+        if(!$this->last_logged) {
+            return __('def.not_online');
+        }
+
+        $lastLogged = carbon($this->last_logged);
+
+        if($lastLogged->diffInMonths() > 3) {
+            return __('def.not_online');
+        }
+
+        return $lastLogged->diffForHumans();
+    }
 }

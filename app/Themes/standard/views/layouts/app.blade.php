@@ -64,6 +64,9 @@
         if (empty($_final_twitter_image)) {
             $_final_twitter_image = asset('assets/img/social-image.png');
         }
+
+        // --- HX Detect ---
+        $isPartialRequest = request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted();
     @endphp
     <title>
         {{ $_final_title }}
@@ -147,8 +150,8 @@
         {!! $sections['styles'] !!}
     @endif
 
-    {{-- For support head merge --}}
-    @if (request()->htmx()->isHtmxRequest())
+    {{-- For support head merge (hx-only & hx-boost) --}}
+    @if ($isPartialRequest)
         @stack('scripts')
 
         @if (isset($sections['scripts']))
@@ -156,7 +159,7 @@
         @endif
     @endif
 
-    @if (!request()->htmx()->isHtmxRequest())
+    @if (!$isPartialRequest)
         <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
         <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
@@ -189,16 +192,16 @@
 <body hx-ext="head-support, loading-states, morph, response-targets" hx-history="false"
     hx-headers='{"X-CSRF-Token": "{{ csrf_token() }}"}' itemscope itemtype="https://schema.org/WebPage">
 
-    @if (!request()->htmx()->isHtmxRequest())
+    @if (!$isPartialRequest)
         @can('admin.pages')
             <x-page-edit-nav />
             <x-page-edit-controls />
         @endcan
     @endif
 
-    @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.header')
+    @includeWhen(!$isPartialRequest, 'flute::layouts.header')
 
-    @if (!request()->htmx()->isHtmxRequest())
+    @if (!$isPartialRequest)
         @can('admin.pages')
             <x-page-edit-widgets />
             <x-page-colors />
@@ -211,7 +214,7 @@
     @endif
 
     <main id="main" class="main-animation">
-        @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::partials.loader')
+        @includeWhen(!$isPartialRequest, 'flute::partials.loader')
 
         @stack('before-content')
 
@@ -260,7 +263,7 @@
 
     @include('flute::partials.confirmation')
 
-    @if (!request()->htmx()->isHtmxRequest())
+    @if (!$isPartialRequest)
         <div id="alerts-container">
             @stack('toast-container')
 
@@ -291,9 +294,9 @@
 
     @include('flute::components.richtext-icons')
 
-    @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.footer')
+    @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
 
-    @if (!request()->htmx()->isHtmxRequest())
+    @if (!$isPartialRequest)
         <footer>
             @php
                 if (is_debug()) {

@@ -38,7 +38,7 @@ class NavbarItem extends ActiveRecord
     #[Column(type: "boolean", default: false)]
     public bool $new_tab = false;
 
-    #[Column(type: "string", nullable: true)]
+    #[Column(type: "text", nullable: true)]
     public ?string $icon = null;
 
     #[Column(type: "integer")]

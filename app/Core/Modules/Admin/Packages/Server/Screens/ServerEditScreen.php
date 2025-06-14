@@ -642,7 +642,6 @@ class ServerEditScreen extends Screen
         $driver = $this->serversService->makeDriver($data['mod']);
 
         if (method_exists($driver, 'prepareData')) {
-            // custom method for prepare data
             return $driver->prepareData($data);
         }
 

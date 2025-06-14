@@ -86,7 +86,7 @@
             <span class="user-card-online">{{ __('def.online') }}</span>
         @else
             <span class="user-card-offline text-muted">
-                {{ __('profile.was_online', [':date' => carbon($user->last_logged)->diffForHumans()]) }}
+                {{ $user->getLastLoggedPhrase() }}
             </span>
         @endif
     </div>

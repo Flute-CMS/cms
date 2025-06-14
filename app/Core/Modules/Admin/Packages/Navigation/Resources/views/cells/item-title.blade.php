@@ -8,11 +8,11 @@
             {{ $navbarItem->title }}
 
             @if ($navbarItem->visibility === 'desktop')
-                <span style="width: 26px; height: 26px; font-size: var(--p)" data-tooltip="Этот пункт отображается только на ПК" class="badge success">
+                <span style="width: 26px; height: 26px; font-size: var(--p); padding: 0;" data-tooltip="Этот пункт отображается только на ПК" class="badge success">
                     <x-icon path="ph.regular.desktop" />
                 </span>
             @elseif($navbarItem->visibility === 'mobile')
-                <span style="width: 26px; height: 26px; font-size: var(--p)" data-tooltip="Этот пункт отображается только на мобильных устройствах" class="badge success">
+                <span style="width: 26px; height: 26px; font-size: var(--p); padding: 0;" data-tooltip="Этот пункт отображается только на мобильных устройствах" class="badge success">
                     <x-icon path="ph.regular.device-mobile" />
                 </span>
             @endif

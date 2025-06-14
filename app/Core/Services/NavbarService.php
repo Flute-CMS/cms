@@ -27,9 +27,13 @@ class NavbarService
         $this->format = $format;
         $this->agent = $agent;
 
-        $this->cachedNavbarItems = $this->performance ? cache()->callback(self::CACHE_KEY, function () {
-            return $this->getDefaultNavbarItems();
-        }, self::CACHE_TIME) : $this->getDefaultNavbarItems();
+        $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
+
+        $this->cachedNavbarItems = $this->performance
+            ? cache()->callback($cacheKey, function () {
+                return $this->getDefaultNavbarItems();
+            }, self::CACHE_TIME)
+            : $this->getDefaultNavbarItems();
     }
 
     /**
@@ -51,13 +55,13 @@ class NavbarService
     /**
      * Returns all cached navbar items
      *
-     * @param bool $ignoreAuthRules Ignore auth rules
+     * @param bool $ignoreAuth Ignore auth rules
      *
      * @return array
      */
-    public function all(bool $ignoreAuthRules = false): array
+    public function all(bool $ignoreAuth = false): array
     {
-        return $ignoreAuthRules ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
+        return $ignoreAuth ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
     }
 
     /**
@@ -69,7 +73,6 @@ class NavbarService
      */
     protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
     {
-        // Fetch all navbar items with roles in a single query - prevent N+1
         $navbarItems = NavbarItem::query()
             ->load(['roles', 'children', 'children.roles'])
             ->orderBy('position', 'asc')
@@ -82,7 +85,7 @@ class NavbarService
         foreach ($navbarItems as $item) {
             if ($this->hasAccess($item, $ignoreAuth)) {
                 $formattedItem = $this->format->format($item);
-                $formattedItem['children'] = $this->formatChildren($item->children);
+                $formattedItem['children'] = $this->formatChildren($item->children, $ignoreAuth);
                 $formattedItems[] = $formattedItem;
             }
         }
@@ -94,19 +97,20 @@ class NavbarService
      * Format children items without additional database queries
      *
      * @param array $children Children items already loaded
+     * @param bool $ignoreAuth Ignore auth rules
      *
      * @return array
      */
-    protected function formatChildren(array $children): array
+    protected function formatChildren(array $children, bool $ignoreAuth = false): array
     {
         $formattedChildren = [];
 
         foreach ($children as $child) {
-            if ($this->hasAccess($child)) {
+            if ($this->hasAccess($child, $ignoreAuth)) {
                 $formattedChild = $this->format->format($child);
                 // Recursively format children's children if they exist
                 if (!empty($child->children)) {
-                    $formattedChild['children'] = $this->formatChildren($child->children);
+                    $formattedChild['children'] = $this->formatChildren($child->children, $ignoreAuth);
                 } else {
                     $formattedChild['children'] = [];
                 }
@@ -121,6 +125,7 @@ class NavbarService
      * Checks if user has access to navbar item
      *
      * @param NavbarItem $item Navbar item to check
+     * @param bool $ignoreAuth Ignore auth rules
      *
      * @return bool
      */
