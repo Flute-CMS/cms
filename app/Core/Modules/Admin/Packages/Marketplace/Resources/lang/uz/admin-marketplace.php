@@ -2,7 +2,7 @@
 
 return [
     'labels' => [
-        'marketplace'      => 'Doʻkon',
+        'marketplace'      => 'Market',
         'modules'          => 'Modullar',
         'module_details'   => 'Modul Tafsilotlari',
         'module_install'   => 'Modul Oʻrnatish',
