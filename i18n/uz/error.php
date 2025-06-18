@@ -1,0 +1,26 @@
+<?php
+
+return [
+    "title"                        => "Xato",
+    "go_back"                      => "Orqaga qaytish",
+    "404_description"              => "Siz qidirayotgan sahifa oʻchirilgan, nomi oʻzgartirilgan yoki vaqtincha mavjud emas.",
+    "403_description"              => "Sizda ushbu sahifaga kirish huquqi yoʻq. Agar bu xato deb hisoblasangiz, administrator bilan bogʻlaning.",
+    "500_description"              => "Serverimizda nimadir notoʻgʻri ketdi. Biz muammoni hal qilish ustida ishlayapmiz. Iltimos, keyinroq qayta urinib koʻring.",
+    "default_description"          => "Soʻrovingizni qayta ishlashda xato yuz berdi. Iltimos, keyinroq qayta urinib koʻring yoki muammo davom etsa, qoʻllab-quvvatlash xizmati bilan bogʻlaning.",
+    "payment_failed"               => "Toʻlov muvaffaqiyatsiz",
+    "payment_failed_description"   => "Toʻlovingizni qayta ishlay olmadik. Iltimos, toʻlov maʻlumotlaringizni tekshiring va qayta urinib koʻring.",
+    "payment_cancelled"            => "Toʻlov bekor qilindi",
+    "payment_cancelled_description"=> "Toʻlovingiz bekor qilindi. Hisobingizdan hech qanday mablagʻ yechildi.",
+    "payment_expired"              => "Toʻlovning muddati tugadi",
+    "payment_expired_description"  => "Toʻlov sessiyangizning muddati tugadi. Iltimos, yangi toʻlov sessiyasi bilan qayta urinib koʻring.",
+    "try_again"                    => "Qayta urinish",
+    "contact_support"              => "Qoʻllab-quvvatlash bilan bogʻlanish",
+    "go_to_homepage"               => "Bosh sahifaga oʻtish",
+    "offline_title"                => "Oflayn",
+    "offline_description"          => "Serverga ulanib boʻlmadi. Iltimos, internet aloqangizni tekshiring va qayta urinib koʻring.",
+    "offline_button"               => "Sahifani yangilash",
+    "offline_reason_1"             => "Internet aloqasi yoʻq",
+    "offline_reason_2"             => "Server vaqtincha mavjud emas",
+    "offline_reason_3"             => "Texnik xizmat koʻrsatish jarayonida",
+    "offline_reason_4"             => "DNS yoki proksi muammolari",
+];
