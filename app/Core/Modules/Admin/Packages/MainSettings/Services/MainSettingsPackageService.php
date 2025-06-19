@@ -39,6 +39,7 @@ class MainSettingsPackageService
                 'url' => 'app.url',
                 'timezone' => 'app.timezone',
                 'steam_api' => 'app.steam_api',
+                'steam_cache_duration' => 'app.steam_cache_duration',
                 'footer_description' => 'app.footer_description',
                 'footer_additional' => 'app.footer_additional',
                 'create_backup' => 'app.create_backup',
@@ -68,6 +69,7 @@ class MainSettingsPackageService
                 'minify' => 'assets.minify',
                 'logo' => 'app.logo',
                 'bg_image' => 'app.bg_image',
+                'bg_image_light' => 'app.bg_image_light',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password' => 'auth.reset_password',
@@ -163,6 +165,7 @@ class MainSettingsPackageService
                 'url',
                 'timezone',
                 'steam_api',
+                'steam_cache_duration',
                 'footer_description',
                 'footer_additional',
                 'create_backup',
@@ -192,6 +195,7 @@ class MainSettingsPackageService
                 'minify',
                 'logo',
                 'bg_image',
+                'bg_image_light',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password',
@@ -243,6 +247,7 @@ class MainSettingsPackageService
                 'url' => 'required|url',
                 'timezone' => 'required|timezone',
                 'steam_api' => 'nullable|string',
+                'steam_cache_duration' => 'nullable|integer',
                 'footer_description' => 'nullable|string',
                 'footer_additional' => 'nullable|string',
                 'create_backup' => 'boolean',
@@ -272,6 +277,7 @@ class MainSettingsPackageService
                 'minify' => 'boolean',
                 'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp,svg',
                 'bg_image' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
+                'bg_image_light' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password' => 'boolean',

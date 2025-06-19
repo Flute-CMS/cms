@@ -292,7 +292,7 @@ class SocialService implements SocialServiceInterface
 
         $this->clearAuthData();
 
-        if (! $userProfile) {
+        if (!$userProfile) {
             throw new Exception('Failed to load user profile.');
         }
 
@@ -358,21 +358,12 @@ class SocialService implements SocialServiceInterface
             }
         }
 
-        $avatarPath = $this->saveUserAvatar($userProfile);
+        $avatarPath = $userProfile->photoURL ?? config('profile.default_avatar');
 
         $this->findAndDeleteTemporaryUser($socialNetwork->key, $userProfile->identifier);
 
-        $displayName = trim($userProfile->displayName ?? '');
-
-        if ($displayName === '') {
-            $identifierSuffix = substr($userProfile->identifier ?? bin2hex(random_bytes(3)), -6);
-            $displayName = $socialNetwork->key . '_' . $identifierSuffix;
-        }
-
-        $displayName = mb_substr($displayName, 0, 255);
-
         $user = new User();
-        $user->name = $displayName;
+        $user->name = mb_substr($userProfile->displayName, 0, 255);
         $user->email = $email;
         $user->uri = null;
         $user->login = null;
@@ -557,74 +548,5 @@ class SocialService implements SocialServiceInterface
         } catch (\Hybridauth\Exception\InvalidArgumentException $e) {
             logs()->warning($e);
         }
-    }
-
-    // ===== Avatar Handling =====
-
-    /**
-     * Downloads and saves the user's avatar locally.
-     *
-     * @param Profile $userProfile The user's social profile containing the avatar URL.
-     * @return string The relative path to the saved avatar or the default avatar if saving fails.
-     */
-    private function saveUserAvatar(Profile $userProfile): string
-    {
-        $url = $userProfile->photoURL;
-        if (empty($url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
-            return config('profile.default_avatar');
-        }
-        $parts = parse_url($url);
-        if (($parts['scheme'] ?? '') !== 'https') {
-            return config('profile.default_avatar');
-        }
-        $ip = gethostbyname($parts['host'] ?? '');
-        if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-            return config('profile.default_avatar');
-        }
-        $ctx = stream_context_create(['http' => ['timeout' => 5]]);
-        $data = @file_get_contents($url, false, $ctx);
-        if ($data === false || strlen($data) > config('profile.max_avatar_size') * 1024 * 1024) {
-            return config('profile.default_avatar');
-        }
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->buffer($data);
-        $map = ['image/jpeg' => '.jpg', 'image/png' => '.png', 'image/gif' => '.gif'];
-        if (! isset($map[$mime])) {
-            return config('profile.default_avatar');
-        }
-        $img = imagecreatefromstring($data);
-        if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
-            $exif = @exif_read_data('data://text/plain;base64,' . base64_encode($data));
-            switch ($exif['Orientation'] ?? null) {
-                case 3:
-                    $img = imagerotate($img, 180, 0);
-                    break;
-                case 6:
-                    $img = imagerotate($img, -90, 0);
-                    break;
-                case 8:
-                    $img = imagerotate($img, 90, 0);
-                    break;
-            }
-        }
-        $filename = bin2hex(random_bytes(16)) . $map[$mime];
-        $dir = BASE_PATH . 'public/assets/uploads/';
-        if (! file_exists($dir) && ! mkdir($dir, 0755, true)) {
-            return config('profile.default_avatar');
-        }
-        $path = $dir . $filename;
-        switch ($mime) {
-            case 'image/jpeg':
-                imagejpeg($img, $path, 90);
-                break;
-            case 'image/png':
-                imagepng($img, $path);
-                break;
-            case 'image/gif':
-                imagegif($img, $path);
-                break;
-        }
-        imagedestroy($img);
-        return 'assets/uploads/' . $filename;
     }
 }

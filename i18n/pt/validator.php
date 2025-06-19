@@ -36,7 +36,7 @@ return [
     "uuid"               => "The :attribute field must be a valid UUID.",
     "card-number"        => "The :attribute field must be a valid card number.",
     "confirmed"          => "The :attribute field must match :confirmation_field.",
-    "unique"             => "This field must be unique.",
+    "unique"             => "Este campo deve ser único.",
     "max-file-size"      => "The maximum file size for :attribute is :max.",
     "image"              => "The file in :attribute must be an image.",
     "timezone"           => "The :attribute field must be a valid timezone.",

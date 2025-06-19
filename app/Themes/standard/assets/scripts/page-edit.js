@@ -772,6 +772,14 @@ class PageEditor {
             const savedLayout = this.loadFromLocalStorage();
             if (!savedLayout) {
                 this.fetchLayoutFromServer();
+            } else {
+                // Проверяем, есть ли виджет Content после загрузки из localStorage
+                setTimeout(() => {
+                    const hasContentWidget = this.elements.widgetGrid.querySelector('[data-widget-name="Content"]');
+                    if (!hasContentWidget && this.getCurrentPath() !== '/') {
+                        this.addContentWidget();
+                    }
+                }, 500);
             }
 
             this.applyHeightModeToGrid();
@@ -803,11 +811,9 @@ class PageEditor {
                 }
             });
 
-            // Prevent Content widget from being removed
             this.grid.on('removed', (ev, items) => {
                 items.forEach(item => {
                     if (item.el && item.el.getAttribute('data-widget-name') === 'Content') {
-                        // Re-add the content widget if it was removed
                         setTimeout(() => {
                             this.addContentWidget();
                         }, 100);
@@ -1395,8 +1401,11 @@ class PageEditor {
 
         try {
             this.grid.removeAll();
-            const filtered = this.getCurrentPath() === '/' ? data.filter(i => i.widgetName !== 'Content') : data;
+            const filtered = data;
             const promises = [];
+
+            const hasContentWidget = filtered.some(item => item.widgetName === 'Content');
+
             filtered.forEach((nd, idx) => {
                 try {
                     const div = document.createElement('div');
@@ -1420,6 +1429,13 @@ class PageEditor {
                     promises.push(new Promise(res => { setTimeout(() => { this.initializeWidget(div, content); res(); }, Math.min(idx * 100, 500)); }));
                 } catch (err) { this.logError('widget load', err); }
             });
+
+            if (!hasContentWidget && this.getCurrentPath() !== '/') {
+                setTimeout(() => {
+                    this.addContentWidget();
+                }, 600);
+            }
+
             Promise.all(promises).then(() => { });
         } catch (err) { this.logError('loadLayoutJson', err); }
     }
@@ -1946,10 +1962,11 @@ class PageEditor {
                 );
             });
 
-        // Hide system category with Content widget from user selection
+        // Show system category but make Content widget available for selection
         const systemCategory = document.querySelector('.widget-category[data-category="system"]');
         if (systemCategory) {
-            systemCategory.style.display = 'none';
+            // Не скрываем системную категорию полностью - пользователь должен видеть виджет Content
+            systemCategory.style.display = '';
         }
 
         const firstCategory = document.querySelector('.widget-category:not([data-category="system"]):first-child .widget-category-header');

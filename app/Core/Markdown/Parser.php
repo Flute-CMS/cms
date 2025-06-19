@@ -11,6 +11,7 @@ class Parser
     public function __construct()
     {
         $this->converter = new Parsedown();
+        $this->converter->setBreaksEnabled(true);
     }
 
     /**

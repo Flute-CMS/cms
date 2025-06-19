@@ -241,7 +241,7 @@ class PaymentProcessor
         $promoBonus = 0;
 
         if ($promo) {
-            $promoData = payments()->promo()->validate($promo->code, $user->id);
+            $promoData = payments()->promo()->validate($promo->code, $user->id, $amount);
             $promoBonus = $this->calculatePromoBonus($promoData, $amount);
         }
 

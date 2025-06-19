@@ -9,28 +9,28 @@ return [
     ],
     'fields' => [
         'key' => [
-            'label'       => 'API Key',
-            'placeholder' => 'Enter API key',
+            'label'       => 'Chave API',
+            'placeholder' => 'Insira a Chave API',
             'help'        => 'This key will be used for API authentication',
         ],
         'name' => [
-            'label'       => 'Name',
+            'label'       => 'Nome',
             'placeholder' => 'Enter key name',
             'help'        => 'You can use this name to identify the key',
         ],
         'permissions' => [
-            'label' => 'Permissions',
+            'label' => 'Permissões',
         ],
         'created_at'   => 'Created At',
         'last_used_at' => 'Last Used At',
-        'never'        => 'Never',
+        'never'        => 'Nunca',
     ],
     'buttons' => [
-        'actions' => 'Actions',
+        'actions' => 'Ações',
         'add'     => 'Add Key',
-        'save'    => 'Save',
-        'edit'    => 'Edit',
-        'delete'  => 'Delete',
+        'save'    => 'Salvar',
+        'edit'    => 'Editar',
+        'delete'  => 'Excluir',
     ],
     'confirms' => [
         'delete_key' => 'Are you sure you want to delete this API key?',

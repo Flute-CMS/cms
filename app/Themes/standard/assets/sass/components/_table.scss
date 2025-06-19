@@ -16,18 +16,24 @@ tr {
 
     thead {
         vertical-align: bottom;
-        background-color: var(--transp-05);
 
         tr {
             th {
                 border-top: 0;
-                color: var(--text-200);
-                font-size: var(--p);
-                font-weight: 600;
+                color: var(--text-400);
+                font-size: var(--p-small);
+                font-weight: 500;
                 vertical-align: baseline;
                 border-bottom: 1px solid var(--transp-1);
-                padding: .4em 1em;
+                padding: .75em 1em;
                 @include transition();
+
+                .table-th {
+                    display: flex;
+                    align-items: center;
+                    gap: .5rem;
+                    flex-direction: row;
+                }
 
                 &:first-child {
                     padding-left: 1.5rem;
@@ -37,7 +43,6 @@ tr {
                     cursor: pointer;
 
                     &:hover {
-                        background-color: var(--transp-05);
                         color: var(--text);
                     }
 

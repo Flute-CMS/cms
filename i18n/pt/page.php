@@ -3,14 +3,14 @@
 return [
     'widgets' => 'Available Widgets',
     'categories' => [
-        'general' => 'General',
+        'general' => 'Configurações',
         'users' => 'Users',
         'content' => 'Content',
         'media' => 'Media Files',
-        'other' => 'Other',
-        'payments' => 'Payments',
-        'admin' => 'Administration',
-        'stats' => 'Statistics',
+        'other' => 'Outro',
+        'payments' => 'Pagamentos',
+        'admin' => 'Administração',
+        'stats' => 'Estatísticas',
     ],
     'edit_nav' => [
         'title' => 'Editing Page — :url',
@@ -29,12 +29,12 @@ return [
             'description' => 'Configure widgets in detail to create unique content for each page.',
         ],
         'try' => [
-            'title' => 'Try It Now!',
+            'title' => 'Experimente agora!',
             'description' => 'Explore all the features of the new editor right now. It’s fast and convenient!',
         ],
-        'next' => 'Next',
-        'finish' => 'Get Started!',
+        'next' => 'Próximo',
+        'finish' => 'Vamos começar!',
     ],
-    'saved_successfully' => 'Page saved successfully!',
-    'error_saving' => 'Error saving the page!',
+    'saved_successfully' => 'Página salva com sucesso!',
+    'error_saving' => 'Erro ao salvar a página!',
 ];

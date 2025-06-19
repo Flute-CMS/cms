@@ -26,7 +26,7 @@ class PromoCodeScreen extends Screen
     public $promoCodes;
     public $metrics;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->paymentService = app(PaymentService::class);
         $this->promoCodes = rep(PromoCode::class)->select();
@@ -43,7 +43,7 @@ class PromoCodeScreen extends Screen
     /**
      * Calculate metrics for the promo codes dashboard
      */
-    private function calculateMetrics() : array
+    private function calculateMetrics(): array
     {
         $now = new \DateTimeImmutable();
         $today = $now->setTime(0, 0);
@@ -137,7 +137,7 @@ class PromoCodeScreen extends Screen
     /**
      * Командная панель.
      */
-    public function commandBar() : array
+    public function commandBar(): array
     {
         return [
             Button::make(__('admin-payment.buttons.add_promo'))
@@ -150,7 +150,7 @@ class PromoCodeScreen extends Screen
     /**
      * Определение макета экрана.
      */
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::metrics([
@@ -201,7 +201,7 @@ class PromoCodeScreen extends Screen
     /**
      * Форматирование значения промо-кода.
      */
-    private function formatValue(PromoCode $code) : string
+    private function formatValue(PromoCode $code): string
     {
         return $code->type === 'percentage'
             ? $code->value . '%'
@@ -223,7 +223,7 @@ class PromoCodeScreen extends Screen
     /**
      * Выпадающее меню действий для промо-кода.
      */
-    private function promoCodeActionsDropdown(PromoCode $code) : string
+    private function promoCodeActionsDropdown(PromoCode $code): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -325,14 +325,38 @@ class PromoCodeScreen extends Screen
             )
                 ->label(__('admin-payment.fields.promo.max_usages.label')),
 
+            LayoutFactory::field(
+                Input::make('max_uses_per_user')
+                    ->type('text')
+                    ->value($code->max_uses_per_user ?? __('admin-payment.status.unlimited'))
+                    ->readOnly()
+            )
+                ->label(__('admin-payment.fields.promo.max_uses_per_user.label')),
+
+            LayoutFactory::field(
+                Input::make('minimum_amount')
+                    ->type('text')
+                    ->value($code->minimum_amount ? $code->minimum_amount . ' ' . config('payment.currency') : __('admin-payment.status.no_minimum'))
+                    ->readOnly()
+            )
+                ->label(__('admin-payment.fields.promo.minimum_amount.label')),
+
+            LayoutFactory::field(
+                Input::make('roles')
+                    ->type('text')
+                    ->value(!empty($code->roles) ? implode(', ', array_map(fn($role) => $role->name, $code->roles)) : __('admin-payment.status.all_users'))
+                    ->readOnly()
+            )
+                ->label(__('admin-payment.fields.promo.allowed_roles.label')),
+
             $code->expires_at ? LayoutFactory::field(
                 Input::make('expires_at')
                     ->type('datetime-local')
-                    ->value($code->expires_at->format('Y-m-d\TH:i'))
+                    ->value($code->expires_at ? $code->expires_at->format('Y-m-d\TH:i') : null)
                     ->readOnly()
             )
                 ->label(__('admin-payment.fields.promo.expires_at.label'))
-            : null,
+                : null,
         ])
             ->title(__('admin-payment.title.promo_details', ['name' => $code->code]))
             ->withoutApplyButton()
@@ -345,54 +369,91 @@ class PromoCodeScreen extends Screen
     public function addPromoCodeModal(Repository $parameters)
     {
         return LayoutFactory::modal($parameters, [
-            LayoutFactory::field(
-                Input::make('code')
-                    ->type('text')
-                    ->placeholder(__('admin-payment.fields.promo.code.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.code.label'))
-                ->required(),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('code')
+                        ->type('text')
+                        ->placeholder(__('admin-payment.fields.promo.code.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.code.label'))
+                    ->required(),
 
-            LayoutFactory::field(
-                Select::make('type')
-                    ->options([
-                        'amount' => __('admin-payment.fields.promo.type.options.fixed'),
-                        'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
-                    ])
-                    ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.type.label'))
-                ->required(),
+                LayoutFactory::field(
+                    Input::make('expires_at')
+                        ->type('datetime-local')
+                        ->placeholder(__('admin-payment.fields.promo.expires_at.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.expires_at.label'))
+                    ->required()
+                    ->small(__('admin-payment.fields.promo.expires_at.help')),
+            ]),
 
-            LayoutFactory::field(
-                Input::make('value')
-                    ->type('number')
-                    ->step('0.01')
-                    ->placeholder(__('admin-payment.fields.promo.value.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.value.label'))
-                ->required(),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Select::make('type')
+                        ->options([
+                            'amount' => __('admin-payment.fields.promo.type.options.fixed'),
+                            'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
+                        ])
+                        ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.type.label'))
+                    ->required(),
 
-            LayoutFactory::field(
-                Input::make('max_usages')
-                    ->type('number')
-                    ->min(1)
-                    ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.max_usages.label'))
-                ->small(__('admin-payment.fields.promo.max_usages.help')),
+                LayoutFactory::field(
+                    Input::make('value')
+                        ->type('number')
+                        ->step('0.01')
+                        ->placeholder(__('admin-payment.fields.promo.value.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.value.label'))
+                    ->required(),
+            ]),
 
-            LayoutFactory::field(
-                Input::make('expires_at')
-                    ->type('datetime-local')
-                    ->placeholder(__('admin-payment.fields.promo.expires_at.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.expires_at.label'))
-                ->required()
-                ->small(__('admin-payment.fields.promo.expires_at.help')),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('max_usages')
+                        ->type('number')
+                        ->min(1)
+                        ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.max_usages.label'))
+                    ->small(__('admin-payment.fields.promo.max_usages.help')),
+
+                LayoutFactory::field(
+                    Input::make('max_uses_per_user')
+                        ->type('number')
+                        ->min(1)
+                        ->placeholder(__('admin-payment.fields.promo.max_uses_per_user.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.max_uses_per_user.label'))
+                    ->small(__('admin-payment.fields.promo.max_uses_per_user.help')),
+            ]),
+
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('minimum_amount')
+                        ->type('number')
+                        ->step('0.01')
+                        ->min(0)
+                        ->placeholder(__('admin-payment.fields.promo.minimum_amount.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.minimum_amount.label'))
+                    ->small(__('admin-payment.fields.promo.minimum_amount.help')),
+
+                LayoutFactory::field(
+                    Select::make('allowed_roles')
+                        ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
+                        ->multiple(true)
+                        ->placeholder(__('admin-payment.fields.promo.allowed_roles.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.allowed_roles.label'))
+                    ->small(__('admin-payment.fields.promo.allowed_roles.help')),
+            ]),
         ])
             ->title(__('admin-payment.title.promo_add'))
             ->applyButton(__('admin-payment.buttons.add_promo'))
+            ->size('lg')
             ->method('addPromoCode');
     }
 
@@ -408,6 +469,9 @@ class PromoCodeScreen extends Screen
             'type' => ['required', 'string', 'in:amount,percentage'],
             'value' => ['required', 'numeric', 'min:0'],
             'max_usages' => ['nullable', 'min:1'],
+            'max_uses_per_user' => ['nullable', 'min:1'],
+            'minimum_amount' => ['nullable', 'numeric', 'min:0'],
+            'allowed_roles' => ['nullable', 'array'],
             'expires_at' => ['nullable', 'datetime'],
         ], $data);
 
@@ -439,59 +503,99 @@ class PromoCodeScreen extends Screen
         }
 
         return LayoutFactory::modal($parameters, [
-            LayoutFactory::field(
-                Input::make('code')
-                    ->type('text')
-                    ->value($promoCode->code)
-                    ->placeholder(__('admin-payment.fields.promo.code.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.code.label'))
-                ->required(),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('code')
+                        ->type('text')
+                        ->value($promoCode->code)
+                        ->placeholder(__('admin-payment.fields.promo.code.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.code.label'))
+                    ->required(),
 
-            LayoutFactory::field(
-                Select::make('type')
-                    ->options([
-                        'amount' => __('admin-payment.fields.promo.type.options.fixed'),
-                        'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
-                    ])
-                    ->value($promoCode->type)
-                    ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.type.label'))
-                ->required(),
+                LayoutFactory::field(
+                    Input::make('expires_at')
+                        ->type('datetime-local')
+                        ->value($promoCode->expires_at ? $promoCode->expires_at->format('Y-m-d\TH:i') : null)
+                        ->placeholder(__('admin-payment.fields.promo.expires_at.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.expires_at.label'))
+                    ->required()
+                    ->small(__('admin-payment.fields.promo.expires_at.help')),
+            ]),
 
-            LayoutFactory::field(
-                Input::make('value')
-                    ->type('number')
-                    ->step('0.01')
-                    ->value($promoCode->value)
-                    ->placeholder(__('admin-payment.fields.promo.value.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.value.label'))
-                ->required(),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Select::make('type')
+                        ->options([
+                            'amount' => __('admin-payment.fields.promo.type.options.fixed'),
+                            'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
+                        ])
+                        ->value($promoCode->type)
+                        ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.type.label'))
+                    ->required(),
 
-            LayoutFactory::field(
-                Input::make('max_usages')
-                    ->type('number')
-                    ->min(1)
-                    ->value($promoCode->max_usages ?? 0)
-                    ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.max_usages.label'))
-                ->small(__('admin-payment.fields.promo.max_usages.help')),
+                LayoutFactory::field(
+                    Input::make('value')
+                        ->type('number')
+                        ->step('0.01')
+                        ->value($promoCode->value)
+                        ->placeholder(__('admin-payment.fields.promo.value.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.value.label'))
+                    ->required(),
+            ]),
 
-            LayoutFactory::field(
-                Input::make('expires_at')
-                    ->type('datetime-local')
-                    ->value($promoCode->expires_at->format('Y-m-d\TH:i'))
-                    ->placeholder(__('admin-payment.fields.promo.expires_at.placeholder'))
-            )
-                ->label(__('admin-payment.fields.promo.expires_at.label'))
-                ->required()
-                ->small(__('admin-payment.fields.promo.expires_at.help')),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('max_usages')
+                        ->type('number')
+                        ->min(1)
+                        ->value($promoCode->max_usages ?? null)
+                        ->placeholder(__('admin-payment.fields.promo.max_usages.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.max_usages.label'))
+                    ->small(__('admin-payment.fields.promo.max_usages.help')),
+
+                LayoutFactory::field(
+                    Input::make('max_uses_per_user')
+                        ->type('number')
+                        ->min(1)
+                        ->value($promoCode->max_uses_per_user)
+                        ->placeholder(__('admin-payment.fields.promo.max_uses_per_user.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.max_uses_per_user.label'))
+                    ->small(__('admin-payment.fields.promo.max_uses_per_user.help')),
+            ]),
+
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('minimum_amount')
+                        ->type('number')
+                        ->step('0.01')
+                        ->min(0)
+                        ->value($promoCode->minimum_amount)
+                        ->placeholder(__('admin-payment.fields.promo.minimum_amount.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.minimum_amount.label'))
+                    ->small(__('admin-payment.fields.promo.minimum_amount.help')),
+
+                LayoutFactory::field(
+                    Select::make('allowed_roles')
+                        ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
+                        ->multiple(true)
+                        ->value($promoCode->roles)
+                        ->placeholder(__('admin-payment.fields.promo.allowed_roles.placeholder'))
+                )
+                    ->label(__('admin-payment.fields.promo.allowed_roles.label'))
+                    ->small(__('admin-payment.fields.promo.allowed_roles.help')),
+            ]),
         ])
             ->title(__('admin-payment.title.promo_edit', ['name' => $promoCode->code]))
             ->applyButton(__('admin-payment.buttons.save'))
+            ->size('lg')
             ->method('updatePromoCode');
     }
 
@@ -514,6 +618,9 @@ class PromoCodeScreen extends Screen
             'type' => ['required', 'string', 'in:amount,percentage'],
             'value' => ['required', 'numeric', 'min:0'],
             'max_usages' => ['nullable', 'min:1'],
+            'max_uses_per_user' => ['nullable', 'min:1'],
+            'minimum_amount' => ['nullable', 'min:0'],
+            'allowed_roles' => ['nullable', 'array'],
             'expires_at' => ['nullable', 'datetime'],
         ], $data);
 
@@ -592,11 +699,10 @@ class PromoCodeScreen extends Screen
     /**
      * Получение данных для таблицы.
      */
-    public function query() : array
+    public function query(): array
     {
         return [
             'promoCodes' => $this->paymentService->getAllPromoCodes(),
         ];
     }
 }
-

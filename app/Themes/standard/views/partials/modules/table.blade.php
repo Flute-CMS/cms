@@ -16,8 +16,8 @@
                                 $isCurrentSort = $sortField === $column['field'];
                                 $sortIcon = $isCurrentSort
                                     ? ($sortDirection === 'asc'
-                                        ? 'ph.regular.sort-ascending'
-                                        : 'ph.regular.sort-descending')
+                                        ? 'ph.regular.arrow-up'
+                                        : 'ph.regular.arrow-down')
                                     : '';
                                 $allowSort = $column['allowSort'] ?? true;
                                 $align = $column['align'] ?? 'left';
@@ -26,10 +26,14 @@
                             <th @class(['table-header', 'sortable' => $allowSort, 'text-' . $align])
                                 @if ($width) width="{{ $width }}" @endif
                                 @if ($allowSort) yoyo:on="click" yoyo:get="sortBy('{{ $column['field'] }}')" @endif>
-                                {{ $column['label'] }}
-                                @if ($sortIcon && $allowSort)
-                                    <span class="sort-icon"><x-icon :path="$sortIcon" /></span>
-                                @endif
+                                <div class="table-th">
+                                    {{ $column['label'] }}
+                                    @if ($sortIcon && $allowSort)
+                                        <span class="sort-icon"><x-icon :path="$sortIcon" /></span>
+                                    @elseif($allowSort && !$isCurrentSort)
+                                        <span class="sort-icon"><x-icon path="ph.regular.arrows-down-up" /></span>
+                                    @endif
+                                </div>
                             </th>
                         @endforeach
                     </tr>

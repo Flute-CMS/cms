@@ -134,25 +134,6 @@
         }
     }
 
-    .error-level td,
-    .critical-level td,
-    .alert-level td,
-    .emergency-level td {
-        background-color: var(--error-light);
-    }
-
-    .warning-level td {
-        background-color: var(--warning-light);
-    }
-
-    .info-level td {
-        background-color: var(--info-light);
-    }
-
-    .notice-level td {
-        background-color: var(--success-light);
-    }
-
     .context-row {
         display: none;
 

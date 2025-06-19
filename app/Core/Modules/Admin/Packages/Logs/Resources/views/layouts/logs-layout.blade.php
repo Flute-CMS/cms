@@ -3,18 +3,20 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <h5>{{ __('admin-logs.labels.select_file') }}</h5>
             <div class="w-50">
-                <x-admin::fields.select name="logger" :options="collect($loggers)->mapWithKeys(function ($info, $name) {
-    return [$name => $name.' ('.$info['size'].')'];
-})->toArray()" value="{{ $selectedLogger }}" yoyo
-                    allowEmpty placeholder="{{ __('admin-logs.labels.select_file') }}" />
+                <x-admin::fields.select name="logger" :options="collect($loggers)
+                    ->mapWithKeys(function ($info, $name) {
+                        return [$name => $name . ' (' . $info['size'] . ')'];
+                    })
+                    ->toArray()" value="{{ $selectedLogger }}" yoyo allowEmpty
+                    placeholder="{{ __('admin-logs.labels.select_file') }}" />
             </div>
         </div>
     </x-slot:header>
 
     <div class="logs-container">
-        @if(! empty($loggers[$selectedLogger]))
+        @if (!empty($loggers[$selectedLogger]))
             <div class="logs-toolbar">
-                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div class="log-info">
                         <div class="d-flex flex-wrap gap-3">
                             <div class="log-info-item">
@@ -41,7 +43,7 @@
             </div>
         @endif
 
-        @if(empty($logContent))
+        @if (empty($logContent))
             <x-admin::alert type="info" withClose="false">
                 {{ __('admin-logs.labels.no_logs') }}
             </x-admin::alert>
@@ -58,65 +60,82 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($logContent as $index => $entry)
-                                        <tr class="{{ $entry['level'] }}-level">
-                                            <td>
-                                                <span class="log-badge {{ $entry['level'] }}">
-                                                    {{ __('admin-logs.level_labels.'.$entry['level']) }}
-                                                </span>
-                                            </td>
-                                            <td>{{ date(default_date_format(), strtotime($entry['datetime'])) }}</td>
-                                            <td>{{ $entry['channel'] }}</td>
-                                            <td>
-                                                <div class="log-message">
-                                                    @php
-                                                        $message = $entry['message'];
-                                                        
-                                                        $message = preg_replace('/(\?|&)accessKey=([^&\s]+)/i', '$1accessKey=***', $message);
-                                                        
-                                                        $isLong = mb_strlen(strip_tags($message)) > 150;
-                                                        $shortMessage = $isLong ? mb_substr(strip_tags($message), 0, 150).'...' : $message;
-                                                    @endphp
+                        @foreach ($logContent as $index => $entry)
+                            <tr class="{{ $entry['level'] }}-level">
+                                <td>
+                                    <span class="log-badge {{ $entry['level'] }}">
+                                        {{ __('admin-logs.level_labels.' . $entry['level']) }}
+                                    </span>
+                                </td>
+                                <td>{{ date(default_date_format(), strtotime($entry['datetime'])) }}</td>
+                                <td>{{ $entry['channel'] }}</td>
+                                <td>
+                                    <div class="log-message">
+                                        @php
+                                            $message = $entry['message'];
 
-                                                    <div id="message-short-{{ $index }}" class="{{ $isLong ? '' : 'hidden' }}">
-                                                        {{ $shortMessage }}
-                                                        @if($isLong)
-                                                            <button type="button" class="log-message-toggle"
-                                                                onclick="toggleMessage('{{ $index }}')">
-                                                                <x-icon path="ph.regular.arrows-out-simple" />
-                                                                <span class="toggle-text">{{ __('admin-logs.show_more') }}</span>
-                                                            </button>
-                                                        @endif
-                                                    </div>
+                                            $message = preg_replace(
+                                                '/(\?|&)accessKey=([^&\s]+)/i',
+                                                '$1accessKey=***',
+                                                $message,
+                                            );
 
-                                                    <div id="message-full-{{ $index }}" class="{{ $isLong ? 'hidden' : '' }}">
-                                                        {!! $message !!}
-                                                        @if($isLong)
-                                                            <button type="button" class="log-message-toggle"
-                                                                onclick="toggleMessage('{{ $index }}')">
-                                                                <x-icon path="ph.regular.arrows-in-simple" />
-                                                                <span class="toggle-text">{{ __('admin-logs.show_less') }}</span>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                @if(! empty($entry['context']))
-                                                    <x-admin::button type="outline-primary" size="tiny" icon="ph.regular.code"
-                                                        onclick="toggleContext('{{ $index }}')">
-                                                        {{ __('admin-logs.show_context') }}
-                                                    </x-admin::button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @if(! empty($entry['context']))
-                                            <tr id="context-{{ $index }}" class="context-row">
-                                                <td colspan="5">
-                                                    <pre class="context-data">{{ $entry['context'] }}</pre>
-                                                </td>
-                                            </tr>
-                                        @endif
+                                            $isLong = mb_strlen(strip_tags($message)) > 150;
+                                            $shortMessage = $isLong
+                                                ? mb_substr(strip_tags($message), 0, 150) . '...'
+                                                : $message;
+                                        @endphp
+
+                                        <div id="message-short-{{ $index }}"
+                                            class="{{ $isLong ? '' : 'hidden' }}">
+                                            {{ $shortMessage }}
+                                            @if ($isLong)
+                                                <button type="button" class="log-message-toggle"
+                                                    onclick="toggleMessage('{{ $index }}')">
+                                                    <x-icon path="ph.regular.arrows-out-simple" />
+                                                    <span class="toggle-text">{{ __('admin-logs.show_more') }}</span>
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                        <div id="message-full-{{ $index }}"
+                                            class="{{ $isLong ? 'hidden' : '' }}">
+                                            {{ $message }}
+                                            @if ($isLong)
+                                                <button type="button" class="log-message-toggle"
+                                                    onclick="toggleMessage('{{ $index }}')">
+                                                    <x-icon path="ph.regular.arrows-in-simple" />
+                                                    <span class="toggle-text">{{ __('admin-logs.show_less') }}</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (!empty($entry['context']))
+                                        <x-admin::button type="outline-primary" size="tiny" icon="ph.regular.code"
+                                            onclick="toggleContext('{{ $index }}')">
+                                            {{ __('admin-logs.show_context') }}
+                                        </x-admin::button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @if (!empty($entry['context']))
+                                <tr id="context-{{ $index }}" class="context-row">
+                                    @php
+                                        $contextAdditional = json_decode($entry['context'], true);
+                                        $contextAdditional = array_merge($contextAdditional ?? [], [
+                                            'level' => $entry['level'],
+                                            'channel' => $entry['channel'],
+                                            'datetime' => $entry['datetime'],
+                                            'message' => $entry['message'],
+                                        ]);
+                                    @endphp
+                                    <td colspan="5">
+                                        <pre class="context-data">{{ json_encode($contextAdditional, JSON_PRETTY_PRINT) }}</pre>
+                                    </td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>
@@ -124,7 +143,7 @@
         @endif
     </div>
 
-    @if(! empty($selectedLogger))
+    @if (!empty($selectedLogger))
         <x-slot:footer>
             <div class="d-flex justify-content-end">
                 <x-admin::button type="error" size="small" icon="ph.regular.trash"

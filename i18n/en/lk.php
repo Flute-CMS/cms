@@ -54,4 +54,7 @@
     "clear_promo"             => "Clear promo code",
     "optional"                => "optional",
     "summary_empty"           => "Enter an amount to see payment details",
+    "promo_minimum_amount"    => "Promo code requires minimum amount of :amount :currency",
+    "promo_role_not_allowed"  => "You don't have permission to use this promo code",
+    "promo_user_limit"        => "You have reached the usage limit for this promo code",
 ];

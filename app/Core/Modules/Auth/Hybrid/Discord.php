@@ -70,8 +70,8 @@ class Discord extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        // Makes display name more unique.
         $displayName = $data->get('username') ?: $data->get('login');
+
         if ($discriminator = $data->get('discriminator')) {
             $displayName .= "#{$discriminator}";
         }

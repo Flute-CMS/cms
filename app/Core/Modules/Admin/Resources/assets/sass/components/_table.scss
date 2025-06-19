@@ -28,15 +28,37 @@ tr {
         tr {
             th {
                 border-top: 0;
-                color: var(--text-200);
-                font-size: var(--p);
-                font-weight: 600;
+                color: var(--text-400);
+                font-size: var(--p-small);
+                font-weight: 500;
                 vertical-align: baseline;
                 border-bottom: 1px solid var(--transp-1);
-                padding: 1em;
+                padding: 1.25em 15px;
+                cursor: default;
+
+                .table-th {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .5rem;
+                    flex-direction: row;
+                    transition: .3s;
+                    cursor: pointer;
+                }
 
                 &:first-child {
                     padding-left: 1.5rem;
+                }
+
+                &.sortable {
+                    cursor: pointer;
+
+                    &:hover {
+                        color: var(--text);
+                    }
+
+                    .sort-icon {
+                        display: inline-flex;
+                    }
                 }
             }
         }
@@ -77,7 +99,7 @@ tr {
         tbody {
             tr {
                 >td:first-child {
-                    padding-left: 0.4rem!important;
+                    padding-left: 0.4rem !important;
                 }
             }
         }

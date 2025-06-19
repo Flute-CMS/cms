@@ -29,7 +29,7 @@ class SteamService
             'base_uri' => 'https://api.steampowered.com/',
             'timeout' => 10.0,
         ]);
-        $this->cacheDuration = 3600;
+        $this->cacheDuration = config('app.steam_cache_duration', 3600);
 
         register_shutdown_function([$this, 'executeBatchRequest']);
     }

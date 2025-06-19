@@ -51,6 +51,8 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
     {
         $basePath = $this->app->getBasePath();
         $fullPath = $basePath . DIRECTORY_SEPARATOR . ltrim($relativePath, DIRECTORY_SEPARATOR);
+
+        // global view
         $router = $this->app->make(RouterInterface::class);
 
         if (file_exists($fullPath)) {

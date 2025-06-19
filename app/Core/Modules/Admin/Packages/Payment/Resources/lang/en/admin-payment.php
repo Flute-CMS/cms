@@ -127,6 +127,21 @@ return [
                 'placeholder' => 'Select expiry date',
                 'help'        => 'Leave empty for no expiry',
             ],
+            'max_uses_per_user' => [
+                'label'       => 'Max Uses per User',
+                'placeholder' => 'Enter max uses per user',
+                'help'        => 'How many times one user can use this promo code. Leave empty for single use per user',
+            ],
+            'minimum_amount' => [
+                'label'       => 'Minimum Order Amount',
+                'placeholder' => 'Enter minimum amount',
+                'help'        => 'Minimum purchase amount required to use this promo code',
+            ],
+            'allowed_roles' => [
+                'label'       => 'Allowed Roles',
+                'placeholder' => 'Select roles that can use this promo code',
+                'help'        => 'Leave empty to allow all users',
+            ],
             'user_id' => [
                 'label'       => 'User',
                 'placeholder' => 'Select user (optional)',
@@ -135,12 +150,15 @@ return [
         ],
     ],
     'status' => [
-        'active'   => 'Active',
-        'expired'  => 'Expired',
-        'depleted' => 'Depleted',
-        'paid'     => 'Paid',
-        'unpaid'   => 'Unpaid',
-        'inactive' => 'Inactive',
+        'active'     => 'Active',
+        'expired'    => 'Expired',
+        'depleted'   => 'Depleted',
+        'paid'       => 'Paid',
+        'unpaid'     => 'Unpaid',
+        'inactive'   => 'Inactive',
+        'unlimited'  => 'Unlimited',
+        'no_minimum' => 'No minimum',
+        'all_users'  => 'All users',
     ],
     'type' => [
         'percentage' => 'Percentage',

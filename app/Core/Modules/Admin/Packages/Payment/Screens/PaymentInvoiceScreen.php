@@ -145,6 +145,7 @@ class PaymentInvoiceScreen extends Screen
 
                 TD::make('created_at', __('admin-payment.table.created'))
                     ->sort()
+                    ->defaultSort(true, 'desc')
                     ->render(fn(PaymentInvoice $invoice) => Carbon::parse($invoice->createdAt)->format('d.m.Y H:i:s'))
                     ->width('200px'),
 

@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Payments\Services;
 
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
+use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;
 
 class PaymentPromo
@@ -13,13 +14,13 @@ class PaymentPromo
      *
      * @param ?string $code Promo code to validate.
      * @param int $userId User ID for whom the promo code is being validated.
-     * @param int $amount
+     * @param float $amount Amount of the purchase
      * 
      * @return array
      * 
      * @throws PaymentPromoException
      */
-    public function validate(?string $code, int $userId = 0): array
+    public function validate(?string $code, int $userId = 0, float $amount = 0): array
     {
         if (empty($code)) {
             throw new PaymentPromoException(__('lk.promo_is_empty'));
@@ -31,21 +32,49 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_not_found'));
         }
 
-        if ($promoCode->max_usages !== null && sizeof($promoCode->usages) >= $promoCode->max_usages) {
-            throw new PaymentPromoException(__('lk.promo_limit'));
-        }
-
-        // Check if promo code is expired.
         $currentDate = new \DateTime();
         if ($promoCode->expires_at !== null && $promoCode->expires_at <= $currentDate) {
             throw new PaymentPromoException(__('lk.promo_expired'));
         }
 
-        // Check if the user has already used this promo code.
-        $usage = PromoCodeUsage::findOne(['promoCode_id' => $promoCode->id, 'user_id' => $userId === 0 ? user()->getCurrentUser()->id : $userId]);
+        if ($promoCode->max_usages !== null && sizeof($promoCode->usages) >= $promoCode->max_usages) {
+            throw new PaymentPromoException(__('lk.promo_limit'));
+        }
 
-        if ($usage !== null) {
-            throw new PaymentPromoException(__('lk.promo_used'));
+        if ($promoCode->minimum_amount !== null && $amount < $promoCode->minimum_amount) {
+            throw new PaymentPromoException(__('lk.promo_minimum_amount', [':amount' => $promoCode->minimum_amount, ':currency' => config('lk.currency_view')]));
+        }
+
+        $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
+        
+        if (!empty($promoCode->roles)) {
+            $currentUser = $userId === 0 ? user()->getCurrentUser() : ($userId ? User::findByPK($userId) : null);
+            if ($currentUser) {
+                $userRoleIds = array_map(fn($role) => $role->id, $currentUser->roles);
+                $promoRoleIds = array_map(fn($role) => $role->id, $promoCode->roles);
+                $hasAllowedRole = !empty(array_intersect($userRoleIds, $promoRoleIds));
+                
+                if (!$hasAllowedRole) {
+                    throw new PaymentPromoException(__('lk.promo_role_not_allowed'));
+                }
+            }
+        }
+
+        if ($promoCode->max_uses_per_user !== null) {
+            $userUsageCount = PromoCodeUsage::query()
+                ->where('promoCode_id', $promoCode->id)
+                ->where('user_id', $currentUserId)
+                ->count();
+
+            if ($userUsageCount >= $promoCode->max_uses_per_user) {
+                throw new PaymentPromoException(__('lk.promo_user_limit'));
+            }
+        } else {
+            $usage = PromoCodeUsage::findOne(['promoCode_id' => $promoCode->id, 'user_id' => $currentUserId]);
+
+            if ($usage !== null) {
+                throw new PaymentPromoException(__('lk.promo_used'));
+            }
         }
 
         return [

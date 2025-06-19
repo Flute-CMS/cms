@@ -2,49 +2,50 @@
 
 return [
     "edit" => [
-        "title" => "Edit Profile",
+        "title" => "Editar Perfil",
 
         "main" => [
-            "title"       => "Main Settings",
-            "description" => "Here you can change the main settings of your account.",
-            "info_title"  => "Basic Information",
-            "info_description" => "Some data may be visible to other users.",
+            "title"       => "Configurações Principais",
+            "description" => "Aqui você pode alterar as configurações principais da sua conta.",
+            "info_title"  => "Informações Básicas",
+            "info_description" => "Alguns dados podem ser visíveis para outros usuários.",
 
             "fields" => [
-                "name"                  => "Name",
-                "email"                 => "Email",
-                "password"              => "Password",
-                "email_verified"        => "Email verified",
-                "email_not_verified"    => "Email not verified",
-                "password_not_set"      => "Not set",
-                "password_not_provided" => "Not provided",
-                "last_changed"          => "Last changed",
+                "name"                  => "Nome",
+                "email"                 => "E-mail",
+                "password"              => "Senha",
+                "email_verified"        => "E-mail verificado",
+                "email_not_verified"    => "E-mail não verificado",
+                "password_not_set"      => "Não definida",
+                "password_not_provided" => "Não fornecida",
+                "last_changed"          => "Última alteração",
+                "verify_email"          => "Verificar e-mail",
             ],
 
-            "password_description" => "A strong password helps protect your account.",
+            "password_description" => "Uma senha forte ajuda a proteger sua conta.",
 
             "basic_information" => [
-                "title"       => "Basic Information",
-                "description" => "Change the basic information of your profile.",
+                "title"       => "Informações Básicas",
+                "description" => "Alterar as informações básicas do seu perfil.",
 
                 "fields" => [
-                    "name"                 => "Name",
-                    "name_placeholder"     => "Enter your full name",
-                    "name_info"            => "This name will be visible to all users on the site",
+                    "name"                 => "Nome",
+                    "name_placeholder"     => "Digite seu nome completo",
+                    "name_info"            => "Este nome ficará visível para todos os usuários do site",
 
-                    "login"                => "Username",
-                    "login_placeholder"    => "Enter your username",
-                    "login_info"           => "Your username is visible only to you and is used to log in",
+                    "login"                => "Nome de usuário",
+                    "login_placeholder"    => "Digite seu nome de usuário",
+                    "login_info"           => "Seu nome de usuário está visível apenas para você e é usado para login",
 
-                    "uri"                  => "Profile URL",
-                    "uri_placeholder"      => "Enter your URL",
-                    "uri_info"             => "Enter the slug for your profile URL. For example: :example",
+                    "uri"                  => "URL do Perfil",
+                    "uri_placeholder"      => "Insira sua URL",
+                    "uri_info"             => "Insira o slug para a URL do seu perfil. Por exemplo: :example",
 
-                    "email"                => "Email",
+                    "email"                => "E-mail",
                     "email_placeholder"    => "Enter your email address",
                 ],
 
-                "save_changes"         => "Save changes",
+                "save_changes"         => "Salvar alterações",
                 "save_changes_success" => "Basic information updated successfully.",
             ],
 
@@ -57,95 +58,95 @@ return [
                     "banner" => "Banner",
                 ],
 
-                "save_changes"         => "Save images",
+                "save_changes"         => "Salvar imagem",
                 "save_changes_success" => "Profile images updated successfully.",
             ],
 
             "change_password" => [
-                "title"       => "Change Password",
-                "description" => "Change your current password for enhanced security.",
+                "title"       => "Alterar Senha",
+                "description" => "Altere sua senha atual para maior segurança.",
 
                 "fields" => [
-                    "current_password"                => "Current password",
-                    "current_password_placeholder"    => "Enter current password",
+                    "current_password"                => "Senha atual",
+                    "current_password_placeholder"    => "Insira a senha atual",
 
-                    "new_password"                    => "New password",
-                    "new_password_placeholder"        => "Enter new password",
+                    "new_password"                    => "Nova senha",
+                    "new_password_placeholder"        => "Inserir nova senha",
 
-                    "confirm_new_password"            => "Confirm new password",
-                    "confirm_new_password_placeholder"=> "Repeat new password",
+                    "confirm_new_password"            => "Confirme a nova senha",
+                    "confirm_new_password_placeholder"=> "Repetir nova senha",
                 ],
 
-                "save_changes"         => "Change password",
+                "save_changes"         => "Alterar senha",
                 "save_changes_success" => "Password changed successfully.",
                 "current_password_incorrect" => "Current password is incorrect.",
                 "passwords_do_not_match"      => "Passwords do not match.",
             ],
 
             "delete_account" => [
-                "title"       => "Delete Account",
+                "title"       => "Excluir conta",
                 "description" => "Deleting your account will result in permanent loss of all your data.",
                 "confirm_message" => "Are you sure you want to delete your account? All your data will be permanently removed.",
 
                 "fields" => [
-                    "confirmation"             => "Deletion confirmation",
-                    "confirmation_placeholder" => "Enter your username to confirm",
+                    "confirmation"             => "Confirmar exclusão",
+                    "confirmation_placeholder" => "Digite seu nome de usuário para confirmar",
                 ],
 
-                "delete_button"       => "Delete Account",
-                "delete_success"      => "Your account has been deleted successfully.",
-                "delete_failed"       => "Incorrect confirmation. Account was not deleted.",
-                "confirmation_error"  => "Please enter your username correctly.",
+                "delete_button"       => "Excluir Conta",
+                "delete_success"      => "Sua conta foi deletada com sucesso.",
+                "delete_failed"       => "Confirmação incorreta. Conta não foi deletada.",
+                "confirmation_error"  => "Por favor, informe seu nome de usuário corretamente.",
             ],
 
             "profile_privacy" => [
-                "title"       => "Profile Privacy",
-                "description" => "Configure your profile privacy settings.",
+                "title"       => "Privacidade do Perfil",
+                "description" => "Configure as configurações de privacidade do seu perfil.",
 
                 "fields" => [
                     "hidden"  => [
-                        "label" => "Public",
-                        "info"  => "Your profile is visible to all users.",
+                        "label" => "Público",
+                        "info"  => "Seu perfil está visível para todos os usuários.",
                     ],
                     "visible" => [
-                        "label" => "Private",
-                        "info"  => "Your profile is hidden from other users.",
+                        "label" => "Privado",
+                        "info"  => "Seu perfil está oculto para outros usuários.",
                     ],
                 ],
 
-                "save_changes_success" => "Privacy settings updated successfully.",
+                "save_changes_success" => "Configurações de privacidade atualizadas com sucesso.",
             ],
 
             "profile_theme" => [
-                "title"       => "System Theme",
-                "description" => "Select the theme for the entire system.",
+                "title"       => "Tema do Sistema",
+                "description" => "Selecione o tema para o sistema inteiro.",
 
                 "fields" => [
                     "light" => [
-                        "label" => "Light theme",
-                        "info"  => "Suitable for daytime.",
+                        "label" => "Tema claro",
+                        "info"  => "Adequado para hora do dia.",
                     ],
                     "dark"  => [
-                        "label" => "Dark theme",
+                        "label" => "Tema escuro",
                         "info"  => "Ideal for working at night.",
                     ],
                 ],
 
-                "save_changes"         => "Save theme",
+                "save_changes"         => "Salvar tema",
                 "save_changes_success" => "Profile theme updated successfully.",
             ],
         ],
 
         "settings" => [
-            "title" => "Settings",
+            "title" => "Configurações",
         ],
 
         "social" => [
-            "title"               => "Integrations",
+            "title"               => "Integrações",
             "description"         => "Connect social networks for quick login and access to additional features.",
-            "unlink"              => "Unlink",
+            "unlink"              => "Desvincular",
             "unlink_description"  => "Are you sure you want to unlink this social network?",
-            "default_link"        => "Default link",
+            "default_link"        => "Link padrão",
             "connect"             => "Link",
             "no_socials"          => "Unfortunately, there are no social networks in our system 😢",
             "show_description"    => "Show social network to other users",
@@ -154,21 +155,21 @@ return [
         ],
 
         "payments" => [
-            "title"       => "Payments",
-            "description" => "History of payments and transactions.",
+            "title"       => "Pagamentos",
+            "description" => "Histórico de pagamentos e transações.",
             "table"       => [
                 "id"          => "ID",
-                "date"        => "Date",
-                "gateway"     => "Payment method",
-                "amount"      => "Amount",
+                "date"        => "Data",
+                "gateway"     => "Método de pagamento",
+                "amount"      => "Valor",
                 "status"      => "Status",
-                "promo"       => "Promo code",
-                "transaction" => "Transaction",
-                "actions"     => "Actions",
+                "promo"       => "Código promocional",
+                "transaction" => "Transação",
+                "actions"     => "Ações",
             ],
             "status" => [
-                "paid"    => "Paid",
-                "pending" => "Pending",
+                "paid"    => "Pago",
+                "pending" => "Pendente",
             ],
         ],
 
@@ -178,10 +179,11 @@ return [
 
     "protection_warning"        => "Set a password to protect your account. <a href=\":link\">Set it</a>",
     "no_profile_modules_info"   => "No profile modules are installed in Flute. <a href=\":link\">View on marketplace</a>",
-    "was_online"                => "Was online :date",
-    "view"                      => "View profile",
-    "social_deleted"            => "Social network unlinked successfully!",
-    "member_since"              => "Member since :date",
+    "was_online"                => "Esteve online :data",
+    "view"                      => "Ver perfil",
+    "social_deleted"            => "Rede social desvinculada com sucesso!",
+    "member_since"              => "Membro desde :date",
     "hidden_warning"            => "Your profile is hidden from other users.",
     "profile_hidden"            => "This profile is hidden from other users.",
+    "verification_warning"      => "Verify your email address to access additional features. <a href=\":link\">Verify</a>",
 ];

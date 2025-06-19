@@ -31,6 +31,7 @@ class MainSettingsPackageScreen extends Screen
     public $logo;
     public $logo_light;
     public $bg_image;
+    public $bg_image_light;
     public $default_avatar;
     public $default_banner;
 
@@ -146,6 +147,12 @@ class MainSettingsPackageScreen extends Screen
                             ->placeholder(__('admin-main-settings.placeholders.steam_api'))
                             ->value(config('app.steam_api'))
                     )->label(__('admin-main-settings.labels.steam_api'))->popover(__('admin-main-settings.popovers.steam_api')),
+                    LayoutFactory::field(
+                        Input::make('steam_cache_duration')
+                            ->type('number')
+                            ->placeholder(__('admin-main-settings.placeholders.steam_cache_duration'))
+                            ->value(config('app.steam_cache_duration', 3600))
+                    )->label(__('admin-main-settings.labels.steam_cache_duration'))->popover(__('admin-main-settings.popovers.steam_cache_duration'))->small(__('admin-main-settings.examples.steam_cache_duration')),
                     LayoutFactory::field(
                         TextArea::make('footer_description')
                             ->placeholder(__('admin-main-settings.placeholders.footer_description'))
@@ -549,6 +556,13 @@ class MainSettingsPackageScreen extends Screen
                             ->accept('image/png, image/jpeg, image/gif, image/webp')
                             ->defaultFile(asset(config('app.bg_image')))
                     )->label(__('admin-main-settings.labels.bg_image'))->small(__('admin-main-settings.examples.bg_image')),
+                    LayoutFactory::field(
+                        Input::make('bg_image_light')
+                            ->type('file')
+                            ->filePond()
+                            ->accept('image/png, image/jpeg, image/gif, image/webp')
+                            ->defaultFile(asset(config('app.bg_image_light', '')))
+                    )->label(__('admin-main-settings.labels.bg_image_light'))->small(__('admin-main-settings.examples.bg_image_light')),
                 ]),
                 LayoutFactory::rows([
                     Button::make(__('admin-main-settings.buttons.save_flute_images'))
@@ -605,9 +619,10 @@ class MainSettingsPackageScreen extends Screen
         $avatarError = $this->processImageUpload('logo', $uploader, $uploadsDir);
         $logoLightError = $this->processImageUpload('logo_light', $uploader, $uploadsDir);
         $bannerError = $this->processImageUpload('bg_image', $uploader, $uploadsDir);
+        $bannerLightError = $this->processImageUpload('bg_image_light', $uploader, $uploadsDir);
 
-        if ($avatarError || $logoLightError || $bannerError) {
-            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError, 'error');
+        if ($avatarError || $logoLightError || $bannerError || $bannerLightError) {
+            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError ?? $bannerLightError, 'error');
             return;
         }
 
@@ -621,6 +636,10 @@ class MainSettingsPackageScreen extends Screen
 
         if (! isset($this->bg_image)) {
             config()->set('app.bg_image', '');
+        }
+
+        if (! isset($this->bg_image_light)) {
+            config()->set('app.bg_image_light', '');
         }
 
         try {
@@ -637,6 +656,7 @@ class MainSettingsPackageScreen extends Screen
         $this->logo = request()->files->get('logo');
         $this->logo_light = request()->files->get('logo_light');
         $this->bg_image = request()->files->get('bg_image');
+        $this->bg_image_light = request()->files->get('bg_image_light');
 
         $rules = [
             'logo' => $this->logo
@@ -646,6 +666,9 @@ class MainSettingsPackageScreen extends Screen
                 ? 'image|max-file-size:10240'
                 : 'nullable|image|max-file-size:10240',
             'bg_image' => $this->bg_image
+                ? 'image|max-file-size:10240'
+                : 'nullable|image|max-file-size:10240',
+            'bg_image_light' => $this->bg_image_light
                 ? 'image|max-file-size:10240'
                 : 'nullable|image|max-file-size:10240',
         ];
@@ -681,6 +704,7 @@ class MainSettingsPackageScreen extends Screen
         $this->inputError('logo', __('admin-main-settings.messages.upload_directory_error'));
         $this->inputError('logo_light', __('admin-main-settings.messages.upload_directory_error'));
         $this->inputError('bg_image', __('admin-main-settings.messages.upload_directory_error'));
+        $this->inputError('bg_image_light', __('admin-main-settings.messages.upload_directory_error'));
     }
     public function saveProfileImages()
     {

@@ -61,25 +61,32 @@ class HttpsSteam extends OpenID
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        try {
-            $apiKey = config('app.steam_api');
+        $apiKey = $this->resolveApiKey();
 
-            // if api key is provided, we attempt to use steam web api
-            if ($apiKey) {
+        if ($apiKey) {
+            try {
                 $result = $this->getUserProfileWebAPI($apiKey, $userProfile->identifier);
-            } else {
-                // otherwise we fallback to community data
+
+                if (empty($result['photoURL'])) {
+                    $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
+                }
+            } catch (\Exception $e) {
+                logs()->error($e);
+
                 $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
             }
-
-            // fetch user profile
-            foreach ($result as $k => $v) {
-                $userProfile->$k = $v ?: $userProfile->$k;
+        } else {
+            try {
+                $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
+            } catch (\Exception $e) {
+                logs()->error($e);
             }
-        } catch (\Exception $e) {
         }
 
-        // store user profile
+        foreach ($result as $k => $v) {
+            $userProfile->$k = $v ?: $userProfile->$k;
+        }
+
         $this->storage->set($this->providerId . '.user', $userProfile);
     }
 
@@ -144,5 +151,34 @@ class HttpsSteam extends OpenID
             : 'https://steamcommunity.com/profiles/' . $steam64;
 
         return $userProfile;
+    }
+
+    /**
+     * Resolve Steam API key from global config or provider-level settings.
+     * This improves reliability when the key is stored in the social-network
+     * settings instead of the generic config file.
+     *
+     * @return string|null
+     */
+    protected function resolveApiKey(): ?string
+    {
+        $key = config('app.steam_api');
+        if ($key) {
+            return $key;
+        }
+
+        $keys = (array) $this->config->get('keys');
+        if (!empty($keys['secret'])) {
+            return $keys['secret'];
+        }
+
+        foreach (['secret', 'apikey', 'api_key'] as $field) {
+            $candidate = $this->config->get($field);
+            if (!empty($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }

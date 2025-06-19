@@ -12,7 +12,7 @@
         <x-forms.field class="mb-3">
             <x-forms.label for="page-description">@t('page.seo.description'):</x-forms.label>
             <x-fields.textarea name="description" id="page-description"
-                rows="3">{{ $page->description ?? '' }}</x-fields.textarea>
+                rows="3" value="{{ $page->description ?? '' }}"></x-fields.textarea>
             <x-fields.small>@t('page.seo.description_help')</x-fields.small>
         </x-forms.field>
 

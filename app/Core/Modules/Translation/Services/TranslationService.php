@@ -20,7 +20,24 @@ class TranslationService
 
     public function __construct(EventDispatcher $eventDispatcher)
     {
-        $defaultLocale = app()->getLang() ?? config('lang.locale');
+        $availableLangs = (array) config('lang.available');
+
+        $requestedLang = request()->input('lang');
+        $cookieLang    = cookie()->get('current_lang');
+
+        $defaultLocale = null;
+
+        foreach ([$requestedLang, $cookieLang, app()->getLang(), config('lang.locale')] as $candidate) {
+            if ($candidate && in_array($candidate, $availableLangs, true)) {
+                $defaultLocale = $candidate;
+                break;
+            }
+        }
+
+        if ($defaultLocale && app()->getLang() !== $defaultLocale) {
+            app()->setLang($defaultLocale);
+        }
+
         $cacheDir = config('lang.cache') ? path('storage/app/translations') : null;
         $debug = is_debug();
 
@@ -131,7 +148,7 @@ class TranslationService
     {
         $newLang = $event->getNewLang();
         $this->translator->setLocale($newLang);
-        
+                
         if (!isset($this->loadedDomains[$newLang]) && $this->performance) {
             $this->_importTranslationsForLocale($this->translator, $newLang);
         }
@@ -159,7 +176,9 @@ class TranslationService
      */
     public function onRoutingStarted(RoutingStartedEvent $routingStartedEvent) : void
     {
-        app()->setLang(config('lang.locale'));
+        if (!app()->getLang()) {
+            app()->setLang(config('lang.locale'));
+        }
 
         $this->registerLangGet();
     }

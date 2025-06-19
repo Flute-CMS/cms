@@ -148,7 +148,7 @@ class PaymentComponent extends FluteComponent
         try {
             $this->throttle('lk_validate_promo');
 
-            $this->promoDetails = payments()->promo()->validate($this->promoCode);
+            $this->promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
             $this->promoIsValid = true;
 
             switch ($this->promoDetails['type']) {

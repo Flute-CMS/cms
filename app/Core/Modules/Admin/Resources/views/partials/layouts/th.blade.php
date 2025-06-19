@@ -3,7 +3,7 @@
 @endif @if ($minWidth) style="min-width: {{ $minWidth }};" @endif class="text-{{ $align }} sortable-column"
         data-column="{{ $data_column ?? $slug ?? '' }}" @if (isset($aria_hidden)) aria-hidden="{{ $aria_hidden }}" @endif>
         <a href="{{ $sortUrl }}" hx-target="#main" hx-include="none" hx-swap="outerHTML" hx-boost="true" yoyo:ignore
-            class="d-flex align-items-center text-decoration-none gap-2">
+            class="table-th">
             {{ $title }}
 
             @php
@@ -22,14 +22,14 @@
             @if ($isActiveSortColumn)
                 <span class="sort-indicator">
                     @if ($direction === 'asc')
-                        <x-icon path="ph.regular.sort-ascending" />
+                        <x-icon path="ph.regular.arrow-up" />
                     @else
-                        <x-icon path="ph.regular.sort-descending" />
+                        <x-icon path="ph.regular.arrow-down" />
                     @endif
                 </span>
             @else
                 <span class="sort-indicator">
-                    <x-icon path="ph.regular.funnel-simple" />
+                    <x-icon path="ph.regular.arrows-down-up" />
                 </span>
             @endif
         </a>

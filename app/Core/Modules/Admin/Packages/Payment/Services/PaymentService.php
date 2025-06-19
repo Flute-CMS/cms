@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Payment\Services;
 
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PromoCode;
+use Flute\Core\Database\Entities\Role;
 
 class PaymentService
 {
@@ -55,11 +56,36 @@ class PaymentService
      */
     public function savePromoCode(PromoCode $promoCode, array $data) : void
     {
+        $this->handleRoles($promoCode, $data['allowed_roles'] ?? []);
+
         $promoCode->code = $data['code'];
         $promoCode->max_usages = $data['max_usages'] ? (int) $data['max_usages'] : null;
         $promoCode->type = $data['type'];
         $promoCode->value = (float) $data['value'];
         $promoCode->expires_at = $data['expires_at'] ? new \DateTimeImmutable($data['expires_at']) : null;
+        $promoCode->max_uses_per_user = $data['max_uses_per_user'] ? (int) $data['max_uses_per_user'] : null;
+        $promoCode->minimum_amount = $data['minimum_amount'] ? (float) $data['minimum_amount'] : null;
+        $promoCode->save();
+    }
+
+    /**
+     * Обработка ролей промо-кода.
+     */
+    private function handleRoles(PromoCode $promoCode, array $roleIds): void
+    {
+        $promoCode->clearRoles();
+
+        if (!empty($roleIds)) {
+            $selectedRoles = array_filter(
+                Role::findAll(),
+                static fn($role) => in_array($role->id, $roleIds)
+            );
+
+            foreach ($selectedRoles as $role) {
+                $promoCode->addRole($role);
+            }
+        }
+
         $promoCode->save();
     }
 
