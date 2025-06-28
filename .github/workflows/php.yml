@@ -1,45 +1,49 @@
-name: PHP Composer
+name: PHP Composer Build & Release Upload
 
 on:
-    push:
-        tags:
-            - 'v*'
-    pull_request:
-        branches: ['main']
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-            - name: Validate composer.json and composer.lock
-              run: composer validate --strict
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
 
-            - name: Cache Composer packages
-              id: composer-cache
-              uses: actions/cache@v3
-              with:
-                  path: vendor
-                  key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-php-
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
 
-            - name: Install dependencies
-              run: composer install --prefer-dist --no-dev --no-progress
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-            - name: Archive with vendor folder
-              run: |
-                  mkdir release
-                  zip -r release/project-with-vendor.zip . -x "*.git*" "release/*"
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-dev --no-progress
 
-            - name: Create GitHub Release and upload archive
-              uses: softprops/action-gh-release@v1
-              with:
-                  files: release/project-with-vendor.zip
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive project with vendor
+        run: |
+          mkdir -p release
+          ARCHIVE_NAME="flute-cms-with-vendor-${GITHUB_REF_NAME}.zip"
+          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*"
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+
+      - name: Upload archive to existing GitHub release
+        run: gh release upload "$TAG" "release/$ARCHIVE_NAME" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          ARCHIVE_NAME: ${{ env.ARCHIVE_NAME }}
