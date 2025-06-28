@@ -1,4 +1,4 @@
-name: PHP Composer Build & Release Upload
+name: PHP Composer Build & Upload to Existing Release
 
 on:
   workflow_dispatch:
@@ -42,8 +42,8 @@ jobs:
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
 
       - name: Upload archive to existing GitHub release
-        run: gh release upload "$TAG" "release/$ARCHIVE_NAME" --clobber
+        run: |
+          echo "Uploading release/$ARCHIVE_NAME to release $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" "release/$ARCHIVE_NAME" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
-          ARCHIVE_NAME: ${{ env.ARCHIVE_NAME }}
