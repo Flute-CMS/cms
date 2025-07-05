@@ -15,8 +15,20 @@
             @if (($display_type ?? 'text') == 'avatar')
                 <div class="users-stats-avatar-mode">
                     @foreach ($users as $user)
-                        <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="user-avatar" title="{{ $user->name }}">
-                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" data-tooltip="{{ $user->name }}">
+                        <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="user-avatar"
+                            title="{{ $user->name }}">
+                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
+                                data-tooltip="{{ $user->name }}">
+                        </x-link>
+                    @endforeach
+                </div>
+            @elseif (($display_type ?? 'text') == 'compact')
+                <div class="users-stats-compact-mode">
+                    @foreach ($users as $user)
+                        <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card
+                            class="user-avatar-compact" title="{{ $user->name }}">
+                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
+                                data-tooltip="{{ $user->name }}">
                         </x-link>
                     @endforeach
                 </div>
@@ -34,6 +46,6 @@
             <div class="users-stats-empty">
                 <x-icon path="ph.regular.smiley-sad" />
             </div>
-        @endif
-    </div>
-</x-card>
+            @endif
+        </div>
+    </x-card>

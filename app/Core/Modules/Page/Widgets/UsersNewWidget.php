@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Page\Widgets;
 
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
+use function PHPUnit\Framework\callback;
 
 class UsersNewWidget extends AbstractWidget
 {
@@ -29,8 +30,10 @@ class UsersNewWidget extends AbstractWidget
 
     public function render(array $settings) : string|null
     {
-        $maxDisplay = $settings['max_display'] ?? 10;
-        $newUsers = $this->userRepository->getLatestUsers($maxDisplay);
+        $maxDisplay = $settings['max_display'] ?? 200;
+        $newUsers = cache()->callback('latest_users', function () use ($maxDisplay) {
+            return $this->userRepository->getLatestUsers($maxDisplay);
+        }, 1800);
 
         $newUsers = array_filter($newUsers, static fn ($u) => !$u->hidden);
 
@@ -44,7 +47,7 @@ class UsersNewWidget extends AbstractWidget
     {
         return [
             'display_type' => 'text',
-            'max_display' => 10
+            'max_display' => 200
         ];
     }
 
@@ -75,7 +78,7 @@ class UsersNewWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10)
+            'max_display' => (int) ($input['max_display'] ?? 200)
         ];
     }
 }

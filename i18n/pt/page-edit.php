@@ -8,9 +8,5 @@ return [
     'rgb' => 'RGB',
     'hsl' => 'HSL',
     'background' => 'Plano de Fundo',
-    'text' => 'Texto',
-    'contrast_rating' => 'Color Readability',
-    'primary' => 'Primário',
-    'secondary' => 'Secundário',
-    'accent' => 'Accent',
-];
+    'text' => 'Texto',    'primary' => 'Primário',
+    'secondary' => 'Secundário',];

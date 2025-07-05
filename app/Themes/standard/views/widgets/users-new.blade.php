@@ -15,6 +15,14 @@
                         </x-link>
                     @endforeach
                 </div>
+            @elseif (($display_type ?? 'text') == 'compact')
+                <div class="users-stats-compact-mode">
+                    @foreach ($users as $user)
+                        <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="user-avatar-compact" title="{{ $user->name }}">
+                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" data-tooltip="{{ $user->name }}">
+                        </x-link>
+                    @endforeach
+                </div>
             @else
                 @foreach ($users as $key => $user)
                     <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="users-stats-name">

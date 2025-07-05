@@ -45,14 +45,17 @@ class CaptchaService
         $data = [
             'secret' => $secretKey,
             'response' => $response,
-            'remoteip' => request()->getClientIp()
+            'remoteip' => request()->ip()
         ];
 
         try {
             $context = stream_context_create([
                 'http' => [
                     'method' => 'POST',
-                    'header' => 'Content-Type: application/x-www-form-urlencoded',
+                    'header' => [
+                        'Content-Type: application/x-www-form-urlencoded',
+                        'User-Agent: Flute-CMS/1.0'
+                    ],
                     'content' => http_build_query($data),
                     'timeout' => 10
                 ]
@@ -61,10 +64,16 @@ class CaptchaService
             $result = file_get_contents($url, false, $context);
             
             if ($result === false) {
+                logs()->error('reCAPTCHA verification failed: Unable to reach verification service');
                 return false;
             }
 
             $json = json_decode($result, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                logs()->error('reCAPTCHA verification failed: Invalid JSON response');
+                return false;
+            }
             
             return isset($json['success']) && $json['success'] === true;
         } catch (\Exception $e) {
@@ -91,14 +100,17 @@ class CaptchaService
         $data = [
             'secret' => $secretKey,
             'response' => $response,
-            'remoteip' => request()->getClientIp()
+            'remoteip' => request()->ip()
         ];
 
         try {
             $context = stream_context_create([
                 'http' => [
                     'method' => 'POST',
-                    'header' => 'Content-Type: application/x-www-form-urlencoded',
+                    'header' => [
+                        'Content-Type: application/x-www-form-urlencoded',
+                        'User-Agent: Flute-CMS/1.0'
+                    ],
                     'content' => http_build_query($data),
                     'timeout' => 10
                 ]
@@ -107,10 +119,16 @@ class CaptchaService
             $result = file_get_contents($url, false, $context);
             
             if ($result === false) {
+                logs()->error('hCaptcha verification failed: Unable to reach verification service');
                 return false;
             }
 
             $json = json_decode($result, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                logs()->error('hCaptcha verification failed: Invalid JSON response');
+                return false;
+            }
             
             return isset($json['success']) && $json['success'] === true;
         } catch (\Exception $e) {

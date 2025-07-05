@@ -42,24 +42,20 @@ return [
                     "uri_info"             => "Insira o slug para a URL do seu perfil. Por exemplo: :example",
 
                     "email"                => "E-mail",
-                    "email_placeholder"    => "Enter your email address",
+                    "email_placeholder"    => "Digite seu endereço de e-mail",
                 ],
 
                 "save_changes"         => "Salvar alterações",
-                "save_changes_success" => "Basic information updated successfully.",
+                "save_changes_success" => "Informações básicas atualizadas com sucesso.",
             ],
 
             "profile_images" => [
-                "title"       => "Profile Images",
-                "description" => "Upload your avatar and banner to personalize your profile.",
-
                 "fields" => [
                     "avatar" => "Avatar",
                     "banner" => "Banner",
                 ],
 
                 "save_changes"         => "Salvar imagem",
-                "save_changes_success" => "Profile images updated successfully.",
             ],
 
             "change_password" => [
@@ -74,20 +70,14 @@ return [
                     "new_password_placeholder"        => "Inserir nova senha",
 
                     "confirm_new_password"            => "Confirme a nova senha",
-                    "confirm_new_password_placeholder"=> "Repetir nova senha",
+                    "confirm_new_password_placeholder" => "Repetir nova senha",
                 ],
 
                 "save_changes"         => "Alterar senha",
-                "save_changes_success" => "Password changed successfully.",
-                "current_password_incorrect" => "Current password is incorrect.",
-                "passwords_do_not_match"      => "Passwords do not match.",
             ],
 
             "delete_account" => [
                 "title"       => "Excluir conta",
-                "description" => "Deleting your account will result in permanent loss of all your data.",
-                "confirm_message" => "Are you sure you want to delete your account? All your data will be permanently removed.",
-
                 "fields" => [
                     "confirmation"             => "Confirmar exclusão",
                     "confirmation_placeholder" => "Digite seu nome de usuário para confirmar",
@@ -128,12 +118,10 @@ return [
                     ],
                     "dark"  => [
                         "label" => "Tema escuro",
-                        "info"  => "Ideal for working at night.",
                     ],
                 ],
 
                 "save_changes"         => "Salvar tema",
-                "save_changes_success" => "Profile theme updated successfully.",
             ],
         ],
 
@@ -143,15 +131,9 @@ return [
 
         "social" => [
             "title"               => "Integrações",
-            "description"         => "Connect social networks for quick login and access to additional features.",
             "unlink"              => "Desvincular",
-            "unlink_description"  => "Are you sure you want to unlink this social network?",
             "default_link"        => "Link padrão",
             "connect"             => "Link",
-            "no_socials"          => "Unfortunately, there are no social networks in our system 😢",
-            "show_description"    => "Show social network to other users",
-            "hide_description"    => "Hide social network from other users",
-            "last_social_network" => "To unlink a social network, set a password.",
         ],
 
         "payments" => [
@@ -172,18 +154,9 @@ return [
                 "pending" => "Pendente",
             ],
         ],
-
-        "upload_directory_error" => "Upload directory does not exist.",
-        "upload_failed"          => "Failed to upload :field.",
     ],
-
-    "protection_warning"        => "Set a password to protect your account. <a href=\":link\">Set it</a>",
-    "no_profile_modules_info"   => "No profile modules are installed in Flute. <a href=\":link\">View on marketplace</a>",
     "was_online"                => "Esteve online :data",
     "view"                      => "Ver perfil",
     "social_deleted"            => "Rede social desvinculada com sucesso!",
     "member_since"              => "Membro desde :date",
-    "hidden_warning"            => "Your profile is hidden from other users.",
-    "profile_hidden"            => "This profile is hidden from other users.",
-    "verification_warning"      => "Verify your email address to access additional features. <a href=\":link\">Verify</a>",
 ];

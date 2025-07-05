@@ -57,4 +57,5 @@
     "promo_minimum_amount"    => "Promo code requires minimum amount of :amount :currency",
     "promo_role_not_allowed"  => "You don't have permission to use this promo code",
     "promo_user_limit"        => "You have reached the usage limit for this promo code",
+    "promo_invalid_type"      => "Invalid promo code type",
 ];

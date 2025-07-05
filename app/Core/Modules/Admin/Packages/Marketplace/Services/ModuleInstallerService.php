@@ -89,6 +89,8 @@ class ModuleInstallerService
      */
     public function downloadModule(array $module): array
     {
+        $this->keepProcessAlive();
+
         if (empty($module['downloadUrl'])) {
             throw new Exception(__('admin-marketplace.messages.download_failed') . ': URL не указан');
         }
@@ -135,6 +137,8 @@ class ModuleInstallerService
      */
     public function extractModule(array $module): array
     {
+        $this->keepProcessAlive();
+
         if (empty($this->moduleArchivePath) || !file_exists($this->moduleArchivePath)) {
             throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Архив не найден');
         }
@@ -254,6 +258,8 @@ class ModuleInstallerService
      */
     public function installModule(array $module): array
     {
+        $this->keepProcessAlive();
+
         if (empty($this->moduleExtractPath) || !is_dir($this->moduleExtractPath)) {
             throw new Exception(__('admin-marketplace.messages.install_failed') . ': Распакованные файлы не найдены');
         }
@@ -336,6 +342,8 @@ class ModuleInstallerService
      */
     public function updateComposerDependencies(): array
     {
+        $this->keepProcessAlive();
+
         try {
             /** @var ComposerManager $composerManager */
             $composerManager = app(ComposerManager::class);
@@ -365,7 +373,7 @@ class ModuleInstallerService
             $this->removeDirectory($this->moduleExtractPath);
         }
 
-        cache()->clear();
+        app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
 
         $viewsCachePath = storage_path('app/views');
         if (is_dir($viewsCachePath)) {
@@ -507,5 +515,20 @@ class ModuleInstallerService
         }
 
         return rmdir($directory);
+    }
+
+    /**
+     * Ensure long-running operations (download/extract/install) are not interrupted
+     *
+     * @return void
+     */
+    protected function keepProcessAlive(): void
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
     }
 }

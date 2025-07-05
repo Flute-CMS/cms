@@ -123,12 +123,24 @@
         color: var(--text-300);
         margin-bottom: 0.75rem;
         
-        > a {
+        > a, > span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             color: var(--text-300);
             transition: color 0.15s ease;
             
+            i {
+                font-size: 1.1em;
+                opacity: 0.8;
+            }
+            
             &:hover {
                 color: var(--accent);
+                
+                i {
+                    opacity: 1;
+                }
             }
         }
     }
@@ -153,7 +165,7 @@
                 transition: transform 0.15s ease;
                 margin-left: -15px;
                 
-                svg {
+                .footer__items-item-goto {
                     opacity: 0;
                     transform: translateX(-8px);
                     transition: all 0.15s ease;
@@ -166,7 +178,7 @@
                     transform: translateX(5px);
                     color: var(--accent);
                     
-                    svg {
+                    .footer__items-item-goto {
                         opacity: 1;
                         transform: translateX(0);
                     }

@@ -160,6 +160,14 @@ class NavigationListScreen extends Screen
                 ->small(__('admin-navigation.modal.item.fields.title.help')),
 
             LayoutFactory::field(
+                Input::make('description')
+                    ->type('text')
+                    ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
+            )
+                ->label(__('admin-navigation.modal.item.fields.description.label'))
+                ->small(__('admin-navigation.modal.item.fields.description.help')),
+
+            LayoutFactory::field(
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.url.placeholder'))
@@ -226,6 +234,7 @@ class NavigationListScreen extends Screen
 
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
+            'description' => ['nullable', 'string', 'max-str-len:500'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
             'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],
@@ -255,6 +264,7 @@ class NavigationListScreen extends Screen
 
         $navbarItem = new NavbarItem();
         $navbarItem->title = $data['title'];
+        $navbarItem->description = $data['description'] ?? null;
         $navbarItem->url = $data['url'] ?? null;
         $navbarItem->new_tab = isset($data['new_tab']) && $data['new_tab'] ? true : false;
         $navbarItem->icon = $data['icon'] ?? null;
@@ -335,6 +345,15 @@ class NavigationListScreen extends Screen
                 ->small(__('admin-navigation.modal.item.fields.title.help')),
 
             LayoutFactory::field(
+                Input::make('description')
+                    ->type('text')
+                    ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
+                    ->value($navbarItem->description)
+            )
+                ->label(__('admin-navigation.modal.item.fields.description.label'))
+                ->small(__('admin-navigation.modal.item.fields.description.help')),
+
+            LayoutFactory::field(
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.url.placeholder'))
@@ -413,6 +432,7 @@ class NavigationListScreen extends Screen
 
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
+            'description' => ['nullable', 'string', 'max-str-len:500'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
             'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],
@@ -435,6 +455,7 @@ class NavigationListScreen extends Screen
         }
 
         $navbarItem->title = $data['title'];
+        $navbarItem->description = $data['description'] ?? null;
         $navbarItem->url = $data['url'] ?? null;
         $navbarItem->new_tab = isset($data['new_tab']) && $data['new_tab'] ? true : false;
         $navbarItem->icon = $data['icon'] ?? null;

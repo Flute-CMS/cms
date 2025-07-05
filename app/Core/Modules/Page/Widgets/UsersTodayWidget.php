@@ -30,18 +30,15 @@ class UsersTodayWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $maxDisplay = $settings['max_display'] ?? 10;
-        $todayUsers = $this->userRepository->getTodayUsers();
+        $todayUsers = cache()->callback('today_users', function () {
+            return $this->userRepository->getTodayUsers();
+        }, 1800);
 
         $todayUsers = array_filter($todayUsers, static fn ($u) => !$u->hidden);
 
         usort($todayUsers, static function ($a, $b) {
             return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
         });
-
-        if (count($todayUsers) > $maxDisplay) {
-            $todayUsers = array_slice($todayUsers, 0, $maxDisplay);
-        }
 
         return view('flute::widgets.users-today', [
             'users' => $todayUsers,
@@ -53,7 +50,6 @@ class UsersTodayWidget extends AbstractWidget
     {
         return [
             'display_type' => 'text',
-            'max_display' => 10
         ];
     }
 
@@ -84,7 +80,6 @@ class UsersTodayWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10)
         ];
     }
 }

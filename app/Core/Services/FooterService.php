@@ -92,7 +92,8 @@ class FooterService
         $result = [
             'id' => $FooterItem->id,
             'title' => $FooterItem->title,
-            'url' => $this->formatUrl($FooterItem->url),
+            'icon' => $FooterItem->icon,
+            'url' => $FooterItem->url ? $this->formatUrl($FooterItem->url) : null,
             'new_tab' => $FooterItem->new_tab,
             'position' => $FooterItem->position,
             'children' => [],

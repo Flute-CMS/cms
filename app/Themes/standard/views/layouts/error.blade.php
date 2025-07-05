@@ -128,7 +128,7 @@
 
     @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::layouts.header')
 
-    <main id="main" class="main-animation">
+    <main id="main" class="main-animation" hx-history-elt>
         @includeWhen(!request()->htmx()->isHtmxRequest(), 'flute::partials.loader')
 
         @stack('before-content')

@@ -5,7 +5,6 @@ function isMobile() {
 function handleTabsFix() {
     const stickyThreshold = 0;
     const stickyThresholdPills = 10;
-    console.log('fix')
 
     if (isMobile()) return;
 

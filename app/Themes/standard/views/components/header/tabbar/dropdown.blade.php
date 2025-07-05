@@ -18,7 +18,14 @@
                         @if ($child['icon'])
                             <x-icon path="{{ $child['icon'] }}" />
                         @endif
-                        <span itemprop="name">{{ __($child['title']) }}</span>
+                        @if (!empty($child['description']))
+                            <div class="tabbar__modal-item-content">
+                                <span itemprop="name">{{ __($child['title']) }}</span>
+                                <small class="tabbar__modal-item-description">{{ __($child['description']) }}</small>
+                            </div>
+                        @else
+                            <span itemprop="name">{{ __($child['title']) }}</span>
+                        @endif
                     </a>
                 @endforeach
             </div>

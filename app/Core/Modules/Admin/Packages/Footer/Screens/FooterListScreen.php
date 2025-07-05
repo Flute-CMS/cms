@@ -199,6 +199,14 @@ class FooterListScreen extends Screen
                 ->small(__('admin-footer.modal.footer_item.fields.title.help')),
 
             LayoutFactory::field(
+                Input::make('icon')
+                    ->type('icon')
+                    ->placeholder(__('admin-footer.modal.footer_item.fields.icon.placeholder'))
+            )
+                ->label(__('admin-footer.modal.footer_item.fields.icon.label'))
+                ->small(__('admin-footer.modal.footer_item.fields.icon.help')),
+
+            LayoutFactory::field(
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.url.placeholder'))
@@ -226,6 +234,7 @@ class FooterListScreen extends Screen
 
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
+            'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
 
@@ -241,6 +250,7 @@ class FooterListScreen extends Screen
 
         $footerItem = new FooterItem();
         $footerItem->title = $data['title'];
+        $footerItem->icon = $data['icon'] ?? null;
         $footerItem->url = $data['url'] ?? null;
         $footerItem->new_tab = isset($data['new_tab']) && $data['new_tab'] ? true : false;
         $footerItem->position = $position;
@@ -274,6 +284,15 @@ class FooterListScreen extends Screen
                 ->label(__('admin-footer.modal.footer_item.fields.title.label'))
                 ->required()
                 ->small(__('admin-footer.modal.footer_item.fields.title.help')),
+
+            LayoutFactory::field(
+                Input::make('icon')
+                    ->type('icon')
+                    ->placeholder(__('admin-footer.modal.footer_item.fields.icon.placeholder'))
+                    ->value($footerItem->icon)
+            )
+                ->label(__('admin-footer.modal.footer_item.fields.icon.label'))
+                ->small(__('admin-footer.modal.footer_item.fields.icon.help')),
 
             LayoutFactory::field(
                 Input::make('url')
@@ -312,6 +331,7 @@ class FooterListScreen extends Screen
 
         $validation = $this->validate([
             'title' => ['required', 'string', 'max-str-len:255'],
+            'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
 
@@ -320,6 +340,7 @@ class FooterListScreen extends Screen
         }
 
         $footerItem->title = $data['title'];
+        $footerItem->icon = $data['icon'] ?? null;
         $footerItem->url = $data['url'] ?? null;
         $footerItem->new_tab = isset($data['new_tab']) && $data['new_tab'] ? true : false;
 

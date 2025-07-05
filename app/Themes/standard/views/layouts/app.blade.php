@@ -213,7 +213,7 @@
         @endcan
     @endif
 
-    <main id="main" class="main-animation">
+    <main id="main" class="main-animation" hx-history-elt>
         @includeWhen(!$isPartialRequest, 'flute::partials.loader')
 
         @stack('before-content')
@@ -292,7 +292,7 @@
         <x-user-card />
     @endif
 
-    @include('flute::components.richtext-icons')
+    @includeWhen(!$isPartialRequest, 'flute::components.richtext-icons')
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
 

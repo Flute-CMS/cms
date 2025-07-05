@@ -18,6 +18,7 @@ class NavbarItemFormat
         $result = [
             'id' => $navbarItem->id,
             'title' => $navbarItem->title,
+            'description' => $navbarItem->description,
             'url' => $this->formatUrl($navbarItem->url),
             'icon' => $navbarItem->icon,
             'new_tab' => $navbarItem->new_tab,

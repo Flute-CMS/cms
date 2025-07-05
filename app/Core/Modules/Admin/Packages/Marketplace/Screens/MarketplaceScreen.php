@@ -254,6 +254,12 @@ class MarketplaceScreen extends Screen
      */
     public function installModule(string $slug)
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
         $this->isLoading = true;
 
         try {

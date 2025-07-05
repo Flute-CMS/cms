@@ -1,12 +1,8 @@
-@php
-    $version = isset($module->installedVersion) ? $module->installedVersion : $module->version;
-@endphp
-
 <div>
-    v{{ $module->installedVersion ?? '0.0.gx-0' }}
+    v{{ $module->installedVersion ?? '0.0.0' }}
     <small @class([
         $module->installedVersion < $module->version ? 'accent' : 'text-muted',
-    ])>({{ $version }})
+    ])>({{ $module->version ?? '0.0.0' }})
         @if ($module->installedVersion < $module->version)
             <x-popover content="Доступно обновление до {{ $module->version }}" />
         @endif

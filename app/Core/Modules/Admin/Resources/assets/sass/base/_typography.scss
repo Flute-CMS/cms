@@ -60,11 +60,6 @@ body {
     @include media(mobile) {
         padding-bottom: 90px;
     }
-
-    // Performance issue
-    // * {
-    //     transition: background-color var(--transition);
-    // }
 }
 
 .small {

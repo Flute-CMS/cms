@@ -397,6 +397,8 @@ class AuthenticationService
         $this->session->clear();
         $this->cookie->remove('remember_token');
 
+        user()->clearCurrentUser();
+
         $this->eventDispatcher->dispatch(new UserLoggedOutEvent());
     }
 

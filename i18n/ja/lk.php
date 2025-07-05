@@ -54,4 +54,8 @@
     "clear_promo"             => "プロモーションコードをクリア",
     "optional"                => "任意",
     "summary_empty"           => "支払いの詳細を表示する金額を入力してください",
+    "promo_minimum_amount"    => "プロモーションコードには最低 :amount :currency が必要です",
+    "promo_role_not_allowed"  => "このプロモーションコードを使用する権限がありません",
+    "promo_user_limit"        => "このプロモーションコードの使用制限に達しました",
+    "promo_invalid_type"      => "無効なプロモーションコードタイプ",
 ];

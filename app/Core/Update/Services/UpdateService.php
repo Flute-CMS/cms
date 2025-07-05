@@ -331,6 +331,12 @@ class UpdateService
      */
     public function downloadUpdate(string $type, ?string $identifier = null, ?string $version = null): ?string
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
         try {
             $updates = $this->getAvailableUpdates();
 

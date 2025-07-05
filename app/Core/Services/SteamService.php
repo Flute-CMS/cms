@@ -19,6 +19,11 @@ class SteamService
     protected static array $pendingSteamIds = [];
     protected static array $deferreds = [];
     protected static bool $isBatchScheduled = false;
+    /**
+     * IDs, accumulated during the script execution for the «deferred» request.
+     * These IDs are requested in one batch in the shutdown function.
+     */
+    protected static array $collectedSteamIds = [];
 
     public function __construct(string $apiKey, CacheManager $cache)
     {
@@ -29,7 +34,7 @@ class SteamService
             'base_uri' => 'https://api.steampowered.com/',
             'timeout' => 10.0,
         ]);
-        $this->cacheDuration = config('app.steam_cache_duration', 3600);
+        $this->cacheDuration = config('app.steam_cache_duration', 604800); // 7 days
 
         register_shutdown_function([$this, 'executeBatchRequest']);
     }
@@ -94,64 +99,43 @@ class SteamService
      */
     public function executeBatchRequest() : void
     {
-        if (empty(self::$pendingSteamIds)) {
-            self::$isBatchScheduled = false;
+        if (empty(self::$collectedSteamIds)) {
             return;
         }
 
-        $steamIds = self::$pendingSteamIds;
-        self::$pendingSteamIds = [];
-        self::$isBatchScheduled = false;
+        $chunks = array_chunk(self::$collectedSteamIds, 100);
+        self::$collectedSteamIds = [];
 
-        try {
-            $promise = $this->httpClient->requestAsync('GET', 'ISteamUser/GetPlayerSummaries/v2/', [
-                'query' => [
-                    'key' => $this->apiKey,
-                    'steamids' => implode(',', $steamIds),
-                ],
-            ]);
+        foreach ($chunks as $chunk) {
+            try {
+                $response = $this->httpClient->get('ISteamUser/GetPlayerSummaries/v0002/', [
+                    'query' => [
+                        'key' => $this->apiKey,
+                        'steamids' => implode(',', $chunk)
+                    ]
+                ]);
 
-            $promise->then(
-                function ($response) use ($steamIds) {
-                    $data = json_decode($response->getBody(), true);
-                    $players = $data['response']['players'] ?? [];
+                $data = json_decode($response->getBody(), true);
 
-                    $playerDataMap = [];
-                    foreach ($players as $player) {
-                        $playerDataMap[$player['steamid']] = $player;
-                        cache()->set("steam_user_info_{$player['steamid']}", $player, $this->cacheDuration);
+                if (isset($data['response']['players'])) {
+                    foreach ($data['response']['players'] as $player) {
+                        $steamId = $player['steamid'];
+                        $normalizedId = $this->normalizeSteamId($steamId);
+
+                        $userInfo = [
+                            'steamid' => $steamId,
+                            'name' => $player['personaname'] ?? '',
+                            'avatar' => $player['avatarfull'] ?? '',
+                            'profile' => $player['profileurl'] ?? ''
+                        ];
+
+                        cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
+                        cache()->set("steam_user_info_{$normalizedId}", $userInfo, $this->cacheDuration);
                     }
-
-                    foreach ($steamIds as $steam64) {
-                        if (isset(self::$deferreds[$steam64])) {
-                            $playerData = $playerDataMap[$steam64] ?? null;
-                            self::$deferreds[$steam64]->resolve($playerData);
-                            unset(self::$deferreds[$steam64]);
-                        }
-                    }
-                },
-                function ($e) use ($steamIds) {
-                    foreach ($steamIds as $steam64) {
-                        if (isset(self::$deferreds[$steam64])) {
-                            self::$deferreds[$steam64]->reject($e);
-                            unset(self::$deferreds[$steam64]);
-                        }
-                    }
-                    logs()->error('Steam API Batch Request Failed: '.$e->getMessage());
                 }
-            );
-
-            Utils::queue()->add(function () use ($promise) {
-                $promise->wait();
-            });
-        } catch (\Exception $e) {
-            foreach ($steamIds as $steam64) {
-                if (isset(self::$deferreds[$steam64])) {
-                    self::$deferreds[$steam64]->reject($e);
-                    unset(self::$deferreds[$steam64]);
-                }
+            } catch (\Exception $e) {
+                logs()->error('Steam API Batch Request Failed: '.$e->getMessage());
             }
-            logs()->error('Steam API Batch Request Exception: '.$e->getMessage());
         }
     }
 
@@ -186,38 +170,47 @@ class SteamService
             }
         }
 
-        if (! empty($uncachedIds)) {
-            try {
-                $response = $this->httpClient->get('ISteamUser/GetPlayerSummaries/v0002/', [
-                    'query' => [
-                        'key' => $this->apiKey,
-                        'steamids' => implode(',', array_keys($uncachedIds))
-                    ]
-                ]);
+        if (!empty($uncachedIds)) {
+            // Запрашиваем пачками по 100 ID
+            $chunks = array_chunk(array_keys($uncachedIds), 100);
+            foreach ($chunks as $chunk) {
+                try {
+                    $response = $this->httpClient->get('ISteamUser/GetPlayerSummaries/v0002/', [
+                        'query' => [
+                            'key' => $this->apiKey,
+                            'steamids' => implode(',', $chunk)
+                        ]
+                    ]);
 
-                $data = json_decode($response->getBody(), true);
+                    $data = json_decode($response->getBody(), true);
 
-                if (isset($data['response']['players'])) {
-                    foreach ($data['response']['players'] as $player) {
-                        $steamId = $player['steamid'];
-                        $normalizedId = $this->normalizeSteamId($steamId);
+                    if (isset($data['response']['players'])) {
+                        foreach ($data['response']['players'] as $player) {
+                            $steamId64 = $player['steamid'];
+                            $normalizedId = $this->normalizeSteamId($steamId64);
 
-                        $userInfo = [
-                            'steamid' => $steamId,
-                            'name' => $player['personaname'] ?? '',
-                            'avatar' => $player['avatarfull'] ?? '',
-                            'profile' => $player['profileurl'] ?? ''
-                        ];
+                            $userInfo = [
+                                'steamid' => $steamId64,
+                                'name'    => $player['personaname'] ?? '',
+                                'avatar'  => $player['avatarfull'] ?? '',
+                                'profile' => $player['profileurl'] ?? '',
+                            ];
 
-                        cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
+                            cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
 
-                        $originalId = $steamIdMap[$normalizedId] ?? $steamId;
-                        $result[$originalId] = $userInfo;
+                            $originalId = $steamIdMap[$normalizedId] ?? $steamId64;
+                            $result[$originalId] = $userInfo;
+                            unset($uncachedIds[$normalizedId]);
+                        }
                     }
+                } catch (\Exception $e) {
+                    logs()->error("Steam API Error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                logs()->error("Steam API Error: ".$e->getMessage());
             }
+        }
+
+        foreach ($uncachedIds as $normalizedId => $originalId) {
+            $result[$originalId] = [];
         }
 
         return $result;

@@ -145,8 +145,7 @@
                         <h3 class="lk-payment-section-title">{{ __('lk.promo_code_label') }}</h3>
 
                         <div class="lk-payment-section-content">
-                            <x-forms.field yoyo yoyo:on="keyup delay:300ms changed" yoyo:post="validatePromo"
-                                data-noprogress class="lk-field">
+                            <x-forms.field yoyo yoyo:on="input delay:800ms changed blur" yoyo:post="validatePromo" data-noprogress class="lk-field">
                                 <div class="lk-promo-input-wrapper">
                                     <x-fields.input type="text" name="promoCode" id="promoCode"
                                         value="{{ $promoCode }}" placeholder="{{ __('lk.enter_promo_code') }}"

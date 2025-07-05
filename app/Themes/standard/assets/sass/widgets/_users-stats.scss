@@ -44,4 +44,28 @@
             }
         }
     }
+
+    &-compact-mode {
+        @extend .d-flex, .flex-wrap;
+        gap: 4px;
+        
+        .user-avatar-compact {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+            overflow: hidden;
+            opacity: .8;
+            transition: all .2s ease-in-out;
+            
+            &:hover {
+                opacity: 1;
+            }
+            
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+    }
 }

@@ -22,6 +22,11 @@ return [
                     'placeholder' => 'Enter item title',
                     'help'        => 'Navigation item title',
                 ],
+                'description' => [
+                    'label'       => 'Description',
+                    'placeholder' => 'Enter item description (optional)',
+                    'help'        => 'Optional description for the navigation item',
+                ],
                 'url' => [
                     'label'       => 'URL',
                     'placeholder' => 'Enter URL (e.g., /home)',

@@ -5,18 +5,33 @@
         @if ($item['icon'])
             <x-icon path="{{ $item['icon'] }}" />
         @endif
-        {{ __($item['title']) }}
+        @if (!empty($item['description']))
+            <div class="navbar__items-item-content">
+                <span>{{ __($item['title']) }}</span>
+                <small class="navbar__items-item-description">{{ __($item['description']) }}</small>
+            </div>
+        @else
+            {{ __($item['title']) }}
+        @endif
         <x-icon path="ph.bold.caret-down-bold" />
     </p>
     @if (count($item['children']) > 0)
         <div class="navbar__dropdown" data-dropdown="__dropdown_{{ $item['id'] }}" hx-boost="true" hx-target="#main"
             hx-swap="outerHTML transition:true">
             @foreach ($item['children'] as $child)
-                <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" @endif itemprop="url">
+                <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" @endif
+                    itemprop="url" @if (!empty($child['description'])) class="navbar__dropdown-item-with-description" @endif>
                     @if ($child['icon'])
                         <x-icon path="{{ $child['icon'] }}" />
                     @endif
-                    <span itemprop="name">{{ __($child['title']) }}</span>
+                    @if (!empty($child['description']))
+                        <div class="navbar__dropdown-item-content">
+                            <span itemprop="name">{{ __($child['title']) }}</span>
+                            <small class="navbar__dropdown-item-description">{{ __($child['description']) }}</small>
+                        </div>
+                    @else
+                        <span itemprop="name">{{ __($child['title']) }}</span>
+                    @endif
                 </a>
             @endforeach
         </div>

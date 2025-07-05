@@ -100,7 +100,7 @@
 
     @include('admin::partials.flash')
 
-    <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main">
+    <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main" hx-history-elt>
         <div id="screen-container">
             @stack('content')
 
@@ -132,7 +132,7 @@
                     data-tooltip="{!! implode("\n", $times) !!}">{{ $executionTime }}</strong> seconds
 
                 @if ($executionTime > 1)
-                    <x-popover content="{{ __('admin.performance_info') }}" />
+                    <x-popover content="{!! __('admin.performance_info') !!}" />
                 @endif
             </small>
         </footer>

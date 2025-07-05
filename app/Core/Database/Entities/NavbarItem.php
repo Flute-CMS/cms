@@ -33,6 +33,9 @@ class NavbarItem extends ActiveRecord
     public string $title;
 
     #[Column(type: "string", nullable: true)]
+    public ?string $description = null;
+
+    #[Column(type: "string", nullable: true)]
     public ?string $url = null;
 
     #[Column(type: "boolean", default: false)]

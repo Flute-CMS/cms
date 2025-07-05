@@ -239,7 +239,7 @@ class TemplateAssets
             case 'css':
                 return $this->processCssAsset($expression, $filePath);
             case 'js':
-                return $this->processJsAsset($expression, $filePath);
+                return $this->processJsAsset($expression, $filePath, $urlOnly);
             case 'jpg':
             case 'jpeg':
             case 'png':
@@ -469,7 +469,7 @@ class TemplateAssets
     /**
      * Process JS asset with fallback support.
      */
-    private function processJsAsset(string $expression, string $jsPathBase) : string
+    private function processJsAsset(string $expression, string $jsPathBase, bool $urlOnly = false) : string
     {
         if (Validators::isUrl($expression)) {
             return $this->processRemoteAsset($expression, 'js');
@@ -507,7 +507,7 @@ class TemplateAssets
         $version = filemtime($jsFullPath);
         $url = url($jsPath) . "?v={$version}";
 
-        return "<script src=\"{$url}\" defer></script>";
+        return $urlOnly ? $url : "<script src=\"{$url}\" defer></script>";
     }
 
     /**

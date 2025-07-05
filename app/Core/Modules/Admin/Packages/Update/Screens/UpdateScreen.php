@@ -100,6 +100,12 @@ class UpdateScreen extends Screen
      */
     public function handleUpdate(): void
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
         try {
             $data = request()->all();
 
@@ -138,7 +144,7 @@ class UpdateScreen extends Screen
             if ($success) {
                 $this->updateService->clearCache();
                 
-                cache()->clear();
+                app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
                 
                 if (file_exists($packageFile)) {
                     @unlink($packageFile);
@@ -193,6 +199,12 @@ class UpdateScreen extends Screen
      */
     public function handleUpdateAll(): void
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
         try {
             $this->flashMessage(__('admin-update.update_all_preparing'));
 
@@ -276,7 +288,7 @@ class UpdateScreen extends Screen
             }
 
             $this->updateService->clearCache();
-            cache()->clear();
+            app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
             
             if (function_exists('opcache_reset')) {
                 opcache_reset();

@@ -262,6 +262,12 @@ class SocialService implements SocialServiceInterface
 
         $authData['adapter']->disconnect();
 
+        try {
+            $authData['adapter']->getStorage()->clear();
+        } catch (\Throwable $e) {
+            logs()->warning($e);
+        }
+
         $existingUser = $this->findUserBySocialProfile($authData['profile']);
 
         if ($existingUser) {
@@ -485,6 +491,12 @@ class SocialService implements SocialServiceInterface
         }
 
         $authData['adapter']->disconnect();
+
+        try {
+            $authData['adapter']->getStorage()->clear();
+        } catch (\Throwable $e) {
+            logs()->warning($e);
+        }
     }
 
     // ===== Utilities =====
@@ -543,6 +555,11 @@ class SocialService implements SocialServiceInterface
             if ($this->hybridauth) {
                 foreach ($this->hybridauth->getConnectedAdapters() as $adapter) {
                     $adapter->disconnect();
+                    try {
+                        $adapter->getStorage()->clear();
+                    } catch (\Throwable $e) {
+                        logs()->warning($e);
+                    }
                 }
             }
         } catch (\Hybridauth\Exception\InvalidArgumentException $e) {

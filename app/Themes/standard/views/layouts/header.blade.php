@@ -66,22 +66,26 @@
                                                 @t('def.login')
                                             </x-link>
                                         </li>
-                                        <li>
-                                            <x-button data-modal-open="register-modal" size="tiny">
-                                                @t('def.register')
-                                            </x-button>
-                                        </li>
+                                        @if (!config('app.maintenance_mode'))
+                                            <li>
+                                                <x-button data-modal-open="register-modal" size="tiny">
+                                                    @t('def.register')
+                                                </x-button>
+                                            </li>
+                                        @endif
                                     @else
                                         <li>
                                             <x-link class="navbar__actions-login link" href="{{ url('login') }}">
                                                 @t('def.login')
                                             </x-link>
                                         </li>
-                                        <li>
-                                            <x-button href="{{ url('register') }}" size="tiny">
-                                                @t('def.register')
-                                            </x-button>
-                                        </li>
+                                        @if (!config('app.maintenance_mode'))
+                                            <li>
+                                                <x-button href="{{ url('register') }}" size="tiny">
+                                                    @t('def.register')
+                                                </x-button>
+                                            </li>
+                                        @endif
                                     @endif
                                 @endif
 

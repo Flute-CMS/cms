@@ -6,6 +6,8 @@
                 {{ __('widgets.settings.users.display_text') }}</option>
             <option value="avatar" {{ ($settings['display_type'] ?? 'text') == 'avatar' ? 'selected' : '' }}>
                 {{ __('widgets.settings.users.display_avatar') }}</option>
+            <option value="compact" {{ ($settings['display_type'] ?? 'text') == 'compact' ? 'selected' : '' }}>
+                {{ __('widgets.settings.users.display_compact') }}</option>
         </x-fields.select>
     </x-forms.field>
     <x-forms.field>

@@ -8,7 +8,7 @@ use Flute\Core\Support\AbstractServiceProvider;
 
 class SteamServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             SteamService::class => \DI\create(SteamService::class)->constructor(
@@ -19,5 +19,8 @@ class SteamServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-    public function boot(\DI\Container $container) : void {}
+    public function boot(\DI\Container $container): void
+    {
+        $container->get(SteamService::class);
+    }
 }

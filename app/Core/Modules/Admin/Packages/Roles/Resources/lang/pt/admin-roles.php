@@ -2,9 +2,7 @@
 
 return [
     'title' => [
-        'roles'             => 'Cargos',
-        'roles_description' => 'User roles management. The highest role has the highest priority.',
-    ],
+        'roles'             => 'Cargos',    ],
     'breadcrumbs' => [
         'roles' => 'Cargos',
     ],

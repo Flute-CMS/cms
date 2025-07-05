@@ -29,7 +29,7 @@
     <input type="hidden" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}" />
 @else
     <div class="input-wrapper">
-        <div
+        <div id="input-{{ $inputId }}"
             {{ $attributes->class(['input__field-container-readonly' => $readOnly, 'has-error' => $hasError])->merge(['class' => 'input__field-container']) }}>
             @if ($prefix)
                 <span class="input__prefix">{{ $prefix }}</span>
@@ -72,7 +72,9 @@
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-icon']) }} />
 
-                    <button type="button" class="input__icon-picker-btn icon-hover" style="width: 30px; height: 30px; font-size: var(--p); padding: 0;" aria-label="{{ __('def.select_icon') }}">
+                    <button type="button" class="input__icon-picker-btn icon-hover"
+                        style="width: 30px; height: 30px; font-size: var(--p); padding: 0;"
+                        aria-label="{{ __('def.select_icon') }}">
                         <x-icon path="ph.regular.magnifying-glass" />
                     </button>
                 </div>

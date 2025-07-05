@@ -148,6 +148,36 @@ class FluteApp {
             }
         });
 
+        htmx.on('htmx:historyRestore', () => {
+            const navbarItems = document.querySelectorAll('.navbar__items-item');
+            navbarItems.forEach((item) => item.classList.remove('active'));
+
+            const currentPath = new URL(window.location.href).pathname || '/';
+
+            let bestMatch = null;
+            let bestMatchLength = -1;
+
+            navbarItems.forEach((item) => {
+                const href = item.getAttribute('href');
+                if (!href) return;
+
+                const itemPath = new URL(href, window.location.origin).pathname;
+
+                if (itemPath === '/' && currentPath !== '/') {
+                    return;
+                }
+
+                if (currentPath.startsWith(itemPath) && itemPath.length > bestMatchLength) {
+                    bestMatch = item;
+                    bestMatchLength = itemPath.length;
+                }
+            });
+
+            if (bestMatch) {
+                bestMatch.classList.add('active');
+            }
+        });
+
         // Add CSRF token to HTMX requests
         window.addEventListener('htmx:configRequest', (evt) => {
             const csrfToken = document
@@ -195,9 +225,9 @@ class FluteApp {
         });
 
         // Fix for HTMX history caching
-        htmx.on('htmx:pushedIntoHistory', () => {
-            localStorage.removeItem('htmx-history-cache');
-        });
+        // htmx.on('htmx:pushedIntoHistory', () => {
+        //     localStorage.removeItem('htmx-history-cache');
+        // });
 
         // Handle onLoad events
         htmx.onLoad((content) => {

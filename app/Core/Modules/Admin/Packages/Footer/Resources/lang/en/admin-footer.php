@@ -38,6 +38,11 @@ return [
                     'placeholder' => 'Enter item title',
                     'help'        => 'Footer item title',
                 ],
+                'icon' => [
+                    'label'       => 'Icon',
+                    'placeholder' => 'Enter icon (e.g., ph.regular.home)',
+                    'help'        => 'Icon identifier (optional)',
+                ],
                 'url' => [
                     'label'       => 'URL',
                     'placeholder' => 'Enter URL (e.g., /contact)',

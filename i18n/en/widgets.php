@@ -28,6 +28,7 @@ return [
             'display_type' => 'Display type',
             'display_text' => 'Text (names)',
             'display_avatar' => 'Avatars',
+            'display_compact' => 'Compact',
             'max_display' => 'Maximum number',
         ],
         'empty' => [

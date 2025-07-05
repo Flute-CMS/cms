@@ -75,6 +75,7 @@ class UserListScreen extends Screen
                             TD::make('createdAt', __('admin-users.table.registration_date'))
                                 ->width('150px')
                                 ->sort()
+                                ->defaultSort(true, 'desc')
                                 ->disableSearch()
                                 ->render(function (User $user) {
                                     return "<span title='".(new Carbon($user->createdAt))->format('d.m.Y H:i')."'>".(new Carbon($user->createdAt))->diffForHumans()."</span>";

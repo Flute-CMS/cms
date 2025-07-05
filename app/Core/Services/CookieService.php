@@ -46,14 +46,15 @@ class CookieService
      * 
      * @param string $name Cookie name.
      * @param string $value Cookie value.
-     * @param \DateTime|int|null $expire Cookie lifetime (in seconds).
+     * @param \DateTimeImmutable|int|null $expire Cookie lifetime (in seconds) or expiration date.
      * @param string $path Path on the server where the cookie is valid.
      * @param string|null $domain Domain where the cookie is valid.
      * @param bool $httpOnly Flag indicating that the cookie should be accessible only through HTTP requests.
      * @param string $sameSite SameSite attribute for the cookie
+     * @param bool|null $secure Whether the cookie should only be sent over HTTPS. If null, auto-detect based on request.
      * @return void
      */
-    public function set(string $name, string $value, $expire = null, string $path = '/', string $domain = null, bool $httpOnly = true, string $sameSite = 'Strict'): void
+    public function set(string $name, string $value, $expire = null, string $path = '/', string $domain = null, bool $httpOnly = true, string $sameSite = 'Strict', ?bool $secure = null): void
     {
         $cookie = new Cookie(
             name: $name,
@@ -61,7 +62,7 @@ class CookieService
             expire: $this->getDateTime($expire),
             path: $path,
             domain: $domain,
-            secure: $this->request->isSecure(),
+            secure: $secure ?? $this->request->isSecure(),
             httpOnly: $httpOnly,
             raw: false,
             sameSite: $sameSite
@@ -91,7 +92,8 @@ class CookieService
      */
     public function remove(string $name, string $path = '/', string $domain = null): void
     {
-        $this->set($name, '', (new \DateTime())->modify("-3600 seconds"), $path, $domain);
+        $this->set($name, '', (new \DateTimeImmutable())->modify("-3600 seconds"), $path, $domain);
+        unset($this->localCookies[$name]);
     }
 
     /**
@@ -128,6 +130,7 @@ class CookieService
             return (new \DateTimeImmutable())->modify("+{$expire} seconds");
         }
 
+        // Default to 30 days for null or any other type
         return (new \DateTimeImmutable())->modify("+30 days");
     }
 }

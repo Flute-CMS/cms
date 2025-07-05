@@ -42,7 +42,7 @@ class GenerateModuleCommand extends Command
             ->setHelp('This command allows you to generate a new module structure with customizable components.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $io->title('Flute CMS Module Generator');
@@ -108,7 +108,7 @@ class GenerateModuleCommand extends Command
         $io->section('Step 4: Select Additional Components');
 
         $components = [];
-        
+
         if ($moduleType === 'standard') {
             foreach ($this->componentTypes as $type => $dir) {
                 $componentQuestion = new ConfirmationQuestion(
@@ -306,7 +306,7 @@ class GenerateModuleCommand extends Command
                 $baseDir . '/' . $moduleName . 'Package.php',
                 $this->stubAdminPackage($moduleName, $adminMenuText, $adminMenuIcon)
             );
-            
+
             // Create routes file for admin package
             file_put_contents(
                 $baseDir . '/routes.php',
@@ -323,7 +323,7 @@ class GenerateModuleCommand extends Command
                     $adminMenuIcon
                 )
             );
-            
+
             // We don't need to create a routes file for standard modules
             // as we'll use annotations in the controllers
         }
@@ -408,7 +408,7 @@ class GenerateModuleCommand extends Command
 
         $io->newLine(2);
         $io->success("Module structure generated for '$moduleName'");
-        
+
         if ($moduleType === 'admin') {
             $io->text([
                 "Admin package location: <info>app/Core/Modules/Admin/Packages/$moduleName</info>",
@@ -478,7 +478,7 @@ class GenerateModuleCommand extends Command
             );
             return;
         }
-        
+
         // Special case for service - don't append Service to the class name
         if ($component === 'service') {
             $content = file_get_contents($this->getStubPath('service'));
@@ -560,7 +560,7 @@ class GenerateModuleCommand extends Command
     private function createAdminComponentFile($baseDir, $moduleName, $component)
     {
         $dir = $this->adminComponentTypes[$component];
-        
+
         // Special case for screens
         if ($component === 'screen') {
             $content = file_get_contents($this->getStubPath('admin-screen'));
@@ -575,7 +575,7 @@ class GenerateModuleCommand extends Command
             );
             return;
         }
-        
+
         // Special case for services - don't append Service to the class name
         if ($component === 'service') {
             $content = file_get_contents($this->getStubPath('service'));
@@ -584,21 +584,21 @@ class GenerateModuleCommand extends Command
                 [$moduleName],
                 $content
             );
-            
+
             // Update namespace for admin package
             $content = str_replace(
                 'namespace Flute\Modules\{{MODULE_NAME}}\Services;',
                 'namespace Flute\Admin\Packages\\' . $moduleName . '\Services;',
                 $content
             );
-            
+
             file_put_contents(
                 $baseDir . $dir . '/' . $moduleName . '.php',
                 $content
             );
             return;
         }
-        
+
         // Special case for listeners
         if ($component === 'listener') {
             $content = file_get_contents($this->getStubPath('listener'));
@@ -607,14 +607,14 @@ class GenerateModuleCommand extends Command
                 [$moduleName],
                 $content
             );
-            
+
             // Update namespace for admin package
             $content = str_replace(
                 'namespace Flute\Modules\{{MODULE_NAME}}\Listeners;',
                 'namespace Flute\Admin\Packages\\' . $moduleName . '\Listeners;',
                 $content
             );
-            
+
             file_put_contents(
                 $baseDir . $dir . '/' . $moduleName . 'Listener.php',
                 $content
@@ -627,13 +627,13 @@ class GenerateModuleCommand extends Command
     {
         $stubsDir = BASE_PATH . '/@stubs';
         $fallbackStubsDir = BASE_PATH . '/storage/app/stubs';
-        
+
         $stubPath = $stubsDir . '/' . $stubName . '.stub';
-        
+
         if (file_exists($stubPath)) {
             return $stubPath;
         }
-        
+
         return $fallbackStubsDir . '/' . $stubName . '.stub';
     }
 
@@ -767,7 +767,7 @@ class GenerateModuleCommand extends Command
     {
         $stubFile = file_get_contents($this->getStubPath('admin-package'));
         $nameLower = strtolower($name);
-        
+
         return str_replace(
             [
                 '{{MODULE_NAME}}',
@@ -787,7 +787,7 @@ class GenerateModuleCommand extends Command
     {
         $stubFile = file_get_contents($this->getStubPath('admin-routes'));
         $nameLower = strtolower($name);
-        
+
         return str_replace(
             [
                 '{{MODULE_NAME}}',
@@ -805,7 +805,7 @@ class GenerateModuleCommand extends Command
     {
         $stubFile = file_get_contents($this->getStubPath('admin-view'));
         $nameLower = strtolower($name);
-        
+
         return str_replace(
             [
                 '{{MODULE_NAME}}',

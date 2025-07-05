@@ -30,19 +30,15 @@ class UsersOnlineWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $maxDisplay = $settings['max_display'] ?? 10;
-        $onlineUsers = $this->userRepository->getOnlineUsers();
+        $onlineUsers = cache()->callback('online_users', function () {
+            return $this->userRepository->getOnlineUsers();
+        }, 1800);
 
-        // Exclude hidden users and sort by last_logged desc
-        $onlineUsers = array_filter($onlineUsers, static fn ($u) => !$u->hidden);
+        $onlineUsers = array_filter($onlineUsers, static fn($u) => !$u->hidden);
 
         usort($onlineUsers, static function ($a, $b) {
             return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
         });
-
-        if (count($onlineUsers) > $maxDisplay) {
-            $onlineUsers = array_slice($onlineUsers, 0, $maxDisplay);
-        }
 
         return view('flute::widgets.users-online', [
             'users' => $onlineUsers,
@@ -54,7 +50,6 @@ class UsersOnlineWidget extends AbstractWidget
     {
         return [
             'display_type' => 'text',
-            'max_display' => 10
         ];
     }
 
@@ -85,7 +80,6 @@ class UsersOnlineWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10)
         ];
     }
 }

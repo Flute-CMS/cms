@@ -54,4 +54,8 @@
     "clear_promo"             => "Rensa kampanjkod",
     "optional"                => "valfritt",
     "summary_empty"           => "Ange ett belopp för att se betalningsdetaljer",
+    "promo_minimum_amount"    => "Kampanjkod kräver minst :amount :currency",
+    "promo_role_not_allowed"  => "Du har inte behörighet att använda denna kampanjkod",
+    "promo_user_limit"        => "Du har nått användningsgränsen för denna kampanjkod",
+    "promo_invalid_type"      => "Ogiltig kampanjkodtyp",
 ];

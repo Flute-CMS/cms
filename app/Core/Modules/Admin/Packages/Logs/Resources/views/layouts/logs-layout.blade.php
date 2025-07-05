@@ -1,8 +1,9 @@
-<x-admin::card>
-    <x-slot:header>
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <h5>{{ __('admin-logs.labels.select_file') }}</h5>
-            <div class="w-50">
+<div class="logs-viewer">
+    <!-- Compact Filters -->
+    <div class="logs-filters">
+        <div class="filter-group">
+            <label class="filter-label">{{ __('admin-logs.labels.log_file') }}</label>
+            <div class="filter-select">
                 <x-admin::fields.select name="logger" :options="collect($loggers)
                     ->mapWithKeys(function ($info, $name) {
                         return [$name => $name . ' (' . $info['size'] . ')'];
@@ -11,165 +12,172 @@
                     placeholder="{{ __('admin-logs.labels.select_file') }}" />
             </div>
         </div>
-    </x-slot:header>
 
-    <div class="logs-container">
         @if (!empty($loggers[$selectedLogger]))
-            <div class="logs-toolbar">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div class="log-info">
-                        <div class="d-flex flex-wrap gap-3">
-                            <div class="log-info-item">
-                                <span class="log-info-label">{{ __('admin-logs.labels.log_file') }}:</span>
-                                <span class="log-info-value">{{ basename($loggers[$selectedLogger]['path']) }}</span>
-                            </div>
-                            <div class="log-info-item">
-                                <span class="log-info-label">{{ __('admin-logs.labels.size') }}:</span>
-                                <span class="log-info-value">{{ $loggers[$selectedLogger]['size'] }}</span>
-                            </div>
-                            <div class="log-info-item">
-                                <span class="log-info-label">{{ __('admin-logs.labels.modified') }}:</span>
-                                <span class="log-info-value">{{ $loggers[$selectedLogger]['modified'] }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="log-filter mb-2">
-                        <x-admin::fields.select name="level" :options="$levels" value="{{ $selectedLevel }}"
-                            yoyo:change="filterByLevel($event.target.value)" yoyo allowEmpty
-                            placeholder="{{ __('admin-logs.labels.filter_by_level') }}" />
-                    </div>
+            <div class="filter-group">
+                <label class="filter-label">{{ __('admin-logs.labels.level') }}</label>
+                <div class="filter-select">
+                    <x-admin::fields.select name="level" :options="$levels" value="{{ $selectedLevel }}"
+                        yoyo:change="filterByLevel($event.target.value)" yoyo allowEmpty
+                        placeholder="{{ __('admin-logs.labels.filter_by_level') }}" />
                 </div>
             </div>
-        @endif
 
-        @if (empty($logContent))
-            <x-admin::alert type="info" withClose="false">
-                {{ __('admin-logs.labels.no_logs') }}
-            </x-admin::alert>
-        @else
-            <div class="table-responsive">
-                <table class="logs-table">
-                    <thead>
-                        <tr>
-                            <th width="10%">{{ __('admin-logs.labels.level') }}</th>
-                            <th width="15%">{{ __('admin-logs.labels.date') }}</th>
-                            <th width="10%">{{ __('admin-logs.labels.channel') }}</th>
-                            <th width="55%">{{ __('admin-logs.labels.message') }}</th>
-                            <th width="10%">{{ __('admin-logs.labels.details') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($logContent as $index => $entry)
-                            <tr class="{{ $entry['level'] }}-level">
-                                <td>
-                                    <span class="log-badge {{ $entry['level'] }}">
-                                        {{ __('admin-logs.level_labels.' . $entry['level']) }}
-                                    </span>
-                                </td>
-                                <td>{{ date(default_date_format(), strtotime($entry['datetime'])) }}</td>
-                                <td>{{ $entry['channel'] }}</td>
-                                <td>
-                                    <div class="log-message">
-                                        @php
-                                            $message = $entry['message'];
-
-                                            $message = preg_replace(
-                                                '/(\?|&)accessKey=([^&\s]+)/i',
-                                                '$1accessKey=***',
-                                                $message,
-                                            );
-
-                                            $isLong = mb_strlen(strip_tags($message)) > 150;
-                                            $shortMessage = $isLong
-                                                ? mb_substr(strip_tags($message), 0, 150) . '...'
-                                                : $message;
-                                        @endphp
-
-                                        <div id="message-short-{{ $index }}"
-                                            class="{{ $isLong ? '' : 'hidden' }}">
-                                            {{ $shortMessage }}
-                                            @if ($isLong)
-                                                <button type="button" class="log-message-toggle"
-                                                    onclick="toggleMessage('{{ $index }}')">
-                                                    <x-icon path="ph.regular.arrows-out-simple" />
-                                                    <span class="toggle-text">{{ __('admin-logs.show_more') }}</span>
-                                                </button>
-                                            @endif
-                                        </div>
-
-                                        <div id="message-full-{{ $index }}"
-                                            class="{{ $isLong ? 'hidden' : '' }}">
-                                            {{ $message }}
-                                            @if ($isLong)
-                                                <button type="button" class="log-message-toggle"
-                                                    onclick="toggleMessage('{{ $index }}')">
-                                                    <x-icon path="ph.regular.arrows-in-simple" />
-                                                    <span class="toggle-text">{{ __('admin-logs.show_less') }}</span>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if (!empty($entry['context']))
-                                        <x-admin::button type="outline-primary" size="tiny" icon="ph.regular.code"
-                                            onclick="toggleContext('{{ $index }}')">
-                                            {{ __('admin-logs.show_context') }}
-                                        </x-admin::button>
-                                    @endif
-                                </td>
-                            </tr>
-                            @if (!empty($entry['context']))
-                                <tr id="context-{{ $index }}" class="context-row">
-                                    @php
-                                        $contextAdditional = json_decode($entry['context'], true);
-                                        $contextAdditional = array_merge($contextAdditional ?? [], [
-                                            'level' => $entry['level'],
-                                            'channel' => $entry['channel'],
-                                            'datetime' => $entry['datetime'],
-                                            'message' => $entry['message'],
-                                        ]);
-                                    @endphp
-                                    <td colspan="5">
-                                        <pre class="context-data">{{ json_encode($contextAdditional, JSON_PRETTY_PRINT) }}</pre>
-                                    </td>
-                                </tr>
-                            @endif
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="logs-meta">
+                <div class="meta-item">
+                    <x-icon path="ph.regular.file-text" size="12" />
+                    <span>{{ basename($loggers[$selectedLogger]['path']) }}</span>
+                </div>
+                <div class="meta-item">
+                    <x-icon path="ph.regular.database" size="12" />
+                    <span>{{ $loggers[$selectedLogger]['size'] }}</span>
+                </div>
+                @if (!empty($logContent))
+                    <div class="meta-item">
+                        <x-icon path="ph.regular.list-bullets" size="12" />
+                        <span>{{ count($logContent) }} записей</span>
+                    </div>
+                @endif
             </div>
         @endif
     </div>
 
-    @if (!empty($selectedLogger))
-        <x-slot:footer>
-            <div class="d-flex justify-content-end">
-                <x-admin::button type="error" size="small" icon="ph.regular.trash"
+    <!-- Smart Logs Content -->
+    <div class="logs-content">
+        @if (empty($logContent))
+            <div class="logs-empty">
+                <div class="empty-icon">
+                    <x-icon path="ph.regular.file-x" size="40" />
+                </div>
+                <h5>{{ __('admin-logs.labels.no_logs') }}</h5>
+                <p>{{ __('admin-logs.labels.no_logs_description') }}</p>
+            </div>
+        @else
+            <div class="logs-list">
+                @foreach ($logContent as $index => $entry)
+                    @php
+                        $fileInfo = $entry['file_info'] ?? [];
+                        $codeContext = $entry['code_context'] ?? [];
+                        $contextData = json_decode($entry['context'] ?? '{}', true) ?? [];
+                        $hasException = isset($contextData['exception']);
+                        $hasStackTrace = strpos($entry['full_message'], 'Stack trace:') !== false;
+                        $hasDetails = $hasException || $hasStackTrace || !empty($contextData) || !empty($codeContext);
+                        
+                        $errorType = '';
+                        if (preg_match('/^([A-Z][a-zA-Z]+(?:Error|Exception|Warning))/', $entry['message'], $matches)) {
+                            $errorType = $matches[1];
+                        }
+                        
+                        $cleanMessage = preg_replace('/Stack trace:.*$/s', '', $entry['message']);
+                        $cleanMessage = preg_replace('/in\s+.+\.php\s+on\s+line\s+\d+/', '', $cleanMessage);
+                        $cleanMessage = trim($cleanMessage);
+                    @endphp
+
+                    <div class="log-entry {{ $entry['level'] }}-level">
+                        <!-- Log Header with Key Info -->
+                        <div class="log-header">
+                            <div class="log-meta">
+                                <span class="level-badge level-{{ $entry['level'] }}">
+                                    {{ strtoupper($entry['level']) }}
+                                </span>
+                                <span class="log-time">{{ date('d.m H:i:s', strtotime($entry['datetime'])) }}</span>
+                                <span class="log-channel">{{ $entry['channel'] }}</span>
+                            </div>
+                            
+                            @if ($hasDetails)
+                                <div class="log-actions">
+                                    <button class="toggle-details" onclick="toggleDetails('{{ $index }}')">
+                                        <span class="show-text">Подробнее</span>
+                                        <span class="hide-text hidden">Скрыть</span>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Log Body with Smart Info -->
+                        <div class="log-body">
+                            <div class="log-message">
+                                <div class="message-preview">
+                                    @if ($errorType)
+                                        <span class="error-highlight">{{ $errorType }}</span>
+                                    @endif
+                                    {{ $cleanMessage }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expandable Details -->
+                        @if ($hasDetails)
+                            <div id="details-{{ $index }}" class="log-details hidden">
+                                <div class="details-content">
+                                    @if ($hasStackTrace)
+                                        <div class="stack-trace">{{ $entry['full_message'] }}</div>
+                                    @endif
+                                    
+                                    @if (!empty($contextData))
+                                        <div class="context-data">
+                                            <div class="context-title">Дополнительные данные</div>
+                                            <div class="context-json">{{ json_encode($contextData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</div>
+                                        </div>
+                                    @endif
+
+                                    @if (!empty($codeContext))
+                                        <div class="code-context">
+                                            <div class="code-header">
+                                                @if (!empty($fileInfo['relative_path']))
+                                                    {{ $fileInfo['relative_path'] }}:{{ $fileInfo['line_number'] }}
+                                                @else
+                                                    Контекст кода
+                                                @endif
+                                            </div>
+                                            <div class="code-content">
+                                                @foreach ($codeContext as $line)
+                                                    <span class="line {{ $line['is_error_line'] ? 'error-line' : '' }}">
+                                                        <span class="line-num">{{ $line['line_number'] }}</span>{{ htmlspecialchars($line['content']) }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    <!-- Footer Actions -->
+    @if (!empty($selectedLogger) && !empty($logContent))
+        <div class="logs-footer">
+            <div class="footer-info">
+                <span>{{ count($logContent) }} записей загружено</span>
+            </div>
+            <div class="footer-actions">
+                <x-admin::button type="outline-danger" size="small" icon="ph.regular.trash"
                     confirm="{{ __('admin-logs.clear_confirm') }}" yoyo:post="handleClearLog">
                     {{ __('admin-logs.clear_log') }}
                 </x-admin::button>
             </div>
-        </x-slot:footer>
+        </div>
     @endif
-</x-admin::card>
+</div>
 
 <script>
-    function toggleContext(id) {
-        const row = document.getElementById('context-' + id);
-        if (row) {
-            row.classList.toggle('show');
-        }
-    }
+    function toggleDetails(id) {
+        const detailsEl = document.getElementById('details-' + id);
+        if (!detailsEl) return;
 
-    function toggleMessage(id) {
-        const shortEl = document.getElementById('message-short-' + id);
-        const fullEl = document.getElementById('message-full-' + id);
+        const isHidden = detailsEl.classList.contains('hidden');
+        detailsEl.classList.toggle('hidden');
 
-        if (shortEl && fullEl) {
-            shortEl.classList.toggle('hidden');
-            fullEl.classList.toggle('hidden');
+        const button = document.querySelector(`[onclick=\"toggleDetails('${id}')\"]`);
+        if (button) {
+            const showText = button.querySelector('.show-text');
+            const hideText = button.querySelector('.hide-text');
+            if (showText) showText.classList.toggle('hidden', isHidden);
+            if (hideText) hideText.classList.toggle('hidden', !isHidden);
         }
     }
 </script>

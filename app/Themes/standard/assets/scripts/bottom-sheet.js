@@ -293,8 +293,13 @@ function calculateModalHeight($modal) {
             return;
         }
 
+        const contentHeight = Math.max(
+            $content.outerHeight(true),
+            $content[0].scrollHeight,
+        );
+
         const contentHeightPx =
-            $content.outerHeight(true) +
+            contentHeight +
             $header.outerHeight(true) +
             $dragHandle.outerHeight(true);
 
@@ -314,6 +319,13 @@ function calculateModalHeight($modal) {
 
         const startHeightVh = $modal.data('startHeightVh');
         $modal.find('.modal__container').css('height', `${startHeightVh}vh`);
+
+        if (!$modal.data('heightRecalculated')) {
+            setTimeout(() => calculateModalHeight($modal), 150);
+            $modal.data('heightRecalculated', true);
+        } else {
+            $modal.removeData('heightRecalculated');
+        }
     }, 50);
 }
 

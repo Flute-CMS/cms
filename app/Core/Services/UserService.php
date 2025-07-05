@@ -143,8 +143,7 @@ class UserService
                 }
             }
 
-            // Load user with roles and permissions to prevent N+1 queries
-            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions']);
+            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
 
             if (! $this->currentUser) {
                 $this->sessionExpired();
@@ -180,8 +179,8 @@ class UserService
                 return;
             }
 
-            // Load user with roles and permissions to prevent N+1 queries
-            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions']);
+            // Load user with roles, social networks and permissions to prevent N+1 queries
+            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
 
             if (! $this->currentUser) {
                 $this->sessionExpired();
@@ -684,5 +683,22 @@ class UserService
         
         $user->$property = $value;
         $this->updateUser($user);
+    }
+
+    /**
+     * Clears the cached current user and related caches.
+     *
+     * This should be called on logout to ensure that subsequent requests
+     * do not operate on a stale user instance.
+     *
+     * @return void
+     */
+    public function clearCurrentUser() : void
+    {
+        $this->currentUser = null;
+        $this->permissionsCache = null;
+        $this->rolesCache = null;
+        $this->highestPriority = null;
+        $this->triedToLogin = false;
     }
 }

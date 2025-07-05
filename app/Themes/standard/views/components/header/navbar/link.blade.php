@@ -6,5 +6,12 @@
     @if ($item['icon'])
         <x-icon path="{{ $item['icon'] }}" />
     @endif
-    <span itemprop="name">{{ __($item['title']) }}</span>
+    @if (!empty($item['description']))
+        <div class="navbar__items-item-content">
+            <span itemprop="name">{{ __($item['title']) }}</span>
+            <small class="navbar__items-item-description">{{ __($item['description']) }}</small>
+        </div>
+    @else
+        <span itemprop="name">{{ __($item['title']) }}</span>
+    @endif
 </a>

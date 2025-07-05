@@ -28,6 +28,7 @@ return [
             'display_type' => 'Тип отображения',
             'display_text' => 'Текст (имена)',
             'display_avatar' => 'Аватарки',
+            'display_compact' => 'Компактный',
             'max_display' => 'Максимальное количество',
         ],
         'empty' => [

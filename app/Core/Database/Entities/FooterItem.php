@@ -32,6 +32,9 @@ class FooterItem extends ActiveRecord
     public string $title;
 
     #[Column(type: "string", nullable: true)]
+    public ?string $icon;
+
+    #[Column(type: "string", nullable: true)]
     public ?string $url;
 
     #[Column(type: "boolean", default: false)]

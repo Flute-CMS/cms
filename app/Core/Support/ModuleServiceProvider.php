@@ -205,7 +205,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             
             if ($hasEntities) {
                 $db = app(DatabaseConnection::class);
-                logs('modules')->info("Adding entities directory for module {$this->getModuleName()}: {$entDir}");
+                // logs('modules')->info("Adding entities directory for module {$this->getModuleName()}: {$entDir}");
                 $db->addDir($entDir);
                 $this->loadedStatus[$entitiesCacheKey] = true;
             }
@@ -579,6 +579,10 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     public function loadWidget(string $name, string $class)
     {
         try {
+            if (!class_exists($class) && class_exists($name)) {
+                [$name, $class] = [$class, $name];
+            }
+
             app(WidgetManager::class)->registerWidget($name, $class);
         } catch (\Exception $e) {
             logs('modules')->error("Error registering widget {$name}: " . $e->getMessage());

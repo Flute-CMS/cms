@@ -126,6 +126,11 @@ class PaymentInvoiceScreen extends Screen
                     ->render(fn(PaymentInvoice $invoice) => $invoice->id)
                     ->width('80px'),
 
+                TD::make('user_id', __('admin-payment.table.user'))
+                    ->sort()
+                    ->render(fn(PaymentInvoice $invoice) => view('admin-payment::cells.user-name', ['user' => $invoice->user]))
+                    ->width('200px'),
+
                 TD::make('gateway', __('admin-payment.table.payment_system'))
                     ->sort()
                     ->width('200px'),

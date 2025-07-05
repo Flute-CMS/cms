@@ -1,4 +1,8 @@
 <div class="align-items-center navigation-item flex flex-row items-center gap-3">
+    @if ($footerItem->icon)
+        <x-icon path="{{ $footerItem->icon }}" />
+    @endif
+
     <div class="d-flex flex-column">
         <span>{{ $footerItem->title }}</span>
         @if ($footerItem->url)
