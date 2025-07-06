@@ -75,7 +75,7 @@ trait MacroableTrait
 
         $macro = static::$macros[$method];
 
-        if ($macro instanceof Closure) {
+        if ($macro instanceof \Closure) {
             $macro = $macro->bindTo(null, static::class);
         }
 

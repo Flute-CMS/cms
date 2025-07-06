@@ -46,7 +46,6 @@ return [
         'inactive'     => 'Inativo',
         'not_installed'=> 'Não Instalado',
     ],
-        'not_found'      => 'Theme not found.',
     'confirms' => [    ],
     'messages' => [        'refresh_success'=> 'Lista de temas atualizada com sucesso.',    ],
 ];

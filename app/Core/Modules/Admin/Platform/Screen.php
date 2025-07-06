@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use Flute\Admin\Platform\Contracts\ScreenInterface;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
+use Flute\Core\Contracts\FluteComponentInterface;
 
 /**
  * Abstract class Screen.
@@ -34,7 +35,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         'css',
     ];
 
-    public function boot(array $variables, array $attributes)
+    public function boot(array $variables, array $attributes): FluteComponentInterface
     {
         parent::boot($variables, $attributes);
 
@@ -43,6 +44,8 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         } else {
             $this->modalParams = null;
         }
+
+        return $this;
     }
 
     /**

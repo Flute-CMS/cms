@@ -47,7 +47,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '0.1.6';
+    public const VERSION = '0.1.6.1';
 
     /**
      * Set the base path of the application
@@ -240,6 +240,22 @@ final class App
     public function get($id)
     {
         return $this->container->get($id);
+    }
+
+    /**
+     * Determine if the container has a given entry.
+     *
+     * This is a lightweight proxy to the underlying PHP-DI container's
+     * has() method and allows calling code to use app()->has(Foo::class)
+     * safely without triggering the __call magic method.
+     *
+     * @param string $id Identifier of the entry to look for.
+     *
+     * @return bool True if the container can return an entry for the given identifier, otherwise false.
+     */
+    public function has(string $id): bool
+    {
+        return $this->container->has($id);
     }
 
     /**
