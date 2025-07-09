@@ -328,4 +328,4 @@ class IconController extends BaseController
             return ucfirst(str_replace('-', ' ', end($parts)));
         }
     }
-}
+} 

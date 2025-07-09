@@ -2237,21 +2237,32 @@ class PageEditor {
     }
 
     autoFitSingleWidget(widgetElement, force = false) {
-        if (!this.grid || this.heightMode !== 'auto') return;
+        if (!this.grid) return;
 
         if (!force && widgetElement.dataset.autoFitApplied === 'true') return;
 
         const content = widgetElement.querySelector('.grid-stack-item-content');
-        if (content) {
-            let cellPx = parseFloat(this.grid.cellHeight() || 60);
-            if (isNaN(cellPx) || cellPx <= 0) cellPx = 60;
-            const contentHeight = content.scrollHeight;
-            const gridHeight = Math.max(2, Math.ceil(contentHeight / cellPx));
+        if (!content) return;
 
-            this.grid.update(widgetElement, { h: gridHeight });
+        const widgetName = widgetElement.getAttribute('data-widget-name') || '';
 
-            widgetElement.dataset.autoFitApplied = 'true';
+        let cellPx = parseFloat(this.grid.cellHeight() || 60);
+        if (isNaN(cellPx) || cellPx <= 0) cellPx = 60;
+
+        let desiredHeightPx;
+
+        if (widgetName === 'Content') {
+            desiredHeightPx = 100;
+            content.style.overflowY = 'auto';
+        } else {
+            if (this.heightMode !== 'auto') return;
+            desiredHeightPx = content.scrollHeight;
         }
+
+        const gridHeight = Math.max(2, Math.ceil(desiredHeightPx / cellPx));
+        this.grid.update(widgetElement, { h: gridHeight });
+
+        widgetElement.dataset.autoFitApplied = 'true';
     }
 
     resizeWidgetToContentSafe(widgetEl) {

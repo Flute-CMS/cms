@@ -57,6 +57,10 @@ class GatewayFactory
             throw new PaymentException('Invalid gateway configuration');
         }
 
+        if(isset($config['testMode'])) {
+            $config['testMode'] = filter_var($config['testMode'], FILTER_VALIDATE_BOOLEAN) ?? false;
+        }
+
         return $config;
     }
 }

@@ -229,8 +229,8 @@
 
             <x-button size="large" class="lk-payment-submit" withLoading submit form="payment-form"
                 :disabled="($promoCode && !$promoIsValid) || (config('lk.oferta_view') && $agree === false)"
-                aria-label="{{ __('lk.top_up_button', [':amount' => $amountToReceive, ':currency_view' => config('lk.currency_view')]) }}">
-                <span>{{ __('lk.top_up_button', [':amount' => $amountToReceive, ':currency_view' => config('lk.currency_view')]) }}</span>
+                aria-label="{{ __('lk.top_up_button', [':amount' => $amount, ':currency_view' => $currency]) }}">
+                <span>{{ __('lk.top_up_button', [':amount' => $amount, ':currency_view' => $currency]) }}</span>
             </x-button>
         </div>
     </div>

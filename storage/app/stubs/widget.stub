@@ -2,33 +2,44 @@
 
 namespace Flute\Modules\{{MODULE_NAME}}\Widgets;
 
-use Flute\Core\Support\Widget;
+use Flute\Core\Modules\Page\Widgets\AbstractWidget;
 
-class {{MODULE_NAME}}Widget extends Widget
+class {{MODULE_NAME}}Widget extends AbstractWidget
 {
-    /**
-     * The widget name.
-     *
-     * @var string
-     */
-    protected $name = '{{MODULE_NAME_LOWER}}';
-
-    /**
-     * The widget description.
-     *
-     * @var string
-     */
-    protected $description = '{{MODULE_NAME}} widget';
-
-    /**
-     * Render the widget.
-     *
-     * @return string
-     */
-    public function render(): string
+    public function getName(): string
     {
-        return view('{{MODULE_NAME_LOWER}}::widgets.{{MODULE_NAME_LOWER}}', [
-            // Pass data to the view
+        return '{{MODULE_NAME_LOWER}}.widget';
+    }
+
+    public function getIcon(): string
+    {
+        return 'ph.regular.app-window';
+    }
+
+    public function render(array $settings): string
+    {
+        return view('{{MODULE_NAME_LOWER}}::widgets.{{MODULE_NAME_LOWER}}', [])->render();
+    }
+
+    public function getDefaultWidth(): int
+    {
+        return 12;
+    }
+
+    public function hasSettings(): bool
+    {
+        return false;
+    }
+
+    public function getSettings(): array
+    {
+        return [];
+    }
+
+    public function renderSettingsForm(array $settings): string
+    {
+        return view('{{MODULE_NAME_LOWER}}::widgets.settings', [
+            'settings' => $settings,
         ])->render();
     }
-} 
+}

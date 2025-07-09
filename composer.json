@@ -78,14 +78,12 @@
         "xpaw/steamid": "^3.0"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.5"
+        "phpstan/phpstan": "^2.1"
     },
     "autoload": {
         "psr-4": {
             "Flute\\": "app/",
-            "Flute\\Admin\\": "app/Core/Modules/Admin/",
-            "Tests\\": "tests/"
+            "Flute\\Admin\\": "app/Core/Modules/Admin/"
         }
     },
     "extra": {

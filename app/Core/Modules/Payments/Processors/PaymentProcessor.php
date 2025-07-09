@@ -188,6 +188,26 @@ class PaymentProcessor
         if (method_exists($gateway, 'acceptNotification')) {
             return $gateway->acceptNotification()->send();
         } elseif (method_exists($gateway, 'completePurchase')) {
+            if (!isset($input['transactionReference'])) {
+                if (isset($input['paymentId'])) {
+                    $input['transactionReference'] = $input['paymentId'];
+                } elseif (isset($input['PaymentID'])) {
+                    $input['transactionReference'] = $input['PaymentID'];
+                } elseif (isset($input['paymentID'])) {
+                    $input['transactionReference'] = $input['paymentID'];
+                } elseif (isset($input['PAYMENTID'])) {
+                    $input['transactionReference'] = $input['PAYMENTID'];
+                }
+            }
+            if (!isset($input['payerId'])) {
+                if (isset($input['PayerID'])) {
+                    $input['payerId'] = $input['PayerID'];
+                } elseif (isset($input['payerID'])) {
+                    $input['payerId'] = $input['payerID'];
+                } elseif (isset($input['PAYERID'])) {
+                    $input['payerId'] = $input['PAYERID'];
+                }
+            }
             return $gateway->completePurchase($input)->send();
         } elseif (method_exists($gateway, 'notification')) {
             return $gateway->notification(['request' => $input])->send();
@@ -360,6 +380,10 @@ class PaymentProcessor
 
         if (!isset($paymentData['currency'])) {
             $paymentData['currency'] = $invoice->currency->code ?? 'RUB';
+        }
+
+        if (method_exists($gateway, 'getTestMode')) {
+            $paymentData['testMode'] = $gateway->getTestMode();
         }
 
         $event = $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData), BeforeGatewayProcessingEvent::NAME);

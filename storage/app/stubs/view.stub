@@ -1,16 +1,5 @@
-@extends('admin.layouts.master')
-
-@section('title', __('{{MODULE_NAME_LOWER}}::{{MODULE_NAME_LOWER}}.module_name'))
+@extends('flute::layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ __('{{MODULE_NAME_LOWER}}::{{MODULE_NAME_LOWER}}.module_name') }}</h3>
-            </div>
-            <div class="card-body">
-                <p>Welcome to the {{MODULE_NAME}} module!</p>
-            </div>
-        </div>
-    </div>
+    MODULE WORKS!
 @endsection 

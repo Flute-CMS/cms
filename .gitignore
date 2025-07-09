@@ -16,3 +16,4 @@
 .env
 .phpunit.result.cache
 .dev
+colors.json

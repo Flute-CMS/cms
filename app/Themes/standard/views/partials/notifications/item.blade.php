@@ -8,7 +8,7 @@
         @if (str_starts_with($notification->icon, 'http://') ||
                 str_starts_with($notification->icon, 'https://') ||
                 str_starts_with($notification->icon, 'assets/'))
-            <img src="{{ url($notification->icon) }}" alt="{{ $notification->title }}" loading="lazy">
+            <img src="{{ url($notification->icon) }}" alt="{{ __($notification->title) }}" loading="lazy">
         @else
             <x-icon path="{{ $notification->icon }}" />
         @endif
@@ -16,7 +16,7 @@
     <div class="notification-content">
         <div class="notification-header">
             <div class="notification-name">
-                <h6>{{ $notification->title }}</h6>
+                <h6>{{ __($notification->title) }}</h6>
                 <small class="notification-date">{{ carbon($notification->createdAt)->diffForHumans() }}</small>
             </div>
 
@@ -27,7 +27,7 @@
 
         {{-- FOR NOW, SUPPORTS ONLY TEXT --}}
         @if ($notification->type == 'text')
-            <p class="notification-text">{!! $notification->content !!}</p>
+            <p class="notification-text">{!! markdown()->parse($notification->content) !!}</p>
         @endif
     </div>
 </li>

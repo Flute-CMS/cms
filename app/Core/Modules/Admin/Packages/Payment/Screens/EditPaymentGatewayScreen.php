@@ -407,6 +407,10 @@ class EditPaymentGatewayScreen extends Screen
                 $settings[$settingKey] = $value;
             }
         }
+
+        if (isset($settings['testMode'])) {
+            $settings['testMode'] = filter_var($settings['testMode'], FILTER_VALIDATE_BOOLEAN) ?? false;
+        }
         return $settings;
     }
 

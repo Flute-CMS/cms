@@ -7,7 +7,6 @@
                 </span>
                 {{ __('widgets.users_online') }}
             </h5>
-            <small class="text-muted">{{ count($users) }}</small>
         </div>
     </x-slot>
     <div class="users-stats-content" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
