@@ -19,8 +19,20 @@
 @endisset
 
 <div @class(['markdown-editor-wrapper', 'is-invalid' => $hasError])>
-    <textarea name="{{ $name }}" {{ $attributes }} id="{{ $id ?? ($name ?? 'editor-' . uniqid()) }}" data-editor="markdown"
-        data-height="{{ $height ?? 300 }}" {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}>{!! $value !!}</textarea>
+    <textarea name="{{ $name }}" {{ $attributes }} id="{{ $id ?? ($name ?? 'editor-' . uniqid()) }}"
+        data-editor="markdown" data-height="{{ $height ?? 300 }}"
+        {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}></textarea>
+
+    @if (isset($value) && $value !== '')
+        <script>
+            (function() {
+                var ta = document.getElementById('{{ $id ?? ($name ?? 'editor-' . uniqid()) }}');
+                if (ta) {
+                    ta.value = '{{ addslashes($value) }}';
+                }
+            })();
+        </script>
+    @endif
 
     @error($name)
         <span class="input__error">{{ $message }}</span>

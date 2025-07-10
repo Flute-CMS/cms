@@ -100,8 +100,6 @@ class FluteRichTextEditor {
         easyMDE.codemirror.on('change', () => {
             const value = easyMDE.value();
             textarea.value = value;
-            textarea.innerText = value;
-
             document.dispatchEvent(new CustomEvent('editor:change', {
                 detail: {
                     id: textarea.id,
