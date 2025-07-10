@@ -18,8 +18,12 @@ USER www-data
 # Builder stage: install PHP dependencies (vendor)
 # -----------------------------------------------------------------------------
 FROM base AS vendor
-WORKDIR /app
 
+USER root
+WORKDIR /app
+RUN mkdir -p /app && chown -R www-data:www-data /app
+
+USER www-data
 COPY --chown=www-data:www-data composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-progress --no-interaction
 
