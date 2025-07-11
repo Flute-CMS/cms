@@ -23,7 +23,6 @@ class FluteRichTextEditor {
         } else if (target instanceof Element) {
             textareas = [target];
         } else {
-            // Fallback or error handling if target is invalid type
             console.warn('Invalid target type for editor initialization:', target);
             textareas = document.querySelectorAll('[data-editor="markdown"]');
         }
@@ -101,7 +100,6 @@ class FluteRichTextEditor {
         easyMDE.codemirror.on('change', () => {
             const value = easyMDE.value();
             textarea.value = value;
-
             document.dispatchEvent(new CustomEvent('editor:change', {
                 detail: {
                     id: textarea.id,
@@ -246,7 +244,7 @@ class FluteRichTextEditor {
             {
                 name: 'translation',
                 action: function insertTranslation(editor) {
-                    const key = prompt('Translation key (e.g., app.welcome):');
+                    const key = prompt('Translation key (e.g., def.welcome):');
                     if (key) {
                         editor.codemirror.replaceSelection('{{ __("' + key + '") }}');
                     }

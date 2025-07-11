@@ -30,23 +30,16 @@ class UsersTodayWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $todayUsers = cache()->callback('today_users', function () {
-            $startOfDay = new \DateTimeImmutable('today');
-            return User::query()
-                ->where('last_logged', '>=', $startOfDay)
-                ->orderBy(['last_logged' => 'DESC'])
-                ->limit($settings['max_display'] ?? 10)
-                ->fetchAll();
-        }, 1800);
-
-        $todayUsers = array_filter($todayUsers, static fn ($u) => !$u->hidden);
-
-        usort($todayUsers, static function ($a, $b) {
-            return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
-        });
+        $startOfDay = new \DateTimeImmutable('today');
+        $users = User::query()
+            ->where('last_logged', '>=', $startOfDay)
+            ->where('hidden', false)
+            ->orderBy(['last_logged' => 'DESC'])
+            ->limit($settings['max_display'] ?? 10)
+            ->fetchAll();
 
         return view('flute::widgets.users-today', [
-            'users' => $todayUsers,
+            'users' => $users,
             'display_type' => $settings['display_type'] ?? 'text',
             'max_display' => $settings['max_display'] ?? 10,
         ])->render();

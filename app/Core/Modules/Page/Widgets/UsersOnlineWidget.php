@@ -30,13 +30,11 @@ class UsersOnlineWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $onlineUsers = cache()->callback('online_users', function () {
-            return User::query()
+        $onlineUsers = User::query()
                 ->where('last_logged', '>=', (new \DateTimeImmutable())->modify('-10 minutes'))
                 ->orderBy(['last_logged' => 'DESC'])
                 ->limit($settings['max_display'] ?? 10)
                 ->fetchAll();
-        }, 1800);
 
         $onlineUsers = array_filter($onlineUsers, static fn($u) => !$u->hidden);
 
