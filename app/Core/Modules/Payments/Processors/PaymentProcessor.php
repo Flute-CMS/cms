@@ -229,7 +229,9 @@ class PaymentProcessor
     {
         $transactionId = $response->getTransactionId();
 
-        $this->setInvoiceAsPaid($transactionId);
+        $paidAmount = (float) $response->getAmount();
+
+        $this->setInvoiceAsPaid($transactionId, $paidAmount);
     }
 
     /**
@@ -241,7 +243,7 @@ class PaymentProcessor
      *
      * @return void
      */
-    public function setInvoiceAsPaid(string $transactionId) : void
+    public function setInvoiceAsPaid(string $transactionId, ?float $verifyAmount = null) : void
     {
         $invoice = PaymentInvoice::query()->forUpdate()->where(['transactionId' => $transactionId])->fetchOne();
 
@@ -251,6 +253,10 @@ class PaymentProcessor
 
         if ($invoice->isPaid) {
             throw new PaymentException("Invoice is already paid");
+        }
+
+        if ($verifyAmount !== null && $verifyAmount != $invoice->amount) {
+            throw new PaymentException("Amount mismatch: expected {$invoice->amount}, received $verifyAmount");
         }
 
         $user = user()->get($invoice->user->id);
@@ -270,7 +276,7 @@ class PaymentProcessor
         $invoice->paidAt = new \DateTimeImmutable();
         transaction($invoice)->run();
 
-        $totalAmount = $invoice->amount + $promoBonus;
+        $totalAmount = $invoice->originalAmount + $promoBonus;
 
         if ($promo) {
             $this->recordPromoUsage($promo, $user, $invoice);
@@ -366,13 +372,13 @@ class PaymentProcessor
         foreach ($additional as $key => $val) {
             $additional[$key] = str_replace(
                 ["{{amount}}", "{{transactionId}}", "{{currency}}"],
-                [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
+                [$invoice->amount, $invoice->transactionId, $invoice->currency->code ?? ''],
                 $val
             );
         }
 
         $paymentData = array_merge([
-            'amount' => $invoice->originalAmount,
+            'amount' => $invoice->amount,
             'transactionId' => (string) $invoice->transactionId,
             'cancelUrl' => url('/lk/fail')->get(),
             'returnUrl' => url('/lk/success')->get(),
