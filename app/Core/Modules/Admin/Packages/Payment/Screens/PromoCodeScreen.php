@@ -472,7 +472,7 @@ class PromoCodeScreen extends Screen
             'max_uses_per_user' => ['nullable', 'min:1'],
             'minimum_amount' => ['nullable', 'numeric', 'min:0'],
             'allowed_roles' => ['nullable', 'array'],
-            'expires_at' => ['nullable', 'datetime'],
+            'expires_at' => ['nullable', 'datetime:Y-m-d\TH:i'],
         ], $data);
 
         if (!$validation) {
@@ -621,7 +621,7 @@ class PromoCodeScreen extends Screen
             'max_uses_per_user' => ['nullable', 'min:1'],
             'minimum_amount' => ['nullable', 'min:0'],
             'allowed_roles' => ['nullable', 'array'],
-            'expires_at' => ['nullable', 'datetime'],
+            'expires_at' => ['nullable', 'datetime:Y-m-d\TH:i'],
         ], $data);
 
         if (!$validation) {

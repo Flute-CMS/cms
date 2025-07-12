@@ -157,7 +157,7 @@ class PaymentComponent extends FluteComponent
                     break;
                 case 'percentage':
                     $discount = ($this->amountToPay * $this->promoDetails['value']) / 100;
-                    $this->amountToPay = round($this->amountToPay - $discount, 2);
+                    $this->amountToPay = round(max(0, $this->amountToPay - $discount), 2);
                     break;
             }
         } catch (PaymentPromoException $e) {

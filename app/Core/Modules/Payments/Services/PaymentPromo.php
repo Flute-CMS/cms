@@ -45,6 +45,12 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_minimum_amount', [':amount' => $promoCode->minimum_amount, ':currency' => config('lk.currency_view')]));
         }
 
+        if ($promoCode->type === 'percentage') {
+            if ($promoCode->value <= 0 || $promoCode->value > 100) {
+                throw new PaymentPromoException(__('lk.promo_invalid_percentage'));
+            }
+        }
+
         $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
         
         if (!empty($promoCode->roles)) {

@@ -229,7 +229,7 @@ class PaymentProcessor
     {
         $transactionId = $response->getTransactionId();
 
-        $paidAmount = (float) $response->getAmount();
+        $paidAmount = method_exists($response, 'getAmount') ? (float) $response->getAmount() : null;
 
         $this->setInvoiceAsPaid($transactionId, $paidAmount);
     }
@@ -255,20 +255,20 @@ class PaymentProcessor
             throw new PaymentException("Invoice is already paid");
         }
 
-        if ($verifyAmount !== null && $verifyAmount != $invoice->amount) {
-            throw new PaymentException("Amount mismatch: expected {$invoice->amount}, received $verifyAmount");
+        if ($verifyAmount !== null && abs($verifyAmount - $invoice->originalAmount) > 0.01) {
+            throw new PaymentException("Amount mismatch: expected {$invoice->originalAmount}, received $verifyAmount");
         }
 
         $user = user()->get($invoice->user->id);
 
         $promo = $invoice->promoCode;
-        $amount = $invoice->originalAmount;
+        $amount = $invoice->amount;
 
         $promoBonus = 0;
 
         if ($promo) {
-            $promoData = payments()->promo()->validate($promo->code, $user->id, $amount);
-            $promoBonus = $this->calculatePromoBonus($promoData, $amount);
+            $promoData = payments()->promo()->validate($promo->code, $user->id, $invoice->originalAmount);
+            $promoBonus = $this->calculatePromoBonus($promoData, $invoice->originalAmount);
         }
 
         $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
@@ -276,7 +276,7 @@ class PaymentProcessor
         $invoice->paidAt = new \DateTimeImmutable();
         transaction($invoice)->run();
 
-        $totalAmount = $invoice->originalAmount + $promoBonus;
+        $totalAmount = $amount + $promoBonus;
 
         if ($promo) {
             $this->recordPromoUsage($promo, $user, $invoice);
@@ -326,7 +326,7 @@ class PaymentProcessor
     {
         switch ($promoData['type']) {
             case 'percentage':
-                return $amount * ($promoData['value'] / 100);
+                return 0;
 
             case 'amount':
                 return $promoData['value'];
@@ -372,13 +372,13 @@ class PaymentProcessor
         foreach ($additional as $key => $val) {
             $additional[$key] = str_replace(
                 ["{{amount}}", "{{transactionId}}", "{{currency}}"],
-                [$invoice->amount, $invoice->transactionId, $invoice->currency->code ?? ''],
+                [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
                 $val
             );
         }
 
         $paymentData = array_merge([
-            'amount' => $invoice->amount,
+            'amount' => $invoice->originalAmount,
             'transactionId' => (string) $invoice->transactionId,
             'cancelUrl' => url('/lk/fail')->get(),
             'returnUrl' => url('/lk/success')->get(),
