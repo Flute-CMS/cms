@@ -54,6 +54,10 @@ function initializeA11yDialog() {
                 overlayEl.addEventListener('animationend', handleAnimationEnd);
             }
 
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                handleAnimationEnd({ animationName: 'mmfadeOut' });
+            }
+
             onModalHide(modalElement);
         });
     });

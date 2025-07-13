@@ -164,20 +164,24 @@ document.addEventListener('DOMContentLoaded', () => {
         miniProfileEl.setAttribute('aria-hidden', 'true');
         hideOverlay();
         
-        miniProfileEl.addEventListener(
-            'animationend',
-            () => {
-                if (miniProfileEl.classList.contains('hide')) {
-                    miniProfileInner.innerHTML = '';
-                    miniProfileEl.classList.remove('hide');
-                    miniProfileEl.style.top = '0';
-                    miniProfileEl.style.left = '0';
-                    resetPlacementClasses(miniProfileEl);
-                }
-                isAnimating = false;
-            },
-            { once: true },
-        );
+        const finishHide = () => {
+            if (miniProfileEl.classList.contains('hide')) {
+                miniProfileInner.innerHTML = '';
+                miniProfileEl.classList.remove('hide');
+                miniProfileEl.style.top = '0';
+                miniProfileEl.style.left = '0';
+                resetPlacementClasses(miniProfileEl);
+            }
+            isAnimating = false;
+        };
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            finishHide();
+        } else {
+            miniProfileEl.addEventListener('animationend', finishHide, {
+                once: true,
+            });
+        }
         
         if (cleanupAutoUpdate) {
             cleanupAutoUpdate();

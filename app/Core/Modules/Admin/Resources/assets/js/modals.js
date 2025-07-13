@@ -60,6 +60,10 @@ function initializeA11yDialog(parentElement = document) {
                 overlayEl.addEventListener('animationend', handleAnimationEnd);
             }
 
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                handleAnimationEnd({ animationName: expectedAnimations[0] });
+            }
+
             onModalHide(modalElement);
         });
 

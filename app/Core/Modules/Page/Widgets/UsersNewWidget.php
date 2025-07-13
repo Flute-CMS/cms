@@ -31,9 +31,7 @@ class UsersNewWidget extends AbstractWidget
     public function render(array $settings) : string|null
     {
         $maxDisplay = $settings['max_display'] ?? 200;
-        $newUsers = cache()->callback('latest_users', function () use ($maxDisplay) {
-            return $this->userRepository->getLatestUsers($maxDisplay);
-        }, 1800);
+        $newUsers = $this->userRepository->getLatestUsers($maxDisplay);
 
         $newUsers = array_filter($newUsers, static fn ($u) => !$u->hidden);
 

@@ -229,7 +229,7 @@ class PaymentProcessor
     {
         $transactionId = $response->getTransactionId();
 
-        $paidAmount = method_exists($response, 'getAmount') ? (float) $response->getAmount() : null;
+        $paidAmount = method_exists($response, 'getAmount') ? $response->getAmount() : null;
 
         $this->setInvoiceAsPaid($transactionId, $paidAmount);
     }
@@ -255,7 +255,10 @@ class PaymentProcessor
             throw new PaymentException("Invoice is already paid");
         }
 
-        if ($verifyAmount !== null && abs($verifyAmount - $invoice->originalAmount) > 0.01) {
+        $tolerancePercent = (float) config('lk.amount_tolerance_percent', 5);
+        $toleranceAbs = max(0.02, $invoice->originalAmount * ($tolerancePercent / 100));
+
+        if ($verifyAmount !== null && abs($verifyAmount - $invoice->originalAmount) > $toleranceAbs && $invoice->originalAmount > 0) {
             throw new PaymentException("Amount mismatch: expected {$invoice->originalAmount}, received $verifyAmount");
         }
 
