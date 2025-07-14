@@ -445,11 +445,19 @@ function copyToClipboard(text) {
 }
 
 function u(url) {
+    const baseSiteUrl = $('[name="site_url"]').attr('content') || '/';
+
+    if (url === undefined || url === null || url === '' || url === false) {
+        return baseSiteUrl;
+    }
+
     if (/^(?:\w+:)?\/\/([^\s.]+\.\S{2}|localhost[\:?\d]*)\S*$/.test(url)) {
         return url;
-    } else {
-        return `${$('[name="site_url"]').attr('content')}/${url}`;
     }
+
+    url = url.toString().replace(/^\//, '');
+
+    return `${baseSiteUrl}/${url}`;
 }
 
 function make(tag, classNames = null, attributes = {}) {
