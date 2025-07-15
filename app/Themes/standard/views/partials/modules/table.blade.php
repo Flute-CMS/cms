@@ -1,10 +1,13 @@
 <div>
-    <header class="table__header">
-        <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms" yoyo
-            yoyo:get="searchChanged">
-            <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}" :value="$search ?? ''" />
-        </x-forms.field>
-    </header>
+    @if ($showSearch ?? true)
+        <header class="table__header">
+            <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms" yoyo
+                yoyo:get="searchChanged">
+                <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}"
+                    :value="$search ?? ''" />
+            </x-forms.field>
+        </header>
+    @endif
 
     <div class="table-responsive">
         <table class="table">
@@ -76,74 +79,77 @@
         </table>
     </div>
 
-    @php
-        $totalPages = ceil($total / $perPage);
-        $currentPage = $currentPage ?? 1;
-    @endphp
+    @if ($showPagination ?? true)
+        @php
+            $totalPages = ceil($total / $perPage);
+            $currentPage = $currentPage ?? 1;
+        @endphp
 
-    <footer class="table__footer d-flex flex-between">
-        <div class="table__footer-per-page d-flex flex-center gap-2">
-            <label for="perPage">
-                <p class="text-muted">{{ __('def.records_per_page') }}:</p>
-            </label>
-            <x-fields.select name="perPage" id="perPage" yoyo>
-                @foreach ($paginationOptions as $option)
-                    <option value="{{ $option }}" {{ (int) $perPage === (int) $option ? 'selected' : '' }}>
-                        {{ $option }}
-                    </option>
-                @endforeach
-            </x-fields.select>
-        </div>
-        <ul class="table__pagination">
-            <li class="table__pagination-item {{ $currentPage <= 1 ? 'disabled' : '' }}">
-                <button class="link-icon" yoyo:on="click" yoyo:get="setPage({{ max(1, $currentPage - 1) }})"
-                    {{ $currentPage <= 1 ? 'disabled' : '' }}>
-                    &lt;
-                </button>
-            </li>
+        <footer class="table__footer d-flex flex-between">
+            <div class="table__footer-per-page d-flex flex-center gap-2">
+                <label for="perPage">
+                    <p class="text-muted">{{ __('def.records_per_page') }}:</p>
+                </label>
+                <x-fields.select name="perPage" id="perPage" yoyo>
+                    @foreach ($paginationOptions as $option)
+                        <option value="{{ $option }}" {{ (int) $perPage === (int) $option ? 'selected' : '' }}>
+                            {{ $option }}
+                        </option>
+                    @endforeach
+                </x-fields.select>
+            </div>
+            <ul class="table__pagination">
+                <li class="table__pagination-item {{ $currentPage <= 1 ? 'disabled' : '' }}">
+                    <button class="link-icon" yoyo:on="click" yoyo:get="setPage({{ max(1, $currentPage - 1) }})"
+                        {{ $currentPage <= 1 ? 'disabled' : '' }}>
+                        &lt;
+                    </button>
+                </li>
 
-            @if ($totalPages > 1)
-                @if ($currentPage > 3)
-                    <li class="table__pagination-item">
-                        <button yoyo:on="click" yoyo:get="setPage(1)">
-                            1
-                        </button>
-                    </li>
-                    @if ($currentPage > 4)
-                        <li class="table__pagination-item disabled">
-                            <span class="text-ellipsis">...</span>
+                @if ($totalPages > 1)
+                    @if ($currentPage > 3)
+                        <li class="table__pagination-item">
+                            <button yoyo:on="click" yoyo:get="setPage(1)">
+                                1
+                            </button>
+                        </li>
+                        @if ($currentPage > 4)
+                            <li class="table__pagination-item disabled">
+                                <span class="text-ellipsis">...</span>
+                            </li>
+                        @endif
+                    @endif
+
+                    @for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++)
+                        <li class="table__pagination-item {{ $i == $currentPage ? 'active' : '' }}">
+                            <button yoyo:on="click" yoyo:get="setPage({{ $i }})">
+                                {{ $i }}
+                            </button>
+                        </li>
+                    @endfor
+
+                    @if ($currentPage < $totalPages - 2)
+                        @if ($currentPage < $totalPages - 3)
+                            <li class="table__pagination-item disabled">
+                                <span class="text-ellipsis">...</span>
+                            </li>
+                        @endif
+                        <li class="table__pagination-item">
+                            <button yoyo:on="click" yoyo:get="setPage({{ $totalPages }})">
+                                {{ $totalPages }}
+                            </button>
                         </li>
                     @endif
                 @endif
 
-                @for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++)
-                    <li class="table__pagination-item {{ $i == $currentPage ? 'active' : '' }}">
-                        <button yoyo:on="click" yoyo:get="setPage({{ $i }})">
-                            {{ $i }}
-                        </button>
-                    </li>
-                @endfor
-
-                @if ($currentPage < $totalPages - 2)
-                    @if ($currentPage < $totalPages - 3)
-                        <li class="table__pagination-item disabled">
-                            <span class="text-ellipsis">...</span>
-                        </li>
-                    @endif
-                    <li class="table__pagination-item">
-                        <button yoyo:on="click" yoyo:get="setPage({{ $totalPages }})">
-                            {{ $totalPages }}
-                        </button>
-                    </li>
-                @endif
-            @endif
-
-            <li class="table__pagination-item {{ $currentPage >= $totalPages ? 'disabled' : '' }}">
-                <button class="link-icon" yoyo:on="click" yoyo:get="setPage({{ min($currentPage + 1, $totalPages) }})"
-                    {{ $currentPage >= $totalPages ? 'disabled' : '' }}>
-                    &gt;
-                </button>
-            </li>
-        </ul>
-</div>
+                <li class="table__pagination-item {{ $currentPage >= $totalPages ? 'disabled' : '' }}">
+                    <button class="link-icon" yoyo:on="click"
+                        yoyo:get="setPage({{ min($currentPage + 1, $totalPages) }})"
+                        {{ $currentPage >= $totalPages ? 'disabled' : '' }}>
+                        &gt;
+                    </button>
+                </li>
+            </ul>
+        </footer>
+    @endif
 </div>

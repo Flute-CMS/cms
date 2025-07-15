@@ -247,6 +247,17 @@ if (typeof htmx !== 'undefined') {
     htmx.on('htmx:responseError', function (event) {
         console.error('HTMX response error:', event.detail);
     });
+
+    htmx.on('htmx:beforeRequest', function (event) {
+        const target = event.detail.target;
+        if (target && target.classList.contains('tab-content')) {
+            target.innerHTML = '<div class="row gx-3 gy-3 tab-skeleton-content">' +
+                '<div class="col-md-8"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
+                '<div class="col-md-4"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
+                '<div class="col-md-12"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
+                '</div>';
+        }
+    });
 }
 
 htmx.on('htmx:afterSwap', function (event) {
@@ -296,6 +307,9 @@ htmx.on('htmx:afterSwap', function (event) {
             updateUnderline(tabsContainer);
 
             initializeNestedTabs(contentEl);
+            if (typeof window.refreshCharts === 'function') {
+                window.refreshCharts(contentEl);
+            }
 
             contentEl.classList.remove('lazy-content');
         }
@@ -357,12 +371,12 @@ document.addEventListener('click', function (e) {
             targetTab.classList.add('active');
             targetTab.style.display = '';
 
-            // Initialize all nested tabs recursively
             initializeNestedTabs(targetTab);
+            if (typeof window.refreshCharts === 'function') {
+                window.refreshCharts(targetTab);
+            }
 
-            // If this is a lazy-loaded tab that hasn't been loaded yet
             if (targetTab.classList.contains('lazy-content') && link.hasAttribute('hx-get')) {
-                // Let HTMX handle the loading, then initialize nested tabs
                 if (typeof htmx !== 'undefined') {
                     htmx.on('htmx:afterSwap', function handler(evt) {
                         if (evt.detail.target === targetTab) {

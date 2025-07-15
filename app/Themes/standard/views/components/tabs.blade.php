@@ -12,7 +12,7 @@
     <div class="tabs-nav-wrapper">
         <ul class="{{ $name }}-headings tabs-nav" role="tablist">
             {{ $headings }}
-            <div class="underline"></div>
+            <div class="underline" hx-preserve></div>
         </ul>
     </div>
     {{ $slot }}

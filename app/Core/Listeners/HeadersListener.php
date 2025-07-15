@@ -22,6 +22,11 @@ class HeadersListener
         $response->headers->set('Is-Logged-In', user()->isLoggedIn() ? 'true' : 'false');
         $response->headers->set('Auth-Token', md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')));
 
+
+        if (request()->getMethod() === 'HEAD') {
+            $response->headers->set('Cache-Control', 'no-cache');
+        }
+
         if (is_performance()) {
             $response->setCache([
                 'public' => true,

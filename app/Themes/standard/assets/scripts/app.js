@@ -83,11 +83,23 @@ class FluteApp {
         if (newAuthToken && this.authToken !== newAuthToken) {
             this.authToken = newAuthToken;
 
+            const verify = () => fetch(window.location.href,
+                { method: 'HEAD', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.headers.get('Is-Logged-In'))
+                .then(state => {
+                    if (state === 'false') {
+                        window.location.reload();
+                    } else {
+                        window.location.reload();
+                    }
+                }).catch(() => window.location.reload());
+
             if (isLoggedIn === 'false') {
-                window.location.href = u();
+                setTimeout(verify, 1000);
             } else {
                 window.location.reload();
             }
+            return;
         }
     }
 
@@ -954,24 +966,24 @@ class ThemeManager {
         this.moonIcon = this.themeToggleButton.find('.moon-icon');
 
         const changeThemeEnabled = document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
-        
+
         if (!changeThemeEnabled) {
             this.themeToggleButton.hide();
         }
 
         const defaultTheme = document.querySelector('meta[name="default-theme"]')?.getAttribute('content') || 'dark';
-        const currentTheme = changeThemeEnabled ? 
-            (getCookie('theme') || this.detectSystemTheme() || defaultTheme) : 
+        const currentTheme = changeThemeEnabled ?
+            (getCookie('theme') || this.detectSystemTheme() || defaultTheme) :
             defaultTheme;
         this.applyTheme(currentTheme);
 
         this.themeToggleButton.on('click', () => {
             const changeThemeEnabled = document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
-            
+
             if (!changeThemeEnabled) {
                 return;
             }
-            
+
             const currentTheme = $('html').attr('data-theme') === 'light' ? 'dark' : 'light';
             this.applyTheme(currentTheme);
             setCookie('theme', currentTheme, 365);

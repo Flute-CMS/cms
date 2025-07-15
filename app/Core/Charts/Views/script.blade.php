@@ -3,7 +3,12 @@
 @endpush
 
 <script>
-    window.chartOptions = window.chartOptions || {};
+    if (!window.fluteCharts) {
+        window.fluteCharts = {};
+        window.chartOptions = {};
+        window.chartListenersAdded = false;
+    }
+
     window.chartOptions["{!! $chart->id() !!}"] = {
         theme: {
             mode: '{!! $chart->theme() !!}'
@@ -65,28 +70,65 @@
         },
     };
 
-    document.addEventListener('DOMContentLoaded', function() {
-        let el_chart = document.getElementById("{!! $chart->id() !!}");
-        waitForCDN(() => renderChart(el_chart));
-    });
+    if (!window.chartListenersAdded) {
+        const processCharts = (root = document) => {
+            Object.keys(window.chartOptions).forEach(chartId => {
+                const el = root.querySelector(`#${CSS.escape(chartId)}`);
+                if (el && !el.querySelector('.apexcharts-canvas')) {
+                    renderChart(el);
+                }
+            });
+        };
 
-    document.addEventListener('htmx:afterSwap', function(evt) {
-        let el_chart = document.getElementById("{!! $chart->id() !!}");
-        if (el_chart && !el_chart.querySelector('.apexcharts-canvas')) {
-            waitForCDN(() => renderChart(el_chart));
-        }
-    });
+        document.addEventListener('DOMContentLoaded', () => processCharts());
 
-    async function renderChart(el_chart) {
+        document.addEventListener('htmx:afterSwap', (evt) => {
+            const target = evt.detail?.target || evt.target;
+            setTimeout(() => processCharts(target), 20);
+        });
+
+        window.chartListenersAdded = true;
+    }
+
+    function renderChart(el_chart) {
         if (!el_chart) return;
 
-        let options = window.chartOptions[el_chart.id];
+        let chartId = el_chart.id;
+        let options = window.chartOptions[chartId];
         if (!options) return;
 
-        let chart = new ApexCharts(el_chart, options);
-        console.log(options, el_chart.id);
-        await chart.render();
-        el_chart.parentElement.classList.remove('skeleton');
+        if (window.fluteCharts[chartId]) {
+            window.fluteCharts[chartId].destroy();
+        }
+
+        const start = () => {
+            const chart = new ApexCharts(el_chart, options);
+            chart.render().then(() => {
+                el_chart.parentElement.classList.remove('skeleton');
+                window.fluteCharts[chartId] = chart;
+            }).catch(error => console.error('Chart render error:', error));
+        };
+
+        if (typeof ApexCharts === 'undefined') {
+            waitForCDN(start);
+        } else {
+            start();
+        }
+    }
+
+    if (!window.renderChart) {
+        window.renderChart = renderChart;
+    }
+
+    if (!window.refreshCharts) {
+        window.refreshCharts = function(root = document) {
+            Object.keys(window.chartOptions || {}).forEach(function(chartId) {
+                const el = root.querySelector(`#${CSS.escape(chartId)}`);
+                if (el && !el.querySelector('.apexcharts-canvas')) {
+                    renderChart(el);
+                }
+            });
+        };
     }
 
     function waitForCDN(callback) {
