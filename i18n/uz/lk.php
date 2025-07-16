@@ -54,4 +54,8 @@
     "clear_promo"             => "Promo kodni tozalash",
     "optional"                => "ixtiyoriy",
     "summary_empty"           => "Toʻlov tafsilotlarini koʻrish uchun miqdorni kiriting",
+    "promo_minimum_amount"    => "Promo kod :amount :currency minimal miqdorini talab qiladi",
+    "promo_role_not_allowed"  => "Sizda ushbu promo kodni ishlatish huquqi yo'q",
+    "promo_user_limit"        => "Siz ushbu promo kod uchun foydalanish chegarasiga yetdingiz",
+    "promo_invalid_type"      => "Noto'g'ri promo kod turi",
 ];
