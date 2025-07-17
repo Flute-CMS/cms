@@ -53,10 +53,4 @@ return [
         'description' => 'Main page content from templates',
         'no_content' => 'No content available',
     ],
-    
-    // BattlePass widgets
-    'UserStatsWidget' => 'BattlePass Statistics',
-    'TopPlayersWidget' => 'BattlePass Top Players',
-    'LevelProgressWidget' => 'BattlePass Level Progress',
-    'MissionsWidget' => 'BattlePass Missions',
 ];

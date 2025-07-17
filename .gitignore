@@ -17,3 +17,4 @@
 .phpunit.result.cache
 .dev
 colors.json
+.kiro

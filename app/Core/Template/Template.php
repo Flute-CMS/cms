@@ -49,12 +49,13 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     protected ThemeManager $themeManager;
     protected array $sectionPushes = [];
     protected static self $instance;
-    
-    // New properties for optimization and fallback
+
     protected array $componentCache = [];
     protected array $pathCache = [];
     protected array $fallbackPaths = [];
     protected string $standardTheme = 'standard';
+    protected array $loadedStyles = [];
+    protected array $loadedScripts = [];
 
     /**
      * Create a new Template instance.
@@ -91,7 +92,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @return void
      * @throws RuntimeException
      */
-    public function setTheme(string $themeName) : void
+    public function setTheme(string $themeName): void
     {
         try {
             $this->themeManager->setTheme($themeName);
@@ -99,10 +100,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->themeData = $this->themeManager->getThemeData($this->currentTheme) ?? [];
 
             $this->clearThemeCache();
-            
+
             $this->loadComponents();
         } catch (Exception $e) {
-            logs('templates')->error("Failed to set theme '{$themeName}': ".$e->getMessage());
+            logs('templates')->error("Failed to set theme '{$themeName}': " . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
     }
@@ -112,7 +113,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function clearThemeCache() : void
+    protected function clearThemeCache(): void
     {
         $this->componentCache = [];
         $this->pathCache = [];
@@ -126,10 +127,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $type File type (views, assets, etc.)
      * @return string|null Found file path or null
      */
-    protected function findFileWithFallback(string $relativePath, string $type = 'views') : ?string
+    protected function findFileWithFallback(string $relativePath, string $type = 'views'): ?string
     {
         $cacheKey = "{$type}:{$relativePath}";
-        
+
         if (isset($this->pathCache[$cacheKey])) {
             return $this->pathCache[$cacheKey];
         }
@@ -154,7 +155,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return array
      */
-    protected function getThemeFallbackOrder() : array
+    protected function getThemeFallbackOrder(): array
     {
         return ThemeFallbackResolver::getThemeHierarchy($this->currentTheme, $this->standardTheme);
     }
@@ -164,7 +165,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return Yoyo
      */
-    public function getYoyo() : Yoyo
+    public function getYoyo(): Yoyo
     {
         return $this->yoyo;
     }
@@ -174,13 +175,13 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    public function setYoyoRoute() : void
+    public function setYoyoRoute(): void
     {
         try {
             $path = $this->isAdminPath() ? self::LIVE_COMPONENT_ADMIN_PATH : self::LIVE_COMPONENT_PATH;
             $this->router->any($path, [YoyoController::class, 'handle'])->middleware(['web', 'csrf'])->name('yoyo.update');
         } catch (Exception $e) {
-            logs()->error("Exception while registering Yoyo route: ".$e->getMessage());
+            logs()->error("Exception while registering Yoyo route: " . $e->getMessage());
             if (is_debug()) {
                 throw $e;
             }
@@ -194,7 +195,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array|string $hints
      * @return self
      */
-    public function addNamespace($namespace, $hints) : self
+    public function addNamespace($namespace, $hints): self
     {
         $this->blade->addNamespace($namespace, $hints);
 
@@ -206,7 +207,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return Blade
      */
-    public function getBlade() : Blade
+    public function getBlade(): Blade
     {
         return $this->blade;
     }
@@ -217,7 +218,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $assetKey The key or path to the asset.
      * @return string The full asset URL.
      */
-    public function getAsset(string $assetKey) : string
+    public function getAsset(string $assetKey): string
     {
         $assetPath = $this->assetAliases[$assetKey] ?? trim($assetKey, '/');
         return url($assetPath)->get();
@@ -231,7 +232,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array  $mergeData
      * @return View
      */
-    public function render(string $template, array $context = [], $mergeData = []) : View
+    public function render(string $template, array $context = [], $mergeData = []): View
     {
         if (! empty($this->themeData['layout_arguments'])) {
             $this->blade->share($this->themeData['layout_arguments']);
@@ -248,7 +249,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @return View The rendered error template.
      * @throws Exception
      */
-    public function renderError(int $errorCode, array $variables = []) : View
+    public function renderError(int $errorCode, array $variables = []): View
     {
         $hint = (! is_installed()) ? 'installer' : ($this->isAdminPath() ? 'admin' : 'flute');
         return $this->render("{$hint}::pages.error", array_merge(['code' => $errorCode], $variables));
@@ -261,7 +262,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param callable $function The function to add.
      * @return void
      */
-    public function addDirective(string $name, callable $function) : void
+    public function addDirective(string $name, callable $function): void
     {
         $this->blade->directive($name, $function);
     }
@@ -272,7 +273,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $filename The name of the template file.
      * @return string The full path to the template.
      */
-    public function getTemplatePath(string $filename) : string
+    public function getTemplatePath(string $filename): string
     {
         return sprintf('%s/%s', $this->viewsPath, $filename);
     }
@@ -287,7 +288,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @throws Exception
      */
-    public function runString(string $html, array $params = []) : string
+    public function runString(string $html, array $params = []): string
     {
         return Yoyo::getViewProvider()->getProviderInstance()->compiler()->renderString($html, $params);
     }
@@ -298,9 +299,14 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $css The URL of the CSS file.
      * @return void
      */
-    public function addStyle(string $css) : void
+    public function addStyle(string $css): void
     {
+        if ($this->loadedStyles[$css] ?? false) {
+            return;
+        }
+
         $this->prependToSection('head', sprintf("<link rel='stylesheet' href='%s' type='text/css'>", $css));
+        $this->loadedStyles[$css] = true;
     }
 
     /**
@@ -310,7 +316,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $content The content to prepend.
      * @return void
      */
-    public function prependToSection(string $section, string $content) : void
+    public function prependToSection(string $section, string $content): void
     {
         $this->sectionPushes[$section][] = $content;
     }
@@ -322,7 +328,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param callable $callback A callback that returns the content when called.
      * @return void
      */
-    public function prependToSectionDeferred(string $section, callable $callback) : void
+    public function prependToSectionDeferred(string $section, callable $callback): void
     {
         try {
             $content = $callback();
@@ -340,13 +346,13 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array $data The data to pass to the template.
      * @return void
      */
-    public function prependTemplateToSection(string $section, string $template, array $data = []) : void
+    public function prependTemplateToSection(string $section, string $template, array $data = []): void
     {
         if (!$this->shouldRenderSection($section)) {
             return;
         }
-        
-        $this->prependToSectionDeferred($section, function() use ($template, $data) {
+
+        $this->prependToSectionDeferred($section, function () use ($template, $data) {
             try {
                 return $this->render($template, $data)->render();
             } catch (\Exception $e) {
@@ -364,9 +370,9 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array $data The data to pass to the component.
      * @return void
      */
-    public function prependYoyoToSection(string $section, string $component, array $data = []) : void
+    public function prependYoyoToSection(string $section, string $component, array $data = []): void
     {
-        $this->prependToSectionDeferred($section, function() use ($component, $data) {
+        $this->prependToSectionDeferred($section, function () use ($component, $data) {
             try {
                 return \Yoyo\yoyo_render($component, $data);
             } catch (\Exception $e) {
@@ -382,18 +388,18 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $section The section name to check.
      * @return bool Whether the section should be rendered.
      */
-    public function shouldRenderSection(string $section) : bool
+    public function shouldRenderSection(string $section): bool
     {
         $path = request()->getPathInfo();
-        
+
         if (strpos($section, 'profile_') === 0 && !str_contains($path, '/profile')) {
             return false;
         }
-        
+
         if (strpos($section, 'navbar') === 0 && is_admin_path()) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -402,7 +408,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    public function flushSectionPushes() : void
+    public function flushSectionPushes(): void
     {
         foreach ($this->sectionPushes as $section => $content) {
             $this->blade->startPush($section);
@@ -421,7 +427,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $scriptContent The script content.
      * @return void
      */
-    public function addInlineScript(string $scriptContent) : void
+    public function addInlineScript(string $scriptContent): void
     {
         $this->prependToSection('footer', sprintf("<script>%s</script>", $scriptContent));
     }
@@ -432,9 +438,14 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $js The URL of the JavaScript file.
      * @return void
      */
-    public function addScript(string $js) : void
+    public function addScript(string $js): void
     {
+        if ($this->loadedScripts[$js] ?? false) {
+            return;
+        }
+
         $this->prependToSection('footer', sprintf("<script src='%s' defer></script>", $js));
+        $this->loadedScripts[$js] = true;
     }
 
     /**
@@ -442,7 +453,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function initTheme() : void
+    protected function initTheme(): void
     {
         try {
             $this->currentTheme = $this->themeManager->getCurrentTheme();
@@ -451,10 +462,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             if (empty($this->themeData)) {
                 $this->fallbackToDefaultTheme();
             }
-            
+
             app()->setTheme($this->currentTheme);
         } catch (Exception $e) {
-            logs('templates')->error("Failed to initialize theme: ".$e->getMessage());
+            logs('templates')->error("Failed to initialize theme: " . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
     }
@@ -464,7 +475,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function fallbackToDefaultTheme() : void
+    protected function fallbackToDefaultTheme(): void
     {
         $defaultTheme = ThemeManager::DEFAULT_THEME;
         try {
@@ -473,7 +484,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->themeData = $this->themeManager->getThemeData($this->currentTheme) ?? [];
             logs('templates')->warning("Fallback to default theme '{$defaultTheme}' due to invalid current theme.");
         } catch (Exception $e) {
-            throw new RuntimeException("Default theme '{$defaultTheme}' is not available. ".$e->getMessage());
+            throw new RuntimeException("Default theme '{$defaultTheme}' is not available. " . $e->getMessage());
         }
     }
 
@@ -482,7 +493,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return TemplateAssets
      */
-    public function getTemplateAssets() : TemplateAssets
+    public function getTemplateAssets(): TemplateAssets
     {
         return $this->templateAssets;
     }
@@ -494,7 +505,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param mixed  $component The component class or closure.
      * @return void
      */
-    public function registerComponent(string $name, $component = null) : void
+    public function registerComponent(string $name, $component = null): void
     {
         $this->yoyo->registerComponent($name, $component);
     }
@@ -506,7 +517,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param mixed  $value The value of the global variable.
      * @return void
      */
-    public function addGlobal(string $name, $value) : void
+    public function addGlobal(string $name, $value): void
     {
         $this->globals[$name] = $value;
         $this->blade->share($name, $value);
@@ -519,7 +530,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $error The error message.
      * @return void
      */
-    public function addError(string $input, string $error) : void
+    public function addError(string $input, string $error): void
     {
         if (! isset($this->globals['errors'])) {
             $this->globals['errors'] = new ViewErrorBag();
@@ -551,7 +562,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array  $mergeData  Additional data to merge.
      * @return View
      */
-    protected function runTemplate(string $path, array $variables, array $mergeData = []) : View
+    protected function runTemplate(string $path, array $variables, array $mergeData = []): View
     {
         $path = $this->searchReplacementForInterface($path);
 
@@ -569,7 +580,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array  $variables The variables to pass to the template.
      * @return object An object containing the view and variables.
      */
-    protected function beforeRenderEvent(string $template, array $variables = []) : object
+    protected function beforeRenderEvent(string $template, array $variables = []): object
     {
         $event = events()->dispatch(new BeforeRenderEvent($template, $variables), BeforeRenderEvent::NAME);
 
@@ -585,7 +596,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param View $view The view object
      * @return View
      */
-    protected function afterRenderEvent(View $view) : View
+    protected function afterRenderEvent(View $view): View
     {
         $event = new AfterRenderEvent($view);
         return events()->dispatch($event, AfterRenderEvent::NAME)->getView();
@@ -596,7 +607,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function setupBlade() : void
+    protected function setupBlade(): void
     {
         $this->fluteBladeApp = FluteBladeApplication::getInstance();
 
@@ -660,7 +671,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         Yoyo::getViewProvider()->getProviderInstance()->composer('*', function ($view) {
             $sections = [];
-            
+
             foreach ($this->sectionPushes as $section => $contents) {
                 $sections[$section] = implode('', $contents);
             }
@@ -690,7 +701,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function addTranslateDirective() : void
+    protected function addTranslateDirective(): void
     {
         $this->blade->directive('t', function ($expression) {
             return "<?php echo __($expression); ?>";
@@ -702,14 +713,14 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function loadComponents() : void
+    protected function loadComponents(): void
     {
         if ($this->isAdminPath() || !is_installed()) {
             return;
         }
 
         $cacheKey = "components:{$this->currentTheme}";
-        
+
         if (isset($this->componentCache[$cacheKey])) {
             $this->registerCachedComponents($this->componentCache[$cacheKey]);
             return;
@@ -720,10 +731,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         foreach ($themes as $theme) {
             $componentsDir = $this->getTemplatePath("Themes/{$theme}/views/components");
-            
+
             if (is_dir($componentsDir)) {
                 $themeComponents = $this->discoverComponents($componentsDir, $theme);
-                
+
                 foreach ($themeComponents as $alias => $componentData) {
                     if (!isset($components[$alias])) {
                         $components[$alias] = $componentData;
@@ -745,16 +756,16 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $theme
      * @return array
      */
-    protected function discoverComponents(string $componentsDir, string $theme) : array
+    protected function discoverComponents(string $componentsDir, string $theme): array
     {
         $components = [];
         $componentFiles = $this->getBladeFiles($componentsDir);
 
         foreach ($componentFiles as $componentFile) {
-            $relativePath = str_replace([$componentsDir.DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
+            $relativePath = str_replace([$componentsDir . DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
             $alias = str_replace(DIRECTORY_SEPARATOR, '.', $relativePath);
-            $componentView = "Themes.{$theme}.views.components.".$alias;
-            
+            $componentView = "Themes.{$theme}.views.components." . $alias;
+
             $components[$alias] = [
                 'view' => $componentView,
                 'theme' => $theme,
@@ -771,7 +782,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param array $components
      * @return void
      */
-    protected function registerCachedComponents(array $components) : void
+    protected function registerCachedComponents(array $components): void
     {
         foreach ($components as $alias => $componentData) {
             $this->blade->compiler()->component($componentData['view'], $alias);
@@ -783,7 +794,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return void
      */
-    protected function setupThemeNamespaces() : void
+    protected function setupThemeNamespaces(): void
     {
         $themes = $this->getThemeFallbackOrder();
         $viewPaths = [];
@@ -813,7 +824,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $dir The directory path.
      * @return array The list of Blade file paths.
      */
-    public function getBladeFiles(string $dir) : array
+    public function getBladeFiles(string $dir): array
     {
         $files = [];
 
@@ -836,7 +847,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $path The path to the template.
      * @return string The Blade view name.
      */
-    protected function resolveTemplatePath(string $path) : string
+    protected function resolveTemplatePath(string $path): string
     {
         return str_replace(['.blade.php', '/'], ['', '.'], $path);
     }
@@ -847,7 +858,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string $interfacePath
      * @return string
      */
-    protected function searchReplacementForInterface(string $interfacePath) : string
+    protected function searchReplacementForInterface(string $interfacePath): string
     {
         $replacements = $this->themeData['replacements'] ?? [];
         if (isset($replacements[$interfacePath])) {
@@ -871,7 +882,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         return $interfacePath;
     }
 
-    protected function isAdminPath() : bool
+    protected function isAdminPath(): bool
     {
         return is_admin_path() && user()->can('admin');
     }
@@ -881,7 +892,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      *
      * @return array
      */
-    public function getRenderStats() : array
+    public function getRenderStats(): array
     {
         return [
             'section_pushes' => count($this->sectionPushes),
@@ -893,6 +904,4 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             'fallback_themes' => $this->getThemeFallbackOrder(),
         ];
     }
-
-
 }

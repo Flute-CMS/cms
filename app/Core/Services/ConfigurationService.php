@@ -45,8 +45,16 @@ class ConfigurationService
     {
         $writtenFiles = [];
 
-        foreach ($this->configuration->all() as $configName => $configData) {
+        $existingConfigs = $this->getConfigFiles();
+
+        foreach ($existingConfigs as $configName => $configData) {
             if (in_array($configName, ['view', 'cache', 'logging'], true)) {
+                continue;
+            }
+
+            $configData = $this->configuration->get($configName);
+
+            if ($configData === null) {
                 continue;
             }
 
