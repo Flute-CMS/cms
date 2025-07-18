@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "890bd1d8f508b50c21c936a39c244fd5",
+    "content-hash": "80b1193e6e453ec9de5b4920aa45210a",
     "packages": [
         {
             "name": "brick/math",
@@ -408,16 +408,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "2.8.9",
+            "version": "2.8.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "b4e6bff2db7ce756ddb77ecee958a0f41f42bd9d"
+                "reference": "53834f587d7ab2527eb237459d7b94d1fb9d4c5a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/b4e6bff2db7ce756ddb77ecee958a0f41f42bd9d",
-                "reference": "b4e6bff2db7ce756ddb77ecee958a0f41f42bd9d",
+                "url": "https://api.github.com/repos/composer/composer/zipball/53834f587d7ab2527eb237459d7b94d1fb9d4c5a",
+                "reference": "53834f587d7ab2527eb237459d7b94d1fb9d4c5a",
                 "shasum": ""
             },
             "require": {
@@ -502,7 +502,7 @@
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/composer/issues",
                 "security": "https://github.com/composer/composer/security/policy",
-                "source": "https://github.com/composer/composer/tree/2.8.9"
+                "source": "https://github.com/composer/composer/tree/2.8.10"
             },
             "funding": [
                 {
@@ -518,7 +518,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-13T12:01:37+00:00"
+            "time": "2025-07-10T17:08:33+00:00"
         },
         {
             "name": "composer/metadata-minifier",
@@ -1083,16 +1083,16 @@
         },
         {
             "name": "cycle/database",
-            "version": "2.13.0",
+            "version": "2.14.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cycle/database.git",
-                "reference": "0f462319a0e22d05ccf6dc4721514ce609930bf7"
+                "reference": "876fbc2bc0d068f047388c0bd9b354e4d891af07"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cycle/database/zipball/0f462319a0e22d05ccf6dc4721514ce609930bf7",
-                "reference": "0f462319a0e22d05ccf6dc4721514ce609930bf7",
+                "url": "https://api.github.com/repos/cycle/database/zipball/876fbc2bc0d068f047388c0bd9b354e4d891af07",
+                "reference": "876fbc2bc0d068f047388c0bd9b354e4d891af07",
                 "shasum": ""
             },
             "require": {
@@ -1172,23 +1172,24 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-27T15:49:53+00:00"
+            "time": "2025-07-14T11:36:41+00:00"
         },
         {
             "name": "cycle/entity-behavior",
-            "version": "1.4.0",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cycle/entity-behavior.git",
-                "reference": "7499560c927814c630587db99fca43ca450d1e68"
+                "reference": "49b0c71485855f16193b0720d637d822d65f688c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cycle/entity-behavior/zipball/7499560c927814c630587db99fca43ca450d1e68",
-                "reference": "7499560c927814c630587db99fca43ca450d1e68",
+                "url": "https://api.github.com/repos/cycle/entity-behavior/zipball/49b0c71485855f16193b0720d637d822d65f688c",
+                "reference": "49b0c71485855f16193b0720d637d822d65f688c",
                 "shasum": ""
             },
             "require": {
+                "cycle/database": "^2.14",
                 "cycle/orm": "^2.10",
                 "cycle/schema-builder": "^2.8",
                 "php": ">=8.0",
@@ -1246,20 +1247,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-17T13:01:43+00:00"
+            "time": "2025-07-14T19:37:04+00:00"
         },
         {
             "name": "cycle/migrations",
-            "version": "v4.2.5",
+            "version": "v4.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cycle/migrations.git",
-                "reference": "0a99d7f85655ca7d682b4a8c30860e0f01b43506"
+                "reference": "c1712b6703441a381f707dd710cc3880c004b92c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cycle/migrations/zipball/0a99d7f85655ca7d682b4a8c30860e0f01b43506",
-                "reference": "0a99d7f85655ca7d682b4a8c30860e0f01b43506",
+                "url": "https://api.github.com/repos/cycle/migrations/zipball/c1712b6703441a381f707dd710cc3880c004b92c",
+                "reference": "c1712b6703441a381f707dd710cc3880c004b92c",
                 "shasum": ""
             },
             "require": {
@@ -1290,9 +1291,9 @@
             "description": "Database migrations, migration scaffolding",
             "support": {
                 "issues": "https://github.com/cycle/migrations/issues",
-                "source": "https://github.com/cycle/migrations/tree/v4.2.5"
+                "source": "https://github.com/cycle/migrations/tree/v4.2.6"
             },
-            "time": "2025-02-06T11:59:51+00:00"
+            "time": "2025-07-13T07:22:37+00:00"
         },
         {
             "name": "cycle/orm",
@@ -1383,16 +1384,16 @@
         },
         {
             "name": "cycle/schema-builder",
-            "version": "v2.11.1",
+            "version": "v2.11.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cycle/schema-builder.git",
-                "reference": "af4816cfb52ce3591110e3842dda0c1df905c928"
+                "reference": "c59071a22dc9368a599253f541ff5338a61a1511"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cycle/schema-builder/zipball/af4816cfb52ce3591110e3842dda0c1df905c928",
-                "reference": "af4816cfb52ce3591110e3842dda0c1df905c928",
+                "url": "https://api.github.com/repos/cycle/schema-builder/zipball/c59071a22dc9368a599253f541ff5338a61a1511",
+                "reference": "c59071a22dc9368a599253f541ff5338a61a1511",
                 "shasum": ""
             },
             "require": {
@@ -1406,7 +1407,7 @@
                 "spiral/code-style": "^2.2",
                 "spiral/tokenizer": "^2.8",
                 "symfony/console": "^6.0 || ^7.0",
-                "vimeo/psalm": "^5.12"
+                "vimeo/psalm": "^5.12 || ^6.12"
             },
             "type": "library",
             "autoload": {
@@ -1439,7 +1440,7 @@
             "description": "Cycle ORM Schema Builder",
             "support": {
                 "issues": "https://github.com/cycle/schema-builder/issues",
-                "source": "https://github.com/cycle/schema-builder/tree/v2.11.1"
+                "source": "https://github.com/cycle/schema-builder/tree/v2.11.2"
             },
             "funding": [
                 {
@@ -1447,7 +1448,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-12-13T15:51:51+00:00"
+            "time": "2025-07-10T03:45:14+00:00"
         },
         {
             "name": "cycle/schema-migrations-generator",
@@ -6690,16 +6691,16 @@
         },
         {
             "name": "sabberworm/php-css-parser",
-            "version": "v8.8.0",
+            "version": "v8.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MyIntervals/PHP-CSS-Parser.git",
-                "reference": "3de493bdddfd1f051249af725c7e0d2c38fed740"
+                "reference": "d8e916507b88e389e26d4ab03c904a082aa66bb9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MyIntervals/PHP-CSS-Parser/zipball/3de493bdddfd1f051249af725c7e0d2c38fed740",
-                "reference": "3de493bdddfd1f051249af725c7e0d2c38fed740",
+                "url": "https://api.github.com/repos/MyIntervals/PHP-CSS-Parser/zipball/d8e916507b88e389e26d4ab03c904a082aa66bb9",
+                "reference": "d8e916507b88e389e26d4ab03c904a082aa66bb9",
                 "shasum": ""
             },
             "require": {
@@ -6707,7 +6708,8 @@
                 "php": "^5.6.20 || ^7.0.0 || ~8.0.0 || ~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "5.7.27 || 6.5.14 || 7.5.20 || 8.5.41"
+                "phpunit/phpunit": "5.7.27 || 6.5.14 || 7.5.20 || 8.5.41",
+                "rawr/cross-data-providers": "^2.0.0"
             },
             "suggest": {
                 "ext-mbstring": "for parsing UTF-8 CSS"
@@ -6749,9 +6751,9 @@
             ],
             "support": {
                 "issues": "https://github.com/MyIntervals/PHP-CSS-Parser/issues",
-                "source": "https://github.com/MyIntervals/PHP-CSS-Parser/tree/v8.8.0"
+                "source": "https://github.com/MyIntervals/PHP-CSS-Parser/tree/v8.9.0"
             },
-            "time": "2025-03-23T17:59:05+00:00"
+            "time": "2025-07-11T13:20:48+00:00"
         },
         {
             "name": "scssphp/scssphp",
@@ -11368,16 +11370,16 @@
         },
         {
             "name": "yoomoney/yookassa-sdk-php",
-            "version": "2.12.1",
+            "version": "2.12.2",
             "source": {
                 "type": "git",
                 "url": "https://git.yoomoney.ru/scm/sdk/yookassa-sdk-php.git",
-                "reference": "9888a81827dfb7a8e43025636bc3fb3504acb1ae"
+                "reference": "eeeedc71dcbeedcbce73cea4578c925e2190f4d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://git.yoomoney.ru/rest/api/latest/projects/SDK/repos/yookassa-sdk-php/archive?at=refs%2Ftags%2F2.12.1&format=zip",
-                "reference": "9888a81827dfb7a8e43025636bc3fb3504acb1ae"
+                "url": "https://git.yoomoney.ru/rest/api/latest/projects/SDK/repos/yookassa-sdk-php/archive?at=refs%2Ftags%2F2.12.2&format=zip",
+                "reference": "eeeedc71dcbeedcbce73cea4578c925e2190f4d3"
             },
             "require": {
                 "ext-curl": "*",
@@ -11419,22 +11421,22 @@
                 "yookassa",
                 "yoomoney"
             ],
-            "time": "2025-07-08T08:31:51+00:00"
+            "time": "2025-07-15T10:11:12+00:00"
         }
     ],
     "packages-dev": [
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.17",
+            "version": "2.1.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "89b5ef665716fa2a52ecd2633f21007a6a349053"
+                "reference": "ee1f390b7a70cdf74a2b737e554f68afea885db7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/89b5ef665716fa2a52ecd2633f21007a6a349053",
-                "reference": "89b5ef665716fa2a52ecd2633f21007a6a349053",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ee1f390b7a70cdf74a2b737e554f68afea885db7",
+                "reference": "ee1f390b7a70cdf74a2b737e554f68afea885db7",
                 "shasum": ""
             },
             "require": {
@@ -11479,7 +11481,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-05-21T20:55:28+00:00"
+            "time": "2025-07-17T17:22:31+00:00"
         }
     ],
     "aliases": [],

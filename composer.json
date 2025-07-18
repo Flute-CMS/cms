@@ -47,6 +47,7 @@
         "madesimple/php-arrays": "^3.0",
         "matthiasmullie/minify": "^1.3",
         "monolog/monolog": "^2.9",
+        "psr/log": "^1.1 || ^2.0 || ^3.0",
         "nette/schema": "^1.3",
         "padaliyajay/php-autoprefixer": "^1.4",
         "peppeocchi/php-cron-scheduler": "^4.0",
