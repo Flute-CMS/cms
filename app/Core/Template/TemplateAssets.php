@@ -39,15 +39,21 @@ class TemplateAssets
     private const IMG_CACHE_DIR = 'assets/img/cache/';
     private const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
+    /**
+     * Accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
+     * @var float
+     */
+    protected static float $assetsCompileTime = 0.0;
+
     public function __construct()
     {
         $this->minifyAssets = config('assets.minify');
         $this->debugMode = false;
         $this->appUrl = config('app.url');
 
-        if(!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
-            $this->debugMode = true;
-        }
+        // if(!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
+        //     $this->debugMode = true;
+        // }
 
         $this->scssCompiler = new Compiler();
         $this->scssCompiler->setOutputStyle($this->minifyAssets ? OutputStyle::COMPRESSED : OutputStyle::EXPANDED);
@@ -299,7 +305,7 @@ class TemplateAssets
             }
         }
 
-        $cacheKey = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]) . $this->context);
+        $cacheKey = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]) . implode(',', $this->additionalPartials) . $this->context);
         
         // Check compilation cache first
         if (isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
@@ -317,6 +323,16 @@ class TemplateAssets
         if (!$needsRecompile) {
             foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
                 if (file_exists($additionalFile) && filemtime($additionalFile) > filemtime($cssFullPath)) {
+                    $needsRecompile = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$needsRecompile) {
+            foreach ($this->additionalPartials as $partial) {
+                $partialPath = path($partial);
+                if (file_exists($partialPath) && filemtime($partialPath) > filemtime($cssFullPath)) {
                     $needsRecompile = true;
                     break;
                 }
@@ -387,8 +403,13 @@ class TemplateAssets
     {
         $scssContent = implode("\n", $scssContents);
 
+        $start = microtime(true);
+
         try {
             $css = $this->scssCompiler->compileString($scssContent)->getCss();
+
+            self::$assetsCompileTime += microtime(true) - $start;
+
             return $css;
         } catch (SassException $e) {
             $message = sprintf("SCSS compilation error: %s", $e);
@@ -719,6 +740,16 @@ class TemplateAssets
     }
 
     /**
+     * Get the accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
+     *
+     * @return float
+     */
+    public static function getAssetsCompileTime(): float
+    {
+        return self::$assetsCompileTime;
+    }
+
+    /**
      * Ensure that a specified directory exists, creating it if necessary.
      *
      * @param string $directory The path of the directory to check or create.
@@ -750,6 +781,19 @@ class TemplateAssets
         $this->assetPathCache = [];
         $this->compilationCache = [];
         $this->fallbackAssetPaths = [];
+    }
+
+    /**
+     * Clear style cache files and internal caches.
+     *
+     * @return void
+     */
+    public function clearStyleCache(): void
+    {
+        $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
+        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+        $filesystem->remove(glob($cssCachePath));
+        $this->clearCache();
     }
 
     /**

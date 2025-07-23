@@ -50,6 +50,8 @@ class CacheClearCommand extends Command
 
             $filesystem->remove(glob($logsPath));
 
+            app(\Flute\Core\Database\DatabaseConnection::class)->forceRefreshSchema();
+
             $io->success('Flute cache has been deleted successfully.');
 
             return Command::SUCCESS;

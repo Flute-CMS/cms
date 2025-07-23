@@ -23,6 +23,7 @@ class Route implements RouteInterface
     protected array $defaults = [];
     protected \Symfony\Component\Routing\Route $symfonyRoute;
     protected ?\Closure $afterModifyCallback = null;
+    protected bool $isAdmin = false;
 
     public function __construct(array $methods, string $uri, mixed $action)
     {
@@ -303,5 +304,16 @@ class Route implements RouteInterface
         $this->executeAfterModifyCallback();
         
         return $this;
+    }
+
+    public function setIsAdmin(bool $isAdmin): self
+    {
+        $this->isAdmin = $isAdmin;
+        return $this;
+    }
+
+    public function getIsAdmin(): bool
+    {
+        return $this->isAdmin;
     }
 }

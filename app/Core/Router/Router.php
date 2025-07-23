@@ -32,12 +32,19 @@ use Flute\Core\Router\Middlewares\BanCheckMiddleware;
 use Flute\Core\Router\AttributeRouteLoader;
 use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Template\Template;
+use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 
 class Router implements RouterInterface
 {
     use MacroableTrait, SingletonTrait;
 
     protected RouteCollection $routes;
+    protected RouteCollection $compilableRoutes;
+    protected RouteCollection $dynamicRoutes;
+    protected RouteCollection $frontCompilableRoutes;
+    protected RouteCollection $adminCompilableRoutes;
+    protected RouteCollection $frontDynamicRoutes;
+    protected RouteCollection $adminDynamicRoutes;
     protected Container $container;
     protected array $middlewareGroups = [
         'web' => ['csrf', 'throttle'],
@@ -62,6 +69,12 @@ class Router implements RouterInterface
     public function __construct(Container $container)
     {
         $this->routes = new RouteCollection();
+        $this->compilableRoutes = new RouteCollection();
+        $this->dynamicRoutes = new RouteCollection();
+        $this->frontCompilableRoutes = new RouteCollection();
+        $this->adminCompilableRoutes = new RouteCollection();
+        $this->frontDynamicRoutes = new RouteCollection();
+        $this->adminDynamicRoutes = new RouteCollection();
         $this->container = $container;
 
         self::$instance = $this;
@@ -69,7 +82,7 @@ class Router implements RouterInterface
         events()->dispatch(new RoutingStartedEvent($this), RoutingStartedEvent::NAME);
     }
 
-    public function aliasMiddleware(string $name, string $class) : void
+    public function aliasMiddleware(string $name, string $class): void
     {
         $this->middlewareAliases[$name] = $class;
     }
@@ -77,8 +90,14 @@ class Router implements RouterInterface
     /**
      * Gather middleware for the current route.
      */
-    protected function gatherMiddleware() : array
+    protected function gatherMiddleware(): array
     {
+        static $cache = [];
+
+        $routeKey = $this->currentRoute?->getName() ?: spl_object_id($this->currentRoute);
+        if (isset($cache[$routeKey])) {
+            return $cache[$routeKey];
+        }
         $middleware = array_merge(
             $this->middlewareGroups['default'],
             $this->currentRoute->getMiddleware()
@@ -138,7 +157,7 @@ class Router implements RouterInterface
         }
 
 
-        return $resolvedMiddleware;
+        return $cache[$routeKey] = $resolvedMiddleware;
     }
 
     /**
@@ -148,7 +167,7 @@ class Router implements RouterInterface
      * @param callable|null $callback Callback function.
      * @return void
      */
-    public function group(array|callable $attributes, callable $callback = null) : void
+    public function group(array|callable $attributes, callable $callback = null): void
     {
         if (is_callable($attributes)) {
             $callback = $attributes;
@@ -168,7 +187,7 @@ class Router implements RouterInterface
      * @param array|string $middleware Middleware to apply.
      * @return $this
      */
-    public function middleware(array|string $middleware) : self
+    public function middleware(array|string $middleware): self
     {
         $middleware = array_merge($this->getGroupAttribute('middleware', []), (array) $middleware);
 
@@ -180,12 +199,12 @@ class Router implements RouterInterface
      *
      * @return RouteInterface|null
      */
-    public function getCurrentRoute() : ?RouteInterface
+    public function getCurrentRoute(): ?RouteInterface
     {
         return $this->currentRoute;
     }
 
-    public function getRoutes() : RouteCollection
+    public function getRoutes(): RouteCollection
     {
         return $this->routes;
     }
@@ -196,7 +215,7 @@ class Router implements RouterInterface
      * @param array|string $middleware Middleware to exclude.
      * @return $this
      */
-    public function withoutMiddleware(array|string $middleware) : self
+    public function withoutMiddleware(array|string $middleware): self
     {
         $excludedMiddleware = array_merge($this->getGroupAttribute('excluded_middleware', []), (array) $middleware);
 
@@ -209,7 +228,7 @@ class Router implements RouterInterface
      * @param array $attributes Attributes of the group.
      * @return $this
      */
-    protected function updateGroupStack(array $attributes) : self
+    protected function updateGroupStack(array $attributes): self
     {
         $this->groupStack[] = $this->mergeGroupAttributes($attributes);
 
@@ -222,11 +241,11 @@ class Router implements RouterInterface
      * @param array $new New attributes.
      * @return array
      */
-    protected function mergeGroupAttributes(array $new) : array
+    protected function mergeGroupAttributes(array $new): array
     {
         $old = $this->groupStack ? end($this->groupStack) : [];
 
-        $new['prefix'] = isset($old['prefix']) ? trim($old['prefix'], '/').'/'.trim($new['prefix'] ?? '', '/') : ($new['prefix'] ?? '');
+        $new['prefix'] = isset($old['prefix']) ? trim($old['prefix'], '/') . '/' . trim($new['prefix'] ?? '', '/') : ($new['prefix'] ?? '');
 
         if (isset($old['middleware'])) {
             $middleware = array_merge((array) $old['middleware'], (array) ($new['middleware'] ?? []));
@@ -261,12 +280,22 @@ class Router implements RouterInterface
      * @param Closure|array|string|object $action
      * @return RouteInterface
      */
-    public function addRoute(array|string $methods, string $uri, array|string|object $action) : RouteInterface
+    public function addRoute(array|string $methods, string $uri, array|string|object $action): RouteInterface
     {
         $methods = (array) $methods;
-        $uri = '/'.trim($uri, '/');
+        $uri = '/' . trim($uri, '/');
 
         $this->trackDynamicRoute($uri, $methods);
+
+        $isAdminRoute = false;
+        if (!empty($this->groupStack)) {
+            $group = end($this->groupStack);
+            if (isset($group['prefix']) && str_starts_with(trim($group['prefix'], '/'), '/admin')) {
+                $isAdminRoute = true;
+            }
+        }
+
+        $routeName = 'route_' . md5($uri . implode(',', $methods));
 
         $route = new Route($methods, $uri, $action);
 
@@ -274,21 +303,55 @@ class Router implements RouterInterface
             $route->setGroupAttributes(end($this->groupStack));
         }
 
-        $routeName = $route->getName() ?? uniqid('route_');
         $route->name($routeName);
+        $route->setIsAdmin($isAdminRoute);
 
-        $this->routes->add($routeName, $route->getSymfonyRoute());
+        $symfonyRoute = $route->getSymfonyRoute();
+        $isCompilable = is_string($action) || is_array($action);
+        if ($isCompilable) {
+            $collection = $isAdminRoute ? $this->adminCompilableRoutes : $this->frontCompilableRoutes;
+            $collection->add($routeName, $symfonyRoute);
+            $this->routes->add($routeName, $symfonyRoute);
+        } else {
+            $collection = $isAdminRoute ? $this->adminDynamicRoutes : $this->frontDynamicRoutes;
+            $collection->add($routeName, $symfonyRoute);
+            $clone = clone $symfonyRoute;
+            $defaults = $clone->getDefaults();
+            $defaults['_controller'] = 'dynamic';
+            $clone->setDefaults($defaults);
+            $this->routes->add($routeName, $clone);
+        }
 
         $originalName = $routeName;
 
         $route->setAfterModifyCallback(function (Route $modifiedRoute) use ($originalName) {
             $currentName = $modifiedRoute->getName();
 
-            if ($currentName !== $originalName && $this->routes->get($originalName)) {
-                $this->routes->remove($originalName);
-            }
+            if ($currentName !== $originalName) {
+                foreach ([$this->routes, $this->frontCompilableRoutes, $this->adminCompilableRoutes, $this->frontDynamicRoutes, $this->adminDynamicRoutes] as $collection) {
+                    if ($collection->get($originalName)) {
+                        $collection->remove($originalName);
+                    }
+                }
 
-            $this->routes->add($currentName, $modifiedRoute->getSymfonyRoute());
+                $symfonyRoute = $modifiedRoute->getSymfonyRoute();
+                $action = $modifiedRoute->getAction();
+                $isCompilable = is_string($action) || is_array($action);
+                $isAdminRoute = $modifiedRoute->getIsAdmin();
+                if ($isCompilable) {
+                    $collection = $isAdminRoute ? $this->adminCompilableRoutes : $this->frontCompilableRoutes;
+                    $collection->add($currentName, $symfonyRoute);
+                    $this->routes->add($currentName, $symfonyRoute);
+                } else {
+                    $collection = $isAdminRoute ? $this->adminDynamicRoutes : $this->frontDynamicRoutes;
+                    $collection->add($currentName, $symfonyRoute);
+                    $clone = clone $symfonyRoute;
+                    $defaults = $clone->getDefaults();
+                    $defaults['_controller'] = 'dynamic';
+                    $clone->setDefaults($defaults);
+                    $this->routes->add($currentName, $clone);
+                }
+            }
         });
 
         return $route;
@@ -297,7 +360,7 @@ class Router implements RouterInterface
     /**
      * Register a GET route.
      */
-    public function get(string $uri, array|string|object $action) : RouteInterface
+    public function get(string $uri, array|string|object $action): RouteInterface
     {
         return $this->addRoute('GET', $uri, $action);
     }
@@ -305,7 +368,7 @@ class Router implements RouterInterface
     /**
      * Register a POST route.
      */
-    public function post(string $uri, array|string|object $action) : RouteInterface
+    public function post(string $uri, array|string|object $action): RouteInterface
     {
         return $this->addRoute('POST', $uri, $action);
     }
@@ -313,7 +376,7 @@ class Router implements RouterInterface
     /**
      * Register a PUT route.
      */
-    public function put(string $uri, array|string|object $action) : RouteInterface
+    public function put(string $uri, array|string|object $action): RouteInterface
     {
         return $this->addRoute('PUT', $uri, $action);
     }
@@ -321,7 +384,7 @@ class Router implements RouterInterface
     /**
      * Register a DELETE route.
      */
-    public function delete(string $uri, array|string|object $action) : RouteInterface
+    public function delete(string $uri, array|string|object $action): RouteInterface
     {
         return $this->addRoute('DELETE', $uri, $action);
     }
@@ -329,7 +392,7 @@ class Router implements RouterInterface
     /**
      * Register a route for any HTTP method.
      */
-    public function any(string $uri, array|string|object $action) : RouteInterface
+    public function any(string $uri, array|string|object $action): RouteInterface
     {
         $methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
         return $this->addRoute($methods, $uri, $action);
@@ -338,7 +401,7 @@ class Router implements RouterInterface
     /**
      * Register a route that responds to multiple methods.
      */
-    public function match(array $methods, string $uri, array|string|object $action) : RouteInterface
+    public function match(array $methods, string $uri, array|string|object $action): RouteInterface
     {
         return $this->addRoute($methods, $uri, $action);
     }
@@ -352,7 +415,7 @@ class Router implements RouterInterface
      * 
      * @return Route The added route.
      */
-    public function view(string $path, string $view, array $options = []) : Route
+    public function view(string $path, string $view, array $options = []): Route
     {
         return $this->addRoute('GET', $path, function () use ($view, $options) {
             return response()->view($view, $options);
@@ -368,7 +431,7 @@ class Router implements RouterInterface
      * 
      * @return Route The added route.
      */
-    public function redirect(string $path, string $destination, int $status = 302) : Route
+    public function redirect(string $path, string $destination, int $status = 302): Route
     {
         return $this->addRoute('GET', $path, function () use ($destination, $status) {
             return redirect($destination, $status);
@@ -378,17 +441,57 @@ class Router implements RouterInterface
     /**
      * Dispatch the request through the router.
      */
-    public function dispatch(FluteRequest $request) : Response
+    public function dispatch(FluteRequest $request): Response
     {
         $this->container->get(Template::class);
 
         $context = new RequestContext();
         $context->fromRequest($request);
 
-        $urlMatcher = new UrlMatcher($this->routes, $context);
+        $isAdmin = is_admin_path();
+        $compilable = new RouteCollection();
+        $dynamicCollection = new RouteCollection();
+        if ($isAdmin) {
+            $compilable->addCollection($this->frontCompilableRoutes);
+            $compilable->addCollection($this->adminCompilableRoutes);
+            $dynamicCollection->addCollection($this->frontDynamicRoutes);
+            $dynamicCollection->addCollection($this->adminDynamicRoutes);
+        } else {
+            $compilable->addCollection($this->frontCompilableRoutes);
+            $dynamicCollection->addCollection($this->frontDynamicRoutes);
+        }
 
+        $urlMatcher = null;
+
+        $cacheFile = path('storage/app/cache/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php');
+        if (!is_debug() && file_exists($cacheFile)) {
+            $compiledRoutes = require $cacheFile;
+            if ($compiledRoutes instanceof \Symfony\Component\Routing\Matcher\CompiledUrlMatcher) {
+                $urlMatcher = $compiledRoutes;
+                $urlMatcher->setContext($context);
+            }
+        }
+
+        if (!$urlMatcher) {
+            $urlMatcher = new UrlMatcher($compilable, $context);
+
+            if(is_debug()) {
+                try {
+                    $dumper = new CompiledUrlMatcherDumper($compilable);
+                    $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                    $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+                    file_put_contents($cacheFile, $php);
+                } catch (\Throwable $e) {
+                    logs()->warning($e);
+                    // Failed to dump routes, continue without cache
+                }
+            }
+        }
+
+        $t0 = microtime(true);
         try {
             $parameters = $urlMatcher->match($request->getPathInfo());
+            \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
 
             $this->container->get(FluteRequest::class)->attributes->add($parameters);
 
@@ -405,11 +508,41 @@ class Router implements RouterInterface
                 return $this->runRoute($request, $parameters);
             });
 
+            $tPipe = microtime(true);
             $response = $pipeline->run();
-        } catch (ResourceNotFoundException $exception) {
-            $response = response()->error(404, __('def.page_not_found'));
-        } catch (MethodNotAllowedException $exception) {
-            $response = response()->error(405, __('def.method_not_allowed'));
+            \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
+        } catch (ResourceNotFoundException | MethodNotAllowedException $e) {
+            $dynamicMatcher = new UrlMatcher($dynamicCollection, $context);
+            try {
+                $parameters = $dynamicMatcher->match($request->getPathInfo());
+                \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
+
+                $this->container->get(FluteRequest::class)->attributes->add($parameters);
+
+                $this->currentRoute = $this->resolveRoute($parameters);
+
+                $onRouteEvent = events()->dispatch(new OnRouteFoundEvent($request, $this->currentRoute), OnRouteFoundEvent::NAME);
+
+                if ($onRouteEvent->isPropagationStopped()) {
+                    throw new HttpException($onRouteEvent->getErrorCode(), $onRouteEvent->getErrorMessage());
+                }
+
+                $middleware = $this->gatherMiddleware();
+                $pipeline = new MiddlewareRunner($middleware, $request, function ($request) use ($parameters) {
+                    return $this->runRoute($request, $parameters);
+                });
+
+                $tPipe = microtime(true);
+                $response = $pipeline->run();
+                \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
+            } catch (\Exception $dynamicE) {
+                if(is_debug()) {
+                    throw $dynamicE;
+                }
+
+                $response = response()->error(404, __('def.page_not_found'));
+                $response->setStatusCode(404);
+            }
         } catch (ForcedRedirectException $exception) {
             $response = response()->redirect($exception->getUrl(), $exception->getStatusCode());
         } catch (HttpException $exception) {
@@ -436,7 +569,7 @@ class Router implements RouterInterface
     /**
      * Resolve the current route from matched parameters.
      */
-    protected function resolveRoute(array $parameters) : RouteInterface
+    protected function resolveRoute(array $parameters): RouteInterface
     {
         $action = $parameters['_controller'] ?? null;
         $routeName = $parameters['_route'] ?? null;
@@ -460,15 +593,18 @@ class Router implements RouterInterface
     /**
      * Run the matched route.
      */
-    protected function runRoute(FluteRequest $request, array $parameters) : Response
+    protected function runRoute(FluteRequest $request, array $parameters): Response
     {
-        return $this->currentRoute->run($request, $parameters, $this->container);
+        $start = microtime(true);
+        $response = $this->currentRoute->run($request, $parameters, $this->container);
+        \Flute\Core\Router\RoutingTiming::add('Controller', microtime(true) - $start);
+        return $response;
     }
 
     /**
      * Register a middleware group.
      */
-    public function middlewareGroup(string $name, array $middleware) : void
+    public function middlewareGroup(string $name, array $middleware): void
     {
         $this->middlewareGroups[$name] = $middleware;
     }
@@ -476,7 +612,7 @@ class Router implements RouterInterface
     /**
      * Generate a URL for a named route.
      */
-    public function url(string $name, array $parameters = []) : string
+    public function url(string $name, array $parameters = []): string
     {
         $generator = new UrlGenerator($this->routes, (new RequestContext())->fromRequest(request()));
 
@@ -494,7 +630,7 @@ class Router implements RouterInterface
      * @param string $namespace The root namespace for the controllers
      * @return int Number of routes registered
      */
-    public function registerAttributeRoutes(array $directories, string $namespace) : int
+    public function registerAttributeRoutes(array $directories, string $namespace): int
     {
         $loader = new AttributeRouteLoader($this);
         return $loader->loadFromDirectories($directories, $namespace);
@@ -506,7 +642,7 @@ class Router implements RouterInterface
      * @param string $controllerClass Fully qualified class name of the controller
      * @return int Number of routes registered
      */
-    public function registerAttributeRoutesFromClass(string $controllerClass) : int
+    public function registerAttributeRoutesFromClass(string $controllerClass): int
     {
         $loader = new AttributeRouteLoader($this);
         return $loader->loadFromClass($controllerClass);
@@ -521,14 +657,14 @@ class Router implements RouterInterface
      */
     public function hasRoute(string $uri, array|string $methods = []): bool
     {
-        $uri = '/'.trim($uri, '/');
+        $uri = '/' . trim($uri, '/');
         $methods = (array) $methods;
-        
+
         if (isset($this->registeredDynamicRoutes[$uri])) {
             if (empty($methods)) {
                 return true;
             }
-            
+
             $existingMethods = $this->registeredDynamicRoutes[$uri];
             foreach ($methods as $method) {
                 if (in_array(strtoupper($method), $existingMethods)) {
@@ -536,20 +672,20 @@ class Router implements RouterInterface
                 }
             }
         }
-        
+
         foreach ($this->routes->all() as $route) {
             $routePath = $route->getPath();
-            
+
             if ($routePath === $uri) {
                 if (empty($methods)) {
                     return true;
                 }
-                
+
                 $routeMethods = $route->getMethods();
                 if (empty($routeMethods)) {
                     return true;
                 }
-                
+
                 foreach ($methods as $method) {
                     if (in_array(strtoupper($method), $routeMethods)) {
                         return true;
@@ -557,7 +693,7 @@ class Router implements RouterInterface
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -569,13 +705,13 @@ class Router implements RouterInterface
      */
     protected function trackDynamicRoute(string $uri, array|string $methods): void
     {
-        $uri = '/'.trim($uri, '/');
+        $uri = '/' . trim($uri, '/');
         $methods = array_map('strtoupper', (array) $methods);
-        
+
         if (!isset($this->registeredDynamicRoutes[$uri])) {
             $this->registeredDynamicRoutes[$uri] = [];
         }
-        
+
         $this->registeredDynamicRoutes[$uri] = array_unique(
             array_merge($this->registeredDynamicRoutes[$uri], $methods)
         );

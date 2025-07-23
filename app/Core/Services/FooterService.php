@@ -8,7 +8,7 @@ use Nette\Utils\Validators;
 
 class FooterService
 {
-    protected array $cachedItems; // Array to hold footer items
+    protected array $cachedItems;
     protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60;
     public const CACHE_KEY = 'flute.footer.items';
@@ -21,9 +21,7 @@ class FooterService
     {
         $this->performance = (bool) (is_performance());
 
-        $this->cachedItems = $this->performance ? cache()->callback(self::CACHE_KEY, function () {
-            return $this->getDefaultItems();
-        }, self::CACHE_TIME) : $this->getDefaultItems();
+        $this->cachedItems = $this->performance ? cache()->callback(self::CACHE_KEY, fn() => $this->getDefaultItems(), self::CACHE_TIME) : $this->getDefaultItems();
     }
 
     /**
@@ -63,28 +61,47 @@ class FooterService
      */
     protected function getDefaultItems(): array
     {
-        $FooterItems = $this->getAllFooterItems();
+        $footerItems = $this->getAllFooterItems();
+        $tree = $this->buildTree($footerItems);
 
         $formattedItems = [];
-
-        foreach ($FooterItems as $item) {
-            $format = $this->format($item);
-            $formattedItems[] = $format;
+        foreach ($tree as $item) {
+            $formattedItems[] = $this->format($item);
         }
 
+        usort($formattedItems, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $formattedItems;
     }
 
     protected function getAllFooterItems(): array
     {
-        // Eager load all children recursively to avoid N+1 queries
-        return FooterItem::query()
-            ->load(['children', 'children.children'])
+        $footerItems = FooterItem::query()
+            ->load(['children', 'children.children', 'parent'])
             ->orderBy('position', 'asc')
             ->where([
                 'parent_id' => null,
             ])->fetchAll();
+
+        return $footerItems;
+    }
+
+    protected function buildTree(array $items, ?int $parentId = null): array
+    {
+        $tree = [];
+
+        foreach ($items as $item) {
+            if ($item->parent && $item->parent->id === $parentId) {
+                $item->children = $this->buildTree($items, $item->id);
+                $tree[] = $item;
+            } else {
+                $tree[] = $item;
+            }
+        }
+
+        usort($tree, fn($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
+
+        return $tree;
     }
 
     public function format(FooterItem $FooterItem): array

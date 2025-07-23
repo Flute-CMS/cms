@@ -34,8 +34,14 @@
     font-family: var(--font);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    html, body {
+        scroll-behavior: smooth;
+    }
+}
+
 html {
-    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     font-size: 100%;
     min-height: 100vh;
 }
@@ -49,7 +55,6 @@ body {
     font-family: var(--font);
     color: var(--text);
     background-color: var(--background);
-    scroll-behavior: smooth;
     overflow-x: hidden;
     position: relative;
     line-height: 1.75;

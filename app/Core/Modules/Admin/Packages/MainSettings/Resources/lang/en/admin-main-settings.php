@@ -78,6 +78,7 @@ return [
         'hcaptcha_site_key'                  => 'hCaptcha Site Key',
         'hcaptcha_secret_key'                => 'hCaptcha Secret Key',
         'default_theme'                      => 'Default Theme',
+        'default_role'                       => 'Default Registration Role',
     ],
 
     'options' => [
@@ -131,6 +132,7 @@ return [
         'recaptcha_secret_key'     => 'Enter reCAPTCHA secret key',
         'hcaptcha_site_key'        => 'Enter hCaptcha site key',
         'hcaptcha_secret_key'      => 'Enter hCaptcha secret key',
+        'default_role_placeholder' => 'No role',
     ],
 
     'buttons' => [
@@ -239,6 +241,7 @@ return [
         'recaptcha_secret_key'      => 'Get your reCAPTCHA secret key from <a target="_blank" href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a>.',
         'hcaptcha_site_key'         => 'Get your hCaptcha site key from <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
         'hcaptcha_secret_key'       => 'Get your hCaptcha secret key from <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
+        'default_role'              => 'This role will be assigned to all new registered users.',
     ],
 
     'examples' => [

@@ -700,7 +700,7 @@ class TooltipManager {
 }
 
 /**
- * Dropdown menu management
+ * Dropdown menu management (hover)
  */
 class DropdownManager {
     constructor() {
@@ -724,16 +724,25 @@ class DropdownManager {
             const dropdownName = $toggle.data('dropdown-open');
             const $menu = $(`[data-dropdown="${dropdownName}"]`);
 
-            // Если ранее был назначен таймаут на закрытие — отменяем его
-            if ($toggle.data('hoverTimeout')) {
-                clearTimeout($toggle.data('hoverTimeout'));
-                $toggle.removeData('hoverTimeout');
+            if ($menu.data('closeTimeout')) {
+                clearTimeout($menu.data('closeTimeout'));
+                $menu.removeData('closeTimeout');
             }
 
-            // Если меню ещё не открыто — открываем
-            if (!$menu.hasClass('active')) {
-                this.openDropdown($toggle, $menu);
-            }
+            if ($menu.hasClass('active')) return;
+
+            if ($toggle.data('openTimeout')) return;
+
+            const openTimeout = setTimeout(() => {
+                const toggleHovered = $toggle[0]?.matches(':hover');
+                const menuHovered = $menu[0]?.matches(':hover');
+                if (toggleHovered || menuHovered) {
+                    this.openDropdown($toggle, $menu);
+                }
+                $toggle.removeData('openTimeout');
+            }, 200);
+
+            $toggle.data('openTimeout', openTimeout);
         });
 
         $(document).on('mouseleave', '[data-dropdown-open][data-dropdown-hover="true"]', (event) => {
@@ -741,29 +750,30 @@ class DropdownManager {
             const dropdownName = $toggle.data('dropdown-open');
             const $menu = $(`[data-dropdown="${dropdownName}"]`);
 
-            const timeout = setTimeout(() => {
-                const toggleEl = $toggle.get(0);
-                const menuEl = $menu.get(0);
+            if ($toggle.data('openTimeout')) {
+                clearTimeout($toggle.data('openTimeout'));
+                $toggle.removeData('openTimeout');
+            }
 
-                const toggleHovered = toggleEl && toggleEl.matches(':hover');
-                const menuHovered = menuEl && menuEl.matches(':hover');
-
+            const closeTimeout = setTimeout(() => {
+                const toggleHovered = $toggle[0]?.matches(':hover');
+                const menuHovered = $menu[0]?.matches(':hover');
                 if (!toggleHovered && !menuHovered) {
                     this.closeDropdown($menu);
                 }
             }, 150);
 
-            $toggle.data('hoverTimeout', timeout);
+            $menu.data('closeTimeout', closeTimeout);
         });
 
         $(document).on('mouseenter', '[data-dropdown]', (event) => {
             const $menu = $(event.currentTarget);
             const dropdownName = $menu.data('dropdown');
-            const $toggle = $(`[data-dropdown-open="${dropdownName}"][data-dropdown-hover="true"]`);
-
-            if ($toggle.data('hoverTimeout')) {
-                clearTimeout($toggle.data('hoverTimeout'));
-                $toggle.removeData('hoverTimeout');
+            const $toggle = $(`[data-dropdown-open="${dropdownName}"]`);
+            if ($toggle.attr('data-dropdown-hover') !== 'true') return;
+            if ($menu.data('closeTimeout')) {
+                clearTimeout($menu.data('closeTimeout'));
+                $menu.removeData('closeTimeout');
             }
         });
 
@@ -771,22 +781,15 @@ class DropdownManager {
             const $menu = $(event.currentTarget);
             const dropdownName = $menu.data('dropdown');
             const $toggle = $(`[data-dropdown-open="${dropdownName}"][data-dropdown-hover="true"]`);
-
-            if ($toggle.length > 0) {
-                const timeout = setTimeout(() => {
-                    const toggleEl = $toggle.get(0);
-                    const menuEl = $menu.get(0);
-
-                    const toggleHovered = toggleEl && toggleEl.matches(':hover');
-                    const menuHovered = menuEl && menuEl.matches(':hover');
-
-                    if (!toggleHovered && !menuHovered) {
-                        this.closeDropdown($menu);
-                    }
-                }, 150);
-
-                $toggle.data('hoverTimeout', timeout);
-            }
+            if ($toggle.length === 0) return;
+            const closeTimeout = setTimeout(() => {
+                const toggleHovered = $toggle[0]?.matches(':hover');
+                const menuHovered = $menu[0]?.matches(':hover');
+                if (!toggleHovered && !menuHovered) {
+                    this.closeDropdown($menu);
+                }
+            }, 150);
+            $menu.data('closeTimeout', closeTimeout);
         });
 
         $(document).on('click', (event) => {
@@ -857,6 +860,19 @@ class DropdownManager {
 
     openDropdown($toggle, $menu) {
         try {
+            if ($toggle.attr('data-dropdown-hover') === 'true') {
+                $('[data-dropdown].active').each((_, el) => {
+                    const $otherMenu = $(el);
+                    if ($otherMenu[0] === $menu[0]) return;
+
+                    const otherName = $otherMenu.data('dropdown');
+                    const $otherToggle = $(`[data-dropdown-open="${otherName}"]`);
+                    if ($otherToggle.attr('data-dropdown-hover') === 'true') {
+                        this.closeDropdown($otherMenu);
+                    }
+                });
+            }
+
             const $originalParent = $menu.parent();
             $menu.data('originalParent', $originalParent);
 

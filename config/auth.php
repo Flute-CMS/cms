@@ -7,6 +7,7 @@ return array(
     'security_token' => true,
     'only_social' => false,
     'only_modal' => true,
+    'default_role' => null,
     'registration' =>
     array(
         'confirm_email' => false,

@@ -27,12 +27,12 @@ class ModulesTimingPanel implements IBarPanel
     {
         // Default core component times structure
         $this->coreComponentTimes = [
-            'Bootstrapping' => 0,
-            'Container Building' => 0,
-            'Routing' => 0,
-            'Database' => 0,
-            'View Rendering' => 0,
-            'Other Core Operations' => 0,
+            'Bootstrapping'        => 0,
+            'Container Building'   => 0,
+            'Routing'             => 0,
+            'Database'            => 0,
+            'View Rendering'      => 0,
+            'Untracked Operations' => 0,
         ];
         
         if (defined('FLUTE_ROUTER_START') && defined('FLUTE_ROUTER_END')) {
@@ -53,6 +53,19 @@ class ModulesTimingPanel implements IBarPanel
         
         if (defined('FLUTE_VIEW_TIME')) {
             $this->coreComponentTimes['View Rendering'] = constant('FLUTE_VIEW_TIME');
+        }
+
+        $measuredCore = array_sum(array_filter($this->coreComponentTimes, fn($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
+        if (defined('FLUTE_START')) {
+            $this->coreComponentTimes['Untracked Operations'] = max(0, (microtime(true) - constant('FLUTE_START')) - $measuredCore);
+        }
+
+        // Gather DB time measured via timing logger
+        if (class_exists(\Flute\Core\Database\DatabaseTimingLogger::class)) {
+            $dbTime = \Flute\Core\Database\DatabaseTimingLogger::getTotalTime();
+            if ($dbTime > 0) {
+                $this->coreComponentTimes['Database'] = $dbTime;
+            }
         }
     }
 
@@ -78,6 +91,15 @@ class ModulesTimingPanel implements IBarPanel
      */
     public function getPanel(): string
     {
+        $this->initCoreComponentTimes();
+
+        if (class_exists(\Flute\Core\Template\TemplateAssets::class)) {
+            $assetsTime = \Flute\Core\Template\TemplateAssets::getAssetsCompileTime();
+            if ($assetsTime > 0) {
+                $this->coreComponentTimes['Assets Compilation'] = $assetsTime;
+            }
+        }
+
         $bootTimes = $this->app->getBootTimes();
         $modulesBootTimes = ModuleRegister::getModulesBootTimes();
         
@@ -101,6 +123,8 @@ class ModulesTimingPanel implements IBarPanel
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-core">Core Components</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-providers">Providers</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-modules">Modules</a></li>';
+        $html .= '<li class="tracy-tab"><a href="#' . $id . '-views">Views</a></li>';
+        $html .= '<li class="tracy-tab"><a href="#' . $id . '-routing">Routing</a></li>';
         $html .= '</ul>';
         
         // Summary tab content
@@ -182,6 +206,46 @@ class ModulesTimingPanel implements IBarPanel
         }
         
         $html .= '</div>';
+        
+        $html .= '<div class="tracy-tab-panel" id="' . $id . '-views">';
+        $viewTimes = \Flute\Core\Template\TemplateRenderTiming::all();
+        if (empty($viewTimes)) {
+            $html .= '<div class="tracy-inner">No view render timings collected</div>';
+        } else {
+            arsort($viewTimes);
+            $totalViewTime = array_sum($viewTimes);
+            $html .= $this->renderHeader('Blade views render time', $totalViewTime);
+
+            $html .= '<div class="tracy-inner"><table style="width:100%">';
+            $html .= '<tr><th>View</th><th>Time (sec)</th><th>%</th><th></th></tr>';
+            foreach ($viewTimes as $view => $time) {
+                $percent = ($time / $totalViewTime) * 100;
+                $short = htmlspecialchars($view);
+                $html .= sprintf('<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#FFB347;height:4px;width:%d%%;"></div></td></tr>', $short, $time, $percent, min(100, $percent * 1.5));
+            }
+            $html .= '</table></div>';
+        }
+        $html .= '</div>';
+        
+        // Routing tab content
+        $html .= '<div class="tracy-tab-panel" id="' . $id . '-routing">';
+        $rTimes = \Flute\Core\Router\RoutingTiming::all();
+        if (empty($rTimes)) {
+            $html .= '<div class="tracy-inner">No routing timings collected</div>';
+        } else {
+            arsort($rTimes);
+            $totalRT = array_sum($rTimes);
+            $html .= $this->renderHeader('Routing pipeline', $totalRT);
+            $html .= '<div class="tracy-inner"><table style="width:100%">';
+            $html .= '<tr><th>Segment</th><th>Time (sec)</th><th>%</th><th></th></tr>';
+            foreach ($rTimes as $seg => $time) {
+                $percent = ($time / $totalRT) * 100;
+                $html .= sprintf('<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#8FBC8F;height:4px;width:%d%%;"></div></td></tr>', htmlspecialchars($seg), $time, $percent, min(100, $percent * 1.5));
+            }
+            $html .= '</table></div>';
+        }
+        $html .= '</div>';
+        
         $html .= '</div>';
         
         // Add script to initialize tabs
@@ -284,7 +348,7 @@ class ModulesTimingPanel implements IBarPanel
         // Other
         $otherPercent = ($otherTime / $totalEngineTime) * 100;
         $html .= sprintf(
-            '<tr><td>Other Operations</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#808080;height:8px;width:%d%%;"></div></td></tr>',
+            '<tr><td>Untracked Operations</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#808080;height:8px;width:%d%%;"></div></td></tr>',
             $otherTime,
             $otherPercent,
             min(100, $otherPercent)
@@ -298,14 +362,14 @@ class ModulesTimingPanel implements IBarPanel
         $html .= sprintf('<div title="Core Components: %.1f%%" style="background:#FF7F50;height:100%%;width:%.1f%%"></div>', $corePercent, $corePercent);
         $html .= sprintf('<div title="Service Providers: %.1f%%" style="background:#3cb371;height:100%%;width:%.1f%%"></div>', $providersPercent, $providersPercent);
         $html .= sprintf('<div title="Modules: %.1f%%" style="background:#4169E1;height:100%%;width:%.1f%%"></div>', $modulesPercent, $modulesPercent);
-        $html .= sprintf('<div title="Other Operations: %.1f%%" style="background:#808080;height:100%%;width:%.1f%%"></div>', $otherPercent, $otherPercent);
+        $html .= sprintf('<div title="Untracked Operations: %.1f%%" style="background:#808080;height:100%%;width:%.1f%%"></div>', $otherPercent, $otherPercent);
         $html .= '</div>';
         
         $html .= '<div style="display:flex;margin-top:5px;font-size:12px;">';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#FF7F50;margin-right:5px;"></span>Core Components</div>';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#3cb371;margin-right:5px;"></span>Service Providers</div>';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#4169E1;margin-right:5px;"></span>Modules</div>';
-        $html .= '<div><span style="display:inline-block;width:10px;height:10px;background:#808080;margin-right:5px;"></span>Other Operations</div>';
+        $html .= '<div><span style="display:inline-block;width:10px;height:10px;background:#808080;margin-right:5px;"></span>Untracked Operations</div>';
         $html .= '</div>';
         
         $html .= '</div>';
@@ -369,10 +433,11 @@ class ModulesTimingPanel implements IBarPanel
             $percent = ($time / $totalCoreTime) * 100;
             
             $html .= sprintf(
-                '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#FF7F50;height:4px;width:%d%%;"></div></td></tr>',
+                '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:%s;height:4px;width:%d%%;"></div></td></tr>',
                 htmlspecialchars($component),
                 $time,
                 $percent,
+                $component === 'Untracked Operations' ? '#808080' : '#FF7F50',
                 min(100, $percent * 1.5)
             );
         }

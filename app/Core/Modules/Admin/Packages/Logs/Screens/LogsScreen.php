@@ -190,7 +190,7 @@ class LogsScreen extends Screen
     {
         $commands = [
             Button::make(__('admin-logs.refresh'))
-                ->icon('ph.bold.arrows-clockwise')
+                ->icon('ph.bold.arrow-clockwise-bold')
                 ->method('render'),
         ];
 

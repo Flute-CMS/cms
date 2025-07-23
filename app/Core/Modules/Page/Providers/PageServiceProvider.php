@@ -39,6 +39,8 @@ class PageServiceProvider extends AbstractServiceProvider
             $widgetManager->registerDefaultWidgets();
 
             $container->get(PageManager::class);
+
+            template()->addGlobal('widgets', $widgetManager);
         }
     }
 }

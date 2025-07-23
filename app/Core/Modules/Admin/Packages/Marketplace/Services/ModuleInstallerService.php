@@ -63,6 +63,13 @@ class ModuleInstallerService
     protected ?array $moduleInfo = null;
 
     /**
+     * Директория для резервного копирования модуля
+     * 
+     * @var string|null
+     */
+    protected ?string $backupDir = null;
+
+    /**
      * ModuleInstallerService constructor.
      */
     public function __construct()
@@ -278,15 +285,16 @@ class ModuleInstallerService
         $moduleFolder = $moduleName ?? $this->moduleKey ?? $module['slug'];
         $destination = $this->modulesDir . '/' . $moduleFolder;
 
+        $this->backupDir = null;
         if (is_dir($destination)) {
             if (config('app.create_backup')) {
-                $backupDir = storage_path('backup/modules/' . $moduleFolder . '-' . date('Y-m-d-His'));
+                $this->backupDir = storage_path('backup/modules/' . $moduleFolder . '-' . date('Y-m-d-His'));
 
-                if (!is_dir($backupDir)) {
-                    mkdir($backupDir, 0755, true);
+                if (!is_dir($this->backupDir)) {
+                    mkdir($this->backupDir, 0755, true);
                 }
 
-                $this->copyDirectory($destination, $backupDir);
+                $this->copyDirectory($destination, $this->backupDir);
             }
 
             $this->removeDirectory($destination);
@@ -298,39 +306,11 @@ class ModuleInstallerService
 
         $this->copyDirectory($source, $destination);
 
-        try {
-            /** @var ModuleManager $moduleManager */
-            $moduleManager = app(ModuleManager::class);
-            $moduleManager->refreshModules();
-
-            $moduleKey = $moduleFolder;
-
-            if ($moduleManager->issetModule($moduleKey)) {
-                $moduleInfo = $moduleManager->getModule($moduleKey);
-
-                $moduleActions = new ModuleActions();
-
-                if ($moduleInfo->status === ModuleManager::NOTINSTALLED) {
-                    $moduleActions->installModule($moduleInfo, $moduleManager);
-                } else {
-                    $moduleActions->updateModule($moduleInfo, $moduleManager);
-                }
-
-                $moduleManager->refreshModules();
-
-                if ($moduleInfo->status !== ModuleManager::ACTIVE) {
-                    $moduleActions->activateModule($moduleInfo, $moduleManager);
-                }
-            } else {
-                throw new Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
-            }
-        } catch (Exception $e) {
-            throw new Exception(__('admin-marketplace.messages.install_failed') . ': ' . $e->getMessage());
-        }
-
         return [
             'success' => true,
             'message' => __('admin-marketplace.messages.install_success'),
+            'moduleFolder' => $moduleFolder,
+            'backupDir' => $this->backupDir
         ];
     }
 
@@ -393,6 +373,32 @@ class ModuleInstallerService
         return [
             'success' => true,
             'message' => __('admin-marketplace.messages.installation_complete'),
+        ];
+    }
+
+    /**
+     * Откатить установку модуля
+     * 
+     * @param string $moduleFolder
+     * @param string|null $backupDir
+     * @return array
+     */
+    public function rollbackInstallation(string $moduleFolder, ?string $backupDir = null): array
+    {
+        $destination = $this->modulesDir . '/' . $moduleFolder;
+
+        if (is_dir($destination)) {
+            $this->removeDirectory($destination);
+        }
+
+        if ($backupDir && is_dir($backupDir)) {
+            $this->copyDirectory($backupDir, $destination);
+            $this->removeDirectory($backupDir);
+        }
+
+        return [
+            'success' => true,
+            'message' => __('admin-marketplace.messages.rollback_success')
         ];
     }
 

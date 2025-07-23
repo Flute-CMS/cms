@@ -14,7 +14,7 @@
     padding: 5px;
     gap: 3px;
     min-width: 170px;
-    animation: animDropdownOut 0.2s cubic-bezier(0.5, 0, 0.15, 1) forwards;
+    animation: animDropdownOut 0.12s cubic-bezier(0.5, 0, 0.15, 1) forwards;
     display: none;
     overflow: hidden;
     box-shadow: var(--shadow-small);
@@ -29,7 +29,7 @@
         @include transition(all);
         opacity: 0;
         transform: translateX(-4px);
-        animation: animDropdownItems 0.3s ease forwards;
+        animation: animDropdownItems 0.2s ease forwards;
         animation-delay: calc(var(--item-index, 0) * 0.03s);
 
         &:hover {
@@ -40,7 +40,7 @@
     &.active {
         opacity: 1;
         visibility: visible;
-        animation: animDropdown 0.25s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: animDropdown 0.15s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         display: flex;
     }
 
@@ -53,7 +53,7 @@
         border-left: 1px solid var(--transp-1);
         transform: rotate(45deg);
         z-index: -1;
-        animation: animArrow 0.2s ease forwards;
+        animation: animArrow 0.15s ease forwards;
         opacity: 0;
     }
 }

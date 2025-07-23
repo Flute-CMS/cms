@@ -78,6 +78,8 @@ return [
         'hcaptcha_site_key' => 'Ключ сайта hCaptcha',
         'hcaptcha_secret_key' => 'Секретный ключ hCaptcha',
         'default_theme' => 'Тема по умолчанию',
+        'default_role' => 'Роль по умолчанию при регистрации',
+        'no_role' => 'Без роли',
     ],
     'options' => [
         'robots' => [
@@ -129,6 +131,7 @@ return [
         'recaptcha_secret_key' => 'Введите секретный ключ reCAPTCHA',
         'hcaptcha_site_key' => 'Введите ключ сайта hCaptcha',
         'hcaptcha_secret_key' => 'Введите секретный ключ hCaptcha',
+        'default_role_placeholder' => 'Без роли',
     ],
     'buttons' => [
         'clear_cache' => 'Очистить кеш',
@@ -231,6 +234,7 @@ return [
         'recaptcha_secret_key' => 'Получите секретный ключ reCAPTCHA на <a target="_blank" href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a>.',
         'hcaptcha_site_key' => 'Получите ключ сайта hCaptcha на <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
         'hcaptcha_secret_key' => 'Получите секретный ключ hCaptcha на <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
+        'default_role' => 'Эта роль будет назначена всем новым зарегистрированным пользователям.',
     ],
     'examples' => [
         'timezone' => 'Пример: Europe/Moscow',
@@ -259,4 +263,5 @@ return [
     'delete' => 'Удалить',
     'confirm_delete_database' => 'Вы уверены, что хотите удалить эту базу данных?',
     'add_database' => 'Добавить базу данных',
+    'default_role' => 'Эта роль будет назначена всем новым зарегистрированным пользователям.',
 ];

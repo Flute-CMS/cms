@@ -148,6 +148,8 @@ class ThemeActions
             return;
         }
 
+        template()->getTemplateAssets()->clearStyleCache();
+
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
     }
 
@@ -166,6 +168,8 @@ class ThemeActions
         if ($event->isPropagationStopped()) {
             return;
         }
+
+        template()->getTemplateAssets()->clearStyleCache();
 
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
         $this->themeManager->installedThemes[] = $themeName;

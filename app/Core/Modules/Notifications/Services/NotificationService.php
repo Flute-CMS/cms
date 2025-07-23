@@ -333,18 +333,20 @@ class NotificationService
      */
     public function countUnread(): int
     {
-        if ($this->cachedUnreadCount !== null) {
-            return $this->cachedUnreadCount;
+        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
+        if (cache()->has($cacheKey)) {
+            return cache()->get($cacheKey);
         }
 
-        $this->cachedUnreadCount = Notification::query()
+        $count = Notification::query()
             ->where([
                 'user_id' => user()->id,
                 'viewed' => false,
             ])
             ->count();
 
-        return $this->cachedUnreadCount;
+        cache()->set($cacheKey, $count, 60);
+        return $count;
     }
 
     /**
@@ -391,6 +393,8 @@ class NotificationService
      */
     protected function invalidateCache(): void
     {
+        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
+        cache()->delete($cacheKey);
         $this->cached = false;
         $this->cachedItems = [];
         $this->unreadCached = false;

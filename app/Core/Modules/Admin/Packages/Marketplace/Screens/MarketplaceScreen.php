@@ -325,25 +325,55 @@ class MarketplaceScreen extends Screen
                 $module['name'] = $moduleInfo['name'];
             }
 
-            // Шаг 4: Установка модуля
-            $moduleInstaller->installModule($module);
+            // Шаг 4: Копирование файлов модуля
+            $installResult = $moduleInstaller->installModule($module);
 
             // Шаг 5: Обновление зависимостей Composer
-            $moduleInstaller->updateComposerDependencies();
+            try {
+                $moduleInstaller->updateComposerDependencies();
+            } catch (\Exception $e) {
+                $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+                throw $e;
+            }
+
+            // Шаг 6: Установка/обновление модуля в системе
+            $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
+            $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
+
+            $moduleManager->refreshModules();
+
+            $moduleKey = $installResult['moduleFolder'];
+
+            if ($moduleManager->issetModule($moduleKey)) {
+                $moduleInfo = $moduleManager->getModule($moduleKey);
+
+                if ($moduleInfo->status === \Flute\Core\ModulesManager\ModuleManager::NOTINSTALLED) {
+                    $moduleActions->installModule($moduleInfo, $moduleManager);
+                } else {
+                    $moduleActions->updateModule($moduleInfo, $moduleManager);
+                }
+
+                $moduleManager->refreshModules();
+
+                if ($moduleInfo->status !== \Flute\Core\ModulesManager\ModuleManager::ACTIVE) {
+                    $moduleActions->activateModule($moduleInfo, $moduleManager);
+                }
+            } else {
+                throw new \Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
+            }
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
 
             $this->loadModules();
 
-            // Шаг 6: Завершение установки
-            $moduleInstaller->finishInstallation();
-
-            $this->moduleManager->clearCache();
-            $this->moduleManager->refreshModules();
-            $this->loadModules();
         } catch (\Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
+        } finally {
+            $moduleInstaller->finishInstallation();
+            $this->moduleManager->clearCache();
+            $this->moduleManager->refreshModules();
+            $this->loadModules();
         }
 
         $this->isLoading = false;

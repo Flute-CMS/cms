@@ -91,6 +91,7 @@ class MainSettingsPackageService
                 'recaptcha_secret_key' => 'auth.captcha.recaptcha.secret_key',
                 'hcaptcha_site_key' => 'auth.captcha.hcaptcha.site_key',
                 'hcaptcha_secret_key' => 'auth.captcha.hcaptcha.secret_key',
+                'default_role' => 'auth.default_role',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'mail.smtp',
@@ -217,6 +218,7 @@ class MainSettingsPackageService
                 'recaptcha_secret_key',
                 'hcaptcha_site_key',
                 'hcaptcha_secret_key',
+                'default_role',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp',
@@ -299,6 +301,7 @@ class MainSettingsPackageService
                 'recaptcha_secret_key' => 'nullable|string',
                 'hcaptcha_site_key' => 'nullable|string',
                 'hcaptcha_secret_key' => 'nullable|string',
+                'default_role' => 'nullable',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'boolean',

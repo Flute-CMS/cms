@@ -174,7 +174,7 @@ class PageManager
                     ? view('flute::partials.invalid-widget', [
                         'block' => $widget,
                         'exception' => $e->getMessage()
-                    ])
+                    ])->render()
                     : '';
             }
         }
@@ -286,9 +286,56 @@ class PageManager
                 ? view('flute::partials.invalid-widget', [
                     'block' => $widgetDb,
                     'exception' => $e->getMessage()
-                ])
+                ])->render()
                 : null;
         }
+    }
+
+    protected function safeRenderBlock(PageBlock $block): ?string
+    {
+        try {
+            $settings = json_decode($block->getSettings(), true) ?? [];
+            return $this->widgetManager->getWidget($block->getWidget())->render($settings);
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage(), ['exception' => $e]);
+            return $this->hasAccessToEdit()
+                ? view('flute::partials.invalid-widget', [
+                    'block' => $block,
+                    'exception' => $e->getMessage()
+                ])->render()
+                : null;
+        }
+    }
+
+    public function renderAllWidgets(): string
+    {
+        if (!$this->currentPage || $this->disabled) {
+            return '';
+        }
+
+        $content = '';
+
+        foreach ($this->currentPage->getBlocks() as $block) {
+            $gridstack = json_decode($block->gridstack, true) ?? [];
+
+            $style = sprintf(
+                'grid-column: %d / span %d; grid-row: %d / span %d;',
+                ($gridstack['x'] ?? 0) + 1,
+                ($gridstack['w'] ?? 1),
+                ($gridstack['y'] ?? 0) + 1,
+                ($gridstack['h'] ?? 1)
+            );
+
+            $widgetContent = $this->safeRenderBlock($block);
+
+            if ($widgetContent !== null && $widgetContent !== '') {
+                $content .= '<section data-widget-id="' . $block->getId() . '" data-widget-name="' . $block->getWidget() . '" style="' . $style . '">';
+                $content .= $widgetContent;
+                $content .= '</section>';
+            }
+        }
+
+        return $content;
     }
 
     /**

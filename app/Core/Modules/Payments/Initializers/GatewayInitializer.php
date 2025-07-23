@@ -106,7 +106,9 @@ class GatewayInitializer
     {
         events()->dispatch(new RegisterPaymentFactoriesEvent(), RegisterPaymentFactoriesEvent::NAME);
 
-        $gatewayEntities = PaymentGatewayEntity::findAll(['enabled' => true]);
+        $gatewayEntities = is_performance() ? cache()->callback('payment_gateways_enabled', function() {
+            return PaymentGatewayEntity::findAll(['enabled' => true]);
+        }, 3600) : PaymentGatewayEntity::findAll(['enabled' => true]);
 
         foreach ($gatewayEntities as $gatewayEntity) {
             try {

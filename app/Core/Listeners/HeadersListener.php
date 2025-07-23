@@ -22,15 +22,18 @@ class HeadersListener
         $response->headers->set('Is-Logged-In', user()->isLoggedIn() ? 'true' : 'false');
         $response->headers->set('Auth-Token', md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')));
 
-
         if (request()->getMethod() === 'HEAD') {
             $response->headers->set('Cache-Control', 'no-cache');
         }
 
-        if (is_performance()) {
+        if (request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted()) {
+            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+        } elseif (is_performance()) {
             $response->setCache([
-                'public' => true,
-                'max_age' => 900,
+                'public'   => true,
+                'max_age'  => 900,
                 's_maxage' => 1800,
             ]);
         }

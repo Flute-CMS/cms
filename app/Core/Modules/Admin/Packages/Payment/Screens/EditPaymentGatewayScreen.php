@@ -15,6 +15,7 @@ use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Core\Support\FileUploader;
+use League\Glide\Manipulators\Filter;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class EditPaymentGatewayScreen extends Screen
@@ -98,13 +99,14 @@ class EditPaymentGatewayScreen extends Screen
             ];
         }
 
+        
         $currencyCheckboxes = [];
         foreach ($currencies as $currency) {
             $isChecked = $this->gateway ? $currency->hasPayment($this->gateway) : false;
             $currencyCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("currencies.{$currency->id}")
                     ->label($currency->code)
-                    ->value($isChecked)
+                    ->checked(filter_var(request()->input("currencies_{$currency->id}", $isChecked), FILTER_VALIDATE_BOOLEAN))
             );
         }
 

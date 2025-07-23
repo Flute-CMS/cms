@@ -33,7 +33,6 @@ class ThemeManager
     protected bool $isInitializing = false;
     protected bool $colorsInitialized = false;
 
-    protected const C_KEY_ALL = "flute.themes.all";
     protected const C_KEY_GET = "flute.themes.get";
     public const DEFAULT_THEME = 'standard';
 
@@ -56,7 +55,7 @@ class ThemeManager
      *
      * @return void
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         if ($this->initialized) {
             return;
@@ -80,7 +79,7 @@ class ThemeManager
      * @return array
      * @throws RuntimeException
      */
-    public function getThemeSettings(string $themeName) : array
+    public function getThemeSettings(string $themeName): array
     {
         $this->initialize();
 
@@ -93,7 +92,7 @@ class ThemeManager
      * @return Theme
      * @throws RuntimeException
      */
-    public function getThemeInfo() : Theme
+    public function getThemeInfo(): Theme
     {
         $this->initialize();
 
@@ -105,7 +104,7 @@ class ThemeManager
      *
      * @return string
      */
-    public function getCurrentTheme() : string
+    public function getCurrentTheme(): string
     {
         $this->initialize();
 
@@ -121,7 +120,7 @@ class ThemeManager
      *
      * @return Collection
      */
-    public function getInstalledThemes() : Collection
+    public function getInstalledThemes(): Collection
     {
         $this->initialize();
 
@@ -133,12 +132,9 @@ class ThemeManager
      *
      * @return array
      */
-    public function getAllThemes() : array
+    public function getAllThemes(): array
     {
         if (empty($this->allThemes)) {
-            // $this->allThemes = cache()->callback(self::C_KEY_ALL, function () {
-            //     return (array) Theme::query()->load('settings')->fetchAll();
-            // }, self::CACHE_TIME);
             $this->allThemes = Theme::query()->load('settings')->fetchAll();
         }
 
@@ -151,7 +147,7 @@ class ThemeManager
      * @param string $themeName
      * @throws RuntimeException
      */
-    public function checkTheme(string $themeName) : void
+    public function checkTheme(string $themeName): void
     {
         $theme = $this->getTheme($themeName);
         if ($theme->status !== self::ACTIVE) {
@@ -165,7 +161,7 @@ class ThemeManager
      * @param string $themeKey
      * @return void
      */
-    public function setTheme(string $themeKey) : void
+    public function setTheme(string $themeKey): void
     {
         $this->currentTheme = $themeKey;
 
@@ -180,7 +176,7 @@ class ThemeManager
      * @param string $themeName
      * @return array|null
      */
-    public function getThemeData(string $themeName) : ?array
+    public function getThemeData(string $themeName): ?array
     {
         if (isset($this->themesData[$themeName])) {
             return $this->themesData[$themeName];
@@ -194,7 +190,7 @@ class ThemeManager
      *
      * @return void
      */
-    public function loadAllThemesJson() : void
+    public function loadAllThemesJson(): void
     {
         $themeDirs = array_filter(glob("{$this->themesPath}/*", GLOB_ONLYDIR), function ($dir) {
             return basename($dir) !== '.disabled';
@@ -212,7 +208,7 @@ class ThemeManager
      * @param string $themeName
      * @return array|null
      */
-    public function loadThemeJson(string $themeName) : ?array
+    public function loadThemeJson(string $themeName): ?array
     {
         $themeJsonPath = "{$this->themesPath}/{$themeName}/theme.json";
 
@@ -237,7 +233,7 @@ class ThemeManager
      *
      * @return void
      */
-    protected function syncThemesWithDatabase() : void
+    protected function syncThemesWithDatabase(): void
     {
         $this->loadAllThemesJson();
 
@@ -321,7 +317,7 @@ class ThemeManager
      * @return Theme
      * @throws RuntimeException
      */
-    public function getTheme(string $themeName) : Theme
+    public function getTheme(string $themeName): Theme
     {
         if (isset($this->allThemesKeys[$themeName])) {
             return $this->allThemesKeys[$themeName];
@@ -345,7 +341,7 @@ class ThemeManager
      *
      * @return void
      */
-    public function reInitThemes() : void
+    public function reInitThemes(): void
     {
         $this->themesData = [];
         $this->loadAllThemesJson();
@@ -356,7 +352,7 @@ class ThemeManager
      *
      * @return array
      */
-    protected function getAssocThemes() : array
+    protected function getAssocThemes(): array
     {
         $themes = Theme::query()->load('settings')->fetchAll();
         return array_reduce($themes, function ($carry, Theme $theme) {
@@ -370,7 +366,7 @@ class ThemeManager
      *
      * @return void
      */
-    public function fallbackToDefaultTheme() : void
+    public function fallbackToDefaultTheme(): void
     {
         if (!isset($this->currentTheme) || $this->currentTheme !== self::DEFAULT_THEME) {
             logs('templates')->warning('The theme was switched to "standard" to prevent interface errors. You need to change the theme manually!');
@@ -384,7 +380,7 @@ class ThemeManager
         }
     }
 
-    public function loadColors(bool $force = false) : void
+    public function loadColors(bool $force = false): void
     {
         if ($this->colorsInitialized && !$force)
             return;
@@ -401,7 +397,7 @@ class ThemeManager
         $this->colorsInitialized = true;
     }
 
-    public function getColors(?string $mode = null) : array
+    public function getColors(?string $mode = null): array
     {
         $this->loadColors();
 

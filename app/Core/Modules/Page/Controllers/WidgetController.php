@@ -187,6 +187,68 @@ class WidgetController extends BaseController
         }
     }
 
+    /**
+     * Renders multiple widgets based on their names and settings.
+     *
+     * @param FluteRequest $fluteRequest The incoming request containing widgets data.
+     */
+    public function renderWidgets(FluteRequest $fluteRequest)
+    {
+        $rules = [
+            'widgets' => 'required|array',
+            'widgets.*.widget_name' => 'required|string',
+            'widgets.*.settings' => 'nullable',
+        ];
+
+        if (! $this->validator->validate($fluteRequest->input(), $rules)) {
+            return $this->handleValidationError();
+        }
+
+        $widgetsData = $fluteRequest->input('widgets', []);
+        $results = [];
+
+        foreach ($widgetsData as $index => $widgetData) {
+            try {
+                $widgetName = $widgetData['widget_name'] ?? '';
+                $widget = $this->widgetManager->getWidget($widgetName);
+                $settings = $this->resolveWidgetSettings($widget, $widgetData['settings'] ?? null);
+                $html = $widget->render($settings);
+
+                $results[] = [
+                    'html' => $html,
+                    'settings' => $settings,
+                    'hasSettings' => $widget->hasSettings()
+                ];
+            } catch (InvalidArgumentException $e) {
+                logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
+
+                $errorHtml = is_debug() ? 
+                    '<div class="widget-error">Widget not found: ' . htmlspecialchars($e->getMessage()) . '</div>' :
+                    '<div class="widget-error">Widget not found</div>';
+
+                $results[] = [
+                    'html' => $errorHtml,
+                    'settings' => [],
+                    'hasSettings' => false
+                ];
+            } catch (Exception $e) {
+                logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
+
+                $errorHtml = is_debug() ? 
+                    '<div class="widget-error">Error: ' . htmlspecialchars($e->getMessage()) . '</div>' :
+                    '<div class="widget-error">Failed to render widget. Please try again later.</div>';
+
+                $results[] = [
+                    'html' => $errorHtml,
+                    'settings' => [],
+                    'hasSettings' => false
+                ];
+            }
+        }
+
+        return $this->json($results);
+    }
+
     private function handleValidationError()
     {
         $errors = collect($this->validator->getErrors()->getMessages());
@@ -198,13 +260,11 @@ class WidgetController extends BaseController
         ], 422);
     }
 
-    private function resolveWidgetSettings(WidgetInterface $widget, FluteRequest $request) : array
+    private function resolveWidgetSettings(WidgetInterface $widget, $requestSettings): array
     {
         if (! $widget->hasSettings()) {
             return [];
         }
-
-        $requestSettings = $request->input('settings');
 
         // If settings is null or empty string, return default settings
         if ($requestSettings === null || $requestSettings === '') {
@@ -414,5 +474,40 @@ class WidgetController extends BaseController
                 'trace' => $e->getTraceAsString()
             ] : null
         ], 500);
+    }
+
+    /**
+     * Get available buttons for multiple widgets.
+     *
+     * @param FluteRequest $request The incoming request.
+     */
+    public function getButtonsBatch(FluteRequest $request)
+    {
+        $rules = [
+            'widget_names' => 'required|array',
+            'widget_names.*' => 'required|string',
+        ];
+
+        if (! $this->validator->validate($request->input(), $rules)) {
+            return $this->handleValidationError();
+        }
+
+        $widgetNames = $request->input('widget_names', []);
+        $results = [];
+
+        foreach ($widgetNames as $widgetName) {
+            try {
+                $widget = $this->widgetManager->getWidget($widgetName);
+                $buttons = $widget->getButtons();
+                $results[$widgetName] = $buttons ?: [];
+            } catch (InvalidArgumentException $e) {
+                $results[$widgetName] = [];
+            } catch (Exception $e) {
+                logs('modules')->error("Failed to get buttons for widget {$widgetName}: ".$e->getMessage());
+                $results[$widgetName] = [];
+            }
+        }
+
+        return $this->json($results);
     }
 }

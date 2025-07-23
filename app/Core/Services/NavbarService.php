@@ -30,9 +30,7 @@ class NavbarService
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
         $this->cachedNavbarItems = $this->performance
-            ? cache()->callback($cacheKey, function () {
-                return $this->getDefaultNavbarItems();
-            }, self::CACHE_TIME)
+            ? cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), self::CACHE_TIME)
             : $this->getDefaultNavbarItems();
     }
 
@@ -73,52 +71,31 @@ class NavbarService
      */
     protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
     {
-        $navbarItems = NavbarItem::query()
-            ->load(['roles', 'children', 'children.roles'])
+        $allItems = NavbarItem::query()
+            ->load(['roles', 'parent', 'children', 'children.roles'])
             ->orderBy('position', 'asc')
-            ->where([
-                'parent_id' => null,
-            ])->fetchAll();
+            ->fetchAll();
 
-        $formattedItems = [];
+        $tree = $this->buildTree($allItems, null, $ignoreAuth);
 
-        foreach ($navbarItems as $item) {
-            if ($this->hasAccess($item, $ignoreAuth)) {
-                $formattedItem = $this->format->format($item);
-                $formattedItem['children'] = $this->formatChildren($item->children, $ignoreAuth);
-                $formattedItems[] = $formattedItem;
-            }
-        }
-
-        return $formattedItems;
+        return $tree;
     }
 
-    /**
-     * Format children items without additional database queries
-     *
-     * @param array $children Children items already loaded
-     * @param bool $ignoreAuth Ignore auth rules
-     *
-     * @return array
-     */
-    protected function formatChildren(array $children, bool $ignoreAuth = false): array
+    protected function buildTree(array $items, ?int $parentId = null, bool $ignoreAuth = false): array
     {
-        $formattedChildren = [];
+        $tree = [];
 
-        foreach ($children as $child) {
-            if ($this->hasAccess($child, $ignoreAuth)) {
-                $formattedChild = $this->format->format($child);
-                // Recursively format children's children if they exist
-                if (!empty($child->children)) {
-                    $formattedChild['children'] = $this->formatChildren($child->children, $ignoreAuth);
-                } else {
-                    $formattedChild['children'] = [];
-                }
-                $formattedChildren[] = $formattedChild;
+        foreach ($items as $item) {
+            if (($parentId === null) === ($item->parent === null) && ($parentId === null || ($item->parent && $item->parent->id === $parentId)) && ($ignoreAuth || $this->hasAccess($item))) {
+                $formatted = $this->format->format($item);
+                $formatted['children'] = $this->buildTree($items, $item->id, $ignoreAuth);
+                $tree[] = $formatted;
             }
         }
 
-        return $formattedChildren;
+        usort($tree, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+
+        return $tree;
     }
 
     /**

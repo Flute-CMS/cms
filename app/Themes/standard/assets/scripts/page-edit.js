@@ -1396,14 +1396,44 @@ class PageEditor {
         }
     }
 
+    async loadButtonsBatch(widgetNames) {
+        const uniqueNames = [...new Set(widgetNames)];
+        const missingNames = uniqueNames.filter(name => !this.widgetButtonsCache[name]);
+
+        if (missingNames.length === 0) {
+            return;
+        }
+
+        try {
+            const res = await fetch(u('api/pages/widgets/buttons-batch'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: JSON.stringify({ widget_names: missingNames })
+            });
+
+            if (!res.ok) {
+                throw new Error(`Failed to load batch buttons: ${res.status}`);
+            }
+
+            const batchButtons = await res.json();
+            Object.entries(batchButtons).forEach(([name, buttons]) => {
+                this.widgetButtonsCache[name] = buttons;
+            });
+        } catch (err) {
+            this.logError('loadButtonsBatch', err);
+        }
+    }
+
     loadLayoutJson(data) {
         if (!this.grid || !Array.isArray(data)) return;
 
         try {
             this.grid.removeAll();
             const filtered = data;
-            const promises = [];
-
+            const widgetElements = [];
             const hasContentWidget = filtered.some(item => item.widgetName === 'Content');
 
             filtered.forEach((nd, idx) => {
@@ -1424,20 +1454,111 @@ class PageEditor {
                     if (nd.widgetName === 'Content') div.setAttribute('gs-no-move', 'true');
                     const content = document.createElement('div');
                     content.classList.add('grid-stack-item-content');
+                    content.innerHTML = this.createSkeleton();
+                    content.style.pointerEvents = 'none';
                     div.appendChild(content);
-                    this.grid.makeWidget(div);
-                    promises.push(new Promise(res => { setTimeout(() => { this.initializeWidget(div, content); res(); }, Math.min(idx * 100, 500)); }));
-                } catch (err) { this.logError('widget load', err); }
+                    const widgetEl = this.grid.makeWidget(div);
+                    widgetElements.push({
+                        el: widgetEl,
+                        widgetName: nd.widgetName,
+                        settings: nd.settings || {}
+                    });
+                } catch (err) { 
+                    this.logError('widget creation', err); 
+                }
             });
 
-            if (!hasContentWidget && this.getCurrentPath() !== '/') {
-                setTimeout(() => {
-                    this.addContentWidget();
-                }, 600);
-            }
+            if (widgetElements.length > 0) {
+                const requestData = widgetElements.map(w => ({
+                    widget_name: w.widgetName,
+                    settings: w.settings
+                }));
 
-            Promise.all(promises).then(() => { });
-        } catch (err) { this.logError('loadLayoutJson', err); }
+                fetch(u('api/pages/render-widgets'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({ widgets: requestData })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`Failed to batch render widgets: ${res.status}`);
+                    return res.json();
+                })
+                .then(async results => {
+                    // First, batch load buttons
+                    const widgetNames = widgetElements.map(w => w.widgetName);
+                    await this.loadButtonsBatch(widgetNames);
+
+                    results.forEach((result, idx) => {
+                        const {el} = widgetElements[idx];
+                        if (!el || !document.contains(el)) return;
+
+                        const content = el.querySelector('.grid-stack-item-content');
+                        if (content) {
+                            content.style.opacity = '0';
+                            content.innerHTML = result.html || '<div class="widget-error">Error loading widget</div>';
+                            el.dataset.widgetSettings = JSON.stringify(result.settings || {});
+                            el.setAttribute('data-has-settings', result.hasSettings ? 'true' : 'false');
+
+                            setTimeout(() => {
+                                content.style.transition = `opacity ${this.animationDuration / 2}ms ease-in-out`;
+                                content.style.opacity = '1';
+                                content.style.pointerEvents = 'auto';
+                                setTimeout(() => {
+                                    content.style.transition = '';
+                                }, this.animationDuration / 2);
+                            }, 50);
+                        }
+
+                        // Use cached buttons
+                        const buttons = this.widgetButtonsCache[widgetElements[idx].widgetName] || [];
+                        this.addToolbar(el, buttons);
+
+                        this.autoResize(el);
+                        this.dispatchWidgetEvent('widgetInitialized', {
+                            widgetName: widgetElements[idx].widgetName,
+                            widgetElement: el,
+                            content: result
+                        });
+
+                        if (this.heightMode === 'auto') {
+                            setTimeout(() => {
+                                this.autoFitSingleWidget(el, true);
+                            }, 100);
+                        }
+                    });
+                })
+                .catch(err => {
+                    this.logError('batch render', err);
+                    widgetElements.forEach(({el}) => {
+                        if (el && document.contains(el)) {
+                            const content = el.querySelector('.grid-stack-item-content');
+                            if (content) {
+                                content.innerHTML = '<div class="widget-error">Failed to load widgets</div>';
+                                content.style.pointerEvents = 'auto';
+                            }
+                        }
+                    });
+                })
+                .finally(() => {
+                    if (!hasContentWidget && this.getCurrentPath() !== '/') {
+                        setTimeout(() => {
+                            this.addContentWidget();
+                        }, 600);
+                    }
+                });
+            } else {
+                if (!hasContentWidget && this.getCurrentPath() !== '/') {
+                    setTimeout(() => {
+                        this.addContentWidget();
+                    }, 600);
+                }
+            }
+        } catch (err) { 
+            this.logError('loadLayoutJson', err); 
+        }
     }
 
     handleGridChange() {
@@ -2099,9 +2220,7 @@ class PageEditor {
         window.currentEditedWidgetEl = widgetEl;
 
         const rightSidebar = document.getElementById('page-edit-dialog');
-        const sidebarContent = document.querySelector(
-            '#page-edit-dialog-content',
-        );
+        const sidebarContent = document.querySelector('#page-edit-dialog-content');
         const saveButton = document.getElementById('widget-settings-save-btn');
 
         if (!rightSidebar || !sidebarContent) {

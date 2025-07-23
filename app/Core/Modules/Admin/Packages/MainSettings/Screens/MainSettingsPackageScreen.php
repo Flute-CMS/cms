@@ -316,7 +316,13 @@ class MainSettingsPackageScreen extends Screen
                                 ->placeholder(__('admin-main-settings.placeholders.remember_me_duration'))
                                 ->value(config('auth.remember_me_duration'))
                         )->label(__('admin-main-settings.labels.remember_me_duration'))->small(__('admin-main-settings.examples.remember_me_duration')),
-                    ])->ratio('40/60'),
+                    ]),
+                    LayoutFactory::field(
+                        Select::make('default_role')
+                            ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
+                            ->placeholder(__('admin-main-settings.placeholders.default_role_placeholder'))
+                            ->value(config('auth.default_role', 0))
+                    )->label(__('admin-main-settings.labels.default_role'))->popover(__('admin-main-settings.popovers.default_role')),
                 ])->title(__('admin-main-settings.blocks.auth_settings'))->addClass('mb-3'),
 
                 LayoutFactory::block([
@@ -847,6 +853,8 @@ class MainSettingsPackageScreen extends Screen
             }
 
             $this->clearOpcache();
+            
+            app(\Flute\Core\Database\DatabaseConnection::class)->forceRefreshSchema();
 
             // if (!$withoutMessage) {
             $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully'));

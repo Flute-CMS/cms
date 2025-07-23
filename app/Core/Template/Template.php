@@ -102,6 +102,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->clearThemeCache();
 
             $this->loadComponents();
+
         } catch (Exception $e) {
             logs('templates')->error("Failed to set theme '{$themeName}': " . $e->getMessage());
             $this->fallbackToDefaultTheme();
@@ -564,11 +565,16 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function runTemplate(string $path, array $variables, array $mergeData = []): View
     {
+        $startRender = microtime(true);
         $path = $this->searchReplacementForInterface($path);
 
         $params = $this->beforeRenderEvent($path, $variables);
 
         $content = $this->blade->make($params->view, $params->variables, $mergeData);
+
+        $elapsed = microtime(true) - $startRender;
+
+        \Flute\Core\Template\TemplateRenderTiming::add($params->view, $elapsed);
 
         return $this->afterRenderEvent($content);
     }

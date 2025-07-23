@@ -11,7 +11,7 @@ use Flute\Core\Modules\Auth\Services\AuthService;
 use Flute\Core\Modules\Auth\Services\SocialService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Events\TemplateInitialized;
-use Flute\Core\Template\Template;
+use Flute\Core\Listeners\DefaultRoleListener;
 
 class AuthServiceProvider extends AbstractServiceProvider
 {
@@ -50,6 +50,8 @@ class AuthServiceProvider extends AbstractServiceProvider
                 $template->registerComponent('reset', PasswordResetComponent::class);
                 $template->registerComponent('reset-token', PasswordResetTokenComponent::class);
             });
+
+            events()->addListener(\Flute\Core\Modules\Auth\Events\UserRegisteredEvent::NAME, [DefaultRoleListener::class, 'handle']);
         }
     }
 }

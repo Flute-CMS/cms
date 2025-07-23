@@ -1,4 +1,4 @@
-@props(['type' => 'primary', 'href'])
+@props(['type' => 'primary', 'href' => null])
 
 @php
     $baseClasses = 'link';

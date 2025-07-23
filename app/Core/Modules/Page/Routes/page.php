@@ -22,6 +22,9 @@ router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], f
     $router->post('render-widget', [WidgetController::class, 'renderWidget'])
         ->name('pages.renderWidget');
 
+    $router->post('render-widgets', [WidgetController::class, 'renderWidgets'])
+        ->name('pages.renderWidgets');
+
     $router->post('widgets/settings-form', [WidgetController::class, 'settingsForm'])
         ->name('pages.widgetSettingsForm');
 
@@ -30,6 +33,9 @@ router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], f
 
     $router->post('widgets/handle-action', [WidgetController::class, 'handleAction'])
         ->name('pages.handleWidgetAction');
+
+    $router->post('widgets/buttons-batch', [WidgetController::class, 'getButtonsBatch'])
+        ->name('pages.getWidgetButtonsBatch');
 
     $router->post('widgets/buttons', [WidgetController::class, 'getButtons'])
         ->name('pages.getWidgetButtons');

@@ -77,6 +77,10 @@
         padding: 20px 25px;
         padding-top: 0;
         overflow-y: auto;
+
+        @include media(pc) {
+            max-width: 50vw;
+        }
     }
 
     &__header {

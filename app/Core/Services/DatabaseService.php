@@ -9,6 +9,8 @@ use Exception;
 
 class DatabaseService
 {
+    public array $cachedConnections;
+
     /**
      * Retrieves server modes based on provided mods.
      *
@@ -97,17 +99,18 @@ class DatabaseService
      */
     private function fetchModes(string|array $criteria) : array
     {
-        $query = DatabaseConnection::query()->with('server');
+        $allConnections = $this->getAllConnections();
+        $result = [];
 
-        if (is_array($criteria)) {
-            foreach ($criteria as $mod) {
-                $query->orWhere('mod', $mod);
+        $mods = is_array($criteria) ? $criteria : [$criteria];
+
+        foreach ($allConnections as $connection) {
+            if (in_array($connection->mod, $mods)) {
+                $result[] = $connection;
             }
-        } else {
-            $query->where('mod', $criteria);
         }
 
-        return $query->fetchAll();
+        return $result;
     }
 
     /**
@@ -196,5 +199,14 @@ class DatabaseService
             ->fetchOne();
 
         return $databaseConnection->server ?? null;
+    }
+
+    private function getAllConnections(): array
+    {
+        if (isset($this->cachedConnections)) {
+            return $this->cachedConnections;
+        }
+
+        return $this->cachedConnections = DatabaseConnection::query()->with('server')->fetchAll();
     }
 }

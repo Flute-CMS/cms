@@ -62,7 +62,8 @@ class DatabaseConnection
         $this->dbal = $this->databaseManager->getDbal();
 
         if (config('database.debug')) {
-            $this->dbal->setLogger(logs('database'));
+            $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
+            $this->dbal->setLogger($timingLogger);
         }
 
         $this->recompileOrmSchema(true);
