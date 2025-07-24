@@ -165,6 +165,10 @@
                         </div>
                     </div>
                 @endif
+
+                @if ($currency && !empty($currencyGateways[$currency]) && $gateway && $amount)
+                    {!! $additionalFields ?? '' !!}
+                @endif
             </form>
         </div>
 
@@ -216,7 +220,7 @@
                                 data-noprogress yoyo aria-describedby="terms-link">
                                 <x-slot:label>
                                     {{ __('lk.agree_terms') }}
-                                    <x-link href="{{ url(config('lk.oferta_url', '/agreenment')) }}" id="terms-link"
+                                    <x-link type="accent" href="{{ url(config('lk.oferta_url', '/agreenment')) }}" id="terms-link"
                                         target="_blank" rel="noopener">
                                         {{ __('lk.terms_of_offer') }}
                                     </x-link>

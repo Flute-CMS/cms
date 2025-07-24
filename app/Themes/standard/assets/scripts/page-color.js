@@ -8,7 +8,8 @@ const defaultValues = {
         '--background': '#1c1c1e',
         '--text': '#f2f2f7',
         '--border1': '1',
-        '--background-type': 'solid'
+        '--background-type': 'solid',
+        '--container-width': 'container'
     },
     'light': {
         '--accent': '#34c759',
@@ -17,7 +18,8 @@ const defaultValues = {
         '--background': '#ffffff',
         '--text': '#1d1d1f',
         '--border1': '1',
-        '--background-type': 'solid'
+        '--background-type': 'solid',
+        '--container-width': 'container'
     }
 };
 
@@ -32,7 +34,8 @@ function parseCurrentThemeColors() {
         '--background': getRootColor('--background'),
         '--text': getRootColor('--text'),
         '--border1': getRootColor('--border1').replace('rem', ''),
-        '--background-type': getCurrentBackgroundType()
+        '--background-type': getCurrentBackgroundType(),
+        '--container-width': getCurrentContainerWidth()
     };
 
     const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
@@ -154,6 +157,14 @@ function getCurrentBackgroundType() {
         }
     }
     return 'solid';
+}
+
+function getCurrentContainerWidth() {
+    const toggle = document.getElementById('container-width-checkbox');
+    if (toggle) {
+        return toggle.checked ? 'fullwidth' : 'container';
+    }
+    return localStorage.getItem('container-width-mode') || 'container';
 }
 
 function setBackgroundType(type) {
@@ -531,7 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBorderPreview();
         }
 
-        // Initialize background type
         const currentBgType = currentColors['--background-type'] || 'solid';
         setBackgroundType(currentBgType);
         updateBackgroundThumbnails();
@@ -1027,15 +1037,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Reset background type
         setBackgroundType('solid');
+
+        const containerToggle = document.getElementById('container-width-checkbox');
+        if (containerToggle) {
+            containerToggle.checked = defaults['--container-width'] === 'fullwidth';
+            const isFullWidth = defaults['--container-width'] === 'fullwidth';
+            if (window.pageEditor && typeof window.pageEditor.applyContainerWidth === 'function') {
+                window.pageEditor.applyContainerWidth(isFullWidth);
+            }
+            localStorage.setItem('container-width-mode', defaults['--container-width']);
+        }
 
         updateAllContrastRatings();
 
         recordHistory();
     }
 
-    // Background type selection
     backgroundOptions.forEach(option => {
         option.addEventListener('click', () => {
             const selectedType = option.getAttribute('data-type');

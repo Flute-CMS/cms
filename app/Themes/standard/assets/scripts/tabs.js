@@ -81,9 +81,6 @@ const TabUtils = {
         targetTab.style.display = '';
 
         this.processNestedTabs(targetTab);
-        if (typeof window.refreshCharts === 'function') {
-            window.refreshCharts(targetTab);
-        }
         
         return targetTab;
     },

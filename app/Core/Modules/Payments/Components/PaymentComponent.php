@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Payments\Components;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;
+use Flute\Core\Modules\Payments\Exceptions\PaymentValidationException;
 use Flute\Core\Support\FluteComponent;
 use Nette\Schema\ValidationException;
 
@@ -112,6 +113,8 @@ class PaymentComponent extends FluteComponent
                 return $this->redirectTo(url("/payment/{$invoice->transactionId}"));
             } catch (PaymentPromoException $e) {
                 $this->inputError('promoCode', $e->getMessage());
+            } catch (PaymentValidationException $e) {
+                $this->inputError($e->getField(), $e->getMessage());
             } catch (ValidationException $e) {
                 foreach ($e->getMessageObjects() as $error) {
                     toast()->error(__($error->code, $error->variables))->push();

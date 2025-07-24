@@ -307,9 +307,6 @@ htmx.on('htmx:afterSwap', function (event) {
             updateUnderline(tabsContainer);
 
             initializeNestedTabs(contentEl);
-            if (typeof window.refreshCharts === 'function') {
-                window.refreshCharts(contentEl);
-            }
 
             contentEl.classList.remove('lazy-content');
         }
@@ -372,9 +369,6 @@ document.addEventListener('click', function (e) {
             targetTab.style.display = '';
 
             initializeNestedTabs(targetTab);
-            if (typeof window.refreshCharts === 'function') {
-                window.refreshCharts(targetTab);
-            }
 
             if (targetTab.classList.contains('lazy-content') && link.hasAttribute('hx-get')) {
                 if (typeof htmx !== 'undefined') {
@@ -382,7 +376,7 @@ document.addEventListener('click', function (e) {
                         if (evt.detail.target === targetTab) {
                             setTimeout(() => {
                                 initializeNestedTabs(targetTab);
-                            }, 50);
+                            }, 100);
                             htmx.off('htmx:afterSwap', handler);
                         }
                     });

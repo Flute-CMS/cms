@@ -4,12 +4,6 @@ var notyf = new Notyf({
     position: { x: 'right', y: 'bottom' },
     dismissible: true,
     ripple: false,
-    types: [
-        { type: 'success', background: 'var(--success-light)' },
-        { type: 'warning', background: 'var(--warning-light)' },
-        { type: 'error', background: 'var(--error-light)' },
-        { type: 'info', background: 'var(--info-light)' },
-    ],
 });
 
 // Handle toast messages from HTMX responses

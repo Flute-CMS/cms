@@ -23,4 +23,5 @@
     "sunset"            => "Sunset",
     "ocean"             => "Ocean",
     "spotlight"         => "Spotlight",
+    "container_width_toggle" => "Container width mode",
 ];

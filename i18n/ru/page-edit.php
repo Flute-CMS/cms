@@ -25,4 +25,5 @@ return [
     "sunset" => "Закат",
     "ocean" => "Океан",
     "spotlight" => "Прожектор",
+    "container_width_toggle" => "Режим ширины контейнера",
 ];

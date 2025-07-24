@@ -40,7 +40,7 @@ class LoginComponent extends FluteComponent
                     toast()->error(__($error->code, $error->variables))->push();
                 }
             } catch (AccountNotVerifiedException $e) {
-                toast()->info(__('auth.account_not_verified'))->withDuration(10000)->push();
+                toast()->error(__('auth.account_not_verified'))->withDuration(10000)->push();
             } catch (UserNotFoundException $e) {
                 toast()->error(__('auth.incorrect_password_or_login'))->push();
             } catch (IncorrectPasswordException $e) {

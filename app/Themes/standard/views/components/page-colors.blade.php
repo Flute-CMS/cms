@@ -29,6 +29,23 @@
                 <div class="background-preview spotlight-preview"></div>
             </div>
         </div>
+        
+        <div class="container-width-toggle" id="container-width-toggle" 
+             data-tooltip="{{ __('page-edit.container_width_toggle') }}">
+            <input type="checkbox" id="container-width-checkbox" class="toggle-input">
+            <label for="container-width-checkbox" class="toggle-label">
+                <div class="toggle-track">
+                    <div class="toggle-thumb">
+                        <div class="toggle-icon toggle-icon-container">
+                            <x-icon path="ph.regular.frame-corners" />
+                        </div>
+                        <div class="toggle-icon toggle-icon-fullwidth">
+                            <x-icon path="ph.regular.arrows-horizontal" />
+                        </div>
+                    </div>
+                </div>
+            </label>
+        </div>
     </div>
 
     <div class="color-picker-blocks">
@@ -93,7 +110,7 @@
             {{ __('page-edit.reset') }}
         </x-button>
         <x-button type="primary" size="medium" id="save-colors-button" hx-post="{{ url('api/pages/save-colors') }}"
-            hx-vals="js:{colors: parseCurrentThemeColors(), theme: document.documentElement.getAttribute('data-theme')}"
+            hx-vals="js:{colors: parseCurrentThemeColors(), theme: document.documentElement.getAttribute('data-theme'), containerWidth: getContainerWidthMode()}"
             hx-swap="none">
             <x-icon path="ph.regular.check-circle" />
             {{ __('def.save') }}

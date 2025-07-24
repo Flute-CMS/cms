@@ -5,42 +5,67 @@
 }
 
 .navbar {
-    @extend .blur-bg;
-
     position: inherit;
-    background-color: var(--blurred-background);
-    padding: 15px 0px;
+    background-color: var(--background);
+    padding: 15px 0;
     border-bottom: 1px solid var(--transp-1);
-    margin-bottom: 2.2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-medium);
 
     &__content {
-        @extend .flex-between;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
         &-logo {
             @extend .flex-center, .gap-4;
+
+            img {
+                max-height: 40px;
+            }
         }
     }
 
-    // Navbar items
+    &__left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    &__separator {
+        width: 1px;
+        height: 26px;
+        background-color: var(--transp-2);
+    }
+
     &__items {
         @extend .flex-center;
 
-        gap: 5px;
+        gap: 10px;
 
         &-item {
             @extend .flex-row, .align-center;
 
             position: relative;
-            font-size: calc(var(--p) / 1.1);
+            font-size: var(--p-small);
             gap: 10px;
-            border-radius: 25px;
-            padding: 0.3rem 1rem;
-            height: 3em;
+            border-radius: 0;
+            padding: 0 0.5rem;
+            height: auto;
             @include transition(all);
             line-height: 1.3;
+            color: var(--text-200);
 
-            svg {
+            p {
+                font-size: inherit;
+            }
+
+            &-icon {
                 font-size: var(--h5)
+            }
+
+            &-icon-dropdown {
+                font-size: var(--h6);
             }
 
             &-content {
@@ -62,23 +87,12 @@
                 @include transition(all);
             }
 
-            &:not(.dropdown-item) {
-                opacity: .7;
-                @include transition(all);
-            }
-
             &.dropdown-item {
                 p {
                     @extend .flex-row, .align-center;
 
-                    opacity: .7;
-                    @include transition(all);
                     cursor: pointer;
                     gap: inherit;
-
-                    &:hover {
-                        opacity: 1;
-                    }
                 }
             }
 
@@ -94,8 +108,9 @@
 
             &:hover,
             &.active {
-                background-color: var(--transp-1);
-                opacity: .9;
+                background: none;
+                opacity: 1;
+                color: var(--accent);
 
                 .navbar__items-item-description {
                     opacity: 1;
@@ -138,7 +153,7 @@
         }
 
         &-login {
-            font-size: calc(var(--p) / 1.1);
+            font-size: var(--p-small);
         }
     }
 
@@ -179,7 +194,7 @@
         svg {
             width: 1.5em;
             height: 1.5em;
-            color: var(--text-500);
+            color: var(--text-300);
             @include transition(all);
         }
 
@@ -187,19 +202,11 @@
             position: absolute;
             top: 2px;
             right: 2px;
-            font-size: var(--small);
+            width: 8px;
+            height: 8px;
             background-color: rgb(248, 86, 86);
             border-radius: 50%;
-            padding: 3px 6px;
-            line-height: 1;
-            color: var(--text);
-            font-weight: bold;
             display: none;
-            border-radius: 50%;
-
-            &:has(*) {
-                display: inline-block;
-            }
         }
 
         &:hover {
@@ -210,13 +217,13 @@
     }
 
     &__socials {
-        @extend .flex-center, .gap-3;
+        @extend .flex-center;
+        gap: 15px;
 
         a {
             @extend .flex-center;
             font-size: var(--h4);
             color: var(--text-500);
-            @include transition(all);
 
             &:hover {
                 color: var(--text);
@@ -310,7 +317,7 @@
         button {
             @extend .d-flex;
 
-            color: var(--text-500);
+            color: var(--text-300);
             font-size: var(--h4);
         }
 

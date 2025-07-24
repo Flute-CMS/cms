@@ -11,21 +11,36 @@ tr {
 .table {
     vertical-align: top;
     width: 100%;
-    // Set table space 0
     border-spacing: 0;
 
     thead {
         vertical-align: bottom;
+        position: relative;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 1rem;
+            right: 1rem;
+            bottom: 0;
+            background-color: var(--transp-05);
+            border: 1px solid var(--transp-1);
+            border-radius: var(--border05);
+            box-shadow: var(--shadow-small);
+            z-index: -1;
+        }
 
         tr {
+
             th {
                 border-top: 0;
-                color: var(--text-400);
+                color: var(--text-200);
                 font-size: var(--p-small);
-                font-weight: 500;
+                font-weight: 600;
                 vertical-align: baseline;
-                border-bottom: 1px solid var(--transp-1);
                 padding: .75em 1em;
+                position: relative;
                 @include transition();
 
                 .table-th {
@@ -36,7 +51,7 @@ tr {
                 }
 
                 &:first-child {
-                    padding-left: 1.5rem;
+                    padding-left: 2rem;
                 }
 
                 &.sortable {
@@ -56,6 +71,12 @@ tr {
 
     tbody {
         vertical-align: inherit;
+
+        &::before {
+            content: '';
+            height: .5rem;
+            display: block;
+        }
 
         tr {
             td {
@@ -93,11 +114,14 @@ tr {
         &-item {
             @extend .flex-center;
 
-            width: 40px;
-            height: 40px;
-            color: var(--text-200);
+            width: 38px;
+            height: 38px;
+            color: var(--text-400);
             border-radius: var(--border05);
+            font-weight: 500;
+            font-size: var(--p-small);
             line-height: 1.4;
+            border: 1px solid var(--transp-3);
             @include transition();
 
             button,
@@ -108,7 +132,7 @@ tr {
                 height: 100%;
                 width: 100%;
                 color: inherit;
-                font-size: var(--p);
+                font-size: var(--p-small);
 
                 &.link-icon {
                     font-size: var(--h5);
@@ -117,12 +141,12 @@ tr {
 
             &:not(.disabled) {
                 &:hover {
-                    background-color: var(--transp-1);
-                    color: var(--text-100);
+                    background-color: var(--transp-2);
+                    color: var(--text);
                 }
 
                 &.active {
-                    color: var(--text-900);
+                    color: var(--accent-900);
                     background-color: var(--accent);
                 }
             }
@@ -142,8 +166,9 @@ tr {
         @extend .d-flex, .flex-row, .align-center, .flex-between;
 
         border-top: 1px solid var(--transp-1);
-        padding: .8rem 1rem;
-        padding-left: 1.5rem;
+        padding: 1rem 1.2rem;
+        padding-left: 1rem;
+        background-color: var(--transp-05);
 
         @include media(mobile) {
             @extend .gap-3;

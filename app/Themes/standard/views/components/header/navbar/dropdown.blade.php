@@ -3,7 +3,7 @@
 <div class="navbar__items-item dropdown-item @if (!$item['icon']) without-icon @endif">
     <p data-dropdown-open="__dropdown_{{ $item['id'] }}">
         @if ($item['icon'])
-            <x-icon path="{{ $item['icon'] }}" />
+            <x-icon class="navbar__items-item-icon" path="{{ $item['icon'] }}" />
         @endif
         @if (!empty($item['description']))
             <div class="navbar__items-item-content">
@@ -13,7 +13,7 @@
         @else
             {{ __($item['title']) }}
         @endif
-        <x-icon path="ph.bold.caret-down-bold" />
+        <x-icon class="navbar__items-item-icon-dropdown" path="ph.bold.caret-down-bold" />
     </p>
     @if (count($item['children']) > 0)
         <div class="navbar__dropdown" data-dropdown="__dropdown_{{ $item['id'] }}" hx-boost="true" hx-target="#main"
@@ -22,7 +22,7 @@
                 <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" @endif
                     itemprop="url" @if (!empty($child['description'])) class="navbar__dropdown-item-with-description" @endif>
                     @if ($child['icon'])
-                        <x-icon path="{{ $child['icon'] }}" />
+                        <x-icon class="navbar__items-item-icon" path="{{ $child['icon'] }}" />
                     @endif
                     @if (!empty($child['description']))
                         <div class="navbar__dropdown-item-content">

@@ -99,6 +99,7 @@ class CurrencyListScreen extends Screen
         foreach ($paymentGateways as $pg) {
             $paymentGatewayCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("payment_gateways.{$pg->id}")
+                    ->popover($pg->adapter)
                     ->label($pg->name)
             );
         }
@@ -218,7 +219,7 @@ class CurrencyListScreen extends Screen
             $paymentGatewayCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("payment_gateways.{$pg->id}")
                     ->label($pg->name)
-                    ->popover($pg->name)
+                    ->popover($pg->adapter)
                     ->value($isChecked)
             );
         }

@@ -35,6 +35,7 @@ class ColorController extends BaseController
     {
         $colors = Json::decode($fluteRequest->input('colors', '{}'), true);
         $theme = $fluteRequest->input('theme', 'dark');
+        $containerWidth = $fluteRequest->input('containerWidth', 'container');
 
         $rules = [
             '--accent' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
@@ -44,10 +45,11 @@ class ColorController extends BaseController
             '--text' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--border1' => 'required|numeric|min:0.25|max:4',
             '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
-            'theme' => 'required|string|in:dark,light'
+            'theme' => 'required|string|in:dark,light',
+            'containerWidth' => 'sometimes|string|in:container,fullwidth'
         ];
 
-        $data = array_merge($colors, ['theme' => $theme]);
+        $data = array_merge($colors, ['theme' => $theme, 'containerWidth' => $containerWidth]);
 
         if (!$this->validator->validate($data, $rules)) {
             $errors = collect($this->validator->getErrors()->getMessages());
@@ -69,6 +71,9 @@ class ColorController extends BaseController
             if (!isset($colors['--background-type'])) {
                 $colors['--background-type'] = 'solid';
             }
+
+            // Add container width to colors array
+            $colors['--container-width'] = $containerWidth;
 
             $currentTheme = app('flute.view.manager')->getCurrentTheme();
             $this->themeActions->updateThemeColors($currentTheme, $colors, $theme);

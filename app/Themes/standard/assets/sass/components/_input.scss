@@ -6,7 +6,7 @@
     }
 
     &__prefix {
-        @extend .text-muted;
+        @extend .text-muted, .flex-center;
 
         font-size: var(--h5);
         line-height: 1;

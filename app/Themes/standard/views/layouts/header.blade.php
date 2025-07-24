@@ -5,17 +5,20 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="navbar__content">
-                        <div class="navbar__content-logo">
-                            <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
-                                aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                <img src="{{ asset(config('app.logo')) }}" loading="lazy" alt="{{ config('app.name') }}"
-                                    itemprop="logo">
-                            </a>
-                            <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
-                                aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" loading="lazy"
-                                    alt="{{ config('app.name') }}" itemprop="logo">
-                            </a>
+                        <div class="navbar__left">
+                            <div class="navbar__content-logo">
+                                <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
+                                    aria-label="{{ config('app.name') }} - Home" itemprop="url">
+                                    <img src="{{ asset(config('app.logo')) }}" loading="lazy"
+                                        alt="{{ config('app.name') }}" itemprop="logo">
+                                </a>
+                                <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
+                                    aria-label="{{ config('app.name') }} - Home" itemprop="url">
+                                    <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" loading="lazy"
+                                        alt="{{ config('app.name') }}" itemprop="logo">
+                                </a>
+                            </div>
+                            <div class="navbar__separator"></div>
                             @if (!user()->device()->isMobile())
                                 <x-header.socials />
                             @endif
@@ -25,19 +28,20 @@
                             @if (isset($sections['navbar-logo']))
                                 {!! $sections['navbar-logo'] !!}
                             @endif
-                        </div>
+                            <div class="navbar__separator"></div>
 
-                        @if (!user()->device()->isMobile())
-                            <div class="navbar__items" role="navigation" aria-label="Main navigation">
-                                @foreach (navbar()->all() as $item)
-                                    @if (count($item['children']) === 0)
-                                        <x-header.navbar.link :item="$item" />
-                                    @else
-                                        <x-header.navbar.dropdown :item="$item" />
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endif
+                            @if (!user()->device()->isMobile())
+                                <div class="navbar__items" role="navigation" aria-label="Main navigation">
+                                    @foreach (navbar()->all() as $item)
+                                        @if (count($item['children']) === 0)
+                                            <x-header.navbar.link :item="$item" />
+                                        @else
+                                            <x-header.navbar.dropdown :item="$item" />
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
 
                         @auth
                             <ul class="navbar__actions" aria-label="User actions">
@@ -51,7 +55,7 @@
                                         {!! $sections['navbar-actions'] !!}
                                     @endif
                                 @endif
-
+                                <div class="navbar__separator"></div>
                                 <x-header.profile />
                                 <x-header.theme-switcher />
                             </ul>
@@ -116,6 +120,7 @@
                                         @endif
                                     </li>
                                 @endif
+                                <div class="navbar__separator"></div>
                                 <x-header.theme-switcher />
                             </ul>
                         @endauth

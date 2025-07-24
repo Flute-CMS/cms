@@ -5,12 +5,10 @@
             hx-swap="none" @endif
     @if ($notification->url) onclick="location.href='{{ url($notification->url) }}'" @endif>
     <div class="notification-icon">
-        @if (str_starts_with($notification->icon, 'http://') ||
-                str_starts_with($notification->icon, 'https://') ||
-                str_starts_with($notification->icon, 'assets/'))
+        @if (str_starts_with($notification->icon, 'http://') || str_starts_with($notification->icon, 'https://'))
             <img src="{{ url($notification->icon) }}" alt="{{ __($notification->title) }}" loading="lazy">
         @else
-            <x-icon path="{{ $notification->icon }}" />
+            <x-icon path="{{ $notification->icon ?? 'ph.regular.bell' }}" class="icon" />
         @endif
     </div>
     <div class="notification-content">
@@ -27,7 +25,11 @@
 
         {{-- FOR NOW, SUPPORTS ONLY TEXT --}}
         @if ($notification->type == 'text')
-            <p class="notification-text">{!! markdown()->parse($notification->content) !!}</p>
+            @if (!empty($notification->content))
+                <div class="notification-text">
+                    {!! markdown()->parse($notification->content) !!}
+                </div>
+            @endif
         @endif
     </div>
 </li>

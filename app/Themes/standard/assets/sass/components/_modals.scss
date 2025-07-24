@@ -73,15 +73,15 @@
         padding: 0px 25px 20px 25px;
         
         > * {
-            animation: mmfadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-            animation-delay: 0.2s;
+            animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: 0.1s;
             
             &:nth-child(2) {
-                animation-delay: 0.25s;
+                animation-delay: 0.1s;
             }
             
             &:nth-child(3) {
-                animation-delay: 0.3s;
+                animation-delay: 0.1s;
             }
         }
     }
@@ -119,7 +119,7 @@
 
         width: 100%;
         padding: 25px 25px 0px 25px;
-        animation: mmfadeDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: mmfadeDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 
         &-withoutHeading {
             align-self: flex-end;
@@ -134,15 +134,16 @@
         height: 40px;
         color: var(--text-400);
         @include transition(all);
-        border-radius: 30px;
+        border-radius: var(--border05);
         cursor: pointer;
         margin-left: auto;
         flex-shrink: 0;
         position: relative;
         overflow: hidden;
+        border: 1px solid var(--transp-1);
 
         &:hover {
-            background-color: var(--transp-1);
+            background-color: var(--transp-2);
             color: var(--text);
         }
 
@@ -179,7 +180,7 @@
     &__content {
         padding: 10px 25px 25px 25px;
         width: 100%;
-        animation: mmfadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
         animation-delay: 0.1s;
 
         @include media(mobile) {
@@ -309,11 +310,11 @@
 
 @keyframes mmslideIn {
     from {
-        transform: scale(0.98) translateY(10px);
+        transform: scale(0.98);
         opacity: 0;
     }
     to {
-        transform: scale(1) translateY(0);
+        transform: scale(1);
         opacity: 1;
     }
 }
@@ -324,7 +325,7 @@
         opacity: 1;
     }
     to {
-        transform: scale(0.98) translateY(10px);
+        transform: scale(0.98);
         opacity: 0;
     }
 }
@@ -341,10 +342,8 @@
 @keyframes mmfadeDown {
     from {
         opacity: 0;
-        transform: translateY(-5px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }

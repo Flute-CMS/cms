@@ -45,12 +45,12 @@
 
             a {
                 cursor: pointer;
-                padding: 10px 25px;
+                padding: 10px 20px;
                 text-decoration: none;
                 color: var(--text-400);
                 display: flex;
                 align-items: center;
-                font-size: var(--p);
+                font-size: var(--p-small);
                 gap: 8px;
                 @include transition(all);
                 will-change: color;

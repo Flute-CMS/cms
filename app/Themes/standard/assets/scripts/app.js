@@ -11,12 +11,6 @@ class FluteApp {
             position: { x: 'right', y: 'top' },
             dismissible: true,
             ripple: false,
-            types: [
-                { type: 'success', background: 'var(--success-light)' },
-                { type: 'warning', background: 'var(--warning-light)' },
-                { type: 'error', background: 'var(--error-light)' },
-                { type: 'info', background: 'var(--info-light)' },
-            ],
         });
 
         this.notifications = new NotificationManager(this.notyf);
@@ -125,10 +119,12 @@ class FluteApp {
         // Scroll to top and handle navbar on page change
         htmx.on('htmx:afterSwap', (event) => {
             if (event.detail.target.tagName.toLowerCase() === 'main') {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth',
-                });
+                setTimeout(() => {  
+					window.scrollTo({
+						top: 0,
+						behavior: 'smooth',
+					});
+				}, 20);
 
                 const navbarItems = document.querySelectorAll('.navbar__items-item');
                 navbarItems.forEach((item) => item.classList.remove('active'));
@@ -161,6 +157,11 @@ class FluteApp {
         });
 
         htmx.on('htmx:historyRestore', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+
             const navbarItems = document.querySelectorAll('.navbar__items-item');
             navbarItems.forEach((item) => item.classList.remove('active'));
 

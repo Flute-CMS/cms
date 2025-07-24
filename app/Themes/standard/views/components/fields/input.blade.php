@@ -19,7 +19,7 @@
 <div class="input-wrapper">
     <div @class(['input__field-container', 'input__field-container-readonly' => $readOnly, 'has-error' => $hasError])>
         @if ($prefix)
-            <span class="input__prefix">{{ $prefix }}</span>
+            <span class="input__prefix">{!! $prefix !!}</span>
         @endif
 
         @if ($type === 'file' && $filePond)

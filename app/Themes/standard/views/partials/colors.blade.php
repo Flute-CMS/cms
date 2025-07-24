@@ -123,3 +123,48 @@
         @endisset
     </style>
 @endif
+
+@php
+    $containerWidth = null;
+    if (!empty($colors['dark']['--container-width'])) {
+        $containerWidth = $colors['dark']['--container-width'];
+    } elseif (!empty($colors['light']['--container-width'])) {
+        $containerWidth = $colors['light']['--container-width'];
+    }
+@endphp
+
+@if($containerWidth === 'fullwidth')
+    <style>
+        .container:not(.keep-container) {
+            max-width: none !important;
+            width: 100% !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+    </style>
+    <script>
+        document.documentElement.setAttribute('data-container-width', 'fullwidth');
+        if (typeof window !== 'undefined') {
+            window.addEventListener('DOMContentLoaded', function() {
+                const toggle = document.getElementById('container-width-checkbox');
+                if (toggle) {
+                    toggle.checked = true;
+                    localStorage.setItem('container-width-mode', 'fullwidth');
+                }
+            });
+        }
+    </script>
+@else
+    <script>
+        document.documentElement.setAttribute('data-container-width', 'container');
+        if (typeof window !== 'undefined') {
+            window.addEventListener('DOMContentLoaded', function() {
+                const toggle = document.getElementById('container-width-checkbox');
+                if (toggle) {
+                    toggle.checked = false;
+                    localStorage.setItem('container-width-mode', 'container');
+                }
+            });
+        }
+    </script>
+@endif

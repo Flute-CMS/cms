@@ -61,4 +61,5 @@ return [
     "verification_token_already_exists" => "You have already requested a verification email. Please try again in 24 hours.",
     "captcha_required"          => "Please complete the captcha verification",
     "captcha_invalid"           => "Captcha verification failed. Please try again",
+    "account_not_verified" => "Account is not verified",
 ];

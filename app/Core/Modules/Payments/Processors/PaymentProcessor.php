@@ -16,6 +16,7 @@ use Flute\Core\Modules\Payments\Events\PaymentFailedEvent;
 use Flute\Core\Modules\Payments\Events\PaymentSuccessEvent;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;
+use Flute\Core\Modules\Payments\Events\BeforeInvoiceCreatedEvent;
 use Nette\Utils\Random;
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
@@ -66,10 +67,20 @@ class PaymentProcessor
 
         $this->dispatcher->dispatch(new BeforePaymentEvent($amount, $promo), BeforePaymentEvent::NAME);
 
+        $event = $this->dispatcher->dispatch(new BeforeInvoiceCreatedEvent($gatewayName, $amount, $promo, $currencyCode, request()->input()), BeforeInvoiceCreatedEvent::NAME);
+
+        $amount = $event->getAmount();
+        $promo = $event->getPromo();
+        $currencyCode = $event->getCurrencyCode();
+
         $invoiceAmount = $amount;
         $user = user()->getCurrentUser();
 
         $invoice = new PaymentInvoice;
+
+        if (!empty($event->getAdditionalData())) {
+            $invoice->additional = json_encode($event->getAdditionalData());
+        }
 
         if (!empty($currencyCode)) {
             $currency = $this->getCurrency($gateway, $invoice, $currencyCode);
@@ -393,6 +404,13 @@ class PaymentProcessor
 
         if (method_exists($gateway, 'getTestMode')) {
             $paymentData['testMode'] = $gateway->getTestMode();
+        }
+
+        if(isset($paymentData['keys'])) {
+            foreach($paymentData['keys'] as $key => $value) {
+                $paymentData[$key] = $value;
+            }
+            unset($paymentData['keys']);
         }
 
         $event = $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData), BeforeGatewayProcessingEvent::NAME);

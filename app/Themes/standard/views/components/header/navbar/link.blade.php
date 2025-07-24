@@ -4,7 +4,7 @@
     class="navbar__items-item {{ active($item['url']) }} @if(! $item['icon']) without-icon @endif" itemprop="url"
     {{-- Я думал разумным оставить здесь `preload`, но мне показалось что он делает только хуже. --}}>
     @if ($item['icon'])
-        <x-icon path="{{ $item['icon'] }}" />
+        <x-icon class="navbar__items-item-icon" path="{{ $item['icon'] }}" />
     @endif
     @if (!empty($item['description']))
         <div class="navbar__items-item-content">

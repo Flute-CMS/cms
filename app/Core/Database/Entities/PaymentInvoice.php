@@ -45,6 +45,9 @@ class PaymentInvoice extends ActiveRecord
     #[Column(type: "boolean", default: false)]
     public bool $isPaid;
 
+    #[Column(type: "json", nullable: true)]
+    public ?string $additional = null;
+
     #[Column(type: "datetime", nullable: true)]
     public ?\DateTimeImmutable $paidAt = null;
 
@@ -53,4 +56,14 @@ class PaymentInvoice extends ActiveRecord
 
     #[Column(type: "datetime", nullable: true)]
     public ?\DateTimeImmutable $updatedAt = null;
+
+    public function getAdditional(): array
+    {
+        return json_decode($this->additional ?? '[]', true) ?? [];
+    }
+
+    public function setAdditional(array $additional): void
+    {
+        $this->additional = json_encode($additional);
+    }
 }

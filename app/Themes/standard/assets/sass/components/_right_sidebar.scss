@@ -45,9 +45,10 @@
     }
 
     &__container {
-        @extend .blur-bg, .flex-between;
+        @extend .flex-between;
 
-        background-color: var(--blurred-background);
+        border: 1px solid var(--transp-1);
+        background-color: var(--background);
         flex-direction: column;
         overflow: hidden auto;
         box-sizing: border-box;
@@ -104,14 +105,15 @@
         height: 40px;
         color: var(--text-400);
         @include transition(all);
-        border-radius: 30px;
+        border-radius: var(--border05);
         cursor: pointer;
         line-height: 1;
         flex-shrink: 0;
+        border: 1px solid var(--transp-1);
 
         &:hover,
         &:focus {
-            background-color: var(--transp-1);
+            background-color: var(--transp-2);
             color: var(--text);
             outline: none;
         }
@@ -191,9 +193,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .right_sidebar__overlay,
     .right_sidebar__container {
         animation: none !important;
         transition: none !important;
     }
-} 
+}

@@ -83,52 +83,52 @@ class FluteChart
         $this->sparkline = json_encode(['enabled' => false]);
     }
 
-    public function pieChart() : PieChart
+    public function pieChart(): PieChart
     {
         return new PieChart();
     }
 
-    public function donutChart() : DonutChart
+    public function donutChart(): DonutChart
     {
         return new DonutChart();
     }
 
-    public function radialChart() : RadialChart
+    public function radialChart(): RadialChart
     {
         return new RadialChart();
     }
 
-    public function polarAreaChart() : PolarAreaChart
+    public function polarAreaChart(): PolarAreaChart
     {
         return new PolarAreaChart();
     }
 
-    public function lineChart() : LineChart
+    public function lineChart(): LineChart
     {
         return new LineChart();
     }
 
-    public function areaChart() : AreaChart
+    public function areaChart(): AreaChart
     {
         return new AreaChart();
     }
 
-    public function barChart() : BarChart
+    public function barChart(): BarChart
     {
         return new BarChart();
     }
 
-    public function horizontalBarChart() : HorizontalBar
+    public function horizontalBarChart(): HorizontalBar
     {
         return new HorizontalBar();
     }
 
-    public function heatMapChart() : HeatMapChart
+    public function heatMapChart(): HeatMapChart
     {
         return new HeatMapChart();
     }
 
-    public function radarChart() : RadarChart
+    public function radarChart(): RadarChart
     {
         return new RadarChart();
     }
@@ -145,86 +145,86 @@ class FluteChart
      * @param ?string $type
      * @return $this
      */
-    public function setType($type = null) : FluteChart
+    public function setType($type = null): FluteChart
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setBackground(string $background) : FluteChart
+    public function setBackground(string $background): FluteChart
     {
         $this->background = $background;
         return $this;
     }
 
-    public function setFontFamily($fontFamily) : FluteChart
+    public function setFontFamily($fontFamily): FluteChart
     {
         $this->fontFamily = $fontFamily;
         return $this;
     }
 
-    public function setFontColor($fontColor) : FluteChart
+    public function setFontColor($fontColor): FluteChart
     {
         $this->foreColor = $fontColor;
         return $this;
     }
 
-    public function setDataset(array $dataset) : FluteChart
+    public function setDataset(array $dataset): FluteChart
     {
         $this->dataset = json_encode($dataset);
         return $this;
     }
 
-    public function setHeight(int $height) : FluteChart
+    public function setHeight(int $height): FluteChart
     {
         $this->height = $height;
         return $this;
     }
 
-    public function setWidth($width) : FluteChart
+    public function setWidth($width): FluteChart
     {
         $this->width = $width;
         return $this;
     }
 
-    public function setColors(array $colors) : FluteChart
+    public function setColors(array $colors): FluteChart
     {
         $this->colors = json_encode($colors);
         return $this;
     }
 
-    public function setHorizontal(bool $horizontal) : FluteChart
+    public function setHorizontal(bool $horizontal): FluteChart
     {
         $this->horizontal = json_encode(['horizontal' => $horizontal]);
         return $this;
     }
 
-    public function setTitle(string $title) : FluteChart
+    public function setTitle(string $title): FluteChart
     {
         $this->title = $title;
         return $this;
     }
 
-    public function setSubtitle(string $subtitle, string $position = 'left') : FluteChart
+    public function setSubtitle(string $subtitle, string $position = 'left'): FluteChart
     {
         $this->subtitle = $subtitle;
         $this->subtitlePosition = $position;
         return $this;
     }
 
-    public function setLabels(array $labels) : FluteChart
+    public function setLabels(array $labels): FluteChart
     {
         $this->labels = $labels;
         return $this;
     }
 
-    public function setXAxis(array $categories) : FluteChart
+    public function setXAxis(array $categories): FluteChart
     {
         $this->xAxis = json_encode($categories);
         return $this;
     }
 
-    public function setGrid($color = '#e5e5e5', $opacity = 0.1) : FluteChart
+    public function setGrid($color = '#e5e5e5', $opacity = 0.1): FluteChart
     {
         $this->grid = json_encode([
             'show' => true,
@@ -237,7 +237,7 @@ class FluteChart
         return $this;
     }
 
-    public function setMarkers($colors = [], $width = 4, $hoverSize = 7) : FluteChart
+    public function setMarkers($colors = [], $width = 4, $hoverSize = 7): FluteChart
     {
         if (empty($colors)) {
             $colors = [
@@ -270,7 +270,7 @@ class FluteChart
         return $this;
     }
 
-    public function setStroke(int $width, array $colors = [], string $curve = 'straight') : FluteChart
+    public function setStroke(int $width, array $colors = [], string $curve = 'straight'): FluteChart
     {
         if (empty($colors)) {
             $colors = [
@@ -299,38 +299,38 @@ class FluteChart
         return $this;
     }
 
-    public function setToolbar(bool $show, bool $zoom = true) : FluteChart
+    public function setToolbar(bool $show, bool $zoom = true): FluteChart
     {
         $this->toolbar = json_encode(['show' => $show]);
         $this->zoom = json_encode(['enabled' => $zoom ? $zoom : false]);
         return $this;
     }
 
-    public function setDataLabels(bool $enabled = true) : FluteChart
+    public function setDataLabels(bool $enabled = true): FluteChart
     {
         $this->dataLabels = json_encode(['enabled' => $enabled]);
         return $this;
     }
 
-    public function setTheme(string $theme) : FluteChart
+    public function setTheme(string $theme): FluteChart
     {
         $this->theme = $theme;
         return $this;
     }
 
-    public function setSparkline(bool $enabled = true) : FluteChart
+    public function setSparkline(bool $enabled = true): FluteChart
     {
         $this->sparkline = json_encode(['enabled' => $enabled]);
         return $this;
     }
 
-    public function setStacked(bool $stacked = true) : FluteChart
+    public function setStacked(bool $stacked = true): FluteChart
     {
         $this->stacked = $stacked;
         return $this;
     }
 
-    public function setShowLegend(bool $showLegend = true) : self
+    public function setShowLegend(bool $showLegend = true): self
     {
         $this->showLegend = $showLegend;
         return $this;
@@ -352,7 +352,12 @@ class FluteChart
 
     public function container()
     {
-        return render('Core/Charts/Views/container', ['id' => $this->id(), 'height' => $this->height, 'width' => $this->width]);
+        return render('Core/Charts/Views/container', [
+            'id' => $this->id(),
+            'height' => $this->height,
+            'width' => $this->width,
+            'chart' => $this,
+        ]);
     }
 
     public function script()
@@ -360,7 +365,7 @@ class FluteChart
         return render('Core/Charts/Views/script', ['chart' => $this]);
     }
 
-    public function cdn() : string
+    public function cdn(): string
     {
         if (self::$cdnLoaded)
             return "";
@@ -385,57 +390,57 @@ class FluteChart
         return $this->background;
     }
 
-    public function id() : string
+    public function id(): string
     {
         return $this->id;
     }
 
-    public function title() : string
+    public function title(): string
     {
         return $this->title;
     }
 
-    public function subtitle() : string
+    public function subtitle(): string
     {
         return $this->subtitle;
     }
 
-    public function subtitlePosition() : string
+    public function subtitlePosition(): string
     {
         return $this->subtitlePosition;
     }
 
-    public function type() : string
+    public function type(): string
     {
         return $this->type;
     }
 
-    public function fontFamily() : string
+    public function fontFamily(): string
     {
         return $this->fontFamily;
     }
 
-    public function foreColor() : string
+    public function foreColor(): string
     {
         return $this->foreColor;
     }
 
-    public function labels() : array
+    public function labels(): array
     {
         return $this->labels;
     }
 
-    public function dataset() : string
+    public function dataset(): string
     {
         return $this->dataset;
     }
 
-    public function height() : int
+    public function height(): int
     {
         return $this->height;
     }
 
-    public function width() : string
+    public function width(): string
     {
         return $this->width;
     }
@@ -450,7 +455,7 @@ class FluteChart
         return $this->horizontal;
     }
 
-    public function xAxis() : string
+    public function xAxis(): string
     {
         return $this->xAxis;
     }
@@ -465,7 +470,7 @@ class FluteChart
         return $this->markers;
     }
 
-    public function stroke() : string
+    public function stroke(): string
     {
         return $this->stroke;
     }
@@ -495,12 +500,12 @@ class FluteChart
         return $this->theme;
     }
 
-    public function stacked() : bool
+    public function stacked(): bool
     {
         return $this->stacked;
     }
 
-    public function showLegend() : string
+    public function showLegend(): string
     {
         return $this->showLegend ? 'true' : 'false';
     }
@@ -563,5 +568,75 @@ class FluteChart
             'id' => $this->id(),
             'options' => $options,
         ]);
+    }
+
+    public function getChartOptions(): array
+    {
+        $options = [
+            'theme' => [
+                'mode' => $this->theme()
+            ],
+            'chart' => [
+                'type' => $this->type(),
+                'height' => $this->height(),
+                'width' => $this->width(),
+                'toolbar' => json_decode($this->toolbar(), true),
+                'zoom' => json_decode($this->zoom(), true),
+                'sparkline' => json_decode($this->sparkline(), true),
+                'background' => $this->background(),
+            ],
+            'plotOptions' => [
+                'bar' => json_decode($this->horizontal(), true)
+            ],
+            'colors' => json_decode($this->colors(), true),
+            'series' => json_decode($this->dataset(), true),
+            'dataLabels' => json_decode($this->dataLabels(), true),
+            'title' => [
+                'text' => $this->title(),
+                'offsetX' => 20,
+                'style' => [
+                    'fontSize' => '24px',
+                    'fontWeight' => '600',
+                    'cssClass' => 'apexcharts-yaxis-title'
+                ],
+            ],
+            'subtitle' => [
+                'text' => $this->subtitle(),
+                'align' => $this->subtitlePosition(),
+                'offsetX' => 20,
+                'style' => [
+                    'fontSize' => '14px',
+                    'cssClass' => 'apexcharts-yaxis-title'
+                ]
+            ],
+            'xaxis' => [
+                'categories' => json_decode($this->xAxis(), true)
+            ],
+            'grid' => json_decode($this->grid(), true),
+            'markers' => json_decode($this->markers(), true),
+            'legend' => [
+                'show' => $this->showLegend()
+            ],
+        ];
+
+        if ($this->labels()) {
+            $options['labels'] = $this->labels();
+        }
+
+        if ($this->type() === 'pie') {
+            $options['stroke'] = [
+                'show' => false,
+            ];
+        }
+
+        if ($this->stroke()) {
+            $options['stroke'] = json_decode($this->stroke(), true);
+        }
+
+        if ($this->stacked()) {
+            $options['chart']['stacked'] = $this->stacked();
+        }
+
+        return $options;
     }
 }
