@@ -28,6 +28,7 @@ return [
             "display_type" => "Koʻrsatish turi",
             "display_text" => "Matn (ismlar)",
             "display_avatar" => "Avatarlar",
+            "display_compact" => "Ixcham",
             "max_display" => "Maksimal soni",
         ],
         "empty" => [
@@ -52,4 +53,10 @@ return [
         "description" => "Shablonlardan asosiy sahifa kontenti",
         "no_content" => "Kontent mavjud emas",
     ],
+
+    // BattlePass widgets
+    "UserStatsWidget" => "BattlePass Statistikasi",
+    "TopPlayersWidget" => "BattlePass Eng Yaxshi Oʻyinchilari",
+    "LevelProgressWidget" => "BattlePass Daraja Jarayoni",
+    "MissionsWidget" => "BattlePass Missiyalari",
 ];
