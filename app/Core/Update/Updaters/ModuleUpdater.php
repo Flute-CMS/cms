@@ -349,11 +349,19 @@ class ModuleUpdater extends AbstractUpdater
 
             if (is_dir($sourcePath)) {
                 if (!is_dir($destinationPath)) {
-                    mkdir($destinationPath, 0755, true);
+                    $dirPerms = fileperms($sourcePath) & 0777;
+                    mkdir($destinationPath, $dirPerms, true);
+                    chmod($destinationPath, $dirPerms);
+                    @chown($destinationPath, fileowner($sourcePath));
+                    @chgrp($destinationPath, filegroup($sourcePath));
                 }
                 $this->copyModuleFiles($sourcePath, $destinationPath);
             } else {
                 copy($sourcePath, $destinationPath);
+                $filePerms = fileperms($sourcePath) & 0777;
+                chmod($destinationPath, $filePerms);
+                @chown($destinationPath, fileowner($sourcePath));
+                @chgrp($destinationPath, filegroup($sourcePath));
             }
         }
 
@@ -370,11 +378,22 @@ class ModuleUpdater extends AbstractUpdater
      */
     protected function copyDirectory(string $source, string $destination): bool
     {
+        if (!is_dir($source)) {
+            return false;
+        }
+
         if (!is_dir($destination)) {
-            mkdir($destination, 0755, true);
+            $dirPerms = fileperms($source) & 0777;
+            mkdir($destination, $dirPerms, true);
+            chmod($destination, $dirPerms);
+            @chown($destination, fileowner($source));
+            @chgrp($destination, filegroup($source));
         }
 
         $directory = opendir($source);
+        if ($directory === false) {
+            return false;
+        }
 
         while (($file = readdir($directory)) !== false) {
             if ($file === '.' || $file === '..') {
@@ -388,6 +407,10 @@ class ModuleUpdater extends AbstractUpdater
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
                 copy($sourcePath, $destinationPath);
+                $filePerms = fileperms($sourcePath) & 0777;
+                chmod($destinationPath, $filePerms);
+                @chown($destinationPath, fileowner($sourcePath));
+                @chgrp($destinationPath, filegroup($sourcePath));
             }
         }
 
