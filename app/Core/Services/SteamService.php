@@ -24,6 +24,7 @@ class SteamService
      * These IDs are requested in one batch in the shutdown function.
      */
     protected static array $collectedSteamIds = [];
+    protected static array $requestCache = [];
 
     public function __construct(string $apiKey, CacheManager $cache)
     {
@@ -159,6 +160,11 @@ class SteamService
                 $normalizedId = $this->normalizeSteamId($steamId);
                 $steamIdMap[$normalizedId] = $steamId;
 
+                if (isset(self::$requestCache[$steamId])) {
+                    $result[$steamId] = self::$requestCache[$steamId];
+                    continue;
+                }
+
                 $cached = cache()->get("steam_user_{$normalizedId}");
                 if ($cached !== null) {
                     $result[$steamId] = $cached;
@@ -199,7 +205,7 @@ class SteamService
                             cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
 
                             $originalId = $steamIdMap[$normalizedId] ?? $steamId64;
-                            $result[$originalId] = $userInfo;
+                            self::$requestCache[$originalId] = $userInfo;
                             unset($uncachedIds[$normalizedId]);
                         }
                     }

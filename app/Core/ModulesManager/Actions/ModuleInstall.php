@@ -37,8 +37,6 @@ class ModuleInstall implements ModuleActionInterface
 
         $this->checkModuleDependencies($moduleGet);
 
-        $this->moduleManager->runComposerInstall($module);
-
         $directory = sprintf('app/Modules/%s/database/migrations', $module->key);
 
         if (fs()->exists(BASE_PATH . $directory)) {
@@ -70,6 +68,8 @@ class ModuleInstall implements ModuleActionInterface
 
         $this->initDb($module);
         $this->e($module);
+
+        $this->moduleManager->runComposerInstall($module);
 
         return true;
     }
