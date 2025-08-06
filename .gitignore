@@ -18,3 +18,4 @@
 .dev
 colors.json
 .kiro
+storage/app/orm_schema.php

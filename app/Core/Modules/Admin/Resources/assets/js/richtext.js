@@ -72,6 +72,9 @@ class FluteRichTextEditor {
             maxHeight: `${height * 2}px`,
             toolbar: toolbarOptions,
             theme: currentTheme,
+            renderingConfig: {
+                singleLineBreaks: true,
+            },
             placeholder:
                 textarea.getAttribute('placeholder') ||
                 'Write your content here...',
@@ -491,6 +494,9 @@ class FluteRichTextEditor {
                         maxHeight: `${height * 2}px`,
                         toolbar: toolbarOptions,
                         theme: currentTheme,
+                        renderingConfig: {
+                            singleLineBreaks: true,
+                        },
                         placeholder:
                             textarea.getAttribute('placeholder') ||
                             'Write your content here...',

@@ -264,6 +264,7 @@
         background-color: var(--background);
         border-left: 1px solid var(--transp-1);
         color: var(--text);
+        white-space: pre-wrap;
 
         pre {
             background-color: var(--transp-1);

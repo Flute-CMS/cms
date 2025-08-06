@@ -11,6 +11,7 @@ use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Modules\Auth\Contracts\SocialServiceInterface;
 use Flute\Core\Modules\Auth\Events\SocialProviderAddedEvent;
+use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 use Flute\Core\Modules\Auth\Hybrid\Storage\StorageSession;
 use Hybridauth\Hybridauth;
 use Hybridauth\User\Profile;
@@ -386,6 +387,8 @@ class SocialService implements SocialServiceInterface
         $userSocialNetwork->linkedAt = new \DateTimeImmutable();
 
         transaction([$user, $userSocialNetwork])->run();
+
+        events()->dispatch(new UserRegisteredEvent($user));
 
         if ($socialNetwork->key === "Discord") {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);

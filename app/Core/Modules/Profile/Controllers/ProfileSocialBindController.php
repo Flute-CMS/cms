@@ -145,7 +145,8 @@ class ProfileSocialBindController extends BaseController
      */
     protected function socialError(string $error): Response
     {
-        return response()->make("<script>window.opener.postMessage('authorization_error:' + '$error', '*');window.close();</script>");
+        $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
     }
 
     /**
@@ -155,6 +156,7 @@ class ProfileSocialBindController extends BaseController
      */
     protected function socialSuccess(): Response
     {
-        return response()->make("<script>window.opener.postMessage('authorization_success', '*');window.close();</script>");
+        $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
     }
 }

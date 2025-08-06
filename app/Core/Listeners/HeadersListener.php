@@ -37,5 +37,8 @@ class HeadersListener
                 's_maxage' => 1800,
             ]);
         }
+
+        $varyHeaders = array_unique(array_merge($response->getVary(), ['HX-Request', 'HX-Boosted']));
+        $response->setVary($varyHeaders, false);
     }
 }

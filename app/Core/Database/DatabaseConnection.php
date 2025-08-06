@@ -30,8 +30,8 @@ class DatabaseConnection
 
     public const CACHE_KEY = 'database.schema';
     protected const ENTITIES_DIR = BASE_PATH . 'app/Core/Database/Entities';
+    protected const SCHEMA_FILE = BASE_PATH . 'storage/app/orm_schema.php';
     protected array $entitiesDirs = [];
-    protected const CACHE_TIME = 99999999; // cache forever
     protected bool $schemaNeedsUpdate = false;
 
     /**
@@ -221,52 +221,67 @@ class DatabaseConnection
      */
     public function recompileOrmSchema(bool $cache = false): void
     {
-        if(!isset($this->dbal)) {
-            $this->connect();
-        }
+        $lockFile = BASE_PATH . 'storage/app/cache/orm_schema.lock';
+        $lockHandle = fopen($lockFile, 'w+');
+        if (flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            try {
+                if(!isset($this->dbal)) {
+                    $this->connect();
+                }
 
-        if ($cache && cache()->has(self::CACHE_KEY)) {
-            $ormSchema = cache(self::CACHE_KEY);
-            $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+                if ($cache && file_exists(self::SCHEMA_FILE)) {
+                    $schemaArray = include self::SCHEMA_FILE;
+                    $ormSchema = new \Cycle\ORM\Schema($schemaArray);
+                    $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
 
-            $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
-            $this->ormIntoContainer();
+                    $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
+                    $this->ormIntoContainer();
+                    return;
+                }
+
+                $validDirs = [];
+
+                foreach ($this->entitiesDirs as $dir) {
+                    if (file_exists($dir) && is_dir($dir)) {
+                        $validDirs[] = $dir;
+                    } else {
+                        logs()->debug("Skipping non-existent entity directory: {$dir}");
+                    }
+                }
+
+                $this->entitiesDirs = $validDirs;
+
+                $classLocator = $this->getClassLocator();
+
+                $schemaArray = $this->compileSchema($classLocator);
+
+                $ormSchema = new \Cycle\ORM\Schema($schemaArray);
+
+                $content = '<?php return ' . var_export($schemaArray, true) . ';';
+                file_put_contents(self::SCHEMA_FILE, $content);
+
+                $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+
+                $this->orm = new ORM(
+                    factory: new \Cycle\ORM\Factory($this->dbal),
+                    schema: $ormSchema,
+                    commandGenerator: $commandGenerator
+                );
+
+                $this->ormIntoContainer();
+
+                $this->runMigrations(path('storage/migrations'));
+
+                $this->schemaNeedsUpdate = false;
+            } finally {
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+                @unlink($lockFile);
+            }
+        } else {
+            logs()->debug("Cannot acquire lock for ORM schema update");
             return;
         }
-
-        $validDirs = [];
-
-        foreach ($this->entitiesDirs as $dir) {
-            if (file_exists($dir) && is_dir($dir)) {
-                $validDirs[] = $dir;
-            } else {
-                logs()->debug("Skipping non-existent entity directory: {$dir}");
-            }
-        }
-
-        $this->entitiesDirs = $validDirs;
-
-        $classLocator = $this->getClassLocator();
-
-        $schemaArray = $this->compileSchema($classLocator);
-
-        $ormSchema = new \Cycle\ORM\Schema($schemaArray);
-
-        cache()->set(self::CACHE_KEY, $ormSchema, self::CACHE_TIME);
-
-        $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
-
-        $this->orm = new ORM(
-            factory: new \Cycle\ORM\Factory($this->dbal),
-            schema: $ormSchema,
-            commandGenerator: $commandGenerator
-        );
-
-        $this->ormIntoContainer();
-
-        $this->runMigrations(path('storage/migrations'));
-
-        $this->schemaNeedsUpdate = false;
     }
 
     /**
@@ -349,7 +364,9 @@ class DatabaseConnection
     {
         logs()->info("Force refreshing ORM schema");
 
-        cache()->delete(self::CACHE_KEY);
+        if (file_exists(self::SCHEMA_FILE)) {
+            unlink(self::SCHEMA_FILE);
+        }
 
         $this->entitiesDirs = [self::ENTITIES_DIR];
 

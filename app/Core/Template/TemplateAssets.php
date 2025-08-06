@@ -718,7 +718,11 @@ class TemplateAssets
             // Performance issue with autoprefixer in debug mode
             if (!is_debug()) {
                 $autoprefixer = new Autoprefixer($content);
-                $content = $autoprefixer->compile();
+                try {
+                    $content = $autoprefixer->compile();
+                } catch (\Throwable $e) {
+                    logs()->error("Autoprefixer failed: " . $e->getMessage());
+                }
             }
 
             $minifier = new Minify\CSS();

@@ -70,6 +70,13 @@ class ModuleInstallerService
     protected ?string $backupDir = null;
 
     /**
+     * Директория установленного модуля
+     * 
+     * @var string|null
+     */
+    protected ?string $moduleFolder = null;
+
+    /**
      * ModuleInstallerService constructor.
      */
     public function __construct()
@@ -305,6 +312,7 @@ class ModuleInstallerService
         }
 
         $this->copyDirectory($source, $destination);
+        $this->moduleFolder = $moduleFolder;
 
         return [
             'success' => true,
@@ -323,6 +331,22 @@ class ModuleInstallerService
     public function updateComposerDependencies(): array
     {
         $this->keepProcessAlive();
+
+        if (empty($this->moduleFolder)) {
+            return [
+                'success' => true,
+                'message' => 'No module folder specified for composer update',
+            ];
+        }
+
+        $composerJsonPath = $this->modulesDir . '/' . $this->moduleFolder . '/composer.json';
+
+        if (!file_exists($composerJsonPath)) {
+            return [
+                'success' => true,
+                'message' => 'No composer dependencies to update',
+            ];
+        }
 
         try {
             /** @var ComposerManager $composerManager */
