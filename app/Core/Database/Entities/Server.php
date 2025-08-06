@@ -101,7 +101,7 @@ class Server extends ActiveRecord
         return json_decode($this->additional ?? '{}', true) ?: [];
     }
 
-    public function getRank(string $rank, int $points): string
+    public function getRank(?string $rank, int $points): string
     {
         if ($this->ranks_premier && $points > 0) {
             $rankClass = 'gray-rank';
@@ -115,6 +115,10 @@ class Server extends ActiveRecord
             return '<div class="premier-rank ' . $rankClass . '">' . (!empty($points) ? $points : '0') . '</div>';
         }
 
-        return '<img src="' . asset('assets/img/ranks/' . ($this->ranks ?? 'default') . '/' . (!empty($rank) ? $rank : '0') . '.' . ($this->ranks_format ?? 'webp')) . '" alt="' . $rank . '" loading="lazy">';
+        if (empty($rank) || $rank === '0') {
+            return '';
+        }
+
+        return '<img src="' . asset('assets/img/ranks/' . ($this->ranks ?? 'default') . '/' . $rank . '.' . ($this->ranks_format ?? 'webp')) . '" alt="' . $rank . '" loading="lazy">';
     }
 }
