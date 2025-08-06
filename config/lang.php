@@ -18,6 +18,7 @@ return array (
     10 => 'br',
     11 => 'sv',
     12 => 'ja',
+    13 => 'cs',
   ),
   'all' => 
   array (
@@ -34,5 +35,6 @@ return array (
     10 => 'br',
     11 => 'sv',
     12 => 'ja',
+    13 => 'cs',
   ),
 );
