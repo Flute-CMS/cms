@@ -1,7 +1,8 @@
 @if ($title || $description || !empty($commands))
     <legend class="d-flex flex-between my-3 flex-row gap-3">
         <div>
-            <h4>{{ __($title ?? '') }} @if ($popover)
+            <h4>{{ __($title ?? '') }} 
+                @if ($popover)
                     <x-popover :content="$popover" />
                 @endif
             </h4>

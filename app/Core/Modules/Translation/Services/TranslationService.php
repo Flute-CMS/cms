@@ -15,7 +15,7 @@ class TranslationService
     protected Translator $translator;
     protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60; // 24 hours
-    protected $cache;
+    
 
     /**
      * Track loaded domains per locale to avoid duplicate merges.
@@ -35,6 +35,24 @@ class TranslationService
      */
     protected array $loadedDirectories = [];
 
+    /**
+     * Directories registered via loadTranslationsFromDirectory for module/package translations.
+     * Used for lazy domain resolution across modules.
+     * @var array<string,bool>
+     */
+    protected array $translationDirectories = [];
+
+    /**
+     * Cached mapping of [locale][domain] => file path for quick lazy loads.
+     * @var array<string,array<string,string>>
+     */
+    protected array $domainFileIndex = [];
+
+    /**
+     * Primary fallback locale used when key is missing in current locale.
+     */
+    protected ?string $primaryFallback = null;
+
     public function __construct(EventDispatcher $eventDispatcher)
     {
         $availableLangs = (array) config('lang.available');
@@ -52,7 +70,9 @@ class TranslationService
             }
         }
 
-        if ($defaultLocale && app()->getLang() !== $defaultLocale) {
+        $defaultLocale = $defaultLocale ?: (string) (config('lang.locale') ?? 'en');
+
+        if (app()->getLang() !== $defaultLocale) {
             app()->setLang($defaultLocale);
         }
 
@@ -65,14 +85,14 @@ class TranslationService
 
         $this->translator->addLoader('file', new PhpFileLoader());
         $this->translator->setLocale($defaultLocale);
-        $this->translator->setFallbackLocales(config('lang.available'));
+        $this->primaryFallback = $this->determinePrimaryFallback($availableLangs, $defaultLocale);
+        $this->translator->setFallbackLocales($this->primaryFallback ? [$this->primaryFallback] : []);
 
         $this->listenEvents($eventDispatcher);
 
-        if ($this->performance) {
-            $this->_importTranslationsForLocale($this->translator, $defaultLocale);
-        } else {
-            $this->_importTranslations($this->translator);
+        $this->_importTranslationsForLocale($this->translator, $defaultLocale);
+        if (config('lang.cache') && $this->primaryFallback && $this->primaryFallback !== $defaultLocale) {
+            $this->_importTranslationsForLocale($this->translator, $this->primaryFallback);
         }
 
         Carbon::setLocale($this->translator->getLocale());
@@ -111,6 +131,7 @@ class TranslationService
         foreach ($domains as $domainInfo) {
             $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
             $this->loadedDomains[$locale][$domainInfo['domain']] = true;
+            $this->domainFileIndex[$locale][$domainInfo['domain']] = $domainInfo['path'];
         }
     }
 
@@ -183,9 +204,12 @@ class TranslationService
         $newLang = $event->getNewLang();
         $this->translator->setLocale($newLang);
 
-        if (!isset($this->loadedDomains[$newLang]) && $this->performance) {
+        if (!isset($this->loadedDomains[$newLang])) {
             $this->_importTranslationsForLocale($this->translator, $newLang);
         }
+
+        $this->primaryFallback = $this->determinePrimaryFallback((array) config('lang.available'), $newLang);
+        $this->translator->setFallbackLocales($this->primaryFallback ? [$this->primaryFallback] : []);
 
         Carbon::setLocale($newLang);
     }
@@ -234,10 +258,7 @@ class TranslationService
 
         if (strpos($key, '.') !== false) {
             [$domain, $translationKey] = explode('.', $key, 2);
-
-            if ($this->performance && (!isset($this->loadedDomains[$locale]) || !isset($this->loadedDomains[$locale][$domain]))) {
-                $this->loadDomain($domain, $locale);
-            }
+            $this->ensureDomainLoaded($domain, $locale);
         }
 
         $extendedReplacements = $replacements;
@@ -256,11 +277,19 @@ class TranslationService
 
             $result = $translator->trans($translationKey, $extendedReplacements, $domain, $locale);
 
-            if ($result === $translationKey) {
-                return $key;
+            if ($result !== $translationKey) {
+                return $result;
             }
 
-            return $result;
+            if ($this->primaryFallback && $this->primaryFallback !== $locale) {
+                $this->ensureDomainLoaded($domain, $this->primaryFallback);
+                $result = $translator->trans($translationKey, $extendedReplacements, $domain, $locale);
+                if ($result !== $translationKey) {
+                    return $result;
+                }
+            }
+
+            return $key;
         }
 
         return $translator->trans($key, $extendedReplacements, null, $locale);
@@ -295,6 +324,7 @@ class TranslationService
         }
 
         $this->loadedDomains[$locale][$domain] = true;
+        $this->domainFileIndex[$locale][$domain] = $file;
     }
 
     /**
@@ -317,9 +347,8 @@ class TranslationService
 
     protected function loadDomain(string $domain, string $locale): void
     {
-        $file = path('i18n/' . $locale . '/' . $domain . '.php');
-
-        if (!file_exists($file)) {
+        $file = $this->resolveDomainFile($locale, $domain);
+        if ($file === null) {
             return;
         }
 
@@ -344,6 +373,60 @@ class TranslationService
         }
 
         $this->loadedDomains[$locale][$domain] = true;
+    }
+
+    /**
+     * Ensure domain is loaded for a specific locale.
+     */
+    protected function ensureDomainLoaded(string $domain, string $locale): void
+    {
+        if (isset($this->loadedDomains[$locale][$domain])) {
+            return;
+        }
+        $this->loadDomain($domain, $locale);
+    }
+
+    /**
+     * Find a domain file for a given locale from core i18n or registered directories.
+     */
+    protected function resolveDomainFile(string $locale, string $domain): ?string
+    {
+        if (isset($this->domainFileIndex[$locale][$domain])) {
+            $cached = $this->domainFileIndex[$locale][$domain];
+            return $cached !== '' ? $cached : null;
+        }
+
+        $corePath = path('i18n/' . $locale . '/' . $domain . '.php');
+        if (file_exists($corePath)) {
+            return $this->domainFileIndex[$locale][$domain] = $corePath;
+        }
+
+        foreach (array_keys($this->translationDirectories) as $dir) {
+            $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $domain . '.php';
+            if (file_exists($candidate)) {
+                return $this->domainFileIndex[$locale][$domain] = $candidate;
+            }
+        }
+
+        // Negative cache to avoid repeated filesystem checks
+        $this->domainFileIndex[$locale][$domain] = '';
+        return null;
+    }
+
+    /**
+     * Determine a reasonable single fallback locale.
+     */
+    protected function determinePrimaryFallback(array $availableLangs, string $current): ?string
+    {
+        if (in_array('en', $availableLangs, true) && $current !== 'en') {
+            return 'en';
+        }
+        foreach ($availableLangs as $lang) {
+            if ($lang !== $current) {
+                return $lang;
+            }
+        }
+        return null;
     }
 
     /**
@@ -381,13 +464,14 @@ class TranslationService
         }
 
         $currentLocale = app()->getLang();
+        $fallbacks = $this->translator->getFallbackLocales();
 
         $filesByLocale = [];
         foreach ($translationFiles as $file) {
             $filesByLocale[$file['locale']][] = $file;
         }
 
-        $localesToProcess = config('lang.cache') ? [$currentLocale] : array_keys($filesByLocale);
+        $localesToProcess = config('lang.cache') ? array_values(array_unique(array_filter([$currentLocale, $fallbacks[0] ?? null]))) : [$currentLocale];
 
         foreach ($localesToProcess as $locale) {
             $filesForLocale = $filesByLocale[$locale] ?? [];
@@ -411,9 +495,6 @@ class TranslationService
             }
 
             foreach ($filesForLocale as $file) {
-                if (config('lang.cache') && $file['locale'] !== $currentLocale) {
-                    continue;
-                }
                 $this->registerResource($file['path'], $file['locale'], $file['domain']);
             }
 
@@ -423,6 +504,7 @@ class TranslationService
         }
 
         $this->loadedDirectories[$directory] = true;
+        $this->translationDirectories[$directory] = true;
     }
 
 }

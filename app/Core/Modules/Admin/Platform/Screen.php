@@ -124,7 +124,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      */
     public function popover(): ?string
     {
-        return $this->popover ?? null;
+        return $this->get('popover');
     }
 
     /**
