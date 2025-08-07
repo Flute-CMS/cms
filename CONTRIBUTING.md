@@ -105,7 +105,7 @@ Examples:
 
 ### PHP Standards
 
-- **PHP Version**: 8.1+ required
+- **PHP Version**: 8.2+ required
 - **PSR-12** coding standard
 - **PHPStan Level 8** static analysis
 - **Type declarations** for all methods and properties

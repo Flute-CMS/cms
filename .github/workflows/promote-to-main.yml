@@ -37,7 +37,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
           extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
           tools: composer:v2
           
@@ -235,7 +235,7 @@ jobs:
           - [Official Website](https://flute-cms.com)
           
           ### ⚠️ Requirements
-          - PHP 8.1 or higher
+          - PHP 8.2 or higher
           - MySQL 5.7+ or PostgreSQL 10+
           - Web server (Apache/Nginx)
           
