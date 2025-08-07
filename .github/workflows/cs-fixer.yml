@@ -42,7 +42,7 @@ jobs:
 
       # 5) запуск фиксатора через готовую action
       - name: PHP-CS-Fixer (dry-run)
-        uses: docker://ghcr.io/oskarstark/php-cs-fixer-ga:3
+        uses: docker://oskarstark/php-cs-fixer-ga
         with:
           args: >-
             --config=.php-cs-fixer.php
