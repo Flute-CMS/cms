@@ -3,8 +3,8 @@
 namespace Flute\Core\Cache\Adapters;
 
 use Flute\Core\Cache\AbstractCacheDriver;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class FileSystemAdapterCacheDriver extends AbstractCacheDriver
 {

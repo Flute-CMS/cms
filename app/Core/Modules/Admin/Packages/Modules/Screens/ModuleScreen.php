@@ -2,19 +2,19 @@
 
 namespace Flute\Admin\Packages\Modules\Screens;
 
+use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
-use Flute\Core\ModulesManager\ModuleActions;
-use Flute\Core\ModulesManager\ModuleManager;
-use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\ModulesManager\ModuleActions;
+use Flute\Core\ModulesManager\ModuleInformation;
+use Flute\Core\ModulesManager\ModuleManager;
 
 class ModuleScreen extends Screen
 {
@@ -27,7 +27,7 @@ class ModuleScreen extends Screen
 
     protected ModuleManager $moduleManager;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->moduleManager = app(ModuleManager::class);
         $this->name = __('admin-modules.title');
@@ -41,7 +41,7 @@ class ModuleScreen extends Screen
         $this->loadModules();
     }
 
-    protected function loadModules(bool $refresh = false) : void
+    protected function loadModules(bool $refresh = false): void
     {
         if ($refresh) {
             $this->moduleManager->refreshModules();
@@ -50,11 +50,11 @@ class ModuleScreen extends Screen
         $this->modules = $this->moduleManager->getModules()->sortBy('status', SORT_STRING, true);
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::view('admin-modules::dropzone'),
-            
+
             LayoutFactory::table('modules', [
                 TD::make('name', __('admin-modules.table.name'))
                     ->render(function (ModuleInformation $module) {
@@ -146,8 +146,8 @@ class ModuleScreen extends Screen
                         ->icon('ph.regular.arrows-counter-clockwise')
                         ->type(Color::OUTLINE_PRIMARY)
                         ->size('small')
-                        ->method('refreshModules')
-                ])
+                        ->method('refreshModules'),
+                ]),
         ];
     }
 
@@ -157,8 +157,9 @@ class ModuleScreen extends Screen
     public function moduleDetailsModal(Repository $parameters)
     {
         $module = $this->moduleManager->getModule($parameters->get('key'));
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -225,8 +226,9 @@ class ModuleScreen extends Screen
     public function installModule()
     {
         $module = $this->moduleManager->getModule($this->key);
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -246,8 +248,9 @@ class ModuleScreen extends Screen
     public function activateModule()
     {
         $module = $this->moduleManager->getModule($this->key);
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -267,8 +270,9 @@ class ModuleScreen extends Screen
     public function disableModule()
     {
         $module = $this->moduleManager->getModule($this->key);
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -288,8 +292,9 @@ class ModuleScreen extends Screen
     public function updateModule()
     {
         $module = $this->moduleManager->getModule($this->key);
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -309,8 +314,9 @@ class ModuleScreen extends Screen
     public function uninstallModule()
     {
         $module = $this->moduleManager->getModule($this->key);
-        if (! $module) {
+        if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
             return;
         }
 
@@ -324,4 +330,3 @@ class ModuleScreen extends Screen
         $this->loadModules(true);
     }
 }
-

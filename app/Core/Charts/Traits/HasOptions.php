@@ -1,10 +1,11 @@
 <?php
 
 namespace Flute\Core\Charts\Traits;
+
 trait HasOptions
 {
     protected $options;
-    
+
     /**
      * Get the value of options
      */
@@ -44,7 +45,7 @@ trait HasOptions
             'series' => json_decode($this->dataset()),
             'dataLabels' => json_decode($this->dataLabels()),
             'title' => [
-                'text' => $this->title()
+                'text' => $this->title(),
             ],
             'subtitle' => [
                 'text' => $this->subtitle() ? $this->subtitle() : '',

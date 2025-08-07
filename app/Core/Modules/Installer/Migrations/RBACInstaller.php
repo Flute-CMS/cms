@@ -13,7 +13,7 @@ class RBACInstaller
 
     public function __construct()
     {
-        $this->permissionsManager = new CheckPermissionsMigration;
+        $this->permissionsManager = new CheckPermissionsMigration();
     }
 
     /**
@@ -44,7 +44,7 @@ class RBACInstaller
 
     /**
      * Clear all roles
-     * 
+     *
      * @return void
      */
     protected function clearRoles(): void
@@ -54,7 +54,7 @@ class RBACInstaller
 
     /**
      * Clear all permissions
-     * 
+     *
      * @return void
      */
     protected function clearPermissions(): void
@@ -64,7 +64,7 @@ class RBACInstaller
 
     /**
      * Clear all users
-     * 
+     *
      * @return void
      */
     protected function clearUsers(): void
@@ -81,11 +81,12 @@ class RBACInstaller
      */
     protected function createRole(string $name, string $color = "#ffffff"): Role
     {
-        $role = new Role;
+        $role = new Role();
         $role->name = $name;
         $role->priority = 1;
         $role->color = $color;
         $this->persistEntity($role);
+
         return $role;
     }
 

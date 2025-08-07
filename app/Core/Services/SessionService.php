@@ -7,8 +7,8 @@ use Flute\Core\Modules\Translation\Services\TranslationService;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 
 class SessionService implements SessionInterface
@@ -28,9 +28,9 @@ class SessionService implements SessionInterface
 
     /**
      * Listen to change lang event.
-     * 
+     *
      * @param EventDispatcher $eventDispatcher
-     * 
+     *
      * @return void
      */
     public function listen(EventDispatcher $eventDispatcher): void
@@ -52,7 +52,7 @@ class SessionService implements SessionInterface
 
     /**
      * Sets the session language
-     * 
+     *
      * @return void
      */
     protected function setSessionLanguage(): void
@@ -75,7 +75,7 @@ class SessionService implements SessionInterface
 
     /**
      * Return flash bang
-     * 
+     *
      * @return FlashBagInterface
      */
     public function getFlashBag(): FlashBagInterface
@@ -85,7 +85,7 @@ class SessionService implements SessionInterface
 
     /**
      * Start the session.
-     * 
+     *
      * @return bool
      */
     public function start(): bool
@@ -118,7 +118,7 @@ class SessionService implements SessionInterface
 
     /**
      * Gets all session values.
-     * 
+     *
      * @return array
      */
     public function all(): array

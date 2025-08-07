@@ -23,7 +23,7 @@ class RunCronCommand extends Command
         $this->scheduler = $scheduler;
     }
 
-    protected function configure() : void
+    protected function configure(): void
     {
         $this
             ->setName(self::$defaultName)
@@ -31,7 +31,7 @@ class RunCronCommand extends Command
             ->setHelp('This command runs all registered cron tasks.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<info>Running cron tasks...</info>');
 
@@ -40,10 +40,12 @@ class RunCronCommand extends Command
 
             $output->writeln('<info>All cron tasks completed successfully.</info>');
             logs('cron')->info('All cron tasks completed successfully.');
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $output->writeln('<error>Error running cron tasks: ' . $e->getMessage() . '</error>');
             logs('cron')->error($e);
+
             return Command::FAILURE;
         }
     }

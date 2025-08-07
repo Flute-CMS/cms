@@ -2,16 +2,16 @@
 
 namespace Flute\Core\Services;
 
+use Flute\Core\Database\Entities\Bucket;
 use Flute\Core\Database\Repositories\BucketRepository;
 use Flute\Core\Exceptions\TooManyRequestsException;
-use Flute\Core\Database\Entities\Bucket;
 
 class ThrottlerService
 {
     private bool $throttling;
 
     /**
-     * @var BucketRepository $bucketRepository
+     * @var BucketRepository
      */
     private $bucketRepository;
 
@@ -45,38 +45,40 @@ class ThrottlerService
         ?int  $cost = null,
         ?bool $force = null
     ): float {
-        if( is_debug() ) return 100;
+        if (is_debug()) {
+            return 100;
+        }
 
         $force = $force !== null && (bool) $force;
-    
+
         if (!$this->throttling && !$force) {
             return $supply;
         }
-    
+
         $key = $this->generateKey($criteria);
         $rustiness = $rustiness !== null ? (int) $rustiness : 1;
         $simulated = $simulated !== null && (bool)$simulated;
         $cost = $cost !== null ? (int) $cost : 1;
         $now = time();
-    
+
         $capacity = $this->calculateCapacity($supply, $rustiness);
         $bandwidthPerSecond = $this->calculateBandwidthPerSecond($supply, $interval);
-    
+
         $bucket = $this->getBucket($key, $now, $capacity);
-    
+
         $accepted = $bucket->getTokens() >= $cost;
-    
-        if (!$simulated) {  
+
+        if (!$simulated) {
             $this->updateBucket($bucket, $accepted, $cost, $now, $capacity, $bandwidthPerSecond);
             $this->storeBucket($bucket);
         }
-    
+
         if ($accepted) {
             return $bucket->getTokens();
         } else {
             $tokensMissing = $cost - $bucket->getTokens();
             $estimatedWaitingTimeSeconds = $this->calculateEstimatedWaitingTime($tokensMissing, $bandwidthPerSecond);
-    
+
             throw new TooManyRequestsException('', $estimatedWaitingTimeSeconds);
         }
     }
@@ -164,17 +166,17 @@ class ThrottlerService
     ): void {
         // Calculate the time passed since the last replenishment
         $timePassed = $now - $bucket->getReplenishedAt();
-    
+
         // Calculate the number of tokens to be regenerated based on the bandwidth per second
         $tokensToBeAdded = $timePassed * $bandwidthPerSecond;
-    
+
         // Make sure the number of tokens does not exceed the capacity
         $bucket->setTokens(min($bucket->getTokens() + $tokensToBeAdded, $capacity));
-    
+
         if ($accepted) {
             $bucket->setTokens(max(0, $bucket->getTokens() - $cost));
         }
-    
+
         // Update the last replenishment time
         $bucket->setReplenishedAt($now);
 

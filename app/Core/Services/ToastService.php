@@ -49,6 +49,7 @@ class ToastService
     {
         $toasts = $this->session->get(self::TOASTS_KEY, []);
         $this->session->remove(self::TOASTS_KEY);
+
         return $toasts;
     }
 }

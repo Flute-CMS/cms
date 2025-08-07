@@ -4,9 +4,9 @@ namespace Flute\Core\Components;
 
 use Cycle\Database\Query\SelectQuery;
 use Cycle\ORM\Select;
+use Exception;
 use Flute\Core\Support\FluteComponent;
 use Flute\Core\Support\Htmx\Response\HtmxResponse;
-use Exception;
 
 /**
  * Abstract Table Component for displaying data in a tabular format.
@@ -182,7 +182,7 @@ abstract class Table extends FluteComponent
      *
      * @param callable $transformer
      */
-    public function setRowTransformer(callable $transformer) : void
+    public function setRowTransformer(callable $transformer): void
     {
         $this->rowTransformer = $transformer;
     }
@@ -270,7 +270,7 @@ abstract class Table extends FluteComponent
      *
      * @return SelectQuery
      */
-    protected function buildQuery() : SelectQuery|Select
+    protected function buildQuery(): SelectQuery|Select
     {
         $query = clone $this->select;
 
@@ -284,18 +284,19 @@ abstract class Table extends FluteComponent
             $searchableColumns = array_filter($this->columns(), function ($column) {
                 return ($column['searchable'] ?? false) && (!empty($column['field']) || !empty($column['searchFields']));
             });
-            
+
             if (!empty($searchableColumns)) {
                 $query->where(function ($q) use ($searchableColumns) {
                     foreach ($searchableColumns as $column) {
                         $searchValue = $this->search;
-    
+
                         if (isset($column['searchTransform']) && is_callable($column['searchTransform'])) {
                             $searchValue = call_user_func($column['searchTransform'], $searchValue);
-                            if ($searchValue === false)
+                            if ($searchValue === false) {
                                 continue;
+                            }
                         }
-    
+
                         if (!empty($column['searchFields']) && is_array($column['searchFields'])) {
                             foreach ($column['searchFields'] as $field) {
                                 $q->orWhere($field, 'like', '%' . $searchValue . '%');
@@ -323,7 +324,7 @@ abstract class Table extends FluteComponent
      *
      * @return array<int, mixed>
      */
-    protected function buildArrayData() : array
+    protected function buildArrayData(): array
     {
         $filtered = $this->data;
 
@@ -347,6 +348,7 @@ abstract class Table extends FluteComponent
                         return true;
                     }
                 }
+
                 return false;
             });
         }
@@ -386,7 +388,7 @@ abstract class Table extends FluteComponent
      * @return array<string, mixed>
      * @throws Exception
      */
-    protected function getPaginatedData() : array
+    protected function getPaginatedData(): array
     {
         if ($this->select) {
             $query = $this->buildQuery();
@@ -439,7 +441,7 @@ abstract class Table extends FluteComponent
      * @param array $data Raw data array
      * @return array Processed data
      */
-    protected function processData(array $data) : array
+    protected function processData(array $data): array
     {
         return $data;
     }
@@ -451,9 +453,10 @@ abstract class Table extends FluteComponent
      * @return array
      * @throws Exception
      */
-    protected function getData() : array
+    protected function getData(): array
     {
         $pagination = $this->getPaginatedData();
+
         return $pagination['rows'];
     }
 
@@ -463,7 +466,7 @@ abstract class Table extends FluteComponent
      * @param mixed $row Raw row data
      * @return array Formatted row data
      */
-    protected function formatRow($row) : array
+    protected function formatRow($row): array
     {
         $formattedRow = [];
         foreach ($this->columns() as $column) {
@@ -493,6 +496,7 @@ abstract class Table extends FluteComponent
 
             $formattedRow[$field] = $value;
         }
+
         return $formattedRow;
     }
 
@@ -513,7 +517,7 @@ abstract class Table extends FluteComponent
                 'width' => $column['width'] ?? '',
                 'tooltip' => $column['tooltip'] ?? '',
                 'visible' => $column['visible'] ?? true,
-                'searchable' => $column['searchable'] ?? false
+                'searchable' => $column['searchable'] ?? false,
             ]);
         }, array_filter($this->columns(), function ($column) {
             return !isset($column['visible']) || $column['visible'];
@@ -532,7 +536,7 @@ abstract class Table extends FluteComponent
         ]);
     }
 
-    public function columns() : array
+    public function columns(): array
     {
         return $this->columns;
     }

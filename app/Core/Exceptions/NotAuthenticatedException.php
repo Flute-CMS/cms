@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-class NotAuthenticatedException extends \Exception {}
+class NotAuthenticatedException extends \Exception
+{
+}

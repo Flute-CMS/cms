@@ -3,18 +3,18 @@
 namespace Flute\Admin\Packages\ApiKey\Screens;
 
 use Cycle\Database\Injection\Parameter;
+use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
+use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\ApiKey;
 use Flute\Core\Database\Entities\Permission;
-use Flute\Admin\Platform\Support\Color;
 use Illuminate\Support\Str;
 
 class ApiKeyScreen extends Screen
@@ -25,7 +25,7 @@ class ApiKeyScreen extends Screen
 
     public $apiKeys;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->name = __('admin-apikey.title.list');
         $this->description = __('admin-apikey.title.description');
@@ -37,7 +37,7 @@ class ApiKeyScreen extends Screen
         $this->apiKeys = rep(ApiKey::class)->select();
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::table('apiKeys', [
@@ -96,7 +96,7 @@ class ApiKeyScreen extends Screen
                                     ->icon('ph.bold.trash-bold')
                                     ->type(Color::OUTLINE_DANGER)
                                     ->size('small')
-                                    ->fullWidth()
+                                    ->fullWidth(),
                             ]);
                     }),
             ])
@@ -105,8 +105,8 @@ class ApiKeyScreen extends Screen
                     Button::make(__('admin-apikey.buttons.add'))
                         ->icon('ph.regular.plus')
                         ->type(Color::PRIMARY)
-                        ->modal('addApiKeyModal')
-                ])
+                        ->modal('addApiKeyModal'),
+                ]),
         ];
     }
 
@@ -149,7 +149,7 @@ class ApiKeyScreen extends Screen
                 ->required()
                 ->small(__('admin-apikey.fields.name.help')),
 
-            ...$permissionsCheckboxes
+            ...$permissionsCheckboxes,
         ])
             ->title(__('admin-apikey.title.create'))
             ->applyButton(__('admin-apikey.buttons.add'))
@@ -181,7 +181,7 @@ class ApiKeyScreen extends Screen
             // 'permissions.*' => ['exists:permissions,name'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -209,8 +209,9 @@ class ApiKeyScreen extends Screen
     public function editApiKeyModal(Repository $parameters)
     {
         $apiKey = ApiKey::findByPK($parameters->get('id'));
-        if (! $apiKey) {
+        if (!$apiKey) {
             $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+
             return;
         }
 
@@ -251,7 +252,7 @@ class ApiKeyScreen extends Screen
                 ->required()
                 ->small(__('admin-apikey.fields.name.help')),
 
-            ...$permissionsCheckboxes
+            ...$permissionsCheckboxes,
         ])
             ->title(__('admin-apikey.title.edit'))
             ->applyButton(__('admin-apikey.buttons.save'))
@@ -278,12 +279,14 @@ class ApiKeyScreen extends Screen
 
         if (empty($data['permissions'])) {
             $this->flashMessage(__('admin-apikey.messages.no_permissions'), 'error');
+
             return;
         }
 
         $apiKey = ApiKey::findByPK($id);
-        if (! $apiKey) {
+        if (!$apiKey) {
             $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+
             return;
         }
 
@@ -294,7 +297,7 @@ class ApiKeyScreen extends Screen
             // 'permissions.*' => ['exists:permissions,name'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -311,7 +314,7 @@ class ApiKeyScreen extends Screen
                 $apiKey->addPermission($permission);
             }
         }
-        
+
         $apiKey->save();
 
         $this->flashMessage(__('admin-apikey.messages.save_success'), 'success');
@@ -327,8 +330,9 @@ class ApiKeyScreen extends Screen
         $id = request()->input('id');
 
         $apiKey = ApiKey::findByPK($id);
-        if (! $apiKey) {
+        if (!$apiKey) {
             $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+
             return;
         }
 

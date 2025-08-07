@@ -11,15 +11,15 @@ use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Payments\Events\AfterGatewayResponseEvent;
 use Flute\Core\Modules\Payments\Events\AfterPaymentCreatedEvent;
 use Flute\Core\Modules\Payments\Events\BeforeGatewayProcessingEvent;
+use Flute\Core\Modules\Payments\Events\BeforeInvoiceCreatedEvent;
 use Flute\Core\Modules\Payments\Events\BeforePaymentEvent;
 use Flute\Core\Modules\Payments\Events\PaymentFailedEvent;
 use Flute\Core\Modules\Payments\Events\PaymentSuccessEvent;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;
-use Flute\Core\Modules\Payments\Events\BeforeInvoiceCreatedEvent;
 use Nette\Utils\Random;
-use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
+use Omnipay\Common\Message\ResponseInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class PaymentProcessor
@@ -51,7 +51,7 @@ class PaymentProcessor
      *
      * @throws PaymentException
      */
-    public function createInvoice(string $gatewayName, $amount, ?string $promo = null, ?string $currencyCode = null) : PaymentInvoice
+    public function createInvoice(string $gatewayName, $amount, ?string $promo = null, ?string $currencyCode = null): PaymentInvoice
     {
         $gateway = PaymentGateway::findOne([
             'adapter' => $gatewayName,
@@ -76,7 +76,7 @@ class PaymentProcessor
         $invoiceAmount = $amount;
         $user = user()->getCurrentUser();
 
-        $invoice = new PaymentInvoice;
+        $invoice = new PaymentInvoice();
 
         if (!empty($event->getAdditionalData())) {
             $invoice->additional = json_encode($event->getAdditionalData());
@@ -113,7 +113,7 @@ class PaymentProcessor
      *
      * @return int Unique transaction ID.
      */
-    protected function generateTransactionId() : int
+    protected function generateTransactionId(): int
     {
         return (int) Random::generate(12, '0-9');
     }
@@ -126,7 +126,7 @@ class PaymentProcessor
      *
      * @return float Converted amount.
      */
-    protected function convertAmountToCurrency($amount, Currency $currency) : float
+    protected function convertAmountToCurrency($amount, Currency $currency): float
     {
         return $amount * $currency->exchange_rate;
     }
@@ -140,7 +140,7 @@ class PaymentProcessor
      *
      * @return Currency|null Currency entity or null if not found.
      */
-    protected function getCurrency(PaymentGateway $gateway, PaymentInvoice $paymentInvoice, string $code) : ?Currency
+    protected function getCurrency(PaymentGateway $gateway, PaymentInvoice $paymentInvoice, string $code): ?Currency
     {
         $currency = Currency::findOne(['code' => $code]);
 
@@ -162,7 +162,7 @@ class PaymentProcessor
      *
      * @throws PaymentException
      */
-    public function handlePayment(string $gatewayName) : void
+    public function handlePayment(string $gatewayName): void
     {
         if (!payments()->gatewayExists($gatewayName)) {
             throw new PaymentException('Gateway does not exist');
@@ -219,6 +219,7 @@ class PaymentProcessor
                     $input['payerId'] = $input['PAYERID'];
                 }
             }
+
             return $gateway->completePurchase($input)->send();
         } elseif (method_exists($gateway, 'notification')) {
             return $gateway->notification(['request' => $input])->send();
@@ -236,7 +237,7 @@ class PaymentProcessor
      *
      * @throws PaymentException
      */
-    protected function processSuccessfulPayment($response) : void
+    protected function processSuccessfulPayment($response): void
     {
         $transactionId = $response->getTransactionId();
 
@@ -254,7 +255,7 @@ class PaymentProcessor
      *
      * @return void
      */
-    public function setInvoiceAsPaid(string $transactionId, ?float $verifyAmount = null) : void
+    public function setInvoiceAsPaid(string $transactionId, ?float $verifyAmount = null): void
     {
         $invoice = PaymentInvoice::query()->forUpdate()->where(['transactionId' => $transactionId])->fetchOne();
 
@@ -308,9 +309,10 @@ class PaymentProcessor
      *
      * @throws PaymentException
      */
-    protected function processFailedPayment(ResponseInterface $response) : void
+    protected function processFailedPayment(ResponseInterface $response): void
     {
         $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
+
         throw new PaymentException($response->getMessage());
     }
 
@@ -321,7 +323,7 @@ class PaymentProcessor
      *
      * @return void
      */
-    public function markInvoiceAsPaid(PaymentInvoice $invoice) : void
+    public function markInvoiceAsPaid(PaymentInvoice $invoice): void
     {
         $invoice->isPaid = true;
         $invoice->paidAt = new \DateTimeImmutable();
@@ -336,7 +338,7 @@ class PaymentProcessor
      *
      * @return float Calculated promo bonus.
      */
-    public function calculatePromoBonus(array $promoData, $amount) : float
+    public function calculatePromoBonus(array $promoData, $amount): float
     {
         switch ($promoData['type']) {
             case 'percentage':
@@ -359,7 +361,7 @@ class PaymentProcessor
      *
      * @return void
      */
-    public function recordPromoUsage(PromoCode $promo, User $user, PaymentInvoice $invoice) : void
+    public function recordPromoUsage(PromoCode $promo, User $user, PaymentInvoice $invoice): void
     {
         $usage = new PromoCodeUsage();
         $usage->promoCode = $promo;
@@ -406,8 +408,8 @@ class PaymentProcessor
             $paymentData['testMode'] = $gateway->getTestMode();
         }
 
-        if(isset($paymentData['keys'])) {
-            foreach($paymentData['keys'] as $key => $value) {
+        if (isset($paymentData['keys'])) {
+            foreach ($paymentData['keys'] as $key => $value) {
                 $paymentData[$key] = $value;
             }
             unset($paymentData['keys']);

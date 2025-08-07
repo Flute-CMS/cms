@@ -13,7 +13,8 @@ use Illuminate\Support\Str;
 
 abstract class Cell
 {
-    use IsVisible, MacroableTrait;
+    use IsVisible;
+    use MacroableTrait;
 
     /**
      * @var string
@@ -88,9 +89,9 @@ abstract class Cell
         $paramsKeys = Arr::isAssoc($params) ? array_keys($params) : array_values($params);
 
         return collect($parameters)
-            ->filter(fn(\ReflectionParameter $parameter) => !$parameter->isOptional())
-            ->whenEmpty(fn() => collect($parameters))
-            ->map(fn(\ReflectionParameter $parameter) => $parameter->getName())
+            ->filter(fn (\ReflectionParameter $parameter) => !$parameter->isOptional())
+            ->whenEmpty(fn () => collect($parameters))
+            ->map(fn (\ReflectionParameter $parameter) => $parameter->getName())
             ->diff($paramsKeys)
             ->last();
     }
@@ -111,7 +112,7 @@ abstract class Cell
             }
         }
 
-        $params = array_map(fn($item) => value($item, $value), $params);
+        $params = array_map(fn ($item) => value($item, $value), $params);
 
         return Blade::renderComponent($component, $params);
     }

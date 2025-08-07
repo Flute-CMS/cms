@@ -24,7 +24,7 @@ class NavbarInstaller
 
     /**
      * Clear all navbar items
-     * 
+     *
      * @return void
      */
     protected function clearItems(): void
@@ -36,16 +36,15 @@ class NavbarInstaller
      * @throws Throwable
      */
     protected function createItem(
-        string $title, 
-        string $url, 
-        string $icon, 
-        bool $newTab = false, 
-        bool $visibleForGuests = false, 
+        string $title,
+        string $url,
+        string $icon,
+        bool $newTab = false,
+        bool $visibleForGuests = false,
         bool $visibleForLoggedIn = false,
         Role $role = null
-    ): NavbarItem
-    {
-        $navbarItem = new NavbarItem;
+    ): NavbarItem {
+        $navbarItem = new NavbarItem();
         $navbarItem->title = $title;
         $navbarItem->url = $url;
         $navbarItem->icon = $icon;
@@ -58,6 +57,7 @@ class NavbarInstaller
         }
 
         $this->persistEntity($navbarItem);
+
         return $navbarItem;
     }
 

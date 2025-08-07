@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Payments\Services;
 
-use Flute\Core\Database\Entities\PaymentInvoice;
 use DateTime;
+use Flute\Core\Database\Entities\PaymentInvoice;
 
 class PaymentsCleaner
 {
@@ -18,7 +18,7 @@ class PaymentsCleaner
 
             $oldPayments = PaymentInvoice::findAll([
                 'isPaid' => false,
-                'created_at' => ['<' => $dateThreshold]
+                'created_at' => ['<' => $dateThreshold],
             ]);
 
             foreach ($oldPayments as $payment) {

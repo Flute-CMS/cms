@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Flute\Core\ServiceProviders;
-
 
 use DI\ContainerBuilder;
 use Flute\Core\Services\ConfigurationService;
@@ -14,15 +12,15 @@ class ConfigurationServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             ConfigurationService::class => \DI\autowire(ConfigurationService::class),
-            'configs' => \DI\get(ConfigurationService::class)
+            'configs' => \DI\get(ConfigurationService::class),
         ]);
     }
 
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
         $configurationService = $container->get(ConfigurationService::class);
         $configs = $configurationService->toArray();
-        
+
         $this->registerConfigServices($configs, $container);
 
         app()->debug($configs['app']['debug']);
@@ -38,7 +36,7 @@ class ConfigurationServiceProvider extends AbstractServiceProvider
             if (is_array($configValue)) {
                 $this->registerConfigServices($configValue, $container, $serviceId);
             }
-            
+
             $container->set($serviceId, $configValue);
         }
     }

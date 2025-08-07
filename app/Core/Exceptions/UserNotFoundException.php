@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-class UserNotFoundException extends \Exception {}
+class UserNotFoundException extends \Exception
+{
+}

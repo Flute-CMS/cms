@@ -7,15 +7,15 @@ interface ModDriverInterface
     /**
      * Get the driver name.
      */
-    public function getName() : string;
+    public function getName(): string;
 
     /**
      * Get the settings view for this driver.
      */
-    public function getSettingsView() : string;
+    public function getSettingsView(): string;
 
     /**
      * Get validation rules for this driver's settings.
      */
-    public function getValidationRules() : array;
-} 
+    public function getValidationRules(): array;
+}

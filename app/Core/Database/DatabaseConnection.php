@@ -2,24 +2,24 @@
 
 namespace Flute\Core\Database;
 
+use Cycle\Annotated;
 use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
 use Cycle\Annotated\Locator\TokenizerEntityLocator;
-use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
-use Cycle\ORM\ORMInterface;
-use Cycle\ORM\ORM;
-use Cycle\Schema;
-use Cycle\Annotated;
-use Cycle\Schema\Registry;
-use Cycle\Schema\Compiler;
 use Cycle\Database\DatabaseManager;
 use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\Exception\MigrationException;
 use Cycle\Migrations\FileRepository;
 use Cycle\Migrations\Migrator;
+use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
+use Cycle\ORM\ORM;
+use Cycle\ORM\ORMInterface;
+use Cycle\Schema;
+use Cycle\Schema\Compiler;
+use Cycle\Schema\Registry;
+use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
+use Spiral\Tokenizer\ClassLocator;
 use Spiral\Tokenizer\Config\TokenizerConfig;
 use Spiral\Tokenizer\Tokenizer;
-use Spiral\Tokenizer\ClassLocator;
-use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 
 class DatabaseConnection
 {
@@ -119,6 +119,7 @@ class DatabaseConnection
                 }
             } catch (MigrationException $e) {
                 $this->migrator->rollback();
+
                 throw $e;
             }
         }
@@ -133,6 +134,7 @@ class DatabaseConnection
     protected function isEntityInSchema(string $entityClass): bool
     {
         $ormSchema = $this->orm->getSchema();
+
         return $ormSchema->defines(lcfirst($entityClass));
     }
 
@@ -145,6 +147,7 @@ class DatabaseConnection
     {
         if (!file_exists($directory) || !is_dir($directory)) {
             logs()->debug("Directory does not exist: {$directory}");
+
             return;
         }
 
@@ -160,6 +163,7 @@ class DatabaseConnection
         foreach ($newEntities as $entityClass) {
             if (!$this->isEntityInSchema($entityClass)) {
                 $schemaNeedsUpdate = true;
+
                 break;
             }
         }
@@ -188,6 +192,7 @@ class DatabaseConnection
 
         if (!isset($this->orm)) {
             $this->connect();
+
             return;
         }
         if ($this->schemaNeedsUpdate) {
@@ -225,7 +230,7 @@ class DatabaseConnection
         $lockHandle = fopen($lockFile, 'w+');
         if (flock($lockHandle, LOCK_EX | LOCK_NB)) {
             try {
-                if(!isset($this->dbal)) {
+                if (!isset($this->dbal)) {
                     $this->connect();
                 }
 
@@ -236,6 +241,7 @@ class DatabaseConnection
 
                     $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
                     $this->ormIntoContainer();
+
                     return;
                 }
 
@@ -280,6 +286,7 @@ class DatabaseConnection
             }
         } else {
             logs()->debug("Cannot acquire lock for ORM schema update");
+
             return;
         }
     }

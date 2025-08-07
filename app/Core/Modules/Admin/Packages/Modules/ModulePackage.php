@@ -10,7 +10,7 @@ class ModulePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -26,7 +26,7 @@ class ModulePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.modules'];
     }
@@ -34,7 +34,7 @@ class ModulePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -50,12 +50,12 @@ class ModulePackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getModulesCount() : int
+    protected function getModulesCount(): int
     {
         return app(ModuleManager::class)->getModules()->count();
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 13;
     }

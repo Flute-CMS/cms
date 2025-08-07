@@ -15,14 +15,17 @@ class ModuleDisable implements ModuleActionInterface
 
         $moduleGet = $mm->getModule($module->key);
 
-        if (!$moduleGet)
+        if (!$moduleGet) {
             throw new \RuntimeException("Module wasn't found in the system");
+        }
 
-        if ($moduleGet->status === 'notinstalled')
+        if ($moduleGet->status === 'notinstalled') {
             throw new \RuntimeException("Module is not installed in the system");
+        }
 
-        if ($moduleGet->status === 'disabled')
+        if ($moduleGet->status === 'disabled') {
             throw new \RuntimeException("Module already disabled");
+        }
 
         $this->disable($moduleGet);
 

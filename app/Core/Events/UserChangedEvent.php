@@ -20,4 +20,4 @@ class UserChangedEvent extends Event
     {
         return $this->user;
     }
-} 
+}

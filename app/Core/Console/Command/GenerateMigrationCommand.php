@@ -4,7 +4,6 @@ namespace Flute\Core\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -23,7 +22,7 @@ class GenerateMigrationCommand extends Command
             ->setHelp('This command allows you to create a migration file...');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         /** @var QuestionHelper $helper */
@@ -33,6 +32,7 @@ class GenerateMigrationCommand extends Command
 
         if (empty($modules)) {
             $io->error("No modules found in app/Modules.");
+
             return Command::FAILURE;
         }
 
@@ -46,6 +46,7 @@ class GenerateMigrationCommand extends Command
                     'The migration name must contain only English letters and underscores without spaces.'
                 );
             }
+
             return $answer;
         });
         $name = $helper->ask($input, $output, $nameQuestion);

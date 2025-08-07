@@ -59,7 +59,7 @@ class ConfigurationService
             }
 
             $filePath = $this->configsPath . DIRECTORY_SEPARATOR . $configName . '.php';
-            $content  = "<?php\n\nreturn " . var_export($configData, true) . ";\n";
+            $content = "<?php\n\nreturn " . var_export($configData, true) . ";\n";
 
             if (file_put_contents($filePath, $content) === false) {
                 throw new \RuntimeException("Failed to write configuration to {$filePath}");

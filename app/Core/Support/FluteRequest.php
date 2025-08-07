@@ -14,19 +14,19 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class FluteRequest extends Request
 {
-    public function htmx() : HtmxRequest
+    public function htmx(): HtmxRequest
     {
         return new HtmxRequest($this->headers);
     }
 
-    public function isBoost() : bool
+    public function isBoost(): bool
     {
         return $this->htmx()->isHtmxRequest() && $this->htmx()->isBoosted();
     }
 
-    public function isOnlyHtmx() : bool
+    public function isOnlyHtmx(): bool
     {
-        return $this->htmx()->isHtmxRequest() && ! $this->htmx()->isBoosted();
+        return $this->htmx()->isHtmxRequest() && !$this->htmx()->isBoosted();
     }
 
     /**
@@ -34,7 +34,7 @@ class FluteRequest extends Request
      *
      * @return bool
      */
-    public function expectsJson() : bool
+    public function expectsJson(): bool
     {
         return $this->headers->get('Accept') === 'application/json';
     }
@@ -44,7 +44,7 @@ class FluteRequest extends Request
      *
      * @return bool
      */
-    public function isJson() : bool
+    public function isJson(): bool
     {
         return $this->headers->get('Content-Type') === 'application/json';
     }
@@ -54,7 +54,7 @@ class FluteRequest extends Request
      *
      * @return bool
      */
-    public function isAjax() : bool
+    public function isAjax(): bool
     {
         return $this->headers->get('X-Requested-With') === 'XMLHttpRequest';
     }
@@ -64,7 +64,7 @@ class FluteRequest extends Request
      *
      * @return string
      */
-    public function getReferer() : string
+    public function getReferer(): string
     {
         return $this->headers->get('Referer');
     }
@@ -74,7 +74,7 @@ class FluteRequest extends Request
      *
      * @return Collection
      */
-    public function files() : Collection
+    public function files(): Collection
     {
         return collect($this->files->all());
     }
@@ -84,7 +84,7 @@ class FluteRequest extends Request
      *
      * @return User
      */
-    public function user() : User
+    public function user(): User
     {
         return user()->getCurrentUser();
     }
@@ -94,12 +94,13 @@ class FluteRequest extends Request
      *
      * @return string|null
      */
-    public function getAuthorizationBearerToken() : ?string
+    public function getAuthorizationBearerToken(): ?string
     {
         $authorizationHeader = $this->headers->get('Authorization');
         if ($authorizationHeader && preg_match('/Bearer\s(\S+)/', $authorizationHeader, $matches)) {
             return $matches[1];
         }
+
         return null;
     }
 
@@ -109,7 +110,7 @@ class FluteRequest extends Request
      * @param string $method
      * @return bool
      */
-    public function isMethod(string $method) : bool
+    public function isMethod(string $method): bool
     {
         return $this->getMethod() === strtoupper($method);
     }
@@ -120,7 +121,7 @@ class FluteRequest extends Request
      * @param string $key
      * @return bool
      */
-    public function hasQueryParam(string $key) : bool
+    public function hasQueryParam(string $key): bool
     {
         return $this->query->has($key);
     }
@@ -131,17 +132,17 @@ class FluteRequest extends Request
      * @param string $key
      * @return bool
      */
-    public function hasHeader(string $key) : bool
+    public function hasHeader(string $key): bool
     {
         return $this->headers->has($key);
     }
 
-    /* 
+    /*
      * Get the input data from the request, including attributes.
      *
      * @param string|null $key
      * @param mixed $default
-     * 
+     *
      * @return mixed
      */
     public function input(?string $key = null, $default = null)
@@ -165,7 +166,7 @@ class FluteRequest extends Request
      *
      * @return array
      */
-    public function all() : array
+    public function all(): array
     {
         return array_merge($this->attributes->all(), $this->query->all(), $this->request->all());
     }
@@ -176,7 +177,7 @@ class FluteRequest extends Request
      * @param mixed $keys
      * @return bool
      */
-    public function has(...$keys) : bool
+    public function has(...$keys): bool
     {
         if (count($keys) === 1 && is_array($keys[0])) {
             $keys = $keys[0];
@@ -197,7 +198,7 @@ class FluteRequest extends Request
      * @param mixed $keys One or more keys to retrieve, supporting dot notation.
      * @return array
      */
-    public function only(...$keys) : array
+    public function only(...$keys): array
     {
         if (count($keys) === 1 && is_array($keys[0])) {
             $keys = $keys[0];
@@ -220,9 +221,9 @@ class FluteRequest extends Request
      * @param string $key
      * @return bool
      */
-    public function filled(string $key) : bool
+    public function filled(string $key): bool
     {
-        return ! empty($this->input($key));
+        return !empty($this->input($key));
     }
 
     /**
@@ -240,7 +241,7 @@ class FluteRequest extends Request
      *
      * @return string
      */
-    public function ip() : string
+    public function ip(): string
     {
         return $this->getClientIp();
     }
@@ -251,7 +252,7 @@ class FluteRequest extends Request
      * @param  mixed  $keys
      * @return array
      */
-    public function except($keys) : array
+    public function except($keys): array
     {
         $keys = is_array($keys) ? $keys : func_get_args();
 
@@ -270,13 +271,15 @@ class FluteRequest extends Request
      * @param string|null $uri
      * @return bool
      */
-    public function is(?string $uri = null) : bool
+    public function is(?string $uri = null): bool
     {
-        if (is_null($uri))
+        if (is_null($uri)) {
             return false;
+        }
 
-        if (is_url($uri))
+        if (is_url($uri)) {
             return $this->getSchemeAndHttpHost().$this->getPathInfo() === $uri;
+        }
 
         return $this->getPathInfo() === $uri;
     }
@@ -288,7 +291,7 @@ class FluteRequest extends Request
      * @return array
      * @throws \Exception
      */
-    public function validate(array $rules) : array
+    public function validate(array $rules): array
     {
         $validatedData = [];
         $errors = [];
@@ -302,7 +305,7 @@ class FluteRequest extends Request
                     $errors[$field][] = "The $field field failed validation for rule $rule.";
                 }
             }
-            if (! isset($errors[$field])) {
+            if (!isset($errors[$field])) {
                 $validatedData[$field] = $value;
             }
         }
@@ -319,15 +322,15 @@ class FluteRequest extends Request
      *
      * @param mixed $value
      * @param string $rule
-     * 
+     *
      * @return void
      */
-    private function validateRule($value, string $rule) : void
+    private function validateRule($value, string $rule): void
     {
         Validators::assert($value, $rule);
     }
 
-    public function isCsrfValid() : bool
+    public function isCsrfValid(): bool
     {
         return template()->getBlade()->csrfIsValid();
     }

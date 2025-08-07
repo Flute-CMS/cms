@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Events;
 
-use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class RoutingFinishedEvent extends Event
 {

@@ -2,12 +2,12 @@
 
 namespace Flute\Core\Services;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Promise\Utils;
-use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Promise\FulfilledPromise;
-use xPaw\SteamID\SteamID;
 use Flute\Core\Cache\CacheManager;
+use GuzzleHttp\Client;
+use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Promise\Utils;
+use xPaw\SteamID\SteamID;
 
 class SteamService
 {
@@ -43,20 +43,21 @@ class SteamService
     /**
      * Normalize Steam ID for cache key
      */
-    protected function normalizeSteamId(string $steamId) : string
+    protected function normalizeSteamId(string $steamId): string
     {
         $steamID = new SteamID($steamId);
+
         return $steamID->ConvertToUInt64();
     }
 
     /**
      * Get SteamID object
-     * 
+     *
      * @param string $steamId
-     * 
+     *
      * @return SteamID
      */
-    public function steamid(string $steamId) : SteamID
+    public function steamid(string $steamId): SteamID
     {
         return new SteamID($steamId);
     }
@@ -85,7 +86,7 @@ class SteamService
         self::$deferreds[$steam64] = $deferred;
         self::$pendingSteamIds[] = $steam64;
 
-        if (! self::$isBatchScheduled) {
+        if (!self::$isBatchScheduled) {
             self::$isBatchScheduled = true;
             Utils::queue()->add([$this, 'executeBatchRequest']);
         }
@@ -98,7 +99,7 @@ class SteamService
      *
      * @return void
      */
-    public function executeBatchRequest() : void
+    public function executeBatchRequest(): void
     {
         if (empty(self::$collectedSteamIds)) {
             return;
@@ -112,8 +113,8 @@ class SteamService
                 $response = $this->httpClient->get('ISteamUser/GetPlayerSummaries/v0002/', [
                     'query' => [
                         'key' => $this->apiKey,
-                        'steamids' => implode(',', $chunk)
-                    ]
+                        'steamids' => implode(',', $chunk),
+                    ],
                 ]);
 
                 $data = json_decode($response->getBody(), true);
@@ -127,7 +128,7 @@ class SteamService
                             'steamid' => $steamId,
                             'name' => $player['personaname'] ?? '',
                             'avatar' => $player['avatarfull'] ?? '',
-                            'profile' => $player['profileurl'] ?? ''
+                            'profile' => $player['profileurl'] ?? '',
                         ];
 
                         cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
@@ -143,7 +144,7 @@ class SteamService
     /**
      * Get information about multiple Steam users in one request
      */
-    public function getUsersInfo(array $steamIds) : array
+    public function getUsersInfo(array $steamIds): array
     {
         if (empty($steamIds) || empty($this->apiKey)) {
             return [];
@@ -162,6 +163,7 @@ class SteamService
 
                 if (isset(self::$requestCache[$steamId])) {
                     $result[$steamId] = self::$requestCache[$steamId];
+
                     continue;
                 }
 
@@ -184,8 +186,8 @@ class SteamService
                     $response = $this->httpClient->get('ISteamUser/GetPlayerSummaries/v0002/', [
                         'query' => [
                             'key' => $this->apiKey,
-                            'steamids' => implode(',', $chunk)
-                        ]
+                            'steamids' => implode(',', $chunk),
+                        ],
                     ]);
 
                     $data = json_decode($response->getBody(), true);
@@ -197,8 +199,8 @@ class SteamService
 
                             $userInfo = [
                                 'steamid' => $steamId64,
-                                'name'    => $player['personaname'] ?? '',
-                                'avatar'  => $player['avatarfull'] ?? '',
+                                'name' => $player['personaname'] ?? '',
+                                'avatar' => $player['avatarfull'] ?? '',
                                 'profile' => $player['profileurl'] ?? '',
                             ];
 
@@ -226,9 +228,10 @@ class SteamService
     /**
      * Get Steam user information immediately
      */
-    public function getUserInfoImmediately(string $steamId) : ?array
+    public function getUserInfoImmediately(string $steamId): ?array
     {
         $result = $this->getUsersInfo([$steamId]);
+
         return $result[$steamId] ?? null;
     }
 
@@ -238,7 +241,7 @@ class SteamService
      * @param string $steamId
      * @return PromiseInterface
      */
-    public function getUserName(string $steamId) : PromiseInterface
+    public function getUserName(string $steamId): PromiseInterface
     {
         return $this->getUserInfo($steamId)->then(function ($userInfo) {
             return $userInfo['personaname'] ?? null;
@@ -251,7 +254,7 @@ class SteamService
      * @param string $steamId
      * @return PromiseInterface
      */
-    public function getUserAvatar(string $steamId) : PromiseInterface
+    public function getUserAvatar(string $steamId): PromiseInterface
     {
         return $this->getUserInfo($steamId)->then(function ($userInfo) {
             return $userInfo['avatarfull'] ?? null;
@@ -261,7 +264,7 @@ class SteamService
     /**
      * Refresh cached user information
      */
-    public function refreshUserInfo(string $steamId) : void
+    public function refreshUserInfo(string $steamId): void
     {
         $normalizedId = $this->normalizeSteamId($steamId);
         cache()->delete("steam_user_{$normalizedId}");
@@ -274,7 +277,7 @@ class SteamService
      *
      * @return void
      */
-    public function flushBatch() : void
+    public function flushBatch(): void
     {
         if (self::$isBatchScheduled) {
             $this->executeBatchRequest();

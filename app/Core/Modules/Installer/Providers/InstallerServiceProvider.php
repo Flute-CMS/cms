@@ -7,19 +7,19 @@ use Flute\Core\Modules\Installer\Components\DatabaseComponent;
 use Flute\Core\Modules\Installer\Components\FluteKeyComponent;
 use Flute\Core\Modules\Installer\Components\LanguageComponent;
 use Flute\Core\Modules\Installer\Components\RequirementsComponent;
+use Flute\Core\Modules\Installer\Components\SiteInfoComponent;
 use Flute\Core\Modules\Installer\Components\SiteSettingsComponent;
 use Flute\Core\Modules\Installer\Components\WelcomeComponent;
-use Flute\Core\Modules\Installer\Components\SiteInfoComponent;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Modules\Installer\Services\InstallerView;
+use Flute\Core\Modules\Installer\Services\SystemConfiguration;
 use Flute\Core\Modules\Installer\Services\SystemRequirements;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Template;
-use Flute\Core\Modules\Installer\Services\SystemConfiguration;
 
 class InstallerServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             InstallerConfig::class => \DI\autowire(),
@@ -28,10 +28,10 @@ class InstallerServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
-        if (! is_installed()) {
-            if (! str_contains(url()->current(), '/install') && ! str_contains(url()->current(), '/live')) {
+        if (!is_installed()) {
+            if (!str_contains(url()->current(), '/install') && !str_contains(url()->current(), '/live')) {
                 die(response()->redirect('/install'));
             }
 
@@ -60,7 +60,7 @@ class InstallerServiceProvider extends AbstractServiceProvider
         }
     }
 
-    protected function registerViewComponents(Template $template) : void
+    protected function registerViewComponents(Template $template): void
     {
         $componentsDir = path('app/Core/Modules/Installer/Resources/views/components');
 
@@ -80,7 +80,7 @@ class InstallerServiceProvider extends AbstractServiceProvider
     /**
      * Register installer routes
      */
-    protected function registerRoutes() : void
+    protected function registerRoutes(): void
     {
         router()->registerAttributeRoutes([BASE_PATH.'/app/Core/Modules/Installer/Controllers'], 'Flute\Core\Modules\Installer\Controllers');
     }

@@ -3,14 +3,14 @@
 namespace Flute\Admin\Packages\Social\Screens;
 
 use Carbon\CarbonInterval;
+use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
+use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
-use Flute\Core\Database\Entities\SocialNetwork;
-use Flute\Admin\Platform\Fields\TD;
-use Flute\Admin\Platform\Actions\Button;
-use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\SocialNetwork;
 
 class SocialScreen extends Screen
 {
@@ -20,7 +20,7 @@ class SocialScreen extends Screen
 
     public $socials;
 
-    public function mount() : void
+    public function mount(): void
     {
         breadcrumb()
             ->add(__('def.admin_panel'), url('/admin'))
@@ -30,24 +30,24 @@ class SocialScreen extends Screen
     }
 
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::table('socials', [
-                TD::make()->title(__('admin-social.table.social'))->render(fn(SocialNetwork $social) => view('admin-social::cells.main', compact('social')))->minWidth('200px')->cantHide(),
+                TD::make()->title(__('admin-social.table.social'))->render(fn (SocialNetwork $social) => view('admin-social::cells.main', compact('social')))->minWidth('200px')->cantHide(),
 
                 TD::make('cooldown_time', __('admin-social.table.cooldown'))
                     ->popover(__('admin-social.fields.cooldown_time.popover'))
-                    ->render(fn(SocialNetwork $social) => $social->cooldownTime ? CarbonInterval::seconds($social->cooldownTime)->cascade()->forHumans() : 'Не ограничено'),
+                    ->render(fn (SocialNetwork $social) => $social->cooldownTime ? CarbonInterval::seconds($social->cooldownTime)->cascade()->forHumans() : 'Не ограничено'),
 
                 TD::make('allow_to_register', __('admin-social.table.registration'))
                     ->popover(__('admin-social.fields.allow_register.help'))
-                    ->render(fn(SocialNetwork $social) => view('admin-social::cells.allow_to_register', compact('social'))),
+                    ->render(fn (SocialNetwork $social) => view('admin-social::cells.allow_to_register', compact('social'))),
 
-                TD::make('enabled', __('admin-social.table.status'))->render(fn(SocialNetwork $social) => view('admin-social::cells.enabled', compact('social'))),
+                TD::make('enabled', __('admin-social.table.status'))->render(fn (SocialNetwork $social) => view('admin-social::cells.enabled', compact('social'))),
 
                 TD::make('actions', __('admin-social.table.actions'))->width('200px')->alignCenter()->render(
-                    fn(SocialNetwork $social) => DropDown::make()
+                    fn (SocialNetwork $social) => DropDown::make()
                         ->icon('ph.regular.dots-three-outline-vertical')
                         ->list([
                             DropDownItem::make($social->enabled ? __('admin-social.buttons.disable') : __('admin-social.buttons.enable'))
@@ -65,11 +65,11 @@ class SocialScreen extends Screen
                 ->searchable(['key', 'id'])
                 ->commands([
                     Button::make(__('admin-social.buttons.add'))->redirect(url('/admin/socials/add'))->icon('ph.bold.plus-bold'),
-                ])
+                ]),
         ];
     }
 
-    public function toggle() : void
+    public function toggle(): void
     {
         if (
             $this->validate([
@@ -82,6 +82,7 @@ class SocialScreen extends Screen
 
             if (!$social) {
                 $this->flashMessage(__('admin-social.messages.toggle_error'), 'error');
+
                 return;
             }
 
@@ -95,7 +96,7 @@ class SocialScreen extends Screen
         }
     }
 
-    public function delete() : void
+    public function delete(): void
     {
         if (
             $this->validate([

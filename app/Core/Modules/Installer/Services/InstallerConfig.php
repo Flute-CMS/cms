@@ -16,7 +16,7 @@ class InstallerConfig
 
     /**
      * InstallerConfig constructor.
-     * 
+     *
      * @param ConfigurationService $configService
      */
     public function __construct(ConfigurationService $configService)
@@ -26,7 +26,7 @@ class InstallerConfig
 
     /**
      * Check if the application is installed
-     * 
+     *
      * @return bool
      */
     public function isInstalled(): bool
@@ -36,7 +36,7 @@ class InstallerConfig
 
     /**
      * Get the current installation step
-     * 
+     *
      * @return int
      */
     public function getCurrentStep(): int
@@ -46,7 +46,7 @@ class InstallerConfig
 
     /**
      * Set the current installation step
-     * 
+     *
      * @param int $step
      * @return void
      */
@@ -57,7 +57,7 @@ class InstallerConfig
 
     /**
      * Get the total number of installation steps
-     * 
+     *
      * @return int
      */
     public function getTotalSteps(): int
@@ -67,7 +67,7 @@ class InstallerConfig
 
     /**
      * Mark the installation as complete
-     * 
+     *
      * @return void
      */
     public function markAsInstalled(): void
@@ -81,7 +81,7 @@ class InstallerConfig
 
     /**
      * Get installation parameters
-     * 
+     *
      * @param string|null $key
      * @param mixed $default
      * @return mixed
@@ -97,7 +97,7 @@ class InstallerConfig
 
     /**
      * Set installation parameter
-     * 
+     *
      * @param string $key
      * @param mixed $value
      * @return void
@@ -110,7 +110,7 @@ class InstallerConfig
 
     /**
      * Set multiple installation parameters
-     * 
+     *
      * @param array $params
      * @return void
      */
@@ -122,4 +122,4 @@ class InstallerConfig
 
         $this->configService->save();
     }
-} 
+}

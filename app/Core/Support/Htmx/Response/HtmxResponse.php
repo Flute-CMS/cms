@@ -4,7 +4,6 @@ namespace Flute\Core\Support\Htmx\Response;
 
 class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
 {
-
     public const HX_LOCATION = 'HX-Location';
     public const HX_PUSH_URL = 'HX-Push-Url';
     public const HX_REPLACE_URL = 'HX-Replace-Url';
@@ -21,30 +20,35 @@ class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
             $path = json_encode(array_merge(['path' => $path], $context));
         }
         $this->headers->set(self::HX_LOCATION, $path);
+
         return $this;
     }
 
     public function setPushUrl(string $url): static
     {
         $this->headers->set(self::HX_PUSH_URL, $url);
+
         return $this;
     }
 
     public function setReplaceUrl(string $url): static
     {
         $this->headers->set(self::HX_REPLACE_URL, $url);
+
         return $this;
     }
 
     public function setReswap(string $option): static
     {
         $this->headers->set(self::HX_RESWAP, $option);
+
         return $this;
     }
 
     public function setRetarget(string $selector): static
     {
         $this->headers->set(self::HX_RETARGET, $selector);
+
         return $this;
     }
 
@@ -72,6 +76,7 @@ class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
             $value = json_encode($value);
         }
         $this->headers->set($key, $value);
+
         return $this;
     }
 }

@@ -36,7 +36,7 @@ class FluteKeyComponent extends FluteComponent
 
     /**
      * Validate the Flute key
-     * 
+     *
      * @param string $key
      */
     public function validateKey()
@@ -46,6 +46,7 @@ class FluteKeyComponent extends FluteComponent
 
         if (empty($this->fluteKey)) {
             $this->isValid = true; // we allow empty key
+
             return $this->redirectTo(route('installer.step', ['id' => 4]), 500);
         }
 
@@ -81,7 +82,7 @@ class FluteKeyComponent extends FluteComponent
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

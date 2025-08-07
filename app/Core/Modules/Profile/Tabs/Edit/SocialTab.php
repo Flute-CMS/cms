@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Profile\Tabs\Edit;
 
-use Flute\Core\Modules\Profile\Support\ProfileTab;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Modules\Profile\Support\ProfileTab;
 
 class SocialTab extends ProfileTab
 {
@@ -17,7 +17,7 @@ class SocialTab extends ProfileTab
         return 'social';
     }
 
-    public function getIcon() : string
+    public function getIcon(): string
     {
         return 'ph.bold.plugs-connected-bold';
     }
@@ -35,7 +35,7 @@ class SocialTab extends ProfileTab
     public function getContent(User $user)
     {
         return view('flute::partials.profile-tabs.edit.social', [
-            'user' => $user
+            'user' => $user,
         ]);
     }
 }

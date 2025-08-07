@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Page\Widgets;
 
 use Flute\Core\Database\Entities\User;
-use Flute\Core\Modules\Page\Widgets\AbstractWidget;
 use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersTodayWidget extends AbstractWidget

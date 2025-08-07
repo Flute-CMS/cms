@@ -14,8 +14,8 @@ class FluteChart
     | Chart
     |--------------------------------------------------------------------------
     |
-    | This class build the chart by passing setters to the object, it will 
-    | use the method container and scripts to generate a JSON  
+    | This class build the chart by passing setters to the object, it will
+    | use the method container and scripts to generate a JSON
     | in blade view
     |
     */
@@ -71,7 +71,7 @@ class FluteChart
             '#0057ff',
             '#00a9f4',
             '#2ccdc9',
-            '#5e72e4'
+            '#5e72e4',
         ]);
         $this->setXAxis([]);
         $this->fontFamily = 'Manrope';
@@ -148,60 +148,70 @@ class FluteChart
     public function setType($type = null): FluteChart
     {
         $this->type = $type;
+
         return $this;
     }
 
     public function setBackground(string $background): FluteChart
     {
         $this->background = $background;
+
         return $this;
     }
 
     public function setFontFamily($fontFamily): FluteChart
     {
         $this->fontFamily = $fontFamily;
+
         return $this;
     }
 
     public function setFontColor($fontColor): FluteChart
     {
         $this->foreColor = $fontColor;
+
         return $this;
     }
 
     public function setDataset(array $dataset): FluteChart
     {
         $this->dataset = json_encode($dataset);
+
         return $this;
     }
 
     public function setHeight(int $height): FluteChart
     {
         $this->height = $height;
+
         return $this;
     }
 
     public function setWidth($width): FluteChart
     {
         $this->width = $width;
+
         return $this;
     }
 
     public function setColors(array $colors): FluteChart
     {
         $this->colors = json_encode($colors);
+
         return $this;
     }
 
     public function setHorizontal(bool $horizontal): FluteChart
     {
         $this->horizontal = json_encode(['horizontal' => $horizontal]);
+
         return $this;
     }
 
     public function setTitle(string $title): FluteChart
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -209,18 +219,21 @@ class FluteChart
     {
         $this->subtitle = $subtitle;
         $this->subtitlePosition = $position;
+
         return $this;
     }
 
     public function setLabels(array $labels): FluteChart
     {
         $this->labels = $labels;
+
         return $this;
     }
 
     public function setXAxis(array $categories): FluteChart
     {
         $this->xAxis = json_encode($categories);
+
         return $this;
     }
 
@@ -253,7 +266,7 @@ class FluteChart
                 '#0057ff',
                 '#00a9f4',
                 '#2ccdc9',
-                '#5e72e4'
+                '#5e72e4',
             ];
         }
 
@@ -264,7 +277,7 @@ class FluteChart
             'strokeWidth' => $width / 2,
             'hover' => [
                 'size' => $hoverSize,
-            ]
+            ],
         ]);
 
         return $this;
@@ -286,7 +299,7 @@ class FluteChart
                 '#0057ff',
                 '#00a9f4',
                 '#2ccdc9',
-                '#5e72e4'
+                '#5e72e4',
             ];
         }
 
@@ -296,6 +309,7 @@ class FluteChart
             'colors' => $colors,
             'curve' => $curve,
         ]);
+
         return $this;
     }
 
@@ -303,36 +317,42 @@ class FluteChart
     {
         $this->toolbar = json_encode(['show' => $show]);
         $this->zoom = json_encode(['enabled' => $zoom ? $zoom : false]);
+
         return $this;
     }
 
     public function setDataLabels(bool $enabled = true): FluteChart
     {
         $this->dataLabels = json_encode(['enabled' => $enabled]);
+
         return $this;
     }
 
     public function setTheme(string $theme): FluteChart
     {
         $this->theme = $theme;
+
         return $this;
     }
 
     public function setSparkline(bool $enabled = true): FluteChart
     {
         $this->sparkline = json_encode(['enabled' => $enabled]);
+
         return $this;
     }
 
     public function setStacked(bool $stacked = true): FluteChart
     {
         $this->stacked = $stacked;
+
         return $this;
     }
 
     public function setShowLegend(bool $showLegend = true): self
     {
         $this->showLegend = $showLegend;
+
         return $this;
     }
 
@@ -347,6 +367,7 @@ class FluteChart
         $stringArray = array_filter($array, function ($string) {
             return "{$string}";
         });
+
         return json_encode(['"' . implode('","', $stringArray) . '"']);
     }
 
@@ -367,8 +388,9 @@ class FluteChart
 
     public function cdn(): string
     {
-        if (self::$cdnLoaded)
+        if (self::$cdnLoaded) {
             return "";
+        }
 
         self::$cdnLoaded = true;
 
@@ -537,10 +559,10 @@ class FluteChart
             'series' => json_decode($this->dataset()),
             'dataLabels' => json_decode($this->dataLabels()),
             'theme' => [
-                'mode' => $this->theme
+                'mode' => $this->theme,
             ],
             'title' => [
-                'text' => $this->title()
+                'text' => $this->title(),
             ],
             'subtitle' => [
                 'text' => $this->subtitle() ? $this->subtitle() : '',
@@ -552,7 +574,7 @@ class FluteChart
             'grid' => json_decode($this->grid()),
             'markers' => json_decode($this->markers()),
             'legend' => [
-                'show' => $this->showLegend()
+                'show' => $this->showLegend(),
             ],
         ];
 
@@ -574,7 +596,7 @@ class FluteChart
     {
         $options = [
             'theme' => [
-                'mode' => $this->theme()
+                'mode' => $this->theme(),
             ],
             'chart' => [
                 'type' => $this->type(),
@@ -586,7 +608,7 @@ class FluteChart
                 'background' => $this->background(),
             ],
             'plotOptions' => [
-                'bar' => json_decode($this->horizontal(), true)
+                'bar' => json_decode($this->horizontal(), true),
             ],
             'colors' => json_decode($this->colors(), true),
             'series' => json_decode($this->dataset(), true),
@@ -597,7 +619,7 @@ class FluteChart
                 'style' => [
                     'fontSize' => '24px',
                     'fontWeight' => '600',
-                    'cssClass' => 'apexcharts-yaxis-title'
+                    'cssClass' => 'apexcharts-yaxis-title',
                 ],
             ],
             'subtitle' => [
@@ -606,16 +628,16 @@ class FluteChart
                 'offsetX' => 20,
                 'style' => [
                     'fontSize' => '14px',
-                    'cssClass' => 'apexcharts-yaxis-title'
-                ]
+                    'cssClass' => 'apexcharts-yaxis-title',
+                ],
             ],
             'xaxis' => [
-                'categories' => json_decode($this->xAxis(), true)
+                'categories' => json_decode($this->xAxis(), true),
             ],
             'grid' => json_decode($this->grid(), true),
             'markers' => json_decode($this->markers(), true),
             'legend' => [
-                'show' => $this->showLegend()
+                'show' => $this->showLegend(),
             ],
         ];
 

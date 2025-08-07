@@ -253,7 +253,7 @@ class NotificationService
         $note = Notification::query()
             ->where([
                 'user_id' => user()->id,
-                'id' => $id
+                'id' => $id,
             ])
             ->fetchOne();
 
@@ -279,7 +279,7 @@ class NotificationService
         $note = Notification::query()
             ->where([
                 'user_id' => user()->id,
-                'id' => $id
+                'id' => $id,
             ])
             ->fetchOne();
 
@@ -346,6 +346,7 @@ class NotificationService
             ->count();
 
         cache()->set($cacheKey, $count, 60);
+
         return $count;
     }
 

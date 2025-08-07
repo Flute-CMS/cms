@@ -73,7 +73,7 @@ class IconFinder
 
         // Failed to find the icon
         return $this->directories
-            ->map(fn($dir) => $this->getContent($name, $prefix, $dir))
+            ->map(fn ($dir) => $this->getContent($name, $prefix, $dir))
             ->filter()
             ->first();
     }
@@ -88,7 +88,7 @@ class IconFinder
     protected function getContent(string $name, string $prefix, string $dir)
     {
         $file = Str::of($name)
-            ->when($prefix !== $name, fn($string) => $string->replaceFirst($prefix, ''))
+            ->when($prefix !== $name, fn ($string) => $string->replaceFirst($prefix, ''))
             ->replaceFirst('.', '')
             ->replace('.', DIRECTORY_SEPARATOR);
 
@@ -100,6 +100,7 @@ class IconFinder
 
         if (!is_file($path)) {
             self::$fileContentCache[$path] = null;
+
             return null;
         }
 
@@ -108,6 +109,7 @@ class IconFinder
             if ($content !== false) {
                 self::$fileContentCache[$path] = $content;
             }
+
             return $content ?: null;
         } catch (\Exception) {
             return null;

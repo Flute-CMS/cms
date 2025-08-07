@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Payments\Events;
 
-use Symfony\Contracts\EventDispatcher\Event;
 use Flute\Core\Database\Entities\PaymentInvoice;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class AfterPaymentCreatedEvent extends Event
 {

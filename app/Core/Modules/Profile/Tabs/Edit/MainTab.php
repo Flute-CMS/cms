@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Profile\Tabs\Edit;
 
-use Flute\Core\Modules\Profile\Support\ProfileTab;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Modules\Profile\Support\ProfileTab;
 
 class MainTab extends ProfileTab
 {
@@ -17,7 +17,7 @@ class MainTab extends ProfileTab
         return 'main';
     }
 
-    public function getIcon() : string
+    public function getIcon(): string
     {
         return 'ph.bold.gear-bold';
     }
@@ -35,7 +35,7 @@ class MainTab extends ProfileTab
     public function getContent(User $user)
     {
         return view('flute::partials.profile-tabs.edit.main', [
-            'user' => $user
+            'user' => $user,
         ]);
     }
 }

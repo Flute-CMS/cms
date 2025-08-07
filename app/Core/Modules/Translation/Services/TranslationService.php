@@ -47,6 +47,7 @@ class TranslationService
         foreach ([$requestedLang, $cookieLang, app()->getLang(), config('lang.locale')] as $candidate) {
             if ($candidate && in_array($candidate, $availableLangs, true)) {
                 $defaultLocale = $candidate;
+
                 break;
             }
         }
@@ -92,7 +93,7 @@ class TranslationService
 
         $cacheKey = 'translation.core.files.' . $locale;
 
-        $domains = cache()->callback($cacheKey, function() use ($langDir) {
+        $domains = cache()->callback($cacheKey, function () use ($langDir) {
             $finder = finder();
             $finder->files()->in($langDir)->name('*.php');
 
@@ -119,7 +120,7 @@ class TranslationService
 
         $cacheKey = 'translation.core.files';
 
-        $files = cache()->callback($cacheKey, function() use ($langDir) {
+        $files = cache()->callback($cacheKey, function () use ($langDir) {
             $finder = finder();
             $finder->files()->in($langDir)->name('*.php');
 
@@ -143,7 +144,7 @@ class TranslationService
 
     /**
      * Listen to the lang changed event.
-     * 
+     *
      * @return void
      */
     protected function listenEvents(EventDispatcher $eventDispatcher)
@@ -191,7 +192,7 @@ class TranslationService
 
     /**
      * Register the lang parameter and change language.
-     * 
+     *
      * @return void
      */
     protected function registerLangGet()
@@ -229,7 +230,7 @@ class TranslationService
     public function trans(string $key, array $replacements = [], ?string $locale = null): string
     {
         $translator = $this->getTranslator();
-        $locale = $locale ?? $translator->getLocale();
+        $locale ??= $translator->getLocale();
 
         if (strpos($key, '.') !== false) {
             [$domain, $translationKey] = explode('.', $key, 2);
@@ -364,7 +365,7 @@ class TranslationService
             $files = [];
             foreach ($finder as $file) {
                 $files[] = [
-                    'path'   => $file->getPathname(),
+                    'path' => $file->getPathname(),
                     'locale' => $file->getRelativePath(),
                     'domain' => basename($file->getFilename(), '.php'),
                 ];
@@ -375,6 +376,7 @@ class TranslationService
 
         if (empty($translationFiles)) {
             $this->loadedDirectories[$directory] = true;
+
             return;
         }
 
@@ -396,11 +398,11 @@ class TranslationService
             $needsRefresh = true;
             if (config('lang.cache')) {
                 $cacheDir = path('storage/app/translations');
-                $compiled  = glob($cacheDir . '/catalogue.' . $locale . '.*.php');
+                $compiled = glob($cacheDir . '/catalogue.' . $locale . '.*.php');
                 if ($compiled) {
                     $compiledMtime = max(array_map('filemtime', $compiled));
-                    $latestSource  = max(array_map(fn($f) => filemtime($f['path']), $filesForLocale));
-                    $needsRefresh  = $latestSource > $compiledMtime;
+                    $latestSource = max(array_map(fn ($f) => filemtime($f['path']), $filesForLocale));
+                    $needsRefresh = $latestSource > $compiledMtime;
                 }
             }
 

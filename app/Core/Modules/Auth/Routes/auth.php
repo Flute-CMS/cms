@@ -4,8 +4,8 @@ use Flute\Core\Modules\Auth\Controllers\AuthController;
 use Flute\Core\Modules\Auth\Controllers\PasswordResetController;
 use Flute\Core\Modules\Auth\Controllers\SocialAuthController;
 use Flute\Core\Modules\Auth\Middlewares\ModalAuthMiddleware;
-use Flute\Core\Modules\Auth\Middlewares\StandardAuthMiddleware;
 use Flute\Core\Modules\Auth\Middlewares\RegisterMiddleware;
+use Flute\Core\Modules\Auth\Middlewares\StandardAuthMiddleware;
 use Flute\Core\Router\Contracts\RouterInterface;
 
 router()->group(['middleware' => 'guest'], function (RouterInterface $router) {

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Flute\Core\Modules\Auth\Services;
 
 use Exception;
@@ -9,12 +8,12 @@ use Flute\Core\Database\Entities\RememberToken;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\VerificationToken;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
+use Flute\Core\Exceptions\IncorrectPasswordException;
 use Flute\Core\Exceptions\PasswordResetTokenExpiredException;
 use Flute\Core\Exceptions\PasswordResetTokenNotFoundException;
+use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Router\Contracts\RouterInterface;
-use Flute\Core\Exceptions\IncorrectPasswordException;
-use Flute\Core\Exceptions\TooManyRequestsException;
 use Throwable;
 
 class AuthService
@@ -50,11 +49,11 @@ class AuthService
      * @param array $credentials User credentials.
      * @param bool $remember Flag indicating if remember token should be created.
      * @param bool $fromSocial Flag indicating if authentication is from social network.
-     * 
+     *
      * @throws UserNotFoundException If the user is not found.
      * @throws IncorrectPasswordException If the password is incorrect.
      * @throws TooManyRequestsException If too many requests were made.
-     * 
+     *
      * @return User Authentication result.
      */
     public function authenticate(array $credentials, bool $remember = false, bool $fromSocial = false): User
@@ -155,10 +154,10 @@ class AuthService
 
     /**
      * Reset password by the given token.
-     * 
+     *
      * @param string $token Password reset token.
      * @param string $newPassword new password.
-     * 
+     *
      * @throws PasswordResetTokenExpiredException
      */
     public function resetPasswordToken(string $token, string $newPassword)
@@ -205,7 +204,7 @@ class AuthService
      *
      * @param string $token The verification token.
      * @throws AccountNotVerifiedException If the token does not match or is expired.
-     * 
+     *
      * @return bool
      */
     public function verify(string $token): bool
@@ -225,7 +224,7 @@ class AuthService
      * Create a verification token for the given user.
      *
      * @param User $user The user for whom the verification token is to be created.
-     * 
+     *
      * @return VerificationToken The created verification token.
      */
     public function createVerificationToken(User $user): VerificationToken

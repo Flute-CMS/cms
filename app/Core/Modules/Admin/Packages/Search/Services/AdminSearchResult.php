@@ -30,62 +30,67 @@ class AdminSearchResult implements AdminSearchResultInterface
         $this->relevance = $relevance;
     }
 
-    public function getTitle() : string
+    public function getTitle(): string
     {
         return $this->title ?? '';
     }
 
-    public function getUrl() : string
+    public function getUrl(): string
     {
         return $this->url ?? '';
     }
 
-    public function getIcon() : string
+    public function getIcon(): string
     {
         return $this->icon ?? '';
     }
 
-    public function getCategory() : string
+    public function getCategory(): string
     {
         return $this->category ?? '';
     }
 
-    public function getRelevance() : int
+    public function getRelevance(): int
     {
         return $this->relevance;
     }
 
-    public function setTitle(string $title) : self
+    public function setTitle(string $title): self
     {
         $this->title = $title;
+
         return $this;
     }
 
-    public function setUrl(string $url) : self
+    public function setUrl(string $url): self
     {
         $this->url = $url;
+
         return $this;
     }
 
-    public function setIcon(string $icon) : self
+    public function setIcon(string $icon): self
     {
         $this->icon = $icon;
+
         return $this;
     }
 
-    public function setCategory(string $category) : self
+    public function setCategory(string $category): self
     {
         $this->category = $category;
+
         return $this;
     }
 
-    public function setRelevance(int $relevance) : self
+    public function setRelevance(int $relevance): self
     {
         $this->relevance = $relevance;
+
         return $this;
     }
 
-    public function toArray() : array
+    public function toArray(): array
     {
         return [
             'title' => $this->title,

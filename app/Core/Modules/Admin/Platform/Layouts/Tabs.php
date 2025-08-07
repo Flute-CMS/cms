@@ -66,15 +66,17 @@ abstract class Tabs extends Layout
      * @param string $slug The slug of the tab to activate.
      * @return $this
      */
-    public function activeTab(string $slug) : self
+    public function activeTab(string $slug): self
     {
         $this->variables['activeTab'] = $slug;
+
         return $this;
     }
 
-    public function lazyload(bool $lazyload = true) : self
+    public function lazyload(bool $lazyload = true): self
     {
         $this->variables['lazyload'] = $lazyload;
+
         return $this;
     }
 
@@ -84,28 +86,32 @@ abstract class Tabs extends Layout
      * @param string $slug The slug to assign.
      * @return $this
      */
-    public function slug(string $slug) : self
+    public function slug(string $slug): self
     {
         $this->variables['slug'] = $slug;
         $this->slug = $slug;
+
         return $this;
     }
 
-    public function pills(bool $pills = true) : self
+    public function pills(bool $pills = true): self
     {
         $this->variables['pills'] = $pills;
+
         return $this;
     }
 
-    public function sticky(bool $sticky = true) : self
+    public function sticky(bool $sticky = true): self
     {
         $this->variables['sticky'] = $sticky;
+
         return $this;
     }
 
-    public function morph(bool $morph = true) : self
+    public function morph(bool $morph = true): self
     {
         $this->variables['morph'] = $morph;
+
         return $this;
     }
 
@@ -123,7 +129,7 @@ abstract class Tabs extends Layout
             throw new InvalidArgumentException('Tabs layout must have a slug.');
         }
 
-        $this->variables['slug'] = $this->variables['slug'] ?? $this->slug ?? uniqid();
+        $this->variables['slug'] ??= $this->slug ?? uniqid();
 
         $tabs = [];
 
@@ -150,8 +156,9 @@ abstract class Tabs extends Layout
         $this->variables['tabs'] = $tabs;
         $this->variables['activeTab'] = $this->getActiveTab();
         $this->variables['templateSlug'] = $repository->get('slug');
-        $this->variables['lazyload'] = $this->variables['lazyload'] ?? true;
-        $this->variables['morph'] = $this->variables['morph'] ?? true;
+        $this->variables['lazyload'] ??= true;
+        $this->variables['morph'] ??= true;
+
         return view($this->template, $this->variables);
     }
 
@@ -162,7 +169,7 @@ abstract class Tabs extends Layout
      * @param mixed $tab The tab instance.
      * @return bool
      */
-    protected function isTabActive(string $slug, $tab) : bool
+    protected function isTabActive(string $slug, $tab): bool
     {
         $activeTab = $this->getActiveTab();
         if ($activeTab === $slug) {
@@ -181,15 +188,15 @@ abstract class Tabs extends Layout
      *
      * @return string|null The active tab slug or null if not set.
      */
-    protected function getActiveTab() : ?string
+    protected function getActiveTab(): ?string
     {
         if (empty($this->tabs)) {
             return null;
         }
-        
+
         $layoutSlug = $this->variables['slug'] ?? $this->slug;
         $defaultTab = $this->tabs[0]->getSlug() ?? Str::slug($this->tabs[0]->getName());
-        
+
         return request()->input('tab-' . $layoutSlug, $defaultTab);
     }
 }

@@ -22,19 +22,20 @@ class ListRoutesCommand extends Command
     }
 
     protected function configure()
-    {   
+    {
         $this
             ->setName('route:list')
             ->setDescription('Displays a list of all registered routes')
             ->setHelp('This command allows you to list all registered routes.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $routes = $this->router->getRoutes();
 
         if ($routes->count() === 0) {
             $output->writeln('<info>No registered routes.</info>');
+
             return Command::SUCCESS;
         }
 
@@ -57,7 +58,7 @@ class ListRoutesCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function getActionRepresentation($action) : string
+    private function getActionRepresentation($action): string
     {
         if (is_string($action)) {
             return $action;
@@ -67,6 +68,7 @@ class ListRoutesCommand extends Command
             } else {
                 $class = $action[0];
             }
+
             return $class . '@' . $action[1];
         } elseif ($action instanceof \Closure) {
             return 'Closure';

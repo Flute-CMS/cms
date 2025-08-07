@@ -12,34 +12,38 @@ class ModuleUninstall implements ModuleActionInterface
 {
     protected $moduleManager;
 
-    public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null) : bool
+    public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
     {
         $this->moduleManager = $moduleManager ?? app(ModuleManager::class);
         $moduleGet = $this->moduleManager->getModule($module->key);
         $installerClassDir = sprintf('Flute\\Modules\\%s\\Installer', $module->key);
 
-        if (! $moduleGet)
+        if (!$moduleGet) {
             throw new \RuntimeException("Module wasn't found in the system");
+        }
 
         $hasComposerJson = fs()->exists(path('app/Modules/'.$module->key.'/composer.json'));
 
         if ($moduleGet->status !== 'notinstalled') {
             $directory = sprintf('app/Modules/%s/database/migrations', $module->key);
 
-            if (fs()->exists(BASE_PATH.$directory))
+            if (fs()->exists(BASE_PATH.$directory)) {
                 app(DatabaseConnection::class)->rollbackMigrations($directory);
+            }
         }
 
         if (class_exists($installerClassDir)) {
             $installer = new $installerClassDir($module->key);
 
-            if (! method_exists($installer, 'uninstall'))
+            if (!method_exists($installer, 'uninstall')) {
                 throw new \RuntimeException("Uninstall method in the {$installerClassDir} wasn't found");
+            }
 
             $uninstall = $installer->uninstall($module);
 
-            if (! $uninstall)
+            if (!$uninstall) {
                 return false;
+            }
         }
 
         $this->uninstall($moduleGet);
@@ -51,7 +55,7 @@ class ModuleUninstall implements ModuleActionInterface
         return true;
     }
 
-    protected function uninstall(ModuleInformation $moduleInformation) : void
+    protected function uninstall(ModuleInformation $moduleInformation): void
     {
         $module = Module::findOne(["key" => $moduleInformation->key]);
 

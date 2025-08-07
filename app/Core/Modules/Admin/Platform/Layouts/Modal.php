@@ -69,14 +69,15 @@ class Modal extends Layout
         $this->query = $repository;
     }
 
-    public function getSlug() : string
+    public function getSlug(): string
     {
         return $this->variables['key'];
     }
 
-    public function right() : self
+    public function right(): self
     {
         $this->variables['type'] = self::TYPE_RIGHT;
+
         return $this;
     }
 
@@ -91,23 +92,24 @@ class Modal extends Layout
     /**
      * Set the text button for apply action.
      */
-    public function applyButton(string $text) : self
+    public function applyButton(string $text): self
     {
         $this->variables['apply'] = $text;
 
         return $this;
     }
 
-    public function removeOnClose(bool $close = true) : self
+    public function removeOnClose(bool $close = true): self
     {
         $this->variables['removeOnClose'] = $close;
+
         return $this;
     }
 
     /**
      * Whether to disable the applied button or not.
      */
-    public function withoutApplyButton(bool $withoutApplyButton = true) : self
+    public function withoutApplyButton(bool $withoutApplyButton = true): self
     {
         $this->variables['withoutApplyButton'] = $withoutApplyButton;
 
@@ -117,7 +119,7 @@ class Modal extends Layout
     /**
      * Whether to disable the close button or not.
      */
-    public function withoutCloseButton(bool $withoutCloseButton = true) : self
+    public function withoutCloseButton(bool $withoutCloseButton = true): self
     {
         $this->variables['withoutCloseButton'] = $withoutCloseButton;
 
@@ -127,7 +129,7 @@ class Modal extends Layout
     /**
      * Set the text button for cancel action.
      */
-    public function closeButton(string $text) : self
+    public function closeButton(string $text): self
     {
         $this->variables['close'] = $text;
 
@@ -137,46 +139,48 @@ class Modal extends Layout
     /**
      * Set CSS class for size modal.
      */
-    public function size(string $class) : self
+    public function size(string $class): self
     {
         $this->variables['size'] = $class;
 
         return $this;
     }
 
-    public function type(string $class) : self
+    public function type(string $class): self
     {
         $this->variables['type'] = $class;
 
         return $this;
     }
 
-    public function method(string $method) : self
+    public function method(string $method): self
     {
         $this->variables['method'] = $method;
+
         return $this;
     }
 
     /**
      * Set title for header modal.
      */
-    public function title(string $title) : self
+    public function title(string $title): self
     {
         $this->variables['title'] = $title;
 
         return $this;
     }
 
-    public function params(array $params) : self
+    public function params(array $params): self
     {
         $this->variables['params'] = $params;
+
         return $this;
     }
 
     /**
      * @return $this
      */
-    public function open(bool $status = true) : self
+    public function open(bool $status = true): self
     {
         $this->variables['open'] = $status;
 

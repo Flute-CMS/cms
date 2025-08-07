@@ -49,6 +49,7 @@ class EditorWidget extends AbstractWidget
     {
         $content = $settings['content'] ?? '';
         $html = (new Parser())->parse($content, false, false);
+
         return view('flute::widgets.editor', [
             'html' => $html,
             'inCard' => $settings['inCard'] ?? false,
@@ -64,4 +65,4 @@ class EditorWidget extends AbstractWidget
     {
         return 12;
     }
-} 
+}

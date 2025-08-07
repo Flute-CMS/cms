@@ -59,6 +59,7 @@ class ValidatorStr
         for ($i = 0; $i < count($overlap); $i++) {
             $field[$i] = $attribute[$i];
         }
+
         return implode('.', $field);
     }
 }

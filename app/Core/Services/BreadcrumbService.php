@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Flute\Core\Services;
 
 class BreadcrumbService

@@ -1,4 +1,5 @@
 <?php
+
 namespace Flute\Core\Support;
 
 use Laravel\SerializableClosure\SerializableClosure;
@@ -30,7 +31,7 @@ class FluteEventDispatcher extends EventDispatcher
     {
         $listenerId = $this->getListenerId($listener);
 
-        if (! isset($this->deferredListeners[$eventName])) {
+        if (!isset($this->deferredListeners[$eventName])) {
             $this->deferredListeners[$eventName] = [];
         }
 
@@ -40,8 +41,9 @@ class FluteEventDispatcher extends EventDispatcher
             }
         }
 
-        if (isset($this->deferredListeners[$eventName][$listenerId]))
+        if (isset($this->deferredListeners[$eventName][$listenerId])) {
             return;
+        }
 
         $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
 
@@ -80,7 +82,7 @@ class FluteEventDispatcher extends EventDispatcher
     {
         $deferredListeners = cache()->get($this->deferredListenersKey, []);
 
-        if (! is_array($deferredListeners)) {
+        if (!is_array($deferredListeners)) {
             $deferredListeners = [];
         }
 
@@ -161,6 +163,7 @@ class FluteEventDispatcher extends EventDispatcher
                 foreach ($uniqueListeners as $uniqueListenerData) {
                     if ($this->compareListeners($listenerData['listener'], $uniqueListenerData['listener'])) {
                         unset($this->deferredListeners[$eventName][$listenerId]);
+
                         break;
                     }
                 }

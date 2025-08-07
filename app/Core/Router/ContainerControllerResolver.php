@@ -2,14 +2,14 @@
 
 namespace Flute\Core\Router;
 
+use Cycle\ORM\Exception\SchemaException;
 use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Flute\Core\Support\FluteRequest;
+use ReflectionException;
 use Symfony\Component\HttpKernel\Controller\ContainerControllerResolver as SController;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use ReflectionException;
-use Cycle\ORM\Exception\SchemaException;
 
 class ContainerControllerResolver
 {
@@ -99,6 +99,7 @@ class ContainerControllerResolver
             !$has && cache()->set($key, true);
         } catch (SchemaException $e) {
             !$has && cache()->set($key, false);
+
             throw $e;
         }
 

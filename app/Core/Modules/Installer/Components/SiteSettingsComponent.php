@@ -2,10 +2,10 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
+use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;
-use Flute\Core\Database\DatabaseConnection;
 
 class SiteSettingsComponent extends FluteComponent
 {
@@ -126,7 +126,7 @@ class SiteSettingsComponent extends FluteComponent
     {
         $config = config('app');
 
-        if (! $this->cron_mode) {
+        if (!$this->cron_mode) {
             $this->cron_mode = $this->cron_mode === 'on' ? true : false ?? $config['cron_mode'] ?? $this->cron_mode;
             $this->maintenance_mode = $this->maintenance_mode === 'on' ? true : false ?? $config['maintenance_mode'] ?? $this->maintenance_mode;
             $this->tips = $this->tips === 'on' ? true : false ?? $config['tips'] ?? $this->tips;
@@ -134,14 +134,14 @@ class SiteSettingsComponent extends FluteComponent
             $this->flute_copyright = $this->flute_copyright === 'on' ? true : false ?? $config['flute_copyright'] ?? $this->flute_copyright;
             $this->convert_to_webp = $this->convert_to_webp === 'on' ? true : false ?? $config['convert_to_webp'] ?? $this->convert_to_webp;
             $this->csrf_enabled = $this->csrf_enabled === 'on' ? true : false ?? $config['csrf_enabled'] ?? $this->csrf_enabled;
-            $this->robots = $this->robots ?? $config['robots'] ?? $this->robots;
+            $this->robots ??= $config['robots'] ?? $this->robots;
         }
     }
 
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

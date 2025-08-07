@@ -19,7 +19,7 @@ class SlashCommandsRegistry
         self::$commands[$command] = [
             'command' => '/' . $command,
             'description' => $description,
-            'icon' => $icon
+            'icon' => $icon,
         ];
     }
 
@@ -43,4 +43,4 @@ class SlashCommandsRegistry
     {
         return self::$commands[$command] ?? null;
     }
-} 
+}

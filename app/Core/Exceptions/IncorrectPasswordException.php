@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-class IncorrectPasswordException extends \Exception {}
+class IncorrectPasswordException extends \Exception
+{
+}

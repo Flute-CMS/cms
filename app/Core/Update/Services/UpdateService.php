@@ -3,16 +3,13 @@
 namespace Flute\Core\Update\Services;
 
 use Flute\Core\App;
+use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Theme\ThemeManager;
-use Flute\Core\Update\Updaters\CmsUpdater;
 use Flute\Core\Update\Updaters\ModuleUpdater;
 use Flute\Core\Update\Updaters\ThemeUpdater;
-use Flute\Core\Markdown\Parser;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-
-use function random_int;
 
 class UpdateService
 {
@@ -82,9 +79,10 @@ class UpdateService
     {
         if ($forceRefresh) {
             cache()->delete(self::CACHE_KEY);
+
             return $this->fetchUpdatesFromApi();
         }
-        
+
         return cache()->callback(self::CACHE_KEY, function () {
             return $this->fetchUpdatesFromApi();
         }, self::CACHE_DURATION);
@@ -102,10 +100,10 @@ class UpdateService
         $updates = $this->getAvailableUpdates();
 
         if ($type === 'cms') {
-            return ! empty($updates['cms']);
+            return !empty($updates['cms']);
         }
 
-        return ! empty($updates[$type . 's'][$identifier] ?? null);
+        return !empty($updates[$type . 's'][$identifier] ?? null);
     }
 
     /**
@@ -136,6 +134,7 @@ class UpdateService
     {
         $parts = explode('.', $version);
         $parts[count($parts) - 1]++;
+
         return implode('.', $parts);
     }
 
@@ -152,6 +151,7 @@ class UpdateService
 
             if (empty($apiKey)) {
                 logs()->warning('Flute API key is empty. Can\'t fetch updates.');
+
                 return [];
             }
 
@@ -172,7 +172,7 @@ class UpdateService
                     'accessKey' => $apiKey,
                     'phpVersion' => $this->getPHPVersion(),
                     'nocache' => time(),
-                ]
+                ],
             ]);
 
 
@@ -181,6 +181,7 @@ class UpdateService
 
                 if (is_array($data)) {
                     $data = $this->parseMarkdownChangelogs($data);
+
                     return $data;
                 }
             }
@@ -313,9 +314,9 @@ class UpdateService
     public function clearCache(): void
     {
         cache()->delete(self::CACHE_KEY);
-        
+
         $this->getAvailableUpdates(true);
-        
+
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
@@ -337,6 +338,7 @@ class UpdateService
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
+
         try {
             $updates = $this->getAvailableUpdates();
 
@@ -353,12 +355,13 @@ class UpdateService
 
             if (empty($downloadUrl)) {
                 logs()->error("Download URL not found for {$type} " . ($identifier ?? ''));
+
                 return null;
             }
 
             $tempDir = storage_path('app/temp/updates');
             if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0755, true);
+                mkdir($tempDir, 0o755, true);
             }
 
             $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
@@ -383,12 +386,13 @@ class UpdateService
                     'accessKey' => config('app.flute_key'),
                     'versionId' => $version ?? $latestVersion,
                     'token' => $token,
-                ]
+                ],
             ]);
 
             if (!file_exists($fileName) || mime_content_type($fileName) !== 'application/zip') {
                 logs()->error("Downloaded file is not a valid ZIP archive: {$fileName}");
                 @unlink($fileName);
+
                 return null;
             }
 
@@ -412,7 +416,7 @@ class UpdateService
 
     /**
      * Get PHP version
-     * 
+     *
      * @return string
      */
     private function getPHPVersion(): string

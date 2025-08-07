@@ -16,7 +16,7 @@ class SearchHandler
      *
      * @return array The results of the emitted search event.
      */
-    public function emit( string $param ): array
+    public function emit(string $param): array
     {
         /** @var SearchEvent $event */
         $event = events()->dispatch(new SearchEvent($param), SearchEvent::NAME);

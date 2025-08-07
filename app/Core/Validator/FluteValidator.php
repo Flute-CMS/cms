@@ -9,7 +9,7 @@ use MadeSimple\Arrays\ArrDots;
 
 class FluteValidator
 {
-    const WILD = '*';
+    public const WILD = '*';
 
     /**
      * @var array Associative array of rules (rule name => callable)
@@ -51,9 +51,10 @@ class FluteValidator
      * @param callable $callable The handler function for the rule
      * @return self
      */
-    public function addRule(string $name, callable $callable) : self
+    public function addRule(string $name, callable $callable): self
     {
         $this->rules[$name] = $callable;
+
         return $this;
     }
 
@@ -62,7 +63,7 @@ class FluteValidator
      *
      * @return self
      */
-    public function reset() : self
+    public function reset(): self
     {
         $this->rules = [];
         $this->clearErrors();
@@ -77,9 +78,10 @@ class FluteValidator
      *
      * @return self
      */
-    public function clearErrors() : self
+    public function clearErrors(): self
     {
         $this->errors = new MessageBag();
+
         return $this;
     }
 
@@ -88,7 +90,7 @@ class FluteValidator
      *
      * @return bool
      */
-    public function hasErrors() : bool
+    public function hasErrors(): bool
     {
         return !$this->errors->isEmpty();
     }
@@ -98,7 +100,7 @@ class FluteValidator
      *
      * @return MessageBag
      */
-    public function getErrors() : MessageBag
+    public function getErrors(): MessageBag
     {
         return $this->errors;
     }
@@ -112,7 +114,7 @@ class FluteValidator
      * @param string|null       $prefix    Optional prefix for attribute names
      * @return bool
      */
-    public function validate($values, array $ruleSet, array $messages = [], ?string $prefix = null) : bool
+    public function validate($values, array $ruleSet, array $messages = [], ?string $prefix = null): bool
     {
         $this->customMessages = $messages;
 
@@ -154,7 +156,7 @@ class FluteValidator
      * @param array  $replacements Replacement values for the message
      * @return void
      */
-    public function addError(string $attribute, string $rule, array $replacements = []) : void
+    public function addError(string $attribute, string $rule, array $replacements = []): void
     {
         $attributeKey = $this->prefix . $attribute;
         $customMessage = $this->getCustomMessage($attributeKey, $rule);
@@ -187,7 +189,7 @@ class FluteValidator
      * @param string $rule      The validation rule
      * @return string|null
      */
-    protected function getCustomMessage(string $attribute, string $rule) : ?string
+    protected function getCustomMessage(string $attribute, string $rule): ?string
     {
         $keys = [
             "{$attribute}.{$rule}",
@@ -210,7 +212,7 @@ class FluteValidator
      * @param string $attribute The attribute name
      * @return string
      */
-    protected function prettyAttribute(string $attribute) : string
+    protected function prettyAttribute(string $attribute): string
     {
         return ucwords(str_replace(['_', '-'], ' ', $attribute));
     }
@@ -256,7 +258,7 @@ class FluteValidator
      *
      * @return void
      */
-    public function flashErrors() : void
+    public function flashErrors(): void
     {
         $viewErrorBag = new ViewErrorBag();
         $viewErrorBag->put('default', $this->errors);

@@ -22,7 +22,7 @@ class UserListScreen extends Screen
     public $users;
     public $blockedUsers;
 
-    public function mount() : void
+    public function mount(): void
     {
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-users.title.users'));
@@ -50,7 +50,7 @@ class UserListScreen extends Screen
             ->orderBy('id', 'desc');
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::tabs([
@@ -115,7 +115,7 @@ class UserListScreen extends Screen
                                                 ]),
                                         ]) : null;
                                 }),
-                        ])->perPage(10)->searchable(['name', 'email', 'login'])
+                        ])->perPage(10)->searchable(['name', 'email', 'login']),
                     ]),
 
                 Tab::make(__('admin-users.tabs.blocked'))
@@ -135,8 +135,10 @@ class UserListScreen extends Screen
                                     $blockInfo = $item->getBlockInfo();
                                     if ($blockInfo) {
                                         $blockedUntil = $blockInfo['blockedUntil'] ? $blockInfo['blockedUntil']->format('Y-m-d H:i') : __('admin-users.status.forever');
+
                                         return __('admin-users.status.blocked_until', ['date' => $blockedUntil]).'<br>'.__('admin-users.status.block_reason', ['reason' => htmlspecialchars($blockInfo['reason'])]);
                                     }
+
                                     return '—';
 
                                 })
@@ -193,7 +195,7 @@ class UserListScreen extends Screen
                                                 ->method("deleteUser"),
                                         ]) : null;
                                 }),
-                        ])->perPage(15)->searchable(['name', 'email'])
+                        ])->perPage(15)->searchable(['name', 'email']),
                     ]),
             ])
                 ->slug('users'),
@@ -209,18 +211,21 @@ class UserListScreen extends Screen
     {
         $user = User::findByPK(intval(request()->input('id')));
 
-        if (! user()->can('admin.users')) {
+        if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
         if (user()->getCurrentUser()?->id === $user?->id) {
             $this->flashMessage(__('admin-users.messages.cant_self_delete'), 'error');
+
             return;
         }
 
-        if (! user()->can($user)) {
+        if (!user()->can($user)) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
@@ -237,8 +242,9 @@ class UserListScreen extends Screen
     {
         $user = User::findByPK(intval(request()->input('id')));
 
-        if (! user()->can($user)) {
+        if (!user()->can($user)) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
             return;
         }
 

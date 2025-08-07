@@ -6,8 +6,8 @@ use Flute\Core\Modules\Profile\Listeners\TemplateListener;
 use Flute\Core\Modules\Profile\Services\ProfileEditTabService;
 use Flute\Core\Modules\Profile\Services\ProfileTabService;
 use Flute\Core\Modules\Profile\Tabs\Edit\MainTab;
-use Flute\Core\Modules\Profile\Tabs\Edit\SocialTab;
 use Flute\Core\Modules\Profile\Tabs\Edit\PaymentsTab;
+use Flute\Core\Modules\Profile\Tabs\Edit\SocialTab;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Events\TemplateInitialized;
 
@@ -27,9 +27,9 @@ class ProfileServiceProvider extends AbstractServiceProvider
 
             // REGISTER MAIN TABS FOR EDIT
             $profileEditTab = $container->get(ProfileEditTabService::class);
-            $profileEditTab->register(new MainTab);
-            $profileEditTab->register(new SocialTab);
-            $profileEditTab->register(new PaymentsTab);
+            $profileEditTab->register(new MainTab());
+            $profileEditTab->register(new SocialTab());
+            $profileEditTab->register(new PaymentsTab());
             // ---------------------------
 
             events()->addDeferredListener(TemplateInitialized::NAME, [TemplateListener::class, 'handle']);

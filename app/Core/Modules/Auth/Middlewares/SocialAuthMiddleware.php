@@ -22,11 +22,11 @@ class SocialAuthMiddleware extends BaseMiddleware
     public function handle(FluteRequest $request, \Closure $next, ...$args): Response
     {
         $isSocialEmpty = social()->isEmpty();
-        
+
         if ($isSocialEmpty && config('auth.only_social', false)) {
             return $this->error()->notFound();
         }
-        
+
         return $next($request);
     }
-} 
+}

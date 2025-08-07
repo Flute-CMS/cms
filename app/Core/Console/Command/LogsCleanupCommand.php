@@ -28,14 +28,16 @@ class LogsCleanupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<info>Cleaning up old log files...</info>');
-        
+
         try {
             $this->loggerService->cleanupOldLogs();
             $output->writeln('<info>Log files have been cleaned up successfully.</info>');
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $output->writeln('<error>Error cleaning up log files: ' . $e->getMessage() . '</error>');
+
             return Command::FAILURE;
         }
     }
-} 
+}

@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Profile\Services;
 
-use Flute\Core\Modules\Profile\Support\ProfileTab;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Modules\Profile\Support\ProfileTab;
 use Illuminate\Support\Collection;
 
 class ProfileTabService
@@ -51,7 +51,7 @@ class ProfileTabService
                     'path' => $highestPriorityTab->getPath(),
                     'description' => $highestPriorityTab->getDescription(),
                     'title' => $highestPriorityTab->getTitle(),
-                    'icon' => $highestPriorityTab->getIcon()
+                    'icon' => $highestPriorityTab->getIcon(),
                 ];
             })
             ->values();

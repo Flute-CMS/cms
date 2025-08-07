@@ -2,22 +2,22 @@
 
 return [
     'title' => [
-        'list'        => 'Chaves API',
+        'list' => 'Chaves API',
         'description' => 'Gerenciar chaves de API para acesso externo',    ],
     'fields' => [
         'key' => [
-            'label'       => 'Chave API',
+            'label' => 'Chave API',
             'placeholder' => 'Insira a Chave API',        ],
         'name' => [
-            'label'       => 'Nome',        ],
+            'label' => 'Nome',        ],
         'permissions' => [
             'label' => 'Permissões',
-        ],        'never'        => 'Nunca',
+        ],        'never' => 'Nunca',
     ],
     'buttons' => [
-        'actions' => 'Ações',        'save'    => 'Salvar',
-        'edit'    => 'Editar',
-        'delete'  => 'Excluir',
+        'actions' => 'Ações',        'save' => 'Salvar',
+        'edit' => 'Editar',
+        'delete' => 'Excluir',
     ],
     'confirms' => [    ],
     'messages' => [    ],

@@ -17,7 +17,7 @@ class CookieService
 
     /**
      * Class constructor.
-     * 
+     *
      * @param FluteRequest $request Current HTTP request.
      */
     public function __construct(FluteRequest $request)
@@ -27,7 +27,7 @@ class CookieService
 
     /**
      * Returns the value of the cookie with the specified name.
-     * 
+     *
      * @param string $name Cookie name.
      * @param mixed $default Default value returned if the cookie does not exist.
      * @return mixed
@@ -43,7 +43,7 @@ class CookieService
 
     /**
      * Sets a cookie with the specified parameters.
-     * 
+     *
      * @param string $name Cookie name.
      * @param string $value Cookie value.
      * @param \DateTimeImmutable|int|null $expire Cookie lifetime (in seconds) or expiration date.
@@ -73,7 +73,7 @@ class CookieService
 
     /**
      * Checks if a cookie with the specified name exists.
-     * 
+     *
      * @param string $name Cookie name.
      * @return bool
      */
@@ -84,7 +84,7 @@ class CookieService
 
     /**
      * Removes a cookie with the specified name.
-     * 
+     *
      * @param string $name Cookie name.
      * @param string $path Path on the server where the cookie is valid.
      * @param string|null $domain Domain where the cookie is valid.
@@ -98,7 +98,7 @@ class CookieService
 
     /**
      * Adds all cookies set during the current request to the response headers.
-     * 
+     *
      * @param ResponseEvent $event Response event object.
      * @return void
      */
@@ -115,9 +115,9 @@ class CookieService
 
     /**
      * Returns a valid DateTime for setting the cookie.
-     * 
+     *
      * @param \DateTimeImmutable|int|null $expire
-     * 
+     *
      * @return \DateTimeImmutable
      */
     protected function getDateTime($expire): \DateTimeImmutable

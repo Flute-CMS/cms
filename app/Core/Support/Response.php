@@ -9,8 +9,8 @@ use Flute\Core\Support\Htmx\Response\HtmxStopPollingResponse;
 use Flute\Core\Template\Template;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use \Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class Response
 {
@@ -51,13 +51,14 @@ class Response
         /** @var FluteRequest $request */
         $request = app(FluteRequest::class);
 
-        if ($request->expectsJson() || $request->isAjax())
+        if ($request->expectsJson() || $request->isAjax()) {
             return $this->json([
                 "error" => $message,
             ], $status);
+        }
 
         return $this->make($this->template->renderError($status, [
-            "message" => $message
+            "message" => $message,
         ]), $status);
     }
 
@@ -72,6 +73,7 @@ class Response
     public function header(string $key, string $value): self
     {
         $this->response->headers->set($key, $value);
+
         return $this;
     }
 
@@ -87,6 +89,7 @@ class Response
         foreach ($headers as $key => $value) {
             $this->header($key, $value);
         }
+
         return $this;
     }
 
@@ -121,6 +124,7 @@ class Response
     public function view(string $view, array $data = [], int $status = 200, array $headers = []): SymfonyResponse
     {
         $content = view($view, $data)->toHtml();
+
         return $this->make($content, $status, $headers);
     }
 

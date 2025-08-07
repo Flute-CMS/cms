@@ -136,7 +136,7 @@ class Field implements Fieldable, Htmlable
      *
      * @param mixed $value The value to be set for the 'value' attribute.
      */
-    public function value(mixed $value) : self
+    public function value(mixed $value): self
     {
         return $this->set('value', $value);
     }
@@ -149,7 +149,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static Returns the current instance for method chaining.
      */
-    public function set(string $key, $value = true) : self
+    public function set(string $key, $value = true): self
     {
         $this->attributes[$key] = $value;
 
@@ -163,10 +163,10 @@ class Field implements Fieldable, Htmlable
      *
      * @return static Returns the current instance for method chaining.
      */
-    protected function ensureRequiredAttributesArePresent() : self
+    protected function ensureRequiredAttributesArePresent(): self
     {
         collect($this->required)
-            ->filter(fn ($attribute) => ! array_key_exists($attribute, $this->attributes))
+            ->filter(fn ($attribute) => !array_key_exists($attribute, $this->attributes))
             ->each(function ($attribute) {
                 throw new FieldRequiredAttributeException($attribute);
             });
@@ -183,7 +183,7 @@ class Field implements Fieldable, Htmlable
      */
     public function render()
     {
-        if (! $this->isVisible()) {
+        if (!$this->isVisible()) {
             return;
         }
 
@@ -208,7 +208,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static
      */
-    private function translateAttributes() : self
+    private function translateAttributes(): self
     {
         $lang = $this->get('lang');
 
@@ -226,7 +226,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return array
      */
-    public function getAttributes() : array
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -236,7 +236,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return ComponentAttributeBag
      */
-    protected function getAllowAttributes() : ComponentAttributeBag
+    protected function getAllowAttributes(): ComponentAttributeBag
     {
         $allow = array_merge($this->universalAttributes, $this->inlineAttributes);
 
@@ -253,7 +253,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return ComponentAttributeBag
      */
-    protected function getAllowDataAttributes() : ComponentAttributeBag
+    protected function getAllowDataAttributes(): ComponentAttributeBag
     {
         return $this->getAllowAttributes()->filter(fn ($value, $key) => Str::startsWith($key, 'data-'));
     }
@@ -265,9 +265,9 @@ class Field implements Fieldable, Htmlable
      *
      * @return static Returns the current instance for method chaining.
      */
-    public function generateId() : self
+    public function generateId(): self
     {
-        if (! empty($this->get('id'))) {
+        if (!empty($this->get('id'))) {
             return $this;
         }
 
@@ -300,7 +300,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static Returns the current instance for method chaining.
      */
-    protected function customizeFieldName() : self
+    protected function customizeFieldName(): self
     {
         $name = $this->get('name');
         $prefix = $this->get('prefix');
@@ -329,7 +329,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static Returns the current instance for method chaining.
      */
-    protected function updateFieldValue() : self
+    protected function updateFieldValue(): self
     {
         $value = $this->get('value');
 
@@ -345,7 +345,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static
      */
-    public function vertical() : self
+    public function vertical(): self
     {
         $this->typeForm = 'admin::partials.fields.vertical';
 
@@ -357,7 +357,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static
      */
-    public function clear() : self
+    public function clear(): self
     {
         $this->typeForm = 'admin::partials.fields.clear';
 
@@ -369,7 +369,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static
      */
-    public function horizontal() : self
+    public function horizontal(): self
     {
         $this->typeForm = 'admin::partials.fields.horizontal';
 
@@ -381,7 +381,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return $this
      */
-    public function withoutFormType() : self
+    public function withoutFormType(): self
     {
         $this->typeForm = static fn (array $attributes) => $attributes['slot'];
 
@@ -393,7 +393,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return static
      */
-    public function hr() : self
+    public function hr(): self
     {
         $this->set('hr');
 
@@ -420,7 +420,7 @@ class Field implements Fieldable, Htmlable
      * This method iterates over each closure added via addBeforeRender() method
      * and executes them in the context of the current field instance.
      */
-    public function runBeforeRender() : self
+    public function runBeforeRender(): self
     {
         foreach ($this->beforeRender as $before) {
             $before->call($this);
@@ -429,7 +429,7 @@ class Field implements Fieldable, Htmlable
         return $this;
     }
 
-    public function popover(string $text) : self
+    public function popover(string $text): self
     {
         $this->set('popover', $text);
 
@@ -450,7 +450,7 @@ class Field implements Fieldable, Htmlable
      *
      * @return string
      */
-    public function __toString() : string
+    public function __toString(): string
     {
         $view = $this->render();
 

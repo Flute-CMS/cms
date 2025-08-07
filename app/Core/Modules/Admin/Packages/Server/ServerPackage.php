@@ -12,7 +12,7 @@ class ServerPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -32,7 +32,7 @@ class ServerPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.servers'];
     }
@@ -40,7 +40,7 @@ class ServerPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -56,12 +56,12 @@ class ServerPackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getServersCount() : int
+    protected function getServersCount(): int
     {
         return Server::query()->count();
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 11;
     }

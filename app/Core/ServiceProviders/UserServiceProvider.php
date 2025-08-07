@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Flute\Core\ServiceProviders;
 
 use Flute\Core\Events\ResponseEvent;
@@ -18,7 +17,7 @@ class UserServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             UserService::class => \DI\autowire(),
-            "user" => \DI\get(UserService::class)
+            "user" => \DI\get(UserService::class),
         ]);
     }
 
@@ -27,7 +26,7 @@ class UserServiceProvider extends AbstractServiceProvider
         if (is_installed()) {
             $container->get(UserService::class)->getCurrentUser();
 
-            if (! is_cli()) {
+            if (!is_cli()) {
                 $events = $container->get('events');
                 $userChangeListener = $container->get(UserChangeResponseListener::class);
 

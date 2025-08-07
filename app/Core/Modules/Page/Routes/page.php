@@ -48,7 +48,7 @@ router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], f
 
     $router->get('get-layout', [WidgetController::class, 'getLayout'])
         ->name('pages.getLayout');
-    
+
     $router->post('save-seo', [PageController::class, 'saveSEO'])
         ->name('pages.saveSEO');
 

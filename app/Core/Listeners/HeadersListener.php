@@ -32,8 +32,8 @@ class HeadersListener
             $response->headers->set('Expires', '0');
         } elseif (is_performance()) {
             $response->setCache([
-                'public'   => true,
-                'max_age'  => 900,
+                'public' => true,
+                'max_age' => 900,
                 's_maxage' => 1800,
             ]);
         }

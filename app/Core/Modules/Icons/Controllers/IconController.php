@@ -46,7 +46,7 @@ class IconController extends BaseController
                 'prefix' => $prefix,
                 'name' => $category,
                 'category' => $category,
-                'categories' => $categories
+                'categories' => $categories,
             ];
         }
 
@@ -83,13 +83,13 @@ class IconController extends BaseController
             'currentCategory' => $categoryName,
             'icons' => $icons,
             'total' => $total,
-            'limited' => $total > $limit
+            'limited' => $total > $limit,
         ]);
     }
 
     /**
      * Get categories for a specific icon package
-     * 
+     *
      * @Get("packages/{prefix}/categories")
      */
     #[Get("packages/{prefix}/categories")]
@@ -97,12 +97,12 @@ class IconController extends BaseController
     {
         $categories = $this->iconFinder->getCategoriesInPackage($prefix);
         $packageCategory = $this->getCategoryForPrefix($prefix);
-        
+
         return $this->json([
             'prefix' => $prefix,
             'name' => $packageCategory,
             'category' => $packageCategory,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -158,7 +158,7 @@ class IconController extends BaseController
 
     /**
      * Search for icons by query string
-     * 
+     *
      * @Get("search")
      */
     #[Get("search")]
@@ -167,55 +167,55 @@ class IconController extends BaseController
         $query = $request->input('q');
         $prefix = $request->input('prefix');
         $category = $request->input('category');
-        
+
         if (empty($query) || strlen($query) < 2) {
             return $this->json(['error' => 'Search query is too short'], 400);
         }
-        
+
         if (empty($prefix)) {
             return $this->json(['error' => 'Prefix parameter is required'], 400);
         }
-        
+
         $allIcons = $this->iconFinder->getIconsInPackage($prefix, $category);
         $query = strtolower($query);
-        
+
         $matchingIcons = [];
         foreach ($allIcons as $icon) {
             $iconName = strtolower(str_replace('-', ' ', $icon));
-            
+
             if (strpos($iconName, $query) !== false) {
                 $matchingIcons[] = $icon;
             }
         }
-        
+
         $result = [
             'prefix' => $prefix,
             'query' => $query,
             'category' => $category,
             'total' => count($matchingIcons),
-            'icons' => []
+            'icons' => [],
         ];
-        
+
         $paths = array_map(function ($icon) use ($prefix) {
             return "$prefix.$icon";
         }, $matchingIcons);
-        
+
         $paths = array_slice($paths, 0, min(count($paths), 500));
-        
+
         foreach ($paths as $path) {
             $svg = $this->iconFinder->loadFile($path);
-            
+
             if ($svg) {
                 $displayName = $this->getDisplayNameFromPath($path);
-                
+
                 $result['icons'][] = [
                     'path' => $path,
                     'svg' => $svg,
-                    'displayName' => $displayName
+                    'displayName' => $displayName,
                 ];
             }
         }
-        
+
         return $this->json($result);
     }
 
@@ -250,17 +250,17 @@ class IconController extends BaseController
                 'limit' => $limit,
                 'total' => $total,
                 'totalPages' => ceil($total / $limit),
-                'icons' => []
+                'icons' => [],
             ];
         } else {
             if (empty($paths)) {
                 return $this->json([
-                    'error' => 'Paths parameter is required when prefix is not specified'
+                    'error' => 'Paths parameter is required when prefix is not specified',
                 ], 400);
             }
 
             $result = [
-                'icons' => []
+                'icons' => [],
             ];
         }
 
@@ -275,7 +275,7 @@ class IconController extends BaseController
                 $result['icons'][] = [
                     'path' => $path,
                     'svg' => $svg,
-                    'displayName' => $displayName
+                    'displayName' => $displayName,
                 ];
             }
         }
@@ -297,6 +297,7 @@ class IconController extends BaseController
         } elseif (str_starts_with($normalized, 'fa')) {
             return 'Font Awesome';
         }
+
         return 'Other';
     }
 
@@ -323,9 +324,10 @@ class IconController extends BaseController
         } elseif (str_starts_with($prefix, 'fa')) {
             // fa.folder.icon
             $name = $parts[2] ?? '';
+
             return ucfirst(str_replace('-', ' ', $name));
         } else {
             return ucfirst(str_replace('-', ' ', end($parts)));
         }
     }
-} 
+}

@@ -2,6 +2,8 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
+use Carbon\Carbon;
+use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -11,8 +13,6 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
-use Flute\Admin\Packages\Payment\Services\PaymentService;
-use Carbon\Carbon;
 
 class PaymentGatewayScreen extends Screen
 {
@@ -24,7 +24,7 @@ class PaymentGatewayScreen extends Screen
     public $gateways;
     public $metrics;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->paymentService = app(PaymentService::class);
         $this->gateways = rep(PaymentGateway::class)->select();
@@ -41,7 +41,7 @@ class PaymentGatewayScreen extends Screen
     /**
      * Calculate metrics for the payment gateways dashboard
      */
-    private function calculateMetrics() : array
+    private function calculateMetrics(): array
     {
         $now = Carbon::now();
         $today = $now->copy()->startOfDay();
@@ -74,7 +74,7 @@ class PaymentGatewayScreen extends Screen
                 if ($invoice->isPaid) {
                     $totalTransactions++;
                     $totalRevenue += $invoice->amount;
-                    
+
                     if ($invoice->paidAt > $today) {
                         $todayTransactions++;
                         $todayRevenue += $invoice->amount;
@@ -102,22 +102,22 @@ class PaymentGatewayScreen extends Screen
             'total_gateways' => [
                 'value' => number_format($totalGateways),
                 'diff' => round($gatewaysDiff, 1),
-                'icon' => 'bank'
+                'icon' => 'bank',
             ],
             'active_gateways' => [
                 'value' => number_format($activeGateways) . ' (' . ($totalGateways > 0 ? round(($activeGateways / $totalGateways) * 100) : 0) . '%)',
                 'diff' => 0,
-                'icon' => 'check-circle'
+                'icon' => 'check-circle',
             ],
             'today_transactions' => [
                 'value' => number_format($todayTransactions) . ' / ' . number_format($totalTransactions),
                 'diff' => round($transactionsDiff, 1),
-                'icon' => 'chart-line-up'
+                'icon' => 'chart-line-up',
             ],
             'today_revenue' => [
                 'value' => number_format($todayRevenue, 2) . ' ' . config('payment.currency'),
                 'diff' => round($revenueDiff, 1),
-                'icon' => 'money'
+                'icon' => 'money',
             ],
         ];
     }
@@ -125,7 +125,7 @@ class PaymentGatewayScreen extends Screen
     /**
      * Командная панель.
      */
-    public function commandBar() : array
+    public function commandBar(): array
     {
         return [
             Button::make(__('admin-payment.buttons.add_gateway'))
@@ -138,7 +138,7 @@ class PaymentGatewayScreen extends Screen
     /**
      * Определение макета экрана.
      */
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::metrics([
@@ -155,32 +155,32 @@ class PaymentGatewayScreen extends Screen
 
             LayoutFactory::table('gateways', [
                 TD::make('image', '')
-                    ->render(fn(PaymentGateway $gateway) => view('admin-payment::cells.gateway-image', ['gateway' => $gateway]))
+                    ->render(fn (PaymentGateway $gateway) => view('admin-payment::cells.gateway-image', ['gateway' => $gateway]))
                     ->width('80px'),
 
                 TD::make('name', __('admin-payment.table.name'))
-                    ->render(fn(PaymentGateway $gateway) => $gateway->name)
+                    ->render(fn (PaymentGateway $gateway) => $gateway->name)
                     ->width('150px'),
 
                 TD::make('adapter', __('admin-payment.table.adapter'))
                     ->width('200px'),
 
                 TD::make('enabled', __('admin-payment.table.status'))
-                    ->render(fn(PaymentGateway $gateway) => view('admin-payment::cells.gateway-status', ['enabled' => $gateway->enabled]))
+                    ->render(fn (PaymentGateway $gateway) => view('admin-payment::cells.gateway-status', ['enabled' => $gateway->enabled]))
                     ->width('150px'),
 
                 TD::make('createdAt', __('admin-payment.table.created_at'))
                     ->sort()
-                    ->render(fn(PaymentGateway $gateway) => $gateway->createdAt->format(default_date_format()))
+                    ->render(fn (PaymentGateway $gateway) => $gateway->createdAt->format(default_date_format()))
                     ->width('200px'),
 
                 TD::make('actions', __('admin-payment.table.actions'))
-                    ->render(fn(PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
+                    ->render(fn (PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
                     ->width('100px'),
             ])
                 ->searchable([
                     'name',
-                    'adapter'
+                    'adapter',
                 ]),
         ];
     }
@@ -188,7 +188,7 @@ class PaymentGatewayScreen extends Screen
     /**
      * Выпадающее меню действий для шлюза.
      */
-    private function gatewayActionsDropdown(PaymentGateway $gateway) : string
+    private function gatewayActionsDropdown(PaymentGateway $gateway): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -229,6 +229,7 @@ class PaymentGatewayScreen extends Screen
 
             if (!$gateway) {
                 $this->flashMessage(__('admin-payment.messages.gateway_not_found'), 'error');
+
                 return;
             }
 
@@ -256,6 +257,7 @@ class PaymentGatewayScreen extends Screen
 
         if (!$gateway) {
             $this->flashMessage(__('admin-payment.messages.gateway_not_found'), 'error');
+
             return;
         }
 

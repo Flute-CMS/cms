@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-class EncryptException extends \Exception { }
+class EncryptException extends \Exception
+{
+}

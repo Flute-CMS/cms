@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Modules\Profile\Controllers;
 
+use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Profile\Events\ProfileRenderEvent;
 use Flute\Core\Modules\Profile\Events\ProfileSearchEvent;
 use Flute\Core\Modules\Profile\Services\ProfileTabService;
 use Flute\Core\Support\BaseController;
-use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\FluteRequest;
 
 class ProfileIndexController extends BaseController
@@ -95,7 +95,7 @@ class ProfileIndexController extends BaseController
 
         if ($interval <= 600) {
             return __('def.online');
-        } elseif($lastLoggedDateTime->getTimestamp() > 0) {
+        } elseif ($lastLoggedDateTime->getTimestamp() > 0) {
             return \Carbon\Carbon::parse($lastLoggedDateTime)->diffForHumans();
         } else {
             return __('def.not_online');

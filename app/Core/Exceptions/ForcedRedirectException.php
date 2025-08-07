@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-
 use Exception;
 
 class ForcedRedirectException extends Exception

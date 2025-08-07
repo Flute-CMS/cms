@@ -2,4 +2,6 @@
 
 namespace Flute\Core\ModulesManager\Exceptions;
 
-class ModuleDependencyException extends \Exception {}
+class ModuleDependencyException extends \Exception
+{
+}

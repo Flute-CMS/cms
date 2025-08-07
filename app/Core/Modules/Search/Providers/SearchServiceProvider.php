@@ -13,7 +13,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class SearchServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             SearchHandler::class => \DI\create(),
@@ -21,28 +21,28 @@ class SearchServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
-        if( is_installed() )
-        {
+        if (is_installed()) {
             $container->get(Router::class)->post('api/search/{value}', [SearchController::class, 'search']);
             $container->get(EventDispatcher::class)->addListener(SearchEvent::NAME, [$this, 'searchById']);
         }
     }
 
-    public function searchById(SearchEvent $searchEvent) : void
+    public function searchById(SearchEvent $searchEvent): void
     {
         $value = $searchEvent->getValue();
 
         $foundUsers = User::query()->where('name', 'like', "%$value%")->fetchAll();
-        
-        if( sizeof($foundUsers) > 0 ) {
-            foreach( $foundUsers as $foundUser ) {
-                
-                if( $searchEvent->isExists($foundUser->id, 'user') )
-                    continue;
 
-                $searchResult = new SearchResult;
+        if (sizeof($foundUsers) > 0) {
+            foreach ($foundUsers as $foundUser) {
+
+                if ($searchEvent->isExists($foundUser->id, 'user')) {
+                    continue;
+                }
+
+                $searchResult = new SearchResult();
                 $searchResult->setType('name');
                 $searchResult->setId($foundUser->id);
                 $searchResult->setImage(url($foundUser->avatar));

@@ -9,8 +9,9 @@ class MaintenanceMiddleware extends BaseMiddleware
 {
     public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
-        if (!is_installed())
+        if (!is_installed()) {
             return $next($request);
+        }
 
         $path = $request->getPathInfo();
 

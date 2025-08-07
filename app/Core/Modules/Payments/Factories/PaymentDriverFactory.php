@@ -14,7 +14,7 @@ class PaymentDriverFactory
     /**
      * Register a new payment driver.
      */
-    public function register(string $key, string $driverClass) : void
+    public function register(string $key, string $driverClass): void
     {
         if (!is_subclass_of($driverClass, PaymentDriverInterface::class)) {
             throw new \InvalidArgumentException(
@@ -34,7 +34,7 @@ class PaymentDriverFactory
     /**
      * Create a new driver instance.
      */
-    public function make(string $key) : PaymentDriverInterface
+    public function make(string $key): PaymentDriverInterface
     {
         if (!isset($this->drivers[$key])) {
             throw new \InvalidArgumentException(
@@ -43,13 +43,14 @@ class PaymentDriverFactory
         }
 
         $driverClass = $this->drivers[$key];
+
         return new $driverClass();
     }
 
     /**
      * Get all registered drivers.
      */
-    public function getDrivers() : array
+    public function getDrivers(): array
     {
         return $this->drivers;
     }
@@ -57,8 +58,8 @@ class PaymentDriverFactory
     /**
      * Check if driver exists.
      */
-    public function hasDriver(string $key) : bool
+    public function hasDriver(string $key): bool
     {
         return isset($this->drivers[$key]);
     }
-} 
+}

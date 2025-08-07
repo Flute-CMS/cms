@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Currency\Screens;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -14,7 +15,6 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Database\Entities\PaymentGateway;
-use Cycle\Database\Injection\Parameter;
 
 class CurrencyListScreen extends Screen
 {
@@ -25,7 +25,7 @@ class CurrencyListScreen extends Screen
     public $currencies;
     public $paymentGateways;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->name = __('admin-currency.title.list');
         $this->description = __('admin-currency.title.description');
@@ -38,12 +38,12 @@ class CurrencyListScreen extends Screen
         $this->paymentGateways = rep(PaymentGateway::class)->select()->orderBy('name', 'asc')->fetchAll();
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::table('currencies', [
                 TD::make('code', __('admin-currency.fields.code.label'))
-                    ->render(fn(Currency $currency) => $currency->code . '<small class="text-muted d-flex">#' . $currency->id . '</small>')
+                    ->render(fn (Currency $currency) => $currency->code . '<small class="text-muted d-flex">#' . $currency->id . '</small>')
                     ->cantHide()
                     ->width('100px'),
 
@@ -59,7 +59,7 @@ class CurrencyListScreen extends Screen
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn(Currency $currency) => DropDown::make()
+                        fn (Currency $currency) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-currency.buttons.edit'))
@@ -133,7 +133,7 @@ class CurrencyListScreen extends Screen
                 ->required()
                 ->small(__('admin-currency.fields.rate.help')),
 
-            ...$paymentGatewayCheckboxes
+            ...$paymentGatewayCheckboxes,
         ])
             ->title(__('admin-currency.title.create'))
             ->applyButton(__('admin-currency.buttons.add'))
@@ -174,6 +174,7 @@ class CurrencyListScreen extends Screen
 
             if ($validPaymentGateways !== count($selectedPaymentGateways)) {
                 $this->flashMessage(__('admin-currency.messages.invalid_payment_gateways'), 'error');
+
                 return;
             }
         }
@@ -208,6 +209,7 @@ class CurrencyListScreen extends Screen
         $currency = Currency::findByPK($currencyId);
         if (!$currency) {
             $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+
             return;
         }
 
@@ -256,7 +258,7 @@ class CurrencyListScreen extends Screen
                 ->required()
                 ->small(__('admin-currency.fields.rate.help')),
 
-            ...$paymentGatewayCheckboxes
+            ...$paymentGatewayCheckboxes,
         ])
             ->title(__('admin-currency.title.edit'))
             ->applyButton(__('admin-currency.buttons.save'))
@@ -274,6 +276,7 @@ class CurrencyListScreen extends Screen
         $currency = Currency::findByPK($currencyId);
         if (!$currency) {
             $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+
             return;
         }
 
@@ -304,6 +307,7 @@ class CurrencyListScreen extends Screen
 
             if ($validPaymentGateways !== count($selectedPaymentGateways)) {
                 $this->flashMessage(__('admin-currency.messages.invalid_payment_gateways'), 'error');
+
                 return;
             }
         }
@@ -342,6 +346,7 @@ class CurrencyListScreen extends Screen
         $currency = Currency::findByPK($id);
         if (!$currency) {
             $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+
             return;
         }
 

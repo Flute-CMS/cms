@@ -22,14 +22,17 @@ class ModuleActivate implements ModuleActionInterface
 
         $moduleGet = $this->moduleManager->getModule($module->key);
 
-        if (!$moduleGet)
+        if (!$moduleGet) {
             throw new \RuntimeException("Module wasn't found in the system");
+        }
 
-        if ($moduleGet->status === 'notinstalled')
+        if ($moduleGet->status === 'notinstalled') {
             throw new \RuntimeException("Module is not installed in the system");
+        }
 
-        if ($moduleGet->status === 'active')
+        if ($moduleGet->status === 'active') {
             throw new \RuntimeException("Module already activated");
+        }
 
         $this->checkModuleDependencies($moduleGet);
 
@@ -47,6 +50,7 @@ class ModuleActivate implements ModuleActionInterface
             $this->dependencies->checkDependencies($module->dependencies, $this->moduleManager->getActive(), $themeManager->getThemeInfo());
         } catch (ModuleDependencyException $e) {
             logs('modules')->emergency("Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
+
             throw new ModuleDependencyException($e->getMessage());
         }
     }
@@ -54,7 +58,7 @@ class ModuleActivate implements ModuleActionInterface
     protected function activate(ModuleInformation $moduleInformation): void
     {
         $module = Module::findOne(["key" => $moduleInformation->key]);
-        
+
         $module->status = ModuleManager::ACTIVE;
 
         $module->save();

@@ -9,7 +9,7 @@ class NavigationPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -25,7 +25,7 @@ class NavigationPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.navigation'];
     }
@@ -33,7 +33,7 @@ class NavigationPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -48,7 +48,7 @@ class NavigationPackage extends AbstractAdminPackage
         ];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 15;
     }

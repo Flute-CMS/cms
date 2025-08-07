@@ -55,7 +55,7 @@ class UserRepository extends Repository
 
     /**
      * Method to get user either by email or login.
-     * 
+     *
      * @param string $loginOrEmail The login or email to search for.
      * @return User|null The found user or null if not found.
      */
@@ -88,7 +88,7 @@ class UserRepository extends Repository
 
     /**
      * Verifies if the given password matches the hashed password.
-     * 
+     *
      * @param string $password The user's plaintext password
      * @param string $hash The hashed password
      * @return bool Returns true if the password matches the hash, false otherwise.
@@ -105,16 +105,16 @@ class UserRepository extends Repository
 
     /**
      * Method to check if a string is a valid email format.
-     * 
+     *
      * @param string $email The string to check.
      * @return bool Returns true if the string is a valid email format, false otherwise.
      */
-    protected function isEmail(string $email) : bool
+    protected function isEmail(string $email): bool
     {
         return Validators::isEmail($email);
     }
 
-    public function getLatestUsers(int $limit = 10) : array
+    public function getLatestUsers(int $limit = 10): array
     {
         return $this
             ->select()
@@ -124,7 +124,7 @@ class UserRepository extends Repository
             ->fetchAll();
     }
 
-    public function getOnlineUsers() : array
+    public function getOnlineUsers(): array
     {
         return $this
             ->select()
@@ -132,9 +132,10 @@ class UserRepository extends Repository
             ->fetchAll();
     }
 
-    public function getTodayUsers() : array
+    public function getTodayUsers(): array
     {
         $startOfDay = new \DateTimeImmutable('today');
+
         return $this
             ->select()
             ->where('last_logged', '>=', $startOfDay)

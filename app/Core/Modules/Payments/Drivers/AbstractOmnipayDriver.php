@@ -24,32 +24,32 @@ abstract class AbstractOmnipayDriver implements PaymentDriverInterface
     /**
      * Validation rules. (when creating/editing a payment gateway)
      */
-    public function getValidationRules() : array
+    public function getValidationRules(): array
     {
         return [];
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getSettingsView() : string
+    public function getSettingsView(): string
     {
         return $this->settingsView;
     }
 
-    public function getAdapter() : string
+    public function getAdapter(): string
     {
         return $this->adapter;
     }
 
-    public function validateSettings(array $settings) : bool
+    public function validateSettings(array $settings): bool
     {
         return true;
     }
 
-    public function getSettings() : array
+    public function getSettings(): array
     {
         return [];
     }

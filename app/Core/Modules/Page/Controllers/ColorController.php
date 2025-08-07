@@ -2,12 +2,12 @@
 
 namespace Flute\Core\Modules\Page\Controllers;
 
+use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Theme\ThemeActions;
 use Flute\Core\Validator\FluteValidator;
 use Nette\Utils\Json;
-use Exception;
 
 class ColorController extends BaseController
 {
@@ -46,7 +46,7 @@ class ColorController extends BaseController
             '--border1' => 'required|numeric|min:0.25|max:4',
             '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
             'theme' => 'required|string|in:dark,light',
-            'containerWidth' => 'sometimes|string|in:container,fullwidth'
+            'containerWidth' => 'sometimes|string|in:container,fullwidth',
         ];
 
         $data = array_merge($colors, ['theme' => $theme, 'containerWidth' => $containerWidth]);
@@ -57,7 +57,7 @@ class ColorController extends BaseController
             $this->toast($firstError, 'error');
 
             return $this->json([
-                'errors' => $errors->toArray()
+                'errors' => $errors->toArray(),
             ], 422);
         }
 
@@ -80,7 +80,7 @@ class ColorController extends BaseController
             $this->toast(__('def.colors_updated'), 'success');
 
             return $this->json([
-                'message' => __('def.colors_updated')
+                'message' => __('def.colors_updated'),
             ], 200);
         } catch (Exception $e) {
             logs('templates')->error("Failed to update theme colors: " . $e->getMessage());
@@ -88,7 +88,7 @@ class ColorController extends BaseController
             $this->toast($message, 'error');
 
             return $this->json([
-                'error' => $message
+                'error' => $message,
             ], 500);
         }
     }

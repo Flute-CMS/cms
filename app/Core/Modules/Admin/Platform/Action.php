@@ -37,7 +37,7 @@ class Action extends Field implements Actionable
         'name',
     ];
 
-    public function name(?string $name = null) : self
+    public function name(?string $name = null): self
     {
         return $this->set('name', $name ?? '');
     }
@@ -45,7 +45,7 @@ class Action extends Field implements Actionable
     /**
      * @return static
      */
-    public function type(Color $visual) : self
+    public function type(Color $visual): self
     {
         return $this->set('type', $visual->name());
     }
@@ -63,7 +63,7 @@ class Action extends Field implements Actionable
     /**
      * @return string
      */
-    protected function getId() : ?string
+    protected function getId(): ?string
     {
         return $this->get('id');
     }

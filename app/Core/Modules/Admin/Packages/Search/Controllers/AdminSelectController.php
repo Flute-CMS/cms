@@ -4,8 +4,8 @@ namespace Flute\Admin\Packages\Search\Controllers;
 
 use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Select\Repository;
-use Flute\Core\Support\FluteRequest;
 use Flute\Admin\Packages\Search\SelectRegistry;
+use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,7 +20,7 @@ class AdminSelectController
         $this->orm = $orm;
     }
 
-    public function search(FluteRequest $request) : JsonResponse
+    public function search(FluteRequest $request): JsonResponse
     {
         $alias = $request->input('entity');
         $query = \trim($request->input('query', ''));
@@ -62,7 +62,7 @@ class AdminSelectController
 
         $select->limit($limit);
 
-        $displayField = $displayField ?? 'name';
+        $displayField ??= 'name';
         if ($displayField) {
             $select->orderBy($displayField, 'ASC');
         }

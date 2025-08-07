@@ -1,38 +1,38 @@
 <?php
 
-return [    'title' => [        'actions'        => 'Ações',
-        'actions_description'=> 'Ações no servidor',
-        'integrations'   => 'Integrações',
+return [    'title' => [        'actions' => 'Ações',
+        'actions_description' => 'Ações no servidor',
+        'integrations' => 'Integrações',
     ],
 
     'tabs' => [    ],
 
     'fields' => [
         'name' => [
-            'label'       => 'Nome',
+            'label' => 'Nome',
             'placeholder' => 'Digite o nome do servidor',
         ],
         'ip' => [
-            'label'       => 'Endereço IP',
+            'label' => 'Endereço IP',
             'placeholder' => '127.0.0.1',
         ],
         'port' => [
-            'label'       => 'Porta',
+            'label' => 'Porta',
             'placeholder' => '27015',
         ],
         'mod' => [
-            'label'       => 'Jogo',
+            'label' => 'Jogo',
             'placeholder' => 'Escolhe um jogo',
         ],
         'rcon' => [
-            'label'       => 'Senha RCON',
+            'label' => 'Senha RCON',
             'placeholder' => 'Insira a senha RCON',
-            'help'        => 'Senha para gerenciamento do servidor remoto',
+            'help' => 'Senha para gerenciamento do servidor remoto',
         ],
         'display_ip' => [
-            'label'       => 'Exibir IP',
+            'label' => 'Exibir IP',
             'placeholder' => '127.0.0.1:27015',
-            'help'        => 'Endereço IP mostrado aos usuários',
+            'help' => 'Endereço IP mostrado aos usuários',
         ],
         'ranks' => [        ],
         'ranks_format' => [        ],
@@ -44,7 +44,7 @@ return [    'title' => [        'actions'        => 'Ações',
     'db_connection' => [        'fields' => [
             'mod' => [            ],
             'dbname' => [
-                'label'       => 'Banco de Dados',
+                'label' => 'Banco de Dados',
                 'placeholder' => 'Insira o nome do banco de dados',
             ],
             'driver' => [            ],
@@ -71,12 +71,12 @@ return [    'title' => [        'actions'        => 'Ações',
                 'table_prefix' => [                ],
                 'player_table' => [                ],
                 'steam_id_field' => [
-                    'label'       => 'Campo SteamID',
+                    'label' => 'Campo SteamID',
                     'placeholder' => 'Digite o nome do campo SteamID',
-                    'help'        => 'Campo contendo SteamID',
+                    'help' => 'Campo contendo SteamID',
                 ],
                 'name_field' => [
-                    'label'       => 'Campos do Nome',                ],
+                    'label' => 'Campos do Nome',                ],
             ],
         ],
         'no_drivers' => [        ],
@@ -87,10 +87,10 @@ return [    'title' => [        'actions'        => 'Ações',
         'custom_settings_json' => [        ],
         'custom_alert' => [        ],    ],
 
-    'buttons' => [        'actions'=> 'Ações',
+    'buttons' => [        'actions' => 'Ações',
     ],
 
-    'messages' => [        'invalid_ip'                   => 'Digite um endereço IP válido sem uma porta.',
+    'messages' => [        'invalid_ip' => 'Digite um endereço IP válido sem uma porta.',
     ],
 
     'confirms' => [    ],

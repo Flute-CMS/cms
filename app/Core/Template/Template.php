@@ -14,7 +14,6 @@ use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Template\Contracts\ViewServiceInterface;
 use Flute\Core\Template\Controllers\YoyoController;
 use Flute\Core\Template\Events\TemplateInitialized;
-use Flute\Core\Template\ThemeFallbackResolver;
 use Flute\Core\Theme\ThemeManager;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\ViewErrorBag;
@@ -222,6 +221,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     public function getAsset(string $assetKey): string
     {
         $assetPath = $this->assetAliases[$assetKey] ?? trim($assetKey, '/');
+
         return url($assetPath)->get();
     }
 
@@ -235,7 +235,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function render(string $template, array $context = [], $mergeData = []): View
     {
-        if (! empty($this->themeData['layout_arguments'])) {
+        if (!empty($this->themeData['layout_arguments'])) {
             $this->blade->share($this->themeData['layout_arguments']);
         }
 
@@ -252,7 +252,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function renderError(int $errorCode, array $variables = []): View
     {
-        $hint = (! is_installed()) ? 'installer' : ($this->isAdminPath() ? 'admin' : 'flute');
+        $hint = (!is_installed()) ? 'installer' : ($this->isAdminPath() ? 'admin' : 'flute');
+
         return $this->render("{$hint}::pages.error", array_merge(['code' => $errorCode], $variables));
     }
 
@@ -358,6 +359,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
                 return $this->render($template, $data)->render();
             } catch (\Exception $e) {
                 logs('templates')->error("Error rendering template '{$template}': " . $e->getMessage());
+
                 return '';
             }
         });
@@ -378,6 +380,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
                 return \Yoyo\yoyo_render($component, $data);
             } catch (\Exception $e) {
                 logs('templates')->error("Error rendering Yoyo component '{$component}': " . $e->getMessage());
+
                 return '';
             }
         });
@@ -479,6 +482,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     protected function fallbackToDefaultTheme(): void
     {
         $defaultTheme = ThemeManager::DEFAULT_THEME;
+
         try {
             $this->themeManager->setTheme($defaultTheme);
             $this->currentTheme = $this->themeManager->getCurrentTheme();
@@ -533,7 +537,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function addError(string $input, string $error): void
     {
-        if (! isset($this->globals['errors'])) {
+        if (!isset($this->globals['errors'])) {
             $this->globals['errors'] = new ViewErrorBag();
         }
 
@@ -598,13 +602,14 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
     /**
      * After render event processor
-     * 
+     *
      * @param View $view The view object
      * @return View
      */
     protected function afterRenderEvent(View $view): View
     {
         $event = new AfterRenderEvent($view);
+
         return events()->dispatch($event, AfterRenderEvent::NAME)->getView();
     }
 
@@ -633,7 +638,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         });
 
         $this->blade->if('guest', function () {
-            return ! user()->isLoggedIn();
+            return !user()->isLoggedIn();
         });
 
         $this->blade->if('can', function ($ability, $arguments = []) {
@@ -641,7 +646,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         });
 
         $this->blade->if('cannot', function ($ability, $arguments = []) {
-            return ! user()->can($ability);
+            return !user()->can($ability);
         });
 
         $this->blade->directive('asset', function ($expression) {
@@ -671,7 +676,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             return new BladeViewProvider($this->blade);
         });
 
-        if (! $this->getGlobal('errors')) {
+        if (!$this->getGlobal('errors')) {
             $this->addGlobal('errors', new ViewErrorBag());
         }
 
@@ -729,6 +734,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         if (isset($this->componentCache[$cacheKey])) {
             $this->registerCachedComponents($this->componentCache[$cacheKey]);
+
             return;
         }
 
@@ -775,7 +781,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $components[$alias] = [
                 'view' => $componentView,
                 'theme' => $theme,
-                'path' => $componentFile
+                'path' => $componentFile,
             ];
         }
 

@@ -11,7 +11,7 @@ trait HtmxControllerTrait
 {
     /**
      * Issue a htmx client redirect response
-     * 
+     *
      * @return HtmxClientRedirectResponse
      */
     protected function htmxRedirect(string $url): HtmxClientRedirectResponse
@@ -21,7 +21,7 @@ trait HtmxControllerTrait
 
     /**
      * Issue a htmx client refresh response
-     * 
+     *
      * @return HtmxClientRefreshResponse
      */
     protected function htmxRefresh(): HtmxClientRefreshResponse
@@ -31,7 +31,7 @@ trait HtmxControllerTrait
 
     /**
      * Issue a htmx response with the content of a rendered template
-     * 
+     *
      * @return HtmxResponse
      */
     protected function htmxRender(string $view, array $parameters = [], HtmxResponse $response = null): HtmxResponse
@@ -41,12 +41,12 @@ trait HtmxControllerTrait
 
     /**
      * Issue a htmx response with the content of a rendered template block
-     * 
+     *
      * @return HtmxResponse
      */
     protected function htmxRenderBlock(string $view, string $block, array $parameters = [], HtmxResponse $response = null): HtmxResponse
     {
-        $response = $response ?? new HtmxResponse();
+        $response ??= new HtmxResponse();
         if (method_exists($this, 'renderBlock')) {
             return parent::renderBlock($view, $block, $parameters, $response);
         }
@@ -55,12 +55,13 @@ trait HtmxControllerTrait
         }
         $content = $this->container->get('twig')->load($view)->renderBlock($block, $parameters);
         $response->setContent($content);
+
         return $response;
     }
 
     /**
      * Issue a htmx stop polling response
-     * 
+     *
      * @return HtmxStopPollingResponse
      */
     protected function htmxStopPolling(): HtmxStopPollingResponse

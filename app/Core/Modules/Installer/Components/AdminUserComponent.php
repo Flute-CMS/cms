@@ -56,7 +56,7 @@ class AdminUserComponent extends FluteComponent
                 'password_confirmation' => 'required',
             ]);
 
-            if (! $validator) {
+            if (!$validator) {
                 if (app(InstallerConfig::class)->getParams('admin_user_exists')) {
                     return $this->redirectTo(route('installer.step', ['id' => 6]), 500);
                 }
@@ -97,7 +97,7 @@ class AdminUserComponent extends FluteComponent
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

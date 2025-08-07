@@ -8,7 +8,7 @@ class AboutSystemHelper
 {
     /**
      * Get system information
-     * 
+     *
      * @return array
      */
     public static function getSystemInfo(): array
@@ -24,7 +24,7 @@ class AboutSystemHelper
 
     /**
      * Get PHP information
-     * 
+     *
      * @return array
      */
     public static function getPhpInfo(): array
@@ -75,7 +75,7 @@ class AboutSystemHelper
 
     /**
      * Get server information, включая отформатированные данные по диску.
-     * 
+     *
      * @return array
      */
     public static function getServerInfo(): array
@@ -83,28 +83,28 @@ class AboutSystemHelper
         $path = BASE_PATH;
 
         $diskTotal = disk_total_space($path);
-        $diskFree  = disk_free_space($path);
-        $diskUsed  = $diskTotal - $diskFree;
-        $diskPct   = $diskTotal > 0 ? round($diskUsed / $diskTotal * 100) : 0;
+        $diskFree = disk_free_space($path);
+        $diskUsed = $diskTotal - $diskFree;
+        $diskPct = $diskTotal > 0 ? round($diskUsed / $diskTotal * 100) : 0;
 
         return [
-            'operating_system'    => PHP_OS,
-            'server_software'     => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
-            'database'            => self::detectDatabaseDriver(),
-            'server_protocol'     => $_SERVER['SERVER_PROTOCOL'] ?? 'Unknown',
-            'server_name'         => $_SERVER['SERVER_NAME'] ?? 'Unknown',
-            'server_port'         => $_SERVER['SERVER_PORT'] ?? 'Unknown',
-            'document_root'       => $_SERVER['DOCUMENT_ROOT'] ?? 'Unknown',
-            'disk_total_space'    => self::formatBytes($diskTotal),
-            'disk_free_space'     => self::formatBytes($diskFree),
-            'disk_used_space'     => self::formatBytes($diskUsed),
-            'disk_usage_percent'  => $diskPct . '%',
+            'operating_system' => PHP_OS,
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
+            'database' => self::detectDatabaseDriver(),
+            'server_protocol' => $_SERVER['SERVER_PROTOCOL'] ?? 'Unknown',
+            'server_name' => $_SERVER['SERVER_NAME'] ?? 'Unknown',
+            'server_port' => $_SERVER['SERVER_PORT'] ?? 'Unknown',
+            'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? 'Unknown',
+            'disk_total_space' => self::formatBytes($diskTotal),
+            'disk_free_space' => self::formatBytes($diskFree),
+            'disk_used_space' => self::formatBytes($diskUsed),
+            'disk_usage_percent' => $diskPct . '%',
         ];
     }
 
     /**
      * Get CPU load and system RAM usage.
-     * 
+     *
      * @return array
      */
     public static function getResourceUsage(): array
@@ -117,27 +117,27 @@ class AboutSystemHelper
 
         $totalKb = isset($mt[1]) ? (int)$mt[1] : 0;
         $availKb = isset($ma[1]) ? (int)$ma[1] : 0;
-        $usedKb  = max(0, $totalKb - $availKb);
-        $pct      = $totalKb > 0 ? round($usedKb / $totalKb * 100) : 0;
+        $usedKb = max(0, $totalKb - $availKb);
+        $pct = $totalKb > 0 ? round($usedKb / $totalKb * 100) : 0;
 
         return [
             'cpu_load' => [
-                '1min'  => $loads[0],
-                '5min'  => $loads[1],
+                '1min' => $loads[0],
+                '5min' => $loads[1],
                 '15min' => $loads[2],
             ],
             'ram' => [
-                'total'     => $totalKb * 1024,
-                'used'      => $usedKb  * 1024,
+                'total' => $totalKb * 1024,
+                'used' => $usedKb * 1024,
                 'available' => $availKb * 1024,
-                'percent'   => $pct,
+                'percent' => $pct,
             ],
         ];
     }
 
     /**
      * Format bytes to human-readable format
-     * 
+     *
      * @param int $bytes
      * @param int $precision
      * @return string
@@ -146,51 +146,53 @@ class AboutSystemHelper
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
-        $pow   = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow   = min($pow, count($units) - 1);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
+
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
     /**
      * Detect database driver from config
-     * 
+     *
      * @return string
      */
     private static function detectDatabaseDriver(): string
     {
         $dbConfig = config('database.connections.default');
-        $dbType   = explode('\\', $dbConfig->driver);
+        $dbType = explode('\\', $dbConfig->driver);
+
         return str_replace('Driver', '', end($dbType));
     }
 
     /**
      * Get required PHP extensions
-     * 
+     *
      * @return array
      */
     public static function getRequiredExtensions(): array
     {
         $requiredExtensions = [
-            'pdo'         => ['required' => true,  'description' => 'PHP Data Objects for database connectivity'],
-            'pdo_mysql'   => ['required' => true,  'description' => 'PDO driver for MySQL databases'],
-            'mbstring'    => ['required' => true,  'description' => 'Multibyte string support'],
-            'json'        => ['required' => true,  'description' => 'JSON support'],
-            'openssl'     => ['required' => true,  'description' => 'Secure communications and cryptography'],
-            'curl'        => ['required' => true,  'description' => 'Client URL Library for API calls'],
-            'fileinfo'    => ['required' => true,  'description' => 'File information detection'],
-            'ctype'       => ['required' => true,  'description' => 'Character type checking functions'],
-            'tokenizer'   => ['required' => true,  'description' => 'PHP code tokenizer'],
+            'pdo' => ['required' => true,  'description' => 'PHP Data Objects for database connectivity'],
+            'pdo_mysql' => ['required' => true,  'description' => 'PDO driver for MySQL databases'],
+            'mbstring' => ['required' => true,  'description' => 'Multibyte string support'],
+            'json' => ['required' => true,  'description' => 'JSON support'],
+            'openssl' => ['required' => true,  'description' => 'Secure communications and cryptography'],
+            'curl' => ['required' => true,  'description' => 'Client URL Library for API calls'],
+            'fileinfo' => ['required' => true,  'description' => 'File information detection'],
+            'ctype' => ['required' => true,  'description' => 'Character type checking functions'],
+            'tokenizer' => ['required' => true,  'description' => 'PHP code tokenizer'],
 
-            'zip'         => ['required' => false, 'description' => 'ZIP archive handling'],
-            'gd'          => ['required' => false, 'description' => 'Graphics library for image processing'],
-            'intl'        => ['required' => false, 'description' => 'Internationalization functions'],
-            'simplexml'   => ['required' => false, 'description' => 'SimpleXML support for XML parsing'],
-            'xml'         => ['required' => false, 'description' => 'Core XML parsing support'],
-            'session'     => ['required' => false, 'description' => 'Session management'],
-            'bcmath'      => ['required' => false, 'description' => 'Arbitrary precision mathematics library'],
-            'gmp'         => ['required' => false, 'description' => 'GNU Multiple Precision support for big integers'],
-            'opcache'     => ['required' => false, 'description' => 'Improves PHP performance by storing precompiled script bytecode'],
+            'zip' => ['required' => false, 'description' => 'ZIP archive handling'],
+            'gd' => ['required' => false, 'description' => 'Graphics library for image processing'],
+            'intl' => ['required' => false, 'description' => 'Internationalization functions'],
+            'simplexml' => ['required' => false, 'description' => 'SimpleXML support for XML parsing'],
+            'xml' => ['required' => false, 'description' => 'Core XML parsing support'],
+            'session' => ['required' => false, 'description' => 'Session management'],
+            'bcmath' => ['required' => false, 'description' => 'Arbitrary precision mathematics library'],
+            'gmp' => ['required' => false, 'description' => 'GNU Multiple Precision support for big integers'],
+            'opcache' => ['required' => false, 'description' => 'Improves PHP performance by storing precompiled script bytecode'],
         ];
 
         $loadedExtensions = get_loaded_extensions();
@@ -204,8 +206,8 @@ class AboutSystemHelper
             }
 
             $result[$extension] = [
-                'loaded'      => $isLoaded,
-                'required'    => $info['required'],
+                'loaded' => $isLoaded,
+                'required' => $info['required'],
                 'description' => $info['description'],
             ];
         }
@@ -215,7 +217,7 @@ class AboutSystemHelper
 
     /**
      * Check PHP version
-     * 
+     *
      * @return bool
      */
     public static function checkPhpVersion(): bool
@@ -225,7 +227,7 @@ class AboutSystemHelper
 
     /**
      * Get PHP setting warnings
-     * 
+     *
      * @return array
      */
     public static function getPhpSettingWarnings(): array
@@ -295,7 +297,7 @@ class AboutSystemHelper
 
     /**
      * Get system health information
-     * 
+     *
      * @return array
      */
     public static function getSystemHealth(): array
@@ -319,7 +321,7 @@ class AboutSystemHelper
 
     /**
      * Convert PHP ini value to bytes
-     * 
+     *
      * @param string $val
      * @return int
      */
@@ -332,8 +334,10 @@ class AboutSystemHelper
         switch ($last) {
             case 'g':
                 $val *= 1024;
+                // no break
             case 'm':
                 $val *= 1024;
+                // no break
             case 'k':
                 $val *= 1024;
         }

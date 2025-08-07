@@ -3,9 +3,9 @@
 namespace Flute\Admin\Packages\MainSettings\Services;
 
 use Flute\Admin\Platform\Repository;
+use Flute\Core\Support\FluteStr;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Flute\Core\Support\FluteStr;
 
 class MainSettingsPackageService
 {
@@ -334,6 +334,7 @@ class MainSettingsPackageService
                 $inputs[$key] = filter_var($inputs[$key] ?? false, FILTER_VALIDATE_BOOLEAN);
             }
         }
+
         return $inputs;
     }
 
@@ -352,8 +353,9 @@ class MainSettingsPackageService
             $availableNormal = [];
 
             foreach ($inputs['available'] as $lang => $val) {
-                if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true)
+                if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true) {
                     $availableNormal[] = $lang;
+                }
             }
 
             config()->set('lang.available', $availableNormal);
@@ -409,6 +411,7 @@ class MainSettingsPackageService
                 $inputs[$key] = empty($inputs[$key]) ? [] : array_map('trim', explode(',', $inputs[$key]));
             }
         }
+
         return $inputs;
     }
 
@@ -423,6 +426,7 @@ class MainSettingsPackageService
     {
         $inputs = $this->processBooleanInputs($rules, $inputs);
         $inputs = $this->processArrayInputs($rules, $inputs);
+
         return $inputs;
     }
 
@@ -445,8 +449,9 @@ class MainSettingsPackageService
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
         $rules = $this->getValidationRules()[$currentTab] ?? [];
 
-        if (!validator()->validate($filteredData, $rules))
+        if (!validator()->validate($filteredData, $rules)) {
             return false;
+        }
 
         $inputs = $this->processInputs($rules, $filteredData);
 
@@ -465,6 +470,7 @@ class MainSettingsPackageService
                         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                         \PDO::ATTR_TIMEOUT => 5,
                     ];
+
                     break;
 
                 case 'postgres':
@@ -473,6 +479,7 @@ class MainSettingsPackageService
                         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                         \PDO::ATTR_TIMEOUT => 5,
                     ];
+
                     break;
 
                 default:

@@ -2,17 +2,17 @@
 
 namespace Flute\Admin\Packages\Pages;
 
+use Flute\Admin\Packages\Pages\Listeners\PageSearchListener;
+use Flute\Admin\Packages\Search\Services\SlashCommandsRegistry;
 use Flute\Admin\Support\AbstractAdminPackage;
 use Flute\Core\Database\Entities\Page;
-use Flute\Admin\Packages\Search\Services\SlashCommandsRegistry;
-use Flute\Admin\Packages\Pages\Listeners\PageSearchListener;
 
 class PagesPackage extends AbstractAdminPackage
 {
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -32,7 +32,7 @@ class PagesPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.pages'];
     }
@@ -40,7 +40,7 @@ class PagesPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -56,13 +56,13 @@ class PagesPackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getPagesCount() : int
+    protected function getPagesCount(): int
     {
         return Page::query()->count();
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 12;
     }
-} 
+}

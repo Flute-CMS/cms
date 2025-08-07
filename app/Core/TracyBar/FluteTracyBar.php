@@ -2,13 +2,13 @@
 
 namespace Flute\Core\TracyBar;
 
+use Flute\Core\App;
 use Tracy\Bridges\Psr\PsrToTracyLoggerAdapter;
 use Tracy\Debugger;
-use Flute\Core\App;
 
 class FluteTracyBar
 {
-    /** @var App $app */
+    /** @var App */
     protected App $app;
     protected $version;
     protected $startTime;
@@ -39,7 +39,7 @@ class FluteTracyBar
 
     /**
      * Adds a message to Tracy's logger
-     * 
+     *
      * @param mixed $message
      * @param string $priority
      */
@@ -60,11 +60,13 @@ class FluteTracyBar
 
     protected function getDebugAccess()
     {
-        if (sizeof(config('app.debug_ips')) > 0)
+        if (sizeof(config('app.debug_ips')) > 0) {
             return config('app.debug_ips');
+        }
 
-        if (!is_debug())
+        if (!is_debug()) {
             return Debugger::Production;
+        }
 
         return Debugger::Development;
     }

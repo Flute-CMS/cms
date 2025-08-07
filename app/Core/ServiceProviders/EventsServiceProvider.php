@@ -2,23 +2,23 @@
 
 namespace Flute\Core\ServiceProviders;
 
+use DI\ContainerBuilder;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Listeners\HeadersListener;
 use Flute\Core\Listeners\RedirectsListener;
 use Flute\Core\Support\AbstractServiceProvider;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Flute\Core\Support\FluteEventDispatcher;
-use DI\ContainerBuilder;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class EventsServiceProvider extends AbstractServiceProvider
 {
     /**
      * Register the services provided by the service provider.
-     * 
+     *
      * @param ContainerBuilder $containerBuilder
-     * 
+     *
      * @return void
      */
     public function register(ContainerBuilder $containerBuilder): void
@@ -28,13 +28,13 @@ class EventsServiceProvider extends AbstractServiceProvider
             EventDispatcher::class => \DI\get(FluteEventDispatcher::class),
             EventDispatcherInterface::class => \DI\get(FluteEventDispatcher::class),
             \Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class => \DI\get(FluteEventDispatcher::class),
-            "events" => \DI\get(FluteEventDispatcher::class)
+            "events" => \DI\get(FluteEventDispatcher::class),
         ]);
     }
 
     /**
      * Bootstrap the application services.
-     * 
+     *
      * @return void
      */
     public function boot(\DI\Container $container): void

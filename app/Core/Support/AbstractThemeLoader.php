@@ -10,7 +10,7 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
  * Class AbstractThemeLoader
  *
  * Abstract class to implement ThemeLoaderInterface for loading themes.
- * 
+ *
  * @package Flute\Core
  */
 abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeLoaderInterface
@@ -100,13 +100,13 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
             "version" => $this->version,
             "description" => $this->description,
             "requirements" => $this->requirements,
-            "settings" => $this->settings
+            "settings" => $this->settings,
         ];
     }
 
     public function getReplacement(?string $interfacePath = null)
     {
-        return isset($this->replacements[$interfacePath]) ? $this->replacements[$interfacePath] : $interfacePath;
+        return $this->replacements[$interfacePath] ?? $interfacePath;
     }
 
     public function getLayoutArguments(): array

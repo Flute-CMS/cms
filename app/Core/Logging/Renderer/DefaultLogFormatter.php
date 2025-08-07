@@ -7,12 +7,12 @@ use Flute\Core\Logging\Contracts\LogFormatterInterface;
 
 class DefaultLogFormatter implements LogFormatterInterface
 {
-    public function supports(UserActionLog $log) : bool
+    public function supports(UserActionLog $log): bool
     {
         return true;
     }
 
-    public function render(UserActionLog $log) : string
+    public function render(UserActionLog $log): string
     {
         $action = __($log->action);
         $createdAt = $log->createdAt->format('Y-m-d H:i:s');
@@ -38,15 +38,16 @@ class DefaultLogFormatter implements LogFormatterInterface
         );
     }
 
-    private function renderData(?array $data) : string
+    private function renderData(?array $data): string
     {
         if (empty($data)) {
             return '';
         }
+
         return '<pre>' . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
     }
 
-    private function mapLevelToCssClass(?string $level) : string
+    private function mapLevelToCssClass(?string $level): string
     {
         return match ($level) {
             'error' => 'text-danger',

@@ -1,4 +1,5 @@
 <?php
+
 /*!
  * Hybridauth
  * https://hybridauth.github.io | https://github.com/hybridauth/hybridauth
@@ -8,8 +9,8 @@
 namespace Hybridauth\Provider;
 
 use Hybridauth\Adapter\OAuth2;
-use Hybridauth\Exception\UnexpectedApiResponseException;
 use Hybridauth\Data;
+use Hybridauth\Exception\UnexpectedApiResponseException;
 use Hybridauth\User;
 
 /**

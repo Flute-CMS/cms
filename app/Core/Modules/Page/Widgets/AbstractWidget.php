@@ -12,17 +12,17 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Returns the unique name of the widget.
      */
-    abstract public function getName() : string;
+    abstract public function getName(): string;
 
     /**
      * Returns the icon of the widget.
      */
-    abstract public function getIcon() : string;
+    abstract public function getIcon(): string;
 
     /**
      * Returns the widget's default settings.
      */
-    public function getSettings() : array
+    public function getSettings(): array
     {
         return [];
     }
@@ -30,21 +30,21 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Renders the widget with specified settings.
      */
-    abstract public function render(array $settings) : string|null;
+    abstract public function render(array $settings): string|null;
 
     /**
      * Renders the widget's settings form.
-     * 
+     *
      * @param array $settings The current settings of the widget
      */
-    public function renderSettingsForm(array $settings) : string|bool
+    public function renderSettingsForm(array $settings): string|bool
     {
         return false;
     }
 
     /**
      * Validates the widget's settings before saving.
-     * 
+     *
      * @param array $input The settings to validate
      * @return true|array True if validation passes, array of errors otherwise
      */
@@ -56,7 +56,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Checks if the widget has settings.
      */
-    public function hasSettings() : bool
+    public function hasSettings(): bool
     {
         return false;
     }
@@ -64,7 +64,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Saves the widget's settings.
      */
-    public function saveSettings(array $input) : array
+    public function saveSettings(array $input): array
     {
         return [];
     }
@@ -72,7 +72,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Returns the default width for gridstack.
      */
-    public function getDefaultWidth() : int
+    public function getDefaultWidth(): int
     {
         return 6;
     }
@@ -80,7 +80,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Returns the minimum width for gridstack.
      */
-    public function getMinWidth() : int
+    public function getMinWidth(): int
     {
         return 2;
     }
@@ -88,7 +88,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Returns the toolbar buttons for this widget.
      */
-    public function getButtons() : array
+    public function getButtons(): array
     {
         return [];
     }
@@ -96,7 +96,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Handles custom widget actions.
      */
-    public function handleAction(string $action, ?string $widgetId = null) : array
+    public function handleAction(string $action, ?string $widgetId = null): array
     {
         return [];
     }
@@ -104,7 +104,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Returns the category of the widget.
      */
-    public function getCategory() : string
+    public function getCategory(): string
     {
         return 'general';
     }

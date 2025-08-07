@@ -6,7 +6,7 @@ use Flute\Admin\Support\AbstractAdminPackage;
 
 class DashboardPackage extends AbstractAdminPackage
 {
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -17,17 +17,17 @@ class DashboardPackage extends AbstractAdminPackage
         $this->registerScss('Resources/assets/scss/dashboard.scss');
     }
 
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin'];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 1;
     }
 
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [

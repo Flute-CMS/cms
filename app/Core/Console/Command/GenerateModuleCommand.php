@@ -3,14 +3,13 @@
 namespace Flute\Core\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Helper\ProgressBar;
 
 class GenerateModuleCommand extends Command
 {
@@ -47,6 +46,7 @@ class GenerateModuleCommand extends Command
                     'The module name must contain only English letters without spaces.'
                 );
             }
+
             return ucfirst($answer);
         });
         $moduleName = $helper->ask($input, $output, $moduleNameQuestion);
@@ -120,6 +120,7 @@ class GenerateModuleCommand extends Command
 
         if (file_exists($baseDir)) {
             $io->error("Module $moduleName already exists");
+
             return Command::FAILURE;
         }
 
@@ -165,8 +166,9 @@ class GenerateModuleCommand extends Command
         // Create directories
         foreach ($directories as $dir) {
             $dirPath = $baseDir . $dir;
-            if (!mkdir($dirPath, 0777, true) && !is_dir($dirPath)) {
+            if (!mkdir($dirPath, 0o777, true) && !is_dir($dirPath)) {
                 $io->error("Failed to create directory: $dirPath");
+
                 return Command::FAILURE;
             }
         }
@@ -251,7 +253,7 @@ class GenerateModuleCommand extends Command
         $io->success("Module structure generated for '$moduleName'");
         $io->text([
             "Module location: <info>app/Modules/$moduleName</info>",
-            "To enable this module, run: <info>php flute module:enable $moduleName</info>"
+            "To enable this module, run: <info>php flute module:enable $moduleName</info>",
         ]);
 
         return Command::SUCCESS;
@@ -273,6 +275,7 @@ class GenerateModuleCommand extends Command
                 $baseDir . $dir . '/' . $moduleName . '.php',
                 $content
             );
+
             return;
         }
 
@@ -288,6 +291,7 @@ class GenerateModuleCommand extends Command
                 $baseDir . $dir . '/' . $moduleName . 'Widget.php',
                 $content
             );
+
             return;
         }
     }
@@ -313,7 +317,7 @@ class GenerateModuleCommand extends Command
         $replacements = [
             '{{MODULE_NAME}}' => $name,
             '{{TRANSLATES}}' => $needTranslations ? '$this->loadTranslations();' : '',
-            '<CURRENT_CURSOR_POSITION>' => ''
+            '<CURRENT_CURSOR_POSITION>' => '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $stubFile);
@@ -327,16 +331,17 @@ class GenerateModuleCommand extends Command
     private function stubJson($name, $description, $author)
     {
         $stubFile = file_get_contents($this->getStubPath('modulejson'));
+
         return str_replace(
             [
                 '{{MODULE_NAME}}',
                 '{{MODULE_DESCRIPTION}}',
-                '{{MODULE_AUTHOR}}'
+                '{{MODULE_AUTHOR}}',
             ],
             [
                 $name,
                 $description,
-                $author
+                $author,
             ],
             $stubFile
         );
@@ -351,15 +356,15 @@ class GenerateModuleCommand extends Command
             'require' => [],
             'autoload' => [
                 'psr-4' => [
-                    "Flute\\Modules\\$name\\" => ""
-                ]
+                    "Flute\\Modules\\$name\\" => "",
+                ],
             ],
             'authors' => [
                 [
-                    'name' => $author
-                ]
+                    'name' => $author,
+                ],
             ],
-            'minimum-stability' => 'dev'
+            'minimum-stability' => 'dev',
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 

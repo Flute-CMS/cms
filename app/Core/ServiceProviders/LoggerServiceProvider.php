@@ -3,11 +3,10 @@
 namespace Flute\Core\ServiceProviders;
 
 use DI\Container;
-
+use DI\ContainerBuilder;
 use Flute\Core\Services\LoggerService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Psr\Log\LoggerInterface;
-use DI\ContainerBuilder;
 
 class LoggerServiceProvider extends AbstractServiceProvider
 {

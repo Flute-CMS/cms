@@ -217,6 +217,7 @@ class ThemeManager
 
             if (json_last_error() === JSON_ERROR_NONE) {
                 $this->themesData[$themeName] = $themeData;
+
                 return $themeData;
             } else {
                 logs('templates')->error("Invalid JSON in theme.json for theme '{$themeName}': " . json_last_error_msg());
@@ -250,6 +251,7 @@ class ThemeManager
             // Prevent installer cycle bugs.
             if (!is_installed()) {
                 $this->setTheme($themeName);
+
                 break;
             }
 
@@ -292,12 +294,15 @@ class ThemeManager
                     if (!isset($this->currentTheme)) {
                         $this->setTheme($themeInDB->key);
                     }
+
                     break;
                 case self::DISABLED:
                     $this->disabledThemes->put($themeName, $themeInDB);
+
                     break;
                 case self::NOTINSTALLED:
                     $this->notInstalledThemes->put($themeName, $themeInDB);
+
                     break;
             }
 
@@ -324,7 +329,7 @@ class ThemeManager
         }
 
         $theme = $this->performance
-            ? cache()->callback("flute.themes.$themeName", fn() => Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne(), self::CACHE_TIME)
+            ? cache()->callback("flute.themes.$themeName", fn () => Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne(), self::CACHE_TIME)
             : Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
 
         if (!$theme) {
@@ -355,8 +360,10 @@ class ThemeManager
     protected function getAssocThemes(): array
     {
         $themes = Theme::query()->load('settings')->fetchAll();
+
         return array_reduce($themes, function ($carry, Theme $theme) {
             $carry[$theme->key] = $theme;
+
             return $carry;
         }, []);
     }
@@ -382,8 +389,9 @@ class ThemeManager
 
     public function loadColors(bool $force = false): void
     {
-        if ($this->colorsInitialized && !$force)
+        if ($this->colorsInitialized && !$force) {
             return;
+        }
 
         $colorsPath = "{$this->themesPath}/{$this->currentTheme}/colors.json";
 

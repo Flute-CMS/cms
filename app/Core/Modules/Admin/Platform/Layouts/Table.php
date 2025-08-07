@@ -95,7 +95,7 @@ abstract class Table extends Layout
     {
         $this->query = $repository;
 
-        if (! $this->isVisible()) {
+        if (!$this->isVisible()) {
             return;
         }
 
@@ -121,9 +121,9 @@ abstract class Table extends Layout
         $content = $repository->getContent($this->target);
 
         $requestSort = request()->input('sort', '');
-        
+
         if (empty($requestSort)) {
-            $defaultSortColumn = $columns->first(fn(TD $column) => $column->getAttribute('defaultSort', false));
+            $defaultSortColumn = $columns->first(fn (TD $column) => $column->getAttribute('defaultSort', false));
             if ($defaultSortColumn) {
                 $this->sortColumn = $defaultSortColumn->getName();
                 $this->sortDirection = $defaultSortColumn->getAttribute('defaultSortDirection', 'asc');
@@ -166,7 +166,7 @@ abstract class Table extends Layout
         if ($this->dataCallback !== null) {
             $rows = call_user_func($this->dataCallback, $rows, $content);
 
-            if (! $rows instanceof Collection) {
+            if (!$rows instanceof Collection) {
                 $rows = collect($rows);
             }
         }
@@ -205,19 +205,19 @@ abstract class Table extends Layout
         ]);
     }
 
-    protected function commandBar() : array
+    protected function commandBar(): array
     {
         return $this->commandBar;
     }
 
-    public function commands($commands) : self
+    public function commands($commands): self
     {
         $this->commandBar = Arr::wrap($commands);
 
         return $this;
     }
 
-    public function searchable(?array $columns = null) : self
+    public function searchable(?array $columns = null): self
     {
         if ($columns) {
             $this->searchableColumns = $columns;
@@ -229,7 +229,7 @@ abstract class Table extends Layout
         return $this;
     }
 
-    public function isSearchable() : bool
+    public function isSearchable(): bool
     {
         return $this->searchable;
     }
@@ -240,7 +240,7 @@ abstract class Table extends Layout
      * @param array $columns
      * @return $this
      */
-    public function setSearchableColumns(array $columns) : self
+    public function setSearchableColumns(array $columns): self
     {
         $this->searchableColumns = $columns;
 
@@ -252,7 +252,7 @@ abstract class Table extends Layout
         return max(1, (int) request()->input('page', 1));
     }
 
-    public function perPage(int $perPage = null) : self
+    public function perPage(int $perPage = null): self
     {
         if ($perPage !== null) {
             $this->perPage = $perPage;
@@ -261,38 +261,38 @@ abstract class Table extends Layout
         return $this;
     }
 
-    public function title(?string $title = null) : self
+    public function title(?string $title = null): self
     {
         $this->title = $title;
 
         return $this;
     }
 
-    public function description(?string $description = null) : self
+    public function description(?string $description = null): self
     {
         $this->description = $description;
 
         return $this;
     }
 
-    public function compact(bool $compact = true) : self
+    public function compact(bool $compact = true): self
     {
         $this->compact = $compact;
 
         return $this;
     }
 
-    protected function iconNotFound() : string
+    protected function iconNotFound(): string
     {
         return 'ph.regular.smiley-x-eyes';
     }
 
-    protected function textNotFound() : string
+    protected function textNotFound(): string
     {
         return __('def.no_results_found');
     }
 
-    protected function subNotFound() : string
+    protected function subNotFound(): string
     {
         return __('def.import_or_create');
     }
@@ -300,7 +300,7 @@ abstract class Table extends Layout
     /**
      * Usage for compact display of table rows.
      */
-    protected function isCompact() : bool
+    protected function isCompact(): bool
     {
         return $this->compact;
     }
@@ -308,7 +308,7 @@ abstract class Table extends Layout
     /**
      * Usage for borders on all sides of the table and cells.
      */
-    protected function bordered() : bool
+    protected function bordered(): bool
     {
         return false;
     }
@@ -316,7 +316,7 @@ abstract class Table extends Layout
     /**
      * Enable a hover state on table rows.
      */
-    protected function hoverable() : bool
+    protected function hoverable(): bool
     {
         return false;
     }
@@ -324,7 +324,7 @@ abstract class Table extends Layout
     /**
      * The number of links to display on each side of the current page link.
      */
-    protected function onEachSide() : int
+    protected function onEachSide(): int
     {
         return 3;
     }
@@ -333,21 +333,21 @@ abstract class Table extends Layout
      * @param \Illuminate\Support\Collection $columns
      * @param \Illuminate\Support\Collection|\Spiral\Pagination\Paginator $rows
      */
-    protected function hasHeader(Collection $columns, $rows) : bool
+    protected function hasHeader(Collection $columns, $rows): bool
     {
         if ($columns->count() < 2) {
             return false;
         }
 
-        return ! empty(request()->query->all()) || $rows->isNotEmpty();
+        return !empty(request()->query->all()) || $rows->isNotEmpty();
     }
 
     /**
      * @return array
      */
-    abstract protected function columns() : iterable;
+    abstract protected function columns(): iterable;
 
-    protected function total() : array
+    protected function total(): array
     {
         return [];
     }
@@ -360,7 +360,7 @@ abstract class Table extends Layout
      */
     protected function applySearch($content)
     {
-        if (! $this->searchQuery) {
+        if (!$this->searchQuery) {
             return $content;
         }
 
@@ -389,7 +389,7 @@ abstract class Table extends Layout
      *
      * @return array
      */
-    protected function getSearchableColumns() : array
+    protected function getSearchableColumns(): array
     {
         if ($this->searchableColumns) {
             return $this->searchableColumns;
@@ -408,7 +408,7 @@ abstract class Table extends Layout
      * @param array $columns
      * @return Select|SelectQuery
      */
-    protected function applySearchToSelect(Select|SelectQuery $select, array $columns) : Select|SelectQuery
+    protected function applySearchToSelect(Select|SelectQuery $select, array $columns): Select|SelectQuery
     {
         $searchQuery = $this->searchQuery;
 
@@ -428,7 +428,7 @@ abstract class Table extends Layout
      * @param array $columns
      * @return Collection
      */
-    protected function applySearchToCollection(Collection $collection, array $columns) : Collection
+    protected function applySearchToCollection(Collection $collection, array $columns): Collection
     {
         $searchQuery = $this->searchQuery;
 
@@ -451,7 +451,7 @@ abstract class Table extends Layout
      * @param mixed $content
      * @return Collection
      */
-    protected function getCollectionFromContent($content) : Collection
+    protected function getCollectionFromContent($content): Collection
     {
         if (is_array($content)) {
             return collect($content);
@@ -478,7 +478,7 @@ abstract class Table extends Layout
      */
     protected function applySort($content)
     {
-        if (! $this->sortColumn) {
+        if (!$this->sortColumn) {
             return $content;
         }
 
@@ -493,12 +493,13 @@ abstract class Table extends Layout
      * Applies sorting to a Select query.
      *
      * @param Select|SelectQuery $select
-     * 
+     *
      * @return Select|SelectQuery
      */
-    protected function applySortToSelect(Select|SelectQuery $select) : Select|SelectQuery
+    protected function applySortToSelect(Select|SelectQuery $select): Select|SelectQuery
     {
         $direction = $this->sortDirection === 'desc' ? 'DESC' : 'ASC';
+
         return $select->orderBy($this->sortColumn, $direction);
     }
 
@@ -508,19 +509,19 @@ abstract class Table extends Layout
      * @param Collection $collection
      * @return Collection
      */
-    protected function applySortToCollection(Collection $collection) : Collection
+    protected function applySortToCollection(Collection $collection): Collection
     {
         return $collection->sortBy($this->sortColumn, SORT_REGULAR, $this->sortDirection === 'desc');
     }
 
-    public function prepareContent(callable $callback) : self
+    public function prepareContent(callable $callback): self
     {
         $this->rowCallback = $callback;
 
         return $this;
     }
 
-    public function dataCallback(callable $callback) : self
+    public function dataCallback(callable $callback): self
     {
         $this->dataCallback = $callback;
 

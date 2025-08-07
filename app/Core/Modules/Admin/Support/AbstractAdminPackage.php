@@ -4,7 +4,6 @@ namespace Flute\Admin\Support;
 
 use Flute\Admin\Contracts\AdminPackageInterface;
 use InvalidArgumentException;
-use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 
 /**
  * Class AbstractAdminPackage
@@ -25,12 +24,14 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void {}
+    public function initialize(): void
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin'];
     }
@@ -38,7 +39,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [];
     }
@@ -46,7 +47,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
     /**
      * {@inheritdoc}
      */
-    public function registerServiceProviders() : array
+    public function registerServiceProviders(): array
     {
         return [];
     }
@@ -54,7 +55,9 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
     /**
      * {@inheritdoc}
      */
-    public function boot() : void {}
+    public function boot(): void
+    {
+    }
 
     /**
      * Returns the priority of the admin package.
@@ -64,7 +67,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @return int
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 100;
     }
@@ -79,7 +82,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @throws InvalidArgumentException If the file does not exist.
      */
-    public function loadRoutesFromFile(string $file) : void
+    public function loadRoutesFromFile(string $file): void
     {
         $fullPath = $this->getBasePath() . DIRECTORY_SEPARATOR . $file;
 
@@ -100,7 +103,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      * @param array $routes An array of routes to be loaded.
      * @return void
      */
-    public function loadRoutes(array $routes) : void
+    public function loadRoutes(array $routes): void
     {
         foreach ($routes as $route) {
             router()->addRoute($route['method'], $route['uri'], $route['action']);
@@ -118,7 +121,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @throws InvalidArgumentException If the view directory does not exist.
      */
-    public function loadViews(string $viewDirectory, string $namespace) : void
+    public function loadViews(string $viewDirectory, string $namespace): void
     {
         $fullPath = $this->getBasePath() . DIRECTORY_SEPARATOR . $viewDirectory;
 
@@ -139,7 +142,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @throws InvalidArgumentException If the language directory does not exist.
      */
-    public function loadTranslations(string $langDirectory) : void
+    public function loadTranslations(string $langDirectory): void
     {
         if (isset($this->loaded['translations'])) {
             return;
@@ -154,7 +157,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
         $this->loaded['translations'] = true;
     }
 
-    public function registerScss(string $assetsFile) : void
+    public function registerScss(string $assetsFile): void
     {
         $fullPath = rtrim($this->getBasePath() . DIRECTORY_SEPARATOR . $assetsFile, DIRECTORY_SEPARATOR);
 
@@ -172,9 +175,10 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @return string The base path of the package.
      */
-    public function getBasePath() : string
+    public function getBasePath(): string
     {
         $reflection = new \ReflectionClass($this);
+
         return dirname($reflection->getFileName());
     }
 }

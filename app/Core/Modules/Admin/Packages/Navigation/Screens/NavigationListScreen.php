@@ -8,13 +8,13 @@ use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
+use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Database\Entities\Role;
-use Flute\Admin\Platform\Fields\Sight;
 
 class NavigationListScreen extends Screen
 {
@@ -54,10 +54,10 @@ class NavigationListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('navbarItems', [
-                Sight::make('title', __('admin-navigation.table.title'))->render(fn(NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
+                Sight::make('title', __('admin-navigation.table.title'))->render(fn (NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
                 Sight::make('actions', __('admin-navigation.table.actions'))
                     ->render(
-                        fn(NavbarItem $navbarItem) => DropDown::make()
+                        fn (NavbarItem $navbarItem) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-navigation.buttons.edit'))
@@ -75,7 +75,7 @@ class NavigationListScreen extends Screen
                                     ->fullWidth(),
                             ])
                     ),
-            ])->onSortEnd('updateNavbarItemPositions')
+            ])->onSortEnd('updateNavbarItemPositions'),
         ];
     }
 
@@ -84,7 +84,7 @@ class NavigationListScreen extends Screen
         $this->navbarItems = rep(NavbarItem::class)->select()->orderBy('position', 'asc')->where('parent_id', null)->load('children', [
             'load' => function ($qb) {
                 $qb->orderBy('position', 'asc');
-            }
+            },
         ])->fetchAll();
     }
 
@@ -94,8 +94,9 @@ class NavigationListScreen extends Screen
     public function updateNavbarItemPositions()
     {
         $sortableResult = json_decode(request()->input('sortableResult'), true);
-        if (! $sortableResult) {
+        if (!$sortableResult) {
             $this->flashMessage(__('admin-navigation.messages.invalid_sort_data'), 'danger');
+
             return;
         }
 
@@ -117,15 +118,15 @@ class NavigationListScreen extends Screen
 
         foreach ($items as $item) {
             $navbarItem = NavbarItem::findByPK($item['id']);
-            if (! $navbarItem) {
+            if (!$navbarItem) {
                 continue;
             }
 
             $navbarItem->position = ++$position;
-            $navbarItem->parent   = $parent;
+            $navbarItem->parent = $parent;
             $navbarItem->save();
 
-            if (! empty($item['children'])) {
+            if (!empty($item['children'])) {
                 $this->reorderItems($item['children'], $navbarItem);
             }
         }
@@ -242,7 +243,7 @@ class NavigationListScreen extends Screen
             'parent_id' => ['nullable', 'integer', 'exists:navbar_items,id'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -271,7 +272,7 @@ class NavigationListScreen extends Screen
         $navbarItem->visibility = $data['visibility'];
         $navbarItem->position = $position;
 
-        $navbarItem->visibleOnlyForGuests   = false;
+        $navbarItem->visibleOnlyForGuests = false;
         $navbarItem->visibleOnlyForLoggedIn = false;
 
         if ($data['visibility_auth'] === 'guests') {
@@ -282,7 +283,7 @@ class NavigationListScreen extends Screen
 
         $navbarItem->save();
 
-        if (! empty($roles)) {
+        if (!empty($roles)) {
             foreach ($roles as $roleId) {
                 $role = Role::findByPK($roleId);
                 if ($role && user()->getHighestPriority() >= $role->priority) {
@@ -304,8 +305,9 @@ class NavigationListScreen extends Screen
     {
         $navbarItemId = $parameters->get('navbarItem');
         $navbarItem = NavbarItem::findByPK($navbarItemId);
-        if (! $navbarItem) {
+        if (!$navbarItem) {
             $this->flashMessage(__('admin-navigation.messages.item_not_found'), 'error');
+
             return;
         }
 
@@ -313,7 +315,7 @@ class NavigationListScreen extends Screen
 
         $priority = user()->getHighestPriority();
 
-        $roles = array_map(fn($role) => $role->id, $navbarItem->roles);
+        $roles = array_map(fn ($role) => $role->id, $navbarItem->roles);
 
         foreach ($this->roles as $role) {
             if ($role->priority <= $priority) {
@@ -425,8 +427,9 @@ class NavigationListScreen extends Screen
         $navbarItemId = $this->modalParams->get('navbarItem');
 
         $navbarItem = NavbarItem::findByPK($navbarItemId);
-        if (! $navbarItem) {
+        if (!$navbarItem) {
             $this->flashMessage(__('admin-navigation.messages.item_not_found'), 'error');
+
             return;
         }
 
@@ -440,7 +443,7 @@ class NavigationListScreen extends Screen
             'parent_id' => ['nullable', 'integer', 'exists:navbar_items,id', "not_in:{$navbarItem->id}"],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -462,7 +465,7 @@ class NavigationListScreen extends Screen
         $navbarItem->visibility = $data['visibility'];
 
         // Reset flags to ensure mutually exclusive state
-        $navbarItem->visibleOnlyForGuests   = false;
+        $navbarItem->visibleOnlyForGuests = false;
         $navbarItem->visibleOnlyForLoggedIn = false;
 
         if ($data['visibility_auth'] === 'guests') {
@@ -475,7 +478,7 @@ class NavigationListScreen extends Screen
 
         $navbarItem->clearRoles();
 
-        if (! empty($roles)) {
+        if (!empty($roles)) {
             foreach ($roles as $roleId) {
                 $role = Role::findByPK($roleId);
                 if ($role && user()->getHighestPriority() >= $role->priority) {
@@ -498,13 +501,15 @@ class NavigationListScreen extends Screen
         $id = request()->input('id');
 
         $navbarItem = NavbarItem::findByPK($id);
-        if (! $navbarItem) {
+        if (!$navbarItem) {
             $this->flashMessage(__('admin-navigation.messages.item_not_found'), 'error');
+
             return;
         }
 
-        if (! empty($navbarItem->children)) {
+        if (!empty($navbarItem->children)) {
             $this->flashMessage(__('admin-navigation.messages.item_has_children'), 'warning');
+
             return;
         }
 

@@ -18,19 +18,19 @@ trait LangTrait
      * @throws DependencyException
      * @throws NotFoundException
      */
-    public function setLang(string $lang) : self
+    public function setLang(string $lang): self
     {
         $this->lang = $lang;
 
         $this->bind('lang', $lang);
-        
+
         $this->get(EventDispatcher::class)
             ->dispatch(new LangChangedEvent($lang), LangChangedEvent::NAME);
 
         return $this;
     }
 
-    public function getLang() : ?string
+    public function getLang(): ?string
     {
         return $this->lang;
     }

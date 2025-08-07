@@ -29,10 +29,10 @@ class ProfileRenderEvent
 
     /**
      * Get the active tab.
-     * 
+     *
      * @return ?string
      */
-    public function getActiveTab() : ?string
+    public function getActiveTab(): ?string
     {
         return $this->activeTab;
     }
@@ -43,7 +43,7 @@ class ProfileRenderEvent
      * @param User $user
      * @return $this
      */
-    public function setUser(User $user) : self
+    public function setUser(User $user): self
     {
         $this->user = $user;
 
@@ -55,7 +55,7 @@ class ProfileRenderEvent
      *
      * @return User|null
      */
-    public function getUser() : ?User
+    public function getUser(): ?User
     {
         return $this->user;
     }
@@ -65,7 +65,7 @@ class ProfileRenderEvent
      *
      * @return string
      */
-    public function getType() : string
+    public function getType(): string
     {
         return $this->type;
     }

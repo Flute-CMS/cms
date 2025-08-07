@@ -6,7 +6,7 @@ use Flute\Admin\Support\AbstractAdminPackage;
 
 class AboutSystemPackage extends AbstractAdminPackage
 {
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -19,17 +19,17 @@ class AboutSystemPackage extends AbstractAdminPackage
         $this->registerScss('Resources/assets/scss/about-system.scss');
     }
 
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin'];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }
 
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [

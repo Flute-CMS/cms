@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Services;
 
-use Flute\Core\App;
 use Flute\Core\Database\Entities\FooterItem;
 use Nette\Utils\Validators;
 
@@ -21,7 +20,7 @@ class FooterService
     {
         $this->performance = (bool) (is_performance());
 
-        $this->cachedItems = $this->performance ? cache()->callback(self::CACHE_KEY, fn() => $this->getDefaultItems(), self::CACHE_TIME) : $this->getDefaultItems();
+        $this->cachedItems = $this->performance ? cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME) : $this->getDefaultItems();
     }
 
     /**
@@ -69,7 +68,7 @@ class FooterService
             $formattedItems[] = $this->format($item);
         }
 
-        usort($formattedItems, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($formattedItems, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $formattedItems;
     }
@@ -99,7 +98,7 @@ class FooterService
             }
         }
 
-        usort($tree, fn($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
+        usort($tree, fn ($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
 
         return $tree;
     }
@@ -114,17 +113,18 @@ class FooterService
             'new_tab' => $FooterItem->new_tab,
             'position' => $FooterItem->position,
             'children' => [],
-            'roles' => []
+            'roles' => [],
         ];
 
         foreach ($FooterItem->children as $child) {
             $result['children'][] = $this->format($child);
         }
 
-        if ($result['children'])
+        if ($result['children']) {
             usort($result['children'], function ($a, $b) {
                 return $a['position'] <=> $b['position'];
             });
+        }
 
         return $result;
     }

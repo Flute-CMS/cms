@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Platform\Fields;
 
-use Flute\Admin\Platform\Fields\Cell;
 use Flute\Admin\Platform\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
@@ -301,7 +300,7 @@ class TD extends Cell
      */
     public function buildItemMenu(): Factory|View|null
     {
-        if (! $this->isAllowUserHidden()) {
+        if (!$this->isAllowUserHidden()) {
             return null;
         }
 
@@ -356,7 +355,7 @@ class TD extends Cell
      */
     public function disableSearch(bool $disable = true): self
     {
-        $this->searchable = ! $disable;
+        $this->searchable = !$disable;
 
         return $this;
     }
@@ -391,7 +390,7 @@ class TD extends Cell
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
     /**
@@ -402,14 +401,14 @@ class TD extends Cell
      */
     public function isHiddenByUserPreference(string $tableId): bool
     {
-        if (! $this->isAllowUserHidden()) {
+        if (!$this->isAllowUserHidden()) {
             return false;
         }
 
         $cookieKey = "columns_{$tableId}";
         $cookieValue = cookie()->get($cookieKey) ?? null;
 
-        if (! $cookieValue) {
+        if (!$cookieValue) {
             return $this->defaultHidden;
         }
 
@@ -418,7 +417,7 @@ class TD extends Cell
             $columnSlug = $this->sluggable();
 
             if (isset($preferences[$columnSlug])) {
-                return ! $preferences[$columnSlug];
+                return !$preferences[$columnSlug];
             }
         } catch (\Exception $e) {
         }
@@ -436,6 +435,7 @@ class TD extends Cell
     public function setAttribute(string $name, $value): self
     {
         $this->attributes[$name] = $value;
+
         return $this;
     }
 
@@ -470,10 +470,10 @@ class TD extends Cell
 
         $this->defaultSort = $defaultSort;
         $this->defaultSortDirection = $defaultSortDirection;
-        
+
         $this->setAttribute('defaultSort', $defaultSort);
         $this->setAttribute('defaultSortDirection', $defaultSortDirection);
-        
+
         return $this;
     }
 }

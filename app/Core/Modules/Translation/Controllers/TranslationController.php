@@ -11,8 +11,9 @@ class TranslationController extends BaseController
     {
         $translations = $request->input('translations');
 
-        if (!$translations)
+        if (!$translations) {
             return $this->error('Translations is required');
+        }
 
         $result = [];
 
@@ -25,7 +26,7 @@ class TranslationController extends BaseController
 
             $result[] = [
                 'key' => $value['phrase'],
-                'result' => $phrase
+                'result' => $phrase,
             ];
         }
 

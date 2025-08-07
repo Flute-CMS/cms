@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Exceptions;
 
-class PaymentPromoException extends \Exception {}
+class PaymentPromoException extends \Exception
+{
+}

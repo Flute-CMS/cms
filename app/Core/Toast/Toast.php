@@ -30,36 +30,42 @@ class Toast implements JsonSerializable
     public function withDuration(int $duration): self
     {
         $this->duration = $duration;
+
         return $this;
     }
 
     public function dismissible(bool $dismissible = true): self
     {
         $this->dismissible = $dismissible;
+
         return $this;
     }
 
     public function withPosition(string $x, string $y): self
     {
         $this->position = ['x' => $x, 'y' => $y];
+
         return $this;
     }
 
     public function withRipple(bool $ripple = true): self
     {
         $this->ripple = $ripple;
+
         return $this;
     }
 
     public function withIcon(string|array|null $icon): self
     {
         $this->icon = $icon;
+
         return $this;
     }
 
     public function withClassName(string $className): self
     {
         $this->className = $className;
+
         return $this;
     }
 
@@ -73,6 +79,7 @@ class Toast implements JsonSerializable
     public function on(string $eventName, string $callback): self
     {
         $this->events[$eventName] = $callback;
+
         return $this;
     }
 

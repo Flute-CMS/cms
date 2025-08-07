@@ -2,15 +2,15 @@
 
 namespace Flute\Core\Services;
 
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Exceptions\BalanceNotEnoughException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Modules\Auth\Services\AuthService;
+use InvalidArgumentException;
 use Jenssegers\Agent\Agent;
 use Throwable;
-use InvalidArgumentException;
-use DateTimeImmutable;
-use Flute\Core\Events\UserChangedEvent;
 
 enum UserPermission: string
 {
@@ -111,9 +111,9 @@ class UserService
      *
      * @return void
      */
-    protected function initializeByToken() : void
+    protected function initializeByToken(): void
     {
-        if (! $this->userToken || ! is_installed()) {
+        if (!$this->userToken || !is_installed()) {
             return;
         }
 
@@ -122,6 +122,7 @@ class UserService
 
             if (empty($tokenInfo->user)) {
                 $this->sessionExpired();
+
                 return;
             }
 
@@ -132,6 +133,7 @@ class UserService
 
                 if ($currentDeviceDetails !== $tokenInfo->userDevice->deviceDetails) {
                     $this->sessionExpired();
+
                     return;
                 }
             }
@@ -139,14 +141,16 @@ class UserService
             if (config('auth.check_ip')) {
                 if ($tokenInfo->userDevice->ip !== request()->ip()) {
                     $this->sessionExpired();
+
                     return;
                 }
             }
 
             $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
 
-            if (! $this->currentUser) {
+            if (!$this->currentUser) {
                 $this->sessionExpired();
+
                 return;
             }
 
@@ -165,24 +169,25 @@ class UserService
      *
      * @return void
      */
-    public function initializeBySession() : void
+    public function initializeBySession(): void
     {
-        if (! is_installed()) {
+        if (!is_installed()) {
             return;
         }
 
         $userId = session()->get('user_id');
 
         if ($userId) {
-            if (! is_int($userId) || $userId <= 0) {
+            if (!is_int($userId) || $userId <= 0) {
                 $this->sessionExpired();
+
                 return;
             }
 
             // Load user with roles, social networks and permissions to prevent N+1 queries
             $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
 
-            if (! $this->currentUser) {
+            if (!$this->currentUser) {
                 $this->sessionExpired();
             }
         }
@@ -197,9 +202,9 @@ class UserService
      * @param bool $force Force data refresh from the database.
      * @return User|null
      */
-    public function getByRoute(string $route, bool $force = false) : ?User
+    public function getByRoute(string $route, bool $force = false): ?User
     {
-        if (isset($this->usersCache[$route]) && ! $force) {
+        if (isset($this->usersCache[$route]) && !$force) {
             return $this->usersCache[$route];
         }
 
@@ -221,15 +226,15 @@ class UserService
      * @param array $with Load specified relationships.
      * @return User|null
      */
-    public function get(int $userId, bool $force = false, array $with = ['roles', 'socialNetworks', 'userDevices', 'actionLogs', 'invoices']) : ?User
+    public function get(int $userId, bool $force = false, array $with = ['roles', 'socialNetworks', 'userDevices', 'actionLogs', 'invoices']): ?User
     {
-        if (isset($this->usersCache[$userId]) && ! $force) {
+        if (isset($this->usersCache[$userId]) && !$force) {
             return $this->usersCache[$userId];
         }
 
         $query = User::query();
 
-        if (! empty($with)) {
+        if (!empty($with)) {
             $query->load($with);
         }
 
@@ -249,7 +254,7 @@ class UserService
      *
      * @return void
      */
-    protected function sessionExpired() : void
+    protected function sessionExpired(): void
     {
         auth()->logout();
         flash()->add('info', __('auth.session_expired'));
@@ -268,22 +273,22 @@ class UserService
      *
      * @return User|null
      */
-    public function getCurrentUser() : ?User
+    public function getCurrentUser(): ?User
     {
-        if (! $this->currentUser) {
+        if (!$this->currentUser) {
             $this->authSession();
         }
 
         return $this->currentUser;
     }
 
-    public function setCurrentUser(User $user) : self
+    public function setCurrentUser(User $user): self
     {
         $this->currentUser = $user;
-        
+
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($user), UserChangedEvent::NAME);
-        
+
         return $this;
     }
 
@@ -292,9 +297,9 @@ class UserService
      *
      * @return bool
      */
-    public function isLoggedIn() : bool
+    public function isLoggedIn(): bool
     {
-        if (! $this->currentUser) {
+        if (!$this->currentUser) {
             $this->authSession();
         }
 
@@ -309,13 +314,13 @@ class UserService
      * @param bool $force Force initialization.
      * @return void
      */
-    public function authSession(bool $force = false) : void
+    public function authSession(bool $force = false): void
     {
-        if ($this->triedToLogin && ! $force) {
+        if ($this->triedToLogin && !$force) {
             return;
         }
 
-        if (! is_installed()) {
+        if (!is_installed()) {
             return;
         }
 
@@ -337,9 +342,9 @@ class UserService
      *
      * @return void
      */
-    public function updateLastLogged() : void
+    public function updateLastLogged(): void
     {
-        if (! $this->currentUser || $this->currentUser->isOnline()) {
+        if (!$this->currentUser || $this->currentUser->isOnline()) {
             return;
         }
 
@@ -356,9 +361,9 @@ class UserService
      *
      * @return array
      */
-    protected function getPermissions() : array
+    protected function getPermissions(): array
     {
-        if (! $this->currentUser) {
+        if (!$this->currentUser) {
             return [];
         }
 
@@ -369,7 +374,7 @@ class UserService
         $this->permissionsCache = [];
 
         // Ensure roles and permissions are already loaded to prevent N+1 queries
-        if (! isset($this->currentUser->roles[0]->permissions)) {
+        if (!isset($this->currentUser->roles[0]->permissions)) {
             $this->currentUser = $this->get($this->currentUser->id, true, ['roles', 'roles.permissions']);
         }
 
@@ -382,7 +387,7 @@ class UserService
 
     protected function checkUserPermission(string $permission)
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return false;
         }
 
@@ -398,7 +403,7 @@ class UserService
      * @param callable|null $callback Function to execute if the permission(s) are granted.
      * @return bool
      */
-    public function can(UserPermission|string|array|User $permissions, ?callable $callback = null) : bool
+    public function can(UserPermission|string|array|User $permissions, ?callable $callback = null): bool
     {
         $permissions = is_array($permissions) ? $permissions : [$permissions];
 
@@ -406,11 +411,11 @@ class UserService
             $permissionName = $permission instanceof UserPermission ? $permission->value : $permission;
 
             if ($permissionName instanceof User) {
-                if (! $this->canEditUser($permissionName)) {
+                if (!$this->canEditUser($permissionName)) {
                     return false;
                 }
             } else {
-                if (! $this->checkUserPermission($permissionName)) {
+                if (!$this->checkUserPermission($permissionName)) {
                     return false;
                 }
             }
@@ -434,7 +439,7 @@ class UserService
      * @return void
      * @throws Throwable
      */
-    public function topup(float $sum, ?User $user = null) : void
+    public function topup(float $sum, ?User $user = null): void
     {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
@@ -442,13 +447,13 @@ class UserService
 
         $balanceUser = $user ?? $this->getCurrentUser();
 
-        if (! $balanceUser) {
+        if (!$balanceUser) {
             throw new UserNotFoundException();
         }
 
         $balanceUser->balance += $sum;
         transaction($balanceUser)->run();
-        
+
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);
     }
@@ -462,7 +467,7 @@ class UserService
      * @throws BalanceNotEnoughException
      * @throws Throwable
      */
-    public function unbalance(float $sum, ?User $user = null) : void
+    public function unbalance(float $sum, ?User $user = null): void
     {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
@@ -470,18 +475,19 @@ class UserService
 
         $balanceUser = $user ?? $this->getCurrentUser();
 
-        if (! $balanceUser) {
+        if (!$balanceUser) {
             throw new UserNotFoundException();
         }
 
         if ($balanceUser->balance < $sum) {
             $neededSum = $sum - $balanceUser->balance;
+
             throw (new BalanceNotEnoughException())->setNeededSum($neededSum);
         }
 
         $balanceUser->balance -= $sum;
         transaction($balanceUser)->run();
-        
+
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);
     }
@@ -493,10 +499,10 @@ class UserService
      * @return void
      * @throws Throwable
      */
-    public function updateUser(User $user) : void
+    public function updateUser(User $user): void
     {
         transaction($user)->run();
-        
+
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($user), UserChangedEvent::NAME);
     }
@@ -507,11 +513,11 @@ class UserService
      * @param User|null $user User to check. If null, the current user is used.
      * @return int
      */
-    public function getHighestPriority(?User $user = null) : int
+    public function getHighestPriority(?User $user = null): int
     {
         $userToCheck = $user ?? $this->currentUser;
 
-        if (! $userToCheck) {
+        if (!$userToCheck) {
             return 0;
         }
 
@@ -540,7 +546,7 @@ class UserService
      * @param User $userToEdit User to edit.
      * @return bool
      */
-    public function canEditUser(User $userToEdit) : bool
+    public function canEditUser(User $userToEdit): bool
     {
         $currentUserHighestPriority = $this->getHighestPriority();
         $userToEditHighestPriority = $this->getHighestPriority($userToEdit);
@@ -552,12 +558,12 @@ class UserService
      * Checks if the current user has a specific permission.
      *
      * @param string $permission Permission name.
-     * 
+     *
      * @deprecated Use `can` instead
-     * 
+     *
      * @return bool
      */
-    public function hasPermission(string $permission) : bool
+    public function hasPermission(string $permission): bool
     {
         return $this->can($permission);
     }
@@ -568,9 +574,9 @@ class UserService
      * @param string $role Role name.
      * @return bool
      */
-    public function hasRole(string $role) : bool
+    public function hasRole(string $role): bool
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return false;
         }
 
@@ -593,13 +599,13 @@ class UserService
      * @param string $key Social network key.
      * @return bool
      */
-    public function hasSocialNetwork(string $key) : bool
+    public function hasSocialNetwork(string $key): bool
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return false;
         }
 
-        return ! empty($this->currentUser->getSocialNetwork($key));
+        return !empty($this->currentUser->getSocialNetwork($key));
     }
 
     /**
@@ -608,9 +614,9 @@ class UserService
      * @param float $sum Amount to check.
      * @return bool
      */
-    public function hasEnoughBalance(float $sum) : bool
+    public function hasEnoughBalance(float $sum): bool
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return false;
         }
 
@@ -622,7 +628,7 @@ class UserService
      *
      * @return Agent
      */
-    public function device() : Agent
+    public function device(): Agent
     {
         if ($this->userDevice !== null) {
             return $this->userDevice;
@@ -643,14 +649,14 @@ class UserService
      *
      * @return string|null
      */
-    public function getUserToken() : ?string
+    public function getUserToken(): ?string
     {
         return $this->userToken;
     }
 
     public function __call(string $name, array $args)
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return false;
         }
 
@@ -659,7 +665,7 @@ class UserService
 
     public function __get(string $name)
     {
-        if (! $this->isLoggedIn()) {
+        if (!$this->isLoggedIn()) {
             return null;
         }
 
@@ -675,12 +681,12 @@ class UserService
      * @return void
      * @throws Throwable
      */
-    public function updateUserProperty(User $user, string $property, $value) : void
+    public function updateUserProperty(User $user, string $property, $value): void
     {
         if (!property_exists($user, $property)) {
             throw new \InvalidArgumentException("Property $property does not exist on User entity");
         }
-        
+
         $user->$property = $value;
         $this->updateUser($user);
     }
@@ -693,7 +699,7 @@ class UserService
      *
      * @return void
      */
-    public function clearCurrentUser() : void
+    public function clearCurrentUser(): void
     {
         $this->currentUser = null;
         $this->permissionsCache = null;

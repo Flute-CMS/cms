@@ -3,7 +3,6 @@
 namespace Flute\Core\ServiceProviders;
 
 use Flute\Core\Services\SessionService;
-
 use Flute\Core\Support\AbstractServiceProvider;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
@@ -35,7 +34,8 @@ class SessionServiceProvider extends AbstractServiceProvider
      */
     public function boot(\DI\Container $container): void
     {
-        if (!is_cli())
+        if (!is_cli()) {
             $container->get(SessionService::class)->start();
+        }
     }
 }

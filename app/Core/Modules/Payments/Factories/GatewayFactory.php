@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Modules\Payments\Factories;
 
-use Omnipay\Omnipay;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
+use Omnipay\Omnipay;
 
 class GatewayFactory
 {
@@ -29,8 +29,9 @@ class GatewayFactory
             $masked = substr($gatewayEntity->additional, 0, 4) . '***';
             logs()->warning($e->getMessage(), ['adapter' => $gatewayEntity->adapter, 'config' => $masked]);
 
-            if (is_debug())
+            if (is_debug()) {
                 throw $e;
+            }
         }
     }
 
@@ -53,11 +54,11 @@ class GatewayFactory
 
         $config = \Nette\Utils\Json::decode($json, \Nette\Utils\Json::FORCE_ARRAY);
 
-        if (! is_array($config)) {
+        if (!is_array($config)) {
             throw new PaymentException('Invalid gateway configuration');
         }
 
-        if(isset($config['testMode'])) {
+        if (isset($config['testMode'])) {
             $config['testMode'] = filter_var($config['testMode'], FILTER_VALIDATE_BOOLEAN) ?? false;
         }
 

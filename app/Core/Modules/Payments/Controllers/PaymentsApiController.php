@@ -16,6 +16,7 @@ class PaymentsApiController extends BaseController
             return $this->success('1');
         } catch (\Exception $e) {
             logs()->warning($e);
+
             return $this->error('some error');
         }
     }

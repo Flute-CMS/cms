@@ -3,14 +3,13 @@
 namespace Flute\Core\ServiceProviders;
 
 use DI\Container;
-
+use DI\ContainerBuilder;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Support\FluteRequest;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RequestContext;
-use DI\ContainerBuilder;
 
 class RequestServiceProvider extends AbstractServiceProvider
 {
@@ -26,8 +25,9 @@ class RequestServiceProvider extends AbstractServiceProvider
             RequestContext::class => \DI\factory(function (Container $container) {
                 $context = new RequestContext();
                 $context->fromRequest($container->get(Request::class));
+
                 return $context;
-            })
+            }),
         ]);
     }
 

@@ -20,11 +20,11 @@ class UrlSupport
 
         $this->originalPath = $path;
 
-        if (! empty($path) && is_url($path)) {
+        if (!empty($path) && is_url($path)) {
             $this->baseUrl = $path;
-        } elseif (! empty($path) && $path[0] === '/') {
+        } elseif (!empty($path) && $path[0] === '/') {
             $this->baseUrl = config('app.url').$path;
-        } elseif (! empty($path)) {
+        } elseif (!empty($path)) {
             $this->baseUrl = sprintf('%s/%s', config('app.url'), $path);
         } else {
             $this->baseUrl = request()->getBaseUrl();
@@ -36,19 +36,20 @@ class UrlSupport
      *
      * @return string The base URL.
      */
-    public function force() : string
+    public function force(): string
     {
         return $this->baseUrl;
     }
 
     /**
      * Merge the current GET parameters with the instance's parameters.
-     * 
+     *
      * @return self
      */
-    public function withGet() : self
+    public function withGet(): self
     {
         $this->getParams = array_merge($_GET, $this->getParams);
+
         return $this;
     }
 
@@ -59,9 +60,10 @@ class UrlSupport
      *
      * @return self
      */
-    public function addParams(array $params) : self
+    public function addParams(array $params): self
     {
         $this->getParams = array_merge($this->getParams, $params);
+
         return $this;
     }
 
@@ -72,11 +74,12 @@ class UrlSupport
      *
      * @return self
      */
-    public function removeParams(array $keys) : self
+    public function removeParams(array $keys): self
     {
         foreach ($keys as $key) {
             unset($this->getParams[$key]);
         }
+
         return $this;
     }
 
@@ -85,7 +88,7 @@ class UrlSupport
      *
      * @return string The base URL.
      */
-    public function getBaseUrl() : string
+    public function getBaseUrl(): string
     {
         return $this->baseUrl;
     }
@@ -97,9 +100,10 @@ class UrlSupport
      *
      * @return self
      */
-    public function setBaseUrl(string $baseUrl) : self
+    public function setBaseUrl(string $baseUrl): self
     {
         $this->baseUrl = $baseUrl;
+
         return $this;
     }
 
@@ -108,7 +112,7 @@ class UrlSupport
      *
      * @return array The current parameters.
      */
-    public function getParams() : array
+    public function getParams(): array
     {
         return $this->getParams;
     }
@@ -120,59 +124,60 @@ class UrlSupport
      *
      * @return self
      */
-    public function setParams(array $params) : self
+    public function setParams(array $params): self
     {
         $this->getParams = $params;
+
         return $this;
     }
 
     /**
      * Get the original url path
-     * 
+     *
      * @return ?string
      */
-    public function getOriginalPath() : ?string
+    public function getOriginalPath(): ?string
     {
         return $this->originalPath;
     }
 
     /**
      * Get the current URL
-     * 
+     *
      * @param bool $withGet Whether to include GET parameters
      * @return string The current URL
      */
-    public function current(bool $withGet = false) : string
+    public function current(bool $withGet = false): string
     {
         return $withGet ? request()->getUri() : strtok(request()->getUri(), '?');
     }
 
     /**
      * Get the current URL without GET parameters
-     * 
+     *
      * @return string The current URL without GET parameters
      */
-    public function currentWithoutGet() : string
+    public function currentWithoutGet(): string
     {
         return strtok(request()->getUri(), '?');
     }
 
     /**
      * Get the previous URL
-     * 
+     *
      * @return string|null The previous URL
      */
-    public function previous() : ?string
+    public function previous(): ?string
     {
         return request()->headers->get('referer');
     }
 
     /**
      * Get result
-     * 
+     *
      * @return string
      */
-    public function get() : string
+    public function get(): string
     {
         return $this->getParams ? sprintf("%s?%s", $this->baseUrl, http_build_query($this->getParams)) : $this->baseUrl;
     }

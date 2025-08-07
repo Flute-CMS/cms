@@ -30,7 +30,7 @@ interface SearchResultInterface
     /**
      * Get the image URL of the search result.
      */
-    public function getImage():?string;
+    public function getImage(): ?string;
 
     /**
      * Get the type of the search result.

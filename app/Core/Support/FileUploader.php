@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Support;
 
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Filesystem\Filesystem;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use WebPConvert\WebPConvert;
 
 class FileUploader
@@ -91,6 +91,7 @@ class FileUploader
                 } catch (\Exception $e) {
                     $this->logger->error('WebP conversion failed: ' . $e->getMessage());
                     $this->filesystem->remove($filePath);
+
                     throw new \Exception('Image conversion to WebP failed.');
                 }
             }
@@ -129,9 +130,11 @@ class FileUploader
             $zip = new \ZipArchive();
             if ($zip->open($this->getTargetDirectory() . '/' . $fileName) === true) {
                 $zip->close();
+
                 return 'assets/uploads/' . $fileName;
             } else {
                 $this->filesystem->remove($this->getTargetDirectory() . '/' . $fileName);
+
                 throw new \Exception('Invalid ZIP file.');
             }
         } else {

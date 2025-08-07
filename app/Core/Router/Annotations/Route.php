@@ -15,27 +15,27 @@ class Route
      * @var string The route URI pattern
      */
     private string $uri;
-    
+
     /**
      * @var array The HTTP methods this route responds to
      */
     private array $methods;
-    
+
     /**
      * @var string|null The name of the route
      */
     private ?string $name;
-    
+
     /**
      * @var array The middleware that should be applied to the route
      */
     private array $middleware;
-    
+
     /**
      * @var array The route parameters constraints (regex patterns)
      */
     private array $where;
-    
+
     /**
      * @var array Default values for route parameters
      */
@@ -45,7 +45,7 @@ class Route
      * @var bool Whether this route is inherited from parent class
      */
     private bool $inherited;
-    
+
     /**
      * @var Closure|null Callback to be executed after route is modified
      */
@@ -82,19 +82,20 @@ class Route
 
     /**
      * Set a callback to be executed after the route is modified
-     * 
+     *
      * @param Closure $callback Callback function with the route as parameter
      * @return self
      */
     public function setAfterModifyCallback(Closure $callback): self
     {
         $this->afterModifyCallback = $callback;
+
         return $this;
     }
 
     /**
      * Execute the after modify callback if set
-     * 
+     *
      * @return void
      */
     protected function executeAfterModifyCallback(): void
@@ -106,7 +107,7 @@ class Route
 
     /**
      * Set the route name
-     * 
+     *
      * @param string $name The name for the route
      * @return self
      */
@@ -114,12 +115,13 @@ class Route
     {
         $this->name = $name;
         $this->executeAfterModifyCallback();
+
         return $this;
     }
 
     /**
      * Add middleware to the route
-     * 
+     *
      * @param array|string $middleware The middleware to add
      * @return self
      */
@@ -128,12 +130,13 @@ class Route
         $newMiddleware = is_string($middleware) ? [$middleware] : $middleware;
         $this->middleware = array_merge($this->middleware, $newMiddleware);
         $this->executeAfterModifyCallback();
+
         return $this;
     }
 
     /**
      * Add parameter constraints to the route
-     * 
+     *
      * @param string|array $parameter Parameter name or array of parameter-pattern pairs
      * @param string|null $pattern Regex pattern for the parameter
      * @return self
@@ -146,12 +149,13 @@ class Route
             $this->where[$parameter] = $pattern;
         }
         $this->executeAfterModifyCallback();
+
         return $this;
     }
 
     /**
      * Set default values for route parameters
-     * 
+     *
      * @param string $key Parameter name
      * @param mixed $value Default value
      * @return self
@@ -160,6 +164,7 @@ class Route
     {
         $this->defaults[$key] = $value;
         $this->executeAfterModifyCallback();
+
         return $this;
     }
 
@@ -261,11 +266,11 @@ class Route
             array_merge($parent->getDefaults(), $child->getDefaults()),
             true
         );
-        
+
         if ($child->afterModifyCallback !== null) {
             $route->setAfterModifyCallback($child->afterModifyCallback);
         }
-        
+
         return $route;
     }
-} 
+}

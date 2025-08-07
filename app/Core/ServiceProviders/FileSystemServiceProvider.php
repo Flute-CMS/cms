@@ -1,14 +1,12 @@
 <?php
 
-
 namespace Flute\Core\ServiceProviders;
 
 use DI\Container;
-
+use DI\ContainerBuilder;
 use Flute\Core\Services\FileSystemService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Symfony\Component\Finder\Finder;
-use DI\ContainerBuilder;
 
 class FileSystemServiceProvider extends AbstractServiceProvider
 {
@@ -17,7 +15,7 @@ class FileSystemServiceProvider extends AbstractServiceProvider
         $containerBuilder->addDefinitions([
             FileSystemService::class => \DI\autowire(FileSystemService::class),
             Finder::class => \DI\autowire(),
-            'files' => \DI\get(FileSystemService::class)
+            'files' => \DI\get(FileSystemService::class),
         ]);
     }
 

@@ -23,7 +23,7 @@ class PasswordResetController extends BaseController
                 ->add(__('auth.header.reset'));
 
             return view('flute::pages.reset-token', [
-                'token' => $token
+                'token' => $token,
             ]);
         } catch (PasswordResetTokenNotFoundException $e) {
             return $this->error(__('auth.reset.token_not_found'), 404);

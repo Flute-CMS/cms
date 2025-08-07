@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
-use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;
 
 class LanguageComponent extends FluteComponent
@@ -41,7 +40,7 @@ class LanguageComponent extends FluteComponent
 
     /**
      * Get available languages
-     * 
+     *
      * @return array
      */
     protected function getAvailableLanguages()
@@ -51,7 +50,7 @@ class LanguageComponent extends FluteComponent
 
     /**
      * Set the selected language
-     * 
+     *
      * @param string $language
      */
     public function setLanguage($language)
@@ -69,7 +68,7 @@ class LanguageComponent extends FluteComponent
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

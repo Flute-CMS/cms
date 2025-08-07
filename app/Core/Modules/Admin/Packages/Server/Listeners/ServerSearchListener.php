@@ -15,7 +15,7 @@ class ServerSearchListener implements EventSubscriberInterface
     /**
      * Method that returns which events we subscribe to.
      */
-    public static function getSubscribedEvents() : array
+    public static function getSubscribedEvents(): array
     {
         return [
             AdminSearchEvent::NAME => 'onAdminSearch',
@@ -25,7 +25,7 @@ class ServerSearchListener implements EventSubscriberInterface
     /**
      * Handler for the search event.
      */
-    public function onAdminSearch(AdminSearchEvent $event) : void
+    public function onAdminSearch(AdminSearchEvent $event): void
     {
         $searchValue = \trim($event->getValue());
 
@@ -70,7 +70,7 @@ class ServerSearchListener implements EventSubscriberInterface
     /**
      * Calculation of the relevance of the result.
      */
-    private function calculateRelevance(string $searchValue, Server $server) : int
+    private function calculateRelevance(string $searchValue, Server $server): int
     {
         $relevance = 1;
 

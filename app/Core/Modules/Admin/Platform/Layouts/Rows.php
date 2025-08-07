@@ -72,28 +72,28 @@ abstract class Rows extends Layout
 
 
 
-    public function title(?string $title = null) : self
+    public function title(?string $title = null): self
     {
         $this->title = $title;
 
         return $this;
     }
 
-    public function description(?string $description = null) : self
+    public function description(?string $description = null): self
     {
         $this->description = $description;
 
         return $this;
     }
 
-    public function class(?string $class = null) : self
+    public function class(?string $class = null): self
     {
         $this->class = $class;
 
         return $this;
     }
 
-    public function popover(?string $popover = null) : self
+    public function popover(?string $popover = null): self
     {
         $this->popover = $popover;
 
@@ -104,5 +104,5 @@ abstract class Rows extends Layout
      * @return \Flute\Admin\Platform\Field[]
 
      */
-    abstract protected function fields() : iterable;
+    abstract protected function fields(): iterable;
 }

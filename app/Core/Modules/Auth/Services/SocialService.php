@@ -6,13 +6,13 @@ use Exception;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserSocialNetwork;
-use Flute\Core\Services\DiscordService;
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Modules\Auth\Contracts\SocialServiceInterface;
 use Flute\Core\Modules\Auth\Events\SocialProviderAddedEvent;
 use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 use Flute\Core\Modules\Auth\Hybrid\Storage\StorageSession;
+use Flute\Core\Services\DiscordService;
 use Hybridauth\Hybridauth;
 use Hybridauth\User\Profile;
 
@@ -75,7 +75,7 @@ class SocialService implements SocialServiceInterface
         $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\Discord');
 
         $loader->addClassMap([
-            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php'
+            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php',
         ]);
 
         $loader->register();
@@ -237,7 +237,7 @@ class SocialService implements SocialServiceInterface
      */
     public function retrieveSocialNetwork(string $socialNetworkName): array
     {
-        if (! isset($this->registeredProviders[$socialNetworkName])) {
+        if (!isset($this->registeredProviders[$socialNetworkName])) {
             throw new SocialNotFoundException($socialNetworkName);
         }
 
@@ -523,7 +523,7 @@ class SocialService implements SocialServiceInterface
      */
     private function ensureRegistrationAllowed(array $social): void
     {
-        if (! $social['entity']->allowToRegister) {
+        if (!$social['entity']->allowToRegister) {
             throw new Exception(__('def.not_found'));
         }
     }
@@ -558,6 +558,7 @@ class SocialService implements SocialServiceInterface
             if ($this->hybridauth) {
                 foreach ($this->hybridauth->getConnectedAdapters() as $adapter) {
                     $adapter->disconnect();
+
                     try {
                         $adapter->getStorage()->clear();
                     } catch (\Throwable $e) {

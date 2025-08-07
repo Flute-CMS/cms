@@ -67,14 +67,14 @@ class PasswordResetTokenComponent extends Component
                 'min-str-len:' . config('auth.validation.password.min_length'),
                 'max-str-len:' . config('auth.validation.password.max_length'),
             ],
-            'password_confirmation' => 'required'
+            'password_confirmation' => 'required',
         ]);
     }
 
     public function render()
     {
         return $this->view('flute::components.reset.reset-token', [
-            'token' => request()->input('token')
+            'token' => request()->input('token'),
         ]);
     }
 }

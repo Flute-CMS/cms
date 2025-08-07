@@ -11,10 +11,17 @@ trait SingletonTrait
         if (static::$instance === null) {
             static::$instance = new static();
         }
+
         return static::$instance;
     }
 
-    public function __construct() {}
-    public function __clone() {}
-    public function __wakeup() {}
+    public function __construct()
+    {
+    }
+    public function __clone()
+    {
+    }
+    public function __wakeup()
+    {
+    }
 }

@@ -25,7 +25,7 @@ class SearchResult implements SearchResultInterface
 
     /**
      * SearchResult constructor.
-     * 
+     *
      * @param string|null $title
      * @param string|null $url
      * @param string|null $image
@@ -133,6 +133,7 @@ class SearchResult implements SearchResultInterface
     public function setParam(string $key, $value): self
     {
         $this->extraParams[$key] = $value;
+
         return $this;
     }
 
@@ -156,6 +157,7 @@ class SearchResult implements SearchResultInterface
     public function removeParam(string $key): self
     {
         unset($this->extraParams[$key]);
+
         return $this;
     }
 
@@ -181,7 +183,7 @@ class SearchResult implements SearchResultInterface
             'url' => $this->url,
             'description' => $this->description,
             'image' => $this->image,
-            'type' => $this->type
+            'type' => $this->type,
         ], $this->extraParams);
     }
 }

@@ -3,8 +3,8 @@
 namespace Flute\Admin;
 
 use Flute\Admin\Contracts\AdminPackageInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use InvalidArgumentException;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Class AdminPackageFactory
@@ -32,12 +32,12 @@ class AdminPackageFactory
      * @var string
      */
     protected string $baseNamespace;
-    
+
     /**
      * @var array|null
      */
     protected ?array $menuItemsCache = null;
-    
+
     /**
      * @var bool
      */
@@ -68,7 +68,7 @@ class AdminPackageFactory
      * @param AdminPackageInterface $package The admin package to register.
      * @return void
      */
-    public function registerPackage(AdminPackageInterface $package) : void
+    public function registerPackage(AdminPackageInterface $package): void
     {
         $this->packages[] = $package;
         $this->menuItemsCache = null;
@@ -84,12 +84,12 @@ class AdminPackageFactory
      *
      * @return void
      */
-    public function initializePackages() : void
+    public function initializePackages(): void
     {
         if (empty($this->packages)) {
             return;
         }
-        
+
         usort($this->packages, function (AdminPackageInterface $a, AdminPackageInterface $b) {
             return $a->getPriority() <=> $b->getPriority();
         });
@@ -111,7 +111,7 @@ class AdminPackageFactory
      *
      * @return AdminPackageInterface[]
      */
-    public function getPackages() : array
+    public function getPackages(): array
     {
         return $this->packages;
     }
@@ -126,19 +126,19 @@ class AdminPackageFactory
      *
      * @throws InvalidArgumentException If the packages directory does not exist.
      */
-    public function loadPackagesFromDirectory() : void
+    public function loadPackagesFromDirectory(): void
     {
         if ($this->packagesLoaded) {
             return;
         }
-        
+
         if (!is_dir($this->packagesPath)) {
             throw new InvalidArgumentException("Packages directory does not exist: {$this->packagesPath}");
         }
 
         $cacheKey = 'admin_packages_' . md5($this->packagesPath);
         $cachedPackages = cache()->get($cacheKey);
-        
+
         if ($cachedPackages !== null && !is_debug()) {
             foreach ($cachedPackages as $className) {
                 if (!class_exists($className)) {
@@ -146,19 +146,20 @@ class AdminPackageFactory
                 }
 
                 $package = app()->get($className);
-                
+
                 if (($package->getPermissions() && user()->can($package->getPermissions())) || is_cli()) {
                     $this->registerPackage($package);
                 }
             }
-            
+
             $this->packagesLoaded = true;
+
             return;
         }
-        
+
         $finder = finder();
         $finder->files()->in($this->packagesPath)->depth('< 2')->name('*.php');
-        
+
         $packageClasses = [];
 
         foreach ($finder as $file) {
@@ -178,7 +179,7 @@ class AdminPackageFactory
             if (!is_subclass_of($className, AdminPackageInterface::class)) {
                 continue;
             }
-            
+
             $packageClasses[] = $className;
 
             /**
@@ -191,11 +192,11 @@ class AdminPackageFactory
                 $this->registerPackage($package);
             }
         }
-        
+
         if (!empty($packageClasses) && !is_debug()) {
             cache()->set($cacheKey, $packageClasses, 86400); // 1 day
         }
-        
+
         $this->packagesLoaded = true;
     }
 
@@ -206,12 +207,12 @@ class AdminPackageFactory
      *
      * @return array
      */
-    public function getAllMenuItems() : array
+    public function getAllMenuItems(): array
     {
         if ($this->menuItemsCache !== null) {
             return $this->menuItemsCache;
         }
-        
+
         $menuItems = [];
         $permissionsCache = [];
 
@@ -221,13 +222,13 @@ class AdminPackageFactory
                 if (isset($item['permission'])) {
                     $permissions = $item['permission'];
                     $mode = isset($item['permission_mode']) ? strtolower($item['permission_mode']) : 'all';
-                    
+
                     $cacheKey = $this->getPermissionCacheKey($permissions, $mode);
-                    
+
                     if (!isset($permissionsCache[$cacheKey])) {
                         $permissionsCache[$cacheKey] = $this->userHasPermissions($permissions, $mode);
                     }
-                    
+
                     if ($permissionsCache[$cacheKey]) {
                         $menuItems[] = $item;
                     }
@@ -236,15 +237,15 @@ class AdminPackageFactory
                 }
             }
         }
-        
+
         $this->menuItemsCache = $menuItems;
-        
+
         return $menuItems;
     }
-    
+
     /**
      * Creates a cache key for permission checks
-     * 
+     *
      * @param string|array $permissions
      * @param string $mode
      * @return string
@@ -254,7 +255,7 @@ class AdminPackageFactory
         if (is_array($permissions)) {
             return $mode . '_' . implode('_', $permissions);
         }
-        
+
         return 'single_' . $permissions;
     }
 
@@ -265,7 +266,7 @@ class AdminPackageFactory
      * @param string $mode Check mode: 'all' or 'any'.
      * @return bool
      */
-    protected function userHasPermissions($permissions, string $mode = 'all') : bool
+    protected function userHasPermissions($permissions, string $mode = 'all'): bool
     {
         if (is_array($permissions)) {
             if ($mode === 'any') {
@@ -274,6 +275,7 @@ class AdminPackageFactory
                         return true;
                     }
                 }
+
                 return false;
             } else { // 'all'
                 foreach ($permissions as $perm) {
@@ -281,6 +283,7 @@ class AdminPackageFactory
                         return false;
                     }
                 }
+
                 return true;
             }
         } else {

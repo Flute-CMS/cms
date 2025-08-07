@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
+use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -14,7 +15,6 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
-use Flute\Admin\Packages\Payment\Services\PaymentService;
 
 class PromoCodeScreen extends Screen
 {
@@ -114,22 +114,22 @@ class PromoCodeScreen extends Screen
             'total_codes' => [
                 'value' => number_format($totalCodes),
                 'diff' => round($codesDiff, 1),
-                'icon' => 'ticket'
+                'icon' => 'ticket',
             ],
             'active_codes' => [
                 'value' => number_format($activeCodes) . ' (' . ($totalCodes > 0 ? round(($activeCodes / $totalCodes) * 100) : 0) . '%)',
                 'diff' => 0,
-                'icon' => 'star'
+                'icon' => 'star',
             ],
             'today_usages' => [
                 'value' => number_format($todayUsages) . ' / ' . number_format($totalUsages),
                 'diff' => round($usagesDiff, 1),
-                'icon' => 'chart-line-up'
+                'icon' => 'chart-line-up',
             ],
             'today_amount' => [
                 'value' => number_format($todayDiscountAmount, 2) . ' ' . config('payment.currency'),
                 'diff' => round($amountDiff, 1),
-                'icon' => 'money'
+                'icon' => 'money',
             ],
         ];
     }
@@ -167,33 +167,33 @@ class PromoCodeScreen extends Screen
 
             LayoutFactory::table('promoCodes', [
                 TD::make('code', __('admin-payment.table.code'))
-                    ->render(fn(PromoCode $code) => view('admin-payment::cells.promo-name', ['name' => $code->code]))
+                    ->render(fn (PromoCode $code) => view('admin-payment::cells.promo-name', ['name' => $code->code]))
                     ->width('200px'),
 
                 TD::make('type', __('admin-payment.table.type'))
-                    ->render(fn(PromoCode $code) => view('admin-payment::cells.promo-type', ['type' => $code->type]))
+                    ->render(fn (PromoCode $code) => view('admin-payment::cells.promo-type', ['type' => $code->type]))
                     ->width('150px'),
 
                 TD::make('value', __('admin-payment.table.value'))
-                    ->render(fn(PromoCode $code) => $this->formatValue($code))
+                    ->render(fn (PromoCode $code) => $this->formatValue($code))
                     ->width('150px'),
 
                 TD::make('expires_at', __('admin-payment.table.expires_at'))
-                    ->render(fn(PromoCode $code) => $code->expires_at ? $code->expires_at->format('d.m.Y H:i') : '-')
+                    ->render(fn (PromoCode $code) => $code->expires_at ? $code->expires_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
 
                 TD::make('status', __('admin-payment.table.status'))
-                    ->render(fn(PromoCode $code) => $this->getPromoCodeStatus($code))
+                    ->render(fn (PromoCode $code) => $this->getPromoCodeStatus($code))
                     ->width('150px'),
 
                 TD::make('actions', __('admin-payment.table.actions'))
-                    ->render(fn(PromoCode $code) => $this->promoCodeActionsDropdown($code))
+                    ->render(fn (PromoCode $code) => $this->promoCodeActionsDropdown($code))
                     ->width('100px'),
             ])
                 ->searchable([
                     'code',
                     'type',
-                    'value'
+                    'value',
                 ]),
         ];
     }
@@ -214,9 +214,10 @@ class PromoCodeScreen extends Screen
     private function getPromoCodeStatus(PromoCode $code)
     {
         $stats = $this->paymentService->getPromoCodeStats($code);
+
         return view('admin-payment::cells.promo-status', [
             'expired' => $stats['is_expired'],
-            'usagesLeft' => $stats['remaining_usages']
+            'usagesLeft' => $stats['remaining_usages'],
         ]);
     }
 
@@ -264,6 +265,7 @@ class PromoCodeScreen extends Screen
         $code = $this->paymentService->getPromoCodeById($parameters->get('codeId'));
         if (!$code) {
             $this->flashMessage(__('admin-payment.messages.promo_not_found'), 'error');
+
             return;
         }
 
@@ -344,7 +346,7 @@ class PromoCodeScreen extends Screen
             LayoutFactory::field(
                 Input::make('roles')
                     ->type('text')
-                    ->value(!empty($code->roles) ? implode(', ', array_map(fn($role) => $role->name, $code->roles)) : __('admin-payment.status.all_users'))
+                    ->value(!empty($code->roles) ? implode(', ', array_map(fn ($role) => $role->name, $code->roles)) : __('admin-payment.status.all_users'))
                     ->readOnly()
             )
                 ->label(__('admin-payment.fields.promo.allowed_roles.label')),
@@ -499,6 +501,7 @@ class PromoCodeScreen extends Screen
 
         if (!$promoCode) {
             $this->flashMessage(__('admin-payment.messages.promo_not_found'), 'error');
+
             return;
         }
 
@@ -610,6 +613,7 @@ class PromoCodeScreen extends Screen
         $promoCode = $this->paymentService->getPromoCodeById($codeId);
         if (!$promoCode) {
             $this->flashMessage(__('admin-payment.messages.promo_not_found'), 'error');
+
             return;
         }
 
@@ -647,6 +651,7 @@ class PromoCodeScreen extends Screen
 
         if (!$promoCode) {
             $this->flashMessage(__('admin-payment.messages.promo_not_found'), 'error');
+
             return;
         }
 
@@ -656,16 +661,16 @@ class PromoCodeScreen extends Screen
             LayoutFactory::table('usageHistory', [
                 TD::make('user.name', __('admin-payment.table.user'))
                     ->sort()
-                    ->render(fn(PromoCodeUsage $usage) => view('admin-payment::cells.user-name', ['user' => $usage->user]))
+                    ->render(fn (PromoCodeUsage $usage) => view('admin-payment::cells.user-name', ['user' => $usage->user]))
                     ->width('200px'),
 
                 TD::make('invoice.amount', __('admin-payment.table.amount'))
-                    ->render(fn(PromoCodeUsage $usage) => number_format($usage->invoice->amount, 2) . ' ' . $usage->invoice->currency?->code)
+                    ->render(fn (PromoCodeUsage $usage) => number_format($usage->invoice->amount, 2) . ' ' . $usage->invoice->currency?->code)
                     ->width('150px'),
 
                 TD::make('used_at', __('admin-payment.table.created_at'))
                     ->sort()
-                    ->render(fn(PromoCodeUsage $usage) => $usage->used_at ? $usage->used_at->format('d.m.Y H:i') : '-')
+                    ->render(fn (PromoCodeUsage $usage) => $usage->used_at ? $usage->used_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
             ])->compact(),
         ])
@@ -685,6 +690,7 @@ class PromoCodeScreen extends Screen
 
         if (!$promoCode) {
             $this->flashMessage(__('admin-payment.messages.promo_not_found'), 'error');
+
             return;
         }
 

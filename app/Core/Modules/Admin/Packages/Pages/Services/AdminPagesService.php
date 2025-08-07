@@ -10,7 +10,7 @@ class AdminPagesService
     /**
      * Save page (create or update)
      */
-    public function savePage(?Page $page, array $data) : Page
+    public function savePage(?Page $page, array $data): Page
     {
         if (!$page) {
             $page = new Page();
@@ -31,7 +31,7 @@ class AdminPagesService
     /**
      * Delete page with all its blocks
      */
-    public function deletePage(Page $page) : void
+    public function deletePage(Page $page): void
     {
         foreach ($page->blocks as $block) {
             $block->delete();
@@ -43,7 +43,7 @@ class AdminPagesService
     /**
      * Save page block (create or update)
      */
-    public function savePageBlock(?PageBlock $block, Page $page, array $data) : PageBlock
+    public function savePageBlock(?PageBlock $block, Page $page, array $data): PageBlock
     {
         if (!$block) {
             $block = new PageBlock();
@@ -62,7 +62,7 @@ class AdminPagesService
     /**
      * Delete page block
      */
-    public function deletePageBlock(PageBlock $block) : void
+    public function deletePageBlock(PageBlock $block): void
     {
         $block->delete();
     }
@@ -70,28 +70,29 @@ class AdminPagesService
     /**
      * Validate JSON string
      */
-    public function validateJson(string $json) : bool
+    public function validateJson(string $json): bool
     {
         if (empty($json)) {
             return true;
         }
 
         json_decode($json);
+
         return json_last_error() === JSON_ERROR_NONE;
     }
 
     /**
      * Get page statistics
      */
-    public function getPageStatistics() : array
+    public function getPageStatistics(): array
     {
         $totalPages = Page::query()->count();
         $totalBlocks = PageBlock::query()->count();
-        
+
         $pagesWithBlocks = Page::query()
             ->load('blocks')
             ->fetchAll();
-            
+
         $pagesWithBlocksCount = 0;
         foreach ($pagesWithBlocks as $page) {
             if (count($page->blocks) > 0) {
@@ -110,7 +111,7 @@ class AdminPagesService
     /**
      * Get most used widgets
      */
-    public function getMostUsedWidgets() : array
+    public function getMostUsedWidgets(): array
     {
         $blocks = PageBlock::query()->fetchAll();
         $widgets = [];
@@ -124,13 +125,14 @@ class AdminPagesService
         }
 
         arsort($widgets);
+
         return array_slice($widgets, 0, 10, true);
     }
 
     /**
      * Duplicate page
      */
-    public function duplicatePage(Page $originalPage, string $newRoute, string $newTitle) : Page
+    public function duplicatePage(Page $originalPage, string $newRoute, string $newTitle): Page
     {
         $newPage = new Page();
         $newPage->route = $newRoute;
@@ -139,7 +141,7 @@ class AdminPagesService
         $newPage->keywords = $originalPage->keywords;
         $newPage->robots = $originalPage->robots;
         $newPage->og_image = $originalPage->og_image;
-        
+
         $newPage->save();
 
         // Копируем блоки
@@ -154,4 +156,4 @@ class AdminPagesService
 
         return $newPage;
     }
-} 
+}

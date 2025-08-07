@@ -69,7 +69,7 @@ class DatabaseComponent extends FluteComponent
     public function mount()
     {
         $connection = config('database.connections.default.connection');
-        
+
         if ($connection->database) {
             $this->isConnected = true;
         }
@@ -85,19 +85,22 @@ class DatabaseComponent extends FluteComponent
 
             if (empty($this->host) && $this->driver !== 'sqlite') {
                 $this->errorMessage = __('install.database.error_host_required');
+
                 return;
             }
 
             if (empty($this->database)) {
                 $this->errorMessage = __('install.database.error_database_required');
+
                 return;
             }
 
             // For SQLite, we just need to make sure the directory exists
             if ($this->driver === 'sqlite') {
                 $databaseDir = dirname(path('storage/database/'.$this->database));
-                if (! is_dir($databaseDir) && ! mkdir($databaseDir, 0755, true)) {
+                if (!is_dir($databaseDir) && !mkdir($databaseDir, 0o755, true)) {
                     $this->errorMessage = __('install.database.error_sqlite_dir');
+
                     return;
                 }
                 $this->isConnected = true;
@@ -127,24 +130,27 @@ class DatabaseComponent extends FluteComponent
             switch ($this->driver) {
                 case 'mysql':
                     $dsn = "mysql:host={$this->host};port={$this->port};";
+
                     break;
                 case 'pgsql':
                     $dsn = "pgsql:host={$this->host};port={$this->port};";
+
                     break;
                 default:
                     $this->errorMessage = __('install.database.error_driver_not_supported');
+
                     return;
             }
 
             // Test connection to server without database first
             $pdo = new \PDO($dsn, $this->username, $this->password, [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             ]);
 
             // Try to select the database
             try {
                 $pdo = new \PDO($dsn."dbname={$this->database}", $this->username, $this->password, [
-                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 ]);
             } catch (\PDOException $e) {
                 // If database doesn't exist, create it (if we have permissions)
@@ -305,16 +311,16 @@ class DatabaseComponent extends FluteComponent
     {
         app(CheckPermissionsMigration::class)->run();
 
-        if (! Role::findOne(['name' => 'admin']) && $permission = Permission::findOne(['name' => 'admin.boss'])) {
-            $role = new Role;
+        if (!Role::findOne(['name' => 'admin']) && $permission = Permission::findOne(['name' => 'admin.boss'])) {
+            $role = new Role();
             $role->name = 'admin';
             $role->priority = 2;
             $role->addPermission($permission);
             $role->save();
         }
 
-        if (! Role::findOne(['name' => 'user'])) {
-            $role = new Role;
+        if (!Role::findOne(['name' => 'user'])) {
+            $role = new Role();
             $role->name = 'user';
             $role->priority = 1;
             $role->save();
@@ -323,7 +329,7 @@ class DatabaseComponent extends FluteComponent
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

@@ -2,12 +2,10 @@
 
 namespace Flute\Core\Services;
 
-use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class DiscordService
 {
@@ -26,8 +24,9 @@ class DiscordService
 
     public function linkRoles(User $user, array $roles = [])
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -55,8 +54,8 @@ class DiscordService
                             'platform_name' => config('app.name'),
                             'metadata' => [
                                 'role_id' => $role->id,
-                            ]
-                        ]
+                            ],
+                        ],
                     ]);
 
                     if (isset($roles[$key + 1])) {
@@ -81,8 +80,8 @@ class DiscordService
                         'platform_name' => config('app.name'),
                         'metadata' => [
                             'role_id' => 0,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -98,8 +97,9 @@ class DiscordService
 
     public function refreshAccessToken(string $refreshToken, int $userId)
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -114,7 +114,7 @@ class DiscordService
                     'client_secret' => $discordInfo['secret'],
                     'grant_type' => 'refresh_token',
                     'refresh_token' => $refreshToken,
-                ]
+                ],
             ]);
         } catch (ClientException $e) {
             logs()->error($e);
@@ -143,11 +143,13 @@ class DiscordService
 
     public function registerMetadata()
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return false;
+        }
 
-        if (cache()->has('flute.discord_roles_metadata'))
+        if (cache()->has('flute.discord_roles_metadata')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -170,7 +172,7 @@ class DiscordService
                         'description' => __('def.discord_role_desc'),
                         'type' => 2,
                     ],
-                ]
+                ],
             ]);
         } catch (ClientException $e) {
             logs()->error($e);

@@ -35,7 +35,7 @@ class PaymentComponent extends FluteComponent
         $this->validateCurrencyGateways();
     }
 
-    protected function validateCurrencyGateways() : void
+    protected function validateCurrencyGateways(): void
     {
         if (empty($this->currencyGateways)) {
             $this->amount = null;
@@ -47,7 +47,7 @@ class PaymentComponent extends FluteComponent
             $this->gateway = null;
         }
     }
-    protected function loadCurrenciesAndGateways() : void
+    protected function loadCurrenciesAndGateways(): void
     {
         $currencies = Currency::findAll();
 
@@ -58,8 +58,9 @@ class PaymentComponent extends FluteComponent
             $this->currencyMinimumAmounts[$code] = $currency->minimum_value;
 
             foreach ($currency->paymentGateways as $gateway) {
-                if ($gateway->enabled === false)
+                if ($gateway->enabled === false) {
                     continue;
+                }
 
                 $this->currencyGateways[$code][$gateway->adapter] = [
                     'name' => $gateway->name,
@@ -69,13 +70,13 @@ class PaymentComponent extends FluteComponent
         }
     }
 
-    protected function setDefaultCurrencyAndGateway() : void
+    protected function setDefaultCurrencyAndGateway(): void
     {
         if (count($this->currencies) === 1) {
             $this->currency = $this->currencies[0];
         }
 
-        if(!$this->currency) {
+        if (!$this->currency) {
             $this->currency = $this->currencies[0];
         }
 
@@ -85,7 +86,7 @@ class PaymentComponent extends FluteComponent
                 $this->gateway = $gateways[0];
             }
 
-            if(!$this->gateway) {
+            if (!$this->gateway) {
                 $this->gateway = $gateways[0];
             }
         }
@@ -130,6 +131,7 @@ class PaymentComponent extends FluteComponent
         if (empty($this->amount)) {
             $this->amountToPay = null;
             $this->amountToReceive = null;
+
             return;
         }
 
@@ -141,6 +143,7 @@ class PaymentComponent extends FluteComponent
             $this->amountToReceive = $this->amount * $exchangeRate;
         } else {
             $this->inputError('currency', __('lk.select_currency_prompt'));
+
             return;
         }
 
@@ -157,10 +160,12 @@ class PaymentComponent extends FluteComponent
             switch ($this->promoDetails['type']) {
                 case 'amount':
                     $this->amountToReceive = round($this->amountToReceive + $this->promoDetails['value'], 2);
+
                     break;
                 case 'percentage':
                     $discount = ($this->amountToPay * $this->promoDetails['value']) / 100;
                     $this->amountToPay = round(max(0, $this->amountToPay - $discount), 2);
+
                     break;
             }
         } catch (PaymentPromoException $e) {
@@ -178,7 +183,7 @@ class PaymentComponent extends FluteComponent
         }
     }
 
-    protected function resetAmounts() : void
+    protected function resetAmounts(): void
     {
         $exchangeRate = $this->currencyExchangeRates[$this->currency] ?? 1;
         $this->amountToPay = $this->amount;

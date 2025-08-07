@@ -7,10 +7,10 @@ use Flute\Core\Support\FluteRequest;
 
 class SearchController extends BaseController
 {
-    public function search( FluteRequest $request, string $value ) 
+    public function search(FluteRequest $request, string $value)
     {
         return response()->json(
-            app("search")->emit( $value )
+            app("search")->emit($value)
         );
     }
 }

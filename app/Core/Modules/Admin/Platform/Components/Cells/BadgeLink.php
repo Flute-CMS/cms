@@ -105,7 +105,7 @@ class BadgeLink extends Component
      */
     public function render()
     {
-        if(str_contains($this->url, 'http')) {
+        if (str_contains($this->url, 'http')) {
             return sprintf(
                 '<a href="%s" class="badge %s" target="_blank">%s</a>',
                 $this->url,

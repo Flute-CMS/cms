@@ -17,30 +17,35 @@ class ToastBuilder
     public function success(string $message): self
     {
         $this->toast = new Toast($message, ToastType::SUCCESS);
+
         return $this;
     }
 
     public function error(string $message): self
     {
         $this->toast = new Toast($message, ToastType::ERROR);
+
         return $this;
     }
 
     public function warning(string $message): self
     {
         $this->toast = new Toast($message, ToastType::WARNING);
+
         return $this;
     }
 
     public function info(string $message): self
     {
         $this->toast = new Toast($message, ToastType::INFO);
+
         return $this;
     }
 
     public function custom(string $message, ToastType $type): self
     {
         $this->toast = new Toast($message, $type);
+
         return $this;
     }
 
@@ -48,6 +53,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->withDuration($duration);
+
         return $this;
     }
 
@@ -55,6 +61,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->dismissible($dismissible);
+
         return $this;
     }
 
@@ -62,6 +69,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->withPosition($x, $y);
+
         return $this;
     }
 
@@ -69,6 +77,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->withRipple($ripple);
+
         return $this;
     }
 
@@ -76,6 +85,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->withIcon($icon);
+
         return $this;
     }
 
@@ -83,6 +93,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->withClassName($className);
+
         return $this;
     }
 
@@ -90,6 +101,7 @@ class ToastBuilder
     {
         $this->ensureToast();
         $this->toast->on($eventName, $callback);
+
         return $this;
     }
 

@@ -66,6 +66,7 @@ abstract class BaseMiddleware implements MiddlewareInterface
         if ($name === 'error') {
             $message = $arguments[0] ?? null;
             $status = $arguments[1] ?? 403;
+
             return $this->errorResponse($message, $status);
         }
 

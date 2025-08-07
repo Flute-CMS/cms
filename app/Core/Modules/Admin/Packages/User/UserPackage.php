@@ -11,10 +11,10 @@ class UserPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
-        
+
         $this->loadViews('Resources/views', 'admin-users');
 
         $this->loadRoutesFromFile('routes.php');
@@ -31,7 +31,7 @@ class UserPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.users'];
     }
@@ -39,7 +39,7 @@ class UserPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -54,7 +54,7 @@ class UserPackage extends AbstractAdminPackage
         ];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 10;
     }

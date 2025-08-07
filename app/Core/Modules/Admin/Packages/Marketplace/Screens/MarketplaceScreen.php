@@ -2,25 +2,25 @@
 
 namespace Flute\Admin\Packages\Marketplace\Screens;
 
-use Flute\Admin\Platform\Actions\Button;
-use Flute\Admin\Platform\Screen;
-use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
+use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Layouts\LayoutFactory;
+use Flute\Admin\Platform\Screen;
 use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceScreen extends Screen
 {
     /**
      * Screen title
-     * 
+     *
      * @var string
      */
     protected ?string $name = 'admin-marketplace.labels.marketplace';
 
     /**
      * Screen description
-     * 
+     *
      * @var string
      */
     protected ?string $description = 'admin-marketplace.descriptions.marketplace';
@@ -87,7 +87,7 @@ class MarketplaceScreen extends Screen
 
     /**
      * Mount the screen
-     * 
+     *
      * @return void
      */
     public function mount(): void
@@ -178,6 +178,7 @@ class MarketplaceScreen extends Screen
         if (!empty($this->priceFilter)) {
             $filteredModules = array_filter($filteredModules, function ($module) {
                 $isPaid = !empty($module['isPaid']);
+
                 return ($this->priceFilter === 'paid' && $isPaid) || ($this->priceFilter === 'free' && !$isPaid);
             });
         }
@@ -248,7 +249,7 @@ class MarketplaceScreen extends Screen
 
     /**
      * Install module
-     * 
+     *
      * @param string $slug
      * @return void
      */
@@ -270,6 +271,7 @@ class MarketplaceScreen extends Screen
             foreach ($allModules as $m) {
                 if (($m['slug'] ?? '') === $slug) {
                     $moduleData = $m;
+
                     break;
                 }
             }
@@ -290,6 +292,7 @@ class MarketplaceScreen extends Screen
                     foreach ($allModules as $m) {
                         if (($m['slug'] ?? '') === $slug) {
                             $moduleData = $m;
+
                             break;
                         }
                     }
@@ -298,12 +301,14 @@ class MarketplaceScreen extends Screen
                         throw new \Exception(__('admin-marketplace.messages.download_failed'));
                     }
                     $module['downloadUrl'] = $downloadUrl;
+
                     try {
                         $download = $moduleInstaller->downloadModule($module);
                     } catch (\Exception $e2) {
                         logs()->error($e2);
                         $this->flashMessage($e2->getMessage(), 'error');
                         $this->isLoading = false;
+
                         return;
                     }
                 } else {
@@ -333,6 +338,7 @@ class MarketplaceScreen extends Screen
                 $moduleInstaller->updateComposerDependencies();
             } catch (\Exception $e) {
                 $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+
                 throw $e;
             }
 
@@ -381,7 +387,7 @@ class MarketplaceScreen extends Screen
 
     /**
      * Get the layout elements
-     * 
+     *
      * @return array
      */
     public function layout(): array
@@ -404,7 +410,7 @@ class MarketplaceScreen extends Screen
 
     /**
      * Get module categories for filtering
-     * 
+     *
      * @return array
      */
     public function getCategories()
@@ -413,6 +419,7 @@ class MarketplaceScreen extends Screen
             return $this->marketplaceService->getCategories();
         } catch (\Exception $e) {
             logs()->error($e);
+
             return [];
         }
     }

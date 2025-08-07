@@ -23,22 +23,22 @@ class LogRendererManager
 
     /**
      * Add a formatter to the manager
-     * 
+     *
      * @param LogFormatterInterface $formatter
      */
-    public function addFormatter(LogFormatterInterface $formatter) : void
+    public function addFormatter(LogFormatterInterface $formatter): void
     {
         $this->formatters[] = $formatter;
     }
 
     /**
      * Returns the rendered log
-     * 
+     *
      * @param UserActionLog $log
-     * 
+     *
      * @return string
      */
-    public function render(UserActionLog $log) : string
+    public function render(UserActionLog $log): string
     {
         foreach ($this->formatters as $formatter) {
             if ($formatter->supports($log)) {

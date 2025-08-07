@@ -10,14 +10,14 @@ class NotificationController extends BaseController
     public function getAll()
     {
         return $this->json([
-            "result" => notification()->all(true)
+            "result" => notification()->all(true),
         ]);
     }
 
     public function getUnread()
     {
         return $this->json([
-            "result" => notification()->unread(true)
+            "result" => notification()->unread(true),
         ]);
     }
 

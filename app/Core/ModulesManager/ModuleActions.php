@@ -37,6 +37,6 @@ class ModuleActions
 
     protected function action(string $className, ModuleInformation &$module, ?ModuleManager $moduleManager = null)
     {
-        return (new $className)->action($module, $moduleManager);
+        return (new $className())->action($module, $moduleManager);
     }
 }

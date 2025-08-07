@@ -4,74 +4,73 @@ namespace Flute\Admin\Packages\Marketplace\Services;
 
 use Exception;
 use Flute\Core\App;
-use ZipArchive;
 use Flute\Core\Composer\ComposerManager;
-use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use ZipArchive;
 
 class ModuleInstallerService
 {
     /**
      * HTTP клиент
-     * 
+     *
      * @var Client
      */
     protected Client $client;
 
     /**
      * Временная директория для загрузки модулей
-     * 
+     *
      * @var string
      */
     protected string $tempDir;
 
     /**
      * Директория для модулей
-     * 
+     *
      * @var string
      */
     protected string $modulesDir;
 
     /**
      * Путь к архиву модуля
-     * 
+     *
      * @var string|null
      */
     protected ?string $moduleArchivePath = null;
 
     /**
      * Путь к распакованному модулю
-     * 
+     *
      * @var string|null
      */
     protected ?string $moduleExtractPath = null;
 
     /**
      * Ключ модуля
-     * 
+     *
      * @var string|null
      */
     protected ?string $moduleKey = null;
 
     /**
      * Информация о модуле из module.json
-     * 
+     *
      * @var array|null
      */
     protected ?array $moduleInfo = null;
 
     /**
      * Директория для резервного копирования модуля
-     * 
+     *
      * @var string|null
      */
     protected ?string $backupDir = null;
 
     /**
      * Директория установленного модуля
-     * 
+     *
      * @var string|null
      */
     protected ?string $moduleFolder = null;
@@ -90,13 +89,13 @@ class ModuleInstallerService
         $this->modulesDir = path('app/Modules');
 
         if (!is_dir($this->tempDir)) {
-            mkdir($this->tempDir, 0755, true);
+            mkdir($this->tempDir, 0o755, true);
         }
     }
 
     /**
      * Загрузить модуль
-     * 
+     *
      * @param array $module
      * @return array
      * @throws Exception
@@ -144,7 +143,7 @@ class ModuleInstallerService
 
     /**
      * Распаковать модуль
-     * 
+     *
      * @param array $module
      * @return array
      * @throws Exception
@@ -166,7 +165,7 @@ class ModuleInstallerService
         $this->moduleExtractPath = $this->tempDir . '/extract-' . $module['slug'] . '-' . time();
 
         if (!is_dir($this->moduleExtractPath)) {
-            mkdir($this->moduleExtractPath, 0755, true);
+            mkdir($this->moduleExtractPath, 0o755, true);
         }
 
         $zip->extractTo($this->moduleExtractPath);
@@ -180,6 +179,7 @@ class ModuleInstallerService
                 if ($item !== '.' && $item !== '..' && is_dir($this->moduleExtractPath . '/' . $item)) {
                     $rootDir = $this->moduleExtractPath . '/' . $item;
                     $this->moduleKey = $item;
+
                     break;
                 }
             }
@@ -199,7 +199,7 @@ class ModuleInstallerService
 
     /**
      * Проверить совместимость модуля
-     * 
+     *
      * @param array $module
      * @return array
      * @throws Exception
@@ -265,7 +265,7 @@ class ModuleInstallerService
 
     /**
      * Установить модуль
-     * 
+     *
      * @param array $module
      * @return array
      * @throws Exception
@@ -298,7 +298,7 @@ class ModuleInstallerService
                 $this->backupDir = storage_path('backup/modules/' . $moduleFolder . '-' . date('Y-m-d-His'));
 
                 if (!is_dir($this->backupDir)) {
-                    mkdir($this->backupDir, 0755, true);
+                    mkdir($this->backupDir, 0o755, true);
                 }
 
                 $this->copyDirectory($destination, $this->backupDir);
@@ -308,7 +308,7 @@ class ModuleInstallerService
         }
 
         if (!is_dir($destination)) {
-            mkdir($destination, 0755, true);
+            mkdir($destination, 0o755, true);
         }
 
         $this->copyDirectory($source, $destination);
@@ -318,13 +318,13 @@ class ModuleInstallerService
             'success' => true,
             'message' => __('admin-marketplace.messages.install_success'),
             'moduleFolder' => $moduleFolder,
-            'backupDir' => $this->backupDir
+            'backupDir' => $this->backupDir,
         ];
     }
 
     /**
      * Обновить зависимости Composer
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -364,7 +364,7 @@ class ModuleInstallerService
 
     /**
      * Завершить установку
-     * 
+     *
      * @return array
      */
     public function finishInstallation(): array
@@ -402,7 +402,7 @@ class ModuleInstallerService
 
     /**
      * Откатить установку модуля
-     * 
+     *
      * @param string $moduleFolder
      * @param string|null $backupDir
      * @return array
@@ -422,13 +422,13 @@ class ModuleInstallerService
 
         return [
             'success' => true,
-            'message' => __('admin-marketplace.messages.rollback_success')
+            'message' => __('admin-marketplace.messages.rollback_success'),
         ];
     }
 
     /**
      * Проверить версию PHP
-     * 
+     *
      * @param string $requiredVersion
      * @return bool
      */
@@ -439,19 +439,20 @@ class ModuleInstallerService
 
     /**
      * Проверить версию Flute
-     * 
+     *
      * @param string $requiredVersion
      * @return bool
      */
     protected function checkFluteVersion(string $requiredVersion): bool
     {
         $fluteVersion = App::VERSION;
+
         return version_compare($fluteVersion, $requiredVersion, '>=');
     }
 
     /**
      * Проверить зависимости от других модулей
-     * 
+     *
      * @param array $requiredModules
      * @return array
      */
@@ -464,6 +465,7 @@ class ModuleInstallerService
         foreach ($requiredModules as $moduleKey => $moduleVersion) {
             if (!$moduleManager->issetModule($moduleKey)) {
                 $missingModules[] = $moduleKey;
+
                 continue;
             }
 
@@ -471,6 +473,7 @@ class ModuleInstallerService
 
             if ($moduleInfo->status !== ModuleManager::ACTIVE) {
                 $missingModules[] = $moduleKey;
+
                 continue;
             }
 
@@ -484,12 +487,12 @@ class ModuleInstallerService
 
     /**
      * Копировать директорию рекурсивно
-     * 
+     *
      * @param string $source
      * @param string $destination
      * @return bool
      */
-    
+
     protected function copyDirectory(string $source, string $destination): bool
     {
         if (!is_dir($source)) {
@@ -497,7 +500,7 @@ class ModuleInstallerService
         }
 
         if (!is_dir($destination)) {
-            $dirPerms = fileperms($source) & 0777;
+            $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
             chmod($destination, $dirPerms);
             @chown($destination, fileowner($source));
@@ -521,7 +524,7 @@ class ModuleInstallerService
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
                 copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0777;
+                $filePerms = fileperms($sourcePath) & 0o777;
                 chmod($destinationPath, $filePerms);
                 @chown($destinationPath, fileowner($sourcePath));
                 @chgrp($destinationPath, filegroup($sourcePath));
@@ -529,12 +532,13 @@ class ModuleInstallerService
         }
 
         closedir($directory);
+
         return true;
     }
 
     /**
      * Удалить директорию рекурсивно
-     * 
+     *
      * @param string $directory
      * @return bool
      */

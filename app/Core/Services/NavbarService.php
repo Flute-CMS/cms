@@ -19,8 +19,9 @@ class NavbarService
 
     public function __construct(NavbarItemFormat $format, Agent $agent)
     {
-        if (!is_installed())
+        if (!is_installed()) {
             return;
+        }
 
         $this->performance = is_performance();
 
@@ -30,7 +31,7 @@ class NavbarService
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
         $this->cachedNavbarItems = $this->performance
-            ? cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), self::CACHE_TIME)
+            ? cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME)
             : $this->getDefaultNavbarItems();
     }
 
@@ -93,7 +94,7 @@ class NavbarService
             }
         }
 
-        usort($tree, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($tree, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $tree;
     }
@@ -126,11 +127,13 @@ class NavbarService
                 if ($isMobile) {
                     return false;
                 }
+
                 break;
             case 'mobile':
                 if (!$isMobile) {
                     return false;
                 }
+
                 break;
             case 'all':
             default:

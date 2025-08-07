@@ -9,14 +9,14 @@ class PaymentProvider extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
         $this->loadRoutesFromFile('routes.php');
 
         $this->loadViews('Resources/views', 'admin-payment');
-        
+
         $this->loadTranslations('Resources/lang');
 
         $this->registerScss('Resources/assets/sass/payment.scss');
@@ -25,7 +25,7 @@ class PaymentProvider extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.gateways'];
     }
@@ -33,7 +33,7 @@ class PaymentProvider extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -65,7 +65,7 @@ class PaymentProvider extends AbstractAdminPackage
         ];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 17;
     }

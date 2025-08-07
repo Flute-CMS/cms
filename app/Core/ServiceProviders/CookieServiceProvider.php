@@ -6,7 +6,6 @@ use DI\DependencyException;
 use DI\NotFoundException;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Services\CookieService;
-
 use Flute\Core\Support\AbstractServiceProvider;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -16,7 +15,7 @@ class CookieServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             CookieService::class => \DI\autowire(),
-            "cookies" => \DI\get(CookieService::class)
+            "cookies" => \DI\get(CookieService::class),
         ]);
     }
 

@@ -79,6 +79,7 @@ class TextArea extends Field
     public function label(string $value)
     {
         $this->set('label', $value);
+
         return $this;
     }
 
@@ -91,6 +92,7 @@ class TextArea extends Field
     public function readOnly(bool $value = false)
     {
         $this->set('readOnly', $value);
+
         return $this;
     }
 
@@ -103,6 +105,7 @@ class TextArea extends Field
     public function withoutBottom(bool $value = false)
     {
         $this->set('withoutBottom', $value);
+
         return $this;
     }
 
@@ -115,6 +118,7 @@ class TextArea extends Field
     public function additionalClass(string $value)
     {
         $this->attributes['class'] .= ' ' . $value;
+
         return $this;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Page\Controllers;
 
+use Exception;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Modules\Page\Services\PageManager;
 use Flute\Core\Modules\Page\Services\WidgetManager;
@@ -10,7 +11,6 @@ use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Validator\FluteValidator;
 use InvalidArgumentException;
-use Exception;
 
 class WidgetController extends BaseController
 {
@@ -46,13 +46,13 @@ class WidgetController extends BaseController
             'path' => 'required|string',
         ];
 
-        if (! $this->validator->validate($fluteRequest->input(), $rules)) {
+        if (!$this->validator->validate($fluteRequest->input(), $rules)) {
             $errors = collect($this->validator->getErrors()->getMessages());
             $firstError = $errors->first()[0] ?? 'Invalid input.';
 
             return $this->json([
                 'error' => $firstError,
-                'errors' => $errors->toArray()
+                'errors' => $errors->toArray(),
             ], 422);
         }
 
@@ -62,10 +62,11 @@ class WidgetController extends BaseController
             $layout = $this->pageManager->getLayoutForPath($path);
 
             return $this->json([
-                'layout' => $layout
+                'layout' => $layout,
             ], 200);
         } catch (Exception $e) {
             logs()->error("Failed to retrieve layout for path {$path}: ".$e->getMessage());
+
             return $this->handleError($e, 'Failed to retrieve layout');
         }
     }
@@ -82,13 +83,13 @@ class WidgetController extends BaseController
             'path' => 'required|string',
         ];
 
-        if (! $this->validator->validate($fluteRequest->input(), $rules)) {
+        if (!$this->validator->validate($fluteRequest->input(), $rules)) {
             $errors = collect($this->validator->getErrors()->getMessages());
             $firstError = $errors->first()[0] ?? 'Invalid input.';
 
             return $this->json([
                 'error' => $firstError,
-                'errors' => $errors->toArray()
+                'errors' => $errors->toArray(),
             ], 422);
         }
 
@@ -100,10 +101,11 @@ class WidgetController extends BaseController
             $this->toast(__('def.layout_saved'), 'success');
 
             return $this->json([
-                'message' => __('def.layout_saved')
+                'message' => __('def.layout_saved'),
             ], 200);
         } catch (Exception $e) {
             logs()->error("Failed to save layout for path {$path}: ".$e->getMessage());
+
             return $this->handleError($e, 'Failed to save layout');
         }
     }
@@ -118,7 +120,7 @@ class WidgetController extends BaseController
     {
         $widget = PageBlock::findByPK($id);
 
-        if (! $widget) {
+        if (!$widget) {
             $message = 'Widget not found';
             $this->toast($message, 'error');
 
@@ -136,7 +138,7 @@ class WidgetController extends BaseController
             $this->toast($message, 'error');
 
             return $this->json([
-                'error' => $message
+                'error' => $message,
             ], 500);
         }
     }
@@ -153,7 +155,7 @@ class WidgetController extends BaseController
             'settings' => 'nullable',
         ];
 
-        if (! $this->validator->validate($fluteRequest->input(), $rules)) {
+        if (!$this->validator->validate($fluteRequest->input(), $rules)) {
             return $this->handleValidationError();
         }
 
@@ -167,22 +169,23 @@ class WidgetController extends BaseController
             return $this->json([
                 'html' => $html,
                 'settings' => $settings,
-                'hasSettings' => $widget->hasSettings()
+                'hasSettings' => $widget->hasSettings(),
             ]);
         } catch (InvalidArgumentException $e) {
             logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
 
-            if(is_debug()) {
+            if (is_debug()) {
                 throw $e;
             }
 
             return $this->json([
-                'html' => '<div class="widget-error">Widget not found</div>'
+                'html' => '<div class="widget-error">Widget not found</div>',
             ], 404);
         } catch (Exception $e) {
             logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
+
             return $this->json([
-                'html' => '<div class="widget-error">Failed to render widget. Please try again later.</div>'
+                'html' => '<div class="widget-error">Failed to render widget. Please try again later.</div>',
             ], 500);
         }
     }
@@ -200,7 +203,7 @@ class WidgetController extends BaseController
             'widgets.*.settings' => 'nullable',
         ];
 
-        if (! $this->validator->validate($fluteRequest->input(), $rules)) {
+        if (!$this->validator->validate($fluteRequest->input(), $rules)) {
             return $this->handleValidationError();
         }
 
@@ -217,31 +220,31 @@ class WidgetController extends BaseController
                 $results[] = [
                     'html' => $html,
                     'settings' => $settings,
-                    'hasSettings' => $widget->hasSettings()
+                    'hasSettings' => $widget->hasSettings(),
                 ];
             } catch (InvalidArgumentException $e) {
                 logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
 
-                $errorHtml = is_debug() ? 
+                $errorHtml = is_debug() ?
                     '<div class="widget-error">Widget not found: ' . htmlspecialchars($e->getMessage()) . '</div>' :
                     '<div class="widget-error">Widget not found</div>';
 
                 $results[] = [
                     'html' => $errorHtml,
                     'settings' => [],
-                    'hasSettings' => false
+                    'hasSettings' => false,
                 ];
             } catch (Exception $e) {
                 logs('modules')->error("Failed to render widget {$widgetName}: ".$e->getMessage());
 
-                $errorHtml = is_debug() ? 
+                $errorHtml = is_debug() ?
                     '<div class="widget-error">Error: ' . htmlspecialchars($e->getMessage()) . '</div>' :
                     '<div class="widget-error">Failed to render widget. Please try again later.</div>';
 
                 $results[] = [
                     'html' => $errorHtml,
                     'settings' => [],
-                    'hasSettings' => false
+                    'hasSettings' => false,
                 ];
             }
         }
@@ -256,13 +259,13 @@ class WidgetController extends BaseController
 
         return $this->json([
             'error' => $firstError,
-            'errors' => $errors->toArray()
+            'errors' => $errors->toArray(),
         ], 422);
     }
 
     private function resolveWidgetSettings(WidgetInterface $widget, $requestSettings): array
     {
-        if (! $widget->hasSettings()) {
+        if (!$widget->hasSettings()) {
             return [];
         }
 
@@ -274,6 +277,7 @@ class WidgetController extends BaseController
         // If settings is a string (JSON), decode it
         if (is_string($requestSettings)) {
             $decoded = json_decode($requestSettings, true);
+
             return $decoded ?: $widget->getSettings();
         }
 
@@ -297,7 +301,7 @@ class WidgetController extends BaseController
             'widget_name' => 'required|string',
         ];
 
-        if (! $this->validator->validate($request->input(), $rules)) {
+        if (!$this->validator->validate($request->input(), $rules)) {
             return $this->handleValidationError();
         }
 
@@ -307,14 +311,16 @@ class WidgetController extends BaseController
             $widget = $this->widgetManager->getWidget($widgetName);
             $buttons = $widget->getButtons();
 
-            if (! $buttons) {
+            if (!$buttons) {
                 return $this->json([], 200);
             }
+
             return $this->json($buttons, 200);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => 'Widget not found'], 404);
         } catch (Exception $e) {
             logs('modules')->error("Failed to get buttons for widget {$widgetName}: ".$e->getMessage());
+
             return $this->handleError($e, 'Failed to get widget buttons');
         }
     }
@@ -329,14 +335,15 @@ class WidgetController extends BaseController
         $rules = [
             'widget_name' => 'required|string',
             'action' => 'required|string',
-            'widgetId' => 'nullable|string'
+            'widgetId' => 'nullable|string',
         ];
 
-        if (! $this->validator->validate($request->input(), $rules)) {
+        if (!$this->validator->validate($request->input(), $rules)) {
             $errors = collect($this->validator->getErrors()->getMessages());
+
             return $this->json([
                 'error' => $errors->first()[0] ?? 'Invalid input',
-                'errors' => $errors->toArray()
+                'errors' => $errors->toArray(),
             ], 422);
         }
 
@@ -353,6 +360,7 @@ class WidgetController extends BaseController
             return $this->json(['error' => 'Widget not found'], 404);
         } catch (Exception $e) {
             logs('modules')->error("Failed to handle action '{$action}' for widget {$widgetName}: ".$e->getMessage());
+
             return $this->handleError($e, 'Failed to handle widget action');
         }
     }
@@ -369,7 +377,7 @@ class WidgetController extends BaseController
             'settings' => 'nullable|string',
         ];
 
-        if (! $this->validator->validate($request->input(), $rules)) {
+        if (!$this->validator->validate($request->input(), $rules)) {
             return $this->handleValidationError();
         }
 
@@ -378,7 +386,7 @@ class WidgetController extends BaseController
         try {
             $widget = $this->widgetManager->getWidget($widgetName);
 
-            if (! $widget->hasSettings()) {
+            if (!$widget->hasSettings()) {
                 return "<div class='widget-no-settings'>".__('def.widget_no_settings')."</div>";
             }
 
@@ -394,6 +402,7 @@ class WidgetController extends BaseController
                 throw $e;
             }
             logs('modules')->error("Failed to get settings form for widget {$widgetName}: ".$e->getMessage());
+
             return "<div class='widget-error'>".__('def.widget_not_found', ['name' => $widgetName])."</div>";
         }
     }
@@ -409,7 +418,7 @@ class WidgetController extends BaseController
             'widget_name' => 'required|string',
         ];
 
-        if (! $this->validator->validate($request->input(), $rules)) {
+        if (!$this->validator->validate($request->input(), $rules)) {
             return $this->handleValidationError();
         }
 
@@ -424,6 +433,7 @@ class WidgetController extends BaseController
                 if ($validationResult !== true) {
                     $settings = $this->resolveWidgetSettings($widget, $request);
                     $formHtml = $widget->renderSettingsForm($settings);
+
                     return $formHtml;
                 }
             }
@@ -434,21 +444,22 @@ class WidgetController extends BaseController
             return $this->json([
                 'success' => true,
                 'html' => $renderedHtml,
-                'settings' => $savedSettings
+                'settings' => $savedSettings,
             ]);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => 'Widget not found'], 404);
         } catch (Exception $e) {
             logs('modules')->error("Failed to save settings for widget {$widgetName}: ".$e->getMessage());
 
-            if(is_debug()) {
+            if (is_debug()) {
                 throw $e;
             }
-            
+
             try {
                 $widget = $this->widgetManager->getWidget($widgetName);
                 $settings = $this->resolveWidgetSettings($widget, $request);
                 $formHtml = $widget->renderSettingsForm($settings);
+
                 return $formHtml;
             } catch (Exception $innerE) {
                 return $this->handleError($e, 'Failed to save widget settings');
@@ -471,8 +482,8 @@ class WidgetController extends BaseController
             'error' => $message,
             'debug' => is_debug() ? [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ] : null
+                'trace' => $e->getTraceAsString(),
+            ] : null,
         ], 500);
     }
 
@@ -488,7 +499,7 @@ class WidgetController extends BaseController
             'widget_names.*' => 'required|string',
         ];
 
-        if (! $this->validator->validate($request->input(), $rules)) {
+        if (!$this->validator->validate($request->input(), $rules)) {
             return $this->handleValidationError();
         }
 

@@ -3,10 +3,13 @@
 namespace Flute\Admin\Packages\Pages\Screens;
 
 use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Actions\DropDown;
+use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
-use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -14,9 +17,6 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Database\Entities\Permission;
-use Flute\Admin\Platform\Actions\DropDown;
-use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\CheckBox;
 
 class PageEditScreen extends Screen
 {
@@ -34,7 +34,7 @@ class PageEditScreen extends Screen
     /**
      * Инициализация экрана при загрузке.
      */
-    public function mount() : void
+    public function mount(): void
     {
         $this->pageId = (int) request()->input('id');
 
@@ -54,13 +54,14 @@ class PageEditScreen extends Screen
             ->add($this->pageId ? $this->page->title : __('admin-pages.title.create'));
     }
 
-    protected function initPage() : void
+    protected function initPage(): void
     {
         $this->page = Page::findByPK($this->pageId);
 
         if (!$this->page) {
             $this->flashMessage(__('admin-pages.messages.page_not_found'), 'error');
             $this->redirectTo('/admin/pages', 300);
+
             return;
         }
 
@@ -71,7 +72,7 @@ class PageEditScreen extends Screen
     /**
      * Командная панель с кнопками действий.
      */
-    public function commandBar() : array
+    public function commandBar(): array
     {
         $buttons = [
             Button::make(__('admin-pages.buttons.cancel'))
@@ -92,7 +93,7 @@ class PageEditScreen extends Screen
     /**
      * Определение макета экрана с использованием вкладок.
      */
-    public function layout() : array
+    public function layout(): array
     {
         $tabs = [];
 
@@ -128,7 +129,7 @@ class PageEditScreen extends Screen
 
         return $this->pageId ? LayoutFactory::split([
             $this->getMainLayout($canEditPage),
-            $this->getActionsLayout($canEditPage)
+            $this->getActionsLayout($canEditPage),
         ])->ratio('70/30') : $this->getMainLayout($canEditPage);
     }
 
@@ -227,14 +228,14 @@ class PageEditScreen extends Screen
     {
         return LayoutFactory::table('pageBlocks', [
             TD::make('widget', __('admin-pages.blocks.fields.widget.label'))
-                ->render(fn(PageBlock $block) => $block->widget)
+                ->render(fn (PageBlock $block) => $block->widget)
                 ->width('200px'),
 
             TD::make('settings', __('admin-pages.blocks.fields.settings.label'))
                 ->render(function (PageBlock $block) {
                     $settings = json_decode($block->settings ?? '{}', true);
                     $settingsCount = count($settings);
-                    
+
                     return sprintf(
                         '%d %s',
                         $settingsCount,
@@ -244,11 +245,11 @@ class PageEditScreen extends Screen
                 ->width('150px'),
 
             TD::make('actions', __('admin-pages.buttons.actions'))
-                ->render(fn(PageBlock $block) => $this->blockActionsDropdown($block))
+                ->render(fn (PageBlock $block) => $this->blockActionsDropdown($block))
                 ->width('100px'),
         ])
             ->searchable([
-                'widget'
+                'widget',
             ])
             ->commands([
                 Button::make(__('admin-pages.blocks.add.button'))
@@ -266,7 +267,7 @@ class PageEditScreen extends Screen
     private function permissionsLayout()
     {
         $permissionsCheckboxes = [];
-        $pagePermissions = array_map(fn($permission) => $permission->id, $this->page?->permissions ?? []);
+        $pagePermissions = array_map(fn ($permission) => $permission->id, $this->page?->permissions ?? []);
 
         foreach ($this->permissions as $permission) {
             $permissionsCheckboxes[] = LayoutFactory::field(
@@ -287,7 +288,7 @@ class PageEditScreen extends Screen
     /**
      * Действия над блоком через выпадающее меню.
      */
-    private function blockActionsDropdown(PageBlock $block) : string
+    private function blockActionsDropdown(PageBlock $block): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -359,6 +360,7 @@ class PageEditScreen extends Screen
 
         if (!$block) {
             $this->flashMessage(__('admin-pages.messages.block_not_found'), 'danger');
+
             return;
         }
 
@@ -422,6 +424,7 @@ class PageEditScreen extends Screen
         $existingPage = Page::findOne(['route' => $data['route']]);
         if ($existingPage && (!$this->page || $existingPage->id !== $this->page->id)) {
             $this->inputError('route', __('admin-pages.messages.route_exists'));
+
             return;
         }
 
@@ -471,6 +474,7 @@ class PageEditScreen extends Screen
     {
         if (!$this->page) {
             $this->flashMessage(__('admin-pages.messages.save_page_first'), 'error');
+
             return;
         }
 
@@ -491,6 +495,7 @@ class PageEditScreen extends Screen
             $gridstack = json_decode($data['gridstack'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->inputError('gridstack', __('admin-pages.messages.invalid_json'));
+
                 return;
             }
         }
@@ -499,6 +504,7 @@ class PageEditScreen extends Screen
             $settings = json_decode($data['settings'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->inputError('settings', __('admin-pages.messages.invalid_json'));
+
                 return;
             }
         }
@@ -530,6 +536,7 @@ class PageEditScreen extends Screen
 
         if (!$block) {
             $this->flashMessage(__('admin-pages.messages.block_not_found'), 'error');
+
             return;
         }
 
@@ -548,6 +555,7 @@ class PageEditScreen extends Screen
             $gridstack = json_decode($data['gridstack'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->inputError('gridstack', __('admin-pages.messages.invalid_json'));
+
                 return;
             }
         }
@@ -556,6 +564,7 @@ class PageEditScreen extends Screen
             $settings = json_decode($data['settings'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->inputError('settings', __('admin-pages.messages.invalid_json'));
+
                 return;
             }
         }
@@ -600,6 +609,7 @@ class PageEditScreen extends Screen
     {
         if (!user()->can('admin.pages')) {
             $this->flashMessage(__('admin-pages.messages.no_permission.delete'), 'error');
+
             return;
         }
 
@@ -608,7 +618,7 @@ class PageEditScreen extends Screen
             foreach ($this->page->blocks as $block) {
                 $block->delete();
             }
-            
+
             // Удаляем саму страницу
             $this->page->delete();
             $this->flashMessage(__('admin-pages.messages.delete_success'), 'success');
@@ -617,4 +627,4 @@ class PageEditScreen extends Screen
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
-} 
+}

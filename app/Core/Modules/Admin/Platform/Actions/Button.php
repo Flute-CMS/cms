@@ -56,7 +56,7 @@ class Button extends Action
         'disabled',
         'tabindex',
         'hx-params',
-        'hx-*'
+        'hx-*',
     ];
 
     /**
@@ -72,13 +72,14 @@ class Button extends Action
      * @param string $content
      * @return self
      */
-    public function slot(string $content) : self
+    public function slot(string $content): self
     {
         $this->slot = $content;
+
         return $this;
     }
 
-    public function baseClasses(string $classes) : self
+    public function baseClasses(string $classes): self
     {
         return $this->set('baseClasses', $classes);
     }
@@ -90,7 +91,7 @@ class Button extends Action
      * @param mixed $value
      * @return self
      */
-    public function set(string $key, $value = true) : self
+    public function set(string $key, $value = true): self
     {
         if (in_array($key, $this->inlineAttributes)) {
             $this->attributes[$key] = $value;
@@ -107,7 +108,7 @@ class Button extends Action
      * @param bool $novalidate
      * @return self
      */
-    public function novalidate(bool $novalidate = true) : self
+    public function novalidate(bool $novalidate = true): self
     {
         return $this->set('formnovalidate', $novalidate ? 'formnovalidate' : null);
     }
@@ -119,16 +120,17 @@ class Button extends Action
      * @param array $parameters
      * @return self
      */
-    public function method(string $name, array $parameters = []) : self
+    public function method(string $name, array $parameters = []): self
     {
         $this->set('yoyo:post', $name);
         if (!empty($parameters)) {
             $this->parameters($parameters);
         }
+
         return $this;
     }
 
-    public function redirect(string $url, string $target = '_self') : self
+    public function redirect(string $url, string $target = '_self'): self
     {
         $this->yoyoIgnore(true);
         $this->href($url);
@@ -141,19 +143,21 @@ class Button extends Action
         return $this;
     }
 
-    public function yoyoSwap(bool $swap = true) : self
+    public function yoyoSwap(bool $swap = true): self
     {
         $this->set('swap', $swap);
+
         return $this;
     }
 
-    public function yoyoIgnore(bool $ignore = true) : self
+    public function yoyoIgnore(bool $ignore = true): self
     {
         $this->set('yoyo:ignore', $ignore);
+
         return $this;
     }
 
-    public function modal(string $modalFunc, array $parameters = []) : self
+    public function modal(string $modalFunc, array $parameters = []): self
     {
         $encryptedParams = encrypt()->encrypt($parameters);
         $this->set('yoyo:post', "openModal('$modalFunc', '$encryptedParams')");
@@ -167,10 +171,10 @@ class Button extends Action
      * @param array|object $parameters
      * @return self
      */
-    public function parameters(array|object $parameters) : self
+    public function parameters(array|object $parameters): self
     {
         $parameters = is_array($parameters)
-            ? array_filter($parameters, fn($value) => !empty ($value))
+            ? array_filter($parameters, fn ($value) => !empty($value))
             : $parameters;
 
         return $this->set('yoyo:vals', json_encode($parameters));
@@ -182,7 +186,7 @@ class Button extends Action
      * @param string $icon
      * @return self
      */
-    public function icon(string $icon) : self
+    public function icon(string $icon): self
     {
         return $this->set('icon', $icon);
     }
@@ -193,7 +197,7 @@ class Button extends Action
      * @param string $action
      * @return self
      */
-    public function action(string $action) : self
+    public function action(string $action): self
     {
         return $this->set('action', $action);
     }
@@ -204,7 +208,7 @@ class Button extends Action
      * @param string $message
      * @return self
      */
-    public function confirm(string $message, string $type = 'error') : self
+    public function confirm(string $message, string $type = 'error'): self
     {
         return $this->set('confirm', $message)->set('yoyo:on', 'confirmed')->set('confirmType', $type);
     }
@@ -215,7 +219,7 @@ class Button extends Action
      * @param bool $withLoading
      * @return self
      */
-    public function withLoading(bool $withLoading = true) : self
+    public function withLoading(bool $withLoading = true): self
     {
         return $this->set('withLoading', $withLoading);
     }
@@ -226,7 +230,7 @@ class Button extends Action
      * @param string|array $classes
      * @return self
      */
-    public function addClass($classes) : self
+    public function addClass($classes): self
     {
         if (is_array($classes)) {
             $classes = implode(' ', $classes);
@@ -244,7 +248,7 @@ class Button extends Action
      * @param bool $disabled
      * @return self
      */
-    public function disabled(bool $disabled = true) : self
+    public function disabled(bool $disabled = true): self
     {
         return $this->set('disabled', $disabled);
     }
@@ -255,7 +259,7 @@ class Button extends Action
      * @param string $href
      * @return self
      */
-    public function href(string $href) : self
+    public function href(string $href): self
     {
         return $this->set('href', $href)
             ->set('target', '_blank')
@@ -269,7 +273,7 @@ class Button extends Action
      * @param string $size
      * @return self
      */
-    public function size(string $size) : self
+    public function size(string $size): self
     {
         return $this->set('size', $size);
     }
@@ -280,12 +284,12 @@ class Button extends Action
      * @param string $tooltip
      * @return self
      */
-    public function tooltip(string $tooltip) : self
+    public function tooltip(string $tooltip): self
     {
         return $this->set('tooltip', $tooltip);
     }
 
-    public function fullWidth() : self
+    public function fullWidth(): self
     {
         return $this->addClass('w-100');
     }

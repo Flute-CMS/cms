@@ -38,7 +38,7 @@ class GatewayInitializer
      *
      * @return array List of initialized gateways.
      */
-    public function getAllGateways() : array
+    public function getAllGateways(): array
     {
         return $this->initializedGateways;
     }
@@ -60,7 +60,7 @@ class GatewayInitializer
      *
      * @return GatewayFactory|null The gateway factory instance.
      */
-    public function factory() : ?GatewayFactory
+    public function factory(): ?GatewayFactory
     {
         return $this->gatewayFactory;
     }
@@ -70,7 +70,7 @@ class GatewayInitializer
      *
      * @return PaymentProcessor|null The payment processor instance.
      */
-    public function processor() : ?PaymentProcessor
+    public function processor(): ?PaymentProcessor
     {
         return $this->paymentProcessor;
     }
@@ -80,7 +80,7 @@ class GatewayInitializer
      *
      * @return PaymentPromo|null The promo validator instance.
      */
-    public function promo() : ?PaymentPromo
+    public function promo(): ?PaymentPromo
     {
         return $this->promoValidator;
     }
@@ -92,7 +92,7 @@ class GatewayInitializer
      *
      * @return bool True if the gateway exists, false otherwise.
      */
-    public function gatewayExists(string $gateway) : bool
+    public function gatewayExists(string $gateway): bool
     {
         return class_exists(Helper::getGatewayClassName($gateway));
     }
@@ -102,11 +102,11 @@ class GatewayInitializer
      *
      * @return void
      */
-    protected function initializeGateways() : void
+    protected function initializeGateways(): void
     {
         events()->dispatch(new RegisterPaymentFactoriesEvent(), RegisterPaymentFactoriesEvent::NAME);
 
-        $gatewayEntities = is_performance() ? cache()->callback('payment_gateways_enabled', function() {
+        $gatewayEntities = is_performance() ? cache()->callback('payment_gateways_enabled', function () {
             return PaymentGatewayEntity::findAll(['enabled' => true]);
         }, 3600) : PaymentGatewayEntity::findAll(['enabled' => true]);
 

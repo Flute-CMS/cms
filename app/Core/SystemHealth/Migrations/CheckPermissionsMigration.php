@@ -46,12 +46,13 @@ class CheckPermissionsMigration
         foreach ($permissions as $permission) {
             $existingPermissions[$permission->name] = $permission->desc;
         }
+
         return $existingPermissions;
     }
 
     private function createPermission(string $name, string $translationKey)
     {
-        $permission = new Permission;
+        $permission = new Permission();
         $permission->name = $name;
         $permission->desc = $translationKey;
         $this->persistEntity($permission);

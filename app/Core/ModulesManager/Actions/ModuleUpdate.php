@@ -24,11 +24,13 @@ class ModuleUpdate implements ModuleActionInterface
 
         $updaterClassDir = sprintf('\Flute\\Modules\\%s\\Updater', $module->key);
 
-        if (!$moduleGet)
+        if (!$moduleGet) {
             throw new \Exception("Module {$module->key} wasn't found in the system");
+        }
 
-        if ($moduleGet->status === 'notinstalled')
+        if ($moduleGet->status === 'notinstalled') {
             throw new \RuntimeException('Module is not installed');
+        }
 
         $this->checkModuleDependencies($moduleGet);
 
@@ -62,6 +64,7 @@ class ModuleUpdate implements ModuleActionInterface
             $this->moduleDependencies->checkDependencies($module->dependencies, $this->moduleManager->getActive(), $themeManager->getThemeInfo());
         } catch (ModuleDependencyException $e) {
             logs('modules')->emergency("Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
+
             throw new ModuleDependencyException($e->getMessage());
         }
     }
@@ -90,6 +93,7 @@ class ModuleUpdate implements ModuleActionInterface
                 $versionParts[$i - 1]++;
             }
         }
+
         return implode('.', $versionParts);
     }
 

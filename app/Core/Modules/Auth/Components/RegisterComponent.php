@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Modules\Auth\Components;
 
-use Flute\Core\Support\FluteComponent;
 use Flute\Core\Exceptions\DuplicateEmailException;
 use Flute\Core\Exceptions\DuplicateLoginException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Services\CaptchaService;
+use Flute\Core\Support\FluteComponent;
 use Nette\Schema\ValidationException;
 
 class RegisterComponent extends FluteComponent
@@ -30,7 +30,7 @@ class RegisterComponent extends FluteComponent
                     'login' => $this->login,
                     'name' => $this->name,
                     'password' => $this->password,
-                    'remember_me' => $this->rememberMe
+                    'remember_me' => $this->rememberMe,
                 ], $this->rememberMe);
 
                 toast()->success(app('auth.registration.confirm_email') ? __('auth.register_email') : __('auth.register_success'))->push();
@@ -73,12 +73,12 @@ class RegisterComponent extends FluteComponent
                 'required',
                 'regex:/^[a-zA-Z0-9._-]+$/',
                 'min-str-len:' . config('auth.validation.login.min_length'),
-                'max-str-len:' . config('auth.validation.login.max_length')
+                'max-str-len:' . config('auth.validation.login.max_length'),
             ],
             'email' => [
                 'required',
                 'email',
-                'max-str-len:255'
+                'max-str-len:255',
             ],
             'password' => [
                 'required',
@@ -93,20 +93,22 @@ class RegisterComponent extends FluteComponent
     {
         /** @var CaptchaService $captchaService */
         $captchaService = app(CaptchaService::class);
-        
+
         if (!$captchaService->isEnabled('register')) {
             return true;
         }
 
         $captchaResponse = request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response');
-        
+
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();
+
             return false;
         }
 
         if (!$captchaService->verify($captchaResponse, $captchaService->getType())) {
             toast()->error(__('auth.captcha_invalid'))->push();
+
             return false;
         }
 
@@ -116,7 +118,7 @@ class RegisterComponent extends FluteComponent
     public function render()
     {
         return $this->view('flute::components.auth.register', [
-            'token' => request()->input('token')
+            'token' => request()->input('token'),
         ]);
     }
 }

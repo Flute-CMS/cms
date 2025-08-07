@@ -18,12 +18,13 @@ class AuthController extends BaseController
 
             if (sizeof($providers) === 1) {
                 $key = array_key_first($providers);
+
                 return redirect(url("social/$key"));
             }
         }
 
         return view('flute::pages.login', [
-            "social" => social()->toDisplay()
+            "social" => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'auth-card');
     }
 
@@ -33,7 +34,7 @@ class AuthController extends BaseController
             ->add(__('auth.header.register'));
 
         return view('flute::pages.register', [
-            "social" => social()->toDisplay()
+            "social" => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'register-card');
     }
 
@@ -50,6 +51,7 @@ class AuthController extends BaseController
         } catch (\Exception $e) {
             logs()->error($e);
             $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+
             return response()->error(500, $message);
         }
     }
@@ -59,6 +61,7 @@ class AuthController extends BaseController
         try {
             auth()->verify($token);
             flash()->add('success', __('auth.confirmation.success'));
+
             return response()->redirect('/');
         } catch (\Exception $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));

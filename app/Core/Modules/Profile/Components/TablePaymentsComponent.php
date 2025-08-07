@@ -2,10 +2,9 @@
 
 namespace Flute\Core\Modules\Profile\Components;
 
+use Carbon\Carbon;
 use Flute\Core\Components\Table;
 use Flute\Core\Database\Entities\PaymentInvoice;
-use Flute\Core\Database\Entities\User;
-use Carbon\Carbon;
 
 class TablePaymentsComponent extends Table
 {
@@ -30,7 +29,7 @@ class TablePaymentsComponent extends Table
         parent::mount();
     }
 
-    public function getColumns() : array
+    public function getColumns(): array
     {
         return [
             [
@@ -89,7 +88,7 @@ class TablePaymentsComponent extends Table
                 'allowSort' => false,
                 'searchable' => false,
                 'renderer' => function (PaymentInvoice $row) {
-                    if (! $row->promoCode) {
+                    if (!$row->promoCode) {
                         return '-';
                     }
 

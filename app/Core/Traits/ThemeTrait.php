@@ -16,7 +16,7 @@ trait ThemeTrait
      */
     protected Template $Template;
 
-    public function setTheme(string $theme) : self
+    public function setTheme(string $theme): self
     {
         $this->theme = $theme;
         $this->bind('theme', $theme);
@@ -24,7 +24,7 @@ trait ThemeTrait
         return $this;
     }
 
-    public function getTheme() : string
+    public function getTheme(): string
     {
         return $this->theme;
     }

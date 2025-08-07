@@ -26,7 +26,7 @@ abstract class Block extends Layout
         'vertical' => true,
         'class' => '',
         'popover' => null,
-        'morph' => null
+        'morph' => null,
     ];
 
     /**
@@ -46,7 +46,7 @@ abstract class Block extends Layout
         $this->layouts = $layouts;
     }
 
-    protected function commandBar() : array
+    protected function commandBar(): array
     {
         return $this->commandBar;
     }
@@ -64,7 +64,7 @@ abstract class Block extends Layout
     /**
      * Used to create the title of a group of form elements.
      */
-    public function title(string $title) : self
+    public function title(string $title): self
     {
         $this->variables['title'] = $title;
 
@@ -76,7 +76,7 @@ abstract class Block extends Layout
      *
      * @param string|\Illuminate\View\View description
      */
-    public function description($description) : self
+    public function description($description): self
     {
         $this->variables['description'] = $description;
 
@@ -88,35 +88,38 @@ abstract class Block extends Layout
      *
      * @param bool $vertical
      */
-    public function vertical($vertical = true) : self
+    public function vertical($vertical = true): self
     {
         $this->variables['vertical'] = $vertical;
 
         return $this;
     }
 
-    public function addClass(string $class) : self
+    public function addClass(string $class): self
     {
         $this->variables['class'] .= ' ' . $class;
+
         return $this;
     }
 
-    public function popover(string $popover) : self
+    public function popover(string $popover): self
     {
         $this->variables['popover'] = $popover;
+
         return $this;
     }
 
-    public function commands($commands) : self
+    public function commands($commands): self
     {
         $this->commandBar = Arr::wrap($commands);
 
         return $this;
     }
 
-    public function morph(bool $morph = false) : self
+    public function morph(bool $morph = false): self
     {
         $this->variables['morph'] = $morph;
+
         return $this;
     }
 }
