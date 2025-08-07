@@ -274,12 +274,49 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }, $this->defaultCacheDuration);
         
         if (!empty($translationFiles)) {
-            foreach ($translationFiles as $file) {
-                translation()
-                    ->getTranslator()
-                    ->addResource('file', $file['path'], $file['locale'], $file['domain']);
+            $translationService = translation();
+            $currentLocale = app()->getLang();
+
+            $filesByLocale = [];
+            foreach ($translationFiles as $f) {
+                $filesByLocale[$f['locale']][] = $f;
             }
-            
+
+            $localesToProcess = config('lang.cache') ? [$currentLocale] : array_keys($filesByLocale);
+
+            foreach ($localesToProcess as $locale) {
+                $filesForLocale = $filesByLocale[$locale] ?? [];
+                if (!$filesForLocale) {
+                    continue;
+                }
+
+                $needsRefresh = true;
+                if (config('lang.cache')) {
+                    $cacheDir = path('storage/app/translations');
+                    $compiled = glob($cacheDir . '/catalogue.' . $locale . '.*.php');
+                    if ($compiled) {
+                        $compiledMtime = max(array_map('filemtime', $compiled));
+                        $latestSource = max(array_map(fn($f) => filemtime($f['path']), $filesForLocale));
+                        $needsRefresh = $latestSource > $compiledMtime;
+                    }
+                }
+
+                if ($needsRefresh && config('lang.cache')) {
+                    $translationService->flushLocaleCache($locale);
+                }
+
+                foreach ($filesForLocale as $file) {
+                    if (config('lang.cache') && $file['locale'] !== $currentLocale) {
+                        continue;
+                    }
+                    $translationService->registerResource($file['path'], $file['locale'], $file['domain']);
+                }
+
+                if ($needsRefresh && config('lang.cache')) {
+                    $translationService->getTranslator()->getCatalogue($locale);
+                }
+            }
+
             $this->loadedStatus[$translationsCacheKey] = true;
         }
     }

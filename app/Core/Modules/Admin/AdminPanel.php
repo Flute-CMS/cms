@@ -76,9 +76,24 @@ class AdminPanel
             $this->packageFactory->loadPackagesFromDirectory();
             $this->packageFactory->initializePackages();
 
+            $this->recompileTranslations();
+
             template()->getTemplateAssets()->getCompiler()->setImportPaths(path('app/Core/Modules/Admin/Resources/assets/sass'));
 
             $this->loadComponents();
+        }
+    }
+
+    private function recompileTranslations()
+    {
+        $flushed = Support\AbstractAdminPackage::$flushedLocales;
+        if (empty($flushed)) {
+            return;
+        }
+
+        $translationService = translation();
+        foreach (array_keys($flushed) as $locale) {
+            $translationService->getTranslator()->getCatalogue($locale);
         }
     }
 

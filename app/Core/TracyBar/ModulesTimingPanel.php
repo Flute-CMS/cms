@@ -5,6 +5,7 @@ namespace Flute\Core\TracyBar;
 use Tracy\IBarPanel;
 use Flute\Core\App;
 use Flute\Core\ModulesManager\ModuleRegister;
+use Flute\Core\Profiling\GlobalProfiler;
 
 class ModulesTimingPanel implements IBarPanel
 {
@@ -123,6 +124,8 @@ class ModulesTimingPanel implements IBarPanel
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-core">Core Components</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-providers">Providers</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-modules">Modules</a></li>';
+        $html .= '<li class="tracy-tab"><a href="#' . $id . '-functions">Functions</a></li>';
+        $html .= '<li class="tracy-tab"><a href="#' . $id . '-global">Global Profiling</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-views">Views</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-routing">Routing</a></li>';
         $html .= '</ul>';
@@ -537,6 +540,110 @@ class ModulesTimingPanel implements IBarPanel
         );
     }
     
+    /**
+     * Renders the global profiling panel
+     * 
+     * @return string
+     */
+    private function renderGlobalProfilingPanel(): string
+    {
+        if (!GlobalProfiler::isEnabled()) {
+            $html = '<div class="tracy-inner">';
+            $html .= '<h1>Global Profiling Not Active</h1>';
+            $html .= '<p>Global profiling is only available in debug mode.</p>';
+            $html .= '</div>';
+            return $html;
+        }
+
+        $functionTimings = GlobalProfiler::getFunctionTimings();
+        $topSlow = GlobalProfiler::getTopSlowFunctions(15);
+
+        $html = '<div class="tracy-inner">';
+        
+        // Top slowest functions
+        if (!empty($topSlow)) {
+            $html .= '<h1>Top Slowest Functions</h1>';
+            $html .= '<table style="width:100%">';
+            $html .= '<tr><th>Function</th><th>Category</th><th>Time (sec)</th><th>Calls</th><th>Memory</th><th></th></tr>';
+            
+            $maxTime = $topSlow[0]['wall_time'] ?? 1;
+            foreach ($topSlow as $func) {
+                $percent = ($func['wall_time'] / $maxTime) * 100;
+                $shortName = $this->getShortClassName($func['function']);
+                $memory = $this->formatBytes($func['memory']);
+                
+                $html .= sprintf(
+                    '<tr><td title="%s">%s</td><td>%s</td><td>%.4f</td><td>%d</td><td>%s</td><td><div style="background:#FF6B6B;height:4px;width:%d%%;"></div></td></tr>',
+                    htmlspecialchars($func['function']),
+                    htmlspecialchars($shortName),
+                    htmlspecialchars($func['category']),
+                    $func['wall_time'],
+                    $func['calls'],
+                    $memory,
+                    min(100, $percent)
+                );
+            }
+            $html .= '</table>';
+        }
+
+        // Functions grouped by category
+        if (!empty($functionTimings)) {
+            $html .= '<h1 style="margin-top:20px">Functions by Category</h1>';
+            
+            foreach ($functionTimings as $category => $functions) {
+                if (empty($functions)) continue;
+                
+                $categoryTotal = array_sum(array_column($functions, 'wall_time'));
+                $html .= '<h2>' . htmlspecialchars($category) . ' (' . sprintf('%.3f', $categoryTotal) . ' sec)</h2>';
+                
+                $html .= '<table style="width:100%;margin-bottom:15px">';
+                $html .= '<tr><th>Function</th><th>Time (sec)</th><th>CPU (sec)</th><th>Calls</th><th>Memory</th><th></th></tr>';
+                
+                $maxCategoryTime = max(array_column($functions, 'wall_time'));
+                foreach ($functions as $funcName => $data) {
+                    $percent = ($data['wall_time'] / $maxCategoryTime) * 100;
+                    $shortName = $this->getShortClassName($funcName);
+                    $memory = $this->formatBytes($data['memory']);
+                    
+                    $html .= sprintf(
+                        '<tr><td title="%s">%s</td><td>%.4f</td><td>%.4f</td><td>%d</td><td>%s</td><td><div style="background:#4ECDC4;height:4px;width:%d%%;"></div></td></tr>',
+                        htmlspecialchars($funcName),
+                        htmlspecialchars($shortName),
+                        $data['wall_time'],
+                        $data['cpu_time'],
+                        $data['calls'],
+                        $memory,
+                        min(100, $percent)
+                    );
+                }
+                $html .= '</table>';
+            }
+        }
+
+        if (empty($topSlow) && empty($functionTimings)) {
+            $html .= '<h1>No Profiling Data</h1>';
+            $html .= '<p>No function timing data was collected. Make sure a profiler extension (tideways_xhprof, xhprof, etc.) is installed.</p>';
+        }
+
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Format bytes to human readable format
+     * 
+     * @param int $bytes
+     * @return string
+     */
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes === 0) return '0 B';
+        
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = floor(log($bytes, 1024));
+        return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
+    }
+
     /**
      * Get short class name from fully qualified name
      * 

@@ -137,7 +137,7 @@ final class App
      * @param App|null $app
      * @return App|static
      */
-    public static function setInstance(App $app = null): ?App
+    public static function setInstance(?App $app = null): ?App
     {
         return self::$instance = $app;
     }

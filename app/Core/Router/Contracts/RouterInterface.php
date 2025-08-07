@@ -22,7 +22,7 @@ interface RouterInterface
 
     public function match(array $methods, string $uri, array|string|object $action): RouteInterface;
 
-    public function group(array|callable $attributes, callable $callback = null): void;
+    public function group(array|callable $attributes, ?callable $callback = null): void;
 
     public function getRoutes(): RouteCollection;
 

@@ -8,6 +8,10 @@ use Illuminate\Support\Str;
 class IconFinder
 {
     /**
+     * Static in-request cache for loaded SVG contents to avoid repeated disk I/O.
+     */
+    private static array $fileContentCache = [];
+    /**
      * @var Collection
      */
     private Collection $directories;
@@ -90,8 +94,21 @@ class IconFinder
 
         $path = $dir . DIRECTORY_SEPARATOR . $file . '.svg';
 
+        if (isset(self::$fileContentCache[$path])) {
+            return self::$fileContentCache[$path];
+        }
+
+        if (!is_file($path)) {
+            self::$fileContentCache[$path] = null;
+            return null;
+        }
+
         try {
-            return file_get_contents($path);
+            $content = file_get_contents($path);
+            if ($content !== false) {
+                self::$fileContentCache[$path] = $content;
+            }
+            return $content ?: null;
         } catch (\Exception) {
             return null;
         }

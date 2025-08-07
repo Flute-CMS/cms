@@ -144,7 +144,7 @@ class FluteRequest extends Request
      * 
      * @return mixed
      */
-    public function input(string $key = null, $default = null)
+    public function input(?string $key = null, $default = null)
     {
         $data = array_merge($this->attributes->all(), $this->query->all(), $this->request->all());
 

@@ -46,7 +46,7 @@ class Response
      *
      * @return SymfonyResponse
      */
-    public function error(int $status = 404, string $message = null): JsonResponse|SymfonyResponse
+    public function error(int $status = 404, ?string $message = null): JsonResponse|SymfonyResponse
     {
         /** @var FluteRequest $request */
         $request = app(FluteRequest::class);

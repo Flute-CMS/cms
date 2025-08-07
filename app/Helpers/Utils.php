@@ -322,7 +322,7 @@ if (! function_exists('is_cli')) {
 }
 
 if (PHP_VERSION_ID < 80400 && ! function_exists('mb_ucfirst')) {
-    function mb_ucfirst(string $str, string $encoding = null): string
+    function mb_ucfirst(string $str, ?string $encoding = null): string
     {
         if ($encoding === null) {
             $encoding = mb_internal_encoding();

@@ -167,7 +167,7 @@ class Router implements RouterInterface
      * @param callable|null $callback Callback function.
      * @return void
      */
-    public function group(array|callable $attributes, callable $callback = null): void
+    public function group(array|callable $attributes, ?callable $callback = null): void
     {
         if (is_callable($attributes)) {
             $callback = $attributes;

@@ -13,6 +13,15 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
  */
 abstract class AbstractAdminPackage implements AdminPackageInterface
 {
+    protected int $defaultCacheDuration = 36000;
+    private array $loaded = [];
+
+    /**
+     * Already flushed locales in current request to avoid repeated cache deletion.
+     * @var array<string,bool>
+     */
+    public static array $flushedLocales = [];
+
     /**
      * {@inheritdoc}
      */
@@ -132,34 +141,71 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      */
     public function loadTranslations(string $langDirectory) : void
     {
+        if (isset($this->loaded['translations'])) {
+            return;
+        }
+
         $fullPath = $this->getBasePath() . DIRECTORY_SEPARATOR . $langDirectory;
 
         if (!is_dir($fullPath)) {
-            throw new InvalidArgumentException("Language directory does not exist: {$fullPath}");
+            return;
         }
 
-        $this->loadFromDirectory($fullPath, function ($file) {
-            $locale = $file->getRelativePath();
-            $domain = basename($file->getFilename(), '.php');
-            translation()->getTranslator()->addResource('file', $file->getPathname(), $locale, $domain);
-        });
-    }
+        $packageName = basename($this->getBasePath());
+        $cacheKey = "admin.package.{$packageName}.translations";
 
-    private function loadFromDirectory(string $dir, callable $callback)
-    {
-        try {
+        $translationFiles = cache()->callback($cacheKey, function () use ($fullPath) {
             $finder = finder();
-            $finder->files()->in($dir)->name('*.php');
+            $finder->files()->in($fullPath)->name('*.php');
 
+            $files = [];
             foreach ($finder as $file) {
-                $callback($file);
+                $files[] = [
+                    'path' => $file->getPathname(),
+                    'locale' => $file->getRelativePath(),
+                    'domain' => basename($file->getFilename(), '.php')
+                ];
             }
-        } catch (DirectoryNotFoundException $e) {
-            logs()->error($e);
 
-            if (is_debug())
-                throw $e;
+            return $files;
+        }, $this->defaultCacheDuration);
+
+        if (empty($translationFiles)) {
+            return;
         }
+
+        $translationService = translation();
+        $currentLocale = app()->getLang();
+
+        $filesByLocale = [];
+        foreach ($translationFiles as $f) {
+            $filesByLocale[$f['locale']][] = $f;
+        }
+
+        $localesToProcess = config('lang.cache') ? [$currentLocale] : array_keys($filesByLocale);
+
+        foreach ($localesToProcess as $locale) {
+            $filesForLocale = $filesByLocale[$locale] ?? [];
+            if (empty($filesForLocale)) {
+                continue;
+            }
+
+            if (config('lang.cache') && !isset(self::$flushedLocales[$locale])) {
+                $translationService->flushLocaleCache($locale);
+                self::$flushedLocales[$locale] = true;
+            }
+
+            foreach ($filesForLocale as $file) {
+                if (config('lang.cache') && $file['locale'] !== $currentLocale) {
+                    continue;
+                }
+                $translationService->registerResource($file['path'], $file['locale'], $file['domain']);
+            }
+
+            // // Build/refresh the catalogue to include newly registered resources.
+        }
+
+        $this->loaded['translations'] = true;
     }
 
     public function registerScss(string $assetsFile) : void

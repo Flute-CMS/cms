@@ -206,6 +206,7 @@ class SteamService
 
                             $originalId = $steamIdMap[$normalizedId] ?? $steamId64;
                             self::$requestCache[$originalId] = $userInfo;
+                            $result[$originalId] = $userInfo;
                             unset($uncachedIds[$normalizedId]);
                         }
                     }

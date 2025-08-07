@@ -22,7 +22,7 @@ class DatabaseManager
      * @return self
      * @throws Exception
      */
-    public static function getInstance(App $app = null): self
+    public static function getInstance(?App $app = null): self
     {
         if (self::$instance === null) {
             if ($app === null) {

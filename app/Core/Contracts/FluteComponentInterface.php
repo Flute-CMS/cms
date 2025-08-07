@@ -39,7 +39,7 @@ interface FluteComponentInterface
      * @param array      $messages Custom error messages.
      * @return bool True if valid, false otherwise.
      */
-    public function validate(array $rules, array $data = null, array $messages = []);
+    public function validate(array $rules, ?array $data = null, array $messages = []);
 
     /**
      * Redirect to a specified URL with optional delay.

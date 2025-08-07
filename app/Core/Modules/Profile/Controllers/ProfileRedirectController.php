@@ -9,18 +9,27 @@ use Flute\Core\Support\FluteRequest;
 
 class ProfileRedirectController extends BaseController
 {
+    /**
+     * Cached profile redirect resolution within one request to save DB round-trips.
+     */
+    private static array $resolveCache = [];
+
     public function search(FluteRequest $request, $value)
     {
         $redirectUrl = $request->input('else-redirect', null);
 
-        $userNetwork = UserSocialNetwork::query()->where('value', $value)->load('user')->fetchOne();
-
-        if (empty($userNetwork)) {
-            $event = events()->dispatch(new ProfileSearchEvent($value), ProfileSearchEvent::NAME);
-
-            $user = $event->getUser();
+        if (isset(self::$resolveCache[$value])) {
+            $user = self::$resolveCache[$value];
         } else {
-            $user = $userNetwork->user;
+            $userNetwork = UserSocialNetwork::query()->where('value', $value)->load('user')->fetchOne();
+            $user = $userNetwork?->user;
+            self::$resolveCache[$value] = $user;
+        }
+
+        if (!$user) {
+            $event = events()->dispatch(new ProfileSearchEvent($value), ProfileSearchEvent::NAME);
+            $user = $event->getUser();
+            self::$resolveCache[$value] = $user;
         }
 
         if (! empty($redirectUrl) && empty($user)) {

@@ -16,7 +16,16 @@ class TranslationService
     protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60; // 24 hours
     protected $cache;
+    /**
+     * Track loaded domains per locale to avoid duplicate merges.
+     * [locale => [domain => true]]
+     */
     protected array $loadedDomains = [];
+    /**
+     * Track absolute file paths already registered this request to skip duplicates.
+     * @var array<string,bool>
+     */
+    protected array $loadedFiles = [];
 
     public function __construct(EventDispatcher $eventDispatcher)
     {
@@ -43,7 +52,7 @@ class TranslationService
 
         $this->translator = new Translator($defaultLocale, null, $cacheDir, $debug);
 
-        $this->performance = is_performance();
+        $this->performance = (bool) config('lang.cache') || is_performance();
 
         $this->translator->addLoader('file', new PhpFileLoader());
         $this->translator->setLocale($defaultLocale);
@@ -193,7 +202,7 @@ class TranslationService
      * @param string|null $locale
      * @return string
      */
-    public function trans(string $key, array $replacements = [], string $locale = null) : string
+    public function trans(string $key, array $replacements = [], ?string $locale = null) : string
     {
         $translator = $this->getTranslator();
         $locale = $locale ?? $translator->getLocale();
@@ -239,13 +248,76 @@ class TranslationService
      * @param string $locale
      * @return void
      */
+    public function registerResource(string $file, string $locale, string $domain): void
+    {
+        if (!file_exists($file)) {
+            return;
+        }
+
+        if (isset($this->loadedFiles[$file])) {
+            return;
+        }
+        $this->loadedFiles[$file] = true;
+
+        $this->translator->addResource('file', $file, $locale, $domain);
+
+        try {
+            $loader = new PhpFileLoader();
+            $cataloguePart = $loader->load($file, $locale, $domain);
+            $this->translator->getCatalogue($locale)->add($cataloguePart->all($domain), $domain);
+        } catch (\Throwable $e) {
+            // ignore merge errors in runtime
+        }
+
+        $this->loadedDomains[$locale][$domain] = true;
+    }
+
+    /**
+     * Flush compiled catalogue cache for given locale (call explicitly when translations are modified).
+     */
+    public function flushLocaleCache(string $locale): void
+    {
+        if (!config('lang.cache')) {
+            return;
+        }
+        $cacheDir = path('storage/app/translations');
+        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
+            @unlink($cachedFile);
+        }
+        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
+            @unlink($cachedMeta);
+        }
+        unset($this->loadedDomains[$locale]);
+    }
+
     protected function loadDomain(string $domain, string $locale): void
     {
         $file = path('i18n/' . $locale . '/' . $domain . '.php');
         
-        if (file_exists($file)) {
-            $this->translator->addResource('file', $file, $locale, $domain);
-            $this->loadedDomains[$locale][$domain] = true;
+        if (!file_exists($file)) {
+            return;
         }
+
+        if (config('lang.cache')) {
+            $cacheDir = path('storage/app/translations');
+            foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
+                @unlink($cachedFile);
+            }
+            foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
+                @unlink($cachedMeta);
+            }
+        }
+
+        $this->translator->addResource('file', $file, $locale, $domain);
+
+        try {
+            $loader = new \Symfony\Component\Translation\Loader\PhpFileLoader();
+            $cataloguePart = $loader->load($file, $locale, $domain);
+            $this->translator->getCatalogue($locale)->add($cataloguePart->all($domain), $domain);
+        } catch (\Throwable $e) {
+            // Silently ignore merge errors – translator will still pick up changes on next request
+        }
+
+        $this->loadedDomains[$locale][$domain] = true;
     }
 }

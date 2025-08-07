@@ -51,7 +51,7 @@ abstract class BaseController
      * @param int $status HTTP status code
      * @return Response
      */
-    public function respondWithError(string $message = null, int $status = 403) : Response
+    public function respondWithError(?string $message = null, int $status = 403) : Response
     {
         return $this->error($message, $status);
     }

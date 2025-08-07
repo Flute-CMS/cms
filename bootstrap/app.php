@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 if (!defined('FLUTE_START')) {
     define('FLUTE_START', microtime(true));
 }
@@ -25,6 +27,7 @@ if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
 define('FLUTE_BOOTSTRAP_START', microtime(true));
 
 use Flute\Core\App;
+use Flute\Core\Profiling\GlobalProfiler;
 use Flute\Core\Modules\Admin\Providers\AdminServiceProvider;
 use Flute\Core\Modules\Auth\Providers\AuthServiceProvider;
 use Flute\Core\Modules\Home\Providers\HomeServiceProvider;
@@ -84,6 +87,11 @@ $app->setBasePath(BASE_PATH);
 define('FLUTE_CONTAINER_START', microtime(true));
 
 /**
+ * Start global profiling
+ */
+GlobalProfiler::start();
+
+/**
  * Initializes the service providers
  */
 $app->serviceProvider(FileSystemServiceProvider::class)
@@ -136,6 +144,13 @@ define('FLUTE_CONTAINER_END', microtime(true));
  * Boot all registered service providers
  */
 $app->bootServiceProviders();
+
+/**
+ * Register shutdown function to stop profiling
+ */
+register_shutdown_function(function() {
+    GlobalProfiler::stop();
+});
 
 /**
  * Returns the application
