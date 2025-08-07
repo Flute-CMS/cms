@@ -15,7 +15,7 @@ class TranslationService
     protected Translator $translator;
     protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60; // 24 hours
-    
+
 
     /**
      * Track loaded domains per locale to avoid duplicate merges.
@@ -393,6 +393,7 @@ class TranslationService
     {
         if (isset($this->domainFileIndex[$locale][$domain])) {
             $cached = $this->domainFileIndex[$locale][$domain];
+
             return $cached !== '' ? $cached : null;
         }
 
@@ -410,6 +411,7 @@ class TranslationService
 
         // Negative cache to avoid repeated filesystem checks
         $this->domainFileIndex[$locale][$domain] = '';
+
         return null;
     }
 
@@ -426,6 +428,7 @@ class TranslationService
                 return $lang;
             }
         }
+
         return null;
     }
 
