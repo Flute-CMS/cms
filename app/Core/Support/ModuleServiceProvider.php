@@ -256,7 +256,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
-        // Delegate translation loading to the central TranslationService
         translation()->loadTranslationsFromDirectory($translationsDir, $this->defaultCacheDuration);
         $this->loadedStatus[$translationsCacheKey] = true;
     }

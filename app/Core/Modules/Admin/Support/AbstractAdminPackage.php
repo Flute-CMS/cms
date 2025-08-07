@@ -150,7 +150,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
             return;
         }
 
-        // Delegate translation loading to the central TranslationService
         translation()->loadTranslationsFromDirectory($fullPath, $this->defaultCacheDuration);
         $this->loaded['translations'] = true;
     }

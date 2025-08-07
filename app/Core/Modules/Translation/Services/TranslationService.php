@@ -340,7 +340,6 @@ class TranslationService
             return;
         }
 
-        // Cache the list of translation files for this directory to avoid expensive scans.
         $cacheKey = 'translation.dir.' . md5($directory);
         $translationFiles = cache()->callback($cacheKey, function () use ($directory) {
             $finder = finder();
@@ -365,7 +364,6 @@ class TranslationService
 
         $currentLocale = app()->getLang();
 
-        // Group files by locale for efficient processing.
         $filesByLocale = [];
         foreach ($translationFiles as $file) {
             $filesByLocale[$file['locale']][] = $file;
@@ -379,7 +377,6 @@ class TranslationService
                 continue;
             }
 
-            // Determine if compiled catalogue needs to be refreshed.
             $needsRefresh = true;
             if (config('lang.cache')) {
                 $cacheDir = path('storage/app/translations');
@@ -397,13 +394,11 @@ class TranslationService
 
             foreach ($filesForLocale as $file) {
                 if (config('lang.cache') && $file['locale'] !== $currentLocale) {
-                    // Skip non-current locale files when cache compilation is enabled.
                     continue;
                 }
                 $this->registerResource($file['path'], $file['locale'], $file['domain']);
             }
 
-            // Force catalogue compilation if we refreshed the cache.
             if ($needsRefresh && config('lang.cache')) {
                 $this->translator->getCatalogue($locale);
             }
