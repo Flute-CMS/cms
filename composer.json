@@ -1,6 +1,7 @@
 {
     "name": "flute-cms/cms",
     "description": "A flexible and modular CMS tailored for managing game servers.",
+    "version": "0.2.0-dev",
     "type": "project",
     "license": "GPL-3.0-or-later",
     "keywords": [
@@ -104,6 +105,30 @@
             "merge-replace": true,
             "merge-scripts": false
         }
+    },
+    "scripts": {
+        "test": [
+            "@php vendor/bin/phpstan analyse --memory-limit=2G",
+            "@php vendor/bin/php-cs-fixer check --dry-run"
+        ],
+        "test-fix": [
+            "@php vendor/bin/php-cs-fixer fix"
+        ],
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
+        "format": "vendor/bin/php-cs-fixer fix",
+        "format-check": "vendor/bin/php-cs-fixer check --dry-run",
+        "migrate": "php flute migrate",
+        "migrate-status": "php flute migrate:status",
+        "optimize": [
+            "php flute cache:clear",
+            "php flute optimize"
+        ],
+        "post-install-cmd": [
+            "@php -r \"copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); chmod('php-cs-fixer', 0755);\""
+        ],
+        "post-update-cmd": [
+            "@php -r \"copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); chmod('php-cs-fixer', 0755);\""
+        ]
     },
     "config": {
         "optimize-autoloader": true,

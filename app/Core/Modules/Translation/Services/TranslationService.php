@@ -16,11 +16,13 @@ class TranslationService
     protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60; // 24 hours
     protected $cache;
+
     /**
      * Track loaded domains per locale to avoid duplicate merges.
      * [locale => [domain => true]]
      */
     protected array $loadedDomains = [];
+
     /**
      * Track absolute file paths already registered this request to skip duplicates.
      * @var array<string,bool>
@@ -32,7 +34,7 @@ class TranslationService
         $availableLangs = (array) config('lang.available');
 
         $requestedLang = request()->input('lang');
-        $cookieLang    = cookie()->get('current_lang');
+        $cookieLang = cookie()->get('current_lang');
 
         $defaultLocale = null;
 
@@ -59,7 +61,7 @@ class TranslationService
         $this->translator->setFallbackLocales(config('lang.available'));
 
         $this->listenEvents($eventDispatcher);
-        
+
         if ($this->performance) {
             $this->_importTranslationsForLocale($this->translator, $defaultLocale);
         } else {
@@ -70,7 +72,7 @@ class TranslationService
         CarbonInterval::setLocale($this->translator->getLocale());
     }
 
-    public function getLocale() : string
+    public function getLocale(): string
     {
         return $this->translator->getLocale();
     }
@@ -81,7 +83,7 @@ class TranslationService
         if (!is_dir($langDir)) {
             return;
         }
-        
+
         $finder = finder();
         $finder->files()->in($langDir)->name('*.php');
 
@@ -102,13 +104,13 @@ class TranslationService
         foreach ($finder as $key => $file) {
             $locale = $file->getRelativePath();
             $domain = basename($file->getFilename(), '.php');
-            
+
             $files[] = [
                 'locale' => $locale,
                 'domain' => $domain,
                 'path' => $file->getPathname(),
             ];
-            
+
             $this->loadedDomains[$locale][$domain] = true;
         }
 
@@ -133,7 +135,7 @@ class TranslationService
      *
      * @return Translator
      */
-    public function getTranslator() : Translator
+    public function getTranslator(): Translator
     {
         return $this->translator;
     }
@@ -143,7 +145,7 @@ class TranslationService
      *
      * @return string
      */
-    public function getPreferredLanguage() : string
+    public function getPreferredLanguage(): string
     {
         return substr(request()->getPreferredLanguage((array) app('lang.available')), 0, 2);
     }
@@ -153,11 +155,11 @@ class TranslationService
      *
      * @param LangChangedEvent $event
      */
-    public function onLangChanged(LangChangedEvent $event) : void
+    public function onLangChanged(LangChangedEvent $event): void
     {
         $newLang = $event->getNewLang();
         $this->translator->setLocale($newLang);
-                
+
         if (!isset($this->loadedDomains[$newLang]) && $this->performance) {
             $this->_importTranslationsForLocale($this->translator, $newLang);
         }
@@ -183,7 +185,7 @@ class TranslationService
     /**
      * Set the translation route if the application is installed.
      */
-    public function onRoutingStarted(RoutingStartedEvent $routingStartedEvent) : void
+    public function onRoutingStarted(RoutingStartedEvent $routingStartedEvent): void
     {
         if (!app()->getLang()) {
             app()->setLang(config('lang.locale'));
@@ -202,14 +204,14 @@ class TranslationService
      * @param string|null $locale
      * @return string
      */
-    public function trans(string $key, array $replacements = [], ?string $locale = null) : string
+    public function trans(string $key, array $replacements = [], ?string $locale = null): string
     {
         $translator = $this->getTranslator();
         $locale = $locale ?? $translator->getLocale();
 
         if (strpos($key, '.') !== false) {
             [$domain, $translationKey] = explode('.', $key, 2);
-            
+
             if ($this->performance && (!isset($this->loadedDomains[$locale]) || !isset($this->loadedDomains[$locale][$domain]))) {
                 $this->loadDomain($domain, $locale);
             }
@@ -240,7 +242,7 @@ class TranslationService
 
         return $translator->trans($key, $extendedReplacements, null, $locale);
     }
-    
+
     /**
      * Load a specific domain for a locale.
      *
@@ -293,7 +295,7 @@ class TranslationService
     protected function loadDomain(string $domain, string $locale): void
     {
         $file = path('i18n/' . $locale . '/' . $domain . '.php');
-        
+
         if (!file_exists($file)) {
             return;
         }

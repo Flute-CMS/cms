@@ -1,24 +1,38 @@
-name: PHP Composer Build & Upload to Existing Release
+name: Legacy Build Support (Deprecated)
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
+    inputs:
+      force_build:
+        description: 'Force build from current branch'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  legacy-build:
     runs-on: ubuntu-latest
+    if: github.event.inputs.force_build == 'true'
 
     steps:
+      - name: Deprecation Notice
+        run: |
+          echo "⚠️  This workflow is deprecated!"
+          echo "Please use the new promotion workflow instead:"
+          echo "Actions → Promote to Main → Run workflow"
+          
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install GitHub CLI
-        run: sudo apt-get update && sudo apt-get install -y gh
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
+          tools: composer:v2
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
@@ -32,18 +46,26 @@ jobs:
             ${{ runner.os }}-php-
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-dev --no-progress
+        run: composer install --prefer-dist --no-dev --no-progress --optimize-autoloader
 
-      - name: Archive project with vendor
+      - name: Create manual build
         run: |
-          mkdir -p release
-          ARCHIVE_NAME="flute-cms-with-vendor-${GITHUB_REF_NAME}.zip"
-          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*"
+          BUILD_DATE=$(date +"%Y%m%d_%H%M%S")
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          ARCHIVE_NAME="flute-cms-manual-${BRANCH_NAME}-${BUILD_DATE}.zip"
+          
+          zip -r "$ARCHIVE_NAME" . \
+            -x "*.git*" \
+            -x "*.github*" \
+            -x "tests/*" \
+            -x "*.md"
+            
+          echo "Manual build created: $ARCHIVE_NAME"
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
 
-      - name: Upload archive to existing GitHub release
-        run: |
-          echo "Uploading release/$ARCHIVE_NAME to release $GITHUB_REF_NAME"
-          gh release upload "$GITHUB_REF_NAME" "release/$ARCHIVE_NAME" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: manual-build
+          path: ${{ env.ARCHIVE_NAME }}
+          retention-days: 7
