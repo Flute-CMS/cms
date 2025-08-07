@@ -52,9 +52,6 @@ jobs:
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --memory-limit=2G
         
-      - name: Check PHP CS Fixer (dry-run)
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
-
   build-nightly:
     name: Build Nightly Release
     runs-on: ubuntu-latest

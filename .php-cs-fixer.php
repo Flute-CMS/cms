@@ -1,17 +1,8 @@
 <?php
 
 $finder = PhpCsFixer\Finder::create()
-    ->in([
-        __DIR__ . '/app/Core',
-        __DIR__ . '/app/Modules',
-    ])
-    ->exclude([
-        'vendor',
-        'Tests',
-        'tests',
-        'storage',
-        'bootstrap/cache',
-    ])
+    ->in([__DIR__ . '/app/Core', __DIR__ . '/app/Modules'])
+    ->exclude(['vendor', 'Tests', 'tests', 'storage', 'bootstrap/cache'])
     ->notPath('Database/Entities')
     ->name('*.php')
     ->notName('*.blade.php');
@@ -19,6 +10,8 @@ $finder = PhpCsFixer\Finder::create()
 $config = new PhpCsFixer\Config();
 
 return $config
+    ->setCacheFile(__DIR__.'/.php-cs-fixer.cache')
+    ->setRiskyAllowed(true)
     ->setRules([
         '@PSR12' => true,
         '@PHP81Migration' => true,

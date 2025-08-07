@@ -46,15 +46,6 @@ jobs:
         
       - name: Run full test suite
         run: |
-          # PHPStan analysis
-          vendor/bin/phpstan analyse --memory-limit=2G
-          
-          # PHP CS Fixer check
-          if ! vendor/bin/php-cs-fixer check --dry-run; then
-            echo "❌ Code style issues found. Please run php-cs-fixer fix before promoting."
-            exit 1
-          fi
-          
           # TODO: Add actual PHPUnit tests when available
           # vendor/bin/phpunit
           

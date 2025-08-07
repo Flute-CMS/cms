@@ -1,4 +1,0 @@
-# Core Migrations Directory
-
-This directory contains core database migrations.
-Module-specific migrations should be placed in their respective module directories.

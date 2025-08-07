@@ -90,38 +90,54 @@ class TranslationService
             return;
         }
 
-        $finder = finder();
-        $finder->files()->in($langDir)->name('*.php');
+        $cacheKey = 'translation.core.files.' . $locale;
 
-        foreach ($finder as $file) {
-            $domain = basename($file->getFilename(), '.php');
-            $translator->addResource('file', $file->getPathname(), $locale, $domain);
-            $this->loadedDomains[$locale][$domain] = true;
+        $domains = cache()->callback($cacheKey, function() use ($langDir) {
+            $finder = finder();
+            $finder->files()->in($langDir)->name('*.php');
+
+            $result = [];
+            foreach ($finder as $file) {
+                $result[] = [
+                    'domain' => basename($file->getFilename(), '.php'),
+                    'path' => $file->getPathname(),
+                ];
+            }
+
+            return $result;
+        }, self::CACHE_TIME);
+
+        foreach ($domains as $domainInfo) {
+            $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
+            $this->loadedDomains[$locale][$domainInfo['domain']] = true;
         }
     }
 
     protected function _importTranslations(Translator $translator)
     {
         $langDir = path('i18n');
-        $finder = finder();
-        $finder->files()->in($langDir)->name('*.php');
 
-        $files = [];
-        foreach ($finder as $key => $file) {
-            $locale = $file->getRelativePath();
-            $domain = basename($file->getFilename(), '.php');
+        $cacheKey = 'translation.core.files';
 
-            $files[] = [
-                'locale' => $locale,
-                'domain' => $domain,
-                'path' => $file->getPathname(),
-            ];
+        $files = cache()->callback($cacheKey, function() use ($langDir) {
+            $finder = finder();
+            $finder->files()->in($langDir)->name('*.php');
 
-            $this->loadedDomains[$locale][$domain] = true;
-        }
+            $result = [];
+            foreach ($finder as $file) {
+                $result[] = [
+                    'locale' => $file->getRelativePath(),
+                    'domain' => basename($file->getFilename(), '.php'),
+                    'path' => $file->getPathname(),
+                ];
+            }
+
+            return $result;
+        }, self::CACHE_TIME);
 
         foreach ($files as $file) {
             $translator->addResource('file', $file['path'], $file['locale'], $file['domain']);
+            $this->loadedDomains[$file['locale']][$file['domain']] = true;
         }
     }
 
