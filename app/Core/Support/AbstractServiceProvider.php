@@ -26,7 +26,7 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
      *
      * @param App $app
      */
-    public function setApp(App $app)
+    public function setApp(App $app): void
     {
         $this->app = $app;
     }

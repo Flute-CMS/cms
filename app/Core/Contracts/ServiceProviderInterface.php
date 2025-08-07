@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Contracts;
 
+use Flute\Core\App;
+
 interface ServiceProviderInterface
 {
     /**
@@ -21,4 +23,13 @@ interface ServiceProviderInterface
      * @return void
      */
     public function boot( \DI\Container $container ) : void;
+
+    /**
+     * Set the application instance.
+     * 
+     * @param App $app
+     * 
+     * @return void
+     */
+    public function setApp(App $app): void;
 }

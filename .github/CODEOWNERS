@@ -11,7 +11,6 @@
 
 # Database migrations are critical
 /app/migrations/ @FlamesONE
-/storage/migrations/ @FlamesONE
 /app/Core/Database/ @FlamesONE
 
 # CI/CD workflows

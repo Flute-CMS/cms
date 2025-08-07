@@ -57,7 +57,7 @@ final class App
     protected string $basePath = BASE_PATH;
 
     /**
-     * @var array[ServiceProviderInterface]
+     * @var array<ServiceProviderInterface>
      */
     protected array $providers = [];
 
