@@ -46,7 +46,15 @@ https://github.com/user-attachments/assets/fd0d42df-ad08-45d3-8603-e20993c5e071
 ## ⚠️ Important
 
 **The project is in beta testing stage. Some features may change or be added.**  
-We’re always open to feedback and suggestions for improving functionality!
+We're always open to feedback and suggestions for improving functionality!
+
+### 🌿 Development & Release Channels
+
+- **Stable Releases** (`main` branch): Production-ready versions with semantic versioning
+- **Development Builds** (`early` branch): Latest features and fixes, updated nightly
+- **Release Schedule**: Stable releases follow rigorous testing and quality assurance
+
+[📖 Contributing Guide](CONTRIBUTING.md) | [🔄 Upgrade Guide](UPGRADE.md)
 
 ## License
 
