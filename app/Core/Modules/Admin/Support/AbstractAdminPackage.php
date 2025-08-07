@@ -146,65 +146,12 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
         }
 
         $fullPath = $this->getBasePath() . DIRECTORY_SEPARATOR . $langDirectory;
-
         if (!is_dir($fullPath)) {
             return;
         }
 
-        $packageName = basename($this->getBasePath());
-        $cacheKey = "admin.package.{$packageName}.translations";
-
-        $translationFiles = cache()->callback($cacheKey, function () use ($fullPath) {
-            $finder = finder();
-            $finder->files()->in($fullPath)->name('*.php');
-
-            $files = [];
-            foreach ($finder as $file) {
-                $files[] = [
-                    'path' => $file->getPathname(),
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php')
-                ];
-            }
-
-            return $files;
-        }, $this->defaultCacheDuration);
-
-        if (empty($translationFiles)) {
-            return;
-        }
-
-        $translationService = translation();
-        $currentLocale = app()->getLang();
-
-        $filesByLocale = [];
-        foreach ($translationFiles as $f) {
-            $filesByLocale[$f['locale']][] = $f;
-        }
-
-        $localesToProcess = config('lang.cache') ? [$currentLocale] : array_keys($filesByLocale);
-
-        foreach ($localesToProcess as $locale) {
-            $filesForLocale = $filesByLocale[$locale] ?? [];
-            if (empty($filesForLocale)) {
-                continue;
-            }
-
-            if (config('lang.cache') && !isset(self::$flushedLocales[$locale])) {
-                $translationService->flushLocaleCache($locale);
-                self::$flushedLocales[$locale] = true;
-            }
-
-            foreach ($filesForLocale as $file) {
-                if (config('lang.cache') && $file['locale'] !== $currentLocale) {
-                    continue;
-                }
-                $translationService->registerResource($file['path'], $file['locale'], $file['domain']);
-            }
-
-            // // Build/refresh the catalogue to include newly registered resources.
-        }
-
+        // Delegate translation loading to the central TranslationService
+        translation()->loadTranslationsFromDirectory($fullPath, $this->defaultCacheDuration);
         $this->loaded['translations'] = true;
     }
 

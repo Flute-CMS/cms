@@ -54,7 +54,7 @@ We're always open to feedback and suggestions for improving functionality!
 - **Development Builds** (`early` branch): Latest features and fixes, updated nightly
 - **Release Schedule**: Stable releases follow rigorous testing and quality assurance
 
-[📖 Contributing Guide](CONTRIBUTING.md) | [🔄 Upgrade Guide](UPGRADE.md)
+[📖 Contributing Guide](CONTRIBUTING.md)
 
 ## License
 

@@ -29,6 +29,12 @@ class TranslationService
      */
     protected array $loadedFiles = [];
 
+    /**
+     * Track directories whose translations have been loaded to avoid duplicate processing.
+     * @var array<string,bool>
+     */
+    protected array $loadedDirectories = [];
+
     public function __construct(EventDispatcher $eventDispatcher)
     {
         $availableLangs = (array) config('lang.available');
@@ -322,4 +328,88 @@ class TranslationService
 
         $this->loadedDomains[$locale][$domain] = true;
     }
+
+    /**
+     * Load translation resources from a directory structured as <dir>/<locale>/<domain>.php.
+     * This centralizes module and package translation loading with proper caching and
+     * catalogue compilation.
+     */
+    public function loadTranslationsFromDirectory(string $directory, int $cacheDuration = self::CACHE_TIME): void
+    {
+        if (isset($this->loadedDirectories[$directory]) || !is_dir($directory)) {
+            return;
+        }
+
+        // Cache the list of translation files for this directory to avoid expensive scans.
+        $cacheKey = 'translation.dir.' . md5($directory);
+        $translationFiles = cache()->callback($cacheKey, function () use ($directory) {
+            $finder = finder();
+            $finder->files()->in($directory)->name('*.php');
+
+            $files = [];
+            foreach ($finder as $file) {
+                $files[] = [
+                    'path'   => $file->getPathname(),
+                    'locale' => $file->getRelativePath(),
+                    'domain' => basename($file->getFilename(), '.php'),
+                ];
+            }
+
+            return $files;
+        }, $cacheDuration);
+
+        if (empty($translationFiles)) {
+            $this->loadedDirectories[$directory] = true;
+            return;
+        }
+
+        $currentLocale = app()->getLang();
+
+        // Group files by locale for efficient processing.
+        $filesByLocale = [];
+        foreach ($translationFiles as $file) {
+            $filesByLocale[$file['locale']][] = $file;
+        }
+
+        $localesToProcess = config('lang.cache') ? [$currentLocale] : array_keys($filesByLocale);
+
+        foreach ($localesToProcess as $locale) {
+            $filesForLocale = $filesByLocale[$locale] ?? [];
+            if (!$filesForLocale) {
+                continue;
+            }
+
+            // Determine if compiled catalogue needs to be refreshed.
+            $needsRefresh = true;
+            if (config('lang.cache')) {
+                $cacheDir = path('storage/app/translations');
+                $compiled  = glob($cacheDir . '/catalogue.' . $locale . '.*.php');
+                if ($compiled) {
+                    $compiledMtime = max(array_map('filemtime', $compiled));
+                    $latestSource  = max(array_map(fn($f) => filemtime($f['path']), $filesForLocale));
+                    $needsRefresh  = $latestSource > $compiledMtime;
+                }
+            }
+
+            if ($needsRefresh && config('lang.cache')) {
+                $this->flushLocaleCache($locale);
+            }
+
+            foreach ($filesForLocale as $file) {
+                if (config('lang.cache') && $file['locale'] !== $currentLocale) {
+                    // Skip non-current locale files when cache compilation is enabled.
+                    continue;
+                }
+                $this->registerResource($file['path'], $file['locale'], $file['domain']);
+            }
+
+            // Force catalogue compilation if we refreshed the cache.
+            if ($needsRefresh && config('lang.cache')) {
+                $this->translator->getCatalogue($locale);
+            }
+        }
+
+        $this->loadedDirectories[$directory] = true;
+    }
+
 }

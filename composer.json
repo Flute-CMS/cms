@@ -1,7 +1,6 @@
 {
     "name": "flute-cms/cms",
     "description": "A flexible and modular CMS tailored for managing game servers.",
-    "version": "0.2.0-dev",
     "type": "project",
     "license": "GPL-3.0-or-later",
     "keywords": [
@@ -25,6 +24,7 @@
         }
     ],
     "require": {
+        "php": "^8.1",
         "clickfwd/yoyo": "^0.10.1",
         "composer/composer": "^2.7",
         "cycle/active-record": "^0.8.0",
@@ -83,12 +83,18 @@
         "xpaw/steamid": "^3.0"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.85",
         "phpstan/phpstan": "^2.1"
     },
     "autoload": {
         "psr-4": {
             "Flute\\": "app/",
             "Flute\\Admin\\": "app/Core/Modules/Admin/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Flute\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -120,14 +126,13 @@
         "migrate": "php flute migrate",
         "migrate-status": "php flute migrate:status",
         "optimize": [
-            "php flute cache:clear",
-            "php flute optimize"
+            "php flute cache:clear"
         ],
         "post-install-cmd": [
-            "@php -r \"copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); chmod('php-cs-fixer', 0755);\""
+            "@php -r \"if (file_exists('vendor/friendsofphp/php-cs-fixer/php-cs-fixer')) { copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); }\""
         ],
         "post-update-cmd": [
-            "@php -r \"copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); chmod('php-cs-fixer', 0755);\""
+            "@php -r \"if (file_exists('vendor/friendsofphp/php-cs-fixer/php-cs-fixer')) { copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); }\""
         ]
     },
     "config": {

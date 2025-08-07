@@ -61,8 +61,8 @@ jobs:
       - name: Calculate new version
         id: version
         run: |
-          # Get current version from composer.json
-          CURRENT_VERSION=$(grep '"version"' composer.json | sed 's/.*"version": "\(.*\)",/\1/' | sed 's/-dev//')
+          # Get current version from App.php
+          CURRENT_VERSION=$(grep 'VERSION = ' app/Core/App.php | sed "s/.*VERSION = '\(.*\)';/\1/" | sed 's/-dev//')
           
           # Parse version components
           IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
@@ -97,10 +97,7 @@ jobs:
           BUILD_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           COMMIT_HASH=$(git rev-parse --short HEAD)
           
-          # Update composer.json
-          sed -i 's/"version": ".*"/"version": "'$NEW_VERSION'"/' composer.json
-          
-          # Update App.php
+          # Update App.php version
           sed -i "s/VERSION = '.*';/VERSION = '$NEW_VERSION';/" app/Core/App.php
           
           # Update meta.json
@@ -169,7 +166,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          git add composer.json app/Core/App.php public/meta.json CHANGELOG.md
+          git add app/Core/App.php public/meta.json CHANGELOG.md
           git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
           
       - name: Merge to main
@@ -270,8 +267,7 @@ jobs:
           minor=$((minor + 1))
           NEXT_DEV_VERSION="${major}.${minor}.0-dev"
           
-          # Update version files
-          sed -i 's/"version": ".*"/"version": "'$NEXT_DEV_VERSION'"/' composer.json
+          # Update version in App.php
           sed -i "s/VERSION = '.*';/VERSION = '$NEXT_DEV_VERSION';/" app/Core/App.php
           
           # Update meta.json for dev
@@ -287,6 +283,6 @@ jobs:
           EOF
           
           # Commit and push
-          git add composer.json app/Core/App.php public/meta.json
+          git add app/Core/App.php public/meta.json
           git commit -m "chore: bump to next dev version $NEXT_DEV_VERSION"
           git push origin early

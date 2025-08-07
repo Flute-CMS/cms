@@ -17,15 +17,18 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Setup PHP
+      - name: Setup PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
           tools: composer:v2
           
@@ -50,9 +53,7 @@ jobs:
         run: vendor/bin/phpstan analyse --memory-limit=2G
         
       - name: Check PHP CS Fixer (dry-run)
-        run: |
-          composer require --dev friendsofphp/php-cs-fixer
-          vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
 
   build-nightly:
     name: Build Nightly Release

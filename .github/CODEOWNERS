@@ -1,0 +1,30 @@
+# CODEOWNERS file for automatic review assignment
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners (default reviewers for everything)
+* @FlamesONE
+
+# Core system files require additional review
+/app/Core/ @FlamesONE
+/composer.json @FlamesONE
+/public/meta.json @FlamesONE
+
+# Database migrations are critical
+/app/migrations/ @FlamesONE
+/storage/migrations/ @FlamesONE
+/app/Core/Database/ @FlamesONE
+
+# CI/CD workflows
+/.github/workflows/ @FlamesONE
+
+# Release and version control
+/CHANGELOG.md @FlamesONE
+/.gitattributes @FlamesONE
+
+# Configuration and bootstrapping
+/config/ @FlamesONE
+/bootstrap/ @FlamesONE
+
+# Security-sensitive files
+/app/Core/Auth/ @FlamesONE
+/app/Core/Security/ @FlamesONE

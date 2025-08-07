@@ -124,10 +124,6 @@ Ensure PHPStan passes:
 vendor/bin/phpstan analyse
 ```
 
-## 🗂️ Module Development
-
-[[memory:2995457]] Modules should remain separate in the app/Modules directory and not be pushed into the project core.
-
 ### Module Structure
 
 ```
@@ -150,34 +146,6 @@ app/Modules/YourModule/
 - Use the **`<x-icon>`** component for icons
 - Avoid unnecessary code comments
 - Follow the minimalistic, Apple-style UI approach [[memory:2995457]]
-
-## 🎨 UI/UX Guidelines
-
-[[memory:2995457]]
-
-- **Minimalistic design**: Follow Apple-style aesthetics
-- **Avoid ostentatious effects**: No excessive hover animations or large elements
-- **SCSS organization**: Split components under `@/scss` and import with `@import`
-- **Missing widgets**: Show blurred preview from server instead of "not found" messages
-
-## 🗄️ Database & Migrations
-
-### Creating Migrations
-
-```bash
-# For core application
-php artisan make:migration create_new_table
-
-# For modules (place in module's database/migrations/)
-# Use standard naming: YYYY_MM_DD_HHMMSS_description.php
-```
-
-### Migration Guidelines
-
-- Use **Cycle ORM** migration system
-- Test migrations both up and down
-- Include in CI/CD pipeline
-- Document breaking changes in UPGRADE.md
 
 ## 🔄 Release Process
 
