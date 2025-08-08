@@ -875,6 +875,26 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         cache()->delete("module.{$moduleName}.entities_dir");
         cache()->delete("module.{$moduleName}.translations");
         cache()->delete("module.{$moduleName}.configs");
+
+        try {
+            $langDir = $this->getModulePath('Resources/lang');
+            if (is_dir($langDir)) {
+                $finder = finder();
+                $finder->files()->in($langDir)->name('*.php');
+                $locales = [];
+                foreach ($finder as $file) {
+                    $relativePath = trim($file->getRelativePath(), DIRECTORY_SEPARATOR);
+                    if ($relativePath !== '') {
+                        $locales[$relativePath] = true;
+                    }
+                }
+                foreach (array_keys($locales) as $locale) {
+                    translation()->flushLocaleCache($locale);
+                }
+            }
+        } catch (\Throwable $e) {
+            // noop: cache invalidation should not break flow
+        }
     }
 
     /**

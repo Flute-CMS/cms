@@ -202,18 +202,22 @@
                                                     @if (isset($sections['profile_tab_content_' . $tab['path']]))
                                                         {!! $sections['profile_tab_content_' . $tab['path']] !!}
                                                     @endif
-                                                    <div class="row gx-3 gy-3" role="region"
-                                                        aria-label="{{ __('profile.loading_content') }}">
-                                                        @foreach ([8, 4, 12] as $colSize)
-                                                            <div class="col-md-{{ $colSize }}">
-                                                                <div class="skeleton tabs-skeleton w-100"
-                                                                    style="height: 200px"
-                                                                    aria-label="{{ __('profile.loading') }}"
-                                                                    role="status">
+                                                    @if ($tab['path'] === $activePath)
+                                                        {!! $initialTabHtml ?? '' !!}
+                                                    @else
+                                                        <div class="row gx-3 gy-3" role="region"
+                                                            aria-label="{{ __('profile.loading_content') }}">
+                                                            @foreach ([8, 4, 12] as $colSize)
+                                                                <div class="col-md-{{ $colSize }}">
+                                                                    <div class="skeleton tabs-skeleton w-100"
+                                                                        style="height: 200px"
+                                                                        aria-label="{{ __('profile.loading') }}"
+                                                                        role="status">
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
                                                 </x-tab-content>
                                             @endforeach
                                         </x-tab-body>

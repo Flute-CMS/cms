@@ -79,7 +79,7 @@ class EditMainComponent extends FluteComponent
             if ($this->theme === 'system') {
                 cookie()->remove('theme');
             } else {
-                cookie()->set('theme', $this->theme, httpOnly: false);
+                cookie()->set('theme', $this->theme);
 
                 $this->dispatchBrowserEvent('switch-theme', [
                     'theme' => $this->theme,

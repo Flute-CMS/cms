@@ -19,7 +19,7 @@ class ProfileIndexController extends BaseController
      */
     public function __construct()
     {
-        $this->path = request()->input('tab', '');
+        $this->path = request()->input('tab') ?? '';
     }
 
     /**
@@ -42,7 +42,7 @@ class ProfileIndexController extends BaseController
 
         $this->dispatchEvent($user);
 
-        if ($request->isOnlyHtmx()) {
+        if ($request->isOnlyHtmx() && $this->path !== '') {
             return response()->make($profileTabService->renderTabsByPath($this->path, $user));
         }
 
@@ -52,8 +52,14 @@ class ProfileIndexController extends BaseController
 
         $tabs = $profileTabService->getTabs();
 
-        if ($this->path === '' && !empty($tabs)) {
+        if (empty($this->path) && !empty($tabs) && $tabs->count() > 0) {
             $this->path = $tabs[0]['path'];
+        }
+
+        $initialTabHtml = '';
+
+        if (!empty($this->path) && !empty($tabs)) {
+            $initialTabHtml = $profileTabService->renderTabsByPath($this->path, $user);
         }
 
         return view('flute::pages.profile.index', [
@@ -62,6 +68,7 @@ class ProfileIndexController extends BaseController
             'activePath' => $this->path,
             'tabs' => $tabs,
             'last_logged' => $this->getLastLoggedPhrase($this->event->getUser()->last_logged),
+            'initialTabHtml' => $initialTabHtml,
         ]);
     }
 
