@@ -277,11 +277,13 @@ final class App
                 $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer()
             );
         } catch (Exception $e) {
-            if (!function_exists('is_debug') || is_debug()) {
+            if (function_exists('is_debug') && is_debug()) {
                 throw $e;
             }
 
-            logs()->error($e);
+            if (function_exists('logs')) {
+                logs()->error($e);
+            }
         }
 
         return $this;
@@ -310,11 +312,13 @@ final class App
 
                 $this->bootTimes[$className] = round(microtime(true) - $startTime, 3);
             } catch (Exception $e) {
-                if (!function_exists('is_debug') || is_debug()) {
+                if (function_exists('is_debug') && is_debug()) {
                     throw $e;
                 }
 
-                logs()->error($e);
+                if (function_exists('logs')) {
+                    logs()->error($e);
+                }
             }
         }
 

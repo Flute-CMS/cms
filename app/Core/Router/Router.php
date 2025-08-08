@@ -2,6 +2,10 @@
 
 namespace Flute\Core\Router;
 
+/**
+ * @method static void screen(string $url, string|class-string $screen)
+ */
+
 use Clickfwd\Yoyo\Exceptions\HttpException;
 use DI\Container;
 use Flute\Core\Events\OnRouteFoundEvent;

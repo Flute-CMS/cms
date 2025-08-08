@@ -189,51 +189,58 @@ function updateBackgroundPreview() {
     
     switch (currentType) {
         case 'linear-gradient':
-            backgroundStyle = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}12 100%)`;
+            backgroundStyle = `
+                linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 45%, ${accentColor}18 100%),
+                radial-gradient(1200px circle at 90% -10%, ${accentColor}0f 0%, transparent 60%),
+                radial-gradient(800px circle at 10% 110%, ${primaryColor}0c 0%, transparent 60%),
+                ${bgColor}
+            `;
             break;
         case 'radial-gradient':
-            backgroundStyle = `radial-gradient(ellipse at top right, ${bgColor} 0%, ${accentColor}08 70%, ${bgColor} 100%)`;
+            backgroundStyle = `
+                radial-gradient(1000px circle at 30% 10%, ${accentColor}14 0%, transparent 55%),
+                radial-gradient(1200px circle at 82% 78%, ${primaryColor}0f 0%, transparent 60%),
+                ${bgColor}
+            `;
             break;
         case 'mesh-gradient':
             backgroundStyle = `
-                radial-gradient(at 20% 20%, ${accentColor}08 0px, transparent 40%),
-                radial-gradient(at 80% 80%, ${primaryColor}06 0px, transparent 40%),
-                radial-gradient(at 40% 70%, ${accentColor}04 0px, transparent 40%),
+                radial-gradient(at 20% 20%, ${accentColor}12 0px, transparent 45%),
+                radial-gradient(at 80% 75%, ${primaryColor}0d 0px, transparent 45%),
+                radial-gradient(at 40% 70%, ${accentColor}0a 0px, transparent 40%),
+                radial-gradient(at 70% 30%, ${primaryColor}08 0px, transparent 45%),
                 ${bgColor}
             `;
             break;
         case 'subtle-gradient':
-            backgroundStyle = `linear-gradient(160deg, ${bgColor} 0%, ${accentColor}06 50%, ${primaryColor}04 100%)`;
+            backgroundStyle = `linear-gradient(160deg, ${bgColor} 0%, ${accentColor}0d 50%, ${primaryColor}0a 100%)`;
             break;
         case 'aurora-gradient':
             backgroundStyle = `
-                linear-gradient(45deg, 
-                    ${accentColor}15 0%, 
-                    ${primaryColor}10 25%, 
-                    ${accentColor}20 50%, 
-                    ${primaryColor}15 75%, 
-                    ${accentColor}10 100%),
+                radial-gradient(1200px circle at 10% 20%, ${accentColor}12 0%, transparent 55%),
+                radial-gradient(1000px circle at 80% 30%, ${primaryColor}10 0%, transparent 55%),
+                radial-gradient(1400px circle at 50% 80%, ${accentColor}0d 0%, transparent 60%),
                 ${bgColor}
             `;
             break;
         case 'sunset-gradient':
             backgroundStyle = `linear-gradient(180deg, 
-                ${accentColor}20 0%, 
-                ${accentColor}15 30%, 
-                ${primaryColor}10 70%, 
+                ${accentColor}18 0%, 
+                ${accentColor}10 28%, 
+                ${primaryColor}0d 68%, 
                 ${bgColor} 100%)`;
             break;
         case 'ocean-gradient':
             backgroundStyle = `
-                radial-gradient(ellipse at top, ${accentColor}08 0%, transparent 50%),
-                radial-gradient(ellipse at bottom, ${primaryColor}06 0%, transparent 50%),
-                linear-gradient(180deg, ${bgColor} 0%, ${accentColor}04 100%)
+                radial-gradient(900px ellipse at top, ${accentColor}10 0%, transparent 50%),
+                radial-gradient(700px ellipse at bottom, ${primaryColor}0d 0%, transparent 50%),
+                linear-gradient(180deg, ${bgColor} 0%, ${accentColor}06 100%)
             `;
             break;
         case 'spotlight-gradient':
-            backgroundStyle = `radial-gradient(circle at 70% 30%, 
-                ${accentColor}12 0%, 
-                ${accentColor}06 30%, 
+            backgroundStyle = `radial-gradient(800px circle at 70% 30%, 
+                ${accentColor}20 0%, 
+                ${accentColor}0d 28%, 
                 ${bgColor} 70%)`;
             break;
         default:
@@ -264,21 +271,31 @@ function updateBackgroundThumbnails() {
     // Update linear preview
     const linearPreview = document.querySelector('.linear-preview');
     if (linearPreview) {
-        linearPreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}40 100%)`;
+        linearPreview.style.background = `
+            linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 45%, ${accentColor}26 100%),
+            radial-gradient(500px circle at 90% -10%, ${accentColor}14 0%, transparent 60%),
+            radial-gradient(300px circle at 10% 110%, ${primaryColor}12 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update radial preview
     const radialPreview = document.querySelector('.radial-preview');
     if (radialPreview) {
-        radialPreview.style.background = `radial-gradient(circle, ${bgColor} 0%, ${accentColor}30 70%)`;
+        radialPreview.style.background = `
+            radial-gradient(400px circle at 30% 10%, ${accentColor}26 0%, transparent 55%),
+            radial-gradient(500px circle at 80% 80%, ${primaryColor}1a 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update mesh preview
     const meshPreview = document.querySelector('.mesh-preview');
     if (meshPreview) {
         meshPreview.style.background = `
-            radial-gradient(at 30% 30%, ${accentColor}25 0px, transparent 40%),
-            radial-gradient(at 70% 70%, ${primaryColor}20 0px, transparent 40%),
+            radial-gradient(at 30% 30%, ${accentColor}26 0px, transparent 45%),
+            radial-gradient(at 70% 70%, ${primaryColor}1f 0px, transparent 45%),
+            radial-gradient(at 60% 30%, ${primaryColor}14 0px, transparent 45%),
             ${bgColor}
         `;
     }
@@ -286,35 +303,40 @@ function updateBackgroundThumbnails() {
     // Update subtle preview
     const subtlePreview = document.querySelector('.subtle-preview');
     if (subtlePreview) {
-        subtlePreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}15 50%, ${primaryColor}10 100%)`;
+        subtlePreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}1a 50%, ${primaryColor}14 100%)`;
     }
 
     // Update aurora preview
     const auroraPreview = document.querySelector('.aurora-preview');
     if (auroraPreview) {
-        auroraPreview.style.background = `linear-gradient(45deg, ${accentColor}40 0%, ${primaryColor}30 25%, ${accentColor}50 50%, ${primaryColor}40 75%, ${accentColor}30 100%)`;
+        auroraPreview.style.background = `
+            radial-gradient(600px circle at 10% 20%, ${accentColor}26 0%, transparent 55%),
+            radial-gradient(500px circle at 80% 30%, ${primaryColor}1f 0%, transparent 55%),
+            radial-gradient(700px circle at 50% 80%, ${accentColor}1a 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update sunset preview
     const sunsetPreview = document.querySelector('.sunset-preview');
     if (sunsetPreview) {
-        sunsetPreview.style.background = `linear-gradient(180deg, ${accentColor}50 0%, ${accentColor}40 30%, ${primaryColor}30 70%, ${bgColor} 100%)`;
+        sunsetPreview.style.background = `linear-gradient(180deg, ${accentColor}33 0%, ${accentColor}26 30%, ${primaryColor}26 70%, ${bgColor} 100%)`;
     }
 
     // Update ocean preview
     const oceanPreview = document.querySelector('.ocean-preview');
     if (oceanPreview) {
         oceanPreview.style.background = `
-            radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 40%),
-            radial-gradient(ellipse at bottom, ${primaryColor}15 0%, transparent 40%),
-            linear-gradient(180deg, ${bgColor} 0%, ${accentColor}10 100%)
+            radial-gradient(400px ellipse at top, ${accentColor}26 0%, transparent 40%),
+            radial-gradient(350px ellipse at bottom, ${primaryColor}1f 0%, transparent 40%),
+            linear-gradient(180deg, ${bgColor} 0%, ${accentColor}19 100%)
         `;
     }
 
     // Update spotlight preview
     const spotlightPreview = document.querySelector('.spotlight-preview');
     if (spotlightPreview) {
-        spotlightPreview.style.background = `radial-gradient(circle at 70% 30%, ${accentColor}30 0%, ${accentColor}15 30%, ${bgColor} 70%)`;
+        spotlightPreview.style.background = `radial-gradient(350px circle at 70% 30%, ${accentColor}33 0%, ${accentColor}1a 28%, ${bgColor} 70%)`;
     }
 }
 

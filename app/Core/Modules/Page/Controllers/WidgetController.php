@@ -43,10 +43,30 @@ class WidgetController extends BaseController
     public function getLayout(FluteRequest $fluteRequest)
     {
         $rules = [
-            'path' => 'required|string',
+            'path' => 'string',
         ];
 
-        if (!$this->validator->validate($fluteRequest->input(), $rules)) {
+        $path = $fluteRequest->query->get('path');
+        if ($path === null || $path === '') {
+            $path = $fluteRequest->request->get('path', '');
+        }
+        if ($path === null || $path === '') {
+            $path = $fluteRequest->attributes->get('path', '');
+        }
+        if ($path === null || $path === '') {
+            $referer = $fluteRequest->getReferer();
+            if ($referer) {
+                $pathFromReferer = parse_url($referer, PHP_URL_PATH);
+                if (is_string($pathFromReferer) && $pathFromReferer !== '') {
+                    $path = $pathFromReferer;
+                }
+            }
+        }
+        if ($path === null || $path === '') {
+            $path = '/';
+        }
+
+        if (!$this->validator->validate(['path' => $path], $rules)) {
             $errors = collect($this->validator->getErrors()->getMessages());
             $firstError = $errors->first()[0] ?? 'Invalid input.';
 
@@ -55,8 +75,6 @@ class WidgetController extends BaseController
                 'errors' => $errors->toArray(),
             ], 422);
         }
-
-        $path = $fluteRequest->input('path', '/');
 
         try {
             $layout = $this->pageManager->getLayoutForPath($path);

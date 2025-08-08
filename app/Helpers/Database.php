@@ -80,13 +80,12 @@ if (!function_exists("ormdb")) {
 
 if (!function_exists("rep")) {
     /**
-     * Get the orm repository instance
-     * 
-     * @param string|object $entity
-     * 
-     * @return \Cycle\ORM\Repository
+     * Get the ORM repository instance
+     *
+     * @param class-string|object $entity
+     * @return \Cycle\ORM\RepositoryInterface
      */
-    function rep($entity)
+    function rep($entity): \Cycle\ORM\RepositoryInterface
     {
         return orm()->getRepository($entity);
     }

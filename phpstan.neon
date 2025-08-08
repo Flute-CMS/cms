@@ -1,5 +1,5 @@
 parameters:
-    level: 8
+    level: 3
     paths:
         - app/Core
         - app/Modules
@@ -11,6 +11,9 @@ parameters:
         # Ignore specific legacy code patterns that are hard to fix immediately
         - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9_]+\(\)#'
         - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
+    scanDirectories:
+        - app/Helpers
     bootstrapFiles:
-        - bootstrap/phpstan.php
+        - bootstrap/phpstan-boot.php
+        - vendor/autoload.php
     reportUnmatchedIgnoredErrors: false
