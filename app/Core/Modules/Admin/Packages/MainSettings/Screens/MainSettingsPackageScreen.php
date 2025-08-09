@@ -746,7 +746,7 @@ class MainSettingsPackageScreen extends Screen
                 $dir = dirname($absoluteTargetPath);
                 $filesystem = fs();
                 if (!is_dir($dir)) {
-                    $filesystem->mkdir($dir, 0755);
+                    $filesystem->mkdir($dir, 0o755);
                 }
 
                 if (file_exists($absoluteTargetPath)) {
