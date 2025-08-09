@@ -159,6 +159,7 @@ class TranslationService
             }
             // Ensure deterministic order so lazy resolution is stable
             sort($result);
+
             return $result;
         }, self::CACHE_TIME);
 
@@ -178,6 +179,7 @@ class TranslationService
                     $prevMtime = $previous[$path] ?? 0;
                     if ($prevMtime < $mtime) {
                         $localesNeedingFlush[$locale] = true;
+
                         break;
                     }
                 }
@@ -185,6 +187,7 @@ class TranslationService
                     foreach (array_keys($pathsWithMtime) as $path) {
                         if (!array_key_exists($path, $previous)) {
                             $localesNeedingFlush[$locale] = true;
+
                             break;
                         }
                     }
@@ -572,6 +575,7 @@ class TranslationService
                 foreach ($filesForLocale as $f) {
                     if (!array_key_exists($f['path'], $previous)) {
                         $localesNeedingFlush[$locale] = true;
+
                         break;
                     }
                 }

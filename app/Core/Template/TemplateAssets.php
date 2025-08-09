@@ -51,7 +51,7 @@ class TemplateAssets
         $this->debugMode = false;
         $this->appUrl = config('app.url');
 
-        if(!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
+        if (!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
             $this->debugMode = true;
         }
 
