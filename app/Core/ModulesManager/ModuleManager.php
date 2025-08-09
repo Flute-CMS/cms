@@ -182,7 +182,7 @@ class ModuleManager
     public function runComposerInstall(?ModuleInformation $module = null, bool $forceUpdate = false): bool
     {
         if ($forceUpdate || $module === null) {
-            app(ComposerManager::class)->update();
+            app(ComposerManager::class)->install();
 
             return true;
         }
@@ -193,7 +193,7 @@ class ModuleManager
             return false;
         }
 
-        app(ComposerManager::class)->update();
+        app(ComposerManager::class)->install();
 
         return true;
     }

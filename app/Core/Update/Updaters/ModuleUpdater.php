@@ -133,7 +133,7 @@ class ModuleUpdater extends AbstractUpdater
             $composerManager = app(ComposerManager::class);
 
             try {
-                $composerManager->update();
+                $composerManager->install();
             } catch (\Exception $e) {
                 // Rollback
                 $this->removeDirectory($moduleDir);
