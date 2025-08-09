@@ -61,6 +61,51 @@ class ComposerManager
         }
     }
 
+    public function install()
+    {
+        $app = new Application();
+        $app->setAutoExit(false);
+
+        $input = new ArrayInput(
+            [
+                'command' => "install",
+                '--working-dir' => BASE_PATH,
+                '--no-interaction' => true,
+                '--optimize-autoloader' => true,
+                '-v' => true,
+                '--ignore-platform-reqs' => true,
+                '--no-dev' => true,
+            ]
+        );
+
+        $output = new BufferedOutput();
+
+        try {
+            $exitCode = $app->run($input, $output);
+            $outputContent = $output->fetch();
+
+            if (
+                strpos($outputContent, 'Your requirements could not be resolved') !== false ||
+                strpos($outputContent, 'Problem ') !== false ||
+                strpos($outputContent, 'Installation failed') !== false ||
+                strpos($outputContent, 'Removal failed') !== false ||
+                strpos($outputContent, 'error') !== false
+            ) {
+                throw new \Exception('Install failed: ' . $outputContent);
+            }
+
+            if ($exitCode !== 0) {
+                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+            }
+
+            return $outputContent;
+        } catch (RuntimeException $e) {
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during install: ' . $e->getMessage());
+        }
+    }
+
     public function update()
     {
         $app = new Application();
@@ -74,6 +119,7 @@ class ComposerManager
                 '--optimize-autoloader' => true,
                 '-v' => true,
                 '--ignore-platform-reqs' => true,
+                '--no-dev' => true,
             ]
         );
 

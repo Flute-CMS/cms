@@ -351,7 +351,7 @@ class ModuleInstallerService
         try {
             /** @var ComposerManager $composerManager */
             $composerManager = app(ComposerManager::class);
-            $composerManager->update();
+            $composerManager->install();
 
             return [
                 'success' => true,

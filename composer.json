@@ -58,7 +58,7 @@
 		"psr/log": "^1.1 || ^2.0 || ^3.0",
 		"ramsey/uuid": "^4.7",
 		"rosell-dk/webp-convert": "^2.9",
-        "sabberworm/php-css-parser": "8.9.0",
+        "sabberworm/php-css-parser": "^8.9.0",
 		"scssphp/scssphp": "^1.13",
 		"symfony/asset": "^6.4",
 		"symfony/cache": "^6.4",

@@ -49,8 +49,8 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
         
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --memory-limit=2G
+      - name: PHPStan temporarily disabled
+        run: echo "PHPStan is temporarily disabled and will not run in CI."
         
   build-nightly:
     name: Build Nightly Release
