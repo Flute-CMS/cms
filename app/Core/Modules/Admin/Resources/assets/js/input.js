@@ -882,7 +882,6 @@ $(document).ready(function () {
     };
 });
 
-// Вспомогательная функция для отложенного выполнения
 function debounce(func, wait) {
     let timeout;
     return function() {

@@ -25,7 +25,10 @@ return [
         'database' => 'Banco de dados',        'share_description' => 'Seu site enviará relatórios de erros aos servidores Flute.',        'main' => 'Principal',
         'home' => 'Configurações Principais',
         'flute_key' => 'Chave Flute',
-        'description' => 'Descrição do Site',    ],
+        'description' => 'Descrição do Site',
+        'favicon' => 'Favicon',
+        'social_image' => 'Imagem social (PNG)',
+    ],
 
     'options' => [
         'robots' => [        ],

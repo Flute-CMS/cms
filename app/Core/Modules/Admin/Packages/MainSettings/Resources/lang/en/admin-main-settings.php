@@ -69,6 +69,8 @@ return [
         'logo_light' => 'Logo for Light Theme',
         'footer_additional' => 'Additional Footer Content',
         'create_backup' => 'Create Backups',
+        'favicon' => 'Favicon',
+        'social_image' => 'Social image (PNG)',
         'captcha_enabled_login' => 'Enable Captcha for Login',
         'captcha_enabled_register' => 'Enable Captcha for Registration',
         'captcha_enabled_password_reset' => 'Enable Captcha for Password Reset',

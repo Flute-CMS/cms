@@ -69,6 +69,8 @@ return [
         'logo_light' => 'Логотип для светлой темы',
         'footer_additional' => 'Дополнительный контент в футере',
         'create_backup' => 'Создавать резервные копии',
+        'favicon' => 'Favicon',
+        'social_image' => 'Социальное изображение (PNG)',
         'captcha_enabled_login' => 'Включить капчу для входа',
         'captcha_enabled_register' => 'Включить капчу для регистрации',
         'captcha_enabled_password_reset' => 'Включить капчу для сброса пароля',

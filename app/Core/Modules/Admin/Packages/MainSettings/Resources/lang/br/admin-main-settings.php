@@ -25,6 +25,8 @@ return [
         'discord_link_roles' => 'Discord Role Linking',
         'minify' => 'Minify CSS & JS',
         'logo' => 'Logo',
+        'favicon' => 'Favicon',
+        'social_image' => 'Imagem social (PNG)',
         'bg_image' => 'Imagem de Fundo',
         'reset_password' => 'Recuperar Senha',
         'only_social' => 'Autenticação Apenas Rede Social',

@@ -34,6 +34,8 @@ class MainSettingsPackageScreen extends Screen
     public $bg_image_light;
     public $default_avatar;
     public $default_banner;
+    public $favicon;
+    public $social_image;
 
     public function mount(): void
     {
@@ -570,6 +572,22 @@ class MainSettingsPackageScreen extends Screen
                             ->defaultFile(asset(config('app.bg_image_light', '')))
                     )->label(__('admin-main-settings.labels.bg_image_light'))->small(__('admin-main-settings.examples.bg_image_light')),
                 ]),
+                LayoutFactory::columns([
+                    LayoutFactory::field(
+                        Input::make('favicon')
+                            ->type('file')
+                            ->filePond()
+                            ->accept('image/x-icon')
+                            ->defaultFile(asset('favicon.ico'))
+                    )->label(__('admin-main-settings.labels.favicon')),
+                    LayoutFactory::field(
+                        Input::make('social_image')
+                            ->type('file')
+                            ->filePond()
+                            ->accept('image/png')
+                            ->defaultFile(asset('assets/img/social-image.png'))
+                    )->label(__('admin-main-settings.labels.social_image')),
+                ]),
                 LayoutFactory::rows([
                     Button::make(__('admin-main-settings.buttons.save_flute_images'))
                         ->size('small')
@@ -628,9 +646,11 @@ class MainSettingsPackageScreen extends Screen
         $logoLightError = $this->processImageUpload('logo_light', $uploader, $uploadsDir);
         $bannerError = $this->processImageUpload('bg_image', $uploader, $uploadsDir);
         $bannerLightError = $this->processImageUpload('bg_image_light', $uploader, $uploadsDir);
+        $faviconError = $this->processFixedFileReplace('favicon', BASE_PATH . '/public/favicon.ico');
+        $socialImageError = $this->processFixedFileReplace('social_image', BASE_PATH . '/public/assets/img/social-image.png');
 
-        if ($avatarError || $logoLightError || $bannerError || $bannerLightError) {
-            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError ?? $bannerLightError, 'error');
+        if ($avatarError || $logoLightError || $bannerError || $bannerLightError || $faviconError || $socialImageError) {
+            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError ?? $bannerLightError ?? $faviconError ?? $socialImageError, 'error');
 
             return;
         }
@@ -666,6 +686,8 @@ class MainSettingsPackageScreen extends Screen
         $this->logo_light = request()->files->get('logo_light');
         $this->bg_image = request()->files->get('bg_image');
         $this->bg_image_light = request()->files->get('bg_image_light');
+        $this->favicon = request()->files->get('favicon');
+        $this->social_image = request()->files->get('social_image');
 
         $rules = [
             'logo' => $this->logo
@@ -680,6 +702,12 @@ class MainSettingsPackageScreen extends Screen
             'bg_image_light' => $this->bg_image_light
                 ? 'image|max-file-size:10240'
                 : 'nullable|image|max-file-size:10240',
+            'favicon' => $this->favicon
+                ? 'mimes:ico|max-file-size:2048'
+                : 'nullable|mimes:ico|max-file-size:2048',
+            'social_image' => $this->social_image
+                ? 'image|mimes:png|max-file-size:10240'
+                : 'nullable|image|mimes:png|max-file-size:10240',
         ];
 
         return $this->validate($rules);
@@ -697,6 +725,35 @@ class MainSettingsPackageScreen extends Screen
                 }
 
                 config()->set("app.$field", $newFile);
+
+                return null;
+            } catch (\Exception $e) {
+                return $e->getMessage();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Replace a target file in public path with the uploaded file, using a fixed filename.
+     */
+    protected function processFixedFileReplace(string $field, string $absoluteTargetPath): ?string
+    {
+        $file = $this->$field;
+        if ($file instanceof UploadedFile && $file->isValid()) {
+            try {
+                $dir = dirname($absoluteTargetPath);
+                $filesystem = fs();
+                if (!is_dir($dir)) {
+                    $filesystem->mkdir($dir, 0755);
+                }
+
+                if (file_exists($absoluteTargetPath)) {
+                    $filesystem->remove($absoluteTargetPath);
+                }
+
+                $file->move($dir, basename($absoluteTargetPath));
 
                 return null;
             } catch (\Exception $e) {

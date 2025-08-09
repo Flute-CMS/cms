@@ -40,7 +40,6 @@ use Nette\Schema\{
     Schema,
     ValidationException
 };
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Throwable;
 
@@ -51,21 +50,18 @@ class AuthenticationService
     private $userDeviceRepository = null;
     private Processor $validationProcessor;
     private ConfigurationService $config;
-    private EventDispatcherInterface $eventDispatcher;
     private FluteRequest $request;
     private SessionInterface $session;
     private CookieService $cookie;
 
     public function __construct(
         ConfigurationService $config,
-        EventDispatcherInterface $eventDispatcher,
         FluteRequest $request,
         SessionInterface $session,
         CookieService $cookie
     ) {
         $this->validationProcessor = new Processor();
         $this->config = $config;
-        $this->eventDispatcher = $eventDispatcher;
         $this->request = $request;
         $this->session = $session;
         $this->cookie = $cookie;
@@ -91,13 +87,13 @@ class AuthenticationService
 
         $user = $this->createNewUser($validationResult);
 
-        $this->eventDispatcher->dispatch(new UserRegisteringEvent($user, $credentials));
+        events()->dispatch(new UserRegisteringEvent($user, $credentials), UserRegisteringEvent::NAME);
 
         if (!$this->config->get('auth.registration.confirm_email')) {
             $this->setCurrentUser($user);
         }
 
-        $this->eventDispatcher->dispatch(new UserRegisteredEvent($user));
+        events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
         return $user;
     }
@@ -120,7 +116,7 @@ class AuthenticationService
 
         $validationResult = $this->validationProcessor->process($this->getAuthValidator(), $credentials);
 
-        $this->eventDispatcher->dispatch(new UserAuthenticatingEvent($credentials));
+        events()->dispatch(new UserAuthenticatingEvent($credentials), UserAuthenticatingEvent::NAME);
 
         $user = $this->getUserRepository()->getByEmailOrLogin($validationResult->login);
 
@@ -142,7 +138,7 @@ class AuthenticationService
 
         $this->setCurrentUser($user);
 
-        $this->eventDispatcher->dispatch(new UserLoggedInEvent($user));
+        events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 
         return $user;
     }
@@ -235,7 +231,7 @@ class AuthenticationService
 
         $this->setCurrentUser($user);
 
-        $this->eventDispatcher->dispatch(new UserLoggedInEvent($user));
+        events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 
         return $user;
     }
@@ -338,7 +334,7 @@ class AuthenticationService
         transaction($user)->run();
         transaction($verificationToken, 'delete')->run();
 
-        $this->eventDispatcher->dispatch(new UserVerifiedEvent($user));
+        events()->dispatch(new UserVerifiedEvent($user), UserVerifiedEvent::NAME);
 
         return $user;
     }
@@ -399,7 +395,7 @@ class AuthenticationService
 
         user()->clearCurrentUser();
 
-        $this->eventDispatcher->dispatch(new UserLoggedOutEvent());
+        events()->dispatch(new UserLoggedOutEvent(), UserLoggedOutEvent::NAME);
     }
 
     /**
@@ -436,7 +432,7 @@ class AuthenticationService
             throw $e;
         }
 
-        $this->eventDispatcher->dispatch(new PasswordResetRequestedEvent($user, $passwordResetToken));
+        events()->dispatch(new PasswordResetRequestedEvent($user, $passwordResetToken), PasswordResetRequestedEvent::NAME);
 
         return $passwordResetToken;
     }

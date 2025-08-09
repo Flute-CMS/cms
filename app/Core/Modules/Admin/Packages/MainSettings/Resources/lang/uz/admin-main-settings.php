@@ -26,6 +26,8 @@ return [
         'discord_link_roles' => 'Discord Rol Bogʻlanishi',
         'minify' => 'CSS va JS ni Minimallashtirish',
         'logo' => 'Logo',
+        'favicon' => 'Favicon',
+        'social_image' => 'Ijtimoiy rasm (PNG)',
         'bg_image' => 'Fon Rasmi',
         'reset_password' => 'Parolni Tiklash',
         'only_social' => 'Faqat Ijtimoiy Autentifikatsiya',

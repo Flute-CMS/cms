@@ -388,7 +388,7 @@ class SocialService implements SocialServiceInterface
 
         transaction([$user, $userSocialNetwork])->run();
 
-        events()->dispatch(new UserRegisteredEvent($user));
+        events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
         if ($socialNetwork->key === "Discord") {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);

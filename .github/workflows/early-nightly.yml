@@ -134,8 +134,7 @@ jobs:
           ### Installation
           1. Download \`$ARCHIVE_NAME\`
           2. Extract to your web server
-          3. Run \`php flute migrate\` to apply database changes
-          4. Clear cache if upgrading
+          3. Clear cache
           
           ### Support
           - Report issues: [GitHub Issues](https://github.com/Flute-CMS/cms/issues)

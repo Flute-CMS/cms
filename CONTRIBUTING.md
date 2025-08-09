@@ -39,12 +39,6 @@ cd cms
 
 # Install dependencies
 composer install
-
-# Install development tools
-composer require --dev friendsofphp/php-cs-fixer
-
-# Set up database
-php flute migrate
 ```
 
 ### 2. Making Changes
@@ -65,9 +59,6 @@ php flute migrate
 
    # Run static analysis
    vendor/bin/phpstan analyse
-
-   # Test migration (if applicable)
-   php flute migrate:status
    ```
 
 4. **Commit and push**:
