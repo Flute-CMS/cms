@@ -27,12 +27,12 @@ class Parser
     {
         $markdown = preg_replace_callback(
             '/\{\{\s*__\([\'\"]([^\'\"]+)[\'\"]\)\s*\}\}/',
-            fn($m) => __($m[1]),
+            fn ($m) => __($m[1]),
             $markdown
         );
         $markdown = preg_replace_callback(
             '/\[\[trans:([a-zA-Z0-9_.-]+)]]/',
-            fn($m) => __($m[1]),
+            fn ($m) => __($m[1]),
             $markdown
         );
 
@@ -44,6 +44,7 @@ class Parser
 
         $html = $this->converter->text($markdown);
         $html = str_replace('[[MD_BREAK_2]]', '<br><br>', $html);
+
         return $html;
     }
 }

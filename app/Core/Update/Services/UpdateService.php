@@ -170,6 +170,7 @@ class UpdateService
         if ($this->useMockData) {
             return $this->parseMarkdownChangelogs($this->buildMockData());
         }
+
         try {
             $client = new Client(['timeout' => 10, 'verify' => !config('app.debug')]);
             $apiKey = config('app.flute_key');

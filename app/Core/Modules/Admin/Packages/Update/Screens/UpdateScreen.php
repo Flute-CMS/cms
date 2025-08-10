@@ -2,10 +2,8 @@
 
 namespace Flute\Admin\Packages\Update\Screens;
 
-use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
-use Flute\Admin\Platform\Support\Color;
 use Flute\Core\App;
 use Flute\Core\Database\Entities\Theme;
 use Flute\Core\ModulesManager\ModuleManager;
