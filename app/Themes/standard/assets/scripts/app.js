@@ -211,6 +211,14 @@ class FluteApp {
         htmx.on('htmx:sendError', (e) => this.handleNProgress(e, 'done'));
         htmx.on('htmx:historyRestore', NProgress.remove);
 
+        const ensureScrollUnlocked = () => {
+            document.body.classList.remove('no-scroll');
+        };
+        htmx.on('htmx:beforeSwap', ensureScrollUnlocked);
+        htmx.on('htmx:afterSwap', ensureScrollUnlocked);
+        htmx.on('htmx:afterSettle', ensureScrollUnlocked);
+        htmx.on('htmx:historyRestore', ensureScrollUnlocked);
+
         // Modal duplication prevention
         htmx.on('htmx:beforeSwap', (event) => {
             const incomingHTML = event.detail.xhr.response;

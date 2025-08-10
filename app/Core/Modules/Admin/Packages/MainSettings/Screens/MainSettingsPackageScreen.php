@@ -577,7 +577,8 @@ class MainSettingsPackageScreen extends Screen
                         Input::make('favicon')
                             ->type('file')
                             ->filePond()
-                            ->accept('image/x-icon')
+                            // Accept common ico MIME types and extension for better browser compatibility
+                            ->accept('image/x-icon, image/vnd.microsoft.icon, .ico')
                             ->defaultFile(asset('favicon.ico'))
                     )->label(__('admin-main-settings.labels.favicon')),
                     LayoutFactory::field(

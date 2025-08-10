@@ -1,18 +1,19 @@
 [data-dropdown] {
+    background-color: var(--blurred-background);
+    backdrop-filter: saturate(150%) blur(14px);
     visibility: hidden;
     opacity: 0;
     position: absolute;
     @include transition(all);
     transform-origin: top center;
-    transform: translateY(8px);
+    transform: translateY(6px);
     z-index: 1000;
     display: none;
-    background-color: var(--background-900);
     border-radius: var(--border1);
     border: 1px solid var(--transp-1);
-    padding: 5px;
-    min-width: 170px;
-    animation: animDropdownOut 0.2s cubic-bezier(0.5, 0, 0.15, 1) forwards;
+    padding: 6px;
+    min-width: 200px;
+    animation: animDropdownOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     display: none;
     overflow: hidden;
 
@@ -27,13 +28,13 @@
         flex-direction: row;
         gap: 10px;
         align-items: center;
-        padding: 6px 10px;
+        padding: 8px 12px;
         border-radius: var(--border05);
         @include transition(all);
         opacity: 0;
-        transform: translateX(-4px);
-        animation: animDropdownItems 0.3s ease forwards;
-        animation-delay: calc(var(--item-index, 0) * 0.03s);
+        transform: translateX(-6px);
+        animation: animDropdownItems 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: calc(var(--item-index, 0) * 0.04s);
 
         &:hover {
             background-color: var(--transp-1);
@@ -43,7 +44,7 @@
     &.active {
         opacity: 1;
         visibility: visible;
-        animation: animDropdown 0.25s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: animDropdown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         display: flex;
     }
 
@@ -126,7 +127,6 @@
         opacity: 0;
         transform: rotate(45deg) scale(0.8);
     }
-
     100% {
         opacity: 1;
         transform: rotate(45deg) scale(1);

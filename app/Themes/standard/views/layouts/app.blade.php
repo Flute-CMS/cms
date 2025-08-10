@@ -67,6 +67,13 @@
 
         // --- HX Detect ---
         $isPartialRequest = request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted();
+
+        // --- Theme colors ---
+        $__colors = app('flute.view.manager')->getColors();
+        $lightThemeBg = $__colors['light']['--background'] ?? '#ffffff';
+        $darkThemeBg = $__colors['dark']['--background'] ?? '#1c1c1e';
+        $currentTheme = config('app.change_theme', true) ? cookie()->get('theme', config('app.default_theme', 'dark')) : config('app.default_theme', 'dark');
+        $currentThemeBg = $currentTheme === 'light' ? $lightThemeBg : $darkThemeBg;
     @endphp
     <title>
         {{ $_final_title }}
@@ -87,6 +94,17 @@
     <meta name="keywords" content="{{ $_final_keywords }}">
     <meta name="robots" content="{{ $_final_robots }}">
     <meta name="author" content="Flames">
+    <meta name="application-name" content="{{ config('app.name') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="dark light">
+    <meta name="supported-color-schemes" content="dark light">
+    <meta name="msapplication-TileColor" content="{{ $currentThemeBg }}">
+    <meta name="msapplication-navbutton-color" content="{{ $currentThemeBg }}">
+    <meta name="theme-color" id="theme-color-meta" content="{{ $currentThemeBg }}">
+    <meta name="theme-color" content="{{ $lightThemeBg }}" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="{{ $darkThemeBg }}" media="(prefers-color-scheme: dark)">
 
     <meta property="og:title" content="{{ $_final_title }}">
     <meta property="og:description" content="{{ $_final_description }}">
@@ -187,6 +205,25 @@
     @endif
 
     @include('flute::partials.colors')
+
+    <script>
+    (function(){
+        function updateThemeColor(){
+            var m=document.querySelector('meta[name="theme-color"]#theme-color-meta');
+            if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');m.id='theme-color-meta';document.head.appendChild(m)}
+            var bg=getComputedStyle(document.documentElement).getPropertyValue('--background').trim()||'{{ $currentThemeBg }}';
+            m.setAttribute('content',bg);
+            var ms1=document.querySelector('meta[name="msapplication-TileColor"]');
+            if(ms1){ms1.setAttribute('content',bg)}
+            var ms2=document.querySelector('meta[name="msapplication-navbutton-color"]');
+            if(ms2){ms2.setAttribute('content',bg)}
+        }
+        document.addEventListener('DOMContentLoaded', updateThemeColor);
+        var o=new MutationObserver(updateThemeColor);
+        o.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+        window.addEventListener('flute:theme-changed', updateThemeColor);
+    })();
+    </script>
 </head>
 
 <body hx-ext="head-support, loading-states, morph, response-targets" hx-history="false"

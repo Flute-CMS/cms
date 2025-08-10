@@ -121,10 +121,10 @@ class PaymentInvoiceScreen extends Screen
             ]),
 
             LayoutFactory::table('invoices', [
-                TD::make('id', __('admin-payment.table.id'))
-                    ->sort()
-                    ->render(fn (PaymentInvoice $invoice) => $invoice->id)
-                    ->width('80px'),
+                // TD::make('id', __('admin-payment.table.id'))
+                //     ->sort()
+                //     ->render(fn (PaymentInvoice $invoice) => $invoice->id)
+                //     ->width('80px'),
 
                 TD::make('user_id', __('admin-payment.table.user'))
                     ->sort()
@@ -140,7 +140,7 @@ class PaymentInvoiceScreen extends Screen
                     ->width('200px'),
 
                 TD::make('amount', __('admin-payment.table.amount'))
-                    ->render(fn (PaymentInvoice $invoice) => number_format($invoice->originalAmount, 2) . ' ' . config('payment.currency'))
+                    ->render(fn (PaymentInvoice $invoice) => number_format($invoice->originalAmount, 2) . ' ' . $invoice->currency->code)
                     ->width('150px'),
 
                 TD::make('isPaid', __('admin-payment.table.status'))

@@ -67,4 +67,11 @@ return [
         'system' => 'System',
         'payments' => 'Payments',
     ],
+
+    'ioncube' => [
+        'perf_title' => 'Do this to significantly boost performance',
+        'perf_desc' => 'ionCube scans module code on every request. Specify the full modules directory path in encoded_paths to avoid unnecessary scanning and speed up the panel and site.',
+        'ini_title' => 'Line for php.ini',
+        'ini_note' => 'Add (or update) in php.ini:',
+    ],
 ];

@@ -3,7 +3,6 @@
 
     .tabs-nav {
         @extend .flex-row;
-        @extend .blur-bg;
 
         flex-wrap: wrap;
         z-index: 10;
@@ -17,6 +16,7 @@
         border-bottom: 1px solid var(--transp-1);
 
         .tab-item {
+            @extend .blur-bg;
             position: relative;
 
             a {

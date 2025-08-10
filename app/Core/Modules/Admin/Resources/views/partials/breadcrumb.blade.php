@@ -1,5 +1,5 @@
 <nav class="breadcrumb" hx-swap-oob="innerHTML:#breadcrumb-container">
-    <ul class="breadcrumb-links" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+    <ul class="breadcrumb-links" hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
         @foreach (breadcrumb()->all() as $index => $crumb)
             <li>
                 @if ($index > 0)

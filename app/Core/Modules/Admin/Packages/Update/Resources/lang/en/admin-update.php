@@ -54,4 +54,10 @@ return [
     'update_all_confirm' => 'Are you sure you want to update all available components? A backup will be created before proceeding.',
     'update_all_complete' => 'All updates installed successfully',
     'update_all_preparing' => 'Preparing bulk update...',
+    'select_item' => 'Select an item to view details',
+    'also_available' => 'Also available',
+    'more_info' => 'More info',
+    'update_channel' => 'Update channel',
+    'channel_stable' => 'Stable',
+    'channel_early' => 'Early',
 ];

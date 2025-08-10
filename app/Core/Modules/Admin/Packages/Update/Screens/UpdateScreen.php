@@ -33,6 +33,13 @@ class UpdateScreen extends Screen
             ->add(__('admin-update.title'));
 
         $this->updateService = app(UpdateService::class);
+        $savedChannel = config('app.update_channel', 'stable');
+        $channel = request()->get('channel') ?? $savedChannel;
+        $this->updateService->setChannel($channel);
+
+        if (request()->get('mock') === '1') {
+            $this->updateService->enableMockData(true);
+        }
     }
 
     /**
@@ -45,16 +52,12 @@ class UpdateScreen extends Screen
         return [
             LayoutFactory::view('admin-update::components.javascript'),
 
-            LayoutFactory::view('admin-update::layouts.cms-update', [
+            LayoutFactory::view('admin-update::layouts.update-center', [
                 'current_version' => App::VERSION,
                 'update' => $updates['cms'] ?? null,
                 'modules' => $updates['modules'] ?? [],
                 'themes' => $updates['themes'] ?? [],
-            ])->setVisible(!empty($updates['cms']) || !empty($updates['modules']) || !empty($updates['themes'])),
-
-            LayoutFactory::view('admin-update::components.no-updates')->setVisible(
-                empty($updates['cms']) && empty($updates['modules']) && empty($updates['themes'])
-            ),
+            ]),
         ];
     }
 
@@ -63,25 +66,7 @@ class UpdateScreen extends Screen
      */
     public function commandBar(): array
     {
-        $updates = $this->updateService->getAvailableUpdates();
-        $hasUpdates = !empty($updates['cms']) || !empty($updates['modules']) || !empty($updates['themes']);
-
-        $commands = [
-            Button::make(__('admin-update.check_updates'))
-                ->icon('ph.bold.arrows-clockwise-bold')
-                ->method('handleCheckUpdates'),
-        ];
-
-        if ($hasUpdates) {
-            $commands[] = Button::make(__('admin-update.update_all'))
-                ->icon('ph.bold.arrow-circle-up-bold')
-                ->method('handleUpdateAll')
-                ->confirm(__('admin-update.update_all_confirm'))
-                ->confirmType('success')
-                ->type(Color::ACCENT);
-        }
-
-        return $commands;
+        return [];
     }
 
     /**
@@ -92,6 +77,20 @@ class UpdateScreen extends Screen
         $this->updateService->clearCache();
         $this->updateService->getAvailableUpdates(true);
 
+        $this->flashMessage(__('admin-update.check_complete'));
+    }
+
+    public function switchChannel(): void
+    {
+        $data = request()->all();
+        $channel = in_array(($data['channel'] ?? ''), ['stable', 'early'], true) ? $data['channel'] : 'stable';
+        $currentAppConfig = config('app');
+        $currentAppConfig['update_channel'] = $channel;
+        config()->set('app', $currentAppConfig);
+        config()->save();
+        $this->updateService->setChannel($channel);
+        $this->updateService->clearCache();
+        $this->updateService->getAvailableUpdates(true);
         $this->flashMessage(__('admin-update.check_complete'));
     }
 

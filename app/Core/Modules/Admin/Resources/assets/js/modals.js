@@ -86,6 +86,16 @@ document.body.addEventListener('htmx:afterSwap', (evt) => {
     initializeA11yDialog(evt.target);
 });
 
+document.body.addEventListener('htmx:beforeSwap', () => {
+    unlockBodyScroll();
+});
+document.body.addEventListener('htmx:afterSwap', () => {
+    unlockBodyScroll();
+});
+document.body.addEventListener('htmx:historyRestore', () => {
+    unlockBodyScroll();
+});
+
 document.addEventListener('click', (event) => {
     const hideElements = event.target.closest('[data-a11y-dialog-hide]');
     if (!hideElements) return;

@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', handleDocumentClick);
 });
 
-document.body.addEventListener('htmx:afterSwap', (event) => {
+document.body.addEventListener('htmx:afterSettle', (event) => {
     initializeDropdowns();
 
     if (event.detail.target.id.toLowerCase() === 'main') {

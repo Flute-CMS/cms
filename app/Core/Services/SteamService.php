@@ -84,7 +84,7 @@ class SteamService
 
         $deferred = new \React\Promise\Deferred();
         self::$deferreds[$steam64] = $deferred;
-        self::$pendingSteamIds[] = $steam64;
+        self::$collectedSteamIds[] = $steam64;
 
         if (!self::$isBatchScheduled) {
             self::$isBatchScheduled = true;
@@ -119,6 +119,7 @@ class SteamService
 
                 $data = json_decode($response->getBody(), true);
 
+                $playersData = [];
                 if (isset($data['response']['players'])) {
                     foreach ($data['response']['players'] as $player) {
                         $steamId = $player['steamid'];
@@ -126,14 +127,22 @@ class SteamService
 
                         $userInfo = [
                             'steamid' => $steamId,
-                            'name' => $player['personaname'] ?? '',
-                            'avatar' => $player['avatarfull'] ?? '',
+                            'name' => $player['personaname'] ?? ($player['personaname'] ?? ''),
+                            'avatar' => $player['avatarfull'] ?? ($player['avatar'] ?? ''),
                             'profile' => $player['profileurl'] ?? '',
                         ];
 
                         cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
                         cache()->set("steam_user_info_{$normalizedId}", $userInfo, $this->cacheDuration);
+                        $playersData[$normalizedId] = $userInfo;
                     }
+                }
+
+                foreach (self::$deferreds as $id64 => $deferred) {
+                    $norm = $this->normalizeSteamId((string)$id64);
+                    $info = $playersData[$norm] ?? cache()->get("steam_user_{$norm}") ?? [];
+                    $deferred->resolve($info);
+                    unset(self::$deferreds[$id64]);
                 }
             } catch (\Exception $e) {
                 logs()->error('Steam API Batch Request Failed: '.$e->getMessage());

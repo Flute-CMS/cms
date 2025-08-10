@@ -1,0 +1,88 @@
+.metrics {
+    margin-bottom: 1rem;
+
+    &__title {
+        margin-bottom: 0.5rem;
+        padding: 0 1.3rem;
+        color: var(--text);
+        font-weight: 600;
+        font-size: var(--h4);
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    &__item { min-width: 0; }
+}
+
+.metric {
+    @extend .blur-bg;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.3rem;
+    height: 100%;
+    background-color: var(--transp-05);
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border1);
+    overflow: hidden;
+    transition: transform var(--transition), background-color var(--transition);
+
+    &:hover { transform: translateY(-1px); }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        margin-bottom: .5rem;
+    }
+
+    &__icon { @extend .flex-center; font-size: var(--h6); transition: transform var(--transition); }
+    &__icon-svg { color: var(--text-200); transition: color var(--transition); }
+
+    &__label { font-size: var(--p-small); color: var(--text-500); }
+
+    &__content { margin-top: auto; position: relative; z-index: 1; }
+
+    &__main { display: flex; align-items: flex-end; gap: .6rem; flex-wrap: wrap; }
+
+    &__value { font-size: var(--h3); font-weight: 600; letter-spacing: -0.02em; }
+    &__value-prefix, &__value-suffix { color: var(--text-500); font-weight: 500; }
+
+    &__trend {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        font-size: var(--small);
+        font-weight: 600;
+        padding: .2rem .4rem;
+        border-radius: 6px;
+
+        &--up { color: var(--success); background: var(--success-light); }
+        &--down { color: var(--error); background: var(--error-light); }
+    }
+
+    &__trend-icon { width: 1rem; height: 1rem; }
+
+    &__progress { margin-top: .6rem; width: 100%; height: 6px; background: var(--transp-1); border-radius: 999px; overflow: hidden; }
+    &__progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-700), var(--accent)); }
+
+    &__hint { margin-top: .5rem; color: var(--text-500); font-size: var(--p-small); }
+
+    &__extra { margin-top: .5rem; }
+}
+
+@media (max-width: 768px) {
+    .metrics {
+        &__grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; }
+    }
+
+    .metric {
+        padding: 1rem;
+    }
+}
+
+

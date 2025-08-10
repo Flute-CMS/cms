@@ -13,12 +13,24 @@
             width: 70px;
 
             .sidebar__logo:not(.sidebar__logo-collapsed),
-            .sidebar__menu-item.sub-menu>a::after,
             .sidebar__toggle,
-            .menu-title,
-            .menu-suffix,
             footer {
                 display: none;
+            }
+
+            .menu-title,
+            .menu-suffix {
+                max-width: 0;
+                opacity: 0;
+                pointer-events: none;
+                flex: 0 0 0;
+            }
+
+            .sidebar__menu-item.sub-menu > a::after {
+                opacity: 0;
+                content: none;
+                width: 0;
+                margin: 0;
             }
 
             footer {
@@ -44,13 +56,19 @@
 
             .menu-item {
                 height: 47px;
+                justify-content: center;
+                gap: 0;
 
                 .badge {
                     display: none;
                 }
 
                 .menu-icon {
-                    font-size: var(--h5);
+                    font-size: var(--h4);
+                    margin: 0 auto;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
                 }
             }
 
@@ -87,6 +105,24 @@
     }
 
     &__logo {
+        @extend .flex-center, .flex-row;
+        gap: 0.5rem;
+        align-items: center;
+
+        p {
+            font-size: var(--p);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            text-transform: uppercase;
+            text-align: left;
+            margin: 0;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         &-collapsed {
             display: none;
             opacity: 0;
@@ -96,6 +132,7 @@
         img {
             max-height: 30px;
             max-width: none;
+            flex-shrink: 0;
         }
 
         &:hover {
@@ -252,6 +289,14 @@
             margin: 1rem;
         }
     }
+
+    &__logo-dark { display: flex; }
+    &__logo-light { display: none; }
+
+    html[data-theme="light"] & {
+        .sidebar__logo-dark { display: none; }
+        .sidebar__logo-light { display: flex; }
+    }
 }
 
 .hamburger {
@@ -270,17 +315,20 @@
 
 .menu {
     &-item {
-        @extend .d-flex, .align-center, .flex-center;
+        @extend .d-flex, .align-center;
+        justify-content: flex-start;
 
         margin: 0px 10px;
         padding: 7px 13px;
         gap: 0.7rem;
-        transition: var(--transition);
+        transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
         border-radius: 6px;
         letter-spacing: 0.2px;
         font-size: var(--p-small);
         min-height: 39px;
         opacity: 0.9;
+        will-change: transform, opacity, background-color;
+        width: auto;
 
         svg {
             opacity: 0.6;
@@ -310,6 +358,14 @@
     &-title {
         flex-grow: 1;
         line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+        transition: max-width 0.25s cubic-bezier(0.25, 0.75, 0.5, 1),
+            opacity 0.2s ease,
+            transform 0.2s ease;
+        will-change: max-width, opacity, transform;
     }
 
     &-icon {
@@ -319,9 +375,18 @@
         min-width: 16px;
 
         @include transition();
+        transition-property: transform, opacity, color;
+        will-change: transform, opacity;
     }
 
-    &-suffix {}
+    &-suffix {
+        display: inline-flex;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 120px;
+        transition: max-width 0.25s cubic-bezier(0.25, 0.75, 0.5, 1), opacity 0.2s ease, transform 0.2s ease;
+        will-change: max-width, opacity, transform;
+    }
 
     &-sub {
         opacity: 0;
@@ -332,9 +397,9 @@
 
         &.open {
             margin-bottom: 3px;
+            animation: submenuReveal 0.22s cubic-bezier(0.25, 0.75, 0.5, 1) both;
         }
 
-        ul {}
     }
 }
 
@@ -365,5 +430,27 @@ body.sidebar-collapsed {
             height: auto;
             margin: 0;
         }
+    }
+}
+
+@keyframes submenuReveal {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scaleY(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+    }
+}
+
+.cloned-menu-sub {
+    opacity: 0;
+    transform: translateX(-6px) scale(0.98);
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.25, 0.75, 0.5, 1);
+
+    &.open {
+        opacity: 1;
+        transform: translateX(0) scale(1);
     }
 }

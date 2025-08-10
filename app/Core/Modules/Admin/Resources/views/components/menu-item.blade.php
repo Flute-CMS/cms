@@ -15,7 +15,7 @@
         </a>
         @if (! empty($item['children']))
             <div class="menu-sub">
-                <ul hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+                <ul hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
                     @foreach ($item['children'] as $child)
                         <x-menu-item :item="$child" />
                     @endforeach

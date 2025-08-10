@@ -129,13 +129,11 @@ $(document).ready(function () {
 
         if ($parentItem.hasClass('open')) {
             if (isCollapsed) {
-                $submenu.stop(true, true).animate(
-                    {
-                        opacity: 0,
-                    },
-                    200,
-                    'swing',
-                    function () {
+                var $clone = $('.cloned-menu-sub');
+                if ($clone.length) {
+                    $clone.removeClass('open');
+                    setTimeout(function () {
+                        $clone.remove();
                         $submenu.removeClass('open').hide().css({
                             opacity: '',
                             position: '',
@@ -144,10 +142,12 @@ $(document).ready(function () {
                             width: '',
                             zIndex: '',
                         });
-                        $('.cloned-menu-sub').remove();
                         $parentItem.removeClass('open');
-                    },
-                );
+                    }, 220);
+                } else {
+                    $submenu.hide();
+                    $parentItem.removeClass('open');
+                }
             } else {
                 $submenu.stop(true, true).animate(
                     {
@@ -184,7 +184,8 @@ $(document).ready(function () {
                     height: 'auto',
                 });
                 positionSubmenu($menuItem, $clone);
-                $clone.animate({ opacity: 1 }, 200, 'swing', function () {
+                // Use CSS transitions for richer animation
+                requestAnimationFrame(() => {
                     $clone.addClass('open');
                     $parentItem.addClass('open');
                 });

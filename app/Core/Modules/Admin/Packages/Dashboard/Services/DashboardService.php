@@ -96,22 +96,21 @@ class DashboardService
             }
         }
 
-        // Calculate percentage differences
         $totalUsersDiff = $totalUsersYesterday > 0
-            ? (($totalUsers - $totalUsersYesterday) / $totalUsersYesterday) * 100
-            : 100;
+            ? (($totalUsers - $totalUsersYesterday) / max($totalUsersYesterday, 1)) * 100
+            : ($totalUsers > 0 ? 0 : 0);
 
         $activeUsersDiff = $activeUsersYesterday > 0
-            ? (($activeUsers - $activeUsersYesterday) / $activeUsersYesterday) * 100
-            : ($activeUsers > 0 ? 100 : 0);
+            ? (($activeUsers - $activeUsersYesterday) / max($activeUsersYesterday, 1)) * 100
+            : 0;
 
         $onlineUsersDiff = $onlineUsersLastWeek > 0
-            ? (($onlineUsers - $onlineUsersLastWeek) / $onlineUsersLastWeek) * 100
-            : ($onlineUsers > 0 ? 100 : 0);
+            ? (($onlineUsers - $onlineUsersLastWeek) / max($onlineUsersLastWeek, 1)) * 100
+            : 0;
 
         $newUsersDiff = $newUsersYesterday > 0
-            ? (($newUsersToday - $newUsersYesterday) / $newUsersYesterday) * 100
-            : ($newUsersToday > 0 ? 100 : 0);
+            ? (($newUsersToday - $newUsersYesterday) / max($newUsersYesterday, 1)) * 100
+            : 0;
 
         return [
             'total_users' => [
@@ -322,20 +321,20 @@ class DashboardService
 
         // Calculate percentage differences
         $revenueDiff = $yesterdayRevenue > 0
-            ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100
-            : ($todayRevenue > 0 ? 100 : 0);
+            ? (($todayRevenue - $yesterdayRevenue) / max($yesterdayRevenue, 1)) * 100
+            : 0;
 
         $monthlyRevenueDiff = $lastMonthRevenue > 0
-            ? (($totalRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100
-            : 100;
+            ? (($totalRevenue - $lastMonthRevenue) / max($lastMonthRevenue, 1)) * 100
+            : 0;
 
         $paymentsDiff = $yesterdayPayments > 0
-            ? (($successfulPayments - $yesterdayPayments) / $yesterdayPayments) * 100
-            : ($successfulPayments > 0 ? 100 : 0);
+            ? (($successfulPayments - $yesterdayPayments) / max($yesterdayPayments, 1)) * 100
+            : 0;
 
         $promoUsageDiff = $lastMonthPromoUsage > 0
-            ? (($promoUsage - $lastMonthPromoUsage) / $lastMonthPromoUsage) * 100
-            : ($promoUsage > 0 ? 100 : 0);
+            ? (($promoUsage - $lastMonthPromoUsage) / max($lastMonthPromoUsage, 1)) * 100
+            : 0;
 
         return [
             'total_revenue' => [

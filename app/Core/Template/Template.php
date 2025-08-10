@@ -653,7 +653,9 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             return "<?php echo asset($expression); ?>";
         });
 
-
+        $this->blade->directive('lang', function ($expression) {
+            return "<?php echo __($expression); ?>";
+        });
 
         $this->addGlobal('app', app());
 

@@ -12,6 +12,8 @@ class DashboardPackage extends AbstractAdminPackage
 
         $this->loadRoutesFromFile('routes.php');
 
+        $this->loadViews('Resources/views', 'admin-dashboard');
+
         $this->loadTranslations('Resources/lang');
 
         $this->registerScss('Resources/assets/scss/dashboard.scss');
