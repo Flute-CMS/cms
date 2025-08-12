@@ -132,11 +132,9 @@ app/Modules/YourModule/
 
 ### Module Guidelines
 
-- Use **Cycle ORM** for database operations [[memory:2991515]]
 - Define routes via **annotations** instead of separate route files
 - Use the **`<x-icon>`** component for icons
 - Avoid unnecessary code comments
-- Follow the minimalistic, Apple-style UI approach [[memory:2995457]]
 
 ## 🔄 Release Process
 
