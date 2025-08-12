@@ -86,7 +86,7 @@ return [
         "keywords_help"      => "Separe as palavras-chave com vírgulas (por exemplo, games, servers, Flute)",
         "url"                => "URL do Site",
         "url_help"           => "URL completa do seu site, incluindo http:// ou https://",
-        "timezone"           => "Fuso horário",
+        "timezone"           => "Fuso Horário",
         "footer_description" => "Descrição do rodapé",
         "footer_help"        => "Texto opcional para exibir no rodapé do site",
         "tab_basics"         => "Configurações",
