@@ -54,8 +54,4 @@
     "clear_promo"             => "Limpar código promocional",
     "optional"                => "opcional",
     "summary_empty"           => "Insira um valor para ver os detalhes do pagamento",
-    "promo_minimum_amount"    => "Código promocional requer valor mínimo de :amount :currency",
-    "promo_role_not_allowed"  => "Você não tem permissão para usar este código promocional",
-    "promo_user_limit"        => "Você atingiu o limite de uso para este código promocional",
-    "promo_invalid_type"      => "Tipo de código promocional inválido",
 ];
