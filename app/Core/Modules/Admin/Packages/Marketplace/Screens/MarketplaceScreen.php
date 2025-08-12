@@ -97,6 +97,8 @@ class MarketplaceScreen extends Screen
         $this->marketplaceService = app(MarketplaceService::class);
         $this->moduleManager = app(ModuleManager::class);
 
+        $this->loadJS('Resources/assets/js/marketplace.js');
+
         // $this->categories = $this->getCategories();
 
         $this->loadModules();
