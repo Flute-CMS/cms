@@ -599,6 +599,7 @@ class AuthenticationService
     protected function setCurrentUser(User $user): void
     {
         $this->session->set('user_id', $user->id);
+        $this->session->set('just_logged_in_at', time());
 
         user()->setCurrentUser($user);
     }

@@ -49,9 +49,25 @@ class WidgetManager
         }
 
         if (isset($this->widgets[$name])) {
-            throw new InvalidArgumentException("Widget already exists - {$name}");
+            if ($this->widgets[$name] !== $class) {
+                throw new InvalidArgumentException("Widget already exists - {$name}");
+            }
         }
+
         $this->widgets[$name] = $class;
+
+        $base = preg_replace('/Widget$/', '', $name);
+        if ($base && !isset($this->widgets[$base])) {
+            $this->widgets[$base] = $class;
+        }
+        $kebab = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $base));
+        if ($kebab && !isset($this->widgets[$kebab])) {
+            $this->widgets[$kebab] = $class;
+        }
+        $kebabUcFirst = ucfirst($kebab);
+        if ($kebabUcFirst && !isset($this->widgets[$kebabUcFirst])) {
+            $this->widgets[$kebabUcFirst] = $class;
+        }
     }
 
     /**
@@ -60,7 +76,14 @@ class WidgetManager
     public function getWidgets(): array
     {
         $instances = [];
+        $seenClasses = [];
+
         foreach ($this->widgets as $name => $class) {
+            if (isset($seenClasses[$class])) {
+                continue;
+            }
+
+            $seenClasses[$class] = true;
 
             $instance = $this->container->get($class);
 

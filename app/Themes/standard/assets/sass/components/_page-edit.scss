@@ -34,14 +34,21 @@ body.page-edit-mode {
         width: 100%;
         min-height: 100px;
         height: 100%;
-        background: var(--secondary);
+        background: linear-gradient(90deg, var(--secondary) 25%, rgba(255, 255, 255, 0.06) 37%, var(--secondary) 63%);
+        background-size: 400% 100%;
         border-radius: var(--border-radius-small);
+        animation: page-edit-skeleton-shimmer 1.2s ease-in-out infinite;
 
         &.widget-setting-loading {
             display: flex;
             height: 100px;
             margin-bottom: 1rem;
         }
+    }
+
+    @keyframes page-edit-skeleton-shimmer {
+        0% { background-position: 100% 0; }
+        100% { background-position: 0 0; }
     }
 
     &-nav {
@@ -133,7 +140,7 @@ body.page-edit-mode {
 
     &-widgets {
         transform: translate(-50%, calc(100% + 30px));
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .25s ease;
         opacity: 0;
         z-index: 1000;
         position: fixed;
@@ -291,6 +298,7 @@ body.page-edit-mode {
                     &.active {
                         display: block;
                         opacity: 1;
+                        transform: translate(-50%, 0);
                     }
 
                     .page-edit-widgets-list {
@@ -306,7 +314,7 @@ body.page-edit-mode {
                             border-radius: 16px;
                             padding: 0.75rem 0.5rem;
                             min-height: 100px;
-                            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
                             border: 1px solid var(--transp-1);
                             height: auto;
                             display: flex;
@@ -403,10 +411,12 @@ body.page-edit-mode {
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 animation: shine 1s linear infinite;
+                position: relative;
+                opacity: 1;
 
                 svg {
-                    background-clip: inherit;
-                    background: inherit;
+                    position: relative;
+                    z-index: 1;
                 }
 
                 @keyframes shine {
@@ -472,6 +482,11 @@ body.page-edit-mode {
         border-radius: var(--border05);
         min-height: 100px;
 
+        &.widget-dropping {
+            transform: scale(0.98);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
         &[data-widget-name="Content"],
         &[data-system-widget="true"] {
             padding: var(--space-md);
@@ -524,6 +539,10 @@ body.page-edit-mode {
             &::before {
                 opacity: 0.5;
             }
+            .widget-toolbar {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
         }
 
         &.grid-stack-placeholder {
@@ -550,11 +569,13 @@ body.page-edit-mode {
     padding: 3px;
     bottom: -25px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, 6px);
     z-index: 100;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity .2s ease, transform .25s ease;
 
     &::after {
         content: '';
@@ -592,9 +613,7 @@ body.page-edit-mode {
         background: var(--transp-1);
     }
 
-    &:active {
-        transform: translateY(0);
-    }
+    &:active { transform: translateY(0) scale(0.98); }
 }
 
 .page-widgets {
@@ -655,6 +674,19 @@ body.page-edit-mode {
         opacity: 0.5;
     }
 }
+
+/* Save button progress */
+.page-edit-save {
+    &.saving { pointer-events: none; }
+    .btn-spinner {
+        width: 16px; height: 16px; border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, .35);
+        border-top-color: #fff; display: inline-block; margin-right: .5rem;
+        animation: btn-spin .8s linear infinite; vertical-align: -3px;
+    }
+}
+
+@keyframes btn-spin { to { transform: rotate(360deg); } }
 
 .page-edit-onboarding {
     position: fixed;
@@ -799,6 +831,23 @@ body.page-edit-mode {
             }
         }
     }
+
+    @keyframes scaleIn {
+        0% { transform: scale(.98); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        0% { transform: translateY(10px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+}
+
+.widget-error,
+.widget-action-error {
+    border-radius: var(--border05);
+    padding: .5rem .75rem;
+    font-size: var(--p-small);
 }
 
 @keyframes fadeInUp {

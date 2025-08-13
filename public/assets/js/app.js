@@ -189,7 +189,7 @@ async function batchTranslate(elements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Csrf-Token': csrfToken,
+                'X-CSRF-Token': csrfToken,
             },
             body: JSON.stringify({
                 translations: translationsNeeded.map(
@@ -402,12 +402,28 @@ function replacePlaceholder(placeholderId, text) {
     let placeholderElements = document.querySelectorAll(
         `[data-replaceplaceholder="${placeholderId}"]`,
     );
-    if (placeholderElements) {
-        placeholderElements.forEach((element) => {
-            let textNode = document.createTextNode(text);
+    if (!placeholderElements || placeholderElements.length === 0) return;
+
+    placeholderElements.forEach((element) => {
+        try {
+            const attrTarget = element.getAttribute('data-translate-attribute');
+            if (attrTarget) {
+                const targetEl = element.parentElement || element;
+                if (targetEl && typeof targetEl.setAttribute === 'function') {
+                    targetEl.setAttribute(attrTarget, text);
+                }
+                element.remove();
+                return;
+            }
+
+            const textNode = document.createTextNode(text);
             element.parentNode.replaceChild(textNode, element);
-        });
-    }
+        } catch (e) {
+            try {
+                element.remove();
+            } catch (_) {}
+        }
+    });
 }
 
 function copyToClipboard(text) {

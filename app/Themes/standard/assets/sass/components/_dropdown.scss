@@ -7,7 +7,7 @@
     @include transition(all);
     transform-origin: top center;
     transform: translateY(6px);
-    z-index: 1000;
+    z-index: 10001;
     display: none;
     border-radius: var(--border1);
     border: 1px solid var(--transp-1);

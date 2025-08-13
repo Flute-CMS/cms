@@ -49,26 +49,24 @@ class ModulesController extends BaseController
     public function installModule(FluteRequest $request)
     {
         try {
-            // Check if file was uploaded
-            if (!isset($_FILES['module_archive']) || $_FILES['module_archive']['error'] !== UPLOAD_ERR_OK) {
+            $uploadedFile = $request->files->get('module_archive');
+            if (!$uploadedFile || !$uploadedFile->isValid()) {
                 return $this->error(__('admin-modules.dropzone.errors.no_file'), 400);
             }
 
-            $file = $_FILES['module_archive'];
-
             // Security: Check file size
-            if ($file['size'] > self::MAX_FILE_SIZE) {
+            if ($uploadedFile->getSize() > self::MAX_FILE_SIZE) {
                 return $this->error(__('admin-modules.dropzone.errors.file_too_large'), 400);
             }
 
             // Security: Validate file type
-            $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $fileExt = strtolower($uploadedFile->getClientOriginalExtension());
             if ($fileExt !== 'zip') {
                 return $this->error(__('admin-modules.dropzone.errors.invalid_file'), 400);
             }
 
             // Security: Check mime type
-            $fileMimeType = $this->getFileMimeType($file['tmp_name']);
+            $fileMimeType = $uploadedFile->getMimeType() ?: $this->getFileMimeType($uploadedFile->getPathname());
             if (!in_array($fileMimeType, self::ALLOWED_MIME_TYPES)) {
                 logs()->warning("Invalid module mime type attempted: {$fileMimeType}");
 
@@ -79,12 +77,10 @@ class ModulesController extends BaseController
             $extractPath = $this->prepareTemporaryDirectory('app/temp/modules/extract_' . time());
 
             // Generate unique filename and move uploaded file
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\.\-\_]/', '', $file['name']);
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\.\-\_]/', '', $uploadedFile->getClientOriginalName());
             $filePath = $tempPath . '/' . $fileName;
-
-            if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-                return $this->error(__('admin-modules.dropzone.errors.upload_failed'), 500);
-            }
+            
+            $uploadedFile->move($tempPath, $fileName);
 
             // Security: Verify zip file integrity
             if (!$this->isValidZipArchive($filePath)) {
@@ -237,7 +233,57 @@ class ModulesController extends BaseController
             return false;
         }
 
-        $success = $zip->extractTo($extractPath);
+        $success = true;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            if ($entryName === false) {
+                $success = false;
+                break;
+            }
+
+            $targetPath = $extractPath . '/' . $entryName;
+
+            $realTarget = realpath(dirname($targetPath));
+            if ($realTarget === false) {
+                $dirToCreate = dirname($targetPath);
+                if (!is_dir($dirToCreate)) {
+                    mkdir($dirToCreate, 0o755, true);
+                }
+                $realTarget = realpath(dirname($targetPath));
+            }
+
+            if ($realTarget === false || str_starts_with($realTarget, realpath($extractPath)) === false) {
+                logs('security')->warning('Zip slip attempt detected: ' . $entryName);
+                $success = false;
+                break;
+            }
+
+            if (str_ends_with($entryName, '/')) {
+                // Directory entry
+                if (!is_dir($targetPath) && !mkdir($targetPath, 0o755, true) && !is_dir($targetPath)) {
+                    $success = false;
+                    break;
+                }
+                continue;
+            }
+
+            $stream = $zip->getStream($entryName);
+            if (!$stream) {
+                $success = false;
+                break;
+            }
+            $out = fopen($targetPath, 'wb');
+            if (!$out) {
+                fclose($stream);
+                $success = false;
+                break;
+            }
+            while (!feof($stream)) {
+                fwrite($out, fread($stream, 8192));
+            }
+            fclose($stream);
+            fclose($out);
+        }
         $zip->close();
 
         return $success;

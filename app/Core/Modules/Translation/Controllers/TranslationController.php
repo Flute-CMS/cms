@@ -11,21 +11,33 @@ class TranslationController extends BaseController
     {
         $translations = $request->input('translations');
 
-        if (!$translations) {
-            return $this->error('Translations is required');
+        if (!$translations || !is_array($translations)) {
+            return $this->json(['error' => 'Translations is required'], 422);
         }
 
         $result = [];
 
         foreach ($translations as $key => $value) {
-            $phrase = __(
-                $value['phrase'],
-                $value['replace'] ?? [],
-                $value['locale'] ?? app()->getLang()
-            );
+            $phraseKey = is_array($value) ? ($value['phrase'] ?? null) : null;
+            if (!is_string($phraseKey) || $phraseKey === '') {
+                continue;
+            }
+
+            $replace = [];
+            if (isset($value['replace']) && is_array($value['replace'])) {
+                foreach ($value['replace'] as $rk => $rv) {
+                    if (is_scalar($rv)) {
+                        $replace[$rk] = (string) $rv;
+                    }
+                }
+            }
+
+            $locale = isset($value['locale']) && is_string($value['locale']) ? $value['locale'] : app()->getLang();
+
+            $phrase = __($phraseKey, $replace, $locale);
 
             $result[] = [
-                'key' => $value['phrase'],
+                'key' => $phraseKey,
                 'result' => $phrase,
             ];
         }

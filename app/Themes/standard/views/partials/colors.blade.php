@@ -15,52 +15,53 @@
                 @php
                     $bgType = $colors['dark']['--background-type'] ?? 'solid';
                     $bgColor = $colors['dark']['--background'] ?? '#1c1c1e';
-                    $accentColor = $colors['dark']['--accent'] ?? '#A5FF75';
-                    $primaryColor = $colors['dark']['--primary'] ?? '#f2f2f7';
+                    $grad1 = $colors['dark']['--bg-grad1'] ?? ($colors['dark']['--accent'] ?? '#A5FF75');
+                    $grad2 = $colors['dark']['--bg-grad2'] ?? ($colors['dark']['--primary'] ?? '#f2f2f7');
+                    $grad3 = $colors['dark']['--bg-grad3'] ?? $bgColor;
                 @endphp
 
                 html[data-theme="dark"] body {
                     @if($bgType === 'linear-gradient')
                         background: 
-                            linear-gradient(135deg, {{ $bgColor }} 0%, {{ $bgColor }} 45%, {{ $accentColor }}18 100%),
-                            radial-gradient(1200px circle at 90% -10%, {{ $accentColor }}0f 0%, transparent 60%),
-                            radial-gradient(800px circle at 10% 110%, {{ $primaryColor }}0c 0%, transparent 60%),
+                            linear-gradient(135deg, {{ $bgColor }} 0%, {{ $bgColor }} 45%, {{ $grad1 }}18 100%),
+                            radial-gradient(1200px circle at 90% -10%, {{ $grad1 }}0f 0%, transparent 60%),
+                            radial-gradient(800px circle at 10% 110%, {{ $grad2 }}0c 0%, transparent 60%),
                             {{ $bgColor }};
                     @elseif($bgType === 'radial-gradient')
                         background: 
-                            radial-gradient(1000px circle at 30% 10%, {{ $accentColor }}14 0%, transparent 55%),
-                            radial-gradient(1200px circle at 82% 78%, {{ $primaryColor }}0f 0%, transparent 60%),
+                            radial-gradient(1000px circle at 30% 10%, {{ $grad1 }}14 0%, transparent 55%),
+                            radial-gradient(1200px circle at 82% 78%, {{ $grad2 }}0f 0%, transparent 60%),
                             {{ $bgColor }};
                     @elseif($bgType === 'mesh-gradient')
                         background: 
-                            radial-gradient(at 20% 20%, {{ $accentColor }}12 0px, transparent 45%),
-                            radial-gradient(at 80% 75%, {{ $primaryColor }}0d 0px, transparent 45%),
-                            radial-gradient(at 40% 70%, {{ $accentColor }}0a 0px, transparent 40%),
-                            radial-gradient(at 70% 30%, {{ $primaryColor }}08 0px, transparent 45%),
+                            radial-gradient(at 20% 20%, {{ $grad1 }}12 0px, transparent 45%),
+                            radial-gradient(at 80% 75%, {{ $grad2 }}0d 0px, transparent 45%),
+                            radial-gradient(at 40% 70%, {{ $grad1 }}0a 0px, transparent 40%),
+                            radial-gradient(at 70% 30%, {{ $grad2 }}08 0px, transparent 45%),
                             {{ $bgColor }};
                     @elseif($bgType === 'subtle-gradient')
-                        background: linear-gradient(160deg, {{ $bgColor }} 0%, {{ $accentColor }}0d 50%, {{ $primaryColor }}0a 100%);
+                        background: linear-gradient(160deg, {{ $bgColor }} 0%, {{ $grad1 }}0d 50%, {{ $grad2 }}0a 100%);
                     @elseif($bgType === 'aurora-gradient')
                         background: 
-                            radial-gradient(1200px circle at 10% 20%, {{ $accentColor }}12 0%, transparent 55%),
-                            radial-gradient(1000px circle at 80% 30%, {{ $primaryColor }}10 0%, transparent 55%),
-                            radial-gradient(1400px circle at 50% 80%, {{ $accentColor }}0d 0%, transparent 60%),
+                            radial-gradient(1200px circle at 10% 20%, {{ $grad1 }}12 0%, transparent 55%),
+                            radial-gradient(1000px circle at 80% 30%, {{ $grad2 }}10 0%, transparent 55%),
+                            radial-gradient(1400px circle at 50% 80%, {{ $grad3 }}0d 0%, transparent 60%),
                             {{ $bgColor }};
                     @elseif($bgType === 'sunset-gradient')
                         background: linear-gradient(180deg, 
-                            {{ $accentColor }}18 0%, 
-                            {{ $accentColor }}10 28%, 
-                            {{ $primaryColor }}0d 68%, 
+                            {{ $grad1 }}18 0%, 
+                            {{ $grad1 }}10 28%, 
+                            {{ $grad2 }}0d 68%, 
                             {{ $bgColor }} 100%);
                     @elseif($bgType === 'ocean-gradient')
                         background: 
-                            radial-gradient(900px ellipse at top, {{ $accentColor }}10 0%, transparent 50%),
-                            radial-gradient(700px ellipse at bottom, {{ $primaryColor }}0d 0%, transparent 50%),
-                            linear-gradient(180deg, {{ $bgColor }} 0%, {{ $accentColor }}06 100%);
+                            radial-gradient(900px ellipse at top, {{ $grad1 }}10 0%, transparent 50%),
+                            radial-gradient(700px ellipse at bottom, {{ $grad2 }}0d 0%, transparent 50%),
+                            linear-gradient(180deg, {{ $bgColor }} 0%, {{ $grad3 }}06 100%);
                     @elseif($bgType === 'spotlight-gradient')
                         background: radial-gradient(800px circle at 70% 30%, 
-                            {{ $accentColor }}20 0%, 
-                            {{ $accentColor }}0d 28%, 
+                            {{ $grad1 }}20 0%, 
+                            {{ $grad1 }}0d 28%, 
                             {{ $bgColor }} 70%);
                     @else
                         background-color: {{ $bgColor }};
@@ -80,52 +81,53 @@
                 @php
                     $bgType = $colors['light']['--background-type'] ?? 'solid';
                     $bgColor = $colors['light']['--background'] ?? '#ffffff';
-                    $accentColor = $colors['light']['--accent'] ?? '#34c759';
-                    $primaryColor = $colors['light']['--primary'] ?? '#1d1d1f';
+                    $grad1 = $colors['light']['--bg-grad1'] ?? ($colors['light']['--accent'] ?? '#34c759');
+                    $grad2 = $colors['light']['--bg-grad2'] ?? ($colors['light']['--primary'] ?? '#1d1d1f');
+                    $grad3 = $colors['light']['--bg-grad3'] ?? $bgColor;
                 @endphp
                 
                 html[data-theme="light"] body {
                     @if($bgType === 'linear-gradient')
                         background: 
-                            linear-gradient(135deg, {{ $bgColor }} 0%, {{ $bgColor }} 45%, {{ $accentColor }}0f 100%),
-                            radial-gradient(1000px circle at 92% -8%, {{ $accentColor }}0a 0%, transparent 58%),
-                            radial-gradient(700px circle at 8% 106%, {{ $primaryColor }}08 0%, transparent 58%),
+                            linear-gradient(135deg, {{ $bgColor }} 0%, {{ $bgColor }} 45%, {{ $grad1 }}0f 100%),
+                            radial-gradient(1000px circle at 92% -8%, {{ $grad1 }}0a 0%, transparent 58%),
+                            radial-gradient(700px circle at 8% 106%, {{ $grad2 }}08 0%, transparent 58%),
                             {{ $bgColor }};
                     @elseif($bgType === 'radial-gradient')
                         background: 
-                            radial-gradient(900px circle at 28% 12%, {{ $accentColor }}0d 0%, transparent 55%),
-                            radial-gradient(1100px circle at 82% 78%, {{ $primaryColor }}08 0%, transparent 60%),
+                            radial-gradient(900px circle at 28% 12%, {{ $grad1 }}0d 0%, transparent 55%),
+                            radial-gradient(1100px circle at 82% 78%, {{ $grad2 }}08 0%, transparent 60%),
                             {{ $bgColor }};
                     @elseif($bgType === 'mesh-gradient')
                         background: 
-                            radial-gradient(at 20% 20%, {{ $accentColor }}0a 0px, transparent 45%),
-                            radial-gradient(at 80% 75%, {{ $primaryColor }}08 0px, transparent 45%),
-                            radial-gradient(at 40% 70%, {{ $accentColor }}06 0px, transparent 40%),
-                            radial-gradient(at 70% 30%, {{ $primaryColor }}05 0px, transparent 45%),
+                            radial-gradient(at 20% 20%, {{ $grad1 }}0a 0px, transparent 45%),
+                            radial-gradient(at 80% 75%, {{ $grad2 }}08 0px, transparent 45%),
+                            radial-gradient(at 40% 70%, {{ $grad3 }}06 0px, transparent 40%),
+                            radial-gradient(at 70% 30%, {{ $grad2 }}05 0px, transparent 45%),
                             {{ $bgColor }};
                     @elseif($bgType === 'subtle-gradient')
-                        background: linear-gradient(160deg, {{ $bgColor }} 0%, {{ $accentColor }}08 50%, {{ $primaryColor }}06 100%);
+                        background: linear-gradient(160deg, {{ $bgColor }} 0%, {{ $grad1 }}08 50%, {{ $grad2 }}06 100%);
                     @elseif($bgType === 'aurora-gradient')
                         background: 
-                            radial-gradient(1100px circle at 12% 22%, {{ $accentColor }}0a 0%, transparent 55%),
-                            radial-gradient(900px circle at 82% 30%, {{ $primaryColor }}08 0%, transparent 55%),
-                            radial-gradient(1200px circle at 50% 80%, {{ $accentColor }}06 0%, transparent 60%),
+                            radial-gradient(1100px circle at 12% 22%, {{ $grad1 }}0a 0%, transparent 55%),
+                            radial-gradient(900px circle at 82% 30%, {{ $grad2 }}08 0%, transparent 55%),
+                            radial-gradient(1200px circle at 50% 80%, {{ $grad3 }}06 0%, transparent 60%),
                             {{ $bgColor }};
                     @elseif($bgType === 'sunset-gradient')
                         background: linear-gradient(180deg, 
-                            {{ $accentColor }}12 0%, 
-                            {{ $accentColor }}0c 30%, 
-                            {{ $primaryColor }}08 70%, 
+                            {{ $grad1 }}12 0%, 
+                            {{ $grad1 }}0c 30%, 
+                            {{ $grad2 }}08 70%, 
                             {{ $bgColor }} 100%);
                     @elseif($bgType === 'ocean-gradient')
                         background: 
-                            radial-gradient(800px ellipse at top, {{ $accentColor }}0c 0%, transparent 50%),
-                            radial-gradient(650px ellipse at bottom, {{ $primaryColor }}08 0%, transparent 50%),
-                            linear-gradient(180deg, {{ $bgColor }} 0%, {{ $accentColor }}05 100%);
+                            radial-gradient(800px ellipse at top, {{ $grad1 }}0c 0%, transparent 50%),
+                            radial-gradient(650px ellipse at bottom, {{ $grad2 }}08 0%, transparent 50%),
+                            linear-gradient(180deg, {{ $bgColor }} 0%, {{ $grad3 }}05 100%);
                     @elseif($bgType === 'spotlight-gradient')
                         background: radial-gradient(700px circle at 70% 30%, 
-                            {{ $accentColor }}12 0%, 
-                            {{ $accentColor }}08 30%, 
+                            {{ $grad1 }}12 0%, 
+                            {{ $grad1 }}08 30%, 
                             {{ $bgColor }} 70%);
                     @else
                         background-color: {{ $bgColor }};

@@ -45,6 +45,9 @@ class ColorController extends BaseController
             '--text' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--border1' => 'required|numeric|min:0.25|max:4',
             '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
+            '--bg-grad1' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--bg-grad2' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--bg-grad3' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'theme' => 'required|string|in:dark,light',
             'containerWidth' => 'sometimes|string|in:container,fullwidth',
         ];

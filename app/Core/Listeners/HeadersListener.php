@@ -26,10 +26,16 @@ class HeadersListener
             $response->headers->set('Cache-Control', 'no-cache');
         }
 
-        if (request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted()) {
+        $justLoggedInAt = session()->get('just_logged_in_at');
+        $justLoggedInRecent = is_int($justLoggedInAt) && ($justLoggedInAt > (time() - 10));
+
+        if ($justLoggedInRecent || request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted()) {
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->headers->set('Pragma', 'no-cache');
             $response->headers->set('Expires', '0');
+            if ($justLoggedInRecent) {
+                session()->remove('just_logged_in_at');
+            }
         } elseif (is_performance()) {
             $response->setCache([
                 'public' => true,
@@ -38,7 +44,7 @@ class HeadersListener
             ]);
         }
 
-        $varyHeaders = array_unique(array_merge($response->getVary(), ['HX-Request', 'HX-Boosted']));
+        $varyHeaders = array_unique(array_merge($response->getVary(), ['HX-Request', 'HX-Boosted', 'Cookie', 'Authorization']));
         $response->setVary($varyHeaders, false);
     }
 }

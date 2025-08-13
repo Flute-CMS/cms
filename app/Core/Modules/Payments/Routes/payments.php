@@ -14,4 +14,4 @@ $router->group(['middleware' => 'auth'], function (RouterInterface $authRouter) 
     });
 });
 
-$router->any('/api/lk/handle/{gateway}', [PaymentsApiController::class, 'handle']);
+$router->post('/api/lk/handle/{gateway}', [PaymentsApiController::class, 'handle']);
