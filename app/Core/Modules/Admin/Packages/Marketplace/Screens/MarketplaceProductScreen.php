@@ -48,6 +48,7 @@ class MarketplaceProductScreen extends Screen
             foreach ($modules as $item) {
                 if (!empty($item['slug']) && $item['slug'] === $this->slugParam) {
                     $this->module = $item;
+
                     break;
                 }
             }
@@ -81,5 +82,3 @@ class MarketplaceProductScreen extends Screen
         ];
     }
 }
-
-
