@@ -6,6 +6,7 @@ use Flute\Admin\AdminPanel;
 use Flute\Admin\Contracts\AdminPackageInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Modules\Page\Services\WidgetManager;
+use Flute\Core\Modules\Page\Widgets\Contracts\WidgetInterface;
 use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Services\ConfigurationService;
 use Flute\Core\Template\TemplateAssets;
@@ -525,12 +526,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
         $foundWidgets = [];
         foreach ($this->getFilesFromDirectory($directory) as $file) {
-            if ($file->isDir()) {
-                $this->scanForWidgets($file->getPathname(), $namespace . '\\' . $file->getBasename(), $foundWidgets);
-
-                continue;
-            }
-
             if ($file->getExtension() !== 'php') {
                 continue;
             }
@@ -538,11 +533,35 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
             $fullyQualifiedClassName = $namespace . '\\' . $className;
 
-            if (!class_exists($fullyQualifiedClassName)) {
+            $fullPath = $file->getPathname();
+            if (is_file($fullPath)) {
+                @require_once $fullPath;
+            }
+
+            if (!is_subclass_of($fullyQualifiedClassName, WidgetInterface::class, true)) {
                 continue;
             }
 
-            $foundWidgets[$className] = $fullyQualifiedClassName;
+            if (!isset($foundWidgets[$className])) {
+                $foundWidgets[$className] = $fullyQualifiedClassName;
+            }
+
+            $base = preg_replace('/Widget$/', '', $className);
+            if ($base !== '') {
+                if (!isset($foundWidgets[$base])) {
+                    $foundWidgets[$base] = $fullyQualifiedClassName;
+                }
+
+                $kebab = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $base));
+                if ($kebab && !isset($foundWidgets[$kebab])) {
+                    $foundWidgets[$kebab] = $fullyQualifiedClassName;
+                }
+
+                $kebabUcFirst = ucfirst($kebab);
+                if ($kebabUcFirst && !isset($foundWidgets[$kebabUcFirst])) {
+                    $foundWidgets[$kebabUcFirst] = $fullyQualifiedClassName;
+                }
+            }
         }
 
         if (!empty($foundWidgets)) {

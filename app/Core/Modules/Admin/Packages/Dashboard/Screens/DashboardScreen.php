@@ -13,14 +13,14 @@ class DashboardScreen extends Screen
      *
      * @var string
      */
-    protected ?string $name = 'admin-dashboard.labels.home';
+    public ?string $name = 'admin-dashboard.labels.home';
 
     /**
      * Screen description
      *
      * @var string
      */
-    protected ?string $description = 'admin-dashboard.descriptions.key_metrics';
+    public ?string $description = 'admin-dashboard.descriptions.key_metrics';
 
     public $vars;
 

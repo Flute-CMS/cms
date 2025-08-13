@@ -24,7 +24,7 @@ class SearchServiceProvider extends AbstractServiceProvider
     public function boot(\DI\Container $container): void
     {
         if (is_installed()) {
-            $container->get(Router::class)->post('api/search/{value}', [SearchController::class, 'search']);
+            $container->get(Router::class)->post('api/search/{value}', [SearchController::class, 'search'])->middleware('csrf');
             $container->get(EventDispatcher::class)->addListener(SearchEvent::NAME, [$this, 'searchById']);
         }
     }

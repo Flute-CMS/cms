@@ -126,7 +126,7 @@ class AdminPanel
                         'screen' => $screenString,
                         'slug' => $url,
                     ]);
-                });
+                })->middleware('can:admin');
             });
         }
     }

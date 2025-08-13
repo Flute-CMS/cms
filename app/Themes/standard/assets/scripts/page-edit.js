@@ -316,6 +316,9 @@ class PageEditor {
         this.autoSave = false;
         this.autoSaveInterval = null;
         this.heightMode = "auto"; // 'auto' or 'manual'
+        this._docListenersAttached = false;
+        this._htmxListenersAttached = false;
+        this._searchDebounce = null;
 
         this.elements = {};
         this.initializeElements();
@@ -336,7 +339,7 @@ class PageEditor {
         this.baseWidgetButtons = {
             settings: {
                 icon: this.config.icons.settings,
-                tooltip: this.config.translations.settings,
+                tooltipKey: "def.widget_settings",
                 order: 20,
                 onClick: (widgetEl, editor) => {
                     editor.openWidgetSettings(widgetEl);
@@ -350,7 +353,7 @@ class PageEditor {
             },
             refresh: {
                 icon: this.config.icons.refresh,
-                tooltip: this.config.translations.refresh,
+                tooltipKey: "def.refresh_widget",
                 order: 10,
                 onClick: (widgetEl, editor) => {
                     editor.refreshWidget(widgetEl);
@@ -363,7 +366,7 @@ class PageEditor {
             },
             delete: {
                 icon: this.config.icons.delete,
-                tooltip: this.config.translations.delete,
+                tooltipKey: "def.delete_widget",
                 order: 100,
                 onClick: (widgetEl, editor) => {
                     // Prevent deletion of Content widget
@@ -533,28 +536,27 @@ class PageEditor {
 
     setupEventListeners() {
         try {
-            this.elements.editBtn?.addEventListener("click", () =>
-                this.enable()
-            );
-            this.elements.cancelBtn?.addEventListener("click", () => {
+            const bindOnce = (el, type, handler, key = "default") => {
+                if (!el) return;
+                el._pe = el._pe || {};
+                const mark = `${type}:${key}`;
+                if (el._pe[mark]) return;
+                el.addEventListener(type, handler);
+                el._pe[mark] = true;
+            };
+
+            bindOnce(this.elements.editBtn, "click", () => this.enable());
+            bindOnce(this.elements.cancelBtn, "click", () => {
                 this.resetActiveCategory();
                 this.disable();
             });
-            this.elements.resetBtn?.addEventListener("click", () =>
-                this.resetLayout()
-            );
-            this.elements.undoBtn?.addEventListener("click", () =>
-                this.history.undo()
-            );
-            this.elements.redoBtn?.addEventListener("click", () =>
-                this.history.redo()
-            );
-            this.elements.saveBtn?.addEventListener("click", () =>
-                this.saveLayout()
-            );
+            bindOnce(this.elements.resetBtn, "click", () => this.resetLayout());
+            bindOnce(this.elements.undoBtn, "click", () => this.history.undo());
+            bindOnce(this.elements.redoBtn, "click", () => this.history.redo());
+            bindOnce(this.elements.saveBtn, "click", () => this.saveLayout());
 
             // Auto-position button
-            this.elements.autoPositionBtn?.addEventListener("click", () => {
+            bindOnce(this.elements.autoPositionBtn, "click", () => {
                 this.autoPositionGrid();
             });
 
@@ -568,42 +570,55 @@ class PageEditor {
                 containerWidthToggle.checked = isFullWidth;
                 this.applyContainerWidth(isFullWidth);
 
-                containerWidthToggle.addEventListener("change", (e) => {
+                bindOnce(containerWidthToggle, "change", (e) => {
                     const isFullWidth = e.target.checked;
                     this.applyContainerWidth(isFullWidth);
                     const mode = isFullWidth ? "fullwidth" : "container";
                     localStorage.setItem("container-width-mode", mode);
-                });
+                }, "container-width");
             }
 
-            this.elements.seoBtn?.addEventListener("click", () =>
+            bindOnce(this.elements.seoBtn, "click", () =>
                 app.dropdowns.closeAllDropdowns()
             );
 
             if (this.elements.searchInput) {
-                let searchTimeout;
-                this.elements.searchInput.addEventListener("input", (e) => {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => this.handleSearch(e), 150);
-                });
+                bindOnce(
+                    this.elements.searchInput,
+                    "input",
+                    (e) => {
+                        clearTimeout(this._searchDebounce);
+                        this._searchDebounce = setTimeout(
+                            () => this.handleSearch(e),
+                            180
+                        );
+                    },
+                    "search-input"
+                );
             }
 
-            window.addEventListener("beforeunload", (e) =>
-                this.handleBeforeUnload(e)
-            );
-            document.addEventListener("keydown", (e) => this.handleKeyDown(e));
+            if (!this._docListenersAttached) {
+                window.addEventListener("beforeunload", (e) =>
+                    this.handleBeforeUnload(e)
+                );
+                document.addEventListener("keydown", (e) =>
+                    this.handleKeyDown(e)
+                );
+                document.addEventListener("focusin", (e) => {
+                    this.isEditorFocused = e.target.matches(
+                        'input, textarea, [contenteditable="true"]'
+                    );
+                });
+                document.addEventListener("focusout", () => {
+                    this.isEditorFocused = false;
+                });
+                window.addEventListener("unhandledrejection", (evt) => {
+                    this.handlePromiseRejection(evt.reason);
+                });
+                this._docListenersAttached = true;
+            }
 
             this.setupHtmxListeners();
-
-            document.addEventListener("focusin", (e) => {
-                this.isEditorFocused = e.target.matches(
-                    'input, textarea, [contenteditable="true"]'
-                );
-            });
-
-            document.addEventListener("focusout", () => {
-                this.isEditorFocused = false;
-            });
         } catch (err) {
             this.logError("setupEventListeners", err);
         }
@@ -611,10 +626,17 @@ class PageEditor {
 
     setupHtmxListeners() {
         try {
+            if (this._htmxListenersAttached) return;
             htmx.on("htmx:afterSwap", (evt) => this.handleHtmxAfterSwap(evt));
             htmx.on("htmx:beforeRequest", (evt) =>
                 this.handleHtmxBeforeRequest(evt)
             );
+
+            // Ensure CSRF header is attached to all HTMX requests
+            htmx.on("htmx:configRequest", (evt) => {
+                const token = getCsrfToken();
+                if (token) evt.detail.headers["X-CSRF-Token"] = token;
+            });
 
             htmx.on("htmx:responseError", (evt) => {
                 this.logError("HTMX response error", {
@@ -644,6 +666,14 @@ class PageEditor {
                     try {
                         json = JSON.parse(evt.detail.xhr.response);
                     } catch {
+                        // If server returned HTML (validation errors), render it into the sidebar
+                        const sidebarContent = document.getElementById(
+                            "page-edit-dialog-content"
+                        );
+                        if (sidebarContent && evt.detail.xhr?.response) {
+                            sidebarContent.innerHTML = evt.detail.xhr.response;
+                            try { htmx.process(sidebarContent); } catch {}
+                        }
                         return;
                     }
                     if (
@@ -652,6 +682,13 @@ class PageEditor {
                         json.settings &&
                         window.currentEditedWidgetEl
                     ) {
+                        // Update widget HTML content with rendered result
+						const content = window.currentEditedWidgetEl.querySelector(
+							".grid-stack-item-content"
+						);
+						if (content) {
+							content.innerHTML = json.html;
+						}
                         const sidebarContent = document.getElementById(
                             "page-edit-dialog-content"
                         );
@@ -665,6 +702,7 @@ class PageEditor {
                     }
                 }
             });
+            this._htmxListenersAttached = true;
         } catch (err) {
             this.logError("setupHtmxListeners", err);
         }
@@ -1020,13 +1058,10 @@ class PageEditor {
         const widgetName = widgetEl.getAttribute("data-widget-name");
         const settings = JSON.parse(widgetEl.dataset.widgetSettings || "{}");
 
-        const res = await fetch(u("api/pages/render-widget"), {
+        const res = await csrfFetch(u("api/pages/render-widget"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN":
-                    document.querySelector('meta[name="csrf-token"]')
-                        ?.content || "",
             },
             body: JSON.stringify({
                 widget_name: widgetName,
@@ -1055,13 +1090,10 @@ class PageEditor {
         }
 
         try {
-            const res = await fetch(u("api/pages/widgets/buttons"), {
+            const res = await csrfFetch(u("api/pages/widgets/buttons"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN":
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.content || "",
                 },
                 body: JSON.stringify({
                     widget_name: widgetName,
@@ -1124,20 +1156,46 @@ class PageEditor {
 
             filteredButtons.sort((a, b) => a.order - b.order);
 
+            const looksLikeKey = (val) =>
+                typeof val === "string" && /^[a-z0-9_]+\.[a-z0-9_.]+$/i.test(val);
+
+            const escapeAttr = (val) =>
+                String(val ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+
             const toolbarHtml = filteredButtons
                 .map((button) => {
                     if (button.type === "base") {
+                        if (button.tooltipKey && typeof button.tooltipKey === "string") {
+                            return `
+                        <button class="widget-button widget-button-${button.key}" 
+                                data-translate="${escapeAttr(button.tooltipKey)}"
+                                data-translate-attribute="data-tooltip">
+                            ${button.icon}
+                        </button>
+                    `;
+                        }
+                        const tt = button.tooltip ? escapeAttr(button.tooltip) : "";
                         return `
                         <button class="widget-button widget-button-${button.key}" 
-                                data-tooltip="${button.tooltip}">
+                                ${tt ? `data-tooltip="${tt}"` : ""}>
                             ${button.icon}
                         </button>
                     `;
                     } else {
+                        let attrs = `data-action="${escapeAttr(button.action)}"`;
+                        if (button.tooltipKey && typeof button.tooltipKey === "string") {
+                            attrs += ` data-translate="${escapeAttr(button.tooltipKey)}" data-translate-attribute="data-tooltip"`;
+                        } else if (looksLikeKey(button.tooltip)) {
+                            attrs += ` data-translate="${escapeAttr(button.tooltip)}" data-translate-attribute="data-tooltip"`;
+                        } else if (button.tooltip) {
+                            attrs += ` data-tooltip="${escapeAttr(button.tooltip)}"`;
+                        }
                         return `
-                        <button class="widget-button widget-button-custom" 
-                                data-action="${button.action}"
-                                data-tooltip="${button.tooltip}">
+                        <button class="widget-button widget-button-custom" ${attrs}>
                             ${button.icon}
                         </button>
                     `;
@@ -1232,13 +1290,10 @@ class PageEditor {
         this.pendingOperations++;
 
         try {
-            const res = await fetch(u("api/pages/widgets/action"), {
+            const res = await csrfFetch(u("api/pages/widgets/handle-action"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN":
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.content || "",
                 },
                 body: JSON.stringify({
                     widget_name: widgetName,
@@ -1409,7 +1464,7 @@ class PageEditor {
         const tryFetch = async () => {
             try {
                 const currentPath = window.location.pathname || "/";
-                const res = await fetch(
+                const res = await csrfFetch(
                     u(
                         `api/pages/get-layout?path=${encodeURIComponent(
                             currentPath
@@ -1417,13 +1472,7 @@ class PageEditor {
                     ),
                     {
                         method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN":
-                                document.querySelector(
-                                    'meta[name="csrf-token"]'
-                                )?.content || "",
-                        },
+                        headers: { "Content-Type": "application/json" },
                         signal: AbortSignal.timeout(10000),
                     }
                 );
@@ -1482,13 +1531,10 @@ class PageEditor {
         }
 
         try {
-            const res = await fetch(u("api/pages/widgets/buttons-batch"), {
+            const res = await csrfFetch(u("api/pages/widgets/buttons-batch"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN":
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.content || "",
                 },
                 body: JSON.stringify({ widget_names: missingNames }),
             });
@@ -1558,13 +1604,10 @@ class PageEditor {
                     settings: w.settings,
                 }));
 
-                fetch(u("api/pages/render-widgets"), {
+                csrfFetch(u("api/pages/render-widgets"), {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRF-TOKEN":
-                            document.querySelector('meta[name="csrf-token"]')
-                                ?.content || "",
                     },
                     body: JSON.stringify({ widgets: requestData }),
                 })
@@ -1706,8 +1749,16 @@ class PageEditor {
         this.isSaving = true;
 
         if (this.elements.saveBtn) {
-            this.elements.saveBtn.classList.add("saving");
-            this.elements.saveBtn.disabled = true;
+            const btn = this.elements.saveBtn;
+            btn.classList.add("saving");
+            btn.disabled = true;
+            if (!btn.getAttribute("data-original-text")) {
+                btn.setAttribute("data-original-text", btn.innerHTML);
+            }
+            btn.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span><span class="btn-text">${
+                btn.getAttribute("data-saving-text") || translate("def.save")
+            }</span>`;
+            btn.setAttribute("aria-busy", "true");
         }
 
         try {
@@ -1716,19 +1767,16 @@ class PageEditor {
             //     throw new Error('No layout data to save');
             // }
 
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.content ||
-                "";
+            const csrfToken = getCsrfToken();
             if (!csrfToken) {
                 throw new Error("CSRF token not found");
             }
 
             const currentPath = window.location.pathname || "/";
-            const res = await fetch(u("api/pages/save-layout"), {
+            const res = await csrfFetch(u("api/pages/save-layout"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
                 },
                 body: JSON.stringify({
                     layout: layoutData,
@@ -1761,12 +1809,12 @@ class PageEditor {
             notyf.error(translate("page.error_saving") + err.message);
 
             if (this.elements.saveBtn) {
-                this.elements.saveBtn.classList.remove("saving");
-                this.elements.saveBtn.disabled = false;
-
-                this.elements.saveBtn.innerHTML =
-                    this.elements.saveBtn.getAttribute("data-original-text") ||
-                    "Save";
+                const btn = this.elements.saveBtn;
+                btn.classList.remove("saving");
+                btn.disabled = false;
+                btn.innerHTML =
+                    btn.getAttribute("data-original-text") || "Save";
+                btn.removeAttribute("aria-busy");
             }
 
             this.isSaving = false;
@@ -1783,7 +1831,7 @@ class PageEditor {
             htmx.ajax("GET", window.location.href, "#main", {
                 swap: "innerHTML transition:true",
                 headers: {
-                    "X-CSRF-TOKEN":
+                    "X-CSRF-Token":
                         document.querySelector('meta[name="csrf-token"]')
                             ?.content || "",
                 },
@@ -2085,7 +2133,7 @@ class PageEditor {
             htmx.ajax("GET", window.location.href, "#main", {
                 swap: "innerHTML transition:true",
                 headers: {
-                    "X-CSRF-TOKEN":
+                    "X-CSRF-Token":
                         document.querySelector('meta[name="csrf-token"]')
                             ?.content || "",
                 },
@@ -2112,7 +2160,7 @@ class PageEditor {
             "hx-headers",
             JSON.stringify({
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN":
+                "X-CSRF-Token":
                     document.querySelector('meta[name="csrf-token"]')
                         ?.content || "",
             })
@@ -2383,7 +2431,7 @@ class PageEditor {
         const sidebarContent = document.querySelector(
             "#page-edit-dialog-content"
         );
-        const saveButton = document.getElementById("widget-settings-save-btn");
+        // save button is inside the fetched form, query after injecting HTML
 
         if (!rightSidebar || !sidebarContent) {
             console.error("Right sidebar or content container not found");
@@ -2406,13 +2454,10 @@ class PageEditor {
         this.rightSidebarDialog.show();
 
         try {
-            const response = await fetch(u("api/pages/widgets/settings-form"), {
+            const response = await csrfFetch(u("api/pages/widgets/settings-form"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN":
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.content || "",
                 },
                 body: JSON.stringify({
                     widget_name: widgetName,
@@ -2430,27 +2475,28 @@ class PageEditor {
             setTimeout(() => {
                 sidebarContent.innerHTML = html;
 
-                if (saveButton) {
+                const saveBtn = sidebarContent.querySelector(
+                    "#widget-settings-save-btn"
+                );
+                if (saveBtn) {
                     const settingsUrl = u("api/pages/widgets/save-settings");
-                    saveButton.setAttribute("hx-post", settingsUrl);
+                    saveBtn.setAttribute("hx-post", settingsUrl);
 
-                    const csrfToken =
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.content || "";
-                    saveButton.setAttribute(
-                        "hx-headers",
-                        JSON.stringify({
-                            "X-CSRF-TOKEN": csrfToken,
-                        })
-                    );
-                    saveButton.setAttribute(
+                    const csrfToken = document.querySelector(
+                        'meta[name="csrf-token"]'
+                    )?.content;
+                    if (csrfToken) {
+                        saveBtn.setAttribute(
+                            "hx-headers",
+                            JSON.stringify({ "X-CSRF-Token": csrfToken })
+                        );
+                    }
+                    saveBtn.setAttribute(
                         "hx-vals",
-                        JSON.stringify({
-                            widget_name: widgetName,
-                        })
+                        JSON.stringify({ widget_name: widgetName })
                     );
 
-                    htmx.process(saveButton);
+                    htmx.process(saveBtn);
                 }
 
                 htmx.process(sidebarContent);
@@ -2659,7 +2705,7 @@ function initializePageEditor() {
                 widgetButtons: {
                     refresh: {
                         icon: "🔄",
-                        tooltip: "Обновить виджет",
+                        tooltipKey: "def.refresh_widget",
                         onClick: (widgetEl, editor) => {
                             editor.refreshWidget(widgetEl);
                         },
@@ -2773,3 +2819,21 @@ window.getContainerWidthMode = function () {
     const toggle = document.getElementById("container-width-checkbox");
     return toggle && toggle.checked ? "fullwidth" : "container";
 };
+function getCsrfToken() {
+    try {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) return meta.content;
+        const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+        if (m) {
+            try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+        }
+    } catch {}
+    return "";
+}
+
+function csrfFetch(url, options = {}) {
+    const headers = Object.assign({}, options.headers || {});
+    const token = getCsrfToken();
+    if (token && !('X-CSRF-Token' in headers)) headers['X-CSRF-Token'] = token;
+    return fetch(url, { ...options, headers });
+}

@@ -86,8 +86,7 @@ function handleNProgress(event, action) {
 
 htmx.on('htmx:beforeSwap', (evt) => {
     const status = evt.detail.xhr.status;
-    // if ([400, 403, 404, 422, 500, 503].includes(status)) {
-    if ([400, 403, 404, 422].includes(status)) {
+    if ([400, 403, 404, 422, 500].includes(status)) {
         evt.detail.shouldSwap = true;
         evt.detail.isError = false;
     }

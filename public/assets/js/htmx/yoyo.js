@@ -67,7 +67,25 @@
             bootstrapRequest(evt) {
                 const elt = evt.detail.elt;
                 let component = getComponent(elt);
-                const componentName = getComponentName(component);
+
+                if (!component) {
+                    // Try to resolve component using HX-Target or common admin screen id
+                    const headers = evt.detail.requestConfig ? evt.detail.requestConfig.headers || {} : {};
+                    const hxTarget = headers['HX-Target'] || elt.getAttribute('hx-target');
+                    let targetEl = null;
+                    if (hxTarget) {
+                        if (hxTarget === 'this') {
+                            targetEl = elt;
+                        } else if (hxTarget.startsWith('#')) {
+                            targetEl = document.querySelector(hxTarget);
+                        } else {
+                            targetEl = document.getElementById(hxTarget) || document.querySelector(`#${hxTarget}`);
+                        }
+                    }
+                    component = (targetEl && getComponent(targetEl)) || getComponentById('screen-container') || getAnyComponent();
+                }
+
+                const componentName = component ? getComponentName(component) : null;
 
                 if (
                     elt.hasAttribute('yoyo:ignore') ||
@@ -80,9 +98,9 @@
                 const currentParams = currentUrl.searchParams;
 
                 const action = getActionAndParseArguments(evt.detail);
-                evt.detail.parameters[
-                    'component'
-                ] = `${componentName}/${action}`;
+                if (componentName) {
+                    evt.detail.parameters['component'] = `${componentName}/${action}`;
+                }
 
                 const yoyoUrl = new URL(Yoyo.url, window.location.origin);
 
@@ -158,8 +176,8 @@
                 });
             },
             beforeRequestActions(elt) {
-                let component = getComponent(elt);
-
+                let component = getComponent(elt) || getComponentById('screen-container') || getAnyComponent();
+                if (!component) return;
                 spinningStart(component);
             },
             afterOnLoadActions(evt) {
@@ -181,6 +199,22 @@
                 setTimeout(() => {
                     removeEventListenerData(component);
                 }, 125);
+
+                // Если сервер вернул HX-Trigger с close-modal, обработаем его
+                const triggerHeader = evt.detail.xhr.getResponseHeader('HX-Trigger');
+                if (triggerHeader) {
+                    try {
+                        const triggers = JSON.parse(triggerHeader);
+                        if (triggers['close-modal']) {
+                            const id = triggers['close-modal'];
+                            if (typeof window.closeModal === 'function') {
+                                window.closeModal(id);
+                            }
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                }
             },
             afterSettleActions(evt) {
                 const component = getComponentById(evt.detail.elt.id);
@@ -295,6 +329,11 @@
             const component = document.querySelector(`#${componentId}`);
 
             return isComponent(component) ? component : null;
+        }
+
+        function getAnyComponent() {
+            const all = getAllcomponents();
+            return all && all.length ? all[0] : null;
         }
 
         function getComponentName(component) {

@@ -37,6 +37,12 @@ class InstallerServiceProvider extends AbstractServiceProvider
 
             app()->setLang(config('lang.locale'));
 
+            try {
+                $container->get(\Flute\Core\ServiceProviders\DatabaseServiceProvider::class);
+            } catch (\Throwable $e) {
+                logs('installer')->warning('Installer boot: database not ready yet: ' . $e->getMessage());
+            }
+
             $template = template();
 
             $this->registerViewComponents($template);

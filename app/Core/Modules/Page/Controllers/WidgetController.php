@@ -113,6 +113,12 @@ class WidgetController extends BaseController
 
         $layout = $fluteRequest->input('layout', []);
         $path = $fluteRequest->input('path', '/');
+        if (!is_string($path) || $path === '') {
+            $path = '/';
+        }
+        if ($path[0] !== '/') {
+            $path = '/' . $path;
+        }
 
         try {
             $this->pageManager->saveLayoutForPath($path, $layout);

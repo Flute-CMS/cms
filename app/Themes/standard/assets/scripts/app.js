@@ -191,7 +191,6 @@ class FluteApp {
             }
         });
 
-        // Add CSRF token to HTMX requests
         window.addEventListener('htmx:configRequest', (evt) => {
             const csrfToken = document
                 .querySelector('meta[name="csrf-token"]')

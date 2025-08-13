@@ -9,10 +9,6 @@
     overflow: hidden;
     @include transition(box-shadow, transform);
 
-    &:hover {
-        box-shadow: 0 18px 40px -22px rgba(0,0,0,.35);
-    }
-
     &-img-top {
         width: 100%;
         height: auto;

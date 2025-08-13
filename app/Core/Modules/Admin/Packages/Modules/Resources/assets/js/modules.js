@@ -157,7 +157,7 @@ function uploadFile(file) {
     xhr.open('POST', u('admin/modules/install'));
 
     if (token) {
-        xhr.setRequestHeader('X-CSRF-TOKEN', token);
+        xhr.setRequestHeader('X-CSRF-Token', token);
     }
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 

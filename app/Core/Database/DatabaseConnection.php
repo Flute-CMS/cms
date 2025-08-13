@@ -226,23 +226,35 @@ class DatabaseConnection
      */
     public function recompileOrmSchema(bool $cache = false): void
     {
+        if ($cache && file_exists(self::SCHEMA_FILE)) {
+            if (!isset($this->dbal)) {
+                $this->dbal = $this->databaseManager->getDbal();
+                if (config('database.debug')) {
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
+                    $this->dbal->setLogger($timingLogger);
+                }
+            }
+
+            $schemaArray = include self::SCHEMA_FILE;
+            $ormSchema = new \Cycle\ORM\Schema($schemaArray);
+            $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+
+            $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
+            $this->ormIntoContainer();
+
+            return;
+        }
+
         $lockFile = BASE_PATH . 'storage/app/cache/orm_schema.lock';
         $lockHandle = fopen($lockFile, 'w+');
         if (flock($lockHandle, LOCK_EX | LOCK_NB)) {
             try {
                 if (!isset($this->dbal)) {
-                    $this->connect();
-                }
-
-                if ($cache && file_exists(self::SCHEMA_FILE)) {
-                    $schemaArray = include self::SCHEMA_FILE;
-                    $ormSchema = new \Cycle\ORM\Schema($schemaArray);
-                    $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
-
-                    $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
-                    $this->ormIntoContainer();
-
-                    return;
+                    $this->dbal = $this->databaseManager->getDbal();
+                    if (config('database.debug')) {
+                        $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
+                        $this->dbal->setLogger($timingLogger);
+                    }
                 }
 
                 $validDirs = [];
@@ -285,8 +297,7 @@ class DatabaseConnection
                 @unlink($lockFile);
             }
         } else {
-            logs()->debug("Cannot acquire lock for ORM schema update");
-
+            // Another process is compiling the schema — this is expected; avoid noisy logs
             return;
         }
     }

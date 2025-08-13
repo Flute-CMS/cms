@@ -25,7 +25,7 @@ router()->group(['middleware' => 'guest'], function (RouterInterface $router) {
         });
     }
 
-    $router->group(['middleware' => StandardAuthMiddleware::class], function (RouterInterface $router) {
+    $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf']], function (RouterInterface $router) {
         $router->post('/register', [AuthController::class, 'postRegister']);
         $router->post('/login', [AuthController::class, 'postLogin']);
 
