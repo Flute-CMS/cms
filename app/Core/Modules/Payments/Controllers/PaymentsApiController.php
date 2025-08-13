@@ -23,7 +23,7 @@ class PaymentsApiController extends BaseController
         } catch (\Exception $e) {
             logs()->warning($e);
 
-            if(is_debug()) {
+            if (is_debug()) {
                 throw $e;
             }
 

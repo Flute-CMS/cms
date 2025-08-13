@@ -124,9 +124,9 @@ class SocialService implements SocialServiceInterface
     {
         $providerName = $this->normalizeProviderName($socialNetwork->key);
         $settings = json_decode($socialNetwork->settings, true) ?? [];
-        
+
         $settings = $this->mapProviderSettings($socialNetwork->key, $settings);
-        
+
         $this->registeredProviders[$providerName] = array_merge([
             'enabled' => true,
             'entity' => $socialNetwork,

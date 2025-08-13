@@ -79,7 +79,7 @@ class ModulesController extends BaseController
             // Generate unique filename and move uploaded file
             $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\.\-\_]/', '', $uploadedFile->getClientOriginalName());
             $filePath = $tempPath . '/' . $fileName;
-            
+
             $uploadedFile->move($tempPath, $fileName);
 
             // Security: Verify zip file integrity
@@ -238,6 +238,7 @@ class ModulesController extends BaseController
             $entryName = $zip->getNameIndex($i);
             if ($entryName === false) {
                 $success = false;
+
                 break;
             }
 
@@ -255,6 +256,7 @@ class ModulesController extends BaseController
             if ($realTarget === false || str_starts_with($realTarget, realpath($extractPath)) === false) {
                 logs('security')->warning('Zip slip attempt detected: ' . $entryName);
                 $success = false;
+
                 break;
             }
 
@@ -262,20 +264,24 @@ class ModulesController extends BaseController
                 // Directory entry
                 if (!is_dir($targetPath) && !mkdir($targetPath, 0o755, true) && !is_dir($targetPath)) {
                     $success = false;
+
                     break;
                 }
+
                 continue;
             }
 
             $stream = $zip->getStream($entryName);
             if (!$stream) {
                 $success = false;
+
                 break;
             }
             $out = fopen($targetPath, 'wb');
             if (!$out) {
                 fclose($stream);
                 $success = false;
+
                 break;
             }
             while (!feof($stream)) {

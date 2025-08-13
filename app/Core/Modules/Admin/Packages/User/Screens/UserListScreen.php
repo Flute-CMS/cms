@@ -71,6 +71,7 @@ class UserListScreen extends Screen
                                 ->sort()
                                 ->render(function (User $user) {
                                     $mainRole = $user->getMainRole();
+
                                     return $mainRole ? $mainRole : '—';
                                 }),
 
