@@ -4,10 +4,10 @@
     'icon' => null,
     'prefix' => null,
     'suffix' => null,
-    'trend' => null,           // e.g. 12 or "-3.4%"
-    'trendDirection' => null,  // 'up' | 'down' | null (auto if trend is numeric)
-    'progress' => null,        // 0..100
-    'hint' => null,            // small text below
+    'trend' => null, // e.g. 12 or "-3.4%"
+    'trendDirection' => null, // 'up' | 'down' | null (auto if trend is numeric)
+    'progress' => null, // 0..100
+    'hint' => null, // small text below
 ])
 
 @php
@@ -18,7 +18,9 @@
     }
     $trendText = is_null($trend)
         ? null
-        : (is_numeric($trend) ? ( ($numericTrend > 0 ? '+' : '') . $numericTrend ) : (string) $trend);
+        : (is_numeric($trend)
+            ? ($numericTrend > 0 ? '+' : '') . $numericTrend
+            : (string) $trend);
     $progressValue = is_null($progress) ? null : max(0, min(100, (int) $progress));
 @endphp
 
@@ -39,9 +41,13 @@
     <div class="metric__content">
         <div class="metric__main">
             <div class="metric__value">
-                @if($prefix)<span class="metric__value-prefix">{{ $prefix }}</span>@endif
+                @if ($prefix)
+                    <span class="metric__value-prefix">{{ $prefix }}</span>
+                @endif
                 <span class="metric__value-number">{{ $value }}</span>
-                @if($suffix)<span class="metric__value-suffix">{{ $suffix }}</span>@endif
+                @if ($suffix)
+                    <span class="metric__value-suffix">{{ $suffix }}</span>
+                @endif
             </div>
 
             @if ($trendText)
@@ -61,7 +67,8 @@
         </div>
 
         @if (!is_null($progressValue))
-            <div class="metric__progress" role="progressbar" aria-valuenow="{{ $progressValue }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="metric__progress" role="progressbar" aria-valuenow="{{ $progressValue }}" aria-valuemin="0"
+                aria-valuemax="100">
                 <div class="metric__progress-bar" style="width: {{ $progressValue }}%"></div>
             </div>
         @endif
@@ -70,8 +77,8 @@
             <div class="metric__hint">{{ $hint }}</div>
         @endif
 
-        <div class="metric__extra">{{ $slot }}</div>
+        @if ($slot->isNotEmpty())
+            <div class="metric__extra">{{ $slot }}</div>
+        @endif
     </div>
 </article>
-
-
