@@ -2475,8 +2475,8 @@ class PageEditor {
             setTimeout(() => {
                 sidebarContent.innerHTML = html;
 
-                const saveBtn = sidebarContent.querySelector(
-                    "#widget-settings-save-btn"
+                const saveBtn = document.getElementById(
+                    "widget-settings-save-btn"
                 );
                 if (saveBtn) {
                     const settingsUrl = u("api/pages/widgets/save-settings");

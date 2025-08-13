@@ -15,6 +15,7 @@ return [
     ],
     'table' => [
         'user' => 'Пользователь',
+        'role' => 'Роль',
         'balance' => 'Баланс',
         'registration_date' => 'Дата регистрации',
         'status' => 'Статус',

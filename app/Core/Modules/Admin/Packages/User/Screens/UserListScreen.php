@@ -33,6 +33,7 @@ class UserListScreen extends Screen
             ->with('blocksReceived', [
                 'method' => JoinableLoader::LEFT_JOIN,
             ])
+            ->with('roles')
             ->where(function ($qb) {
                 $qb->where('blocksReceived.id', null)
                     ->orWhere('blocksReceived.isActive', false)
@@ -42,6 +43,7 @@ class UserListScreen extends Screen
         $this->blockedUsers = rep(User::class)
             ->select()
             ->with('blocksReceived')
+            ->with('roles')
             ->where('blocksReceived.isActive', true)
             ->where(function ($qb) {
                 $qb->where('blocksReceived.blockedUntil', '>', new \DateTimeImmutable())
@@ -63,6 +65,14 @@ class UserListScreen extends Screen
                                     return view('admin-users::cells.user', compact('user'));
                                 })
                                 ->cantHide(),
+
+                            TD::make('role', __('admin-users.table.role'))
+                                ->width('120px')
+                                ->sort()
+                                ->render(function (User $user) {
+                                    $mainRole = $user->getMainRole();
+                                    return $mainRole ? $mainRole : '—';
+                                }),
 
                             TD::make('balance', __('admin-users.table.balance'))
                                 ->width('100px')

@@ -29,6 +29,17 @@ class EditSocialScreen extends Screen
         'Steam' => 'Steam',
         'Discord' => 'Discord',
         'Telegram' => 'Telegram',
+        'Twitch' => 'Twitch',
+        'Twitter' => 'Twitter',
+        'GitHub' => 'GitHub',
+        'Google' => 'Google',
+        'Facebook' => 'Facebook',
+        'LinkedIn' => 'LinkedIn',
+        'Vkontakte' => 'Vkontakte',
+        'Yandex' => 'Yandex',
+        'MicrosoftGraph' => 'MicrosoftGraph',
+        'Instagram' => 'Instagram',
+        'Yahoo' => 'Yahoo',
     ];
 
     public function mount(): void
@@ -330,6 +341,50 @@ class EditSocialScreen extends Screen
             ]),
             'Telegram' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Twitch' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Twitter' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'GitHub' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Google' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Facebook' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'LinkedIn' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Vkontakte' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:1',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Yandex' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'MicrosoftGraph' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Instagram' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Yahoo' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
                 'settings__secret' => 'required|string|max-str-len:255',
             ]),
             default => [],

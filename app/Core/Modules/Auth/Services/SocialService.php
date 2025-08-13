@@ -123,10 +123,14 @@ class SocialService implements SocialServiceInterface
     public function registerSocial(SocialNetwork $socialNetwork)
     {
         $providerName = $this->normalizeProviderName($socialNetwork->key);
+        $settings = json_decode($socialNetwork->settings, true) ?? [];
+        
+        $settings = $this->mapProviderSettings($socialNetwork->key, $settings);
+        
         $this->registeredProviders[$providerName] = array_merge([
             'enabled' => true,
             'entity' => $socialNetwork,
-        ], json_decode($socialNetwork->settings, true) ?? []);
+        ], $settings);
 
         events()->dispatch(new SocialProviderAddedEvent($socialNetwork), SocialProviderAddedEvent::NAME);
     }
@@ -505,6 +509,25 @@ class SocialService implements SocialServiceInterface
     // ===== Utilities =====
 
     /**
+     * Maps provider settings for specific providers that need special handling.
+     *
+     * @param string $providerKey The provider key.
+     * @param array $settings The original settings.
+     * @return array The mapped settings.
+     */
+    private function mapProviderSettings(string $providerKey, array $settings): array
+    {
+        if ($providerKey === 'Twitter' && isset($settings['keys'])) {
+            if (isset($settings['keys']['id'])) {
+                $settings['keys']['key'] = $settings['keys']['id'];
+                $settings['keys']['id'] = null;
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
      * Normalizes the provider name.
      *
      * @param string $providerName The original provider name.
@@ -512,7 +535,11 @@ class SocialService implements SocialServiceInterface
      */
     private function normalizeProviderName(string $providerName): string
     {
-        return $providerName === 'Steam' ? 'HttpsSteam' : $providerName;
+        $normalizedNames = [
+            'Steam' => 'HttpsSteam',
+        ];
+
+        return $normalizedNames[$providerName] ?? $providerName;
     }
 
     /**
