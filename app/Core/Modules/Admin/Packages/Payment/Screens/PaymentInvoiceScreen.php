@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\Payment\Screens;
 
 use Carbon\Carbon;
+use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\TD;
@@ -121,6 +122,7 @@ class PaymentInvoiceScreen extends Screen
             ]),
 
             LayoutFactory::table('invoices', [
+                TD::selection('id'),
                 // TD::make('id', __('admin-payment.table.id'))
                 //     ->sort()
                 //     ->render(fn (PaymentInvoice $invoice) => $invoice->id)
@@ -167,6 +169,18 @@ class PaymentInvoiceScreen extends Screen
                     'id',
                     'gateway',
                     'transactionId',
+                ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.enable_selected'))
+                        ->icon('ph.bold.check-circle-bold')
+                        ->type(Color::OUTLINE_SUCCESS)
+                        ->method('bulkMarkInvoicesPaid'),
+
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeleteInvoices'),
                 ]),
         ];
     }
@@ -230,5 +244,47 @@ class PaymentInvoiceScreen extends Screen
         $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
 
         $this->invoices = rep(PaymentInvoice::class)->select();
+    }
+
+    public function bulkMarkInvoicesPaid(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $invoice = PaymentInvoice::findByPK((int) $id);
+            if (!$invoice) continue;
+            if ($invoice->isPaid) continue;
+            try {
+                if (!empty($invoice->transactionId)) {
+                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
+                } else {
+                    // Fallback: mark directly if processor needs transactionId
+                    $invoice->isPaid = true;
+                    $invoice->paidAt = new \DateTimeImmutable();
+                    $invoice->save();
+                }
+            } catch (\Throwable $e) {
+                // continue
+            }
+        }
+        $this->invoices = rep(PaymentInvoice::class)->select();
+        $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
+    }
+
+    public function bulkDeleteInvoices(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $invoice = PaymentInvoice::findByPK((int) $id);
+            if (!$invoice) continue;
+            try {
+                $invoice->delete();
+            } catch (\Throwable $e) {
+                // continue
+            }
+        }
+        $this->invoices = rep(PaymentInvoice::class)->select();
+        $this->flashMessage(__('admin-payment.messages.invoice_deleted'), 'success');
     }
 }

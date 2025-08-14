@@ -259,7 +259,7 @@
             {!! $sections['before-content'] !!}
         @endif
 
-        @if (is_debug())
+        @if (is_debug() || is_development())
             @include('flute::components.debug-message')
         @endif
 

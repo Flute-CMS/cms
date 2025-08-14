@@ -62,4 +62,9 @@ return [
     "captcha_required"          => "Please complete the captcha verification",
     "captcha_invalid"           => "Captcha verification failed. Please try again",
     "account_not_verified" => "Account is not verified",
+    "errors" => [
+        "user_not_found" => "User not found",
+        "social_not_found" => "Social network not found",
+        "unknown" => "Unknown error",
+    ],
 ];

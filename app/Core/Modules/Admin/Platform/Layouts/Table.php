@@ -5,6 +5,7 @@ namespace Flute\Admin\Platform\Layouts;
 use Cycle\Database\Query\SelectQuery;
 use Cycle\ORM\Select;
 use Flute\Admin\Platform\Commander;
+use Flute\Admin\Platform\Action;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layout;
 use Flute\Admin\Platform\Repository;
@@ -42,6 +43,13 @@ abstract class Table extends Layout
      * @var array
      */
     protected $commandBar = [];
+
+    /**
+     * Bulk actions for selected rows.
+     *
+     * @var array
+     */
+    protected $bulkActions = [];
 
     /**
      * Data source.
@@ -196,12 +204,14 @@ abstract class Table extends Layout
             'title' => $this->title,
             'description' => $this->description,
             'commandBar' => $this->buildCommandBar($repository),
+            'bulkBar' => $this->buildBulkBar($repository, $tableId),
             'paginator' => [
                 'totalItems' => $totalItems,
                 'totalPages' => $totalPages,
                 'currentPage' => $currentPage,
                 'perPage' => $perPage,
             ],
+            'tableStorageKey' => 'tableSelection-'.$tableId,
         ]);
     }
 
@@ -213,6 +223,13 @@ abstract class Table extends Layout
     public function commands($commands): self
     {
         $this->commandBar = Arr::wrap($commands);
+
+        return $this;
+    }
+
+    public function bulkActions($actions): self
+    {
+        $this->bulkActions = Arr::wrap($actions);
 
         return $this;
     }
@@ -232,6 +249,25 @@ abstract class Table extends Layout
     public function isSearchable(): bool
     {
         return $this->searchable;
+    }
+
+    protected function buildBulkBar(Repository $repository, string $tableId): array
+    {
+        if (empty($this->bulkActions)) {
+            return [];
+        }
+
+        return collect($this->bulkActions)
+            ->map(function ($action) use ($tableId) {
+                if ($action instanceof Action) {
+                    $selector = '#bulk-actions-' . $tableId . ', table#' . $tableId . ' .row-selector input, table#' . $tableId . ' .row-selector';
+                    $action->set('hx-include', $selector);
+                }
+
+                return $action->build($this->query);
+            })
+            ->filter()
+            ->all();
     }
 
     /**

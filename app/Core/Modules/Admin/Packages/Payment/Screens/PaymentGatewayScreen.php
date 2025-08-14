@@ -154,6 +154,7 @@ class PaymentGatewayScreen extends Screen
             ]),
 
             LayoutFactory::table('gateways', [
+                TD::selection('id'),
                 TD::make('image', '')
                     ->render(fn (PaymentGateway $gateway) => view('admin-payment::cells.gateway-image', ['gateway' => $gateway]))
                     ->width('80px'),
@@ -175,12 +176,30 @@ class PaymentGatewayScreen extends Screen
                     ->width('200px'),
 
                 TD::make('actions', __('admin-payment.table.actions'))
+                    ->class('actions-col')
                     ->render(fn (PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
                     ->width('100px'),
             ])
                 ->searchable([
                     'name',
                     'adapter',
+                ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.enable_selected'))
+                        ->icon('ph.bold.play-bold')
+                        ->type(Color::OUTLINE_SUCCESS)
+                        ->method('bulkEnableGateways'),
+
+                    Button::make(__('admin.bulk.disable_selected'))
+                        ->icon('ph.bold.power-bold')
+                        ->type(Color::OUTLINE_WARNING)
+                        ->method('bulkDisableGateways'),
+
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeleteGateways'),
                 ]),
         ];
     }
@@ -270,5 +289,61 @@ class PaymentGatewayScreen extends Screen
         } catch (\Exception $e) {
             $this->flashMessage(__('admin-payment.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
+    }
+
+    public function bulkDeleteGateways(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $gateway = $this->paymentService->getGatewayById((int) $id);
+            if (!$gateway) continue;
+            try {
+                $this->paymentService->deleteGateway($gateway);
+            } catch (\Exception $e) {
+                // continue
+            }
+        }
+        $this->gateways = rep(PaymentGateway::class)->findAll();
+        $this->metrics = $this->calculateMetrics();
+        $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
+    }
+
+    public function bulkEnableGateways(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $gateway = $this->paymentService->getGatewayById((int) $id);
+            if (!$gateway) continue;
+            try {
+                $gateway->enabled = true;
+                $gateway->saveOrFail();
+            } catch (\Exception $e) {
+                // continue
+            }
+        }
+        $this->gateways = rep(PaymentGateway::class)->findAll();
+        $this->metrics = $this->calculateMetrics();
+        $this->flashMessage(__('admin-payment.messages.gateway_enabled'), 'success');
+    }
+
+    public function bulkDisableGateways(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $gateway = $this->paymentService->getGatewayById((int) $id);
+            if (!$gateway) continue;
+            try {
+                $gateway->enabled = false;
+                $gateway->saveOrFail();
+            } catch (\Exception $e) {
+                // continue
+            }
+        }
+        $this->gateways = rep(PaymentGateway::class)->findAll();
+        $this->metrics = $this->calculateMetrics();
+        $this->flashMessage(__('admin-payment.messages.gateway_disabled'), 'warning');
     }
 }

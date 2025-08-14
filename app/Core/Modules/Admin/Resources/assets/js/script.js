@@ -199,7 +199,6 @@ function updatePosition(toggle, menu) {
             menu.style.left = `${x}px`;
             menu.style.top = `${y}px`;
             menu.style.position = 'absolute';
-            menu.style.zIndex = '100';
             menu.setAttribute('data-placement', placement);
         });
     };
@@ -253,22 +252,54 @@ function handleDropdownToggle(event) {
 
         const handleTransitionEnd = () => {
             menu.style.display = 'none';
+            if (menu.dataset.portal === '1' && menu.__originalParent) {
+                try {
+                    if (menu.__nextSibling && menu.__nextSibling.parentNode === menu.__originalParent) {
+                        menu.__originalParent.insertBefore(menu, menu.__nextSibling);
+                    } else {
+                        menu.__originalParent.appendChild(menu);
+                    }
+                } catch (e) {}
+                delete menu.dataset.portal;
+                delete menu.__originalParent;
+                delete menu.__nextSibling;
+            }
             menu.removeEventListener('transitionend', handleTransitionEnd);
         };
         menu.addEventListener('transitionend', handleTransitionEnd);
     } else {
+        const isAdminDropdown = menu.classList?.contains('admin-dropdown');
+
+        if (!isAdminDropdown && menu.parentNode !== document.body) {
+            menu.__originalParent = menu.parentNode;
+            menu.__nextSibling = menu.nextSibling;
+            document.body.appendChild(menu);
+            menu.dataset.portal = '1';
+        }
         menu.style.display = 'block';
         menu.classList.add('active');
+
+        const ownerZIndexEl = toggle.closest('.sortable-list-item') || toggle.closest('.sortable-container') || null;
+        const prevOwnerZIndex = ownerZIndexEl ? ownerZIndexEl.style.zIndex : null;
+        if (ownerZIndexEl) {
+            ownerZIndexEl.style.zIndex = '1000001';
+        }
 
         const updatePos = updatePosition(toggle, menu);
         updatePos();
 
-        const cleanup = window.FloatingUIDOM.autoUpdate(
+        const autoCleanup = window.FloatingUIDOM.autoUpdate(
             toggle,
             menu,
             updatePos,
         );
-        cleanupMap.set(menu, cleanup);
+        const compositeCleanup = () => {
+            autoCleanup();
+            if (ownerZIndexEl) {
+                ownerZIndexEl.style.zIndex = prevOwnerZIndex || '';
+            }
+        };
+        cleanupMap.set(menu, compositeCleanup);
     }
 }
 

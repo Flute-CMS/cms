@@ -5,6 +5,8 @@
 
 .sortable-list-item {
     position: relative;
+    z-index: 1;
+
 
     &.sortable-chosen {
         .reorder-handle {
@@ -13,11 +15,24 @@
     }
 
     &.sortable-ghost {
-        &::before {
-            opacity: 1;
-            visibility: visible;
-        }
+        opacity: .85;
+        transform: scale(.998);
     }
+
+    // Insertion indicators
+    &.insert-before::before,
+    &.insert-after::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: var(--accent);
+        opacity: .9;
+        z-index: 10;
+    }
+    &.insert-before::before { top: -1px; }
+    &.insert-after::after { bottom: -1px; }
 
     &::before {
         content: '';
@@ -26,9 +41,9 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--background-800);
+        background-color: var(--transp-05);
         border-radius: var(--border05);
-        z-index: 10;
+        z-index: 5;
         opacity: 0;
         visibility: hidden;
         transition: cubic-bezier(0.4, 0, 0.2, 1) var(--transition);
@@ -36,11 +51,10 @@
 }
 
 .reorder-handle {
-    @extend .blur-bg;
-
     border-radius: var(--border05);
-    background-color: var(--transp-05);
+    background-color: transparent;
     border: 1px solid var(--transp-1);
+    gap: .25rem;
 
     .reorder-icon {
         color: var(--text-500);
@@ -70,4 +84,84 @@
             }
         }
     }
+}
+
+// Dragging states provided by SortableJS
+.sortable-drag {
+    opacity: .9;
+}
+
+.sortable-chosen {
+    .reorder-handle {
+        background-color: var(--transp-05);
+    }
+}
+
+// Collapsible branches
+.sortable-list-item {
+    &.collapsed > ol {
+        display: none;
+    }
+}
+
+.toggle-children {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-500);
+    border-radius: var(--radius);
+    transition: color var(--transition);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text);
+    }
+
+    .icon-collapsed { display: none; }
+    &[aria-expanded="false"] .icon-expanded { display: none; }
+    &[aria-expanded="false"] .icon-collapsed { display: inline-flex; }
+}
+
+.sortable-toolbar {
+    .btn-link {
+        background: transparent;
+        border: none;
+        color: var(--text-500);
+        padding: .25rem .4rem;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: color var(--transition), background-color var(--transition);
+
+        &:hover {
+            color: var(--text);
+            background-color: var(--transp-05);
+        }
+    }
+}
+
+.move-btn {
+    @extend .toggle-children;
+}
+
+// Subtle highlight after updates
+.just-changed {
+    position: relative;
+}
+.just-changed::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--accent);
+    border-radius: var(--border05);
+    pointer-events: none;
+    animation: jc-pulse 1.2s ease-out 1;
+}
+@keyframes jc-pulse {
+    from { box-shadow: 0 0 0 0 rgba(56, 132, 255, .35); }
+    to { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
 }

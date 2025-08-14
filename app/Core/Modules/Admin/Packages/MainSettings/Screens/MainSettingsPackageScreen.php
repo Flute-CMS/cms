@@ -180,8 +180,8 @@ class MainSettingsPackageScreen extends Screen
                             ->value(config('app.maintenance_message'))
                     )->label(__('admin-main-settings.labels.maintenance_message')),
                 ])->title(__('admin-main-settings.blocks.tech_work_settings'))->addClass('mb-2'),
-
             ]),
+            
             LayoutFactory::blank([
                 LayoutFactory::block([
                     LayoutFactory::field(
@@ -209,6 +209,13 @@ class MainSettingsPackageScreen extends Screen
                     )->label(__('admin-main-settings.labels.description')),
 
                 ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo')),
+
+                LayoutFactory::block([
+                    LayoutFactory::field(
+                        Toggle::make('development_mode')
+                            ->checked((bool) config('app.development_mode'))
+                    )->label(__('admin-main-settings.labels.development_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
+                ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2'),
 
                 LayoutFactory::block([
                     LayoutFactory::columns([
@@ -244,15 +251,16 @@ class MainSettingsPackageScreen extends Screen
                     LayoutFactory::split([
                         LayoutFactory::field(
                             Toggle::make('debug')
-                                ->checked(config('app.debug'))
+                                ->checked(is_development() ? true : config('app.debug'))
+                                ->disabled(is_development())
                         )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
-                        LayoutFactory::field(
-                            Input::make('debug_ips')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
-                                ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
-                        )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
-                    ])->ratio('30/70'),
+                    ])->ratio('50/50'),
+                    LayoutFactory::field(
+                        Input::make('debug_ips')
+                            ->type('text')
+                            ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
+                            ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
+                    )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
                 ])->title(__('admin-main-settings.blocks.debug_settings'))->addClass('mb-2'),
 
                 LayoutFactory::block([

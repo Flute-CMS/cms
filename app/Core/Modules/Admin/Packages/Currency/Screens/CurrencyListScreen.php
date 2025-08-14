@@ -42,6 +42,7 @@ class CurrencyListScreen extends Screen
     {
         return [
             LayoutFactory::table('currencies', [
+                TD::selection('id'),
                 TD::make('code', __('admin-currency.fields.code.label'))
                     ->render(fn (Currency $currency) => $currency->code . '<small class="text-muted d-flex">#' . $currency->id . '</small>')
                     ->cantHide()
@@ -79,6 +80,13 @@ class CurrencyListScreen extends Screen
                     ),
             ])
                 ->searchable(['code'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeleteCurrencies'),
+                ])
                 ->commands([
                     Button::make(__('admin-currency.buttons.add'))
                         ->icon('ph.bold.plus-bold')
@@ -357,5 +365,20 @@ class CurrencyListScreen extends Screen
         $currency->delete();
         $this->flashMessage(__('admin-currency.messages.delete_success'), 'success');
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
+    }
+
+    public function bulkDeleteCurrencies(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $currency = Currency::findByPK($id);
+            if (!$currency) continue;
+            $currency->clearPayments();
+            $currency->save();
+            $currency->delete();
+        }
+        $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
+        $this->flashMessage(__('admin-currency.messages.delete_success'), 'success');
     }
 }

@@ -29,7 +29,7 @@ class HeadersListener
         $justLoggedInAt = session()->get('just_logged_in_at');
         $justLoggedInRecent = is_int($justLoggedInAt) && ($justLoggedInAt > (time() - 10));
 
-        if ($justLoggedInRecent || request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted()) {
+        if ($justLoggedInRecent || request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted() || is_development()) {
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->headers->set('Pragma', 'no-cache');
             $response->headers->set('Expires', '0');

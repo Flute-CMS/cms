@@ -241,11 +241,17 @@ class SocialService implements SocialServiceInterface
      */
     public function retrieveSocialNetwork(string $socialNetworkName): array
     {
-        if (!isset($this->registeredProviders[$socialNetworkName])) {
-            throw new SocialNotFoundException($socialNetworkName);
+        if (isset($this->registeredProviders[$socialNetworkName])) {
+            return $this->registeredProviders[$socialNetworkName];
         }
 
-        return $this->registeredProviders[$socialNetworkName];
+        foreach ($this->registeredProviders as $key => $provider) {
+            if (strcasecmp($key, $socialNetworkName) === 0) {
+                return $provider;
+            }
+        }
+
+        throw new SocialNotFoundException($socialNetworkName);
     }
 
     // ===== Authentication =====
@@ -321,9 +327,8 @@ class SocialService implements SocialServiceInterface
      */
     private function initializeHybridAuth(string $providerName = null, bool $bind = false): void
     {
-        $callbackUrl = $bind
-            ? url("profile/social/bind/$providerName")->get()
-            : url("social/$providerName")->get();
+        // Use a unified callback endpoint for both authentication and binding
+        $callbackUrl = url("social/$providerName")->get();
 
         $this->hybridauth = new Hybridauth([
             'callback' => $callbackUrl,
@@ -440,8 +445,9 @@ class SocialService implements SocialServiceInterface
      */
     public function bindSocialNetwork(User $user, string $socialNetworkName): void
     {
-        $authData = $this->authenticate($socialNetworkName, true);
-        $social = $this->retrieveSocialNetwork($socialNetworkName);
+        $normalized = $this->normalizeProviderName($socialNetworkName);
+        $authData = $this->authenticate($normalized, true);
+        $social = $this->retrieveSocialNetwork($normalized);
 
         $userSocialNetwork = UserSocialNetwork::query()
             ->where([
@@ -535,11 +541,22 @@ class SocialService implements SocialServiceInterface
      */
     private function normalizeProviderName(string $providerName): string
     {
-        $normalizedNames = [
-            'Steam' => 'HttpsSteam',
-        ];
+        $lower = strtolower($providerName);
+        if ($lower === 'Steam') {
+            return 'HttpsSteam';
+        }
 
-        return $normalizedNames[$providerName] ?? $providerName;
+        if (isset($this->registeredProviders[$providerName])) {
+            return $providerName;
+        }
+
+        foreach (array_keys($this->registeredProviders) as $registeredKey) {
+            if (strcasecmp($registeredKey, $providerName) === 0) {
+                return $registeredKey;
+            }
+        }
+
+        return $providerName;
     }
 
     /**

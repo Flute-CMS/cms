@@ -12,9 +12,6 @@ use Flute\Core\Console\Command\LogsClearCommand;
 use Flute\Core\Console\Command\LogsCleanupCommand;
 use Flute\Core\Console\Command\RunCronCommand;
 
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
-ini_set('display_errors', '0');
-
 define('FLUTE_START', microtime(true));
 define('BASE_PATH', __DIR__.DIRECTORY_SEPARATOR);
 

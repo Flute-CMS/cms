@@ -37,6 +37,7 @@ class ServerListScreen extends Screen
     {
         return [
             LayoutFactory::table('servers', [
+                TD::selection('id'),
                 TD::make('mod')
                     ->title(__('admin-server.fields.mod.label'))
                     ->render(fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
@@ -63,6 +64,7 @@ class ServerListScreen extends Screen
                     ->cantHide(),
 
                 TD::make('actions')
+                    ->class('actions-col')
                     ->title(__('admin-server.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
@@ -92,6 +94,23 @@ class ServerListScreen extends Screen
                     Button::make(__('admin-server.buttons.add'))
                         ->icon('ph.bold.plus-bold')
                         ->redirect(url('/admin/servers/add')),
+                ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.enable_selected'))
+                        ->icon('ph.bold.play-bold')
+                        ->type(Color::OUTLINE_SUCCESS)
+                        ->method('bulkEnable'),
+
+                    Button::make(__('admin.bulk.disable_selected'))
+                        ->icon('ph.bold.power-bold')
+                        ->type(Color::OUTLINE_WARNING)
+                        ->method('bulkDisable'),
+
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDelete'),
                 ]),
         ];
     }
@@ -105,5 +124,46 @@ class ServerListScreen extends Screen
         }
 
         $this->flashMessage(__('admin-server.messages.server_deleted'));
+    }
+
+    public function bulkEnable(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->enabled = true;
+                $server->save();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_enabled'), 'success');
+    }
+
+    public function bulkDisable(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->enabled = false;
+                $server->save();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_disabled'), 'warning');
+    }
+
+    public function bulkDelete(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->delete();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_deleted'));
     }
 }

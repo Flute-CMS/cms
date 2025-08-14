@@ -35,6 +35,7 @@ return [
         'not_installed' => 'Не установленные',
         'updates_available' => 'Доступны обновления',
         'clear_filters' => 'Сбросить фильтры',
+        'overview' => 'Обзор',
     ],
     'descriptions' => [
         'marketplace' => 'Найти и установить модули для вашего сайта',

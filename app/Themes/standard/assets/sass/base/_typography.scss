@@ -69,6 +69,8 @@ body {
 
     &.no-scroll {
         overflow: hidden;
+        overscroll-behavior: contain;
+        touch-action: none;
     }
 
     @include media(mobile) {

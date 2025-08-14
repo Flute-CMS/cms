@@ -14,6 +14,8 @@ function initializeA11yDialog(parentElement = document) {
             modalElement.classList.add('is-open');
             modalElement.removeAttribute('tabindex');
             onModalShow(modalElement);
+            if (window.initColorPickers) window.initColorPickers(modalElement);
+            if (window.initIconPickers) window.initIconPickers(modalElement);
         });
 
         dialog.on('hide', () => {

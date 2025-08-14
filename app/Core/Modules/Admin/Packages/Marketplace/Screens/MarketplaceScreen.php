@@ -97,9 +97,15 @@ class MarketplaceScreen extends Screen
         $this->marketplaceService = app(MarketplaceService::class);
         $this->moduleManager = app(ModuleManager::class);
 
-        $this->loadJS('Resources/assets/js/marketplace.js');
+        // Read filters from query parameters (pure GET, no JS needed)
+        $req = request();
+        $this->searchQuery = (string) $req->input('q', '');
+        $this->selectedCategory = (string) $req->input('category', '');
+        $this->priceFilter = (string) $req->input('price', ''); // '', 'free', 'paid'
+        $this->statusFilter = (string) $req->input('status', ''); // '', 'installed','notinstalled','update'
 
-        // $this->categories = $this->getCategories();
+        // Preload categories for UI
+        $this->categories = $this->getCategories();
 
         $this->loadModules();
     }
@@ -134,7 +140,8 @@ class MarketplaceScreen extends Screen
         $this->isLoading = true;
 
         try {
-            $this->modules = $this->marketplaceService->getModules("", "", $force);
+            // Ask API with search + category; other filters are local
+            $this->modules = $this->marketplaceService->getModules($this->searchQuery, $this->selectedCategory, $force);
 
             foreach ($this->modules as &$module) {
                 if (!isset($module['name'])) {
@@ -202,52 +209,21 @@ class MarketplaceScreen extends Screen
             });
         }
 
-        if (!empty($this->searchQuery)) {
-            $filteredModules = array_filter($filteredModules, function ($module) {
-                return stripos($module['name'], $this->searchQuery) !== false
-                    || stripos($module['description'] ?? '', $this->searchQuery) !== false;
-            });
-        }
+        // Paid modules first
+        usort($filteredModules, function ($a, $b) {
+            $ap = !empty($a['isPaid']);
+            $bp = !empty($b['isPaid']);
+            if ($ap === $bp) {
+                return 0;
+            }
+
+            return $ap ? -1 : 1;
+        });
 
         $this->modules = array_values($filteredModules);
     }
 
-    public function clearFilters()
-    {
-        $this->searchQuery = '';
-        $this->selectedCategory = '';
-        $this->priceFilter = '';
-        $this->statusFilter = '';
-
-        $this->loadModules();
-    }
-
-    public function statusFilterChanged()
-    {
-        $this->loadModules();
-    }
-
-    /**
-     * Search modules
-     */
-    public function searchChanged()
-    {
-        $this->searchQuery = request()->input('searchQuery');
-        $this->loadModules();
-    }
-
-    /**
-     * Filter by category
-     */
-    public function categoryFilterChanged()
-    {
-        $this->loadModules();
-    }
-
-    public function priceFilterChanged()
-    {
-        $this->loadModules();
-    }
+    // Deprecated Yoyo/HTMX handlers removed in favor of pure GET filters
 
     /**
      * Install module

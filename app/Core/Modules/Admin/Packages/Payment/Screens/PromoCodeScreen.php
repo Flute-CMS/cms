@@ -166,6 +166,7 @@ class PromoCodeScreen extends Screen
             ]),
 
             LayoutFactory::table('promoCodes', [
+                TD::selection('id'),
                 TD::make('code', __('admin-payment.table.code'))
                     ->render(fn (PromoCode $code) => view('admin-payment::cells.promo-name', ['name' => $code->code]))
                     ->width('200px'),
@@ -194,6 +195,13 @@ class PromoCodeScreen extends Screen
                     'code',
                     'type',
                     'value',
+                ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeletePromoCodes'),
                 ]),
         ];
     }
@@ -700,6 +708,22 @@ class PromoCodeScreen extends Screen
         } catch (\Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
+    }
+
+    public function bulkDeletePromoCodes(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $promoCode = $this->paymentService->getPromoCodeById((int) $id);
+            if (!$promoCode) continue;
+            try {
+                $this->paymentService->deletePromoCode($promoCode);
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+        $this->flashMessage(__('admin-payment.messages.promo_deleted'), 'success');
     }
 
     /**

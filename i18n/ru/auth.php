@@ -61,5 +61,10 @@ return [
     'verification_token_sent' => 'Письмо с подтверждением email отправлено на ваш email.',
     "captcha_required" => "Пожалуйста, пройдите проверку капчи",
     "captcha_invalid" => "Проверка капчи не пройдена. Попробуйте еще раз",
-    "account_not_verified" => "Аккаунт не подтвержден."
+    "account_not_verified" => "Аккаунт не подтвержден.",
+    "errors" => [
+        "user_not_found" => "Пользователь не найден",
+        "social_not_found" => "Соц.сеть не найдена",
+        "unknown" => "Неизвестная ошибка",
+    ],
 ];

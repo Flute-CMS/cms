@@ -14,6 +14,14 @@ class SocialAuthController extends BaseController
     public function redirectToProvider(FluteRequest $request, string $provider)
     {
         try {
+            if (user()->isLoggedIn()) {
+                social()->bindSocialNetwork(user()->getCurrentUser(), ucfirst($provider));
+
+                flash()->add('success', __('auth.errors.social_binded'));
+
+                return response()->redirect('/profile/settings?tab=social');
+            }
+
             $user = social()->authenticateWithRegister(ucfirst($provider));
 
             auth()->authenticateById($user->id, config('auth.remember_me'), true);
@@ -24,7 +32,7 @@ class SocialAuthController extends BaseController
 
             return response()->redirect('/');
         } catch (NeedRegistrationException $e) {
-            return $this->error('Эта функция еще не поддерживается.', 404);
+            return $this->error('This function is not supported yet.', 404);
         } catch (UserNotFoundException $e) {
             return $this->error(__('auth.errors.user_not_found'));
         } catch (SocialNotFoundException $e) {

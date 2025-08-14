@@ -41,6 +41,7 @@ class ApiKeyScreen extends Screen
     {
         return [
             LayoutFactory::table('apiKeys', [
+                TD::selection('id'),
                 TD::make('id', 'ID')
                     ->minWidth('50px'),
 
@@ -101,6 +102,13 @@ class ApiKeyScreen extends Screen
                     }),
             ])
                 ->searchable(['key', 'id'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeleteApiKeys'),
+                ])
                 ->commands([
                     Button::make(__('admin-apikey.buttons.add'))
                         ->icon('ph.regular.plus')
@@ -339,5 +347,18 @@ class ApiKeyScreen extends Screen
         $apiKey->delete();
         $this->flashMessage(__('admin-apikey.messages.delete_success'), 'success');
         $this->apiKeys = rep(ApiKey::class)->select();
+    }
+
+    public function bulkDeleteApiKeys(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $apiKey = ApiKey::findByPK($id);
+            if (!$apiKey) continue;
+            $apiKey->delete();
+        }
+        $this->apiKeys = rep(ApiKey::class)->select();
+        $this->flashMessage(__('admin-apikey.messages.delete_success'), 'success');
     }
 }

@@ -338,6 +338,8 @@ class EditSocialScreen extends Screen
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
                 'settings__secret' => 'required|string|max-str-len:255',
                 'settings__token' => 'sometimes|string',
+                'settings__guild_id' => 'sometimes|string',
+                'settings__roles_map' => 'sometimes|array',
             ]),
             'Telegram' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255',

@@ -88,6 +88,11 @@ class TD extends Cell
     protected $attributes = [];
 
     /**
+     * @var bool
+     */
+    protected $isSelection = false;
+
+    /**
      * @param string|int $width
      */
     public function width($width): self
@@ -197,6 +202,16 @@ class TD extends Cell
      */
     public function buildTh(): Factory|View
     {
+        // Special rendering for selection column
+        if ($this->isSelection) {
+            $tableId = $this->getAttribute('tableId', 'default');
+
+            return view('admin::partials.layouts.th-selection', [
+                'tableId' => $tableId,
+                'aria_hidden' => $this->hasAttribute('hidden') ? 'true' : null,
+            ]);
+        }
+
         $style = $this->style;
         $width = is_numeric($this->width) ? $this->width . 'px' : $this->width;
         $minWidth = is_numeric($this->minWidth) ? $this->minWidth . 'px' : $this->minWidth;
@@ -252,6 +267,14 @@ class TD extends Cell
             $value = $this->render
                 ? $this->handler($source, $loop)
                 : (is_array($source) ? $source[$this->name] : $source->{$this->name});
+        }
+
+        if ($this->isSelection) {
+            return view('admin::partials.layouts.td-selection', [
+                'value' => $value,
+                'aria_hidden' => $this->hasAttribute('hidden') ? 'true' : null,
+                'tableId' => $this->getAttribute('tableId', 'default'),
+            ]);
         }
 
         return view('admin::partials.layouts.td', [
@@ -390,9 +413,28 @@ class TD extends Cell
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(fn($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
+    /**
+     * Mark this column as a selection column (checkboxes).
+     */
+    public function asSelection(bool $selection = true): self
+    {
+        $this->isSelection = $selection;
+        $this->disableSearch();
+        $this->cantHide();
+
+        return $this;
+    }
+
+    /**
+     * Create a ready-to-use selection column.
+     */
+    public static function selection(string $name = 'id'): self
+    {
+        return static::make($name)->asSelection();
+    }
     /**
      * Check if the column should be hidden based on user preferences in cookies.
      *

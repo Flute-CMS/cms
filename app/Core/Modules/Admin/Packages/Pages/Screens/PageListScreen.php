@@ -36,6 +36,7 @@ class PageListScreen extends Screen
     {
         return [
             LayoutFactory::table('pages', [
+                TD::selection('id'),
                 TD::make('title')
                     ->title(__('admin-pages.fields.title.label'))
                     ->render(fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
@@ -63,6 +64,7 @@ class PageListScreen extends Screen
                     ->cantHide(),
 
                 TD::make('actions')
+                    ->class('actions-col')
                     ->title(__('admin-pages.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
@@ -95,6 +97,13 @@ class PageListScreen extends Screen
                     ),
             ])
                 ->searchable(['title', 'route', 'description'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeletePages'),
+                ])
                 ->commands([
                     Button::make(__('admin-pages.buttons.add'))
                         ->icon('ph.bold.plus-bold')
@@ -115,6 +124,21 @@ class PageListScreen extends Screen
             $page->delete();
         }
 
+        $this->flashMessage(__('admin-pages.messages.page_deleted'));
+    }
+
+    public function bulkDeletePages(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $id) {
+            $page = Page::findByPK((int) $id);
+            if (!$page) continue;
+            foreach ($page->blocks as $block) {
+                $block->delete();
+            }
+            $page->delete();
+        }
         $this->flashMessage(__('admin-pages.messages.page_deleted'));
     }
 }

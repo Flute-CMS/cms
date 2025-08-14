@@ -12,9 +12,7 @@ router()->group(['middleware' => 'guest'], function (RouterInterface $router) {
     $router->get('/login', [AuthController::class, 'getLogin'])->middleware(ModalAuthMiddleware::class);
     $router->get('/register', [AuthController::class, 'getRegister'])->middleware([StandardAuthMiddleware::class, RegisterMiddleware::class]);
 
-
     $router->group([], function (RouterInterface $router) {
-        $router->get('/social/{provider}', [SocialAuthController::class, 'redirectToProvider']);
         $router->get('/social/register', [SocialAuthController::class, 'getSocialRegister']);
     });
 
@@ -38,5 +36,6 @@ router()->group(['middleware' => 'guest'], function (RouterInterface $router) {
     });
 });
 
+$router->get('/social/{provider}', [SocialAuthController::class, 'redirectToProvider']);
 $router->get('/logout', [AuthController::class, 'getLogout'])->middleware('auth');
 $router->get('/confirm/{token}', [AuthController::class, 'getConfirmation']);

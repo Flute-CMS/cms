@@ -167,6 +167,9 @@ return [
         'profile_images_saved' => 'Profil rasmlari muvaffaqiyatli saqlandi!',
         'unknown_error' => 'Nomaʻlum xatolik yuz berdi.',
         'loading' => 'Yuklanmoqda...',
+        'cron_cli_warning_text' => 'PHP CLI yoʻlining 100% toʻgʻri ekanini avtomatik aniqlab boʻlmadi. Iltimos, buyruqdagi php qismini tekshirib, zarur bo‘lsa PHP CLI yoʻlingizga almashtiring.',
+        'cron_cli_warning_current_label' => 'Joriy variant:',
+        'cron_cli_warning_examples_label' => 'Misollar:',
     ],
 
     'breadcrumbs' => [

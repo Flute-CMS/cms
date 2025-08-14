@@ -8,6 +8,7 @@ use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserBlock;
 use Flute\Core\Database\Entities\UserDevice;
 use Flute\Core\Database\Entities\UserSocialNetwork;
+use Flute\Core\Services\DiscordService;
 use Flute\Core\Support\FileUploader;
 
 class AdminUsersService
@@ -81,6 +82,14 @@ class AdminUsersService
         }
 
         $user->saveOrFail();
+
+        try {
+            if ($user->getSocialNetwork('Discord')) {
+                app()->get(DiscordService::class)->linkRoles($user, $user->roles);
+            }
+        } catch (\Throwable $e) {
+            logs()->warning($e);
+        }
     }
 
     /**

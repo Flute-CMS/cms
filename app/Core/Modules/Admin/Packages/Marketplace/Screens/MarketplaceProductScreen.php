@@ -25,8 +25,6 @@ class MarketplaceProductScreen extends Screen
 
         $this->marketplaceService = app(MarketplaceService::class);
 
-        $this->loadJS('Resources/assets/js/marketplace.js');
-
         $this->slugParam = (string) request()->input('slug');
         if (!$this->slugParam) {
             $path = request()->getPathInfo();

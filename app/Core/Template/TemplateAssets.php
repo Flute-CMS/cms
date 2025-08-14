@@ -51,7 +51,7 @@ class TemplateAssets
         $this->debugMode = false;
         $this->appUrl = config('app.url');
 
-        if (!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
+        if (is_development()) {
             $this->debugMode = true;
         }
 
@@ -322,7 +322,10 @@ class TemplateAssets
 
         $this->ensureDirectoryExists(dirname($cssFullPath));
 
-        $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
+        $needsRecompile = true;
+        if (!is_development()) {
+            $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
+        }
 
         if (!$needsRecompile) {
             foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {

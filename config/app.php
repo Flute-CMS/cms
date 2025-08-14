@@ -17,6 +17,7 @@ return array (
   'debug_ips' => 
   array (
   ),
+  'development_mode' => false,
   'logo' => 'assets/img/logo.svg',
   'key' => '',
   'tips' => true,

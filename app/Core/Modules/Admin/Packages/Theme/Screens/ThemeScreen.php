@@ -53,6 +53,7 @@ class ThemeScreen extends Screen
     {
         return [
             LayoutFactory::table('themes', [
+                TD::selection('key'),
                 TD::make('name', __('admin-theme.table.name'))
                     ->render(function (Theme $theme) {
                         return view('admin-theme::cells.name', compact('theme'));
@@ -132,6 +133,13 @@ class ThemeScreen extends Screen
                     }),
             ])
                 ->searchable(['key', 'name'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkUninstallThemes'),
+                ])
                 ->commands([
                     Button::make(__('admin-theme.buttons.refresh'))
                         ->icon('ph.regular.arrows-counter-clockwise')
@@ -251,5 +259,22 @@ class ThemeScreen extends Screen
         }
 
         $this->loadThemes(true);
+    }
+
+    public function bulkUninstallThemes(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) return;
+        foreach ($ids as $key) {
+            try {
+                if ($key !== 'standard') {
+                    $this->themeActions->uninstallTheme($key);
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+        }
+        $this->loadThemes(true);
+        $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => '']), 'success');
     }
 }

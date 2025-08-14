@@ -4,7 +4,7 @@
             {{ __('admin-marketplace.labels.no_modules_found') }}
         </x-admin::alert>
     @else
-        <div class="details-header card-gradient">
+        <div class="details-header card-gradient {{ !empty($module['isPaid']) ? 'paid' : '' }}">
             <div class="cover">
                 @if(! empty($module['primaryImage']))
                     <img loading="lazy" data-src="{{ str_starts_with($module['primaryImage'], 'http') ? $module['primaryImage'] : config('app.flute_market_url').$module['primaryImage'] }}" src="{{ str_starts_with($module['primaryImage'], 'http') ? $module['primaryImage'] : config('app.flute_market_url').$module['primaryImage'] }}" alt="{{ $module['name'] }}">
@@ -15,7 +15,7 @@
                 @endif
             </div>
             <div class="meta">
-                <h2 class="title-lg">{{ $module['name'] ?? '' }}</h2>
+                {{-- Title is shown by the Screen header; avoid duplication here --}}
                 <div class="labels">
                     @if(! empty($module['isPaid']))
                         <span class="chip accent">{{ __('admin-marketplace.labels.paid') }}</span>
@@ -29,41 +29,53 @@
                         <span class="chip">{{ $module['downloadCount'] }} {{ __('admin-marketplace.labels.downloads') }}</span>
                     @endif
                 </div>
-                <div class="actions">
-                    <x-admin::button href="{{ url('/admin/marketplace') }}" type="outline-primary">
-                        {{ __('admin-marketplace.actions.back_to_list') }}
-                    </x-admin::button>
-                    @if(! empty($module['downloadUrl']))
+                @if(! empty($module['downloadUrl']))
+                    <div class="actions">
                         <x-admin::button href="{{ url(config('app.flute_market_url').'/product/'.$module['slug']) }}" target="_blank" withoutHtmx type="primary">
                             {{ __('admin-marketplace.actions.details') }}
                         </x-admin::button>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
         </div>
 
         <div class="details-body">
             <div class="left">
-                @php $rawDesc = $module['description'] ?? ''; @endphp
-                @if($rawDesc)
-                    <div class="markdown-content">
-                        {!! markdown()->parse($rawDesc) !!}
-                    </div>
-                @endif
+                <div class="tabs card-gradient">
+                    @php $rawDesc = $module['description'] ?? ''; @endphp
+                    <input type="radio" id="tab-overview" name="md-tabs" checked>
+                    <label for="tab-overview">{{ __('admin-marketplace.labels.overview') ?? 'Обзор' }}</label>
+                    @if(! empty($versions))
+                        <input type="radio" id="tab-versions" name="md-tabs">
+                        <label for="tab-versions">{{ __('admin-marketplace.labels.version_history') }}</label>
+                    @endif
 
-                @if(! empty($versions))
-                    <div class="versions">
-                        <h3>{{ __('admin-marketplace.labels.version_history') }}</h3>
-                        <ul>
-                            @foreach($versions as $version)
-                                <li>
-                                    <span>{{ $version['version'] }}</span>
-                                    <span class="muted">{{ $version['date'] ?? '' }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
+                    <div class="tab-content">
+                        <section class="tab t-overview">
+                            @if($rawDesc)
+                                <div class="markdown-content">
+                                    {!! markdown()->parse($rawDesc) !!}
+                                </div>
+                            @else
+                                <div class="markdown-content">
+                                    <p class="muted">{{ __('admin-marketplace.messages.no_description') }}</p>
+                                </div>
+                            @endif
+                        </section>
+                        @if(! empty($versions))
+                            <section class="tab t-versions">
+                                <ul class="version-list">
+                                    @foreach($versions as $version)
+                                        <li>
+                                            <span class="ver">{{ $version['version'] }}</span>
+                                            <span class="muted">{{ $version['date'] ?? '' }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </section>
+                        @endif
                     </div>
-                @endif
+                </div>
             </div>
             <div class="right">
                 <div class="meta-cards card-gradient">
@@ -86,4 +98,3 @@
         </div>
     @endif
 </div>
-

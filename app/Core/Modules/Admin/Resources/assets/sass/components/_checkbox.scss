@@ -1,6 +1,23 @@
 $checkbox-size: 22px;
 
 .checkbox {
+    &--compact {
+        .checkbox__label:before {
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox__label:after {
+            left: 5px;
+            width: 5px;
+            height: 8px;
+        }
+
+        .checkbox__field+.checkbox__label {
+            padding-left: 24px;
+        }
+    }
+
     &__field {
         position: absolute;
         opacity: 0;
@@ -80,19 +97,13 @@ $checkbox-size: 22px;
             &+label {
                 opacity: .5;
                 cursor: default;
-
-                &:before {}
-
-                &:after {}
             }
         }
 
         // Disabled Checked
         &:checked:disabled {
             &+label {
-                &:before {}
-
-                &:after {}
+                opacity: .5;
             }
         }
     }

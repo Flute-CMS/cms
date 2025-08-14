@@ -56,6 +56,7 @@ class ModuleScreen extends Screen
             LayoutFactory::view('admin-modules::dropzone'),
 
             LayoutFactory::table('modules', [
+                TD::selection('key'),
                 TD::make('name', __('admin-modules.table.name'))
                     ->render(function (ModuleInformation $module) {
                         return view('admin-modules::cells.name', compact('module'));
@@ -141,6 +142,23 @@ class ModuleScreen extends Screen
                     }),
             ])
                 ->searchable(['key', 'name'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.enable_selected'))
+                        ->icon('ph.bold.play-bold')
+                        ->type(Color::OUTLINE_SUCCESS)
+                        ->method('bulkActivateModules'),
+
+                    Button::make(__('admin.bulk.disable_selected'))
+                        ->icon('ph.bold.pause-bold')
+                        ->type(Color::OUTLINE_WARNING)
+                        ->method('bulkDisableModules'),
+
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkUninstallModules'),
+                ])
                 ->commands([
                     Button::make(__('admin-modules.actions.refresh_list'))
                         ->icon('ph.regular.arrows-counter-clockwise')
@@ -328,5 +346,50 @@ class ModuleScreen extends Screen
         }
 
         $this->loadModules(true);
+    }
+
+    public function bulkActivateModules(): void
+    {
+        $keys = request()->input('selected', []);
+        if (!$keys) return;
+        foreach ($keys as $key) {
+            $module = $this->moduleManager->getModule($key);
+            if (!$module) continue;
+            try {
+                app(ModuleActions::class)->activateModule($module, $this->moduleManager);
+            } catch (\Exception $e) {}
+        }
+        $this->loadModules(true);
+        $this->flashMessage(__('admin-modules.messages.activated', ['name' => '']), 'success');
+    }
+
+    public function bulkDisableModules(): void
+    {
+        $keys = request()->input('selected', []);
+        if (!$keys) return;
+        foreach ($keys as $key) {
+            $module = $this->moduleManager->getModule($key);
+            if (!$module) continue;
+            try {
+                app(ModuleActions::class)->disableModule($module, $this->moduleManager);
+            } catch (\Exception $e) {}
+        }
+        $this->loadModules(true);
+        $this->flashMessage(__('admin-modules.messages.disabled', ['name' => '']), 'success');
+    }
+
+    public function bulkUninstallModules(): void
+    {
+        $keys = request()->input('selected', []);
+        if (!$keys) return;
+        foreach ($keys as $key) {
+            $module = $this->moduleManager->getModule($key);
+            if (!$module) continue;
+            try {
+                app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
+            } catch (\Exception $e) {}
+        }
+        $this->loadModules(true);
+        $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => '']), 'success');
     }
 }

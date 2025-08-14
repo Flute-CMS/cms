@@ -45,7 +45,9 @@ class UpdateScreen extends Screen
      */
     public function layout(): array
     {
-        $updates = $this->updateService->getAvailableUpdates();
+        // $updates = $this->updateService->getAvailableUpdates();
+
+        $updates = [];
 
         return [
             LayoutFactory::view('admin-update::components.javascript'),

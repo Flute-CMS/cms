@@ -17,6 +17,7 @@ return [
         'cron_command' => 'CRON Command',
         'csrf_enabled' => 'CSRF Token',
         'convert_to_webp' => 'Convert Images to WebP',
+        'development_mode' => 'Development Mode',
         'debug' => 'Debug Mode',
         'debug_ips' => 'Debug IP Addresses',
         'currency_view' => 'Display Currency',
@@ -172,6 +173,9 @@ return [
         'profile_images_saved' => 'Profile images saved successfully!',
         'unknown_error' => 'An unknown error occurred.',
         'loading' => 'Loading...',
+        'cron_cli_warning_text' => 'Could not automatically determine a 100% valid PHP CLI path. Please verify the php part in the command and replace it with the path to your PHP CLI if necessary.',
+        'cron_cli_warning_current_label' => 'Current candidate:',
+        'cron_cli_warning_examples_label' => 'Examples:',
     ],
 
     'breadcrumbs' => [
@@ -192,6 +196,7 @@ return [
         'tech_work_settings' => 'Maintenance Settings',
         'optimization_security' => 'Optimization & Security',
         'optimization_security_description' => 'Make changes only with <b>complete understanding</b>!',
+        'development_settings' => 'Development Settings',
         'debug_settings' => 'Debug Settings',
         'personal_cabinet_settings' => 'Personal Cabinet Settings',
         'session_settings' => 'Session Settings',
@@ -214,6 +219,7 @@ return [
         'is_performance' => 'The site will work faster by caching long-running queries.',
         'cron_mode' => 'This feature uses CRON instead of regular requests. Learn more <a target="_blank" href="https://docs.flute-cms.com">here</a>.',
         'convert_to_webp' => 'All site images will be converted to WebP format to reduce size.',
+        'development_mode' => 'Disables HTTP caching and forces assets recompilation on each request.',
         'debug' => 'All site errors will be displayed. You can configure who sees them.',
         'share' => 'Share Flute errors to improve product quality.',
         'discord_link_roles' => 'Automatic synchronization of Flute roles with Discord roles. Learn more <a href="https://docs.flute-cms.com" class="accent">here</a>.',

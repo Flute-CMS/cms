@@ -1,4 +1,3 @@
-// Main container
 .pickr {
     position: relative;
     overflow: visible;
@@ -8,20 +7,20 @@
         box-sizing: border-box;
         outline: none;
         border: none;
+        appearance: none;
         -webkit-appearance: none;
     }
 
-    // Color picker button
     .pcr-button {
         position: relative;
-        height: 2.5em;
-        width: 2.5em;
+        height: 2.25em;
+        width: 2.25em;
         padding: 0;
         cursor: pointer;
         font-family: var(--font);
         border-radius: var(--border05);
         border: 1px solid var(--transp-2);
-        transition: all var(--transition);
+        transition: border-color var(--transition), box-shadow var(--transition);
         overflow: hidden;
 
         &::before {
@@ -49,10 +48,7 @@
             border-radius: calc(var(--border05) - 1px);
         }
 
-        &:hover {
-            border-color: var(--primary-300);
-            transform: scale(1.05);
-        }
+        &:hover { border-color: var(--primary-300); }
 
         &.clear {
             background-size: 70%;
@@ -80,6 +76,7 @@
         box-sizing: border-box;
         outline: none;
         border: none;
+        appearance: none;
         -webkit-appearance: none;
     }
 
@@ -101,62 +98,62 @@
 }
 
 // Color picker dialog
+
+// Animations
+@keyframes pcr-pop-in {
+    0% { opacity: 0; transform: translateY(8px) scale(.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .pcr-app {
     position: fixed;
     display: flex;
     flex-direction: column;
     z-index: 10000;
-    border-radius: var(--border05);
-    background: var(--background);
+    border-radius: var(--border1);
+    background: var(--blurred-background);
     opacity: 0;
     visibility: hidden;
-    transition: opacity var(--transition), visibility 0s var(--transition);
+    transform: translateY(8px) scale(.98);
+    transition: opacity var(--transition), visibility 0s var(--transition), transform var(--transition);
     font-family: var(--font);
-    box-shadow: 0 0.25em 2em 0 var(--transp-4), 0 0 1em 0 var(--transp-2);
     left: 0;
     top: 0;
-    width: 16em;
+    width: 20em;
     max-width: 95vw;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px) saturate(120%);
     border: 1px solid var(--transp-2);
 
     &.visible {
-        transition: opacity var(--transition);
+        transition: opacity var(--transition), transform var(--transition);
         visibility: visible;
         opacity: 1;
+        transform: translateY(0) scale(1);
+        animation: pcr-pop-in .18s ease-out;
     }
 
-    // Selection area - contains color palette, preview, chooser, and opacity sliders
     .pcr-selection {
         display: grid;
         grid-gap: 0.8em;
-        grid-template-columns: 1fr 4fr;
-        grid-template-rows: 5fr auto auto;
+        grid-template-rows: 6fr auto auto;
         align-items: center;
-        height: 12em;
+        height: 14em;
         width: 100%;
         align-self: flex-start;
-        padding: 1em;
+        padding: 0.9em 1em 0.6em 1em;
 
-        // Circle picker indicator for all sliders
         .pcr-picker {
             position: absolute;
             height: 18px;
             width: 18px;
-            border: 2px solid white;
+            border: 2px solid rgba(255,255,255,.95);
             border-radius: 100%;
-            box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2);
             user-select: none;
         }
 
         // Color preview section
         .pcr-color-preview {
-            grid-area: 2/1/4/1;
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
+            display: none !important;
 
             .pcr-last-color {
                 display: none;
@@ -166,7 +163,6 @@
                 height: 2em;
                 border-radius: 50em;
                 overflow: hidden;
-                box-shadow: 0 0 3px var(--transp-3);
 
                 &::before {
                     position: absolute;
@@ -185,11 +181,10 @@
             .pcr-current-color {
                 position: relative;
                 background: var(--pcr-color);
-                width: 2.5em;
-                height: 2.5em;
-                border-radius: var(--border05);
+                width: 2.25em;
+                height: 2.25em;
+                border-radius: 999px;
                 overflow: hidden;
-                box-shadow: 0 0 3px var(--transp-3);
 
                 &::before {
                     position: absolute;
@@ -217,7 +212,6 @@
                 border-radius: var(--border05);
                 width: 100%;
                 height: 100%;
-                box-shadow: 0 0 3px var(--transp-3);
 
                 &::before {
                     position: absolute;
@@ -236,9 +230,9 @@
 
         // Hue slider section
         .pcr-color-chooser {
-            grid-area: 2/2/2/2;
-            height: 0.75em;
-            margin: 0 0.6em;
+            grid-area: 2/1/2/3;
+            height: 1.25em;
+            margin: 0 0.25em;
 
             .pcr-picker {
                 top: 50%;
@@ -247,17 +241,17 @@
 
             .pcr-slider {
                 flex-grow: 1;
-                border-radius: 50em;
+                border-radius: 999px;
                 background: linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(0, 100%, 50%));
-                box-shadow: 0 0 3px var(--transp-3);
+                box-shadow: inset 0 0 0 1px var(--transp-2);
             }
         }
 
         // Opacity slider section
         .pcr-color-opacity {
-            grid-area: 3/2/3/2;
-            height: 0.75em;
-            margin: 0 0.6em;
+            grid-area: 3/1/3/3;
+            height: 1.25em;
+            margin: 0 0.25em 0.2em;
 
             .pcr-picker {
                 top: 50%;
@@ -266,10 +260,10 @@
 
             .pcr-slider {
                 flex-grow: 1;
-                border-radius: 50em;
+                border-radius: 999px;
                 background: linear-gradient(to right, transparent, black), url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
                 background-size: 100%, 0.25em;
-                box-shadow: 0 0 3px var(--transp-3);
+                box-shadow: inset 0 0 0 1px var(--transp-2);
             }
         }
 
@@ -285,6 +279,10 @@
 
             &:active {
                 cursor: grabbing;
+            }
+
+            &:active .pcr-picker {
+                transform: translateY(-50%) scale(1.12);
             }
         }
     }
@@ -304,24 +302,23 @@
         @supports(display: grid) {
             display: grid;
             align-items: center;
-            grid-template-columns: repeat(auto-fit, 1.75em);
+            grid-template-columns: repeat(auto-fit, 1.5em);
             grid-gap: 0.5em;
         }
 
         >button {
             font-size: var(--p);
             position: relative;
-            width: 1.75em;
-            height: 1.75em;
+            width: 1.5em;
+            height: 1.5em;
             border-radius: var(--border05);
             cursor: pointer;
             flex-shrink: 0;
             justify-self: center;
-            transition: all var(--transition);
+            transition: border-color var(--transition), transform var(--transition);
             overflow: hidden;
             background: transparent;
             z-index: 1;
-            box-shadow: 0 0 3px var(--transp-3);
 
             &::before {
                 position: absolute;
@@ -349,10 +346,7 @@
                 box-sizing: border-box;
             }
 
-            &:hover {
-                transform: scale(1.15);
-                z-index: 2;
-            }
+            &:hover { transform: scale(1.06); z-index: 2; }
 
             &:not(.pcr-active) {
                 box-shadow: none;
@@ -365,14 +359,12 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        padding: 0.75em 1em 1em;
+        padding: 0.25em 1em 0.9em;
         gap: 0.5em;
         justify-content: center;
 
         // Hide the default result input
-        .pcr-result {
-            display: none;
-        }
+        .pcr-result { display: none !important; }
 
         // Format buttons (HEXA, RGBA, etc.)
         .pcr-type {
@@ -396,52 +388,14 @@
                 box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
             }
 
-            &.active {
-                color: var(--text-light);
-                background: var(--primary);
-            }
+            &.active { color: var(--background); background: var(--primary); }
         }
 
         // Action buttons (Save, Clear, Cancel)
+        // Hide action buttons in instant-apply mode
         .pcr-save,
         .pcr-cancel,
-        .pcr-clear {
-            color: var(--text-light);
-            width: auto;
-            letter-spacing: 0.07em;
-            font-size: var(--small);
-            text-align: center;
-            cursor: pointer;
-            border-radius: var(--border05);
-            transition: all var(--transition);
-            padding: 0.45em 0.75em;
-            margin-top: 0.75em;
-            font-weight: 500;
-
-            &:hover {
-                filter: brightness(0.925);
-                transform: translateY(-2px);
-            }
-        }
-
-        .pcr-save {
-            background: var(--primary);
-            box-shadow: 0 2px 4px var(--transp-2);
-
-            &:focus {
-                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
-            }
-        }
-
-        .pcr-clear,
-        .pcr-cancel {
-            background: var(--error);
-            box-shadow: 0 2px 4px var(--transp-2);
-
-            &:focus {
-                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--error-light);
-            }
-        }
+        .pcr-clear { display: none !important; }
     }
 }
 
@@ -465,7 +419,6 @@
     overflow: hidden;
     margin-right: 0.5em;
     border: 1px solid var(--transp-2);
-    box-shadow: 0 1px 3px var(--transp-1);
     transition: all var(--transition);
 
     &:hover {

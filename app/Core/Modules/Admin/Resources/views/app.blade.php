@@ -138,6 +138,14 @@
 
     @include('admin::partials.flash')
 
+    @if (is_development() && !request()->htmx()->isHtmxRequest())
+        <div class="container mt-2">
+            <x-alert type="warning" onlyBorders withClose="false">
+                {{ __('def.debug_message') }} (development mode)
+            </x-alert>
+        </div>
+    @endif
+
     <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main"
         hx-history-elt>
         <div id="screen-container">
@@ -235,14 +243,15 @@
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
         <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
         <script src="@asset('assets/js/libs/easymde.js')" defer></script>
-        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script>
-        <script src="@asset('assets/js/libs/pickr.js')" defer></script> -->
+        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
+        <script src="@asset('assets/js/libs/pickr.js')" defer></script>
 
         @at('Core/Modules/Admin/Resources/assets/js/helpers.js')
         @at('Core/Modules/Admin/Resources/assets/js/modals.js')
         @at('Core/Modules/Admin/Resources/assets/js/tabs.js')
         @at('Core/Modules/Admin/Resources/assets/js/popover.js')
         @at('Core/Modules/Admin/Resources/assets/js/columns.js')
+        @at('Core/Modules/Admin/Resources/assets/js/selection.js')
         @at('Core/Modules/Admin/Resources/assets/js/script.js')
         @at('Core/Modules/Admin/Resources/assets/js/sidebar.js')
         @at('Core/Modules/Admin/Resources/assets/js/sortable.js')
