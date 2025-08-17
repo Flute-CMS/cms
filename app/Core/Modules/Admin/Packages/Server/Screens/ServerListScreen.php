@@ -129,7 +129,9 @@ class ServerListScreen extends Screen
     public function bulkEnable(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $server = Server::findByPK($id);
             if ($server) {
@@ -143,7 +145,9 @@ class ServerListScreen extends Screen
     public function bulkDisable(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $server = Server::findByPK($id);
             if ($server) {
@@ -157,7 +161,9 @@ class ServerListScreen extends Screen
     public function bulkDelete(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $server = Server::findByPK($id);
             if ($server) {

@@ -17,187 +17,189 @@ class DiscordService
         $this->client = $client;
     }
 
-	public function clearRoles(User $user)
-	{
-		$this->linkRoles($user, []);
-	}
+    public function clearRoles(User $user)
+    {
+        $this->linkRoles($user, []);
+    }
 
-	public function linkRoles(User $user, array $roles = [])
-	{
-		if (!config('app.discord_link_roles')) {
-			return;
-		}
+    public function linkRoles(User $user, array $roles = [])
+    {
+        if (!config('app.discord_link_roles')) {
+            return;
+        }
 
-		$discordInfo = $this->getDiscordInfo();
+        $discordInfo = $this->getDiscordInfo();
 
-		if (!$discordInfo) {
-			return false;
-		}
+        if (!$discordInfo) {
+            return false;
+        }
 
-		if (!empty($discordInfo['token']) && !empty($discordInfo['guild_id'])) {
-			return $this->linkRolesViaBot($user, $roles, $discordInfo);
-		}
+        if (!empty($discordInfo['token']) && !empty($discordInfo['guild_id'])) {
+            return $this->linkRolesViaBot($user, $roles, $discordInfo);
+        }
 
-		return $this->linkRolesViaRoleConnections($user, $roles, $discordInfo);
-	}
+        return $this->linkRolesViaRoleConnections($user, $roles, $discordInfo);
+    }
 
-	/**
-	 * Sync roles using Discord Role Connections (user OAuth access token)
-	 */
-	protected function linkRolesViaRoleConnections(User $user, array $roles, array $discordInfo)
-	{
-		$clientId = $discordInfo['id'];
-		$url = self::BASE_URL . "/users/@me/applications/{$clientId}/role-connection";
-		$accessToken = $this->getUserAccessToken($user);
+    /**
+     * Sync roles using Discord Role Connections (user OAuth access token)
+     */
+    protected function linkRolesViaRoleConnections(User $user, array $roles, array $discordInfo)
+    {
+        $clientId = $discordInfo['id'];
+        $url = self::BASE_URL . "/users/@me/applications/{$clientId}/role-connection";
+        $accessToken = $this->getUserAccessToken($user);
 
-		if (!$accessToken) {
-			return false;
-		}
+        if (!$accessToken) {
+            return false;
+        }
 
-		if (sizeof($roles) > 0) {
-			foreach ($roles as $key => $role) {
-				try {
-					$this->client->request('PUT', $url, [
-						'headers' => [
-							'Authorization' => 'Bearer ' . $accessToken,
-							'Accept' => 'application/json',
-						],
-						'json' => [
-							'platform_name' => config('app.name'),
-							'metadata' => [
-								'role_id' => $role->id,
-							],
-						],
-					]);
+        if (sizeof($roles) > 0) {
+            foreach ($roles as $key => $role) {
+                try {
+                    $this->client->request('PUT', $url, [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $accessToken,
+                            'Accept' => 'application/json',
+                        ],
+                        'json' => [
+                            'platform_name' => config('app.name'),
+                            'metadata' => [
+                                'role_id' => $role->id,
+                            ],
+                        ],
+                    ]);
 
-					if (isset($roles[$key + 1])) {
-						sleep(5);
-					}
-				} catch (ClientException $e) {
-					logs()->error($e);
+                    if (isset($roles[$key + 1])) {
+                        sleep(5);
+                    }
+                } catch (ClientException $e) {
+                    logs()->error($e);
 
-					if (is_debug()) {
-						throw $e;
-					}
-				}
-			}
-		} else {
-			try {
-				$this->client->request('PUT', $url, [
-					'headers' => [
-						'Authorization' => 'Bearer ' . $accessToken,
-						'Accept' => 'application/json',
-					],
-					'json' => [
-						'platform_name' => config('app.name'),
-						'metadata' => [
-							'role_id' => 0,
-						],
-					],
-				]);
-			} catch (ClientException $e) {
-				logs()->error($e);
+                    if (is_debug()) {
+                        throw $e;
+                    }
+                }
+            }
+        } else {
+            try {
+                $this->client->request('PUT', $url, [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $accessToken,
+                        'Accept' => 'application/json',
+                    ],
+                    'json' => [
+                        'platform_name' => config('app.name'),
+                        'metadata' => [
+                            'role_id' => 0,
+                        ],
+                    ],
+                ]);
+            } catch (ClientException $e) {
+                logs()->error($e);
 
-				if (is_debug()) {
-					throw $e;
-				}
-			}
-		}
+                if (is_debug()) {
+                    throw $e;
+                }
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 * Sync roles using Bot token at Guild level
-	 */
-	protected function linkRolesViaBot(User $user, array $roles, array $discordInfo)
-	{
-		$guildId = $discordInfo['guild_id'];
-		$botToken = $discordInfo['token'];
+    /**
+     * Sync roles using Bot token at Guild level
+     */
+    protected function linkRolesViaBot(User $user, array $roles, array $discordInfo)
+    {
+        $guildId = $discordInfo['guild_id'];
+        $botToken = $discordInfo['token'];
 
-		$userSocial = $user->getSocialNetwork('Discord');
-		if (!$userSocial) {
-			return false;
-		}
+        $userSocial = $user->getSocialNetwork('Discord');
+        if (!$userSocial) {
+            return false;
+        }
 
-		$discordUserId = $userSocial->value;
+        $discordUserId = $userSocial->value;
 
-		$rolesMap = isset($discordInfo['roles_map']) && is_array($discordInfo['roles_map'])
-			? $discordInfo['roles_map']
-			: [];
+        $rolesMap = isset($discordInfo['roles_map']) && is_array($discordInfo['roles_map'])
+            ? $discordInfo['roles_map']
+            : [];
 
-		$targetGuildRoleIds = [];
-		foreach ($roles as $role) {
-			$fluteRoleId = $role->id;
-			if (isset($rolesMap[$fluteRoleId])) {
-				$targetGuildRoleIds[] = (string) $rolesMap[$fluteRoleId];
-			}
-		}
+        $targetGuildRoleIds = [];
+        foreach ($roles as $role) {
+            $fluteRoleId = $role->id;
+            if (isset($rolesMap[$fluteRoleId])) {
+                $targetGuildRoleIds[] = (string) $rolesMap[$fluteRoleId];
+            }
+        }
 
-		$targetGuildRoleIds = array_values(array_unique($targetGuildRoleIds));
+        $targetGuildRoleIds = array_values(array_unique($targetGuildRoleIds));
 
-		$currentRoles = [];
-		try {
-			$response = $this->client->request('GET', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}", [
-				'headers' => [
-					'Authorization' => 'Bot ' . $botToken,
-					'Accept' => 'application/json',
-				],
-			]);
-			$data = json_decode($response->getBody()->getContents(), true);
-			$currentRoles = isset($data['roles']) && is_array($data['roles']) ? $data['roles'] : [];
-		} catch (ClientException $e) {
-			if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
-				logs()->warning('Discord member not found in guild for user #' . $user->id . ' (Discord ID ' . $discordUserId . '). Skipping bot role sync.');
-				return false;
-			}
-			logs()->error($e);
-			if (is_debug()) {
-				throw $e;
-			}
-		}
+        $currentRoles = [];
 
-		$managedRoleIds = array_values(array_unique(array_map('strval', array_values($rolesMap))));
-		$currentManaged = array_values(array_intersect($currentRoles, $managedRoleIds));
-		$toAdd = array_values(array_diff($targetGuildRoleIds, $currentManaged));
-		$toRemove = array_values(array_diff($currentManaged, $targetGuildRoleIds));
+        try {
+            $response = $this->client->request('GET', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}", [
+                'headers' => [
+                    'Authorization' => 'Bot ' . $botToken,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+            $data = json_decode($response->getBody()->getContents(), true);
+            $currentRoles = isset($data['roles']) && is_array($data['roles']) ? $data['roles'] : [];
+        } catch (ClientException $e) {
+            if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
+                logs()->warning('Discord member not found in guild for user #' . $user->id . ' (Discord ID ' . $discordUserId . '). Skipping bot role sync.');
 
-		foreach ($toRemove as $discordRoleId) {
-			try {
-				$this->client->request('DELETE', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-					'headers' => [
-						'Authorization' => 'Bot ' . $botToken,
-						'Accept' => 'application/json',
-					],
-				]);
-				usleep(250000);
-			} catch (ClientException $e) {
-				logs()->error($e);
-				if (is_debug()) {
-					throw $e;
-				}
-			}
-		}
+                return false;
+            }
+            logs()->error($e);
+            if (is_debug()) {
+                throw $e;
+            }
+        }
 
-		foreach ($toAdd as $discordRoleId) {
-			try {
-				$this->client->request('PUT', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-					'headers' => [
-						'Authorization' => 'Bot ' . $botToken,
-						'Accept' => 'application/json',
-					],
-				]);
-				usleep(250000);
-			} catch (ClientException $e) {
-				logs()->error($e);
-				if (is_debug()) {
-					throw $e;
-				}
-			}
-		}
+        $managedRoleIds = array_values(array_unique(array_map('strval', array_values($rolesMap))));
+        $currentManaged = array_values(array_intersect($currentRoles, $managedRoleIds));
+        $toAdd = array_values(array_diff($targetGuildRoleIds, $currentManaged));
+        $toRemove = array_values(array_diff($currentManaged, $targetGuildRoleIds));
 
-		return true;
-	}
+        foreach ($toRemove as $discordRoleId) {
+            try {
+                $this->client->request('DELETE', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
+                    'headers' => [
+                        'Authorization' => 'Bot ' . $botToken,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                usleep(250000);
+            } catch (ClientException $e) {
+                logs()->error($e);
+                if (is_debug()) {
+                    throw $e;
+                }
+            }
+        }
+
+        foreach ($toAdd as $discordRoleId) {
+            try {
+                $this->client->request('PUT', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
+                    'headers' => [
+                        'Authorization' => 'Bot ' . $botToken,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                usleep(250000);
+            } catch (ClientException $e) {
+                logs()->error($e);
+                if (is_debug()) {
+                    throw $e;
+                }
+            }
+        }
+
+        return true;
+    }
 
     public function refreshAccessToken(string $refreshToken, int $userId)
     {

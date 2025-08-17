@@ -713,10 +713,15 @@ class PromoCodeScreen extends Screen
     public function bulkDeletePromoCodes(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $promoCode = $this->paymentService->getPromoCodeById((int) $id);
-            if (!$promoCode) continue;
+            if (!$promoCode) {
+                continue;
+            }
+
             try {
                 $this->paymentService->deletePromoCode($promoCode);
             } catch (\Throwable $e) {

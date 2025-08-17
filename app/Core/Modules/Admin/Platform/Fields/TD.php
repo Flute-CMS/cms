@@ -413,7 +413,7 @@ class TD extends Cell
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
     /**

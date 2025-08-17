@@ -41,6 +41,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                 // CMS
                 if (!empty($updates['cms'])) {
                     $total++;
+
                     try {
                         $packageFile = $updateService->downloadUpdate('cms', null, $updates['cms']['version'] ?? null);
                         if ($packageFile && file_exists($packageFile)) {
@@ -61,6 +62,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                 if (!empty($updates['modules'])) {
                     foreach ($updates['modules'] as $moduleId => $moduleUpdate) {
                         $total++;
+
                         try {
                             $packageFile = $updateService->downloadUpdate('module', $moduleId, $moduleUpdate['version'] ?? null);
                             if ($packageFile && file_exists($packageFile)) {
@@ -85,6 +87,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                 if (!empty($updates['themes'])) {
                     foreach ($updates['themes'] as $themeId => $themeUpdate) {
                         $total++;
+
                         try {
                             $packageFile = $updateService->downloadUpdate('theme', $themeId, $themeUpdate['version'] ?? null);
                             if ($packageFile && file_exists($packageFile)) {
@@ -123,5 +126,3 @@ class UpdateServiceProvider extends AbstractServiceProvider
         })->daily();
     }
 }
-
-

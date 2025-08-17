@@ -291,11 +291,11 @@ class ServerEditScreen extends Screen
     {
         return LayoutFactory::table('dbConnections', [
             TD::make('mod', __('admin-server.db_connection.fields.mod.label'))
-                ->render(fn(DatabaseConnection $connection) => $connection->mod)
+                ->render(fn (DatabaseConnection $connection) => $connection->mod)
                 ->width('200px'),
 
             TD::make('dbname', __('admin-server.db_connection.fields.dbname.label'))
-                ->render(fn(DatabaseConnection $connection) => $connection->dbname)
+                ->render(fn (DatabaseConnection $connection) => $connection->dbname)
                 ->width('200px'),
 
             TD::make('additional', __('admin-server.db_connection.fields.additional.label'))
@@ -321,7 +321,7 @@ class ServerEditScreen extends Screen
                 ->width('200px'),
 
             TD::make('actions', __('admin-server.buttons.actions'))
-                ->render(fn(DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
+                ->render(fn (DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
                 ->width('100px'),
         ])
             ->searchable([

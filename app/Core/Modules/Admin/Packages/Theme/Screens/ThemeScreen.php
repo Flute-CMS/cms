@@ -264,7 +264,9 @@ class ThemeScreen extends Screen
     public function bulkUninstallThemes(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $key) {
             try {
                 if ($key !== 'standard') {

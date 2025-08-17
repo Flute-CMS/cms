@@ -249,11 +249,18 @@ class PaymentInvoiceScreen extends Screen
     public function bulkMarkInvoicesPaid(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $invoice = PaymentInvoice::findByPK((int) $id);
-            if (!$invoice) continue;
-            if ($invoice->isPaid) continue;
+            if (!$invoice) {
+                continue;
+            }
+            if ($invoice->isPaid) {
+                continue;
+            }
+
             try {
                 if (!empty($invoice->transactionId)) {
                     payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
@@ -274,10 +281,15 @@ class PaymentInvoiceScreen extends Screen
     public function bulkDeleteInvoices(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $invoice = PaymentInvoice::findByPK((int) $id);
-            if (!$invoice) continue;
+            if (!$invoice) {
+                continue;
+            }
+
             try {
                 $invoice->delete();
             } catch (\Throwable $e) {

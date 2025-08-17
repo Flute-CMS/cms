@@ -370,10 +370,14 @@ class CurrencyListScreen extends Screen
     public function bulkDeleteCurrencies(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $currency = Currency::findByPK($id);
-            if (!$currency) continue;
+            if (!$currency) {
+                continue;
+            }
             $currency->clearPayments();
             $currency->save();
             $currency->delete();

@@ -351,13 +351,19 @@ class ModuleScreen extends Screen
     public function bulkActivateModules(): void
     {
         $keys = request()->input('selected', []);
-        if (!$keys) return;
+        if (!$keys) {
+            return;
+        }
         foreach ($keys as $key) {
             $module = $this->moduleManager->getModule($key);
-            if (!$module) continue;
+            if (!$module) {
+                continue;
+            }
+
             try {
                 app(ModuleActions::class)->activateModule($module, $this->moduleManager);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.activated', ['name' => '']), 'success');
@@ -366,13 +372,19 @@ class ModuleScreen extends Screen
     public function bulkDisableModules(): void
     {
         $keys = request()->input('selected', []);
-        if (!$keys) return;
+        if (!$keys) {
+            return;
+        }
         foreach ($keys as $key) {
             $module = $this->moduleManager->getModule($key);
-            if (!$module) continue;
+            if (!$module) {
+                continue;
+            }
+
             try {
                 app(ModuleActions::class)->disableModule($module, $this->moduleManager);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.disabled', ['name' => '']), 'success');
@@ -381,13 +393,19 @@ class ModuleScreen extends Screen
     public function bulkUninstallModules(): void
     {
         $keys = request()->input('selected', []);
-        if (!$keys) return;
+        if (!$keys) {
+            return;
+        }
         foreach ($keys as $key) {
             $module = $this->moduleManager->getModule($key);
-            if (!$module) continue;
+            if (!$module) {
+                continue;
+            }
+
             try {
                 app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => '']), 'success');

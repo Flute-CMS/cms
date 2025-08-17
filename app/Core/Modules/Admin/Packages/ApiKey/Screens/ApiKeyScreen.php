@@ -352,10 +352,14 @@ class ApiKeyScreen extends Screen
     public function bulkDeleteApiKeys(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $apiKey = ApiKey::findByPK($id);
-            if (!$apiKey) continue;
+            if (!$apiKey) {
+                continue;
+            }
             $apiKey->delete();
         }
         $this->apiKeys = rep(ApiKey::class)->select();

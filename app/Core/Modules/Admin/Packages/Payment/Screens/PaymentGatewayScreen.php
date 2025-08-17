@@ -294,10 +294,15 @@ class PaymentGatewayScreen extends Screen
     public function bulkDeleteGateways(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $gateway = $this->paymentService->getGatewayById((int) $id);
-            if (!$gateway) continue;
+            if (!$gateway) {
+                continue;
+            }
+
             try {
                 $this->paymentService->deleteGateway($gateway);
             } catch (\Exception $e) {
@@ -312,10 +317,15 @@ class PaymentGatewayScreen extends Screen
     public function bulkEnableGateways(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $gateway = $this->paymentService->getGatewayById((int) $id);
-            if (!$gateway) continue;
+            if (!$gateway) {
+                continue;
+            }
+
             try {
                 $gateway->enabled = true;
                 $gateway->saveOrFail();
@@ -331,10 +341,15 @@ class PaymentGatewayScreen extends Screen
     public function bulkDisableGateways(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $gateway = $this->paymentService->getGatewayById((int) $id);
-            if (!$gateway) continue;
+            if (!$gateway) {
+                continue;
+            }
+
             try {
                 $gateway->enabled = false;
                 $gateway->saveOrFail();

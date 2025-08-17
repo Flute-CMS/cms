@@ -130,10 +130,14 @@ class PageListScreen extends Screen
     public function bulkDeletePages(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $page = Page::findByPK((int) $id);
-            if (!$page) continue;
+            if (!$page) {
+                continue;
+            }
             foreach ($page->blocks as $block) {
                 $block->delete();
             }

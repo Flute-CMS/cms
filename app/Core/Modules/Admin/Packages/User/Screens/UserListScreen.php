@@ -303,12 +303,20 @@ class UserListScreen extends Screen
     public function bulkDeleteUsers(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $user = User::findByPK((int) $id);
-            if (!$user) continue;
-            if (!user()->can($user)) continue;
-            if (user()->getCurrentUser()?->id === $user->id) continue;
+            if (!$user) {
+                continue;
+            }
+            if (!user()->can($user)) {
+                continue;
+            }
+            if (user()->getCurrentUser()?->id === $user->id) {
+                continue;
+            }
             $user->delete();
         }
         $this->flashMessage(__('admin-users.messages.delete_success'), 'success');
@@ -317,11 +325,18 @@ class UserListScreen extends Screen
     public function bulkUnblockUsers(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $user = User::findByPK((int) $id);
-            if (!$user) continue;
-            if (!user()->can($user)) continue;
+            if (!$user) {
+                continue;
+            }
+            if (!user()->can($user)) {
+                continue;
+            }
+
             try {
                 app(AdminUsersService::class)->unblockUser($user);
             } catch (\Throwable $e) {

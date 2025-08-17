@@ -52,7 +52,7 @@ class SocialScreen extends Screen
                         ->icon('ph.regular.dots-three-outline-vertical')
                         ->list([
                             DropDownItem::make(__('admin-social.buttons.edit'))->redirect(url('/admin/socials/' . $social->id . '/edit'))->icon('ph.bold.pencil-bold')->type(Color::OUTLINE_PRIMARY)->size('small')->fullWidth(),
-                            
+
                             DropDownItem::make($social->enabled ? __('admin-social.buttons.disable') : __('admin-social.buttons.enable'))
                                 ->method('toggle', ['id' => $social->id])
                                 ->icon($social->enabled ? 'ph.bold.power-bold' : 'ph.bold.check-circle-bold')
@@ -141,10 +141,14 @@ class SocialScreen extends Screen
     public function bulkEnableSocials(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $social = rep(SocialNetwork::class)->findByPK($id);
-            if (!$social) continue;
+            if (!$social) {
+                continue;
+            }
             $social->enabled = true;
             transaction($social)->run();
         }
@@ -155,10 +159,14 @@ class SocialScreen extends Screen
     public function bulkDisableSocials(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $social = rep(SocialNetwork::class)->findByPK($id);
-            if (!$social) continue;
+            if (!$social) {
+                continue;
+            }
             $social->enabled = false;
             transaction($social)->run();
         }
@@ -169,10 +177,14 @@ class SocialScreen extends Screen
     public function bulkDeleteSocials(): void
     {
         $ids = request()->input('selected', []);
-        if (!$ids) return;
+        if (!$ids) {
+            return;
+        }
         foreach ($ids as $id) {
             $social = rep(SocialNetwork::class)->findByPK($id);
-            if (!$social) continue;
+            if (!$social) {
+                continue;
+            }
             transaction($social, 'delete')->run();
         }
         $this->socials = rep(SocialNetwork::class)->select();
