@@ -15,7 +15,7 @@ class FileSystemService extends Filesystem
      */
     public function importHelpers(): void
     {
-        $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache';
+        $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.php';
 
         if ($this->isCacheValid($cacheFile)) {
             require_once $cacheFile;

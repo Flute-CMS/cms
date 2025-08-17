@@ -8,6 +8,7 @@ return array (
   'flute_market_url' => 'https://flute-cms.com',
   'debug' => false,
   'cron_mode' => false,
+  'auto_update' => false,
   'footer_additional' => null,
   'create_backup' => true,
   'maintenance_mode' => false,

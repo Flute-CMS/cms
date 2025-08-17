@@ -197,7 +197,7 @@ class UpdateService
                     'themes' => json_encode($this->getInstalledThemes()),
                     'accessKey' => $apiKey,
                     'phpVersion' => $this->getPHPVersion(),
-                    'channel' => $this->channel,
+                    'branch' => $this->channel,
                     'nocache' => time(),
                 ],
             ]);
@@ -406,9 +406,9 @@ class UpdateService
 
         $this->getAvailableUpdates(true);
 
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
+        // if (function_exists('opcache_reset')) {
+        //     opcache_reset();
+        // }
     }
 
     /**

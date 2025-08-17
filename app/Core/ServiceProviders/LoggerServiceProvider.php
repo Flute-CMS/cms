@@ -23,7 +23,6 @@ class LoggerServiceProvider extends AbstractServiceProvider
 
     public function boot(Container $container): void
     {
-        // Setup log rotation and cleanup cron job
         $container->get(LoggerService::class)->setupCron();
     }
 }

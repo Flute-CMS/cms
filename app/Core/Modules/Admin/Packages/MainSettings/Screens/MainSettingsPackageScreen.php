@@ -181,7 +181,7 @@ class MainSettingsPackageScreen extends Screen
                     )->label(__('admin-main-settings.labels.maintenance_message')),
                 ])->title(__('admin-main-settings.blocks.tech_work_settings'))->addClass('mb-2'),
             ]),
-            
+
             LayoutFactory::blank([
                 LayoutFactory::block([
                     LayoutFactory::field(
@@ -244,6 +244,12 @@ class MainSettingsPackageScreen extends Screen
                             Toggle::make('create_backup')
                                 ->checked(config('app.create_backup', false))
                         )->label(__('admin-main-settings.labels.create_backup'))->popover(__('admin-main-settings.popovers.create_backup')),
+                        LayoutFactory::field(
+                            Toggle::make('auto_update')
+                                ->checked(config('app.auto_update', false))
+                        )->label(__('admin-main-settings.labels.auto_update'))
+                            ->setVisible(config('app.cron_mode'))
+                            ->popover(__('admin-main-settings.popovers.auto_update')),
                     ]),
                 ])->title(__('admin-main-settings.blocks.optimization_security'))->addClass('mb-2')->description(__('admin-main-settings.blocks.optimization_security_description')),
 
@@ -504,7 +510,7 @@ class MainSettingsPackageScreen extends Screen
                         ->options(array_combine(
                             config('lang.available'),
                             array_map(
-                                fn ($key) => __('langs.' . $key),
+                                fn($key) => __('langs.' . $key),
                                 config('lang.available')
                             )
                         ))
@@ -513,7 +519,7 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::block([
                 LayoutFactory::split(
                     array_map(
-                        fn ($lang) => LayoutFactory::field(
+                        fn($lang) => LayoutFactory::field(
                             Toggle::make("available[{$lang}]")
                                 ->checked(in_array($lang, config('lang.available')))
                         )->label(__('langs.' . $lang)),

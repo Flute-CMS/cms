@@ -6,10 +6,7 @@
     }
 
     if (!$phpPath && function_exists('shell_exec')) {
-        $discoverCommands = [
-            'command -v php 2>/dev/null',
-            'which php 2>/dev/null',
-        ];
+        $discoverCommands = ['command -v php 2>/dev/null', 'which php 2>/dev/null'];
 
         foreach ($discoverCommands as $cmd) {
             $detected = trim((string) @shell_exec($cmd));
@@ -30,8 +27,8 @@
 
     if (!$phpPath) {
         $fallbacks = [
-            '/opt/homebrew/bin/php',   // macOS (Apple Silicon) Homebrew
-            '/usr/local/bin/php',      // common *nix
+            '/opt/homebrew/bin/php', // macOS (Apple Silicon) Homebrew
+            '/usr/local/bin/php', // common *nix
             '/usr/bin/php',
         ];
 
@@ -53,7 +50,7 @@
         $fluteCommand = rtrim(BASE_PATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'flute';
     }
 
-    $phpIsEnv = ($phpPath === '/usr/bin/env php');
+    $phpIsEnv = $phpPath === '/usr/bin/env php';
     $isReliable = false;
 
     if (!$phpIsEnv && @is_executable($phpPath) && function_exists('shell_exec')) {
@@ -79,8 +76,10 @@
     @if (!$isReliable)
         <x-alert type="warning" onlyBorders withClose=false>
             {{ __('admin-main-settings.messages.cron_cli_warning_text') }}
-            <br />{{ __('admin-main-settings.messages.cron_cli_warning_current_label') }} <code>{{ $phpPath }}</code>
-            <br />{{ __('admin-main-settings.messages.cron_cli_warning_examples_label') }} <code>/usr/bin/php</code>, <code>/usr/local/bin/php</code>, <code>/opt/homebrew/bin/php</code>
+            <br />{{ __('admin-main-settings.messages.cron_cli_warning_current_label') }}
+            <code>{{ $phpPath }}</code>
+            <br />{{ __('admin-main-settings.messages.cron_cli_warning_examples_label') }} <code>/usr/bin/php</code>,
+            <code>/usr/local/bin/php</code>, <code>/opt/homebrew/bin/php</code>
         </x-alert>
     @endif
 

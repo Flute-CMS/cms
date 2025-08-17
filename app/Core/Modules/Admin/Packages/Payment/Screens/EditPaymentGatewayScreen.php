@@ -165,7 +165,7 @@ class EditPaymentGatewayScreen extends Screen
                                 ->value(url('lk/fail'))
                                 ->readonly()
                         )->label(__('admin-payment.fields.fail_url.label')),
-                    ]),
+                    ])->setVisible(!empty($this->gateway->adapter)),
                 ]),
 
                 LayoutFactory::block(

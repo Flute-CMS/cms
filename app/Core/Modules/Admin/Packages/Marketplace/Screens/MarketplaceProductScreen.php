@@ -7,6 +7,7 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceProductScreen extends Screen
 {
@@ -32,6 +33,8 @@ class MarketplaceProductScreen extends Screen
             $this->slugParam = end($parts) ?: '';
         }
 
+        $this->moduleManager = app(ModuleManager::class);
+
         $this->loadModule();
     }
 
@@ -49,6 +52,19 @@ class MarketplaceProductScreen extends Screen
 
                     break;
                 }
+            }
+
+            $this->module['isInstalled'] = $this->moduleManager->issetModule($this->module['name']) &&
+                $this->moduleManager->getModule($this->module['name'])->status !== 'notinstalled';
+
+            if ($this->module['isInstalled'] && isset($this->module['currentVersion'])) {
+                $installedModule = $this->moduleManager->getModule($this->module['name']);
+                $this->module['installedVersion'] = $installedModule->installedVersion ?? '0.0.0';
+                $this->module['needsUpdate'] = version_compare(
+                    $this->module['currentVersion'],
+                    $this->module['installedVersion'],
+                    '>'
+                );
             }
 
             if (!empty($this->module['name'])) {
@@ -76,6 +92,8 @@ class MarketplaceProductScreen extends Screen
             LayoutFactory::view('admin-marketplace::marketplace.module-details', [
                 'module' => $this->module,
                 'versions' => $this->versions,
+                'isInstalled' => $this->module['isInstalled'] ?? false,
+                'needsUpdate' => $this->module['needsUpdate'] ?? false,
             ]),
         ];
     }

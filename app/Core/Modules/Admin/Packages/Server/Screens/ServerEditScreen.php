@@ -233,6 +233,28 @@ class ServerEditScreen extends Screen
 
             ]),
 
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('settings__query_port')
+                        ->type('number')
+                        ->value(($this->server?->getSetting('query_port') ?? ''))
+                        ->disabled(!$canEditServer)
+                        ->placeholder('27015')
+                )
+                    ->small(__('admin-server.fields.query_port.placeholder'))
+                    ->label(__('admin-server.fields.query_port.label')),
+
+                LayoutFactory::field(
+                    Input::make('settings__rcon_port')
+                        ->type('number')
+                        ->value(($this->server?->getSetting('rcon_port') ?? ''))
+                        ->disabled(!$canEditServer)
+                        ->placeholder('27015')
+                )
+                    ->small(__('admin-server.fields.rcon_port.placeholder'))
+                    ->label(__('admin-server.fields.rcon_port.label')),
+            ]),
+
             LayoutFactory::field(
                 Toggle::make('enabled')
                     ->checked($this->server?->enabled ?? true)
@@ -269,11 +291,11 @@ class ServerEditScreen extends Screen
     {
         return LayoutFactory::table('dbConnections', [
             TD::make('mod', __('admin-server.db_connection.fields.mod.label'))
-                ->render(fn (DatabaseConnection $connection) => $connection->mod)
+                ->render(fn(DatabaseConnection $connection) => $connection->mod)
                 ->width('200px'),
 
             TD::make('dbname', __('admin-server.db_connection.fields.dbname.label'))
-                ->render(fn (DatabaseConnection $connection) => $connection->dbname)
+                ->render(fn(DatabaseConnection $connection) => $connection->dbname)
                 ->width('200px'),
 
             TD::make('additional', __('admin-server.db_connection.fields.additional.label'))
@@ -299,7 +321,7 @@ class ServerEditScreen extends Screen
                 ->width('200px'),
 
             TD::make('actions', __('admin-server.buttons.actions'))
-                ->render(fn (DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
+                ->render(fn(DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
                 ->width('100px'),
         ])
             ->searchable([
@@ -533,6 +555,8 @@ class ServerEditScreen extends Screen
             'ranks' => ['required', 'string', 'max-str-len:255'],
             'ranks_format' => ['required', 'string', 'max-str-len:255'],
             'ranks_premier' => ['nullable', 'boolean'],
+            'settings__query_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'settings__rcon_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
         ], $data);
 
         if (!$validation) {

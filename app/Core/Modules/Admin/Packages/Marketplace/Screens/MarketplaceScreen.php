@@ -97,14 +97,12 @@ class MarketplaceScreen extends Screen
         $this->marketplaceService = app(MarketplaceService::class);
         $this->moduleManager = app(ModuleManager::class);
 
-        // Read filters from query parameters (pure GET, no JS needed)
         $req = request();
         $this->searchQuery = (string) $req->input('q', '');
         $this->selectedCategory = (string) $req->input('category', '');
         $this->priceFilter = (string) $req->input('price', ''); // '', 'free', 'paid'
         $this->statusFilter = (string) $req->input('status', ''); // '', 'installed','notinstalled','update'
 
-        // Preload categories for UI
         $this->categories = $this->getCategories();
 
         $this->loadModules();
@@ -133,6 +131,33 @@ class MarketplaceScreen extends Screen
     }
 
     /**
+     * Yoyo handler: apply filters from current request payload
+     */
+    public function handleFilters(): void
+    {
+        $req = request();
+        $this->searchQuery = (string) $req->input('q', '');
+        $this->selectedCategory = (string) $req->input('category', '');
+        $this->priceFilter = (string) $req->input('price', '');
+        $this->statusFilter = (string) $req->input('status', '');
+
+        $this->loadModules();
+    }
+
+    /**
+     * Yoyo handler: clear filters and reload
+     */
+    public function clearFilters(): void
+    {
+        $this->searchQuery = '';
+        $this->selectedCategory = '';
+        $this->priceFilter = '';
+        $this->statusFilter = '';
+
+        $this->loadModules();
+    }
+
+    /**
      * Load modules from marketplace
      */
     public function loadModules(bool $force = false)
@@ -140,7 +165,6 @@ class MarketplaceScreen extends Screen
         $this->isLoading = true;
 
         try {
-            // Ask API with search + category; other filters are local
             $this->modules = $this->marketplaceService->getModules($this->searchQuery, $this->selectedCategory, $force);
 
             foreach ($this->modules as &$module) {
@@ -209,7 +233,12 @@ class MarketplaceScreen extends Screen
             });
         }
 
-        // Paid modules first
+        if (!empty($this->searchQuery)) {
+            $filteredModules = array_filter($filteredModules, function ($module) {
+                return str_contains(strtolower($module['name']), strtolower($this->searchQuery));
+            });
+        }
+
         usort($filteredModules, function ($a, $b) {
             $ap = !empty($a['isPaid']);
             $bp = !empty($b['isPaid']);
@@ -222,8 +251,6 @@ class MarketplaceScreen extends Screen
 
         $this->modules = array_values($filteredModules);
     }
-
-    // Deprecated Yoyo/HTMX handlers removed in favor of pure GET filters
 
     /**
      * Install module

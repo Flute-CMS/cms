@@ -57,6 +57,14 @@ return [
             'label' => 'Premier Ranks',
             'placeholder' => 'Should the server use premier ranks',
         ],
+        'query_port' => [
+            'label' => 'Query Port',
+            'placeholder' => 'Optional. If empty, uses connection port',
+        ],
+        'rcon_port' => [
+            'label' => 'RCON Port',
+            'placeholder' => 'Optional. If empty, uses connection port',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'Should the server be visible in the public list',

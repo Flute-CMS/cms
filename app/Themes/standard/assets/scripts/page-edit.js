@@ -1803,6 +1803,14 @@ class PageEditor {
 
             notyf.success(translate("page.saved_successfully"));
 
+            if (this.elements.saveBtn) {
+                const btn = this.elements.saveBtn;
+                btn.classList.remove("saving");
+                btn.disabled = false;
+                btn.innerHTML = btn.getAttribute("data-original-text") || "Save";
+                btn.removeAttribute("aria-busy");
+            }
+
             this.refreshPageContent();
         } catch (err) {
             this.logError("saveLayout", err);

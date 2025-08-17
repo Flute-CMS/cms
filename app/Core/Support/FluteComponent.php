@@ -23,7 +23,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
 
     public function boot(array $variables, array $attributes)
     {
-        $data = array_merge($variables, $this->request->all());
+        if (!is_array($variables)) {
+            $variables = [];
+        }
+        $requestData = $this->request->all();
+        if (!is_array($requestData)) {
+            $requestData = [];
+        }
+
+        $data = array_merge($variables, $requestData);
 
         $this->variables = $variables;
 

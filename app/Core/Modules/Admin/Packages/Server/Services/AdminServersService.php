@@ -95,16 +95,15 @@ class AdminServersService
         $server->ranks_format = $data['ranks_format'] ?? 'webp';
         $server->ranks_premier = filter_var($data['ranks_premier'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        if (isset($data['mod']) && $this->hasDriver($data['mod'])) {
-            $settings = [];
-
-            foreach ($data as $key => $value) {
-                if (str_starts_with($key, 'settings__')) {
-                    $settingKey = substr($key, 10);
-                    $settings[$settingKey] = $value;
-                }
+        $settings = [];
+        foreach ($data as $key => $value) {
+            if (str_starts_with($key, 'settings__')) {
+                $settingKey = substr($key, 10);
+                $settings[$settingKey] = $value;
             }
+        }
 
+        if (!empty($settings)) {
             $server->setSettings($settings);
         }
 

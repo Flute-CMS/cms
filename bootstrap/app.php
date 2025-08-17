@@ -65,6 +65,7 @@ use Flute\Core\Modules\Payments\Providers\PaymentServiceProvider;
 use Flute\Core\ServiceProviders\CronServiceProvider;
 use Flute\Core\ServiceProviders\LoggingServiceProvider;
 use Flute\Core\ServiceProviders\SteamServiceProvider;
+use Flute\Core\ServiceProviders\UpdateServiceProvider;
 use Flute\Core\Router\Providers\AttributeRouteServiceProvider;
 
 /**
@@ -124,6 +125,7 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(ThrottlerServiceProvider::class)
     ->serviceProvider(PaymentServiceProvider::class)
     ->serviceProvider(SteamServiceProvider::class)
+    ->serviceProvider(UpdateServiceProvider::class)
     ->serviceProvider(ModulesServiceProvider::class)
     ->serviceProvider(ProfileServiceProvider::class)
     ->serviceProvider(PageServiceProvider::class)

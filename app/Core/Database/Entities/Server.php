@@ -101,6 +101,14 @@ class Server extends ActiveRecord
         return json_decode($this->additional ?? '{}', true) ?: [];
     }
 
+    /**
+     * Get settings for the server
+     */
+    public function getSetting(string $key): mixed
+    {
+        return $this->getSettings()[$key] ?? null;
+    }
+
     public function getRank(?string $rank, int $points): string
     {
         if ($this->ranks_premier && $points > 0) {

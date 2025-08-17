@@ -53,6 +53,14 @@ return [
             'label' => 'Formato de Arquivo do Rank',
             'placeholder' => 'Selecionar formato do arquivo rank',
         ],
+        'query_port' => [
+            'label' => 'Porta de Query',
+            'placeholder' => 'Opcional. Se vazio, usa a porta de conexão',
+        ],
+        'rcon_port' => [
+            'label' => 'Porta RCON',
+            'placeholder' => 'Opcional. Se vazio, usa a porta de conexão',
+        ],
         'enabled' => [
             'label' => 'Habilitado',
             'help' => 'O servidor deve estar visível na lista pública',
