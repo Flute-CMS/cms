@@ -128,6 +128,7 @@ class RateLimiterMiddleware extends BaseMiddleware
     {
         try {
             $route = router()->getCurrentRoute();
+
             return $route?->getName() ?: trim(request()->getPathInfo(), '/') ?: 'root';
         } catch (\Throwable) {
             return trim(request()->getPathInfo(), '/') ?: 'root';
