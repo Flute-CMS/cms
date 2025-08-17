@@ -14,6 +14,8 @@ function initializeA11yDialog(parentElement = document) {
             modalElement.classList.add('is-open');
             modalElement.removeAttribute('tabindex');
             onModalShow(modalElement);
+            if (window.initColorPickers) window.initColorPickers(modalElement);
+            if (window.initIconPickers) window.initIconPickers(modalElement);
         });
 
         dialog.on('hide', () => {
@@ -84,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.body.addEventListener('htmx:afterSwap', (evt) => {
     initializeA11yDialog(evt.target);
+});
+
+document.body.addEventListener('htmx:beforeSwap', () => {
+    unlockBodyScroll();
+});
+document.body.addEventListener('htmx:afterSwap', () => {
+    unlockBodyScroll();
+});
+document.body.addEventListener('htmx:historyRestore', () => {
+    unlockBodyScroll();
 });
 
 document.addEventListener('click', (event) => {

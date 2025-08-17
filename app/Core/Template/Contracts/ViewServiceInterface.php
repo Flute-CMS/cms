@@ -6,7 +6,7 @@ use Illuminate\View\View;
 
 interface ViewServiceInterface
 {
-    public function render(string $template, array $context = [], $mergeData = []) : View;
+    public function render(string $template, array $context = [], $mergeData = []): View;
 
     /**
      * Add a global variable that will be available in all templates.
@@ -15,5 +15,5 @@ interface ViewServiceInterface
      * @param mixed $value The value of the variable.
      * @return void
      */
-    public function addGlobal(string $name, $value) : void;
+    public function addGlobal(string $name, $value): void;
 }

@@ -66,7 +66,7 @@ enum Color
     public static function __callStatic($name, $arguments)
     {
         return collect(Color::cases())
-            ->filter(fn(Color $color) => $color->name() === $name)
+            ->filter(fn (Color $color) => $color->name() === $name)
             ->first() ?? Color::ACCENT;
     }
 }

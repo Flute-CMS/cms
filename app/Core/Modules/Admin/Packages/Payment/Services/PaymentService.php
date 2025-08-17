@@ -11,7 +11,7 @@ class PaymentService
     /**
      * Получение всех платежных шлюзов.
      */
-    public function getAllGateways() : array
+    public function getAllGateways(): array
     {
         return PaymentGateway::findAll();
     }
@@ -19,7 +19,7 @@ class PaymentService
     /**
      * Получение платежного шлюза по ID.
      */
-    public function getGatewayById(int $id) : ?PaymentGateway
+    public function getGatewayById(int $id): ?PaymentGateway
     {
         return PaymentGateway::findByPK($id);
     }
@@ -27,7 +27,7 @@ class PaymentService
     /**
      * Удаление платежного шлюза.
      */
-    public function deleteGateway(PaymentGateway $gateway) : void
+    public function deleteGateway(PaymentGateway $gateway): void
     {
         // if ($this->hasActiveInvoices($gateway)) {
         //     throw new \Exception('Невозможно удалить платежный шлюз, так как есть активные счета.');
@@ -38,7 +38,7 @@ class PaymentService
     /**
      * Получение всех промо-кодов.
      */
-    public function getAllPromoCodes() : array
+    public function getAllPromoCodes(): array
     {
         return PromoCode::findAll();
     }
@@ -46,7 +46,7 @@ class PaymentService
     /**
      * Получение промо-кода по ID.
      */
-    public function getPromoCodeById(int $id) : ?PromoCode
+    public function getPromoCodeById(int $id): ?PromoCode
     {
         return PromoCode::findByPK($id);
     }
@@ -54,7 +54,7 @@ class PaymentService
     /**
      * Сохранение промо-кода.
      */
-    public function savePromoCode(PromoCode $promoCode, array $data) : void
+    public function savePromoCode(PromoCode $promoCode, array $data): void
     {
         $this->handleRoles($promoCode, $data['allowed_roles'] ?? []);
 
@@ -78,7 +78,7 @@ class PaymentService
         if (!empty($roleIds)) {
             $selectedRoles = array_filter(
                 Role::findAll(),
-                static fn($role) => in_array($role->id, $roleIds)
+                static fn ($role) => in_array($role->id, $roleIds)
             );
 
             foreach ($selectedRoles as $role) {
@@ -92,7 +92,7 @@ class PaymentService
     /**
      * Удаление промо-кода.
      */
-    public function deletePromoCode(PromoCode $promoCode) : void
+    public function deletePromoCode(PromoCode $promoCode): void
     {
         if ($this->hasActiveUsages($promoCode)) {
             throw new \Exception('Невозможно удалить промо-код, так как он уже использовался.');
@@ -103,7 +103,7 @@ class PaymentService
     /**
      * Проверка наличия использований промо-кода.
      */
-    private function hasActiveUsages(PromoCode $promoCode) : bool
+    private function hasActiveUsages(PromoCode $promoCode): bool
     {
         return !empty($promoCode->usages);
     }
@@ -111,7 +111,7 @@ class PaymentService
     /**
      * Получение общей статистики по всем промо-кодам.
      */
-    public function getPromoCodeStats(?PromoCode $promoCode = null) : array
+    public function getPromoCodeStats(?PromoCode $promoCode = null): array
     {
         if ($promoCode !== null) {
             return $this->getPromoCodeStatsForSingle($promoCode);
@@ -127,7 +127,7 @@ class PaymentService
             $stats = $this->getPromoCodeStatsForSingle($code);
             $totalAmount += $stats['total_amount'];
             $totalUsages += $stats['total_usages'];
-            
+
             if (($code->expires_at > $now || $code->expires_at === null) && $stats['remaining_usages'] > 0) {
                 $activeCodes++;
             }
@@ -144,7 +144,7 @@ class PaymentService
     /**
      * Получение статистики использования промо-кода.
      */
-    private function getPromoCodeStatsForSingle(PromoCode $promoCode) : array
+    private function getPromoCodeStatsForSingle(PromoCode $promoCode): array
     {
         $usages = $promoCode->usages;
         $totalUsages = count($usages);
@@ -167,8 +167,8 @@ class PaymentService
     /**
      * Получение истории использования промо-кода.
      */
-    public function getPromoCodeUsageHistory(PromoCode $promoCode) : array
+    public function getPromoCodeUsageHistory(PromoCode $promoCode): array
     {
         return array_reverse($promoCode->usages);
     }
-} 
+}

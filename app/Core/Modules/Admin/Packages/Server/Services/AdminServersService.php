@@ -2,10 +2,10 @@
 
 namespace Flute\Admin\Packages\Server\Services;
 
-use Flute\Core\Database\Entities\Server;
-use Flute\Core\Database\Entities\DatabaseConnection;
-use Flute\Admin\Packages\Server\Factories\ModDriverFactory;
 use Flute\Admin\Packages\Server\Contracts\ModDriverInterface;
+use Flute\Admin\Packages\Server\Factories\ModDriverFactory;
+use Flute\Core\Database\Entities\DatabaseConnection;
+use Flute\Core\Database\Entities\Server;
 
 class AdminServersService
 {
@@ -25,12 +25,12 @@ class AdminServersService
     /**
      * Get game name by mod identifier
      */
-    public function getGameName(string $mod) : string
+    public function getGameName(string $mod): string
     {
         return $this->getListGames()[$mod] ?? $mod;
     }
 
-    public function getListRanks() : array
+    public function getListRanks(): array
     {
         $ranks = [];
         foreach (glob(path('public/assets/img/ranks/*')) as $file) {
@@ -44,7 +44,7 @@ class AdminServersService
     /**
      * Get game name by mod identifier
      */
-    public function getListGames() : array
+    public function getListGames(): array
     {
         return [
             '730' => 'CS 2 / CS:GO',
@@ -78,7 +78,7 @@ class AdminServersService
     /**
      * Save server (create or update)
      */
-    public function saveServer(?Server $server, array $data) : Server
+    public function saveServer(?Server $server, array $data): Server
     {
         if (!$server) {
             $server = new Server();
@@ -95,16 +95,15 @@ class AdminServersService
         $server->ranks_format = $data['ranks_format'] ?? 'webp';
         $server->ranks_premier = filter_var($data['ranks_premier'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        if (isset($data['mod']) && $this->hasDriver($data['mod'])) {
-            $settings = [];
-            
-            foreach ($data as $key => $value) {
-                if (str_starts_with($key, 'settings__')) {
-                    $settingKey = substr($key, 10);
-                    $settings[$settingKey] = $value;
-                }
+        $settings = [];
+        foreach ($data as $key => $value) {
+            if (str_starts_with($key, 'settings__')) {
+                $settingKey = substr($key, 10);
+                $settings[$settingKey] = $value;
             }
-            
+        }
+
+        if (!empty($settings)) {
             $server->setSettings($settings);
         }
 
@@ -116,7 +115,7 @@ class AdminServersService
     /**
      * Delete database connection
      */
-    public function deleteDbConnection(int $connectionId) : void
+    public function deleteDbConnection(int $connectionId): void
     {
         $connection = rep(DatabaseConnection::class)->findByPK($connectionId);
 
@@ -130,7 +129,7 @@ class AdminServersService
     /**
      * Get all registered mod drivers.
      */
-    public function getDrivers() : array
+    public function getDrivers(): array
     {
         return $this->driverFactory->getDrivers();
     }
@@ -138,7 +137,7 @@ class AdminServersService
     /**
      * Make a mod driver instance.
      */
-    public function makeDriver(string $key) : ModDriverInterface
+    public function makeDriver(string $key): ModDriverInterface
     {
         return $this->driverFactory->make($key);
     }
@@ -146,9 +145,8 @@ class AdminServersService
     /**
      * Check if a mod driver exists.
      */
-    public function hasDriver(string $key) : bool
+    public function hasDriver(string $key): bool
     {
         return $this->driverFactory->hasDriver($key);
     }
 }
-

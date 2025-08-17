@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Charts;
 
-
 use Flute\Core\Charts\Contracts\MustAddSimpleData;
 use Flute\Core\Charts\Traits\SimpleChartDataAggregator;
 
@@ -16,9 +15,10 @@ class RadialChart extends FluteChart implements MustAddSimpleData
         $this->type = 'radialBar';
     }
 
-    public function addRings(array $data) :RadialChart
+    public function addRings(array $data): RadialChart
     {
         $this->addData($data);
+
         return $this;
     }
 }

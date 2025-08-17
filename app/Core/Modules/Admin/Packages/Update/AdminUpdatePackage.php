@@ -9,7 +9,7 @@ class AdminUpdatePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -25,7 +25,7 @@ class AdminUpdatePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin', 'admin.update'];
     }
@@ -33,7 +33,7 @@ class AdminUpdatePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         $badge = $this->getBadge();
 
@@ -48,7 +48,7 @@ class AdminUpdatePackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getBadge() : array
+    protected function getBadge(): array
     {
         $updateService = app(\Flute\Core\Update\Services\UpdateService::class);
         $updates = $updateService->getAvailableUpdates();
@@ -73,7 +73,7 @@ class AdminUpdatePackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 14;
     }

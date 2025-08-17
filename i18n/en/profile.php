@@ -186,6 +186,7 @@ return [
     "was_online"                => "Was online :date",
     "view"                      => "View profile",
     "social_deleted"            => "Social network unlinked successfully!",
+    "social_binded"             => "Social network linked successfully!",
     "member_since"              => "Member since :date",
     "hidden_warning"            => "Your profile is hidden from other users.",
     "profile_hidden"            => "This profile is hidden from other users.",

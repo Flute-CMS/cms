@@ -2,9 +2,9 @@
 
 namespace Flute\Admin\Packages\Theme\Screens;
 
+use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
@@ -28,7 +28,7 @@ class ThemeScreen extends Screen
     protected ThemeManager $themeManager;
     protected ThemeActions $themeActions;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->themeManager = app(ThemeManager::class);
         $this->themeActions = app(ThemeActions::class);
@@ -40,7 +40,7 @@ class ThemeScreen extends Screen
         $this->loadThemes();
     }
 
-    protected function loadThemes(bool $refresh = false) : void
+    protected function loadThemes(bool $refresh = false): void
     {
         if ($refresh) {
             $this->themeManager->reInitThemes();
@@ -49,10 +49,11 @@ class ThemeScreen extends Screen
         $this->themes = $this->themeManager->getAllThemes();
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::table('themes', [
+                TD::selection('key'),
                 TD::make('name', __('admin-theme.table.name'))
                     ->render(function (Theme $theme) {
                         return view('admin-theme::cells.name', compact('theme'));
@@ -60,7 +61,7 @@ class ThemeScreen extends Screen
                     ->minWidth('200px'),
 
                 TD::make('version', __('admin-theme.table.version'))
-                    ->render(fn(Theme $theme) => view('admin-theme::cells.version', compact('theme')))
+                    ->render(fn (Theme $theme) => view('admin-theme::cells.version', compact('theme')))
                     ->minWidth('150px'),
 
                 TD::make('status', __('admin-theme.table.status'))
@@ -109,7 +110,7 @@ class ThemeScreen extends Screen
                         //         ->fullWidth();
                         // }
 
-                        if($theme->key !== 'standard') {
+                        if ($theme->key !== 'standard') {
                             $actions[] = DropDownItem::make(__('admin-theme.buttons.delete'))
                                 ->confirm(__('admin-theme.confirms.delete'))
                                 ->method('uninstallTheme', ['key' => $theme->key])
@@ -132,13 +133,20 @@ class ThemeScreen extends Screen
                     }),
             ])
                 ->searchable(['key', 'name'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkUninstallThemes'),
+                ])
                 ->commands([
                     Button::make(__('admin-theme.buttons.refresh'))
                         ->icon('ph.regular.arrows-counter-clockwise')
                         ->type(Color::OUTLINE_PRIMARY)
                         ->size('small')
-                        ->method('refreshThemes')
-                ])
+                        ->method('refreshThemes'),
+                ]),
         ];
     }
 
@@ -147,6 +155,7 @@ class ThemeScreen extends Screen
         $theme = $this->themeManager->getTheme($parameters->get('key'));
         if (!$theme) {
             $this->flashMessage(__('admin-theme.messages.not_found'), 'error');
+
             return;
         }
 
@@ -251,4 +260,23 @@ class ThemeScreen extends Screen
 
         $this->loadThemes(true);
     }
-} 
+
+    public function bulkUninstallThemes(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $key) {
+            try {
+                if ($key !== 'standard') {
+                    $this->themeActions->uninstallTheme($key);
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+        }
+        $this->loadThemes(true);
+        $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => '']), 'success');
+    }
+}

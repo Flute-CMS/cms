@@ -2,11 +2,11 @@
 
 namespace Flute\Admin\Platform\Fields;
 
+use Cycle\ORM\Select\Repository;
 use Flute\Admin\Packages\Search\SelectRegistry;
 use Flute\Admin\Platform\Concerns\ComplexFieldConcern;
 use Flute\Admin\Platform\Concerns\Multipliable;
 use Flute\Admin\Platform\Field;
-use Cycle\ORM\Select\Repository;
 
 /**
  * Class Select.
@@ -134,7 +134,7 @@ class Select extends Field implements ComplexFieldConcern
      *
      * @return self
      */
-    public function fromEnum(string $enum, ?string $displayName = null) : self
+    public function fromEnum(string $enum, ?string $displayName = null): self
     {
         $reflection = new \ReflectionEnum($enum);
         $options = [];
@@ -186,7 +186,7 @@ class Select extends Field implements ComplexFieldConcern
     //     return $this->setFromEloquent($builder->get(), $name, $key);
     // }
 
-    public function empty(string $name = '', string $key = '') : self
+    public function empty(string $name = '', string $key = ''): self
     {
         return $this->addBeforeRender(function () use ($name, $key) {
             $options = $this->get('options', []);
@@ -218,7 +218,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Configure select before render
      */
-    protected function configureSelect() : void
+    protected function configureSelect(): void
     {
         // Set basic attributes
         $this->set('multiple', $this->getConfig('multiple'))
@@ -255,7 +255,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Configure async mode settings
      */
-    protected function configureAsyncMode() : void
+    protected function configureAsyncMode(): void
     {
         $this->set('data-search-url', '/admin/select/search')
             ->set('data-search-min-length', $this->getConfig('minSearchLength'))
@@ -270,7 +270,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Configure render functions
      */
-    protected function configureRenderFunctions() : void
+    protected function configureRenderFunctions(): void
     {
         if ($renderOption = $this->getConfig('renderOption')) {
             $this->set('renderOption', $renderOption);
@@ -286,7 +286,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Format field value
      */
-    protected function formatValue() : void
+    protected function formatValue(): void
     {
         $value = $this->get('value');
         if (is_object($value)) {
@@ -305,7 +305,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Get options from database
      */
-    protected function getDatabaseOptions() : array
+    protected function getDatabaseOptions(): array
     {
         $entity = $this->databaseConfig['entity'];
         if (!$entity) {
@@ -340,7 +340,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Set static options
      */
-    public function options(array $options) : self
+    public function options(array $options): self
     {
         return $this->set('options', $options)
             ->setConfig('mode', 'static');
@@ -355,7 +355,7 @@ class Select extends Field implements ComplexFieldConcern
         ?string $valueField = 'id',
         ?array $searchFields = null,
         ?array $conditions = null
-    ) : self {
+    ): self {
         return $this->setDatabaseConfigs([
             'entity' => $entity,
             'displayField' => $displayField,
@@ -368,32 +368,32 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Make select async searchable
      */
-    public function searchable(bool $searchable = true, ?int $minLength = 2, ?int $delay = 300) : self
+    public function searchable(bool $searchable = true, ?int $minLength = 2, ?int $delay = 300): self
     {
         return $this->setConfigs([
             'searchable' => $searchable,
             'minSearchLength' => $minLength,
             'searchDelay' => $delay,
-            'mode' => 'async'
+            'mode' => 'async',
         ]);
     }
 
     /**
      * Set multiple mode
      */
-    public function multiple(bool $multiple = true) : self
+    public function multiple(bool $multiple = true): self
     {
         return $this->setConfigs([
             'multiple' => $multiple,
             'maxItems' => $multiple ? 100 : 1,
-            'removeButton' => $multiple
+            'removeButton' => $multiple,
         ]);
     }
 
     /**
      * Set single mode
      */
-    public function single() : self
+    public function single(): self
     {
         return $this->multiple(false);
     }
@@ -401,7 +401,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Set order by
      */
-    public function orderBy(string $field, string $direction = 'ASC') : self
+    public function orderBy(string $field, string $direction = 'ASC'): self
     {
         return $this->setDatabaseConfig('orderBy', "{$field} {$direction}");
     }
@@ -409,7 +409,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Set limit
      */
-    public function limit(int $limit) : self
+    public function limit(int $limit): self
     {
         return $this->setDatabaseConfig('limit', $limit);
     }
@@ -417,7 +417,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Enable/disable clear button
      */
-    public function clearButton(bool $enabled = true) : self
+    public function clearButton(bool $enabled = true): self
     {
         return $this->setConfig('clearButton', $enabled);
     }
@@ -425,7 +425,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Enable/disable remove button
      */
-    public function removeButton(bool $enabled = true) : self
+    public function removeButton(bool $enabled = true): self
     {
         return $this->setConfig('removeButton', $enabled);
     }
@@ -433,7 +433,7 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Enable preloading for async mode
      */
-    public function preload(bool $enabled = true) : self
+    public function preload(bool $enabled = true): self
     {
         return $this->setConfig('preload', $enabled);
     }
@@ -441,19 +441,19 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Set custom render functions
      */
-    public function setRenders(?string $option = null, ?string $item = null, ?string $noResults = null) : self
+    public function setRenders(?string $option = null, ?string $item = null, ?string $noResults = null): self
     {
         return $this->setConfigs([
             'renderOption' => $option,
             'renderItem' => $item,
-            'renderNoResults' => $noResults
+            'renderNoResults' => $noResults,
         ]);
     }
 
     /**
      * Set maximum items
      */
-    public function maxItems(int $max) : self
+    public function maxItems(int $max): self
     {
         return $this->setConfig('maxItems', $max);
     }
@@ -461,39 +461,43 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Add plugin
      */
-    public function addPlugin(string $plugin) : self
+    public function addPlugin(string $plugin): self
     {
         $plugins = $this->getConfig('plugins', []);
         $plugins[] = $plugin;
+
         return $this->setConfig('plugins', array_unique($plugins));
     }
 
     /**
      * Remove plugin
      */
-    public function removePlugin(string $plugin) : self
+    public function removePlugin(string $plugin): self
     {
         $plugins = $this->getConfig('plugins', []);
+
         return $this->setConfig('plugins', array_diff($plugins, [$plugin]));
     }
 
     /**
      * Set configuration option
      */
-    public function setConfig(string $key, $value) : self
+    public function setConfig(string $key, $value): self
     {
         $this->config[$key] = $value;
+
         return $this;
     }
 
     /**
      * Set multiple configuration options
      */
-    public function setConfigs(array $configs) : self
+    public function setConfigs(array $configs): self
     {
         foreach ($configs as $key => $value) {
             $this->setConfig($key, $value);
         }
+
         return $this;
     }
 
@@ -508,27 +512,29 @@ class Select extends Field implements ComplexFieldConcern
     /**
      * Set database configuration option
      */
-    public function setDatabaseConfig(string $key, $value) : self
+    public function setDatabaseConfig(string $key, $value): self
     {
         $this->databaseConfig[$key] = $value;
+
         return $this;
     }
 
     /**
      * Set multiple database configuration options
      */
-    public function setDatabaseConfigs(array $configs) : self
+    public function setDatabaseConfigs(array $configs): self
     {
         foreach ($configs as $key => $value) {
             $this->setDatabaseConfig($key, $value);
         }
+
         return $this;
     }
 
     /**
      * Set filter function
      */
-    public function filter(callable $callback) : self
+    public function filter(callable $callback): self
     {
         return $this->setConfig('filter', $callback);
     }

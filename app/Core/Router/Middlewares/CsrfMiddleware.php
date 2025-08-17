@@ -2,10 +2,10 @@
 
 namespace Flute\Core\Router\Middlewares;
 
+use Flute\Core\Services\CsrfTokenService;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
-use Flute\Core\Services\CsrfTokenService;
 
 class CsrfMiddleware extends BaseMiddleware
 {

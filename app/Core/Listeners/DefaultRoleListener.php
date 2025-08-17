@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Listeners;
 
-use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 use Flute\Core\Database\Entities\Role;
+use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 
 class DefaultRoleListener
 {
@@ -26,14 +26,15 @@ class DefaultRoleListener
         if (!$role) {
             config()->set('auth.default_role', null);
             config()->save();
+
             return;
         }
 
-        if($user->hasRole($role->name)) {
+        if ($user->hasRole($role->name)) {
             return;
         }
 
         $user->addRole($role);
         $user->save();
     }
-} 
+}

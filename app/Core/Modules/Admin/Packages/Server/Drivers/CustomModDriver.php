@@ -9,7 +9,7 @@ class CustomModDriver implements ModDriverInterface
     /**
      * Get the driver name.
      */
-    public function getName() : string
+    public function getName(): string
     {
         return __('admin-server.mods.custom');
     }
@@ -17,7 +17,7 @@ class CustomModDriver implements ModDriverInterface
     /**
      * Get the settings view for this driver.
      */
-    public function getSettingsView() : string
+    public function getSettingsView(): string
     {
         return 'admin-server::mods.custom';
     }
@@ -25,11 +25,11 @@ class CustomModDriver implements ModDriverInterface
     /**
      * Get validation rules for this driver's settings.
      */
-    public function getValidationRules() : array
+    public function getValidationRules(): array
     {
         return [
             'custom_settings__name' => ['required', 'string'],
             'custom_settings__json' => ['required', 'string'],
         ];
     }
-} 
+}

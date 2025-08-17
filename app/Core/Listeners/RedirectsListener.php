@@ -4,8 +4,8 @@ namespace Flute\Core\Listeners;
 
 use Flute\Core\Database\Entities\Redirect;
 use Flute\Core\Database\Entities\RedirectCondition;
-use Flute\Core\Support\FluteRequest;
 use Flute\Core\Events\RoutingFinishedEvent;
+use Flute\Core\Support\FluteRequest;
 
 class RedirectsListener
 {
@@ -24,6 +24,7 @@ class RedirectsListener
                 if (self::checkConditions($redirect, $request)) {
                     $newResponse = redirect($redirect->getToUrl())->send();
                     $event->setResponse($newResponse);
+
                     return;
                 }
             }
@@ -37,6 +38,7 @@ class RedirectsListener
                 return true;
             }
         }
+
         return false;
     }
 
@@ -47,6 +49,7 @@ class RedirectsListener
                 return false;
             }
         }
+
         return true;
     }
 

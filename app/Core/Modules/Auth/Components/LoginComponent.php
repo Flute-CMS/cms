@@ -6,8 +6,8 @@ use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Exceptions\IncorrectPasswordException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
-use Flute\Core\Support\FluteComponent;
 use Flute\Core\Services\CaptchaService;
+use Flute\Core\Support\FluteComponent;
 use Nette\Schema\ValidationException;
 
 class LoginComponent extends FluteComponent
@@ -25,7 +25,7 @@ class LoginComponent extends FluteComponent
                 auth()->authenticate([
                     'login' => $this->loginOrEmail,
                     'password' => $this->password,
-                    'remember_me' => $this->rememberMe ??= false
+                    'remember_me' => $this->rememberMe ??= false,
                 ], $this->rememberMe ??= false);
 
                 toast()->success(__('auth.login_success'))->push();
@@ -55,11 +55,11 @@ class LoginComponent extends FluteComponent
     {
         return validator()->validate([
             'loginOrEmail' => $this->loginOrEmail,
-            'password' => $this->password
+            'password' => $this->password,
         ], [
             'loginOrEmail' => [
                 'required',
-                'regex:/^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|([a-zA-Z0-9._-]+)$/'
+                'regex:/^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|([a-zA-Z0-9._-]+)$/',
             ],
             'password' => 'required',
         ]);
@@ -69,20 +69,22 @@ class LoginComponent extends FluteComponent
     {
         /** @var CaptchaService $captchaService */
         $captchaService = app(CaptchaService::class);
-        
+
         if (!$captchaService->isEnabled('login')) {
             return true;
         }
 
         $captchaResponse = request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response');
-        
+
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();
+
             return false;
         }
 
         if (!$captchaService->verify($captchaResponse, $captchaService->getType())) {
             toast()->error(__('auth.captcha_invalid'))->push();
+
             return false;
         }
 

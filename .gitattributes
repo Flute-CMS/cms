@@ -1,0 +1,30 @@
+# Git export attributes for release optimization
+# Files and directories to exclude from release archives
+
+# Development files
+/tests export-ignore
+/.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+
+# Development configuration
+phpstan.neon export-ignore
+.php-cs-fixer.php export-ignore
+composer.lock export-ignore
+
+# Documentation (keep only essential ones)
+CONTRIBUTING.md export-ignore
+RELEASE_SETUP.md export-ignore
+
+# IDE and editor files
+.vscode/ export-ignore
+.idea/ export-ignore
+*.swp export-ignore
+*.swo export-ignore
+*~ export-ignore
+
+# OS files
+.DS_Store export-ignore
+Thumbs.db export-ignore
+
+# Development dependencies will be excluded by composer install --no-dev

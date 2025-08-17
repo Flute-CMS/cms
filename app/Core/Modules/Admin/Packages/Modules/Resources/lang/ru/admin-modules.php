@@ -8,13 +8,13 @@ return [
         'name' => 'Название',
         'version' => 'Версия',
         'status' => 'Статус',
-        'actions' => 'Действия'
+        'actions' => 'Действия',
     ],
     'status' => [
         'active' => 'Активен',
         'disabled' => 'Отключен',
         'not_installed' => 'Не установлено',
-        'unknown' => 'Неизвестно'
+        'unknown' => 'Неизвестно',
     ],
     'actions' => [
         'update' => 'Обновить',
@@ -32,11 +32,11 @@ return [
         'module_description' => 'Описание модуля',
         'module_authors' => 'Автор(-ы)',
         'module_url' => 'Ссылка на модуль',
-        'details_title' => 'Детали модуля: :name'
+        'details_title' => 'Детали модуля: :name',
     ],
     'confirmations' => [
         'install' => 'Вы уверены, что хотите установить этот модуль?',
-        'delete' => 'Вы уверены, что хотите удалить этот модуль?'
+        'delete' => 'Вы уверены, что хотите удалить этот модуль?',
     ],
     'messages' => [
         'module_not_found' => 'Модуль не найден.',
@@ -50,7 +50,7 @@ return [
         'updated' => 'Модуль \':name\' успешно обновлен.',
         'update_error' => 'Ошибка при обновлении модуля: :message',
         'uninstalled' => 'Модуль \':name\' успешно удален.',
-        'uninstall_error' => 'Ошибка при удалении модуля: :message'
+        'uninstall_error' => 'Ошибка при удалении модуля: :message',
     ],
     'dropzone' => [
         'title' => 'Загрузка архива модуля',
@@ -76,4 +76,4 @@ return [
             'invalid_module_key' => 'Идентификатор модуля содержит недопустимые символы',
         ],
     ],
-]; 
+];

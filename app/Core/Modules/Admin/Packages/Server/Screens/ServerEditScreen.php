@@ -4,19 +4,19 @@ namespace Flute\Admin\Packages\Server\Screens;
 
 use Flute\Admin\Packages\Server\Services\AdminServersService;
 use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Actions\DropDown;
+use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
-use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
-use Flute\Core\Database\Entities\Server;
 use Flute\Core\Database\Entities\DatabaseConnection;
-use Flute\Admin\Platform\Actions\DropDown;
-use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Core\Database\Entities\Server;
 use Illuminate\Support\Str;
 
 class ServerEditScreen extends Screen
@@ -68,6 +68,7 @@ class ServerEditScreen extends Screen
         if (!$this->server) {
             $this->flashMessage(__('admin-server.messages.server_not_found'), 'error');
             $this->redirectTo('/admin/servers', 300);
+
             return;
         }
 
@@ -131,7 +132,7 @@ class ServerEditScreen extends Screen
 
         return $this->serverId ? LayoutFactory::split([
             $this->getMainLayout($canEditServer),
-            $this->getActionsLayout($canEditServer)
+            $this->getActionsLayout($canEditServer),
         ])->ratio('70/30') : $this->getMainLayout($canEditServer);
     }
 
@@ -232,6 +233,28 @@ class ServerEditScreen extends Screen
 
             ]),
 
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('settings__query_port')
+                        ->type('number')
+                        ->value(($this->server?->getSetting('query_port') ?? ''))
+                        ->disabled(!$canEditServer)
+                        ->placeholder('27015')
+                )
+                    ->small(__('admin-server.fields.query_port.placeholder'))
+                    ->label(__('admin-server.fields.query_port.label')),
+
+                LayoutFactory::field(
+                    Input::make('settings__rcon_port')
+                        ->type('number')
+                        ->value(($this->server?->getSetting('rcon_port') ?? ''))
+                        ->disabled(!$canEditServer)
+                        ->placeholder('27015')
+                )
+                    ->small(__('admin-server.fields.rcon_port.placeholder'))
+                    ->label(__('admin-server.fields.rcon_port.label')),
+            ]),
+
             LayoutFactory::field(
                 Toggle::make('enabled')
                     ->checked($this->server?->enabled ?? true)
@@ -268,11 +291,11 @@ class ServerEditScreen extends Screen
     {
         return LayoutFactory::table('dbConnections', [
             TD::make('mod', __('admin-server.db_connection.fields.mod.label'))
-                ->render(fn(DatabaseConnection $connection) => $connection->mod)
+                ->render(fn (DatabaseConnection $connection) => $connection->mod)
                 ->width('200px'),
 
             TD::make('dbname', __('admin-server.db_connection.fields.dbname.label'))
-                ->render(fn(DatabaseConnection $connection) => $connection->dbname)
+                ->render(fn (DatabaseConnection $connection) => $connection->dbname)
                 ->width('200px'),
 
             TD::make('additional', __('admin-server.db_connection.fields.additional.label'))
@@ -298,12 +321,12 @@ class ServerEditScreen extends Screen
                 ->width('200px'),
 
             TD::make('actions', __('admin-server.buttons.actions'))
-                ->render(fn(DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
+                ->render(fn (DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
                 ->width('100px'),
         ])
             ->searchable([
                 'mod',
-                'dbname'
+                'dbname',
             ])
             ->commands([
                 Button::make(__('admin-server.db_connection.add.button'))
@@ -379,7 +402,7 @@ class ServerEditScreen extends Screen
             if (view()->exists($driverView)) {
                 $fields[] = LayoutFactory::view($driverView, [
                     'settings' => [],
-                    'driverName' => $selectedDriver
+                    'driverName' => $selectedDriver,
                 ]);
             }
         }
@@ -400,6 +423,7 @@ class ServerEditScreen extends Screen
 
         if (!$connection) {
             $this->flashMessage(__('admin-server.messages.connection_not_found'), 'danger');
+
             return;
         }
 
@@ -440,7 +464,7 @@ class ServerEditScreen extends Screen
             if (view()->exists($driverView)) {
                 $fields[] = LayoutFactory::view($driverView, [
                     'settings' => json_decode($connection->additional ?? '{}', true),
-                    'driverName' => $connection->mod
+                    'driverName' => $connection->mod,
                 ]);
             }
         }
@@ -462,7 +486,7 @@ class ServerEditScreen extends Screen
 
         $registeredDrivers = $this->serversService->getDrivers();
         $result = [
-            'custom' => __('admin-server.db_connection.fields.driver.custom')
+            'custom' => __('admin-server.db_connection.fields.driver.custom'),
         ];
 
         $dbConnections = collect($this->dbConnections);
@@ -484,6 +508,7 @@ class ServerEditScreen extends Screen
     private function getDriverView(string $driverName): string
     {
         $driver = $this->serversService->makeDriver($driverName);
+
         return $driver->getSettingsView();
     }
 
@@ -515,6 +540,7 @@ class ServerEditScreen extends Screen
 
         if (request()->input('tab-server-edit') === Str::slug(__('admin-server.tabs.db_connections'))) {
             $this->flashMessage(__('admin-server.messages.save_not_for_db_connections'), 'error');
+
             return;
         }
 
@@ -529,6 +555,8 @@ class ServerEditScreen extends Screen
             'ranks' => ['required', 'string', 'max-str-len:255'],
             'ranks_format' => ['required', 'string', 'max-str-len:255'],
             'ranks_premier' => ['nullable', 'boolean'],
+            'settings__query_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'settings__rcon_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
         ], $data);
 
         if (!$validation) {
@@ -537,6 +565,7 @@ class ServerEditScreen extends Screen
 
         if (str_contains($data['ip'], ':')) {
             $this->inputError('ip', __('admin-server.messages.invalid_ip'));
+
             return;
         }
 
@@ -561,6 +590,7 @@ class ServerEditScreen extends Screen
     {
         if (!$this->server) {
             $this->flashMessage(__('admin-server.messages.save_server_first'), 'error');
+
             return;
         }
 
@@ -596,10 +626,12 @@ class ServerEditScreen extends Screen
                     $additional = json_decode($data['custom_settings__json'], true);
                     if (json_last_error() !== JSON_ERROR_NONE) {
                         $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
+
                         return;
                     }
                 } catch (\Exception $e) {
                     $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
+
                     return;
                 }
             }
@@ -634,6 +666,7 @@ class ServerEditScreen extends Screen
     private function getDriverParams(string $driverName): array
     {
         $driver = $this->serversService->makeDriver($driverName);
+
         return $driver->getValidationRules();
     }
 
@@ -659,6 +692,7 @@ class ServerEditScreen extends Screen
 
         if (!$connection) {
             $this->flashMessage(__('admin-server.messages.connection_not_found'), 'error');
+
             return;
         }
 
@@ -692,10 +726,12 @@ class ServerEditScreen extends Screen
                     $additional = json_decode($data['custom_settings__json'], true);
                     if (json_last_error() !== JSON_ERROR_NONE) {
                         $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
+
                         return;
                     }
                 } catch (\Exception $e) {
                     $this->flashMessage(__('admin-server.messages.invalid_json'), 'error');
+
                     return;
                 }
             }
@@ -756,6 +792,7 @@ class ServerEditScreen extends Screen
     {
         if (!user()->can('admin.servers')) {
             $this->flashMessage(__('admin-server.messages.no_permission.delete'), 'error');
+
             return;
         }
 

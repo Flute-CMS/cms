@@ -15,7 +15,7 @@ class PageSearchListener implements EventSubscriberInterface
     /**
      * Method that returns which events we subscribe to.
      */
-    public static function getSubscribedEvents() : array
+    public static function getSubscribedEvents(): array
     {
         return [
             AdminSearchEvent::NAME => 'onAdminSearch',
@@ -25,7 +25,7 @@ class PageSearchListener implements EventSubscriberInterface
     /**
      * Handler for the search event.
      */
-    public function onAdminSearch(AdminSearchEvent $event) : void
+    public function onAdminSearch(AdminSearchEvent $event): void
     {
         $searchValue = \trim($event->getValue());
 
@@ -70,7 +70,7 @@ class PageSearchListener implements EventSubscriberInterface
     /**
      * Calculation of the relevance of the result.
      */
-    private function calculateRelevance(string $searchValue, Page $page) : int
+    private function calculateRelevance(string $searchValue, Page $page): int
     {
         $relevance = 1;
 
@@ -99,4 +99,4 @@ class PageSearchListener implements EventSubscriberInterface
 
         return $relevance;
     }
-} 
+}

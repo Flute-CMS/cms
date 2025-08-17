@@ -2,4 +2,6 @@
 
 namespace Flute\Core\Exceptions;
 
-class PasswordResetTokenExpiredException extends \Exception {}
+class PasswordResetTokenExpiredException extends \Exception
+{
+}

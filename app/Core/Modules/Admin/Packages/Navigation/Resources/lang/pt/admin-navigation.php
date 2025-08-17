@@ -6,14 +6,14 @@ return [    'table' => [        'actions' => 'Ações',
     'modal' => [
         'item' => [            'fields' => [
                 'title' => [
-                    'label'       => 'Título',
+                    'label' => 'Título',
                     'placeholder' => 'Inserir título do item',                ],
                 'url' => [
-                    'label'       => 'URL',                ],
+                    'label' => 'URL',                ],
                 'new_tab' => [                ],
                 'icon' => [
-                    'label'       => 'Ícone',                ],
-                'visibility_auth' => [                    'options'     => [                    ],
+                    'label' => 'Ícone',                ],
+                'visibility_auth' => [                    'options' => [                    ],
                 ],
                 'visibility' => [                    'options' => [                    ],
                 ],

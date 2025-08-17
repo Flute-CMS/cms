@@ -21,7 +21,7 @@ class TemplateCacheClearCommand extends Command
             ->setHelp('This command allows you to clear the template cache.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 

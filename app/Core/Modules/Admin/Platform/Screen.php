@@ -4,12 +4,11 @@ namespace Flute\Admin\Platform;
 
 use Clickfwd\Yoyo\Exceptions\BypassRenderMethod;
 use Clickfwd\Yoyo\YoyoHelpers;
-use Flute\Core\Support\FluteComponent;
-use Illuminate\Support\Arr;
 use Flute\Admin\Platform\Contracts\ScreenInterface;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
-use Flute\Admin\Platform\Repository;
 use Flute\Core\Contracts\FluteComponentInterface;
+use Flute\Core\Support\FluteComponent;
+use Illuminate\Support\Arr;
 
 /**
  * Abstract class Screen.
@@ -73,7 +72,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return string
      */
-    public function screenBaseView() : string
+    public function screenBaseView(): string
     {
         return 'admin::layouts.base';
     }
@@ -83,7 +82,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return string|null
      */
-    public function name() : ?string
+    public function name(): ?string
     {
         return $this->name ?? null;
     }
@@ -93,7 +92,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return array
      */
-    public function getJs() : array
+    public function getJs(): array
     {
         return $this->js;
     }
@@ -103,7 +102,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return array
      */
-    public function getCss() : array
+    public function getCss(): array
     {
         return $this->css;
     }
@@ -113,7 +112,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return string|null
      */
-    public function description() : ?string
+    public function description(): ?string
     {
         return $this->description ?? null;
     }
@@ -123,9 +122,9 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return string|null
      */
-    public function popover() : ?string
+    public function popover(): ?string
     {
-        return isset($this->popover) ? $this->popover : null;
+        return $this->get('popover');
     }
 
     /**
@@ -133,7 +132,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return iterable|null
      */
-    public function permission() : ?iterable
+    public function permission(): ?iterable
     {
         return isset($this->permission)
             ? Arr::wrap($this->permission)
@@ -155,7 +154,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      *
      * @return array
      */
-    abstract public function layout() : array;
+    abstract public function layout(): array;
 
     /**
      * Builds the screen using the given data repository.
@@ -166,10 +165,10 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     public function build(Repository $repository)
     {
         $repository->set('js', $this->getJs());
-        
+
         return LayoutFactory::blank([
             $this->layout(),
-            $this->additionalLayouts
+            $this->additionalLayouts,
         ])->build($repository);
     }
 
@@ -186,7 +185,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
         $repository->set('slug', $this->slug);
 
-        if (! $this->checkAccess()) {
+        if (!$this->checkAccess()) {
             return $this->redirect('admin/403');
         }
 
@@ -219,9 +218,9 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         ]);
     }
 
-    protected function checkAccess() : bool
+    protected function checkAccess(): bool
     {
-        if (! user()->isLoggedIn()) {
+        if (!user()->isLoggedIn()) {
             return false; // User is not authenticated
         }
 
@@ -234,7 +233,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     public function openModal(string $modalFunc, $params = null)
     {
-        if (! is_callable([$this, $modalFunc])) {
+        if (!is_callable([$this, $modalFunc])) {
             throw new \Exception('Modal '.$modalFunc.' function is not callable');
         }
 

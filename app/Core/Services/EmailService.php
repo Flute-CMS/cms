@@ -5,8 +5,8 @@ namespace Flute\Core\Services;
 use Exception;
 use Flute\Core\Modules\Auth\Events\PasswordResetRequestedEvent;
 use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Email;
 
@@ -79,6 +79,7 @@ class EmailService
             $this->mailer->send($email);
         } catch (Exception $e) {
             logs()->error("Email send failed: {$e->getMessage()}");
+
             throw $e;
         }
     }

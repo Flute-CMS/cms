@@ -82,5 +82,5 @@
     @if ($icon)
         <x-icon class="me-1" path="{{ $icon }}" />
     @endif
-    {{ $name ?? $slot }}
+    <span class="btn-label">{{ $name ?? $slot }}</span>
     </{{ $tag }}>

@@ -3,7 +3,7 @@
 
 /**
  * @author Flames <xenozf@gmail.com>
- * 
+ *
  * @copyright 2025 Flute
  */
 
@@ -14,7 +14,6 @@ use DI\Definition\Helper\DefinitionHelper;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Exception;
-
 use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
@@ -22,10 +21,10 @@ use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Support\FluteEventDispatcher;
 use Flute\Core\Support\FluteRequest;
-use Flute\Core\Traits\LangTrait;
-use Flute\Core\Traits\RouterTrait;
 use Flute\Core\Traits\ContainerTrait;
+use Flute\Core\Traits\LangTrait;
 use Flute\Core\Traits\LoggerTrait;
+use Flute\Core\Traits\RouterTrait;
 use Flute\Core\Traits\SingletonTrait;
 use Flute\Core\Traits\ThemeTrait;
 use Symfony\Component\Console\Application;
@@ -34,12 +33,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class App
 {
-    use ContainerTrait,
-        RouterTrait,
-        ThemeTrait,
-        LangTrait,
-        LoggerTrait,
-        SingletonTrait;
+    use ContainerTrait;
+    use RouterTrait;
+    use ThemeTrait;
+    use LangTrait;
+    use LoggerTrait;
+    use SingletonTrait;
 
     public const PERFORMANCE_MODE = 'performance';
     public const DEFAULT_MODE = 'default';
@@ -47,22 +46,22 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '0.1.7.1';
+    public const VERSION = '0.1.8';
 
     /**
      * Set the base path of the application
-     * 
+     *
      * @var string
      */
     protected string $basePath = BASE_PATH;
 
     /**
-     * @var array[ServiceProviderInterface]
+     * @var array<ServiceProviderInterface>
      */
     protected array $providers = [];
 
     /**
-     * @var array Events in $listen
+     * @var array Events in
      */
     protected array $listen = [];
 
@@ -86,7 +85,7 @@ final class App
 
     /**
      * set the container instance
-     * 
+     *
      * @return void
      */
     protected function _setContainer(): void
@@ -95,10 +94,10 @@ final class App
 
         $containerBuilder->addDefinitions([
             self::class => $this,
-            "app" => \DI\get(self::class)
+            "app" => \DI\get(self::class),
         ]);
 
-        // check is cli 
+        // check is cli
         if (!(php_sapi_name() === 'cli' || defined('STDIN')) && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] !== '127.0.0.1') {
             // $containerBuilder->enableCompilation(BASE_PATH . 'storage/app/cache');
             $containerBuilder->writeProxiesToFile(true, BASE_PATH . 'storage/app/proxies');
@@ -109,7 +108,7 @@ final class App
 
     /**
      * Get the autoload loader
-     * 
+     *
      * @return ClassLoader
      */
     public function getLoader(): ClassLoader
@@ -144,9 +143,9 @@ final class App
 
     /**
      * Set the base path of the application
-     * 
+     *
      * @param string $basePath
-     * 
+     *
      * @return void
      */
     public function setBasePath(string $basePath)
@@ -160,7 +159,7 @@ final class App
 
     /**
      * Get the base path of the application
-     * 
+     *
      * @return string
      */
     public function getBasePath(): string
@@ -170,10 +169,10 @@ final class App
 
     /**
      * Set the value in the container
-     * 
+     *
      * @param string $key
      * @param DefinitionHelper|mixed $value
-     * 
+     *
      * @return self
      */
     public function bind(string $key, $value): App
@@ -185,9 +184,9 @@ final class App
 
     /**
      * Set debug mode
-     * 
+     *
      * @param bool $debug
-     * 
+     *
      * @return void
      */
     public function debug(bool $debug = true): void
@@ -220,11 +219,13 @@ final class App
             return $this->container->make($abstract, $parameters);
         } catch (NotFoundException $e) {
 
-            if (function_exists('logs'))
+            if (function_exists('logs')) {
                 logs()->emergency($e->getMessage());
+            }
 
-            if ($throwException)
+            if ($throwException) {
                 throw $e;
+            }
         } catch (DependencyException $e) {
         }
     }
@@ -260,14 +261,14 @@ final class App
 
     /**
      * Set the service provider
-     * 
+     *
      * @param ServiceProviderInterface|ModuleServiceProviderInterface|string $provider
-     * 
+     *
      * @return App
      */
     public function serviceProvider($provider): App
     {
-        $provider = is_string($provider) ? new $provider : $provider;
+        $provider = is_string($provider) ? new $provider() : $provider;
 
         $this->providers[] = $provider;
 
@@ -276,11 +277,13 @@ final class App
                 $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer()
             );
         } catch (Exception $e) {
-            if (!function_exists('is_debug') || is_debug()) {
+            if (function_exists('is_debug') && is_debug()) {
                 throw $e;
             }
 
-            logs()->error($e);
+            if (function_exists('logs')) {
+                logs()->error($e);
+            }
         }
 
         return $this;
@@ -288,7 +291,7 @@ final class App
 
     /**
      * Boot the all service providers
-     * 
+     *
      * @return void
      */
     public function bootServiceProviders()
@@ -309,11 +312,13 @@ final class App
 
                 $this->bootTimes[$className] = round(microtime(true) - $startTime, 3);
             } catch (Exception $e) {
-                if (!function_exists('is_debug') || is_debug()) {
+                if (function_exists('is_debug') && is_debug()) {
                     throw $e;
                 }
 
-                logs()->error($e);
+                if (function_exists('logs')) {
+                    logs()->error($e);
+                }
             }
         }
 
@@ -334,14 +339,14 @@ final class App
 
         foreach ($this->listen as $event => $listeners) {
             foreach ($listeners as $listener) {
-                $dispatcher->addListener($event, [new $listener, 'handle']);
+                $dispatcher->addListener($event, [new $listener(), 'handle']);
             }
         }
     }
 
     /**
      * Get app version
-     * 
+     *
      * @return string
      */
     public function getVersion(): string
@@ -371,6 +376,7 @@ final class App
     {
         if (is_cli()) {
             $this->runCli();
+
             return;
         }
 
@@ -421,7 +427,7 @@ final class App
 
     /**
      * Get the boot times
-     * 
+     *
      * @return array
      */
     public function getBootTimes(): array
@@ -431,9 +437,9 @@ final class App
 
     /**
      * Get the boot time
-     * 
+     *
      * @param string $key
-     * 
+     *
      * @return int
      */
     public function getBootTime(string $key): int

@@ -4,10 +4,10 @@ namespace Flute\Core\Console\Command;
 
 use Flute\Core\Router\Router;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Helper\Table;
 
 class RouteDetailCommand extends Command
 {
@@ -41,12 +41,14 @@ class RouteDetailCommand extends Command
             if ($symfonyRoute->getPath() === $path) {
                 $foundRoute = $symfonyRoute;
                 $foundRouteName = $routeName;
+
                 break;
             }
         }
 
         if (!$foundRoute) {
             $output->writeln("<error>Route with path '{$path}' not found.</error>");
+
             return Command::FAILURE;
         }
 
@@ -95,6 +97,7 @@ class RouteDetailCommand extends Command
             } else {
                 $class = $action[0];
             }
+
             return $class . '@' . $action[1];
         } elseif ($action instanceof \Closure) {
             return 'Closure';

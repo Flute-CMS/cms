@@ -15,9 +15,9 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Services\EmailService;
 use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteStr;
-use Flute\Core\Services\EmailService;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -34,6 +34,8 @@ class MainSettingsPackageScreen extends Screen
     public $bg_image_light;
     public $default_avatar;
     public $default_banner;
+    public $favicon;
+    public $social_image;
 
     public function mount(): void
     {
@@ -69,7 +71,7 @@ class MainSettingsPackageScreen extends Screen
                 Tab::make(__('admin-main-settings.tabs.databases'))
                     ->icon('ph.bold.cloud-bold')
                     ->layouts([
-                        DatabaseSettingsLayout::class
+                        DatabaseSettingsLayout::class,
                     ]),
                 Tab::make(__('admin-main-settings.tabs.users'))
                     ->icon('ph.bold.user-circle-bold')
@@ -178,8 +180,8 @@ class MainSettingsPackageScreen extends Screen
                             ->value(config('app.maintenance_message'))
                     )->label(__('admin-main-settings.labels.maintenance_message')),
                 ])->title(__('admin-main-settings.blocks.tech_work_settings'))->addClass('mb-2'),
-
             ]),
+
             LayoutFactory::blank([
                 LayoutFactory::block([
                     LayoutFactory::field(
@@ -209,6 +211,13 @@ class MainSettingsPackageScreen extends Screen
                 ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo')),
 
                 LayoutFactory::block([
+                    LayoutFactory::field(
+                        Toggle::make('development_mode')
+                            ->checked((bool) config('app.development_mode'))
+                    )->label(__('admin-main-settings.labels.development_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
+                ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2'),
+
+                LayoutFactory::block([
                     LayoutFactory::columns([
                         LayoutFactory::field(
                             Toggle::make('is_performance')
@@ -235,6 +244,12 @@ class MainSettingsPackageScreen extends Screen
                             Toggle::make('create_backup')
                                 ->checked(config('app.create_backup', false))
                         )->label(__('admin-main-settings.labels.create_backup'))->popover(__('admin-main-settings.popovers.create_backup')),
+                        LayoutFactory::field(
+                            Toggle::make('auto_update')
+                                ->checked(config('app.auto_update', false))
+                        )->label(__('admin-main-settings.labels.auto_update'))
+                            ->setVisible(config('app.cron_mode'))
+                            ->popover(__('admin-main-settings.popovers.auto_update')),
                     ]),
                 ])->title(__('admin-main-settings.blocks.optimization_security'))->addClass('mb-2')->description(__('admin-main-settings.blocks.optimization_security_description')),
 
@@ -242,15 +257,16 @@ class MainSettingsPackageScreen extends Screen
                     LayoutFactory::split([
                         LayoutFactory::field(
                             Toggle::make('debug')
-                                ->checked(config('app.debug'))
+                                ->checked(is_development() ? true : config('app.debug'))
+                                ->disabled(is_development())
                         )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
-                        LayoutFactory::field(
-                            Input::make('debug_ips')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
-                                ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
-                        )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
-                    ])->ratio('30/70'),
+                    ])->ratio('50/50'),
+                    LayoutFactory::field(
+                        Input::make('debug_ips')
+                            ->type('text')
+                            ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
+                            ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
+                    )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
                 ])->title(__('admin-main-settings.blocks.debug_settings'))->addClass('mb-2'),
 
                 LayoutFactory::block([
@@ -417,7 +433,7 @@ class MainSettingsPackageScreen extends Screen
                         ->size('small')
                         ->type(Color::ACCENT)
                         ->method('saveProfileImages'),
-                ])
+                ]),
             ])->title(__('admin-main-settings.blocks.profile_settings')),
         ])->ratio('50/50');
     }
@@ -494,7 +510,7 @@ class MainSettingsPackageScreen extends Screen
                         ->options(array_combine(
                             config('lang.available'),
                             array_map(
-                                fn($key) => __('langs.' . $key),
+                                fn ($key) => __('langs.' . $key),
                                 config('lang.available')
                             )
                         ))
@@ -503,7 +519,7 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::block([
                 LayoutFactory::split(
                     array_map(
-                        fn($lang) => LayoutFactory::field(
+                        fn ($lang) => LayoutFactory::field(
                             Toggle::make("available[{$lang}]")
                                 ->checked(in_array($lang, config('lang.available')))
                         )->label(__('langs.' . $lang)),
@@ -546,14 +562,14 @@ class MainSettingsPackageScreen extends Screen
                             ->type('file')
                             ->filePond()
                             ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
-                            ->defaultFile(! str_ends_with(config('app.logo'), '.svg') ? asset(config('app.logo')) : null)
+                            ->defaultFile(!str_ends_with(config('app.logo'), '.svg') ? asset(config('app.logo')) : null)
                     )->label(__('admin-main-settings.labels.logo')),
                     LayoutFactory::field(
                         Input::make('logo_light')
                             ->type('file')
                             ->filePond()
                             ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
-                            ->defaultFile(! str_ends_with(config('app.logo_light', ''), '.svg') ? asset(config('app.logo_light', '')) : null)
+                            ->defaultFile(!str_ends_with(config('app.logo_light', ''), '.svg') ? asset(config('app.logo_light', '')) : null)
                     )->label(__('admin-main-settings.labels.logo_light')),
                     LayoutFactory::field(
                         Input::make('bg_image')
@@ -570,13 +586,30 @@ class MainSettingsPackageScreen extends Screen
                             ->defaultFile(asset(config('app.bg_image_light', '')))
                     )->label(__('admin-main-settings.labels.bg_image_light'))->small(__('admin-main-settings.examples.bg_image_light')),
                 ]),
+                LayoutFactory::columns([
+                    LayoutFactory::field(
+                        Input::make('favicon')
+                            ->type('file')
+                            ->filePond()
+                            // Accept common ico MIME types and extension for better browser compatibility
+                            ->accept('image/x-icon, image/vnd.microsoft.icon, .ico')
+                            ->defaultFile(asset('favicon.ico'))
+                    )->label(__('admin-main-settings.labels.favicon')),
+                    LayoutFactory::field(
+                        Input::make('social_image')
+                            ->type('file')
+                            ->filePond()
+                            ->accept('image/png')
+                            ->defaultFile(asset('assets/img/social-image.png'))
+                    )->label(__('admin-main-settings.labels.social_image')),
+                ]),
                 LayoutFactory::rows([
                     Button::make(__('admin-main-settings.buttons.save_flute_images'))
                         ->size('small')
                         ->type(Color::ACCENT)
                         ->method('saveFluteImages'),
-                ])
-            ])->title(__('admin-main-settings.blocks.image_settings'))
+                ]),
+            ])->title(__('admin-main-settings.blocks.image_settings')),
         ];
     }
 
@@ -595,8 +628,9 @@ class MainSettingsPackageScreen extends Screen
 
             config()->set('mail', $mail);
 
-            if (! $to) {
+            if (!$to) {
                 $this->flashMessage(__('admin-main-settings.messages.sender_email_not_set'), 'error');
+
                 return;
             }
 
@@ -609,7 +643,7 @@ class MainSettingsPackageScreen extends Screen
 
     public function saveFluteImages()
     {
-        if (! $this->validateImages()) {
+        if (!$this->validateImages()) {
             return;
         }
 
@@ -619,6 +653,7 @@ class MainSettingsPackageScreen extends Screen
 
         if ($uploadsDir === false) {
             $this->addUploadDirectoryError();
+
             return;
         }
 
@@ -626,25 +661,28 @@ class MainSettingsPackageScreen extends Screen
         $logoLightError = $this->processImageUpload('logo_light', $uploader, $uploadsDir);
         $bannerError = $this->processImageUpload('bg_image', $uploader, $uploadsDir);
         $bannerLightError = $this->processImageUpload('bg_image_light', $uploader, $uploadsDir);
+        $faviconError = $this->processFixedFileReplace('favicon', BASE_PATH . '/public/favicon.ico');
+        $socialImageError = $this->processFixedFileReplace('social_image', BASE_PATH . '/public/assets/img/social-image.png');
 
-        if ($avatarError || $logoLightError || $bannerError || $bannerLightError) {
-            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError ?? $bannerLightError, 'error');
+        if ($avatarError || $logoLightError || $bannerError || $bannerLightError || $faviconError || $socialImageError) {
+            $this->flashMessage($avatarError ?? $logoLightError ?? $bannerError ?? $bannerLightError ?? $faviconError ?? $socialImageError, 'error');
+
             return;
         }
 
-        if (! isset($this->logo)) {
+        if (!isset($this->logo)) {
             config()->set('app.logo', 'assets/img/logo.svg');
         }
 
-        if (! isset($this->logo_light)) {
+        if (!isset($this->logo_light)) {
             config()->set('app.logo_light', 'assets/img/logo-light.svg');
         }
 
-        if (! isset($this->bg_image)) {
+        if (!isset($this->bg_image)) {
             config()->set('app.bg_image', '');
         }
 
-        if (! isset($this->bg_image_light)) {
+        if (!isset($this->bg_image_light)) {
             config()->set('app.bg_image_light', '');
         }
 
@@ -663,6 +701,8 @@ class MainSettingsPackageScreen extends Screen
         $this->logo_light = request()->files->get('logo_light');
         $this->bg_image = request()->files->get('bg_image');
         $this->bg_image_light = request()->files->get('bg_image_light');
+        $this->favicon = request()->files->get('favicon');
+        $this->social_image = request()->files->get('social_image');
 
         $rules = [
             'logo' => $this->logo
@@ -677,6 +717,12 @@ class MainSettingsPackageScreen extends Screen
             'bg_image_light' => $this->bg_image_light
                 ? 'image|max-file-size:10240'
                 : 'nullable|image|max-file-size:10240',
+            'favicon' => $this->favicon
+                ? 'mimes:ico|max-file-size:2048'
+                : 'nullable|mimes:ico|max-file-size:2048',
+            'social_image' => $this->social_image
+                ? 'image|mimes:png|max-file-size:10240'
+                : 'nullable|image|mimes:png|max-file-size:10240',
         ];
 
         return $this->validate($rules);
@@ -694,11 +740,42 @@ class MainSettingsPackageScreen extends Screen
                 }
 
                 config()->set("app.$field", $newFile);
+
                 return null;
             } catch (\Exception $e) {
                 return $e->getMessage();
             }
         }
+
+        return null;
+    }
+
+    /**
+     * Replace a target file in public path with the uploaded file, using a fixed filename.
+     */
+    protected function processFixedFileReplace(string $field, string $absoluteTargetPath): ?string
+    {
+        $file = $this->$field;
+        if ($file instanceof UploadedFile && $file->isValid()) {
+            try {
+                $dir = dirname($absoluteTargetPath);
+                $filesystem = fs();
+                if (!is_dir($dir)) {
+                    $filesystem->mkdir($dir, 0o755);
+                }
+
+                if (file_exists($absoluteTargetPath)) {
+                    $filesystem->remove($absoluteTargetPath);
+                }
+
+                $file->move($dir, basename($absoluteTargetPath));
+
+                return null;
+            } catch (\Exception $e) {
+                return $e->getMessage();
+            }
+        }
+
         return null;
     }
 
@@ -714,7 +791,7 @@ class MainSettingsPackageScreen extends Screen
     }
     public function saveProfileImages()
     {
-        if (! $this->validateProfileImages()) {
+        if (!$this->validateProfileImages()) {
             return;
         }
 
@@ -724,6 +801,7 @@ class MainSettingsPackageScreen extends Screen
 
         if ($uploadsDir === false) {
             $this->addProfileUploadDirectoryError();
+
             return;
         }
 
@@ -732,6 +810,7 @@ class MainSettingsPackageScreen extends Screen
 
         if ($avatarError || $bannerError) {
             $this->flashMessage($avatarError ?? $bannerError, 'error');
+
             return;
         }
 
@@ -790,6 +869,7 @@ class MainSettingsPackageScreen extends Screen
                 }
 
                 config()->set($configKey, $newFile);
+
                 return null;
             } catch (\Exception $e) {
                 return $e->getMessage();
@@ -853,7 +933,7 @@ class MainSettingsPackageScreen extends Screen
             }
 
             $this->clearOpcache();
-            
+
             app(\Flute\Core\Database\DatabaseConnection::class)->forceRefreshSchema();
 
             // if (!$withoutMessage) {
@@ -933,21 +1013,24 @@ class MainSettingsPackageScreen extends Screen
         $dbConfig = config('database');
         $database = $dbConfig['databases'][$databaseId] ?? null;
 
-        if (! $database) {
+        if (!$database) {
             $this->flashMessage(__('admin-main-settings.messages.database_not_found'), 'error');
+
             return;
         }
 
         if ($databaseId === 'default') {
             $this->flashMessage(__('admin-main-settings.messages.cannot_edit_default_db'), 'error');
+
             return;
         }
 
         $connectionName = $database['connection'];
         $connectionConfig = $dbConfig['connections'][$connectionName] ?? null;
 
-        if (! $connectionConfig) {
+        if (!$connectionConfig) {
             $this->flashMessage(__('admin-main-settings.messages.connection_not_found'), 'error');
+
             return;
         }
 
@@ -1028,7 +1111,7 @@ class MainSettingsPackageScreen extends Screen
         $data = request()->input();
 
         if (
-            ! $this->validate([
+            !$this->validate([
                 'driver' => ['required', 'string', 'in:mysql,postgres'],
                 'databaseName' => ['required', 'string', 'not-in:default'],
                 'host' => ['required', 'string'],
@@ -1038,8 +1121,9 @@ class MainSettingsPackageScreen extends Screen
                 'password' => ['nullable', 'string'],
                 'prefix' => ['nullable', 'string'],
             ], request()->input())
-        )
+        ) {
             return;
+        }
 
         $connectionTest = $this->configService->testDatabaseConnection(
             $data['driver'],
@@ -1052,6 +1136,7 @@ class MainSettingsPackageScreen extends Screen
 
         if ($connectionTest !== true) {
             $this->flashMessage(__('admin-main-settings.messages.connection_test_failed') . ": " . $connectionTest, 'error');
+
             return;
         }
 
@@ -1061,6 +1146,7 @@ class MainSettingsPackageScreen extends Screen
         $databases = config()->get('database.databases', []);
         if (isset($databases[$databaseName])) {
             $this->flashMessage(__('admin-main-settings.messages.database_exists'), 'error');
+
             return;
         }
 
@@ -1096,6 +1182,7 @@ class MainSettingsPackageScreen extends Screen
             );
         } else {
             $this->flashMessage(__('admin-main-settings.messages.unsupported_driver'), 'error');
+
             return;
         }
 
@@ -1117,7 +1204,7 @@ class MainSettingsPackageScreen extends Screen
         $data = request()->input();
 
         if (
-            ! $this->validate([
+            !$this->validate([
                 'driver' => ['required', 'string', 'in:mysql,postgres'],
                 'databaseName' => ['required', 'string', 'not-in:default'],
                 'host' => ['required', 'string'],
@@ -1127,8 +1214,9 @@ class MainSettingsPackageScreen extends Screen
                 'password' => ['nullable', 'string'],
                 'prefix' => ['nullable', 'string'],
             ], request()->input())
-        )
+        ) {
             return;
+        }
 
         $connectionTest = $this->configService->testDatabaseConnection(
             $data['driver'],
@@ -1141,6 +1229,7 @@ class MainSettingsPackageScreen extends Screen
 
         if ($connectionTest !== true) {
             $this->flashMessage(__('admin-main-settings.messages.connection_test_failed') . ": " . $connectionTest, 'error');
+
             return;
         }
 
@@ -1148,8 +1237,9 @@ class MainSettingsPackageScreen extends Screen
         $driver = $data['driver'];
 
         $databases = config('database.databases');
-        if (! isset($databases[$databaseName])) {
+        if (!isset($databases[$databaseName])) {
             $this->flashMessage(__('admin-main-settings.messages.database_not_found'), 'error');
+
             return;
         }
 
@@ -1182,6 +1272,7 @@ class MainSettingsPackageScreen extends Screen
             );
         } else {
             $this->flashMessage(__('admin-main-settings.messages.unsupported_driver'), 'error');
+
             return;
         }
 
@@ -1202,19 +1293,21 @@ class MainSettingsPackageScreen extends Screen
         $data = request()->input();
 
         if (
-            ! $this->validate([
+            !$this->validate([
                 'databaseId' => ['required', 'string', 'not-in:default'],
             ], request()->input())
-        )
+        ) {
             return;
+        }
 
         $databaseId = $data['databaseId'];
 
         $databases = config()->get('database.databases', []);
         $connections = config()->get('database.connections', []);
 
-        if (! isset($databases[$databaseId])) {
+        if (!isset($databases[$databaseId])) {
             $this->flashMessage(__('admin-main-settings.messages.database_not_found'), 'error');
+
             return;
         }
 

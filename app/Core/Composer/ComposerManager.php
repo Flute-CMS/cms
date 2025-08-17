@@ -4,15 +4,15 @@ namespace Flute\Core\Composer;
 
 use Composer\Console\Application;
 use GuzzleHttp\Client;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Exception\RuntimeException;
 
 putenv('COMPOSER_HOME=' . BASE_PATH . '/vendor/bin/composer');
 
 /**
  * Class ComposerManager
- * 
+ *
  * Manages Composer package installation, removal, and retrieval.
  */
 class ComposerManager
@@ -21,7 +21,7 @@ class ComposerManager
      * Installs a Composer package.
      *
      * @param string $package The name of the package to install.
-     * 
+     *
      * @return string The output of the Composer command.
      * @throws \Exception If the installation fails.
      */
@@ -31,18 +31,19 @@ class ComposerManager
         $app->setAutoExit(false);
 
         $input = new ArrayInput(
-            array(
+            [
                 'command' => "require",
                 'packages' => [$package],
                 '--working-dir' => BASE_PATH,
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
-                '--ignore-platform-reqs' => true
-            )
+                '--ignore-platform-reqs' => true,
+            ]
         );
 
         $output = new BufferedOutput();
+
         try {
             $app->run($input, $output);
             $outputContent = $output->fetch();
@@ -60,23 +61,70 @@ class ComposerManager
         }
     }
 
+    public function install()
+    {
+        $app = new Application();
+        $app->setAutoExit(false);
+
+        $input = new ArrayInput(
+            [
+                'command' => "install",
+                '--working-dir' => BASE_PATH,
+                '--no-interaction' => true,
+                '--optimize-autoloader' => true,
+                '-v' => true,
+                '--ignore-platform-reqs' => true,
+                '--no-dev' => true,
+            ]
+        );
+
+        $output = new BufferedOutput();
+
+        try {
+            $exitCode = $app->run($input, $output);
+            $outputContent = $output->fetch();
+
+            if (
+                strpos($outputContent, 'Your requirements could not be resolved') !== false ||
+                strpos($outputContent, 'Problem ') !== false ||
+                strpos($outputContent, 'Installation failed') !== false ||
+                strpos($outputContent, 'Removal failed') !== false ||
+                strpos($outputContent, 'error') !== false
+            ) {
+                throw new \Exception('Install failed: ' . $outputContent);
+            }
+
+            if ($exitCode !== 0) {
+                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+            }
+
+            return $outputContent;
+        } catch (RuntimeException $e) {
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during install: ' . $e->getMessage());
+        }
+    }
+
     public function update()
     {
         $app = new Application();
         $app->setAutoExit(false);
 
         $input = new ArrayInput(
-            array(
+            [
                 'command' => "update",
                 '--working-dir' => BASE_PATH,
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
-                '--ignore-platform-reqs' => true
-            )
+                '--ignore-platform-reqs' => true,
+                '--no-dev' => true,
+            ]
         );
 
         $output = new BufferedOutput();
+
         try {
             $exitCode = $app->run($input, $output);
             $outputContent = $output->fetch();
@@ -107,7 +155,7 @@ class ComposerManager
      * Removes a Composer package.
      *
      * @param string $package The name of the package to remove.
-     * 
+     *
      * @return string The output of the Composer command.
      * @throws \Exception If the removal fails.
      */
@@ -124,11 +172,12 @@ class ComposerManager
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
-                '--ignore-platform-reqs' => true
+                '--ignore-platform-reqs' => true,
             ]
         );
 
         $output = new BufferedOutput();
+
         try {
             $app->run($input, $output);
             $outputContent = $output->fetch();
@@ -164,16 +213,17 @@ class ComposerManager
      * @param int|null $page The page number for pagination.
      * @param string|null $search The search query.
      * @param int|null $length The number of results per page.
-     * 
+     *
      * @return array The array of package information.
      */
     public function getPackagistItems(?int $page, ?string $search, ?int $length)
     {
         set_time_limit(0);
-        $guzzle = new Client;
+        $guzzle = new Client();
 
         if (!empty($search)) {
             $res = $guzzle->get("https://packagist.org/search.json?q=$search&per_page=$length&page=$page");
+
             return json_decode($res->getBody()->getContents(), true);
         } else {
             $res = $guzzle->get("https://packagist.org/explore/popular.json?per_page=$length&page=$page");
@@ -181,7 +231,7 @@ class ComposerManager
 
             return [
                 'results' => $content['packages'],
-                'total' => $content['total']
+                'total' => $content['total'],
             ];
         }
     }

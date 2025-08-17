@@ -10,23 +10,25 @@ use Flute\Core\Support\FluteRequest;
 
 class TokenMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args) : \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         $token = $request->getAuthorizationBearerToken();
 
-        if (!$token)
+        if (!$token) {
             return $next($request);
+        }
 
         $findToken = ApiKey::findOne(['key' => $token]);
 
-        if (!$findToken)
+        if (!$findToken) {
             return $this->error()->badRequest();
+        }
 
-        $apiUser = new User;
+        $apiUser = new User();
         $apiUser->name = 'API REQUEST';
         $apiUser->id = 0;
 
-        $apiRole = new Role;
+        $apiRole = new Role();
         $apiRole->name = 'API ROLE';
         $apiRole->priority = 100;
 

@@ -6,7 +6,7 @@
     <x-forms.label for="settings__secret" required>
         {{ __('admin-social.edit.telegram_token') }}
     </x-forms.label>
-    <x-fields.input name="settings__secret" id="settings__secret"
+    <x-fields.input name="settings__secret" id="settings__secret" required
         value="{{ request()->input('settings__secret', $social ? $social->getSettings()['secret'] : '') }}"
         placeholder="{{ __('admin-social.edit.telegram_token_placeholder') }}" />
 </x-forms.field>

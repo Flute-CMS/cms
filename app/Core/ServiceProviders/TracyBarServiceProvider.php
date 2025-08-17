@@ -2,8 +2,8 @@
 
 namespace Flute\Core\ServiceProviders;
 
-use Flute\Core\TracyBar\FluteTracyBar;
 use Flute\Core\Support\AbstractServiceProvider;
+use Flute\Core\TracyBar\FluteTracyBar;
 
 class TracyBarServiceProvider extends AbstractServiceProvider
 {
@@ -17,7 +17,8 @@ class TracyBarServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        if (is_debug() && !is_cli())
+        if (is_debug() && !is_cli()) {
             $container->get(FluteTracyBar::class);
+        }
     }
 }

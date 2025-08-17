@@ -35,6 +35,7 @@ return [
         'not_installed' => 'Не установленные',
         'updates_available' => 'Доступны обновления',
         'clear_filters' => 'Сбросить фильтры',
+        'overview' => 'Обзор',
     ],
     'descriptions' => [
         'marketplace' => 'Найти и установить модули для вашего сайта',
@@ -55,7 +56,7 @@ return [
         'search' => 'Искать',
         'installed' => 'Установлен',
         'read_more' => 'Читать дальше',
-        'collapse'  => 'Свернуть',
+        'collapse' => 'Свернуть',
     ],
     'steps' => [
         'download' => 'Загрузка модуля',
@@ -96,4 +97,4 @@ return [
         'flute_key_not_set' => 'API ключ Flute не установлен. Пожалуйста, установите его в основных настройках.',
         'refresh_success' => 'Модули успешно обновлены!',
     ],
-]; 
+];

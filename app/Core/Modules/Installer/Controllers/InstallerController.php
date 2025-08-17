@@ -31,7 +31,7 @@ class InstallerController extends BaseController
 
     /**
      * InstallerController constructor.
-     * 
+     *
      * @param InstallerView $installerView
      * @param InstallerConfig $installerConfig
      * @param ConfigurationService $configService
@@ -48,7 +48,7 @@ class InstallerController extends BaseController
 
     /**
      * Display the installer welcome page
-     * 
+     *
      * @return string
      */
     #[Route('/install', name: 'installer.welcome', methods: ['GET'])]
@@ -66,7 +66,7 @@ class InstallerController extends BaseController
 
     /**
      * Display the installer step
-     * 
+     *
      * @param FluteRequest $request
      * @param int $id
      * @return string
@@ -87,7 +87,7 @@ class InstallerController extends BaseController
 
     /**
      * Get the preferred language
-     * 
+     *
      * @return string
      */
     protected function getPreferredLanguage()

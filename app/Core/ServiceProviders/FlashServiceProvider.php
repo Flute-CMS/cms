@@ -2,7 +2,6 @@
 
 namespace Flute\Core\ServiceProviders;
 
-
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Listeners\ToastResponseListener;
 use Flute\Core\Services\FlashService;

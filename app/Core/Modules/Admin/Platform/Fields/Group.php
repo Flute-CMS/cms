@@ -14,10 +14,10 @@ class Group implements Fieldable, Groupable
      * @var array
      */
     protected $attributes = [
-        'group'       => [],
-        'class'       => 'col-12 col-md form-group mb-md-0',
-        'align'       => 'align-items-baseline',
-        'itemToEnd'   => false,
+        'group' => [],
+        'class' => 'col-12 col-md form-group mb-md-0',
+        'align' => 'align-items-baseline',
+        'itemToEnd' => false,
     ];
 
     /**
@@ -37,7 +37,7 @@ class Group implements Fieldable, Groupable
      */
     public static function make(array $group = [])
     {
-        return (new static)->setGroup($group);
+        return (new static())->setGroup($group);
     }
 
     /**

@@ -3,10 +3,10 @@
 namespace Flute\Core\Template;
 
 use Flute\Core\Theme\ThemeManager;
+use MatthiasMullie\Minify;
 use Nette\Utils\Validators;
 use Padaliyajay\PHPAutoprefixer\Autoprefixer;
 use ScssPhp\ScssPhp\Compiler;
-use MatthiasMullie\Minify;
 use ScssPhp\ScssPhp\Exception\CompilerException;
 use ScssPhp\ScssPhp\Exception\SassException;
 use ScssPhp\ScssPhp\OutputStyle;
@@ -22,7 +22,7 @@ class TemplateAssets
     protected string $appUrl;
     protected array $additionalScssFiles = [
         'main' => [],
-        'admin' => []
+        'admin' => [],
     ];
     protected array $additionalPartials = [
         'app/Core/Template/Resources/sass/_mixins.scss',
@@ -51,7 +51,7 @@ class TemplateAssets
         $this->debugMode = false;
         $this->appUrl = config('app.url');
 
-        if(!is_cli() && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] === '127.0.0.1' && is_debug()) {
+        if (is_development()) {
             $this->debugMode = true;
         }
 
@@ -66,7 +66,7 @@ class TemplateAssets
      * @param Template $template The template object to associate with this instance.
      * @param string $context The context in which assets are loaded (e.g., 'main' or 'admin').
      */
-    public function init(Template $template, string $context = 'main') : void
+    public function init(Template $template, string $context = 'main'): void
     {
         $this->template = $template;
         $this->context = $context;
@@ -75,7 +75,7 @@ class TemplateAssets
             if (strpos($expression, ',') !== false) {
                 return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction($expression); ?>";
             }
-            
+
             return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction($expression, false); ?>";
         });
     }
@@ -87,16 +87,16 @@ class TemplateAssets
      * @param string $type Asset type (scripts, images, sass, etc.)
      * @return string|null Found file path or null
      */
-    protected function findAssetWithFallback(string $relativePath, string $type = 'scripts') : ?string
+    protected function findAssetWithFallback(string $relativePath, string $type = 'scripts'): ?string
     {
         $cacheKey = "asset:{$type}:{$relativePath}";
-        
+
         if (isset($this->assetPathCache[$cacheKey])) {
             return $this->assetPathCache[$cacheKey];
         }
 
         $themes = $this->getThemeFallbackOrder();
-        
+
         foreach ($themes as $theme) {
             $assetPath = BASE_PATH . "app/Themes/{$theme}/assets/{$type}/{$relativePath}";
             if (file_exists($assetPath)) {
@@ -112,15 +112,15 @@ class TemplateAssets
      *
      * @return array
      */
-    protected function getThemeFallbackOrder() : array
+    protected function getThemeFallbackOrder(): array
     {
         $currentTheme = app(ThemeManager::class)->getCurrentTheme() ?? $this->standardTheme;
         $themes = [$currentTheme];
-        
+
         if ($currentTheme !== $this->standardTheme) {
             $themes[] = $this->standardTheme;
         }
-        
+
         return $themes;
     }
 
@@ -131,7 +131,7 @@ class TemplateAssets
      * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
      * @return string The generated HTML tag or asset URL.
      */
-    public function assetFunction(string $expression, bool $urlOnly = false) : string
+    public function assetFunction(string $expression, bool $urlOnly = false): string
     {
         $filePath = $this->resolveFilePath($expression);
         $extension = $this->getFileExtension($expression, $filePath);
@@ -140,6 +140,7 @@ class TemplateAssets
 
         if ($firstSegment === "assets") {
             $url = $this->generateAssetUrl($expression);
+
             return $urlOnly ? $this->extractUrl($url) : $url;
         }
 
@@ -152,11 +153,12 @@ class TemplateAssets
      * @param string $htmlTag The HTML tag containing the URL.
      * @return string The extracted URL.
      */
-    private function extractUrl(string $htmlTag) : string
+    private function extractUrl(string $htmlTag): string
     {
         if (preg_match('/(?:href|src)=["\'](.*?)["\']/i', $htmlTag, $matches)) {
             return $matches[1];
         }
+
         return $htmlTag;
     }
 
@@ -166,7 +168,7 @@ class TemplateAssets
      * @param string $expression The relative or absolute path of the asset.
      * @return string The resolved file path.
      */
-    private function resolveFilePath(string $expression) : string
+    private function resolveFilePath(string $expression): string
     {
         if (strpos($expression, BASE_PATH) !== false) {
             return $expression;
@@ -179,7 +181,7 @@ class TemplateAssets
                 $theme = $pathParts[1];
                 $type = $pathParts[3]; // assets/scripts, assets/sass, etc.
                 $relativePath = implode('/', array_slice($pathParts, 4));
-                
+
                 $foundPath = $this->findAssetWithFallback($relativePath, $type);
                 if ($foundPath) {
                     return $foundPath;
@@ -197,9 +199,10 @@ class TemplateAssets
      * @param string $filePath The full path to the asset file.
      * @return string The file extension in lowercase.
      */
-    private function getFileExtension(string $expression, string $filePath) : string
+    private function getFileExtension(string $expression, string $filePath): string
     {
         $path = parse_url($expression, PHP_URL_PATH) ?: $filePath;
+
         return strtolower(pathinfo($path, PATHINFO_EXTENSION));
     }
 
@@ -210,7 +213,7 @@ class TemplateAssets
      * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
      * @return string The URL with a version query or the HTML tag.
      */
-    private function generateAssetUrl(string $path, bool $urlOnly = false) : string
+    private function generateAssetUrl(string $path, bool $urlOnly = false): string
     {
         $fullPath = BASE_PATH . "public/" . $path;
         if (!file_exists($fullPath)) {
@@ -225,6 +228,7 @@ class TemplateAssets
         }
 
         $extension = pathinfo($path, PATHINFO_EXTENSION);
+
         return $this->generateTag($url, $extension);
     }
 
@@ -237,7 +241,7 @@ class TemplateAssets
      * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
      * @return string The generated HTML tag or asset URL.
      */
-    private function processAssetBasedOnExtension(string $extension, string $expression, string $filePath, bool $urlOnly = false) : string
+    private function processAssetBasedOnExtension(string $extension, string $expression, string $filePath, bool $urlOnly = false): string
     {
         switch ($extension) {
             case 'scss':
@@ -264,7 +268,7 @@ class TemplateAssets
      * @param string $path The path to the SCSS file.
      * @param string $context The context ('main' or 'admin') for which this file should be added.
      */
-    public function addScssFile(string $path, string $context) : void
+    public function addScssFile(string $path, string $context): void
     {
         if (file_exists($path) && pathinfo($path, PATHINFO_EXTENSION) === 'scss') {
             $this->additionalScssFiles[$context][] = $path;
@@ -279,7 +283,7 @@ class TemplateAssets
      * @param string $type The asset type ('css', 'js', etc.).
      * @return string The cache directory path.
      */
-    protected function getCacheDir(string $type) : string
+    protected function getCacheDir(string $type): string
     {
         return "assets/{$type}/cache/{$this->context}/";
     }
@@ -287,7 +291,7 @@ class TemplateAssets
     /**
      * Optimized SCSS compilation with enhanced caching and fallback.
      */
-    private function processScssAsset(string $expression, string $scssPath) : string
+    private function processScssAsset(string $expression, string $scssPath): string
     {
         // Try fallback resolution if file doesn't exist
         if (!file_exists($scssPath)) {
@@ -306,7 +310,7 @@ class TemplateAssets
         }
 
         $cacheKey = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]) . implode(',', $this->additionalPartials) . $this->context);
-        
+
         // Check compilation cache first
         if (isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
             return $this->compilationCache[$cacheKey];
@@ -318,12 +322,16 @@ class TemplateAssets
 
         $this->ensureDirectoryExists(dirname($cssFullPath));
 
-        $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
+        $needsRecompile = true;
+        if (!is_development()) {
+            $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
+        }
 
         if (!$needsRecompile) {
             foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
                 if (file_exists($additionalFile) && filemtime($additionalFile) > filemtime($cssFullPath)) {
                     $needsRecompile = true;
+
                     break;
                 }
             }
@@ -334,6 +342,7 @@ class TemplateAssets
                 $partialPath = path($partial);
                 if (file_exists($partialPath) && filemtime($partialPath) > filemtime($cssFullPath)) {
                     $needsRecompile = true;
+
                     break;
                 }
             }
@@ -353,6 +362,7 @@ class TemplateAssets
         $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
 
         $this->compilationCache[$cacheKey] = $result;
+
         return $result;
     }
 
@@ -362,7 +372,7 @@ class TemplateAssets
      * @param string $mainScssPath
      * @return array
      */
-    protected function gatherScssContents(string $mainScssPath) : array
+    protected function gatherScssContents(string $mainScssPath): array
     {
         $scssContents = [];
 
@@ -374,6 +384,7 @@ class TemplateAssets
         $mainScssContent = file_get_contents($mainScssPath);
         if ($mainScssContent === false) {
             logs()->error("Unable to read SCSS file: {$mainScssPath}");
+
             return [];
         }
         $scssContents[] = $mainScssContent;
@@ -399,7 +410,7 @@ class TemplateAssets
      * @param array $scssContents An array of SCSS content strings.
      * @return string The compiled CSS string.
      */
-    private function compileScss(array $scssContents) : string
+    private function compileScss(array $scssContents): string
     {
         $scssContent = implode("\n", $scssContents);
 
@@ -429,7 +440,7 @@ class TemplateAssets
      *
      * @return string The combined contents of shared partial files.
      */
-    private function loadSharedPartials() : string
+    private function loadSharedPartials(): string
     {
         $partialsContent = '';
 
@@ -458,7 +469,7 @@ class TemplateAssets
      * @param string $cssPathBase The path to the CSS file.
      * @return string The generated HTML link tag for the CSS file.
      */
-    private function processCssAsset(string $expression, string $cssPathBase) : string
+    private function processCssAsset(string $expression, string $cssPathBase): string
     {
         if (Validators::isUrl($expression)) {
             return $this->processRemoteAsset($expression, 'css');
@@ -476,6 +487,7 @@ class TemplateAssets
             $content = file_get_contents($cssPathBase);
             if ($content === false) {
                 logs()->error("Unable to read CSS file: {$cssPathBase}");
+
                 return '';
             }
             $this->saveAsset($cssFullPath, $content);
@@ -490,7 +502,7 @@ class TemplateAssets
     /**
      * Process JS asset with fallback support.
      */
-    private function processJsAsset(string $expression, string $jsPathBase, bool $urlOnly = false) : string
+    private function processJsAsset(string $expression, string $jsPathBase, bool $urlOnly = false): string
     {
         if (Validators::isUrl($expression)) {
             return $this->processRemoteAsset($expression, 'js');
@@ -520,6 +532,7 @@ class TemplateAssets
             $content = file_get_contents($jsPathBase);
             if ($content === false) {
                 logs()->error("Unable to read JS file: {$jsPathBase}");
+
                 return '';
             }
             $this->saveAsset($jsFullPath, $content);
@@ -534,7 +547,7 @@ class TemplateAssets
     /**
      * Process image asset with fallback support.
      */
-    private function processImageAsset(string $expression, string $imgPathBase, string $extension, bool $urlOnly = false) : string
+    private function processImageAsset(string $expression, string $imgPathBase, string $extension, bool $urlOnly = false): string
     {
         if (Validators::isUrl($expression)) {
             return $this->processRemoteAsset($expression, 'img');
@@ -569,6 +582,7 @@ class TemplateAssets
                     WebPConvert::convert($imgPathBase, $webpFullPath);
                 } catch (\Exception $e) {
                     logs()->error($e->getMessage());
+
                     return $this->generateAssetUrl($imgPath);
                 }
             }
@@ -591,13 +605,14 @@ class TemplateAssets
      * @param string $type The asset type ('css', 'js', or 'img').
      * @return string The generated HTML tag or local asset URL.
      */
-    protected function processRemoteAsset(string $url, string $type) : string
+    protected function processRemoteAsset(string $url, string $type): string
     {
         if ($this->isLocalUrl($url)) {
             return $this->generateTag($url, $type);
         }
 
         $localUrl = $this->processCdnAsset($url, $type);
+
         return $this->generateTag($localUrl, $type);
     }
 
@@ -607,7 +622,7 @@ class TemplateAssets
      * @param string $url The URL to check.
      * @return bool True if the URL is local, false otherwise.
      */
-    protected function isLocalUrl(string $url) : bool
+    protected function isLocalUrl(string $url): bool
     {
         $parsedUrl = parse_url($url);
         $parsedAppUrl = parse_url($this->appUrl);
@@ -626,7 +641,7 @@ class TemplateAssets
      * @param string $type The asset type ('css', 'js', or 'img').
      * @return string The HTML tag.
      */
-    protected function generateTag(string $url, string $type) : string
+    protected function generateTag(string $url, string $type): string
     {
         switch ($type) {
             case 'css':
@@ -647,7 +662,7 @@ class TemplateAssets
      * @param string $type The asset type ('js' by default).
      * @return string The URL of the cached local asset.
      */
-    protected function processCdnAsset(string $url, string $type = "js") : string
+    protected function processCdnAsset(string $url, string $type = "js"): string
     {
         $hash = sha1($url);
         $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION)) ?: $type;
@@ -663,6 +678,7 @@ class TemplateAssets
         }
 
         $version = filemtime($fullLocalPath);
+
         return url($localPath) . "?v={$version}";
     }
 
@@ -672,7 +688,7 @@ class TemplateAssets
      * @param string $path The path where the asset will be saved.
      * @param string $content The content to save.
      */
-    protected function saveAsset(string $path, string $content) : void
+    protected function saveAsset(string $path, string $content): void
     {
         $content = $this->minifyContent($path, $content);
         $this->ensureDirectoryExists(dirname($path));
@@ -688,7 +704,7 @@ class TemplateAssets
      * @param string $sourcePath The source file path.
      * @param string $destinationPath The destination file path.
      */
-    protected function copyAsset(string $sourcePath, string $destinationPath) : void
+    protected function copyAsset(string $sourcePath, string $destinationPath): void
     {
         $this->ensureDirectoryExists(dirname($destinationPath));
 
@@ -704,13 +720,14 @@ class TemplateAssets
      * @param string $content The content to minify.
      * @return string The minified content.
      */
-    protected function minifyContent(string $path, string $content) : string
+    protected function minifyContent(string $path, string $content): string
     {
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         if ($extension === 'js' && $this->minifyAssets) {
             $minifier = new Minify\JS();
             $minifier->add($content);
+
             return $minifier->minify();
         }
 
@@ -718,6 +735,7 @@ class TemplateAssets
             // Performance issue with autoprefixer in debug mode
             if (!is_debug()) {
                 $autoprefixer = new Autoprefixer($content);
+
                 try {
                     $content = $autoprefixer->compile();
                 } catch (\Throwable $e) {
@@ -727,6 +745,7 @@ class TemplateAssets
 
             $minifier = new Minify\CSS();
             $minifier->add($content);
+
             return $minifier->minify();
         }
 
@@ -738,7 +757,7 @@ class TemplateAssets
      *
      * @return Compiler The SCSS compiler instance.
      */
-    public function getCompiler() : Compiler
+    public function getCompiler(): Compiler
     {
         return $this->scssCompiler;
     }
@@ -758,17 +777,17 @@ class TemplateAssets
      *
      * @param string $directory The path of the directory to check or create.
      */
-    protected function ensureDirectoryExists(string $directory) : void
+    protected function ensureDirectoryExists(string $directory): void
     {
         if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
+            mkdir($directory, 0o755, true);
         }
     }
 
     /**
      * Add import path with context support.
      */
-    public function addImportPath(string $path, string $context = 'main') : void
+    public function addImportPath(string $path, string $context = 'main'): void
     {
         if ($context === $this->context && is_dir($path)) {
             $this->scssCompiler->addImportPath($path);
@@ -780,7 +799,7 @@ class TemplateAssets
      *
      * @return void
      */
-    public function clearCache() : void
+    public function clearCache(): void
     {
         $this->assetPathCache = [];
         $this->compilationCache = [];
@@ -805,7 +824,7 @@ class TemplateAssets
      *
      * @return array
      */
-    public function getCacheStats() : array
+    public function getCacheStats(): array
     {
         return [
             'asset_path_cache_size' => count($this->assetPathCache),

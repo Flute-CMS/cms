@@ -8,7 +8,7 @@ use Flute\Core\Modules\Profile\Components\TablePaymentsComponent;
 
 class TemplateListener
 {
-    public static function handle(\Flute\Core\Template\Events\TemplateInitialized $event) : void
+    public static function handle(\Flute\Core\Template\Events\TemplateInitialized $event): void
     {
         $template = $event->getTemplate();
 

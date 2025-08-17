@@ -25,4 +25,4 @@ class Post extends Route
     ) {
         parent::__construct($uri, ['POST'], $name, $middleware, $where, $defaults);
     }
-} 
+}

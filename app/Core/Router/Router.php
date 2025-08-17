@@ -2,41 +2,45 @@
 
 namespace Flute\Core\Router;
 
+/**
+ * @method static void screen(string $url, string|class-string $screen)
+ */
+
 use Clickfwd\Yoyo\Exceptions\HttpException;
 use DI\Container;
 use Flute\Core\Events\OnRouteFoundEvent;
 use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Events\RoutingStartedEvent;
 use Flute\Core\Exceptions\ForcedRedirectException;
-use Flute\Core\Router\Middlewares\CsrfMiddleware;
-use Flute\Core\Router\Middlewares\RateLimiterMiddleware;
 use Flute\Core\Modules\Auth\Middlewares\IsAuthenticatedMiddleware;
 use Flute\Core\Modules\Auth\Middlewares\IsGuestMiddleware;
 use Flute\Core\Router\Contracts\MiddlewareInterface;
 use Flute\Core\Router\Contracts\RouteInterface;
 use Flute\Core\Router\Contracts\RouterInterface;
+use Flute\Core\Router\Middlewares\BanCheckMiddleware;
 use Flute\Core\Router\Middlewares\CanMiddleware;
+use Flute\Core\Router\Middlewares\CsrfMiddleware;
 use Flute\Core\Router\Middlewares\HtmxMiddleware;
+use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
+use Flute\Core\Router\Middlewares\RateLimiterMiddleware;
 use Flute\Core\Router\Middlewares\TokenMiddleware;
+use Flute\Core\Support\FluteRequest;
+use Flute\Core\Template\Template;
+use Flute\Core\Traits\MacroableTrait;
 use Flute\Core\Traits\SingletonTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-use Flute\Core\Support\FluteRequest;
-use Flute\Core\Traits\MacroableTrait;
-use Flute\Core\Router\Middlewares\BanCheckMiddleware;
-use Flute\Core\Router\AttributeRouteLoader;
-use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
-use Flute\Core\Template\Template;
-use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 
 class Router implements RouterInterface
 {
-    use MacroableTrait, SingletonTrait;
+    use MacroableTrait;
+    use SingletonTrait;
 
     protected RouteCollection $routes;
     protected RouteCollection $compilableRoutes;
@@ -49,7 +53,7 @@ class Router implements RouterInterface
     protected array $middlewareGroups = [
         'web' => ['csrf', 'throttle'],
         'api' => ['throttle', 'ban.check'],
-        'default' => ['ban.check', 'throttle', 'maintenance']
+        'default' => ['ban.check', 'throttle', 'maintenance'],
     ];
     protected array $groupStack = [];
     protected array $middlewareAliases = [
@@ -130,7 +134,7 @@ class Router implements RouterInterface
                     $resolvedMiddleware[] = function ($request, $next) use ($middlewareClass, $parameters) {
                         $middleware = $this->container->get($middlewareClass);
 
-                        if (! $middleware instanceof MiddlewareInterface) {
+                        if (!$middleware instanceof MiddlewareInterface) {
                             throw new \InvalidArgumentException("Middleware {$middlewareClass} must implement MiddlewareInterface.");
                         }
 
@@ -142,7 +146,7 @@ class Router implements RouterInterface
                     $resolvedMiddleware[] = function ($request, $next) use ($middlewareClass) {
                         $middleware = $this->container->get($middlewareClass);
 
-                        if (! $middleware instanceof MiddlewareInterface) {
+                        if (!$middleware instanceof MiddlewareInterface) {
                             throw new \InvalidArgumentException("Middleware {$middlewareClass} must implement MiddlewareInterface.");
                         }
 
@@ -299,7 +303,7 @@ class Router implements RouterInterface
 
         $route = new Route($methods, $uri, $action);
 
-        if (! empty($this->groupStack)) {
+        if (!empty($this->groupStack)) {
             $route->setGroupAttributes(end($this->groupStack));
         }
 
@@ -395,6 +399,7 @@ class Router implements RouterInterface
     public function any(string $uri, array|string|object $action): RouteInterface
     {
         $methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
+
         return $this->addRoute($methods, $uri, $action);
     }
 
@@ -408,11 +413,11 @@ class Router implements RouterInterface
 
     /**
      * Add a view route to the route collection.
-     * 
+     *
      * @param string $path The path for the route.
      * @param string $view The view for the route.
      * @param array $options The options for the route.
-     * 
+     *
      * @return Route The added route.
      */
     public function view(string $path, string $view, array $options = []): Route
@@ -424,11 +429,11 @@ class Router implements RouterInterface
 
     /**
      * Make redirect route
-     * 
+     *
      * @param string $path The path for route
      * @param string $destination The destination for the route
      * @param int $status The status code for the route
-     * 
+     *
      * @return Route The added route.
      */
     public function redirect(string $path, string $destination, int $status = 302): Route
@@ -475,7 +480,7 @@ class Router implements RouterInterface
         if (!$urlMatcher) {
             $urlMatcher = new UrlMatcher($compilable, $context);
 
-            if(is_debug()) {
+            if (is_debug()) {
                 try {
                     $dumper = new CompiledUrlMatcherDumper($compilable);
                     $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
@@ -489,6 +494,7 @@ class Router implements RouterInterface
         }
 
         $t0 = microtime(true);
+
         try {
             $parameters = $urlMatcher->match($request->getPathInfo());
             \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
@@ -513,6 +519,7 @@ class Router implements RouterInterface
             \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
         } catch (ResourceNotFoundException | MethodNotAllowedException $e) {
             $dynamicMatcher = new UrlMatcher($dynamicCollection, $context);
+
             try {
                 $parameters = $dynamicMatcher->match($request->getPathInfo());
                 \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
@@ -536,7 +543,7 @@ class Router implements RouterInterface
                 $response = $pipeline->run();
                 \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
             } catch (\Exception $dynamicE) {
-                if(is_debug()) {
+                if (is_debug()) {
                     throw $dynamicE;
                 }
 
@@ -550,8 +557,9 @@ class Router implements RouterInterface
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
             $response = response()->error($exception->getStatusCode(), $exception->getMessage());
         } catch (\Exception $exception) {
-            if (is_debug())
+            if (is_debug()) {
                 throw $exception;
+            }
 
             $response = response()->error(500, __('def.internal_server_error'));
         }
@@ -583,7 +591,7 @@ class Router implements RouterInterface
         $route->setParameters($parameters);
         $route->name($routeName);
 
-        if (! empty($middleware)) {
+        if (!empty($middleware)) {
             $route->middleware($middleware);
         }
 
@@ -598,6 +606,7 @@ class Router implements RouterInterface
         $start = microtime(true);
         $response = $this->currentRoute->run($request, $parameters, $this->container);
         \Flute\Core\Router\RoutingTiming::add('Controller', microtime(true) - $start);
+
         return $response;
     }
 
@@ -616,7 +625,7 @@ class Router implements RouterInterface
     {
         $generator = new UrlGenerator($this->routes, (new RequestContext())->fromRequest(request()));
 
-        if (! $this->routes->get($name)) {
+        if (!$this->routes->get($name)) {
             throw new \Exception("Route '{$name}' not found.");
         }
 
@@ -633,6 +642,7 @@ class Router implements RouterInterface
     public function registerAttributeRoutes(array $directories, string $namespace): int
     {
         $loader = new AttributeRouteLoader($this);
+
         return $loader->loadFromDirectories($directories, $namespace);
     }
 
@@ -645,6 +655,7 @@ class Router implements RouterInterface
     public function registerAttributeRoutesFromClass(string $controllerClass): int
     {
         $loader = new AttributeRouteLoader($this);
+
         return $loader->loadFromClass($controllerClass);
     }
 

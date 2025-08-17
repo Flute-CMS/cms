@@ -13,7 +13,7 @@ class AdminSearchHandler
      *
      * @return array The results of the emitted search event.
      */
-    public function emit(string $param) : array
+    public function emit(string $param): array
     {
         /** @var AdminSearchEvent $event */
         $event = events()->dispatch(new AdminSearchEvent($param), AdminSearchEvent::NAME);
@@ -23,7 +23,7 @@ class AdminSearchHandler
         usort($results, function (AdminSearchResult $a, AdminSearchResult $b) {
             return $b->getRelevance() <=> $a->getRelevance();
         });
-        
+
         return $results;
     }
 }

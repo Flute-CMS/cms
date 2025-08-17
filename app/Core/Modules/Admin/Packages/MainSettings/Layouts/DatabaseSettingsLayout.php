@@ -15,7 +15,7 @@ class DatabaseSettingsLayout extends Table
     protected $target = 'databaseConnections';
     protected $perPage = 10;
 
-    public function columns() : array
+    public function columns(): array
     {
         $this->searchable();
 
@@ -49,7 +49,7 @@ class DatabaseSettingsLayout extends Table
                         ->list([
                             DropDownItem::make(__('admin-main-settings.edit'))
                                 ->modal('editDatabaseModal', [
-                                    'databaseId' => $item->get('databaseName')
+                                    'databaseId' => $item->get('databaseName'),
                                 ])
                                 ->type(Color::OUTLINE_PRIMARY)
                                 ->icon('ph.regular.pencil')
@@ -70,14 +70,14 @@ class DatabaseSettingsLayout extends Table
         ];
     }
 
-    protected function commandBar() : array
+    protected function commandBar(): array
     {
         return [
             Button::make(__('admin-main-settings.add_database'))
                 ->icon('ph.regular.plus')
                 ->size('small')
                 ->type(Color::OUTLINE_PRIMARY)
-                ->modal('addDatabaseModal')
+                ->modal('addDatabaseModal'),
         ];
     }
 }

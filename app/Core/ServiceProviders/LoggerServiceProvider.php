@@ -3,11 +3,10 @@
 namespace Flute\Core\ServiceProviders;
 
 use DI\Container;
-
+use DI\ContainerBuilder;
 use Flute\Core\Services\LoggerService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Psr\Log\LoggerInterface;
-use DI\ContainerBuilder;
 
 class LoggerServiceProvider extends AbstractServiceProvider
 {
@@ -24,7 +23,6 @@ class LoggerServiceProvider extends AbstractServiceProvider
 
     public function boot(Container $container): void
     {
-        // Setup log rotation and cleanup cron job
         $container->get(LoggerService::class)->setupCron();
     }
 }

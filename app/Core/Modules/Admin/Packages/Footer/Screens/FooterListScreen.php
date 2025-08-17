@@ -47,10 +47,10 @@ class FooterListScreen extends Screen
                     ->badge(sizeof($this->footerItems))
                     ->layouts([
                         LayoutFactory::sortable('footerItems', [
-                            Sight::make('title', __('admin-footer.table.title'))->render(fn(FooterItem $footerItem) => view('admin-footer::cells.item-title', compact('footerItem'))),
+                            Sight::make('title', __('admin-footer.table.title'))->render(fn (FooterItem $footerItem) => view('admin-footer::cells.item-title', compact('footerItem'))),
                             Sight::make('actions', __('admin-footer.table.actions'))
                                 ->render(
-                                    fn(FooterItem $footerItem) => DropDown::make()
+                                    fn (FooterItem $footerItem) => DropDown::make()
                                         ->icon('ph.regular.dots-three-outline-vertical')
                                         ->list([
                                             DropDownItem::make(__('def.edit'))
@@ -78,18 +78,18 @@ class FooterListScreen extends Screen
                                     ->type(Color::PRIMARY),
                             ])
                             ->title(__('admin-footer.sections.main_links.title'))
-                            ->description(__('admin-footer.sections.main_links.description'))
+                            ->description(__('admin-footer.sections.main_links.description')),
                     ]),
                 Tab::make(__('admin-footer.tabs.social'))
                     ->badge(sizeof($this->socials))
                     ->layouts([
                         LayoutFactory::table('socials', [
-                            TD::make('icon', __('admin-footer.table.icon'))->render(fn(FooterSocial $footerSocial) => view('admin-footer::cells.social-icon', compact('footerSocial'))),
-                            TD::make('url', __('admin-footer.table.url'))->render(fn(FooterSocial $footerSocial) => '<a class="hover-accent" href="' . $footerSocial->url . '" target="_blank">' . $footerSocial->url . '</a>'),
+                            TD::make('icon', __('admin-footer.table.icon'))->render(fn (FooterSocial $footerSocial) => view('admin-footer::cells.social-icon', compact('footerSocial'))),
+                            TD::make('url', __('admin-footer.table.url'))->render(fn (FooterSocial $footerSocial) => '<a class="hover-accent" href="' . $footerSocial->url . '" target="_blank">' . $footerSocial->url . '</a>'),
                             TD::make('actions', __('admin-footer.table.actions'))
                                 ->width('150px')
                                 ->alignCenter()
-                                ->render(fn(FooterSocial $footerSocial) => DropDown::make()
+                                ->render(fn (FooterSocial $footerSocial) => DropDown::make()
                                     ->icon('ph.regular.dots-three-outline-vertical')
                                     ->list([
                                         DropDownItem::make(__('admin-footer.buttons.edit'))
@@ -116,9 +116,9 @@ class FooterListScreen extends Screen
                                     ->size('medium')
                                     ->modal('createFooterSocialModal')
                                     ->type(Color::PRIMARY),
-                            ])
-                    ])
-            ])->slug('footer')
+                            ]),
+                    ]),
+            ])->slug('footer'),
         ];
     }
 
@@ -131,7 +131,7 @@ class FooterListScreen extends Screen
             ->load('children', [
                 'load' => function ($qb) {
                     $qb->orderBy('position', 'asc');
-                }
+                },
             ])
             ->fetchAll();
     }
@@ -149,6 +149,7 @@ class FooterListScreen extends Screen
         $sortableResult = json_decode(request()->input('sortableResult'), true);
         if (!$sortableResult) {
             $this->flashMessage(__('admin-footer.messages.invalid_sort_data'), 'danger');
+
             return;
         }
 
@@ -169,15 +170,15 @@ class FooterListScreen extends Screen
 
         foreach ($items as $item) {
             $footerItem = FooterItem::findByPK($item['id']);
-            if (! $footerItem) {
+            if (!$footerItem) {
                 continue;
             }
 
             $footerItem->position = ++$position;
-            $footerItem->parent   = $parent;
+            $footerItem->parent = $parent;
             $footerItem->save();
 
-            if (! empty($item['children'])) {
+            if (!empty($item['children'])) {
                 $this->reorderItems($item['children'], $footerItem);
             }
         }
@@ -218,7 +219,7 @@ class FooterListScreen extends Screen
                 CheckBox::make('new_tab')
                     ->label(__('admin-footer.modal.footer_item.fields.new_tab.label'))
                     ->popover(__('admin-footer.modal.footer_item.fields.new_tab.help')),
-            )
+            ),
         ])
             ->title(__('admin-footer.modal.footer_item.create_title'))
             ->applyButton(__('def.create'))
@@ -271,6 +272,7 @@ class FooterListScreen extends Screen
         $footerItem = FooterItem::findByPK($footerItemId);
         if (!$footerItem) {
             $this->flashMessage(__('admin-footer.messages.item_not_found'), 'error');
+
             return;
         }
 
@@ -308,7 +310,7 @@ class FooterListScreen extends Screen
                     ->label(__('admin-footer.modal.footer_item.fields.new_tab.label'))
                     ->popover(__('admin-footer.modal.footer_item.fields.new_tab.help'))
                     ->value($footerItem->new_tab)
-            )
+            ),
         ])
             ->title(__('admin-footer.modal.footer_item.edit_title'))
             ->applyButton(__('def.save'))
@@ -326,6 +328,7 @@ class FooterListScreen extends Screen
         $footerItem = FooterItem::findByPK($footerItemId);
         if (!$footerItem) {
             $this->flashMessage(__('admin-footer.messages.item_not_found'), 'error');
+
             return;
         }
 
@@ -361,11 +364,13 @@ class FooterListScreen extends Screen
         $footerItem = FooterItem::findByPK($id);
         if (!$footerItem) {
             $this->flashMessage(__('admin-footer.messages.item_not_found'), 'error');
+
             return;
         }
 
         if (!empty($footerItem->children)) {
             $this->flashMessage('Невозможно удалить элемент футера, так как у него есть дочерние элементы.', 'warning');
+
             return;
         }
 
@@ -450,6 +455,7 @@ class FooterListScreen extends Screen
         $footerSocial = FooterSocial::findByPK($footerSocialId);
         if (!$footerSocial) {
             $this->flashMessage(__('admin-footer.messages.social_not_found'), 'error');
+
             return;
         }
 
@@ -500,6 +506,7 @@ class FooterListScreen extends Screen
         $footerSocial = FooterSocial::findByPK($footerSocialId);
         if (!$footerSocial) {
             $this->flashMessage(__('admin-footer.messages.social_not_found'), 'error');
+
             return;
         }
 
@@ -534,6 +541,7 @@ class FooterListScreen extends Screen
         $footerSocial = FooterSocial::findByPK($id);
         if (!$footerSocial) {
             $this->flashMessage(__('admin-footer.messages.social_not_found'), 'error');
+
             return;
         }
 

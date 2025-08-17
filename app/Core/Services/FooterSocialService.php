@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Services;
 
-use Flute\Core\App;
 use Flute\Core\Database\Entities\FooterSocial;
 
 class FooterSocialService

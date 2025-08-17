@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Auth\Providers;
 
+use Flute\Core\Listeners\DefaultRoleListener;
 use Flute\Core\Modules\Auth\Components\LoginComponent;
 use Flute\Core\Modules\Auth\Components\PasswordResetComponent;
 use Flute\Core\Modules\Auth\Components\PasswordResetTokenComponent;
@@ -11,11 +12,10 @@ use Flute\Core\Modules\Auth\Services\AuthService;
 use Flute\Core\Modules\Auth\Services\SocialService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Events\TemplateInitialized;
-use Flute\Core\Listeners\DefaultRoleListener;
 
 class AuthServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             AuthenticationService::class => \DI\autowire(),
@@ -29,7 +29,7 @@ class AuthServiceProvider extends AbstractServiceProvider
     /**
      * Register auth service.
      */
-    public function boot(\DI\Container $container) : void
+    public function boot(\DI\Container $container): void
     {
         if (is_installed()) {
             $this->loadRoutesFrom(cms_path('Auth/Routes/auth.php'));

@@ -29,9 +29,20 @@ class EditSocialScreen extends Screen
         'Steam' => 'Steam',
         'Discord' => 'Discord',
         'Telegram' => 'Telegram',
+        'Twitch' => 'Twitch',
+        'Twitter' => 'Twitter',
+        'GitHub' => 'GitHub',
+        'Google' => 'Google',
+        'Facebook' => 'Facebook',
+        'LinkedIn' => 'LinkedIn',
+        'Vkontakte' => 'Vkontakte',
+        'Yandex' => 'Yandex',
+        'MicrosoftGraph' => 'MicrosoftGraph',
+        'Instagram' => 'Instagram',
+        'Yahoo' => 'Yahoo',
     ];
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->id = (int) request()->attributes->get('id');
 
@@ -40,6 +51,7 @@ class EditSocialScreen extends Screen
 
             if (!$this->social) {
                 $this->redirect('/admin/socials');
+
                 return;
             }
 
@@ -52,8 +64,9 @@ class EditSocialScreen extends Screen
 
             $this->name = __('admin-social.title.edit', ['name' => $this->social->key]);
 
-            if (!$this->driverKey)
+            if (!$this->driverKey) {
                 $this->driverKey = $this->social->key;
+            }
 
         } else {
             breadcrumb()
@@ -65,7 +78,7 @@ class EditSocialScreen extends Screen
         }
     }
 
-    public function commandBar() : array
+    public function commandBar(): array
     {
         return [
             Button::make(__('def.cancel'))
@@ -83,7 +96,7 @@ class EditSocialScreen extends Screen
         ];
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         $driverKey = $this->driverKey;
 
@@ -176,7 +189,7 @@ class EditSocialScreen extends Screen
                     ->yoyo()
                     ->placeholder(__('admin-social.fields.driver.placeholder'))
                     ->required()
-            )->label(__('admin-social.fields.driver.label'))->required()
+            )->label(__('admin-social.fields.driver.label'))->required(),
         ];
 
         if ($driverKey) {
@@ -313,6 +326,7 @@ class EditSocialScreen extends Screen
             $this->flashMessage(__('admin-social.messages.save_success'), 'success');
         } catch (\Exception $e) {
             $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
+
             return;
         }
     }
@@ -324,9 +338,55 @@ class EditSocialScreen extends Screen
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
                 'settings__secret' => 'required|string|max-str-len:255',
                 'settings__token' => 'sometimes|string',
+                'settings__guild_id' => 'sometimes|string',
+                'settings__roles_map' => 'sometimes|array',
             ]),
             'Telegram' => $rules = array_merge($rules, [
                 'settings__id' => 'required|string|max-str-len:255',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Twitch' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Twitter' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'GitHub' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Google' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Facebook' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'LinkedIn' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Vkontakte' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:1',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Yandex' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'MicrosoftGraph' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Instagram' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Yahoo' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
                 'settings__secret' => 'required|string|max-str-len:255',
             ]),
             default => [],
@@ -339,6 +399,7 @@ class EditSocialScreen extends Screen
     {
         if (!$this->isEditMode || !$this->social) {
             $this->flashMessage(__('admin-social.messages.not_found'), 'error');
+
             return;
         }
 

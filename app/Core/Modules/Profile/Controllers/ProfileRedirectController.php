@@ -32,14 +32,15 @@ class ProfileRedirectController extends BaseController
             self::$resolveCache[$value] = $user;
         }
 
-        if (! empty($redirectUrl) && empty($user)) {
+        if (!empty($redirectUrl) && empty($user)) {
             return redirect($redirectUrl);
         } elseif (empty($user)) {
             return $this->error(__('def.user_not_found'), 404);
         }
 
-        if ($user->hidden === true && ! user()->can('admin.users') && $user->id !== user()->id)
+        if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
             return $this->error(__('profile.profile_hidden'));
+        }
 
         return redirect(url('profile/'.$user->getUrl()));
     }

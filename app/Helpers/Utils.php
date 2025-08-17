@@ -143,6 +143,9 @@ if (! function_exists('is_debug')) {
         if (is_cli())
             return true;
 
+        if (is_development())
+            return true;
+
         $debug = (bool) app('debug');
         $user_ip = request()->ip();
 
@@ -155,10 +158,18 @@ if (! function_exists('is_debug')) {
 }
 
 
+if (! function_exists('is_development')) {
+    function is_development(): bool
+    {
+        return filter_var(config('app.development_mode'), FILTER_VALIDATE_BOOLEAN) === true;
+    }
+}
+
+
 if (! function_exists('is_performance')) {
     function is_performance(): bool
     {
-        if (is_debug())
+        if (is_debug() || is_development())
             return false;
 
         return (filter_var(config('app.is_performance'), FILTER_VALIDATE_BOOLEAN) === true);

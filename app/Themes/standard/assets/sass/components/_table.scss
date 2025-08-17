@@ -16,19 +16,28 @@ tr {
     thead {
         vertical-align: bottom;
         position: relative;
-        
+        z-index: 0;
+        transform: translateZ(0);
+
         &::before {
             content: '';
             position: absolute;
             top: 0;
+            bottom: 0;
             left: 1rem;
             right: 1rem;
-            bottom: 0;
             background-color: var(--transp-05);
             border: 1px solid var(--transp-1);
             border-radius: var(--border05);
             box-shadow: var(--shadow-small);
             z-index: -1;
+            pointer-events: none;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            &::before {
+                bottom: auto;
+            }
         }
 
         tr {
@@ -50,9 +59,7 @@ tr {
                     flex-direction: row;
                 }
 
-                &:first-child {
-                    padding-left: 2rem;
-                }
+                &:first-child { padding-left: 2rem; }
 
                 &.sortable {
                     cursor: pointer;

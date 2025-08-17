@@ -6,5 +6,5 @@ use Flute\Core\ModulesManager\ModuleInformation;
 
 interface ModuleActionInterface
 {
-    public function action(ModuleInformation &$moduleInformation) : bool;
+    public function action(ModuleInformation &$moduleInformation): bool;
 }

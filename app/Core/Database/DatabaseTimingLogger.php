@@ -56,4 +56,4 @@ class DatabaseTimingLogger implements LoggerInterface
 
         $this->inner->log($level, $message, $context);
     }
-} 
+}

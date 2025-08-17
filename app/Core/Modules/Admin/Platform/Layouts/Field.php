@@ -32,7 +32,7 @@ class Field extends Layout
         'slot' => null,
         'class' => '',
         'required' => null,
-        'popover' => null
+        'popover' => null,
     ];
 
     public function __construct(
@@ -54,21 +54,24 @@ class Field extends Layout
      * @param string $label
      * @return self
      */
-    public function label(string $label) : self
+    public function label(string $label): self
     {
         $this->attributes['label'] = $label;
+
         return $this;
     }
 
-    public function required(bool $required = true) : self
+    public function required(bool $required = true): self
     {
         $this->attributes['required'] = $required;
+
         return $this;
     }
 
-    public function popover(string $popover) : self
+    public function popover(string $popover): self
     {
         $this->attributes['popover'] = $popover;
+
         return $this;
     }
 
@@ -78,9 +81,10 @@ class Field extends Layout
      * @param string $small
      * @return self
      */
-    public function small(string $small) : self
+    public function small(string $small): self
     {
         $this->attributes['small'] = $small;
+
         return $this;
     }
 
@@ -90,9 +94,10 @@ class Field extends Layout
      * @param string $right
      * @return self
      */
-    public function right(string $right) : self
+    public function right(string $right): self
     {
         $this->attributes['right'] = $right;
+
         return $this;
     }
 
@@ -102,9 +107,10 @@ class Field extends Layout
      * @param \Flute\Admin\Platform\Field $input
      * @return self
      */
-    public function field(\Flute\Admin\Platform\Field $field) : self
+    public function field(\Flute\Admin\Platform\Field $field): self
     {
         $this->attributes['slot'] = $field;
+
         return $this;
     }
 
@@ -114,7 +120,7 @@ class Field extends Layout
      * @param string|array $classes
      * @return self
      */
-    public function addClass($classes) : self
+    public function addClass($classes): self
     {
         if (is_array($classes)) {
             $classes = implode(' ', $classes);
@@ -133,9 +139,10 @@ class Field extends Layout
      * @param mixed  $value
      * @return self
      */
-    public function setAttribute(string $key, $value) : self
+    public function setAttribute(string $key, $value): self
     {
         $this->attributes[$key] = $value;
+
         return $this;
     }
 

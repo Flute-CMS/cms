@@ -60,7 +60,7 @@ abstract class Split extends Layout
      *
      * @return $this This instance of the Split class.
      */
-    public function ratio(string $ratio) : self
+    public function ratio(string $ratio): self
     {
         $allowedRatios = collect([
             '20/80' => ['col-md-2', 'col-md-10'],
@@ -88,7 +88,7 @@ abstract class Split extends Layout
      *
      * @return $this This instance of the Split class.
      */
-    public function reverseOnPhone() : self
+    public function reverseOnPhone(): self
     {
         $this->variables['reverseOnPhone'] = true;
 

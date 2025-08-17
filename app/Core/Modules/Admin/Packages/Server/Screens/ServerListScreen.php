@@ -3,13 +3,13 @@
 namespace Flute\Admin\Packages\Server\Screens;
 
 use Flute\Admin\Packages\Server\Services\AdminServersService;
-use Flute\Admin\Platform\Actions\DropDown;
-use Flute\Admin\Platform\Layouts\LayoutFactory;
-use Flute\Admin\Platform\Screen;
-use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Components\Cells\DateTime;
+use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\LayoutFactory;
+use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Server;
 
@@ -21,7 +21,7 @@ class ServerListScreen extends Screen
 
     public $servers;
 
-    public function mount() : void
+    public function mount(): void
     {
         $this->name = __('admin-server.title.list');
         $this->description = __('admin-server.title.description');
@@ -33,26 +33,27 @@ class ServerListScreen extends Screen
         $this->servers = rep(Server::class)->select();
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::table('servers', [
+                TD::selection('id'),
                 TD::make('mod')
                     ->title(__('admin-server.fields.mod.label'))
-                    ->render(fn(Server $server) => app(AdminServersService::class)->getGameName($server->mod))
+                    ->render(fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
                     ->width('200px')
                     ->sort()
                     ->cantHide(),
 
                 TD::make('name')
                     ->title(__('admin-server.fields.name.label'))
-                    ->render(fn(Server $server) => view('admin-server::cells.server', compact('server')))
+                    ->render(fn (Server $server) => view('admin-server::cells.server', compact('server')))
                     ->minWidth('200px')
                     ->cantHide(),
 
                 TD::make('enabled')
                     ->title(__('admin-server.fields.enabled.label'))
-                    ->render(fn(Server $server) => view('admin-server::cells.enabled', compact('server')))
+                    ->render(fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
                     ->popover(__('admin-server.fields.enabled.help')),
 
                 TD::make('createdAt')
@@ -63,11 +64,12 @@ class ServerListScreen extends Screen
                     ->cantHide(),
 
                 TD::make('actions')
+                    ->class('actions-col')
                     ->title(__('admin-server.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn(Server $server) => DropDown::make()
+                        fn (Server $server) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-server.buttons.edit'))
@@ -93,10 +95,27 @@ class ServerListScreen extends Screen
                         ->icon('ph.bold.plus-bold')
                         ->redirect(url('/admin/servers/add')),
                 ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.enable_selected'))
+                        ->icon('ph.bold.play-bold')
+                        ->type(Color::OUTLINE_SUCCESS)
+                        ->method('bulkEnable'),
+
+                    Button::make(__('admin.bulk.disable_selected'))
+                        ->icon('ph.bold.power-bold')
+                        ->type(Color::OUTLINE_WARNING)
+                        ->method('bulkDisable'),
+
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDelete'),
+                ]),
         ];
     }
 
-    public function delete() : void
+    public function delete(): void
     {
         $server = Server::findByPK(request()->get('delete-id'));
 
@@ -105,5 +124,52 @@ class ServerListScreen extends Screen
         }
 
         $this->flashMessage(__('admin-server.messages.server_deleted'));
+    }
+
+    public function bulkEnable(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->enabled = true;
+                $server->save();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_enabled'), 'success');
+    }
+
+    public function bulkDisable(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->enabled = false;
+                $server->save();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_disabled'), 'warning');
+    }
+
+    public function bulkDelete(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $id) {
+            $server = Server::findByPK($id);
+            if ($server) {
+                $server->delete();
+            }
+        }
+        $this->flashMessage(__('admin-server.messages.servers_deleted'));
     }
 }

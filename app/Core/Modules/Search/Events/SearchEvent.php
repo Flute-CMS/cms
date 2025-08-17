@@ -44,8 +44,9 @@ class SearchEvent
         $return = [];
 
         for ($i = 0; $i < count($this->results); $i++) {
-            if ($i > 20)
+            if ($i > 20) {
                 break;
+            }
 
             $return[] = $this->results[$i]->toArray();
         }

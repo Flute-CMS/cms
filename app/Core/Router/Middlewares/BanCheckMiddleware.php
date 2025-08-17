@@ -8,22 +8,24 @@ use Flute\Core\Support\FluteRequest;
 
 class BanCheckMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args) : \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
-        if (!is_installed())
+        if (!is_installed()) {
             return $next($request);
+        }
 
         if ($this->shouldBlockUser($request)) {
             $reason = $this->getBlockReason($request);
+
             return $this->error()->forbidden(__('def.you_are_blocked', [
-                ":reason" => $reason
+                ":reason" => $reason,
             ]));
         }
 
         return $next($request);
     }
 
-    protected function shouldBlockUser(FluteRequest $request) : bool
+    protected function shouldBlockUser(FluteRequest $request): bool
     {
         return !user()->can('admin.boss') && (
             (user()->isLoggedIn() && user()->isBlocked()) ||
@@ -31,7 +33,7 @@ class BanCheckMiddleware extends BaseMiddleware
         );
     }
 
-    protected function getBlockReason(FluteRequest $request) : string
+    protected function getBlockReason(FluteRequest $request): string
     {
         if (user()->isLoggedIn() && user()->isBlocked()) {
             return user()->getCurrentUser()->getBlockInfo()['reason'];
@@ -51,7 +53,7 @@ class BanCheckMiddleware extends BaseMiddleware
         return __('def.unknown_reason');
     }
 
-    protected function checkIpBlocks(string $ipAddress) : bool
+    protected function checkIpBlocks(string $ipAddress): bool
     {
         if ($ipAddress) {
             $users = UserDevice::findAll(['ip' => $ipAddress]);

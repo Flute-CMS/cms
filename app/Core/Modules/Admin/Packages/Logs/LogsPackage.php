@@ -6,7 +6,7 @@ use Flute\Admin\Support\AbstractAdminPackage;
 
 class LogsPackage extends AbstractAdminPackage
 {
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -19,17 +19,17 @@ class LogsPackage extends AbstractAdminPackage
         $this->registerScss('Resources/assets/scss/logs.scss');
     }
 
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin.boss'];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 999;
     }
 
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [
             [
@@ -43,4 +43,4 @@ class LogsPackage extends AbstractAdminPackage
             ],
         ];
     }
-} 
+}

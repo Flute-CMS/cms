@@ -16,6 +16,12 @@
     <meta name="view-transition" content="same-origin">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() }}">
+    <meta name="application-name" content="{{ config('app.name') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="dark light">
+    <meta name="supported-color-schemes" content="dark light">
 
     @stack('head')
 
@@ -76,6 +82,38 @@
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif
+
+    <script>
+        (function() {
+            function updateThemeColor() {
+                var m = document.querySelector('meta[name="theme-color"]#theme-color-meta');
+                if (!m) {
+                    m = document.createElement('meta');
+                    m.setAttribute('name', 'theme-color');
+                    m.id = 'theme-color-meta';
+                    document.head.appendChild(m)
+                }
+                var bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim() ||
+                '#1c1c1e';
+                m.setAttribute('content', bg);
+                var ms1 = document.querySelector('meta[name="msapplication-TileColor"]');
+                if (ms1) {
+                    ms1.setAttribute('content', bg)
+                }
+                var ms2 = document.querySelector('meta[name="msapplication-navbutton-color"]');
+                if (ms2) {
+                    ms2.setAttribute('content', bg)
+                }
+            }
+            document.addEventListener('DOMContentLoaded', updateThemeColor);
+            var o = new MutationObserver(updateThemeColor);
+            o.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-theme']
+            });
+            window.addEventListener('flute:theme-changed', updateThemeColor);
+        })();
+    </script>
 </head>
 
 <body hx-ext="head-support, loading-states, morph" @class([
@@ -100,7 +138,16 @@
 
     @include('admin::partials.flash')
 
-    <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main" hx-history-elt>
+    @if (is_development() && !request()->htmx()->isHtmxRequest())
+        <div class="container mt-2">
+            <x-alert type="warning" onlyBorders withClose="false">
+                {{ __('def.debug_message') }} (development mode)
+            </x-alert>
+        </div>
+    @endif
+
+    <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main"
+        hx-history-elt>
         <div id="screen-container">
             @stack('content')
 
@@ -196,14 +243,15 @@
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
         <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
         <script src="@asset('assets/js/libs/easymde.js')" defer></script>
-        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script>
-        <script src="@asset('assets/js/libs/pickr.js')" defer></script> -->
+        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
+        <script src="@asset('assets/js/libs/pickr.js')" defer></script>
 
         @at('Core/Modules/Admin/Resources/assets/js/helpers.js')
         @at('Core/Modules/Admin/Resources/assets/js/modals.js')
         @at('Core/Modules/Admin/Resources/assets/js/tabs.js')
         @at('Core/Modules/Admin/Resources/assets/js/popover.js')
         @at('Core/Modules/Admin/Resources/assets/js/columns.js')
+        @at('Core/Modules/Admin/Resources/assets/js/selection.js')
         @at('Core/Modules/Admin/Resources/assets/js/script.js')
         @at('Core/Modules/Admin/Resources/assets/js/sidebar.js')
         @at('Core/Modules/Admin/Resources/assets/js/sortable.js')

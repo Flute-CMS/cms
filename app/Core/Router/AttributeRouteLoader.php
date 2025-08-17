@@ -4,9 +4,9 @@ namespace Flute\Core\Router;
 
 use Flute\Core\Router\Annotations\Middleware as MiddlewareAttribute;
 use Flute\Core\Router\Annotations\Route as RouteAttribute;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
-use ReflectionAttribute;
 use Symfony\Component\Finder\Finder;
 
 class AttributeRouteLoader
@@ -20,17 +20,17 @@ class AttributeRouteLoader
      * @var array Cache of registered controller classes
      */
     private array $registeredControllers = [];
-    
+
     /**
      * @var array Cache of controller middleware
      */
     private array $middlewareCache = [];
-    
+
     /**
      * @var array Cache of class route chains
      */
     private array $classRouteCache = [];
-    
+
     /**
      * @var array Cache of loaded class names by directory
      */
@@ -38,7 +38,7 @@ class AttributeRouteLoader
 
     /**
      * Constructor
-     * 
+     *
      * @param Router $router
      */
     public function __construct(Router $router)
@@ -58,27 +58,27 @@ class AttributeRouteLoader
         $routeCount = 0;
         $cacheKey = 'route_loader_' . md5(implode('|', $directories) . '_' . $namespace);
         $cachedData = !is_debug() ? cache()->get($cacheKey) : null;
-        
+
         if ($cachedData !== null) {
             $classNames = $cachedData;
         } else {
             $classNames = $this->scanDirectoriesForControllers($directories, $namespace);
-            
+
             if (!empty($classNames) && !is_debug()) {
                 cache()->set($cacheKey, $classNames, 86400); // Cache for 1 day
             }
         }
-        
+
         foreach ($classNames as $className) {
             $routeCount += $this->loadFromClass($className);
         }
 
         return $routeCount;
     }
-    
+
     /**
      * Scan directories for controller classes
-     * 
+     *
      * @param array $directories
      * @param string $namespace
      * @return array
@@ -86,11 +86,11 @@ class AttributeRouteLoader
     private function scanDirectoriesForControllers(array $directories, string $namespace): array
     {
         $cacheKey = 'route_loader_dirs_' . md5(implode('|', $directories));
-        
+
         if (isset($this->loadedClassNamesCache[$cacheKey])) {
             return $this->loadedClassNamesCache[$cacheKey];
         }
-        
+
         $classNames = [];
         $finder = new Finder();
         $finder->files()->name('*.php')->in($directories);
@@ -101,8 +101,9 @@ class AttributeRouteLoader
                 $classNames[] = $className;
             }
         }
-        
+
         $this->loadedClassNamesCache[$cacheKey] = $classNames;
+
         return $classNames;
     }
 
@@ -128,7 +129,7 @@ class AttributeRouteLoader
             $classMiddleware = $this->getInheritedClassMiddleware($reflectionClass);
 
             $publicMethods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-            
+
             foreach ($publicMethods as $method) {
                 if ($method->isStatic()) {
                     continue;
@@ -152,7 +153,7 @@ class AttributeRouteLoader
                         : $methodRoute;
 
                     $annotationRoute = $finalRoute;
-                    
+
                     $action = [$className, $method->getName()];
                     $routeInstance = $this->router->addRoute(
                         $finalRoute->getMethods(),
@@ -160,19 +161,19 @@ class AttributeRouteLoader
                         $action
                     );
 
-                    $annotationRoute->setAfterModifyCallback(function($annotationRoute) use ($routeInstance) {
+                    $annotationRoute->setAfterModifyCallback(function ($annotationRoute) use ($routeInstance) {
                         if ($annotationRoute->getName()) {
                             $routeInstance->name($annotationRoute->getName());
                         }
-                        
+
                         if (!empty($annotationRoute->getMiddleware())) {
                             $routeInstance->middleware($annotationRoute->getMiddleware());
                         }
-                        
+
                         foreach ($annotationRoute->getWhere() as $param => $pattern) {
                             $routeInstance->where($param, $pattern);
                         }
-                        
+
                         foreach ($annotationRoute->getDefaults() as $param => $value) {
                             $routeInstance->defaults($param, $value);
                         }
@@ -181,18 +182,18 @@ class AttributeRouteLoader
                     if ($finalRoute->getName()) {
                         $routeInstance->name($finalRoute->getName());
                     }
-                    
+
                     // middleware
                     $allMiddleware = array_merge($combinedMiddleware, $finalRoute->getMiddleware());
                     if (!empty($allMiddleware)) {
                         $routeInstance->middleware($allMiddleware);
                     }
-                    
+
                     // where
                     foreach ($finalRoute->getWhere() as $param => $pattern) {
                         $routeInstance->where($param, $pattern);
                     }
-                    
+
                     // defaults
                     foreach ($finalRoute->getDefaults() as $param => $value) {
                         $routeInstance->defaults($param, $value);
@@ -212,14 +213,14 @@ class AttributeRouteLoader
     private function getInheritedClassMiddleware(ReflectionClass $class): array
     {
         $className = $class->getName();
-        
+
         if (isset($this->middlewareCache[$className])) {
             return $this->middlewareCache[$className];
         }
-        
+
         $middleware = [];
         $parent = $class->getParentClass();
-        
+
         if ($parent) {
             $middleware = $this->getInheritedClassMiddleware($parent);
         }
@@ -228,14 +229,14 @@ class AttributeRouteLoader
             MiddlewareAttribute::class,
             ReflectionAttribute::IS_INSTANCEOF
         );
-        
+
         foreach ($middlewareAttributes as $attribute) {
             $middlewareInstance = $attribute->newInstance();
             $middleware = array_merge($middleware, $middlewareInstance->getMiddleware());
         }
-        
+
         $this->middlewareCache[$className] = $middleware;
-        
+
         return $middleware;
     }
 
@@ -248,11 +249,11 @@ class AttributeRouteLoader
     private function getMethodMiddleware(ReflectionMethod $method): array
     {
         $methodKey = $method->getDeclaringClass()->getName() . '::' . $method->getName();
-        
+
         if (isset($this->middlewareCache[$methodKey])) {
             return $this->middlewareCache[$methodKey];
         }
-        
+
         $middleware = [];
         $middlewareAttributes = $method->getAttributes(
             MiddlewareAttribute::class,
@@ -263,9 +264,9 @@ class AttributeRouteLoader
             $middlewareInstance = $attribute->newInstance();
             $middleware = array_merge($middleware, $middlewareInstance->getMiddleware());
         }
-        
+
         $this->middlewareCache[$methodKey] = $middleware;
-        
+
         return $middleware;
     }
 
@@ -281,7 +282,7 @@ class AttributeRouteLoader
     {
         $path = $file->getRealPath();
         $cacheKey = 'class_from_file_' . md5($path);
-        
+
         if (isset($this->loadedClassNamesCache[$cacheKey])) {
             return $this->loadedClassNamesCache[$cacheKey];
         }
@@ -291,12 +292,14 @@ class AttributeRouteLoader
             $realDirectory = realpath($directory);
             if ($realDirectory && strpos($path, $realDirectory) === 0) {
                 $basePath = $realDirectory;
+
                 break;
             }
         }
 
         if ($basePath === null) {
             $this->loadedClassNamesCache[$cacheKey] = null;
+
             return null;
         }
 
@@ -306,25 +309,25 @@ class AttributeRouteLoader
 
         $result = $namespace . '\\' . $namespaceSegments;
         $this->loadedClassNamesCache[$cacheKey] = $result;
-        
+
         return $result;
     }
 
     /**
      * Recursively builds the final Route (prefix + name, etc.) for the class,
      * starting with the highest parent and descending to the current class.
-     * 
+     *
      * @param ReflectionClass $class
      * @return \Flute\Core\Router\Annotations\Route|null
      */
     private function buildClassRouteChain(ReflectionClass $class): ?\Flute\Core\Router\Annotations\Route
     {
         $className = $class->getName();
-        
+
         if (isset($this->classRouteCache[$className])) {
             return $this->classRouteCache[$className];
         }
-        
+
         $parent = $class->getParentClass();
         $parentRoute = null;
 
@@ -350,9 +353,9 @@ class AttributeRouteLoader
         } else {
             $result = $classRoute;
         }
-        
+
         $this->classRouteCache[$className] = $result;
-        
+
         return $result;
     }
 }

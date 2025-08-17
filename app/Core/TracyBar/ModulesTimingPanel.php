@@ -2,16 +2,16 @@
 
 namespace Flute\Core\TracyBar;
 
-use Tracy\IBarPanel;
 use Flute\Core\App;
 use Flute\Core\ModulesManager\ModuleRegister;
 use Flute\Core\Profiling\GlobalProfiler;
+use Tracy\IBarPanel;
 
 class ModulesTimingPanel implements IBarPanel
 {
     /** @var App */
     protected App $app;
-    
+
     /** @var array Core components processing time */
     protected array $coreComponentTimes;
 
@@ -20,7 +20,7 @@ class ModulesTimingPanel implements IBarPanel
         $this->app = app();
         $this->initCoreComponentTimes();
     }
-    
+
     /**
      * Initialize core component timings
      */
@@ -28,35 +28,35 @@ class ModulesTimingPanel implements IBarPanel
     {
         // Default core component times structure
         $this->coreComponentTimes = [
-            'Bootstrapping'        => 0,
-            'Container Building'   => 0,
-            'Routing'             => 0,
-            'Database'            => 0,
-            'View Rendering'      => 0,
+            'Bootstrapping' => 0,
+            'Container Building' => 0,
+            'Routing' => 0,
+            'Database' => 0,
+            'View Rendering' => 0,
             'Untracked Operations' => 0,
         ];
-        
+
         if (defined('FLUTE_ROUTER_START') && defined('FLUTE_ROUTER_END')) {
             $this->coreComponentTimes['Routing'] = constant('FLUTE_ROUTER_END') - constant('FLUTE_ROUTER_START');
         }
-        
+
         if (defined('FLUTE_CONTAINER_START') && defined('FLUTE_CONTAINER_END')) {
             $this->coreComponentTimes['Container Building'] = constant('FLUTE_CONTAINER_END') - constant('FLUTE_CONTAINER_START');
         }
-        
+
         if (defined('FLUTE_BOOTSTRAP_START') && defined('FLUTE_START')) {
             $this->coreComponentTimes['Bootstrapping'] = constant('FLUTE_BOOTSTRAP_START') - constant('FLUTE_START');
         }
-        
+
         if (defined('FLUTE_DB_TIME')) {
             $this->coreComponentTimes['Database'] = constant('FLUTE_DB_TIME');
         }
-        
+
         if (defined('FLUTE_VIEW_TIME')) {
             $this->coreComponentTimes['View Rendering'] = constant('FLUTE_VIEW_TIME');
         }
 
-        $measuredCore = array_sum(array_filter($this->coreComponentTimes, fn($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
+        $measuredCore = array_sum(array_filter($this->coreComponentTimes, fn ($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
         if (defined('FLUTE_START')) {
             $this->coreComponentTimes['Untracked Operations'] = max(0, (microtime(true) - constant('FLUTE_START')) - $measuredCore);
         }
@@ -72,7 +72,7 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders HTML code for the Tracy panel tab
-     * 
+     *
      * @return string
      */
     public function getTab(): string
@@ -87,7 +87,7 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders HTML code for the Tracy panel content
-     * 
+     *
      * @return string
      */
     public function getPanel(): string
@@ -103,20 +103,20 @@ class ModulesTimingPanel implements IBarPanel
 
         $bootTimes = $this->app->getBootTimes();
         $modulesBootTimes = ModuleRegister::getModulesBootTimes();
-        
+
         // Filter out zero values for better visibility
-        $bootTimes = array_filter($bootTimes, function($time) {
+        $bootTimes = array_filter($bootTimes, function ($time) {
             return $time > 0.0001; // Keep only significant numbers
         });
-        
-        $modulesBootTimes = array_filter($modulesBootTimes, function($time) {
+
+        $modulesBootTimes = array_filter($modulesBootTimes, function ($time) {
             return $time > 0.0001;
         });
-        
+
         $id = uniqid('tracy-timing-');
-        
+
         $html = '';
-        
+
         // Tabs with unique IDs to avoid conflicts with other panels
         $html .= '<div class="tracy-tabs" id="' . $id . '">';
         $html .= '<ul class="tracy-tab-bar">';
@@ -129,38 +129,38 @@ class ModulesTimingPanel implements IBarPanel
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-views">Views</a></li>';
         $html .= '<li class="tracy-tab"><a href="#' . $id . '-routing">Routing</a></li>';
         $html .= '</ul>';
-        
+
         // Summary tab content
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-summary">';
         $html .= $this->renderSummaryPanel();
         $html .= '</div>';
-        
+
         // Core components tab content
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-core">';
         $html .= $this->renderCoreComponentsPanel();
         $html .= '</div>';
-        
+
         // Providers tab content
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-providers">';
-        
+
         if (empty($bootTimes)) {
             $html .= '<div class="tracy-inner">No data about provider loading time</div>';
         } else {
             // Sort by loading time (highest to lowest)
             arsort($bootTimes);
-            
+
             $totalTime = array_sum($bootTimes);
             $html .= $this->renderHeader('Providers loading time', $totalTime);
-            
+
             // Providers table
             $html .= '<div class="tracy-inner"><table style="width:100%">';
             $html .= '<tr><th>Service provider</th><th>Time (sec)</th><th>%</th><th></th></tr>';
-            
+
             foreach ($bootTimes as $provider => $time) {
                 $percent = ($time / $totalTime) * 100;
                 $shortName = $this->getShortClassName($provider);
                 $isModule = strpos($provider, 'Modules\\') !== false;
-                
+
                 $html .= sprintf(
                     '<tr><td title="%s">%s %s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#3cb371;height:4px;width:%d%%;"></div></td></tr>',
                     htmlspecialchars($provider),
@@ -171,31 +171,31 @@ class ModulesTimingPanel implements IBarPanel
                     min(100, $percent * 1.5)
                 );
             }
-            
+
             $html .= '</table></div>';
         }
-        
+
         $html .= '</div>';
-        
+
         // Modules tab content
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-modules">';
-        
+
         if (empty($modulesBootTimes)) {
             $html .= '<div class="tracy-inner">No data about module loading time</div>';
         } else {
             // Sort by loading time (highest to lowest)
             arsort($modulesBootTimes);
-            
+
             $totalModulesTime = array_sum($modulesBootTimes);
             $html .= $this->renderHeader('Modules loading time', $totalModulesTime);
-            
+
             // Modules table
             $html .= '<div class="tracy-inner"><table style="width:100%">';
             $html .= '<tr><th>Module</th><th>Time (sec)</th><th>%</th><th></th></tr>';
-            
+
             foreach ($modulesBootTimes as $module => $time) {
                 $percent = ($time / $totalModulesTime) * 100;
-                
+
                 $html .= sprintf(
                     '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#3cb371;height:4px;width:%d%%;"></div></td></tr>',
                     htmlspecialchars($module),
@@ -204,12 +204,12 @@ class ModulesTimingPanel implements IBarPanel
                     min(100, $percent * 1.5)
                 );
             }
-            
+
             $html .= '</table></div>';
         }
-        
+
         $html .= '</div>';
-        
+
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-views">';
         $viewTimes = \Flute\Core\Template\TemplateRenderTiming::all();
         if (empty($viewTimes)) {
@@ -229,7 +229,7 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '</table></div>';
         }
         $html .= '</div>';
-        
+
         // Routing tab content
         $html .= '<div class="tracy-tab-panel" id="' . $id . '-routing">';
         $rTimes = \Flute\Core\Router\RoutingTiming::all();
@@ -248,9 +248,9 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '</table></div>';
         }
         $html .= '</div>';
-        
+
         $html .= '</div>';
-        
+
         // Add script to initialize tabs
         $html .= "<script>
         (function() {
@@ -293,13 +293,13 @@ class ModulesTimingPanel implements IBarPanel
             }, 100);
         })();
         </script>";
-        
+
         return $html;
     }
-    
+
     /**
      * Renders the summary panel with total engine time
-     * 
+     *
      * @return string
      */
     private function renderSummaryPanel(): string
@@ -307,20 +307,22 @@ class ModulesTimingPanel implements IBarPanel
         $totalEngineTime = microtime(true) - FLUTE_START;
         $bootTimes = $this->app->getBootTimes();
         $modulesBootTimes = ModuleRegister::getModulesBootTimes();
-        
+
         $totalProvidersTime = array_sum($bootTimes);
         $totalModulesTime = array_sum($modulesBootTimes);
         $totalCoreTime = array_sum($this->coreComponentTimes);
-        
+
         $otherTime = $totalEngineTime - $totalProvidersTime - $totalModulesTime - $totalCoreTime;
-        if ($otherTime < 0) $otherTime = 0;
-        
+        if ($otherTime < 0) {
+            $otherTime = 0;
+        }
+
         $html = '<div class="tracy-inner">';
         $html .= '<h1>Total engine loading time: ' . sprintf('%.3f', $totalEngineTime) . ' sec</h1>';
-        
+
         $html .= '<table style="width:100%">';
         $html .= '<tr><th>Component</th><th>Time (sec)</th><th>%</th><th></th></tr>';
-        
+
         // Core
         $corePercent = ($totalCoreTime / $totalEngineTime) * 100;
         $html .= sprintf(
@@ -329,7 +331,7 @@ class ModulesTimingPanel implements IBarPanel
             $corePercent,
             min(100, $corePercent)
         );
-        
+
         // Providers
         $providersPercent = ($totalProvidersTime / $totalEngineTime) * 100;
         $html .= sprintf(
@@ -338,7 +340,7 @@ class ModulesTimingPanel implements IBarPanel
             $providersPercent,
             min(100, $providersPercent)
         );
-        
+
         // Modules
         $modulesPercent = ($totalModulesTime / $totalEngineTime) * 100;
         $html .= sprintf(
@@ -347,7 +349,7 @@ class ModulesTimingPanel implements IBarPanel
             $modulesPercent,
             min(100, $modulesPercent)
         );
-        
+
         // Other
         $otherPercent = ($otherTime / $totalEngineTime) * 100;
         $html .= sprintf(
@@ -356,9 +358,9 @@ class ModulesTimingPanel implements IBarPanel
             $otherPercent,
             min(100, $otherPercent)
         );
-        
+
         $html .= '</table>';
-        
+
         $html .= '<div style="margin-top:20px">';
         $html .= '<h2>Loading Timeline</h2>';
         $html .= '<div style="display:flex;height:30px;width:100%;margin-top:10px;">';
@@ -367,47 +369,49 @@ class ModulesTimingPanel implements IBarPanel
         $html .= sprintf('<div title="Modules: %.1f%%" style="background:#4169E1;height:100%%;width:%.1f%%"></div>', $modulesPercent, $modulesPercent);
         $html .= sprintf('<div title="Untracked Operations: %.1f%%" style="background:#808080;height:100%%;width:%.1f%%"></div>', $otherPercent, $otherPercent);
         $html .= '</div>';
-        
+
         $html .= '<div style="display:flex;margin-top:5px;font-size:12px;">';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#FF7F50;margin-right:5px;"></span>Core Components</div>';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#3cb371;margin-right:5px;"></span>Service Providers</div>';
         $html .= '<div style="margin-right:15px;"><span style="display:inline-block;width:10px;height:10px;background:#4169E1;margin-right:5px;"></span>Modules</div>';
         $html .= '<div><span style="display:inline-block;width:10px;height:10px;background:#808080;margin-right:5px;"></span>Untracked Operations</div>';
         $html .= '</div>';
-        
+
         $html .= '</div>';
-        
+
         $html .= '</div>';
-        
+
         return $html;
     }
-    
+
     /**
      * Renders the core components panel with detailed timing
-     * 
+     *
      * @return string
      */
     private function renderCoreComponentsPanel(): string
     {
         $totalCoreTime = array_sum($this->coreComponentTimes);
-        
+
         $html = '<div class="tracy-inner">';
         $html .= '<h1>Core components timing: ' . sprintf('%.3f', $totalCoreTime) . ' sec</h1>';
-        
+
         if ($totalCoreTime == 0) {
             $totalEngineTime = microtime(true) - FLUTE_START;
             $bootTimes = $this->app->getBootTimes();
             $modulesBootTimes = ModuleRegister::getModulesBootTimes();
-            
+
             $totalProvidersTime = array_sum($bootTimes);
             $totalModulesTime = array_sum($modulesBootTimes);
-            
+
             $estimatedCoreTime = $totalEngineTime - $totalProvidersTime - $totalModulesTime;
-            if ($estimatedCoreTime < 0) $estimatedCoreTime = 0;
-            
-            $html .= '<p>No detailed core timing data available. Estimated core time: ' . 
+            if ($estimatedCoreTime < 0) {
+                $estimatedCoreTime = 0;
+            }
+
+            $html .= '<p>No detailed core timing data available. Estimated core time: ' .
                      sprintf('%.3f', $estimatedCoreTime) . ' sec</p>';
-            
+
             $html .= '<div style="margin-top:15px;background:#F8F8FF;padding:10px;border-left:4px solid #FF7F50;border-radius:3px">';
             $html .= '<h2>Performance Monitoring Tips</h2>';
             $html .= '<p>To get more detailed core component timing, add the following constants to track timing in your code:</p>';
@@ -421,20 +425,22 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<li><code>define(\'FLUTE_VIEW_TIME\', $timeSpentOnViewRendering);</code> - For view rendering</li>';
             $html .= '</ul>';
             $html .= '</div>';
-            
+
             return $html . '</div>';
         }
-        
+
         $html .= '<table style="width:100%">';
         $html .= '<tr><th>Component</th><th>Time (sec)</th><th>%</th><th></th></tr>';
-        
+
         arsort($this->coreComponentTimes);
-        
+
         foreach ($this->coreComponentTimes as $component => $time) {
-            if ($time <= 0) continue;
-            
+            if ($time <= 0) {
+                continue;
+            }
+
             $percent = ($time / $totalCoreTime) * 100;
-            
+
             $html .= sprintf(
                 '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:%s;height:4px;width:%d%%;"></div></td></tr>',
                 htmlspecialchars($component),
@@ -444,89 +450,94 @@ class ModulesTimingPanel implements IBarPanel
                 min(100, $percent * 1.5)
             );
         }
-        
+
         $html .= '</table>';
-        
+
         $html .= $this->renderCoreOptimizationSuggestions();
-        
+
         $html .= '</div>';
-        
+
         return $html;
     }
-    
+
     /**
      * Render core optimization suggestions based on bottlenecks
-     * 
+     *
      * @return string
      */
     private function renderCoreOptimizationSuggestions(): string
     {
         $html = '<div style="margin-top:20px;background:#F8F8FF;padding:10px;border-left:4px solid #FF7F50;border-radius:3px">';
         $html .= '<h2>Performance Optimization Suggestions</h2>';
-        
+
         // Clone and sort to find the slowest component
         $coreTimes = $this->coreComponentTimes;
         arsort($coreTimes);
         $slowestComponent = key($coreTimes);
         $slowestTime = current($coreTimes);
-        
+
         if ($slowestTime > 0) {
-            $html .= '<p>The slowest core component is <strong>' . htmlspecialchars($slowestComponent) . 
+            $html .= '<p>The slowest core component is <strong>' . htmlspecialchars($slowestComponent) .
                      '</strong> (' . sprintf('%.3f', $slowestTime) . ' sec).</p>';
-            
+
             // Specific optimization suggestions based on the bottleneck
             $html .= '<h3>Optimization tips:</h3><ul>';
-            
+
             switch ($slowestComponent) {
                 case 'Bootstrapping':
                     $html .= '<li>Reduce the number of files loaded during bootstrap</li>';
                     $html .= '<li>Consider lazy loading more components</li>';
                     $html .= '<li>Check for slow autoloading or excessive class lookups</li>';
+
                     break;
-                    
+
                 case 'Container Building':
                     $html .= '<li>Reduce the number of services registered in the container</li>';
                     $html .= '<li>Use container compilation in production</li>';
                     $html .= '<li>Consider deferring service registration where possible</li>';
+
                     break;
-                    
+
                 case 'Routing':
                     $html .= '<li>Simplify routing rules</li>';
                     $html .= '<li>Cache compiled routes</li>';
                     $html .= '<li>Reduce middleware overhead in the routing process</li>';
+
                     break;
-                    
+
                 case 'Database':
                     $html .= '<li>Optimize database queries</li>';
                     $html .= '<li>Add indexes to frequently queried columns</li>';
                     $html .= '<li>Consider query caching for frequently accessed data</li>';
+
                     break;
-                    
+
                 case 'View Rendering':
                     $html .= '<li>Simplify view templates</li>';
                     $html .= '<li>Cache rendered views where appropriate</li>';
                     $html .= '<li>Reduce the use of expensive helpers in templates</li>';
+
                     break;
-                    
+
                 default:
                     $html .= '<li>Profile the application to identify specific bottlenecks</li>';
                     $html .= '<li>Consider enabling opcache for better PHP performance</li>';
                     $html .= '<li>Review error and debug logging settings in production</li>';
             }
-            
+
             $html .= '</ul>';
         } else {
             $html .= '<p>No specific bottlenecks identified. Consider adding timing constants for more detailed analysis.</p>';
         }
-        
+
         $html .= '</div>';
-        
+
         return $html;
     }
-    
+
     /**
      * Renders header with total time
-     * 
+     *
      * @param string $title
      * @param float $totalTime
      * @return string
@@ -539,10 +550,10 @@ class ModulesTimingPanel implements IBarPanel
             $totalTime
         );
     }
-    
+
     /**
      * Renders the global profiling panel
-     * 
+     *
      * @return string
      */
     private function renderGlobalProfilingPanel(): string
@@ -552,6 +563,7 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<h1>Global Profiling Not Active</h1>';
             $html .= '<p>Global profiling is only available in debug mode.</p>';
             $html .= '</div>';
+
             return $html;
         }
 
@@ -559,19 +571,19 @@ class ModulesTimingPanel implements IBarPanel
         $topSlow = GlobalProfiler::getTopSlowFunctions(15);
 
         $html = '<div class="tracy-inner">';
-        
+
         // Top slowest functions
         if (!empty($topSlow)) {
             $html .= '<h1>Top Slowest Functions</h1>';
             $html .= '<table style="width:100%">';
             $html .= '<tr><th>Function</th><th>Category</th><th>Time (sec)</th><th>Calls</th><th>Memory</th><th></th></tr>';
-            
+
             $maxTime = $topSlow[0]['wall_time'] ?? 1;
             foreach ($topSlow as $func) {
                 $percent = ($func['wall_time'] / $maxTime) * 100;
                 $shortName = $this->getShortClassName($func['function']);
                 $memory = $this->formatBytes($func['memory']);
-                
+
                 $html .= sprintf(
                     '<tr><td title="%s">%s</td><td>%s</td><td>%.4f</td><td>%d</td><td>%s</td><td><div style="background:#FF6B6B;height:4px;width:%d%%;"></div></td></tr>',
                     htmlspecialchars($func['function']),
@@ -589,22 +601,24 @@ class ModulesTimingPanel implements IBarPanel
         // Functions grouped by category
         if (!empty($functionTimings)) {
             $html .= '<h1 style="margin-top:20px">Functions by Category</h1>';
-            
+
             foreach ($functionTimings as $category => $functions) {
-                if (empty($functions)) continue;
-                
+                if (empty($functions)) {
+                    continue;
+                }
+
                 $categoryTotal = array_sum(array_column($functions, 'wall_time'));
                 $html .= '<h2>' . htmlspecialchars($category) . ' (' . sprintf('%.3f', $categoryTotal) . ' sec)</h2>';
-                
+
                 $html .= '<table style="width:100%;margin-bottom:15px">';
                 $html .= '<tr><th>Function</th><th>Time (sec)</th><th>CPU (sec)</th><th>Calls</th><th>Memory</th><th></th></tr>';
-                
+
                 $maxCategoryTime = max(array_column($functions, 'wall_time'));
                 foreach ($functions as $funcName => $data) {
                     $percent = ($data['wall_time'] / $maxCategoryTime) * 100;
                     $shortName = $this->getShortClassName($funcName);
                     $memory = $this->formatBytes($data['memory']);
-                    
+
                     $html .= sprintf(
                         '<tr><td title="%s">%s</td><td>%.4f</td><td>%.4f</td><td>%d</td><td>%s</td><td><div style="background:#4ECDC4;height:4px;width:%d%%;"></div></td></tr>',
                         htmlspecialchars($funcName),
@@ -626,33 +640,38 @@ class ModulesTimingPanel implements IBarPanel
         }
 
         $html .= '</div>';
+
         return $html;
     }
 
     /**
      * Format bytes to human readable format
-     * 
+     *
      * @param int $bytes
      * @return string
      */
     private function formatBytes(int $bytes): string
     {
-        if ($bytes === 0) return '0 B';
-        
+        if ($bytes === 0) {
+            return '0 B';
+        }
+
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = floor(log($bytes, 1024));
+
         return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
     }
 
     /**
      * Get short class name from fully qualified name
-     * 
+     *
      * @param string $className
      * @return string
      */
     private function getShortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
-} 
+}

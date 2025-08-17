@@ -6,13 +6,13 @@ use Exception;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserSocialNetwork;
-use Flute\Core\Services\DiscordService;
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Modules\Auth\Contracts\SocialServiceInterface;
 use Flute\Core\Modules\Auth\Events\SocialProviderAddedEvent;
 use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 use Flute\Core\Modules\Auth\Hybrid\Storage\StorageSession;
+use Flute\Core\Services\DiscordService;
 use Hybridauth\Hybridauth;
 use Hybridauth\User\Profile;
 
@@ -75,7 +75,7 @@ class SocialService implements SocialServiceInterface
         $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\Discord');
 
         $loader->addClassMap([
-            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php'
+            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php',
         ]);
 
         $loader->register();
@@ -123,10 +123,14 @@ class SocialService implements SocialServiceInterface
     public function registerSocial(SocialNetwork $socialNetwork)
     {
         $providerName = $this->normalizeProviderName($socialNetwork->key);
+        $settings = json_decode($socialNetwork->settings, true) ?? [];
+
+        $settings = $this->mapProviderSettings($socialNetwork->key, $settings);
+
         $this->registeredProviders[$providerName] = array_merge([
             'enabled' => true,
             'entity' => $socialNetwork,
-        ], json_decode($socialNetwork->settings, true) ?? []);
+        ], $settings);
 
         events()->dispatch(new SocialProviderAddedEvent($socialNetwork), SocialProviderAddedEvent::NAME);
     }
@@ -237,11 +241,17 @@ class SocialService implements SocialServiceInterface
      */
     public function retrieveSocialNetwork(string $socialNetworkName): array
     {
-        if (! isset($this->registeredProviders[$socialNetworkName])) {
-            throw new SocialNotFoundException($socialNetworkName);
+        if (isset($this->registeredProviders[$socialNetworkName])) {
+            return $this->registeredProviders[$socialNetworkName];
         }
 
-        return $this->registeredProviders[$socialNetworkName];
+        foreach ($this->registeredProviders as $key => $provider) {
+            if (strcasecmp($key, $socialNetworkName) === 0) {
+                return $provider;
+            }
+        }
+
+        throw new SocialNotFoundException($socialNetworkName);
     }
 
     // ===== Authentication =====
@@ -317,9 +327,8 @@ class SocialService implements SocialServiceInterface
      */
     private function initializeHybridAuth(string $providerName = null, bool $bind = false): void
     {
-        $callbackUrl = $bind
-            ? url("profile/social/bind/$providerName")->get()
-            : url("social/$providerName")->get();
+        // Use a unified callback endpoint for both authentication and binding
+        $callbackUrl = url("social/$providerName")->get();
 
         $this->hybridauth = new Hybridauth([
             'callback' => $callbackUrl,
@@ -388,7 +397,7 @@ class SocialService implements SocialServiceInterface
 
         transaction([$user, $userSocialNetwork])->run();
 
-        events()->dispatch(new UserRegisteredEvent($user));
+        events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
         if ($socialNetwork->key === "Discord") {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
@@ -436,8 +445,9 @@ class SocialService implements SocialServiceInterface
      */
     public function bindSocialNetwork(User $user, string $socialNetworkName): void
     {
-        $authData = $this->authenticate($socialNetworkName, true);
-        $social = $this->retrieveSocialNetwork($socialNetworkName);
+        $normalized = $this->normalizeProviderName($socialNetworkName);
+        $authData = $this->authenticate($normalized, true);
+        $social = $this->retrieveSocialNetwork($normalized);
 
         $userSocialNetwork = UserSocialNetwork::query()
             ->where([
@@ -505,6 +515,25 @@ class SocialService implements SocialServiceInterface
     // ===== Utilities =====
 
     /**
+     * Maps provider settings for specific providers that need special handling.
+     *
+     * @param string $providerKey The provider key.
+     * @param array $settings The original settings.
+     * @return array The mapped settings.
+     */
+    private function mapProviderSettings(string $providerKey, array $settings): array
+    {
+        if ($providerKey === 'Twitter' && isset($settings['keys'])) {
+            if (isset($settings['keys']['id'])) {
+                $settings['keys']['key'] = $settings['keys']['id'];
+                $settings['keys']['id'] = null;
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
      * Normalizes the provider name.
      *
      * @param string $providerName The original provider name.
@@ -512,7 +541,22 @@ class SocialService implements SocialServiceInterface
      */
     private function normalizeProviderName(string $providerName): string
     {
-        return $providerName === 'Steam' ? 'HttpsSteam' : $providerName;
+        $lower = strtolower($providerName);
+        if ($lower === 'Steam') {
+            return 'HttpsSteam';
+        }
+
+        if (isset($this->registeredProviders[$providerName])) {
+            return $providerName;
+        }
+
+        foreach (array_keys($this->registeredProviders) as $registeredKey) {
+            if (strcasecmp($registeredKey, $providerName) === 0) {
+                return $registeredKey;
+            }
+        }
+
+        return $providerName;
     }
 
     /**
@@ -523,7 +567,7 @@ class SocialService implements SocialServiceInterface
      */
     private function ensureRegistrationAllowed(array $social): void
     {
-        if (! $social['entity']->allowToRegister) {
+        if (!$social['entity']->allowToRegister) {
             throw new Exception(__('def.not_found'));
         }
     }
@@ -558,6 +602,7 @@ class SocialService implements SocialServiceInterface
             if ($this->hybridauth) {
                 foreach ($this->hybridauth->getConnectedAdapters() as $adapter) {
                     $adapter->disconnect();
+
                     try {
                         $adapter->getStorage()->clear();
                     } catch (\Throwable $e) {

@@ -1,36 +1,41 @@
 [data-dropdown] {
-    background-color: var(--background-900);
+    background-color: var(--blurred-background);
+    backdrop-filter: saturate(150%) blur(14px);
     visibility: hidden;
     opacity: 0;
-    position: absolute !important;
+    position: absolute;
     @include transition(all);
     transform-origin: top center;
-    transform: translateY(8px);
-    z-index: 1000;
-    display: flex !important;
-    flex-direction: column;
+    transform: translateY(6px);
+    z-index: 10001;
+    display: none;
     border-radius: var(--border1);
     border: 1px solid var(--transp-1);
-    padding: 5px;
-    gap: 3px;
-    min-width: 170px;
-    animation: animDropdownOut 0.12s cubic-bezier(0.5, 0, 0.15, 1) forwards;
+    padding: 6px;
+    min-width: 200px;
+    animation: animDropdownOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     display: none;
     overflow: hidden;
-    box-shadow: var(--shadow-small);
 
     >a {
+        @extend .d-flex, .flex-column;
+        gap: 3px;
+    }
+
+    >a,
+    button {
         display: flex;
         flex-direction: row;
         gap: 10px;
         align-items: center;
-        padding: 6px 10px;
+        padding: 8px 12px;
         border-radius: var(--border05);
         @include transition(all);
         opacity: 0;
-        transform: translateX(-4px);
-        animation: animDropdownItems 0.2s ease forwards;
-        animation-delay: calc(var(--item-index, 0) * 0.03s);
+        transform: translateX(-6px);
+        animation: animDropdownItems 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: calc(var(--item-index, 0) * 0.04s);
+        width: 100%;
 
         &:hover {
             background-color: var(--transp-1);
@@ -40,7 +45,7 @@
     &.active {
         opacity: 1;
         visibility: visible;
-        animation: animDropdown 0.15s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: animDropdown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         display: flex;
     }
 
@@ -53,8 +58,26 @@
         border-left: 1px solid var(--transp-1);
         transform: rotate(45deg);
         z-index: -1;
-        animation: animArrow 0.15s ease forwards;
+        animation: animArrow 0.2s ease forwards;
         opacity: 0;
+    }
+
+    &.admin-dropdown {
+        min-width: 60px;
+    }
+
+    .dropdown-item {
+        border-width: 0px;
+        box-shadow: none;
+        justify-content: flex-start;
+        opacity: 0;
+        transform: translateX(-4px);
+        animation: animDropdownItems 0.3s ease forwards;
+        animation-delay: calc(var(--item-index, 0) * 0.03s);
+
+        &:hover {
+            background-color: var(--transp-1) !important;
+        }
     }
 }
 
@@ -64,10 +87,12 @@
         transform: translateY(10px) scale(0.95);
         filter: blur(2px);
     }
+
     30% {
         opacity: 1;
         filter: blur(0);
     }
+
     100% {
         transform: translateY(0) scale(1);
         opacity: 1;
@@ -79,6 +104,7 @@
         transform: translateY(0) scale(1);
         opacity: 1;
     }
+
     100% {
         transform: translateY(-8px) scale(0.98);
         opacity: 0;
@@ -90,6 +116,7 @@
         opacity: 0;
         transform: translateX(-4px);
     }
+
     100% {
         opacity: 1;
         transform: translateX(0);

@@ -2,10 +2,10 @@
 
 namespace Flute\Admin\Packages\Logs\Screens;
 
+use Flute\Admin\Packages\Logs\Services\LogViewerService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
-use Flute\Admin\Packages\Logs\Services\LogViewerService;
 
 class LogsScreen extends Screen
 {
@@ -16,63 +16,63 @@ class LogsScreen extends Screen
 
     /**
      * Screen name
-     * 
+     *
      * @var string
      */
     public $name = 'admin-logs.title';
 
     /**
      * Screen description
-     * 
+     *
      * @var string
      */
     public $description = 'admin-logs.description';
 
     /**
      * Selected log file
-     * 
+     *
      * @var string|null
      */
     public $logger;
 
     /**
      * Selected log level for filtering
-     * 
+     *
      * @var string|null
      */
     public $level = '';
 
     /**
      * Search query for filtering logs
-     * 
+     *
      * @var string|null
      */
     public $search = '';
 
     /**
      * Number of records to display
-     * 
+     *
      * @var int
      */
     public $limit = 50;
 
     /**
      * Current page for pagination
-     * 
+     *
      * @var int
      */
     public $page = 1;
 
     /**
      * Auto-refresh enabled
-     * 
+     *
      * @var bool
      */
     public $autoRefresh = false;
 
     /**
      * Screen initialization
-     * 
+     *
      * @return void
      */
     public function mount(): void
@@ -86,7 +86,7 @@ class LogsScreen extends Screen
 
     /**
      * Get screen data
-     * 
+     *
      * @return array
      */
     public function query(): array
@@ -116,25 +116,26 @@ class LogsScreen extends Screen
                 $searchTerm = strtolower($this->search);
                 $rawLogContent = array_filter($rawLogContent, function ($entry) use ($searchTerm) {
                     $searchableText = strtolower(
-                        $entry['message'] . ' ' . 
-                        $entry['channel'] . ' ' . 
+                        $entry['message'] . ' ' .
+                        $entry['channel'] . ' ' .
                         $entry['level'] . ' ' .
                         ($entry['file_info']['file_name'] ?? '') . ' ' .
                         ($entry['file_info']['relative_path'] ?? '')
                     );
+
                     return strpos($searchableText, $searchTerm) !== false;
                 });
             }
 
             $totalEntries = count($rawLogContent);
-            
+
             $offset = ($this->page - 1) * $this->limit;
             $logContent = array_slice($rawLogContent, $offset, $this->limit);
 
             foreach ($logContent as &$entry) {
                 if (empty($entry['code_context']) && !empty($entry['file_info']['file_path']) && !empty($entry['file_info']['line_number'])) {
                     $entry['code_context'] = $this->logService->getFileContext(
-                        $entry['file_info']['file_path'], 
+                        $entry['file_info']['file_path'],
                         $entry['file_info']['line_number'],
                         20
                     );
@@ -171,7 +172,7 @@ class LogsScreen extends Screen
 
     /**
      * Get screen layouts
-     * 
+     *
      * @return array
      */
     public function layout(): array
@@ -183,7 +184,7 @@ class LogsScreen extends Screen
 
     /**
      * Get screen commands
-     * 
+     *
      * @return array
      */
     public function commandBar(): array
@@ -199,7 +200,7 @@ class LogsScreen extends Screen
 
     /**
      * Filter logs by level
-     * 
+     *
      * @param string $level
      * @return void
      */
@@ -211,7 +212,7 @@ class LogsScreen extends Screen
 
     /**
      * Search logs by query
-     * 
+     *
      * @param string $query
      * @return void
      */
@@ -223,7 +224,7 @@ class LogsScreen extends Screen
 
     /**
      * Load more entries (pagination)
-     * 
+     *
      * @return void
      */
     public function loadMore(): void
@@ -233,7 +234,7 @@ class LogsScreen extends Screen
 
     /**
      * Reset pagination to first page
-     * 
+     *
      * @return void
      */
     public function resetPagination(): void
@@ -243,7 +244,7 @@ class LogsScreen extends Screen
 
     /**
      * Go to next page
-     * 
+     *
      * @return void
      */
     public function nextPage(): void
@@ -253,7 +254,7 @@ class LogsScreen extends Screen
 
     /**
      * Go to previous page
-     * 
+     *
      * @return void
      */
     public function previousPage(): void
@@ -265,13 +266,13 @@ class LogsScreen extends Screen
 
     /**
      * Toggle auto-refresh
-     * 
+     *
      * @return void
      */
     public function toggleAutoRefresh(): void
     {
         $this->autoRefresh = !$this->autoRefresh;
-        
+
         if ($this->autoRefresh) {
             $this->flashMessage(__('admin-logs.auto_refresh_enabled'), 'success');
         } else {
@@ -281,13 +282,14 @@ class LogsScreen extends Screen
 
     /**
      * Handle log clearing
-     * 
+     *
      * @return void
      */
     public function handleClearLog(): void
     {
         if (!$this->logger) {
             $this->flashMessage(__('admin-logs.no_log_selected'), 'error');
+
             return;
         }
 
@@ -301,7 +303,7 @@ class LogsScreen extends Screen
 
     /**
      * Get log statistics
-     * 
+     *
      * @return array
      */
     public function getLogStats(): array
@@ -314,7 +316,7 @@ class LogsScreen extends Screen
         $stats = [
             'total' => count($logContent),
             'levels' => [],
-            'files_with_errors' => []
+            'files_with_errors' => [],
         ];
 
         foreach ($logContent as $entry) {

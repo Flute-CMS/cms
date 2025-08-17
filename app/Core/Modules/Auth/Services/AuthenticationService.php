@@ -3,6 +3,24 @@
 namespace Flute\Core\Modules\Auth\Services;
 
 use Carbon\Carbon;
+use Flute\Core\Database\Entities\{
+    PasswordResetToken,
+    RememberToken,
+    User,
+    UserDevice,
+    VerificationToken,
+};
+use Flute\Core\Database\Repositories\UserRepository;
+use Flute\Core\Exceptions\{
+    AccountNotVerifiedException,
+    DuplicateEmailException,
+    DuplicateLoginException,
+    IncorrectPasswordException,
+    PasswordResetTokenExpiredException,
+    PasswordResetTokenNotFoundException,
+    TooManyRequestsException,
+    UserNotFoundException
+};
 use Flute\Core\Exceptions\TemporaryUserException;
 use Flute\Core\Modules\Auth\Events\{
     PasswordResetRequestedEvent,
@@ -10,23 +28,6 @@ use Flute\Core\Modules\Auth\Events\{
     UserLoggedOutEvent,
     UserRegisteredEvent,
     UserVerifiedEvent
-};
-use Flute\Core\Database\Entities\{
-    PasswordResetToken,
-    RememberToken,
-    UserDevice,
-    User,
-    VerificationToken,
-};
-use Flute\Core\Exceptions\{
-    AccountNotVerifiedException,
-    IncorrectPasswordException,
-    PasswordResetTokenExpiredException,
-    PasswordResetTokenNotFoundException,
-    TooManyRequestsException,
-    UserNotFoundException,
-    DuplicateLoginException,
-    DuplicateEmailException
 };
 use Flute\Core\Modules\Auth\Events\UserAuthenticatingEvent;
 use Flute\Core\Modules\Auth\Events\UserRegisteringEvent;
@@ -39,8 +40,6 @@ use Nette\Schema\{
     Schema,
     ValidationException
 };
-use Flute\Core\Database\Repositories\UserRepository;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Throwable;
 
@@ -51,21 +50,18 @@ class AuthenticationService
     private $userDeviceRepository = null;
     private Processor $validationProcessor;
     private ConfigurationService $config;
-    private EventDispatcherInterface $eventDispatcher;
     private FluteRequest $request;
     private SessionInterface $session;
     private CookieService $cookie;
 
     public function __construct(
         ConfigurationService $config,
-        EventDispatcherInterface $eventDispatcher,
         FluteRequest $request,
         SessionInterface $session,
         CookieService $cookie
     ) {
         $this->validationProcessor = new Processor();
         $this->config = $config;
-        $this->eventDispatcher = $eventDispatcher;
         $this->request = $request;
         $this->session = $session;
         $this->cookie = $cookie;
@@ -81,7 +77,7 @@ class AuthenticationService
      * @throws ValidationException
      * @throws TooManyRequestsException
      */
-    public function register(array $credentials) : User
+    public function register(array $credentials): User
     {
         $this->throttle('register');
 
@@ -91,13 +87,13 @@ class AuthenticationService
 
         $user = $this->createNewUser($validationResult);
 
-        $this->eventDispatcher->dispatch(new UserRegisteringEvent($user, $credentials));
+        events()->dispatch(new UserRegisteringEvent($user, $credentials), UserRegisteringEvent::NAME);
 
-        if (! $this->config->get('auth.registration.confirm_email')) {
+        if (!$this->config->get('auth.registration.confirm_email')) {
             $this->setCurrentUser($user);
         }
 
-        $this->eventDispatcher->dispatch(new UserRegisteredEvent($user));
+        events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
         return $user;
     }
@@ -114,13 +110,13 @@ class AuthenticationService
      * @throws AccountNotVerifiedException
      * @throws TooManyRequestsException
      */
-    public function authenticate(array $credentials, bool $fromSocial = false) : User
+    public function authenticate(array $credentials, bool $fromSocial = false): User
     {
         $this->throttle('login');
 
         $validationResult = $this->validationProcessor->process($this->getAuthValidator(), $credentials);
 
-        $this->eventDispatcher->dispatch(new UserAuthenticatingEvent($credentials));
+        events()->dispatch(new UserAuthenticatingEvent($credentials), UserAuthenticatingEvent::NAME);
 
         $user = $this->getUserRepository()->getByEmailOrLogin($validationResult->login);
 
@@ -128,7 +124,7 @@ class AuthenticationService
             throw new UserNotFoundException();
         }
 
-        if (! $this->verifyPassword($validationResult->password, $user->password)) {
+        if (!$this->verifyPassword($validationResult->password, $user->password)) {
             throw new IncorrectPasswordException();
         }
 
@@ -142,7 +138,7 @@ class AuthenticationService
 
         $this->setCurrentUser($user);
 
-        $this->eventDispatcher->dispatch(new UserLoggedInEvent($user));
+        events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 
         return $user;
     }
@@ -154,7 +150,7 @@ class AuthenticationService
      * @return object The validated data.
      * @throws ValidationException
      */
-    private function validateRegistrationData(array $data) : object
+    private function validateRegistrationData(array $data): object
     {
         return $this->validationProcessor->process($this->getRegisterValidator(), $data);
     }
@@ -167,7 +163,7 @@ class AuthenticationService
      * @throws DuplicateEmailException
      * @throws DuplicateLoginException
      */
-    private function checkUserDuplicity(string $email, string $login) : void
+    private function checkUserDuplicity(string $email, string $login): void
     {
         if ($this->getUserRepository()->findByEmail($email)) {
             throw new DuplicateEmailException();
@@ -185,7 +181,7 @@ class AuthenticationService
      * @return User The created user entity.
      * @throws Throwable
      */
-    private function createNewUser(object $userData) : User
+    private function createNewUser(object $userData): User
     {
         $user = new User();
         $user->email = $userData->email;
@@ -193,7 +189,7 @@ class AuthenticationService
         $user->name = $userData->name;
         $user->avatar = $this->config->get('profile.default_avatar');
         $user->banner = $this->config->get('profile.default_banner');
-        $user->verified = ! $this->config->get('auth.registration.confirm_email');
+        $user->verified = !$this->config->get('auth.registration.confirm_email');
 
         foreach ($userData as $key => $value) {
             if (property_exists($user, $key) && in_array($key, ['email', 'login', 'name', 'password'])) {
@@ -219,7 +215,7 @@ class AuthenticationService
      * @throws AccountNotVerifiedException
      * @throws TooManyRequestsException
      */
-    public function authenticateByUserId(int $userId, bool $fromSocial = false) : User
+    public function authenticateByUserId(int $userId, bool $fromSocial = false): User
     {
         $this->throttle('login');
 
@@ -235,7 +231,7 @@ class AuthenticationService
 
         $this->setCurrentUser($user);
 
-        $this->eventDispatcher->dispatch(new UserLoggedInEvent($user));
+        events()->dispatch(new UserLoggedInEvent($user), UserLoggedInEvent::NAME);
 
         return $user;
     }
@@ -248,9 +244,9 @@ class AuthenticationService
      * @return string|null The remember token.
      * @throws Throwable
      */
-    public function rememberUser(User $user, UserDevice $device) : ?string
+    public function rememberUser(User $user, UserDevice $device): ?string
     {
-        if (! $this->config->get('auth.remember_me')) {
+        if (!$this->config->get('auth.remember_me')) {
             return null;
         }
 
@@ -288,14 +284,14 @@ class AuthenticationService
      * @return string|null The remember token.
      * @throws Throwable
      */
-    public function createRememberToken(User $user) : ?string
+    public function createRememberToken(User $user): ?string
     {
         $deviceDetails = $this->request->headers->get('User-Agent');
         $ip = $this->request->getClientIp();
 
         $userDevice = UserDevice::findOne(['deviceDetails' => $deviceDetails, 'ip' => $ip]);
 
-        if (! $userDevice) {
+        if (!$userDevice) {
             $userDevice = new UserDevice();
             $userDevice->user = $user;
             $userDevice->deviceDetails = $deviceDetails;
@@ -317,9 +313,9 @@ class AuthenticationService
      * @throws PasswordResetTokenNotFoundException
      * @throws Throwable
      */
-    public function verifyUser(string $token) : User
+    public function verifyUser(string $token): User
     {
-        if (! $this->config->get('auth.registration.confirm_email')) {
+        if (!$this->config->get('auth.registration.confirm_email')) {
             throw new AccountNotVerifiedException('Email confirmation is not required.');
         }
 
@@ -338,7 +334,7 @@ class AuthenticationService
         transaction($user)->run();
         transaction($verificationToken, 'delete')->run();
 
-        $this->eventDispatcher->dispatch(new UserVerifiedEvent($user));
+        events()->dispatch(new UserVerifiedEvent($user), UserVerifiedEvent::NAME);
 
         return $user;
     }
@@ -350,7 +346,7 @@ class AuthenticationService
      * @return VerificationToken The created verification token.
      * @throws Throwable
      */
-    public function createVerificationToken(User $user) : VerificationToken
+    public function createVerificationToken(User $user): VerificationToken
     {
         $existingVerificationToken = VerificationToken::query()
             ->where(['user_id' => $user->id])
@@ -384,7 +380,7 @@ class AuthenticationService
      *
      * @return void
      */
-    public function logout() : void
+    public function logout(): void
     {
         if ($this->config->get('auth.remember_me') && $token = $this->cookie->get('remember_token')) {
             $rememberToken = RememberToken::findOne(['token' => hash('sha256', $token)]);
@@ -399,7 +395,7 @@ class AuthenticationService
 
         user()->clearCurrentUser();
 
-        $this->eventDispatcher->dispatch(new UserLoggedOutEvent());
+        events()->dispatch(new UserLoggedOutEvent(), UserLoggedOutEvent::NAME);
     }
 
     /**
@@ -411,7 +407,7 @@ class AuthenticationService
      * @throws TooManyRequestsException
      * @throws Throwable
      */
-    public function createPasswordResetToken(string $loginOrEmail) : PasswordResetToken
+    public function createPasswordResetToken(string $loginOrEmail): PasswordResetToken
     {
         $this->throttle('reset_password', 3, 60, 1);
 
@@ -436,7 +432,7 @@ class AuthenticationService
             throw $e;
         }
 
-        $this->eventDispatcher->dispatch(new PasswordResetRequestedEvent($user, $passwordResetToken));
+        events()->dispatch(new PasswordResetRequestedEvent($user, $passwordResetToken), PasswordResetRequestedEvent::NAME);
 
         return $passwordResetToken;
     }
@@ -448,7 +444,7 @@ class AuthenticationService
      * @return PasswordResetToken The password reset token.
      * @throws PasswordResetTokenNotFoundException
      */
-    public function checkPasswordResetToken(string $token) : PasswordResetToken
+    public function checkPasswordResetToken(string $token): PasswordResetToken
     {
         // Eager load user and related data to prevent N+1 queries
         $passwordResetToken = PasswordResetToken::query()
@@ -473,7 +469,7 @@ class AuthenticationService
      * @throws PasswordResetTokenExpiredException
      * @throws Throwable
      */
-    public function resetPassword(string $token, string $newPassword) : void
+    public function resetPassword(string $token, string $newPassword): void
     {
         $passwordResetToken = $this->checkPasswordResetToken($token);
 
@@ -502,7 +498,7 @@ class AuthenticationService
      * @return void
      * @throws TooManyRequestsException
      */
-    protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5) : void
+    protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
     {
         try {
             throttler()->throttle(
@@ -522,7 +518,7 @@ class AuthenticationService
      * @return string The generated token.
      * @throws \Exception
      */
-    protected function generateRandomToken() : string
+    protected function generateRandomToken(): string
     {
         return bin2hex(\random_bytes(32));
     }
@@ -532,7 +528,7 @@ class AuthenticationService
      *
      * @return UserRepository
      */
-    protected function getUserRepository() : UserRepository
+    protected function getUserRepository(): UserRepository
     {
         if ($this->userRepository === null) {
             /** @var UserRepository $userRepository */
@@ -548,7 +544,7 @@ class AuthenticationService
      *
      * @return Schema
      */
-    protected function getRegisterValidator() : Schema
+    protected function getRegisterValidator(): Schema
     {
         return Expect::structure([
             'email' => Expect::email()->required(),
@@ -573,7 +569,7 @@ class AuthenticationService
      *
      * @return Schema
      */
-    protected function getAuthValidator() : Schema
+    protected function getAuthValidator(): Schema
     {
         return Expect::structure([
             'login' => Expect::string()->required(),
@@ -589,7 +585,7 @@ class AuthenticationService
      * @param string $hashedPassword The stored hashed password.
      * @return bool
      */
-    protected function verifyPassword(string $password, string $hashedPassword) : bool
+    protected function verifyPassword(string $password, string $hashedPassword): bool
     {
         return password_verify($password, $hashedPassword);
     }
@@ -600,9 +596,10 @@ class AuthenticationService
      * @param User $user The user to set.
      * @return void
      */
-    protected function setCurrentUser(User $user) : void
+    protected function setCurrentUser(User $user): void
     {
         $this->session->set('user_id', $user->id);
+        $this->session->set('just_logged_in_at', time());
 
         user()->setCurrentUser($user);
     }

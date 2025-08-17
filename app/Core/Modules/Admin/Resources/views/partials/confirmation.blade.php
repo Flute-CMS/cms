@@ -9,7 +9,7 @@
     <p id="confirmation-dialog-message" class="text-center">
     </p>
 
-    <x-slot:footer>
+    <x-slot name="footer">
         <div class="d-flex justify-content-end align-items-center gap-3">
             <x-button autofocus class="w-100" type="outline-primary" data-a11y-dialog-hide id="confirmation-dialog-cancel">
                 {{ __('def.cancel') }}
@@ -18,5 +18,5 @@
                 {{ __('def.confirm') }}
             </x-button>
         </div>
-    </x-slot:footer>
+    </x-slot>
 </x-modal>

@@ -48,7 +48,7 @@ class Builder
     public function __construct(iterable $fields, ?Repository $data = null)
     {
         $this->fields = collect($fields)->all();
-        $this->data = $data ?? new Repository;
+        $this->data = $data ?? new Repository();
     }
 
     /**
@@ -95,7 +95,7 @@ class Builder
     private function renderGroup(Groupable $group)
     {
         $prepare = collect($group->getGroup())
-            ->map(fn($field) => $this->render($field))
+            ->map(fn ($field) => $this->render($field))
             ->filter()
             ->toArray();
 

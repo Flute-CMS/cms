@@ -4,7 +4,6 @@ namespace Flute\Core\Modules\Page\Widgets;
 
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
-use function PHPUnit\Framework\callback;
 
 class UsersNewWidget extends AbstractWidget
 {
@@ -18,17 +17,17 @@ class UsersNewWidget extends AbstractWidget
         $this->userRepository = rep(User::class);
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return 'widgets.users_new';
     }
 
-    public function getIcon() : string
+    public function getIcon(): string
     {
         return 'ph.regular.user-circle-plus';
     }
 
-    public function render(array $settings) : string|null
+    public function render(array $settings): string|null
     {
         $maxDisplay = $settings['max_display'] ?? 200;
         $newUsers = $this->userRepository->getLatestUsers($maxDisplay);
@@ -37,34 +36,34 @@ class UsersNewWidget extends AbstractWidget
 
         return view('flute::widgets.users-new', [
             'users' => $newUsers,
-            'display_type' => $settings['display_type'] ?? 'text'
+            'display_type' => $settings['display_type'] ?? 'text',
         ])->render();
     }
 
-    public function getSettings() : array
+    public function getSettings(): array
     {
         return [
             'display_type' => 'text',
-            'max_display' => 200
+            'max_display' => 200,
         ];
     }
 
-    public function hasSettings() : bool
+    public function hasSettings(): bool
     {
         return true;
     }
 
-    public function renderSettingsForm(array $settings) : string|bool
+    public function renderSettingsForm(array $settings): string|bool
     {
         return view('flute::widgets.settings.users-display', ['settings' => $settings])->render();
     }
 
-    public function getCategory() : string
+    public function getCategory(): string
     {
         return 'users';
     }
 
-    public function getDefaultWidth() : int
+    public function getDefaultWidth(): int
     {
         return 3;
     }
@@ -72,11 +71,11 @@ class UsersNewWidget extends AbstractWidget
     /**
      * Save settings
      */
-    public function saveSettings(array $input) : array
+    public function saveSettings(array $input): array
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 200)
+            'max_display' => (int) ($input['max_display'] ?? 200),
         ];
     }
 }

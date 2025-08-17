@@ -36,7 +36,7 @@ class CaptchaService
     protected function verifyRecaptcha(string $response): bool
     {
         $secretKey = config('auth.captcha.recaptcha.secret_key');
-        
+
         if (empty($secretKey)) {
             return false;
         }
@@ -45,7 +45,7 @@ class CaptchaService
         $data = [
             'secret' => $secretKey,
             'response' => $response,
-            'remoteip' => request()->ip()
+            'remoteip' => request()->ip(),
         ];
 
         try {
@@ -54,30 +54,33 @@ class CaptchaService
                     'method' => 'POST',
                     'header' => [
                         'Content-Type: application/x-www-form-urlencoded',
-                        'User-Agent: Flute-CMS/1.0'
+                        'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10
-                ]
+                    'timeout' => 10,
+                ],
             ]);
 
             $result = file_get_contents($url, false, $context);
-            
+
             if ($result === false) {
                 logs()->error('reCAPTCHA verification failed: Unable to reach verification service');
+
                 return false;
             }
 
             $json = json_decode($result, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 logs()->error('reCAPTCHA verification failed: Invalid JSON response');
+
                 return false;
             }
-            
+
             return isset($json['success']) && $json['success'] === true;
         } catch (\Exception $e) {
             logs()->error('reCAPTCHA verification failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -91,7 +94,7 @@ class CaptchaService
     protected function verifyHcaptcha(string $response): bool
     {
         $secretKey = config('auth.captcha.hcaptcha.secret_key');
-        
+
         if (empty($secretKey)) {
             return false;
         }
@@ -100,7 +103,7 @@ class CaptchaService
         $data = [
             'secret' => $secretKey,
             'response' => $response,
-            'remoteip' => request()->ip()
+            'remoteip' => request()->ip(),
         ];
 
         try {
@@ -109,30 +112,33 @@ class CaptchaService
                     'method' => 'POST',
                     'header' => [
                         'Content-Type: application/x-www-form-urlencoded',
-                        'User-Agent: Flute-CMS/1.0'
+                        'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10
-                ]
+                    'timeout' => 10,
+                ],
             ]);
 
             $result = file_get_contents($url, false, $context);
-            
+
             if ($result === false) {
                 logs()->error('hCaptcha verification failed: Unable to reach verification service');
+
                 return false;
             }
 
             $json = json_decode($result, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 logs()->error('hCaptcha verification failed: Invalid JSON response');
+
                 return false;
             }
-            
+
             return isset($json['success']) && $json['success'] === true;
         } catch (\Exception $e) {
             logs()->error('hCaptcha verification failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -166,7 +172,7 @@ class CaptchaService
     public function getSiteKey(): string
     {
         $type = $this->getType();
-        
+
         switch ($type) {
             case 'recaptcha_v2':
                 return config('auth.captcha.recaptcha.site_key', '');
@@ -185,7 +191,7 @@ class CaptchaService
     public function getScriptUrl(): string
     {
         $type = $this->getType();
-        
+
         switch ($type) {
             case 'recaptcha_v2':
                 return 'https://www.google.com/recaptcha/api.js';
@@ -195,4 +201,4 @@ class CaptchaService
                 return '';
         }
     }
-} 
+}

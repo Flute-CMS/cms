@@ -28,7 +28,7 @@ class ViewServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        if (! is_cli()) {
+        if (!is_cli()) {
             $container->get(FluteEventDispatcher::class)->addListener(ThemeChangedEvent::NAME, function (ThemeChangedEvent $event) {
                 app()->setTheme($event->getTheme());
             });

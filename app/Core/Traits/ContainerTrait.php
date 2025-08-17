@@ -11,7 +11,7 @@ trait ContainerTrait
      * @var ?Container
      */
     protected ?Container $container = null;
-    
+
     /**
      * @return ContainerBuilder
      *
@@ -49,7 +49,7 @@ trait ContainerTrait
 
     /**
      * Get container instance
-     * 
+     *
      * @return Container
      */
     public function getContainer(): Container

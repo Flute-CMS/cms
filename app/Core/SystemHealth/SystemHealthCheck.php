@@ -11,13 +11,14 @@ class SystemHealthCheck
 {
     protected const SYSTEM_CACHE_KEY = 'flute.system_health';
     protected array $systemServices = [
-        CheckPermissionsMigration::class
+        CheckPermissionsMigration::class,
     ];
 
     public function run(bool $force = false): void
     {
-        if (!$this->isAllowed() && !$force)
+        if (!$this->isAllowed() && !$force) {
             return;
+        }
 
         foreach ($this->systemServices as $service) {
             if (is_callable([$service, 'run'])) {
@@ -30,7 +31,7 @@ class SystemHealthCheck
 
     /**
      * Check if system health check is allowed by cache
-     * 
+     *
      * @return bool
      */
     protected function isAllowed(): bool
@@ -40,7 +41,7 @@ class SystemHealthCheck
 
     /**
      * Updates the allowed cache key
-     * 
+     *
      * @return void
      */
     protected function updateSystemCacheKey(): void

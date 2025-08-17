@@ -231,7 +231,32 @@ document.addEventListener('DOMContentLoaded', () => {
             showOverlay();
         }
         
-        miniProfileInner.innerHTML = '<div class="user-card-loading"><div class="spinner"></div></div>';
+        miniProfileInner.innerHTML = `
+            <div class="uc-skeleton">
+                <div class="user-card-header">
+                    <div class="user-card-banner">
+                        <div class="skeleton uc-sk-banner"></div>
+                    </div>
+                    <div class="user-card-avatar">
+                        <div class="skeleton uc-sk-avatar"></div>
+                    </div>
+                </div>
+                <div class="user-card-body">
+                    <div class="user-card-info">
+                        <div class="skeleton uc-sk-name"></div>
+                        <div class="skeleton uc-sk-sub"></div>
+                    </div>
+                    <div class="user-card-roles uc-sk-roles">
+                        <div class="skeleton uc-sk-role-pill"></div>
+                        <div class="skeleton uc-sk-role-dot"></div>
+                        <div class="skeleton uc-sk-role-dot"></div>
+                        <div class="skeleton uc-sk-role-dot"></div>
+                    </div>
+                    <div class="user-card-goto">
+                        <div class="skeleton uc-sk-button"></div>
+                    </div>
+                </div>
+            </div>`;
         miniProfileEl.classList.remove('hide');
         isAnimating = true;
         
@@ -243,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { placement } = await updatePosition(triggerEl);
             currentPlacement = placement;
             applyPlacementClass(miniProfileEl, placement);
-            miniProfileEl.classList.add('active');
+            miniProfileEl.classList.add('active', 'showing');
             miniProfileEl.setAttribute('aria-hidden', 'false');
             
             let html;
@@ -286,7 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
                     if (newPlacement !== currentPlacement) {
                         currentPlacement = newPlacement;
-                        applyPlacementClass(miniProfileEl, newPlacement);
+                        if (!miniProfileEl.classList.contains('showing')) {
+                            applyPlacementClass(miniProfileEl, newPlacement);
+                        }
                     }
                 } catch (error) {
                     console.error('Error updating position:', error);
@@ -301,6 +328,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .forEach((el) => {
                     el.addEventListener('click', hideMiniProfile);
                 });
+            // remove showing flag after initial paint
+            requestAnimationFrame(() => miniProfileEl.classList.remove('showing'));
                 
         } catch (error) {
             console.error('Error showing mini profile:', error);

@@ -22,7 +22,7 @@ class UserListScreen extends Screen
     public $users;
     public $blockedUsers;
 
-    public function mount() : void
+    public function mount(): void
     {
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-users.title.users'));
@@ -33,6 +33,7 @@ class UserListScreen extends Screen
             ->with('blocksReceived', [
                 'method' => JoinableLoader::LEFT_JOIN,
             ])
+            ->load('roles')
             ->where(function ($qb) {
                 $qb->where('blocksReceived.id', null)
                     ->orWhere('blocksReceived.isActive', false)
@@ -42,6 +43,7 @@ class UserListScreen extends Screen
         $this->blockedUsers = rep(User::class)
             ->select()
             ->with('blocksReceived')
+            ->load('roles')
             ->where('blocksReceived.isActive', true)
             ->where(function ($qb) {
                 $qb->where('blocksReceived.blockedUntil', '>', new \DateTimeImmutable())
@@ -50,19 +52,29 @@ class UserListScreen extends Screen
             ->orderBy('id', 'desc');
     }
 
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::tabs([
                 Tab::make(__('admin-users.tabs.all'))->badge($this->users->count())
                     ->layouts([
                         LayoutFactory::table('users', [
+                            TD::selection('id'),
                             TD::make('name', __('admin-users.table.user'))
                                 ->width('250px')
                                 ->render(function (User $user) {
                                     return view('admin-users::cells.user', compact('user'));
                                 })
                                 ->cantHide(),
+
+                            TD::make('role', __('admin-users.table.role'))
+                                ->width('120px')
+                                ->sort()
+                                ->render(function (User $user) {
+                                    $mainRole = $user->getMainRole();
+
+                                    return $mainRole ? $mainRole : '—';
+                                }),
 
                             TD::make('balance', __('admin-users.table.balance'))
                                 ->width('100px')
@@ -89,6 +101,7 @@ class UserListScreen extends Screen
                                 }),
 
                             TD::make(__('admin-users.table.actions'))
+                                ->class('actions-col')
                                 ->align(TD::ALIGN_CENTER)
                                 ->disableSearch()
                                 ->width('100px')
@@ -116,6 +129,13 @@ class UserListScreen extends Screen
                                         ]) : null;
                                 }),
                         ])->perPage(10)->searchable(['name', 'email', 'login'])
+                            ->bulkActions([
+                                \Flute\Admin\Platform\Actions\Button::make(__('admin.bulk.delete_selected'))
+                                    ->icon('ph.bold.trash-bold')
+                                    ->type(Color::OUTLINE_DANGER)
+                                    ->confirm(__('admin.confirms.delete_selected'))
+                                    ->method('bulkDeleteUsers'),
+                            ]),
                     ]),
 
                 Tab::make(__('admin-users.tabs.blocked'))
@@ -135,8 +155,10 @@ class UserListScreen extends Screen
                                     $blockInfo = $item->getBlockInfo();
                                     if ($blockInfo) {
                                         $blockedUntil = $blockInfo['blockedUntil'] ? $blockInfo['blockedUntil']->format('Y-m-d H:i') : __('admin-users.status.forever');
+
                                         return __('admin-users.status.blocked_until', ['date' => $blockedUntil]).'<br>'.__('admin-users.status.block_reason', ['reason' => htmlspecialchars($blockInfo['reason'])]);
                                     }
+
                                     return '—';
 
                                 })
@@ -159,6 +181,7 @@ class UserListScreen extends Screen
                                 }),
 
                             TD::make(__('admin-users.table.actions'))
+                                ->class('actions-col')
                                 ->align(TD::ALIGN_CENTER)
                                 ->disableSearch()
                                 ->width('100px')
@@ -194,6 +217,18 @@ class UserListScreen extends Screen
                                         ]) : null;
                                 }),
                         ])->perPage(15)->searchable(['name', 'email'])
+                            ->bulkActions([
+                                \Flute\Admin\Platform\Actions\Button::make(__('admin.bulk.enable_selected'))
+                                    ->icon('ph.bold.shield-slash')
+                                    ->type(Color::OUTLINE_SUCCESS)
+                                    ->method('bulkUnblockUsers'),
+
+                                \Flute\Admin\Platform\Actions\Button::make(__('admin.bulk.delete_selected'))
+                                    ->icon('ph.bold.trash-bold')
+                                    ->type(Color::OUTLINE_DANGER)
+                                    ->confirm(__('admin.confirms.delete_selected'))
+                                    ->method('bulkDeleteUsers'),
+                            ]),
                     ]),
             ])
                 ->slug('users'),
@@ -209,18 +244,21 @@ class UserListScreen extends Screen
     {
         $user = User::findByPK(intval(request()->input('id')));
 
-        if (! user()->can('admin.users')) {
+        if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
         if (user()->getCurrentUser()?->id === $user?->id) {
             $this->flashMessage(__('admin-users.messages.cant_self_delete'), 'error');
+
             return;
         }
 
-        if (! user()->can($user)) {
+        if (!user()->can($user)) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
@@ -237,8 +275,9 @@ class UserListScreen extends Screen
     {
         $user = User::findByPK(intval(request()->input('id')));
 
-        if (! user()->can($user)) {
+        if (!user()->can($user)) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
             return;
         }
 
@@ -259,5 +298,62 @@ class UserListScreen extends Screen
         } catch (\Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
+    }
+
+    public function bulkDeleteUsers(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $id) {
+            $user = User::findByPK((int) $id);
+            if (!$user) {
+                continue;
+            }
+            if (!user()->can($user)) {
+                continue;
+            }
+            if (user()->getCurrentUser()?->id === $user->id) {
+                continue;
+            }
+            $user->delete();
+        }
+        $this->flashMessage(__('admin-users.messages.delete_success'), 'success');
+    }
+
+    public function bulkUnblockUsers(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+        foreach ($ids as $id) {
+            $user = User::findByPK((int) $id);
+            if (!$user) {
+                continue;
+            }
+            if (!user()->can($user)) {
+                continue;
+            }
+
+            try {
+                app(AdminUsersService::class)->unblockUser($user);
+            } catch (\Throwable $e) {
+                // ignore single failures
+            }
+        }
+        $this->flashMessage(__('admin-users.messages.unblock_success'), 'success');
+        // refresh blocked dataset
+        $this->blockedUsers = rep(User::class)
+            ->select()
+            ->with('blocksReceived')
+            ->load('roles')
+            ->where('blocksReceived.isActive', true)
+            ->where(function ($qb) {
+                $qb->where('blocksReceived.blockedUntil', '>', new \DateTimeImmutable())
+                    ->orWhere('blocksReceived.blockedUntil', null);
+            })
+            ->orderBy('id', 'desc');
     }
 }

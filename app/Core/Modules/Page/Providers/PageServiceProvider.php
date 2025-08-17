@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Modules\Page\Providers;
 
+use DI\Container;
+use DI\ContainerBuilder;
 use Flute\Core\Modules\Page\Services\PageManager;
 use Flute\Core\Modules\Page\Services\WidgetManager;
 use Flute\Core\Support\AbstractServiceProvider;
-use DI\ContainerBuilder;
-use DI\Container;
 
 class PageServiceProvider extends AbstractServiceProvider
 {
@@ -15,12 +15,12 @@ class PageServiceProvider extends AbstractServiceProvider
      *
      * @param ContainerBuilder $containerBuilder The container builder.
      */
-    public function register(ContainerBuilder $containerBuilder) : void
+    public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             PageManager::class => \DI\autowire(),
             WidgetManager::class => \DI\autowire(),
-            'widgets' => \DI\get(WidgetManager::class)
+            'widgets' => \DI\get(WidgetManager::class),
         ]);
     }
 
@@ -29,7 +29,7 @@ class PageServiceProvider extends AbstractServiceProvider
      *
      * @param Container $container The DI container.
      */
-    public function boot(Container $container) : void
+    public function boot(Container $container): void
     {
         if (is_installed()) {
             $this->loadRoutesFrom(cms_path('Page/Routes/page.php'));

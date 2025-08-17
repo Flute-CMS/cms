@@ -25,4 +25,4 @@ class Get extends Route
     ) {
         parent::__construct($uri, ['GET'], $name, $middleware, $where, $defaults);
     }
-} 
+}

@@ -102,7 +102,7 @@ class Chart extends Layout
      * @param string|null $title
      * @return static
      */
-    public static function make(string $target, ?string $title = null) : static
+    public static function make(string $target, ?string $title = null): static
     {
         $instance = new static();
         $instance->target($target);
@@ -120,14 +120,14 @@ class Chart extends Layout
      * @param  string  $target
      * @return $this
      */
-    public function target(string $target) : static
+    public function target(string $target): static
     {
         $this->target = $target;
 
         return $this;
     }
 
-    public function popover(?string $popover = null) : self
+    public function popover(?string $popover = null): self
     {
         $this->popover = $popover;
 
@@ -140,7 +140,7 @@ class Chart extends Layout
      * @param  string|null  $title
      * @return $this
      */
-    public function title(?string $title) : static
+    public function title(?string $title): static
     {
         $this->title = $title;
 
@@ -153,7 +153,7 @@ class Chart extends Layout
      * @param  string|null  $description
      * @return $this
      */
-    public function description(?string $description) : static
+    public function description(?string $description): static
     {
         $this->description = $description;
 
@@ -166,7 +166,7 @@ class Chart extends Layout
      * @param  string  $type
      * @return $this
      */
-    public function type(string $type) : static
+    public function type(string $type): static
     {
         $this->type = $type;
 
@@ -179,7 +179,7 @@ class Chart extends Layout
      * @param  int  $height
      * @return $this
      */
-    public function height(int $height) : static
+    public function height(int $height): static
     {
         $this->height = $height;
 
@@ -192,7 +192,7 @@ class Chart extends Layout
      * @param  string|int  $width
      * @return $this
      */
-    public function width(string|int $width) : static
+    public function width(string|int $width): static
     {
         $this->width = $width;
 
@@ -205,7 +205,7 @@ class Chart extends Layout
      * @param  array  $colors
      * @return $this
      */
-    public function colors(array $colors) : static
+    public function colors(array $colors): static
     {
         $this->colors = $colors;
 
@@ -218,7 +218,7 @@ class Chart extends Layout
      * @param  string  $background
      * @return $this
      */
-    public function background(string $background) : static
+    public function background(string $background): static
     {
         $this->background = $background;
 
@@ -231,7 +231,7 @@ class Chart extends Layout
      * @param  array  $dataset
      * @return $this
      */
-    public function dataset(array $dataset) : static
+    public function dataset(array $dataset): static
     {
         $this->dataset = $dataset;
 
@@ -244,14 +244,14 @@ class Chart extends Layout
      * @param  array  $labels
      * @return $this
      */
-    public function labels(array $labels) : static
+    public function labels(array $labels): static
     {
         $this->labels = $labels;
 
         return $this;
     }
 
-    public function from(FluteChart $chart) : self
+    public function from(FluteChart $chart): self
     {
         $this->chart = $chart;
 
@@ -259,7 +259,7 @@ class Chart extends Layout
     }
 
     /**
-     * Основной метод рендера.  
+     * Основной метод рендера.
      * Здесь формируем FluteChart и передаем его в шаблон.
      *
      * @param  Repository  $repository
@@ -284,7 +284,7 @@ class Chart extends Layout
             $chart->setBackground($this->background);
         }
 
-        if($this->height) {
+        if ($this->height) {
             $chart->setHeight($this->height);
         }
 

@@ -19,7 +19,7 @@ class StandardAuthMiddleware extends BaseMiddleware
      * @param mixed ...$args Additional arguments
      * @return Response
      */
-    public function handle(FluteRequest $request, \Closure $next, ...$args) : Response
+    public function handle(FluteRequest $request, \Closure $next, ...$args): Response
     {
         $isSocialEmpty = social()->isEmpty();
         $allowStandardAuth = !config('auth.only_social', false) || (config('auth.only_social') && $isSocialEmpty);

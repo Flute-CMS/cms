@@ -2,20 +2,19 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
+use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Modules\Payments\Factories\PaymentDriverFactory;
-use Flute\Admin\Packages\Payment\Services\PaymentService;
-use Flute\Core\Database\Entities\Currency;
-use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Core\Support\FileUploader;
-use League\Glide\Manipulators\Filter;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class EditPaymentGatewayScreen extends Screen
@@ -44,6 +43,7 @@ class EditPaymentGatewayScreen extends Screen
 
             if (!$this->gateway) {
                 $this->redirect('/admin/payment/gateways');
+
                 return;
             }
 
@@ -99,7 +99,7 @@ class EditPaymentGatewayScreen extends Screen
             ];
         }
 
-        
+
         $currencyCheckboxes = [];
         foreach ($currencies as $currency) {
             $isChecked = $this->gateway ? $currency->hasPayment($this->gateway) : false;
@@ -165,7 +165,7 @@ class EditPaymentGatewayScreen extends Screen
                                 ->value(url('lk/fail'))
                                 ->readonly()
                         )->label(__('admin-payment.fields.fail_url.label')),
-                    ]),
+                    ])->setVisible(!empty($this->gateway->adapter)),
                 ]),
 
                 LayoutFactory::block(
@@ -191,7 +191,7 @@ class EditPaymentGatewayScreen extends Screen
                     ->yoyo()
                     ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
                     ->required()
-            )->label(__('admin-payment.fields.payment_system.label'))->required()
+            )->label(__('admin-payment.fields.payment_system.label'))->required(),
         ];
 
         if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {
@@ -201,7 +201,7 @@ class EditPaymentGatewayScreen extends Screen
             if (view()->exists($settingsView)) {
                 $fields[] = LayoutFactory::view($settingsView, [
                     'gateway' => $this->gateway,
-                    'settings' => $this->gateway ? json_decode($this->gateway->additional, true) : []
+                    'settings' => $this->gateway ? json_decode($this->gateway->additional, true) : [],
                 ]);
             }
         }
@@ -255,6 +255,7 @@ class EditPaymentGatewayScreen extends Screen
                 return null;
             }
         }
+
         return null;
     }
 
@@ -288,6 +289,7 @@ class EditPaymentGatewayScreen extends Screen
                         $this->gateway->image = $newImage;
                     } else {
                         $this->flashMessage(__('admin-payment.messages.image_upload_error'), 'error');
+
                         return;
                     }
                 }
@@ -316,6 +318,7 @@ class EditPaymentGatewayScreen extends Screen
 
                     if (!validator()->validate($driver->getValidationRules(), $settings)) {
                         $this->flashMessage(__('admin-payment.messages.invalid_payment_settings'), 'error');
+
                         return;
                     }
 
@@ -327,6 +330,7 @@ class EditPaymentGatewayScreen extends Screen
             } else {
                 if (!isset($data['driverKey']) || !$this->driverFactory->hasDriver($data['driverKey'])) {
                     $this->flashMessage(__('admin-payment.messages.select_payment_system'), 'error');
+
                     return;
                 }
 
@@ -335,6 +339,7 @@ class EditPaymentGatewayScreen extends Screen
 
                 if (!validator()->validate($driver->getValidationRules(), $settings)) {
                     $this->flashMessage(__('admin-payment.messages.invalid_payment_settings'), 'error');
+
                     return;
                 }
 
@@ -350,6 +355,7 @@ class EditPaymentGatewayScreen extends Screen
                         $gateway->image = $newImage;
                     } else {
                         $this->flashMessage(__('admin-payment.messages.image_upload_error'), 'error');
+
                         return;
                     }
                 }
@@ -413,6 +419,7 @@ class EditPaymentGatewayScreen extends Screen
         if (isset($settings['testMode'])) {
             $settings['testMode'] = filter_var($settings['testMode'], FILTER_VALIDATE_BOOLEAN) ?? false;
         }
+
         return $settings;
     }
 
@@ -420,6 +427,7 @@ class EditPaymentGatewayScreen extends Screen
     {
         if (!$this->isEditMode || !$this->gateway) {
             $this->flashMessage(__('admin-payment.messages.gateway_not_found'), 'error');
+
             return;
         }
 

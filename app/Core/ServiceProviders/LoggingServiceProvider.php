@@ -7,7 +7,7 @@ use Flute\Core\Support\AbstractServiceProvider;
 
 class LoggingServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             LogRendererManager::class => \DI\autowire(),
@@ -16,5 +16,7 @@ class LoggingServiceProvider extends AbstractServiceProvider
     }
 
 
-    public function boot(\DI\Container $container) : void {}
+    public function boot(\DI\Container $container): void
+    {
+    }
 }

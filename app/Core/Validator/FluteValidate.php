@@ -132,7 +132,7 @@ class FluteValidate
 
                 if (!$date1 || !$date2 || $date1 <= $date2) {
                     $validator->addError($attribute, $rule, [
-                        ':date' => $comparison
+                        ':date' => $comparison,
                     ]);
                 }
             } else {
@@ -140,18 +140,18 @@ class FluteValidate
                     $compareDate = \Carbon\Carbon::parse($comparison);
                     $currentDate = \Carbon\Carbon::parse($value);
 
-                if ($currentDate->lte($compareDate)) {
-                    $validator->addError($attribute, $rule, [
-                            ':date' => $comparison
-                        ]);
+                    if ($currentDate->lte($compareDate)) {
+                        $validator->addError($attribute, $rule, [
+                                ':date' => $comparison,
+                            ]);
                     }
                 } catch (\Exception $e) {
-                    if(is_debug()) {
+                    if (is_debug()) {
                         throw $e;
                     }
 
                     $validator->addError($attribute, $rule, [
-                        ':date' => $e->getMessage()
+                        ':date' => $e->getMessage(),
                     ]);
                 }
             }
@@ -275,6 +275,7 @@ class FluteValidate
         foreach (FluteValidator::getValues($data, $pattern) as $attribute => $value) {
             if (!is_string($value)) {
                 $validator->addError($attribute, $rule);
+
                 continue;
             }
 
@@ -287,11 +288,11 @@ class FluteValidate
     }
 
     /**
-     * Checks whether or not $value is filled, 
+     * Checks whether or not $value is filled,
      * i.e. $value is no empty string, array or Countable and not null.
-     * 
+     *
      * @param mixed $value
-     * 
+     *
      * @return bool true when $value is filled, elsewise false
      */
     protected static function isFilled($value)
@@ -348,9 +349,10 @@ class FluteValidate
                 if ($value->getError() === UPLOAD_ERR_NO_FILE) {
                     continue;
                 }
-                
+
                 if ($value->getError() !== UPLOAD_ERR_OK) {
                     $validator->addError($attribute, $rule);
+
                     continue;
                 }
             }
@@ -364,8 +366,7 @@ class FluteValidate
                 if (in_array($mimeType, $allowedMimeTypes) && in_array($extension, $allowedExtensions)) {
                     $isValidImage = true;
                 }
-            }
-            elseif (is_string($value)) {
+            } elseif (is_string($value)) {
                 $imageInfo = @getimagesize($value);
 
                 if ($imageInfo !== false) {
@@ -380,7 +381,7 @@ class FluteValidate
                         $isValidImage = false;
                     }
                 }
-                
+
                 if (!$isValidImage && function_exists('exif_imagetype')) {
                     $imageType = @exif_imagetype($value);
                     if (in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
@@ -419,7 +420,7 @@ class FluteValidate
             'webp' => ['image/webp'],
             'tiff' => ['image/tiff'],
             'ico' => ['image/x-icon', 'image/vnd.microsoft.icon'],
-            
+
             // Documents
             'pdf' => ['application/pdf'],
             'doc' => ['application/msword'],
@@ -431,21 +432,21 @@ class FluteValidate
             'txt' => ['text/plain'],
             'csv' => ['text/csv', 'application/csv'],
             'rtf' => ['application/rtf'],
-            
+
             // Archives
             'zip' => ['application/zip', 'application/x-zip-compressed'],
             'rar' => ['application/x-rar-compressed', 'application/vnd.rar'],
             'tar' => ['application/x-tar'],
             'gz' => ['application/gzip'],
             '7z' => ['application/x-7z-compressed'],
-            
+
             // Audio
             'mp3' => ['audio/mpeg'],
             'wav' => ['audio/wav', 'audio/x-wav'],
             'ogg' => ['audio/ogg'],
             'flac' => ['audio/flac'],
             'm4a' => ['audio/mp4'],
-            
+
             // Video
             'mp4' => ['video/mp4'],
             'avi' => ['video/x-msvideo'],
@@ -454,7 +455,7 @@ class FluteValidate
             'flv' => ['video/x-flv'],
             'mkv' => ['video/x-matroska'],
             'webm' => ['video/webm'],
-            
+
             // Code
             'html' => ['text/html'],
             'css' => ['text/css'],
@@ -475,14 +476,13 @@ class FluteValidate
 
             if (is_object($value) && method_exists($value, 'getMimeType')) {
                 $fileMime = strtolower($value->getMimeType());
-                
+
                 if (method_exists($value, 'getClientOriginalName')) {
                     $fileExtension = strtolower(pathinfo($value->getClientOriginalName(), PATHINFO_EXTENSION));
                 }
-            } 
-            elseif (is_string($value)) {
+            } elseif (is_string($value)) {
                 $fileExtension = strtolower(pathinfo($value, PATHINFO_EXTENSION));
-                
+
                 if (file_exists($value)) {
                     $fileMime = strtolower(mime_content_type($value));
                 }
@@ -490,12 +490,12 @@ class FluteValidate
 
             if ($fileExtension && in_array($fileExtension, $allowedExtensions)) {
                 $isValid = true;
-            }
-            elseif ($fileMime) {
+            } elseif ($fileMime) {
                 foreach ($allowedExtensions as $extension) {
                     if (isset($mimeMap[$extension])) {
                         if (in_array($fileMime, $mimeMap[$extension])) {
                             $isValid = true;
+
                             break;
                         }
                     }
@@ -540,6 +540,7 @@ class FluteValidate
         // Check pattern is present
         if (!ArrDots::has($data, $pattern, $validator::WILD)) {
             $validator->addError($pattern, $rule);
+
             return;
         }
 
@@ -548,9 +549,10 @@ class FluteValidate
             if (is_object($value) && method_exists($value, 'getError')) {
                 if ($value->getError() === UPLOAD_ERR_NO_FILE) {
                     $validator->addError($attribute, $rule);
-                } else if ($value->getError() !== UPLOAD_ERR_OK) {
+                } elseif ($value->getError() !== UPLOAD_ERR_OK) {
                     $validator->addError($attribute, $rule);
                 }
+
                 continue;
             }
 
@@ -588,6 +590,7 @@ class FluteValidate
                 $attribute = $isWild ? ValidatorStr::overlapLeftMerge($overlap, $fieldAttribute, $pattern) : $pattern;
                 $validator->addError($attribute, $rule, [':field' => $fieldAttribute, '%value' => implode(',', $values)]);
             }
+
             return;
         }
 
@@ -695,6 +698,7 @@ class FluteValidate
             if ($required) {
                 $validator->addError($pattern, $rule);
             }
+
             return;
         }
 
@@ -754,12 +758,14 @@ class FluteValidate
                     }
 
                 }
+
                 return $required;
             }, false);
 
             if ($required) {
                 $validator->addError($pattern, $rule);
             }
+
             return;
         }
 
@@ -1604,13 +1610,13 @@ class FluteValidate
 
     /**
      * custom regex validation
-     * 
+     *
      * When using the regex / not_regex patterns, it may be necessary to specify
      * rules in an array instead of using | delimiters, especially if the regular
      * expression contains a | character.
-     * 
+     *
      * @see https://www.php.net/preg_match
-     * 
+     *
      * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
@@ -1635,13 +1641,13 @@ class FluteValidate
 
     /**
      * custom regex validation
-     * 
+     *
      * When using the regex / not_regex patterns, it may be necessary to specify
      * rules in an array instead of using | delimiters, especially if the regular
      * expression contains a | character.
-     * 
+     *
      * @see https://www.php.net/preg_match
-     * 
+     *
      * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
@@ -1675,10 +1681,10 @@ class FluteValidate
 
             $attributeParts = explode('.', $attribute);
             $defaultColumn = end($attributeParts);
-            $column = isset($parameters[1]) ? $parameters[1] : $defaultColumn;
+            $column = $parameters[1] ?? $defaultColumn;
 
-            $except = isset($parameters[2]) ? $parameters[2] : null;
-            $idColumn = isset($parameters[3]) ? $parameters[3] : 'id';
+            $except = $parameters[2] ?? null;
+            $idColumn = $parameters[3] ?? 'id';
 
             $query = db()->select()->from($table)->where($column, $value);
 
@@ -1711,8 +1717,8 @@ class FluteValidate
 
         $table = $parameters[0];
         $column = $parameters[1];
-        $except = isset($parameters[2]) ? $parameters[2] : null;
-        $idColumn = isset($parameters[3]) ? $parameters[3] : 'id';
+        $except = $parameters[2] ?? null;
+        $idColumn = $parameters[3] ?? 'id';
 
         foreach (FluteValidator::getValues($data, $pattern) as $attribute => $value) {
             if (is_null($value) || $value === '') {
@@ -1728,7 +1734,7 @@ class FluteValidate
             if (!$query->count()) {
                 $validator->addError($attribute, $rule, [
                     ':table' => $table,
-                    ':column' => $column
+                    ':column' => $column,
                 ]);
             }
         }
@@ -1746,7 +1752,7 @@ class FluteValidate
 
             if ($confirmationValue === null || $confirmationValue !== $value) {
                 $validator->addError($attribute, $rule, [
-                    ':confirmation_field' => $confirmationAttribute
+                    ':confirmation_field' => $confirmationAttribute,
                 ]);
             }
         }

@@ -21,4 +21,14 @@
     "accent_text" => "Акцентный текст",
     "preview" => "Предпросмотр",
     "performance_info" => "Загрузка страницы заняла дольше обычного. Пожалуйста, посмотрите гайд по оптимизации производительности в <a href='https://flute-cms.com/docs/performance' target='_blank'>документации</a>.",
+    "bulk" => [
+        "selected" => "Выбрано",
+        "enable_selected" => "Включить выбранные",
+        "disable_selected" => "Выключить выбранные",
+        "delete_selected" => "Удалить выбранные",
+        "clear_selection" => "Сбросить",
+    ],
+    "confirms" => [
+        "delete_selected" => "Удалить выбранные элементы?",
+    ],
 ];

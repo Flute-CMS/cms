@@ -19,7 +19,7 @@ class RegisterMiddleware extends BaseMiddleware
      * @param mixed ...$args Additional arguments
      * @return Response
      */
-    public function handle(FluteRequest $request, \Closure $next, ...$args) : Response
+    public function handle(FluteRequest $request, \Closure $next, ...$args): Response
     {
         if (config('auth.only_social')) {
             return $this->error()->notFound();

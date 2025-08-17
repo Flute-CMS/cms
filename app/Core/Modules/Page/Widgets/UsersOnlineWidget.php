@@ -3,7 +3,6 @@
 namespace Flute\Core\Modules\Page\Widgets;
 
 use Flute\Core\Database\Entities\User;
-use Flute\Core\Modules\Page\Widgets\AbstractWidget;
 use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersOnlineWidget extends AbstractWidget
@@ -36,7 +35,7 @@ class UsersOnlineWidget extends AbstractWidget
                 ->limit($settings['max_display'] ?? 10)
                 ->fetchAll();
 
-        $onlineUsers = array_filter($onlineUsers, static fn($u) => !$u->hidden);
+        $onlineUsers = array_filter($onlineUsers, static fn ($u) => !$u->hidden);
 
         usort($onlineUsers, static function ($a, $b) {
             return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);

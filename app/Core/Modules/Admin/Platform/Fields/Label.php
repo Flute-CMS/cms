@@ -24,7 +24,7 @@ class Label extends Field
      * @var array
      */
     protected $attributes = [
-        'id'    => null,
+        'id' => null,
         'value' => null,
     ];
 

@@ -1,0 +1,14 @@
+// Dashboard-specific polish
+.chart-wrapper.skeleton {
+  border-radius: 12px;
+}
+
+.apexcharts-tooltip {
+  border-radius: 8px !important;
+  backdrop-filter: blur(10px);
+}
+
+.apexcharts-legend {
+  gap: 6px;
+}
+

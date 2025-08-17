@@ -33,10 +33,10 @@ class ModuleInformation
      * @param string $key Key to identify the module.
      * @throws JsonException
      */
-    public function __construct( string $moduleJSON, string $key )
+    public function __construct(string $moduleJSON, string $key)
     {
-        $this->key        = $key;
-        
+        $this->key = $key;
+
         $this->loadModuleJson($moduleJSON);
     }
 
@@ -46,16 +46,16 @@ class ModuleInformation
      * @param string $moduleJSON JSON string with module information.
      * @throws JsonException
      */
-    protected function loadModuleJson( string $moduleJSON ) : void
+    protected function loadModuleJson(string $moduleJSON): void
     {
         $file = Json::decode($moduleJSON);
 
-        $this->name           = $file->name;
-        $this->description    = $file->description ?? '';
-        $this->version        = $file->version ?? '1.0.0';
-        $this->authors        = $file->authors ?? [];
-        $this->url            = $file->url ?? '';
-        $this->providers      = $file->providers;
-        $this->dependencies   = (array) $file->dependencies ?? [];
+        $this->name = $file->name;
+        $this->description = $file->description ?? '';
+        $this->version = $file->version ?? '1.0.0';
+        $this->authors = $file->authors ?? [];
+        $this->url = $file->url ?? '';
+        $this->providers = $file->providers;
+        $this->dependencies = (array) $file->dependencies ?? [];
     }
 }

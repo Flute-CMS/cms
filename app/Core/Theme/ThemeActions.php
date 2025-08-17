@@ -30,7 +30,7 @@ class ThemeActions
      * @param string $status
      * @throws Throwable
      */
-    protected function updateThemeStatus(string $themeName, string $status) : void
+    protected function updateThemeStatus(string $themeName, string $status): void
     {
         if ($status === ThemeManager::ACTIVE) {
             $themePast = $this->themeManager->getTheme($this->themeManager->getCurrentTheme());
@@ -52,7 +52,7 @@ class ThemeActions
      *
      * @throws Exception|Throwable if the theme is not installed or updating fails
      */
-    public function updateThemeColors(string $themeName, array $newColors, string $theme) : void
+    public function updateThemeColors(string $themeName, array $newColors, string $theme): void
     {
         $this->validateThemeStatus($themeName);
 
@@ -84,6 +84,7 @@ class ThemeActions
 
         if (!rename($tempColorsPath, $colorsPath)) {
             fs()->remove($tempColorsPath);
+
             throw new Exception("Failed to update colors.json for theme '{$themeName}'.");
         }
 
@@ -107,7 +108,7 @@ class ThemeActions
      *
      * @throws Exception if the theme is not installed or not activated
      */
-    private function validateThemeStatus(string $themeName) : void
+    private function validateThemeStatus(string $themeName): void
     {
         $theme = Theme::findOne(['key' => $themeName]);
 
@@ -126,7 +127,7 @@ class ThemeActions
      *
      * @throws Exception|Throwable if the theme is already active
      */
-    public function activateTheme(string $themeName) : void
+    public function activateTheme(string $themeName): void
     {
         // He throws Exception if not exists
         $this->themeManager->getTheme($themeName);
@@ -160,7 +161,7 @@ class ThemeActions
      *
      * @param string $themeName
      */
-    public function installTheme(string $themeName) : void
+    public function installTheme(string $themeName): void
     {
         $event = new ThemeInstalled($themeName);
         events()->dispatch($event, ThemeInstalled::NAME);
@@ -181,7 +182,7 @@ class ThemeActions
      *
      * @param string $themeName
      */
-    public function disableTheme(string $themeName) : void
+    public function disableTheme(string $themeName): void
     {
         // He throws Exception if not exists
         $this->themeManager->getTheme($themeName);
@@ -195,7 +196,7 @@ class ThemeActions
      *
      * @param string $themeName
      */
-    public function uninstallTheme(string $themeName) : void
+    public function uninstallTheme(string $themeName): void
     {
         // He throws Exception if not exists
         $this->themeManager->getTheme($themeName);
@@ -225,9 +226,10 @@ class ThemeActions
         fs()->remove(BASE_PATH . 'app/Themes/' . $themeName);
     }
 
-    private function isLastActiveTheme(string $themeName) : bool
+    private function isLastActiveTheme(string $themeName): bool
     {
         $activeThemes = $this->themeManager->getInstalledThemes();
+
         return $activeThemes->count() === 1 && in_array($themeName, $activeThemes->toArray());
     }
 }

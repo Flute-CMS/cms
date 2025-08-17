@@ -2,12 +2,12 @@
 
 namespace Flute\Core\Modules\Page\Controllers;
 
-use Flute\Core\Support\BaseController;
-use Flute\Core\Support\FluteRequest;
-use Flute\Core\Modules\Page\Services\PageManager;
-use Flute\Core\Validator\FluteValidator;
 use Exception;
 use Flute\Core\Database\Entities\Page;
+use Flute\Core\Modules\Page\Services\PageManager;
+use Flute\Core\Support\BaseController;
+use Flute\Core\Support\FluteRequest;
+use Flute\Core\Validator\FluteValidator;
 
 class PageController extends BaseController
 {
@@ -50,7 +50,7 @@ class PageController extends BaseController
 
             return $this->json([
                 'error' => $firstError,
-                'errors' => $errors->toArray()
+                'errors' => $errors->toArray(),
             ], 422);
         }
 
@@ -58,7 +58,7 @@ class PageController extends BaseController
             $page = Page::findOne(['route' => $request->input('route')]);
 
             if (!$page) {
-                $page = new Page;
+                $page = new Page();
             }
 
             $page->title = $request->input('title');
@@ -81,8 +81,8 @@ class PageController extends BaseController
                 'error' => __('page.seo.error'),
                 'debug' => is_debug() ? [
                     'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ] : null
+                    'trace' => $e->getTraceAsString(),
+                ] : null,
             ], 500);
         }
     }

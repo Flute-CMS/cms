@@ -34,6 +34,7 @@ class CsrfTokenService
     public function validateToken(string $token): bool
     {
         $csrfToken = new CsrfToken($this->defaultTokenId, $token);
+
         return $this->csrfTokenManager->isTokenValid($csrfToken);
     }
 }

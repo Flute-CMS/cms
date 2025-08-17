@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
-use Flute\Core\Support\FluteComponent;
 use Flute\Core\Modules\Installer\Services\SystemRequirements;
+use Flute\Core\Support\FluteComponent;
 
 class RequirementsComponent extends FluteComponent
 {
@@ -21,7 +21,7 @@ class RequirementsComponent extends FluteComponent
      * @var array
      */
     public $directoryRequirements = [];
-    
+
     /**
      * @var bool
      */
@@ -33,17 +33,17 @@ class RequirementsComponent extends FluteComponent
     public function mount()
     {
         $systemRequirements = app(SystemRequirements::class);
-        
+
         $this->phpRequirements = $systemRequirements->checkPhpRequirements();
         $this->extensionRequirements = $systemRequirements->checkExtensionRequirements();
         $this->directoryRequirements = $systemRequirements->checkDirectoryRequirements();
-        
+
         $this->allRequirementsMet = $systemRequirements->allRequirementsMet();
     }
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()
@@ -55,4 +55,4 @@ class RequirementsComponent extends FluteComponent
             'allRequirementsMet' => $this->allRequirementsMet,
         ]);
     }
-} 
+}

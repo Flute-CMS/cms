@@ -1,13 +1,18 @@
 <aside @class([
     'sidebar',
     'collapsed' => cookie()->get('admin-sidebar-collapsed', 'false') === 'true' && !user()->device()->isMobile(),
-]) hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+]) hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
     <div class="sidebar__header" hx-boost="false">
         <a href="{{ url('/') }}" class="sidebar__logo-collapsed">
             <img src="{{ asset('assets/img/flute_logo-simple.svg') }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
         </a>
-        <a href="{{ url('/') }}" class="sidebar__logo">
-            <img src="{{ asset('assets/img/flute_logo.svg') }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+        <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-dark">
+            <img src="{{ asset(config('app.logo')) }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+            <p>{{ config('app.name') }}</p>
+        </a>
+        <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-light">
+            <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+            <p>{{ config('app.name') }}</p>
         </a>
         <button class="sidebar__toggle">
             <x-icon path="ph.regular.sidebar-simple" />

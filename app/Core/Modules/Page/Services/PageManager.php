@@ -2,24 +2,24 @@
 
 namespace Flute\Core\Modules\Page\Services;
 
+use Exception;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Services\UserService;
 use Flute\Core\Support\FluteRequest;
-use Psr\Log\LoggerInterface;
 use Nette\Utils\Json;
-use Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  * PageManager handles page management, widget rendering, and automatic route registration.
- * 
+ *
  * New features:
  * - Automatically registers routes for all existing pages in the database
  * - Provides fallback route handling for undefined pages (renders home.blade.php)
  * - Dynamically registers routes when new pages are created
  * - Handles page content rendering with widget support
- * 
+ *
  * @package Flute\Core\Modules\Page\Services
  */
 class PageManager
@@ -173,7 +173,7 @@ class PageManager
                 $content .= $this->hasAccessToEdit()
                     ? view('flute::partials.invalid-widget', [
                         'block' => $widget,
-                        'exception' => $e->getMessage()
+                        'exception' => $e->getMessage(),
                     ])->render()
                     : '';
             }
@@ -192,21 +192,22 @@ class PageManager
         try {
             $page = Page::findOne(['route' => $path]);
             $layout = [];
-            
+
             $hasPushContent = $this->hasPushContent();
             $hasContentWidget = false;
             $contentPosition = ['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0];
-            
+
             if ($page) {
                 foreach ($page->getBlocks() as $block) {
                     if ($block->getWidget() === 'Content') {
                         $hasContentWidget = true;
                         $contentPosition = json_decode($block->gridstack, true) ?: $contentPosition;
+
                         break;
                     }
                 }
             }
-            
+
             if ($hasPushContent || $hasContentWidget) {
                 $layout[] = [
                     'id' => 'content-widget',
@@ -217,16 +218,16 @@ class PageManager
                     'isSystem' => true,
                 ];
             }
-            
+
             if ($page) {
                 foreach ($page->getBlocks() as $block) {
                     try {
                         if ($block->getWidget() === 'Content') {
                             continue;
                         }
-                        
+
                         $settings = json_decode($block->getSettings(), true);
-                        
+
                         $layout[] = [
                             'id' => $block->getId(),
                             'widgetName' => $block->getWidget(),
@@ -244,6 +245,7 @@ class PageManager
             return $layout;
         } catch (Exception $e) {
             $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
+
             throw $e;
         }
     }
@@ -255,6 +257,7 @@ class PageManager
     {
         try {
             $pushContent = view()->yieldPushContent('content');
+
             return !empty(trim(strip_tags($pushContent)));
         } catch (Exception $e) {
             return true;
@@ -282,10 +285,11 @@ class PageManager
             return $content !== "" ? $content : null;
         } catch (Exception $e) {
             $this->logger->error($e->getMessage(), ['exception' => $e]);
+
             return $this->hasAccessToEdit()
                 ? view('flute::partials.invalid-widget', [
                     'block' => $widgetDb,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
                 ])->render()
                 : null;
         }
@@ -295,13 +299,15 @@ class PageManager
     {
         try {
             $settings = json_decode($block->getSettings(), true) ?? [];
+
             return $this->widgetManager->getWidget($block->getWidget())->render($settings);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage(), ['exception' => $e]);
+
             return $this->hasAccessToEdit()
                 ? view('flute::partials.invalid-widget', [
                     'block' => $block,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
                 ])->render()
                 : null;
         }
@@ -400,6 +406,7 @@ class PageManager
                     : Json::encode(['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0, 'minW' => 4]);
 
                 $page->addBlock($block);
+
                 continue;
             }
 
@@ -442,6 +449,7 @@ class PageManager
     public function disablePageEditor(): self
     {
         $this->disabled = true;
+
         return $this;
     }
 
@@ -502,7 +510,7 @@ class PageManager
     public function updatePageParameters(array $parameters): void
     {
         if (!$this->currentPage) {
-            $this->currentPage = new Page;
+            $this->currentPage = new Page();
         }
 
         if (isset($parameters['title'])) {
@@ -588,6 +596,7 @@ class PageManager
     public function isEditMode(): bool
     {
         $editMode = $this->request->query->get('editMode') ?? null;
+
         return $this->hasAccessToEdit() && $editMode;
     }
 
@@ -599,6 +608,7 @@ class PageManager
         if ($this->currentPage && property_exists($this->currentPage, $name)) {
             return $this->currentPage->$name;
         }
+
         return null;
     }
 }

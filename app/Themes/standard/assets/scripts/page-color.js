@@ -9,7 +9,10 @@ const defaultValues = {
         '--text': '#f2f2f7',
         '--border1': '1',
         '--background-type': 'solid',
-        '--container-width': 'container'
+        '--container-width': 'container',
+        '--bg-grad1': '#A5FF75',
+        '--bg-grad2': '#f2f2f7',
+        '--bg-grad3': '#1c1c1e'
     },
     'light': {
         '--accent': '#34c759',
@@ -19,7 +22,10 @@ const defaultValues = {
         '--text': '#1d1d1f',
         '--border1': '1',
         '--background-type': 'solid',
-        '--container-width': 'container'
+        '--container-width': 'container',
+        '--bg-grad1': '#34c759',
+        '--bg-grad2': '#1d1d1f',
+        '--bg-grad3': '#ffffff'
     }
 };
 
@@ -35,12 +41,15 @@ function parseCurrentThemeColors() {
         '--text': getRootColor('--text'),
         '--border1': getRootColor('--border1').replace('rem', ''),
         '--background-type': getCurrentBackgroundType(),
-        '--container-width': getCurrentContainerWidth()
+        '--container-width': getCurrentContainerWidth(),
+        '--bg-grad1': getRootColor('--bg-grad1') || getRootColor('--accent'),
+        '--bg-grad2': getRootColor('--bg-grad2') || getRootColor('--primary'),
+        '--bg-grad3': getRootColor('--bg-grad3') || getRootColor('--background')
     };
 
     const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
     Object.entries(colors).forEach(([variable, baseColor]) => {
-        if (variable.startsWith('--') && !variable.includes('border') && !variable.includes('background-type')) {
+        if (variable.startsWith('--') && !variable.includes('border') && !variable.includes('background-type') && !variable.includes('bg-grad')) {
             const shades = generateShades(baseColor, isLightTheme);
             steps.forEach((step) => {
                 colors[`${variable}-${step}`] = shades[step];
@@ -150,13 +159,10 @@ function oldGenerateShadesLight(baseColor, isLightTheme) {
 }
 
 function getCurrentBackgroundType() {
-    const backgroundOptions = document.querySelectorAll('.background-option');
-    for (const option of backgroundOptions) {
-        if (option.classList.contains('active')) {
-            return option.getAttribute('data-type');
-        }
-    }
-    return 'solid';
+    const fromVar = getComputedStyle(root).getPropertyValue('--background-type').trim();
+    if (fromVar) return fromVar;
+    const ds = document.documentElement.getAttribute('data-bg-type');
+    return ds || 'solid';
 }
 
 function getCurrentContainerWidth() {
@@ -168,72 +174,74 @@ function getCurrentContainerWidth() {
 }
 
 function setBackgroundType(type) {
-    const backgroundOptions = document.querySelectorAll('.background-option');
-    backgroundOptions.forEach(option => {
-        option.classList.remove('active');
-        if (option.getAttribute('data-type') === type) {
-            option.classList.add('active');
-        }
-    });
-    
+    root.style.setProperty('--background-type', type);
+    document.documentElement.setAttribute('data-bg-type', type);
     updateBackgroundPreview();
 }
 
 function updateBackgroundPreview() {
     const currentType = getCurrentBackgroundType();
     const bgColor = getRootColor('--background');
-    const accentColor = getRootColor('--accent');
-    const primaryColor = getRootColor('--primary');
+    const grad1 = getRootColor('--bg-grad1') || getRootColor('--accent');
+    const grad2 = getRootColor('--bg-grad2') || getRootColor('--primary');
+    const grad3 = getRootColor('--bg-grad3') || bgColor;
     
     let backgroundStyle = '';
     
     switch (currentType) {
         case 'linear-gradient':
-            backgroundStyle = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}12 100%)`;
+            backgroundStyle = `
+                linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 45%, ${grad1}18 100%),
+                radial-gradient(1200px circle at 90% -10%, ${grad1}0f 0%, transparent 60%),
+                radial-gradient(800px circle at 10% 110%, ${grad2}0c 0%, transparent 60%),
+                ${bgColor}
+            `;
             break;
         case 'radial-gradient':
-            backgroundStyle = `radial-gradient(ellipse at top right, ${bgColor} 0%, ${accentColor}08 70%, ${bgColor} 100%)`;
+            backgroundStyle = `
+                radial-gradient(1000px circle at 30% 10%, ${grad1}14 0%, transparent 55%),
+                radial-gradient(1200px circle at 82% 78%, ${grad2}0f 0%, transparent 60%),
+                ${bgColor}
+            `;
             break;
         case 'mesh-gradient':
             backgroundStyle = `
-                radial-gradient(at 20% 20%, ${accentColor}08 0px, transparent 40%),
-                radial-gradient(at 80% 80%, ${primaryColor}06 0px, transparent 40%),
-                radial-gradient(at 40% 70%, ${accentColor}04 0px, transparent 40%),
+                radial-gradient(at 20% 20%, ${grad1}12 0px, transparent 45%),
+                radial-gradient(at 80% 75%, ${grad2}0d 0px, transparent 45%),
+                radial-gradient(at 40% 70%, ${grad1}0a 0px, transparent 40%),
+                radial-gradient(at 70% 30%, ${grad2}08 0px, transparent 45%),
                 ${bgColor}
             `;
             break;
         case 'subtle-gradient':
-            backgroundStyle = `linear-gradient(160deg, ${bgColor} 0%, ${accentColor}06 50%, ${primaryColor}04 100%)`;
+            backgroundStyle = `linear-gradient(160deg, ${bgColor} 0%, ${grad1}0d 50%, ${grad2}0a 100%)`;
             break;
         case 'aurora-gradient':
             backgroundStyle = `
-                linear-gradient(45deg, 
-                    ${accentColor}15 0%, 
-                    ${primaryColor}10 25%, 
-                    ${accentColor}20 50%, 
-                    ${primaryColor}15 75%, 
-                    ${accentColor}10 100%),
+                radial-gradient(1200px circle at 10% 20%, ${grad1}12 0%, transparent 55%),
+                radial-gradient(1000px circle at 80% 30%, ${grad2}10 0%, transparent 55%),
+                radial-gradient(1400px circle at 50% 80%, ${grad3}0d 0%, transparent 60%),
                 ${bgColor}
             `;
             break;
         case 'sunset-gradient':
             backgroundStyle = `linear-gradient(180deg, 
-                ${accentColor}20 0%, 
-                ${accentColor}15 30%, 
-                ${primaryColor}10 70%, 
+                ${grad1}18 0%, 
+                ${grad1}10 28%, 
+                ${grad2}0d 68%, 
                 ${bgColor} 100%)`;
             break;
         case 'ocean-gradient':
             backgroundStyle = `
-                radial-gradient(ellipse at top, ${accentColor}08 0%, transparent 50%),
-                radial-gradient(ellipse at bottom, ${primaryColor}06 0%, transparent 50%),
-                linear-gradient(180deg, ${bgColor} 0%, ${accentColor}04 100%)
+                radial-gradient(900px ellipse at top, ${grad1}10 0%, transparent 50%),
+                radial-gradient(700px ellipse at bottom, ${grad2}0d 0%, transparent 50%),
+                linear-gradient(180deg, ${bgColor} 0%, ${grad3}06 100%)
             `;
             break;
         case 'spotlight-gradient':
-            backgroundStyle = `radial-gradient(circle at 70% 30%, 
-                ${accentColor}12 0%, 
-                ${accentColor}06 30%, 
+            backgroundStyle = `radial-gradient(800px circle at 70% 30%, 
+                ${grad1}20 0%, 
+                ${grad1}0d 28%, 
                 ${bgColor} 70%)`;
             break;
         default:
@@ -243,8 +251,14 @@ function updateBackgroundPreview() {
     if (currentType !== 'solid') {
         document.body.style.background = backgroundStyle;
     } else {
-        document.body.style.backgroundColor = bgColor;
-        document.body.style.background = '';
+        document.body.style.background = bgColor; // ensures background-image is reset
+        document.body.style.backgroundImage = 'none';
+    }
+
+    // reflect current background style in the swatch block
+    const swatchEl = document.getElementById('bg-swatch');
+    if (swatchEl) {
+        swatchEl.style.background = currentType !== 'solid' ? backgroundStyle : bgColor;
     }
 
     updateBackgroundThumbnails();
@@ -252,8 +266,9 @@ function updateBackgroundPreview() {
 
 function updateBackgroundThumbnails() {
     const bgColor = getRootColor('--background');
-    const accentColor = getRootColor('--accent');
-    const primaryColor = getRootColor('--primary');
+    const grad1 = getRootColor('--bg-grad1') || getRootColor('--accent');
+    const grad2 = getRootColor('--bg-grad2') || getRootColor('--primary');
+    const grad3 = getRootColor('--bg-grad3') || bgColor;
 
     // Update solid preview
     const solidPreview = document.querySelector('.solid-preview');
@@ -264,21 +279,31 @@ function updateBackgroundThumbnails() {
     // Update linear preview
     const linearPreview = document.querySelector('.linear-preview');
     if (linearPreview) {
-        linearPreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}40 100%)`;
+        linearPreview.style.background = `
+            linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 45%, ${grad1}26 100%),
+            radial-gradient(500px circle at 90% -10%, ${grad1}14 0%, transparent 60%),
+            radial-gradient(300px circle at 10% 110%, ${grad2}12 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update radial preview
     const radialPreview = document.querySelector('.radial-preview');
     if (radialPreview) {
-        radialPreview.style.background = `radial-gradient(circle, ${bgColor} 0%, ${accentColor}30 70%)`;
+        radialPreview.style.background = `
+            radial-gradient(400px circle at 30% 10%, ${grad1}26 0%, transparent 55%),
+            radial-gradient(500px circle at 80% 80%, ${grad2}1a 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update mesh preview
     const meshPreview = document.querySelector('.mesh-preview');
     if (meshPreview) {
         meshPreview.style.background = `
-            radial-gradient(at 30% 30%, ${accentColor}25 0px, transparent 40%),
-            radial-gradient(at 70% 70%, ${primaryColor}20 0px, transparent 40%),
+            radial-gradient(at 30% 30%, ${grad1}26 0px, transparent 45%),
+            radial-gradient(at 70% 70%, ${grad2}1f 0px, transparent 45%),
+            radial-gradient(at 60% 30%, ${grad3}14 0px, transparent 45%),
             ${bgColor}
         `;
     }
@@ -286,35 +311,44 @@ function updateBackgroundThumbnails() {
     // Update subtle preview
     const subtlePreview = document.querySelector('.subtle-preview');
     if (subtlePreview) {
-        subtlePreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor}15 50%, ${primaryColor}10 100%)`;
+        subtlePreview.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${grad1}1a 50%, ${grad2}14 100%)`;
     }
 
     // Update aurora preview
     const auroraPreview = document.querySelector('.aurora-preview');
     if (auroraPreview) {
-        auroraPreview.style.background = `linear-gradient(45deg, ${accentColor}40 0%, ${primaryColor}30 25%, ${accentColor}50 50%, ${primaryColor}40 75%, ${accentColor}30 100%)`;
+        auroraPreview.style.background = `
+            radial-gradient(600px circle at 10% 20%, ${grad1}26 0%, transparent 55%),
+            radial-gradient(500px circle at 80% 30%, ${grad2}1f 0%, transparent 55%),
+            radial-gradient(700px circle at 50% 80%, ${grad3}1a 0%, transparent 60%),
+            ${bgColor}
+        `;
     }
 
     // Update sunset preview
     const sunsetPreview = document.querySelector('.sunset-preview');
     if (sunsetPreview) {
-        sunsetPreview.style.background = `linear-gradient(180deg, ${accentColor}50 0%, ${accentColor}40 30%, ${primaryColor}30 70%, ${bgColor} 100%)`;
+        sunsetPreview.style.background = `linear-gradient(180deg, ${grad1}33 0%, ${grad1}26 30%, ${grad2}26 70%, ${bgColor} 100%)`;
     }
 
     // Update ocean preview
     const oceanPreview = document.querySelector('.ocean-preview');
     if (oceanPreview) {
         oceanPreview.style.background = `
-            radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 40%),
-            radial-gradient(ellipse at bottom, ${primaryColor}15 0%, transparent 40%),
-            linear-gradient(180deg, ${bgColor} 0%, ${accentColor}10 100%)
+            radial-gradient(400px ellipse at top, ${grad1}26 0%, transparent 40%),
+            radial-gradient(350px ellipse at bottom, ${grad2}1f 0%, transparent 40%),
+            linear-gradient(180deg, ${bgColor} 0%, ${grad3}19 100%)
         `;
     }
 
     // Update spotlight preview
     const spotlightPreview = document.querySelector('.spotlight-preview');
     if (spotlightPreview) {
-        spotlightPreview.style.background = `radial-gradient(circle at 70% 30%, ${accentColor}30 0%, ${accentColor}15 30%, ${bgColor} 70%)`;
+        spotlightPreview.style.background = `radial-gradient(350px circle at 70% 30%, ${grad1}33 0%, ${grad1}1a 28%, ${bgColor} 70%)`;
+    }
+
+    if (typeof buildOverlayPreviews === 'function') {
+        try { buildOverlayPreviews(); } catch (e) {}
     }
 }
 
@@ -331,8 +365,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const borderEditorCancel = document.getElementById('border-editor-cancel');
     const borderEditorSave = document.getElementById('border-editor-save');
     const borderDisplay = document.querySelector('.border-display');
+    const borderEditorBtn = document.getElementById('border-editor-btn');
     const previewBox = document.querySelector('.range-preview .preview-box');
     const backgroundOptions = document.querySelectorAll('.background-option');
+    const gradInputs = [
+        document.getElementById('grad-color-1'),
+        document.getElementById('grad-color-2'),
+        document.getElementById('grad-color-3')
+    ];
+    const gradientOverlay = document.getElementById('gradient-overlay');
+    const bgSwatch = document.getElementById('bg-swatch');
+    const bgLabel = document.getElementById('bg-label');
 
     let history = [];
     let historyIndex = -1;
@@ -545,6 +588,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentBgType = currentColors['--background-type'] || 'solid';
         setBackgroundType(currentBgType);
         updateBackgroundThumbnails();
+        
+        // Initialize gradient inputs
+        const g1 = currentColors['--bg-grad1'] || getRootColor('--accent');
+        const g2 = currentColors['--bg-grad2'] || getRootColor('--primary');
+        const g3 = currentColors['--bg-grad3'] || getRootColor('--background');
+        if (gradInputs[0]) gradInputs[0].value = tinycolor(g1).toHexString();
+        if (gradInputs[1]) gradInputs[1].value = tinycolor(g2).toHexString();
+        if (gradInputs[2]) gradInputs[2].value = tinycolor(g3).toHexString();
     }
 
     function updateShades(variable, baseColor) {
@@ -560,6 +611,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const shadeVariable = `${variable}-${step}`;
             setRootColor(shadeVariable, shade);
         }
+    }
+
+    // Gradient inputs change handlers
+    if (gradInputs.filter(Boolean).length) {
+        gradInputs.forEach((inp, idx) => {
+            if (!inp) return;
+            inp.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const varName = idx === 0 ? '--bg-grad1' : idx === 1 ? '--bg-grad2' : '--bg-grad3';
+                setRootColor(varName, val);
+                updateBackgroundPreview();
+            });
+            inp.addEventListener('change', () => {
+                recordHistory();
+            });
+        });
     }
 
     function updateTextColorsForTheme() {
@@ -741,9 +808,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (borderDisplay) {
-        borderDisplay.addEventListener('click', () => {
-            openBorderEditor();
-        });
+        borderDisplay.addEventListener('click', () => openBorderEditor());
+    }
+    if (borderEditorBtn) {
+        borderEditorBtn.addEventListener('click', () => openBorderEditor());
     }
 
     function openBorderEditor() {
@@ -942,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('htmx:afterRequest', function (event) {
         if (event.target.id === 'save-colors-button') {
             editColorsPanel.classList.remove('show');
-            pageEditButton.classList.remove('hide');
+            // pageEditButton.classList.remove('hide');
 
             editColorsButton.setAttribute('aria-expanded', 'false');
 
@@ -1009,8 +1077,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaults = defaultValues[currentTheme];
 
         root.removeAttribute('style');
-        document.body.style.background = '';
-        document.body.style.backgroundColor = '';
+        document.body.style.background = defaults['--background'];
+        document.body.style.backgroundImage = 'none';
 
         const borderInput = document.getElementById('border-input');
 
@@ -1054,11 +1122,152 @@ document.addEventListener('DOMContentLoaded', () => {
         recordHistory();
     }
 
-    backgroundOptions.forEach(option => {
+    backgroundOptions.forEach((option, index) => {
         option.addEventListener('click', () => {
             const selectedType = option.getAttribute('data-type');
             setBackgroundType(selectedType);
             recordHistory();
+            // show/hide gradient inputs
+            toggleGradientInputs(selectedType !== 'solid');
+        });
+
+        option.addEventListener('keydown', (e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(e.key)) return;
+            const optionsArray = Array.from(backgroundOptions);
+            const currentIndex = index;
+            let targetIndex = currentIndex;
+
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                option.click();
+                return;
+            }
+
+            e.preventDefault();
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                targetIndex = (currentIndex + 1) % optionsArray.length;
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                targetIndex = (currentIndex - 1 + optionsArray.length) % optionsArray.length;
+            }
+
+            const targetOption = optionsArray[targetIndex];
+            if (targetOption) {
+                const selectedType = targetOption.getAttribute('data-type');
+                setBackgroundType(selectedType);
+                targetOption.focus();
+                recordHistory();
+                toggleGradientInputs(selectedType !== 'solid');
+            }
         });
     });
+
+    function toggleGradientInputs(show) {
+        const group = document.querySelector('.gradient-colors');
+        if (!group) return;
+        group.style.display = show ? 'inline-flex' : 'none';
+    }
+
+    // initial state for gradient inputs visibility
+    toggleGradientInputs(getCurrentBackgroundType() !== 'solid');
+
+	if (gradientOverlay) {
+		const wrap = document.getElementById('background-control');
+		const trigger = document.getElementById('bg-swatch');
+		let previewActive = false;
+		let previewPrevType = getCurrentBackgroundType();
+		let overlayHideTimeout = null;
+
+		function showOverlay() {
+			gradientOverlay.classList.add('show');
+		}
+		function hideOverlay() {
+			gradientOverlay.classList.remove('show');
+			if (previewActive) {
+				// restore original preview
+				setBackgroundType(previewPrevType);
+				updateBackgroundPreview();
+				previewActive = false;
+			}
+		}
+		function cancelHideOverlay() {
+			if (overlayHideTimeout) {
+				clearTimeout(overlayHideTimeout);
+				overlayHideTimeout = null;
+			}
+		}
+		function scheduleHideOverlay(delay = 200) {
+			cancelHideOverlay();
+			overlayHideTimeout = setTimeout(() => hideOverlay(), delay);
+		}
+		function toggleOverlay() {
+			if (gradientOverlay.classList.contains('show')) {
+				hideOverlay();
+			} else {
+				cancelHideOverlay();
+				showOverlay();
+			}
+		}
+
+		if (trigger) {
+			trigger.addEventListener('click', (e) => { e.preventDefault(); toggleOverlay(); });
+		}
+		gradientOverlay.addEventListener('mouseenter', () => { cancelHideOverlay(); showOverlay(); });
+		gradientOverlay.addEventListener('mouseleave', () => scheduleHideOverlay(200));
+
+		window.buildOverlayPreviews = function buildOverlayPreviews() {
+            const types = ['solid','linear-gradient','radial-gradient','mesh-gradient','subtle-gradient','aurora-gradient','sunset-gradient','ocean-gradient','spotlight-gradient'];
+            types.forEach((t) => {
+                const el = gradientOverlay.querySelector(`.gradient-variant[data-type="${t}"] .variant-preview`);
+                if (!el) return;
+                const bg = getRootColor('--background');
+                const g1 = getRootColor('--bg-grad1') || getRootColor('--accent');
+                const g2 = getRootColor('--bg-grad2') || getRootColor('--primary');
+                const g3 = getRootColor('--bg-grad3') || bg;
+                let style = bg;
+                switch (t) {
+                    case 'linear-gradient':
+                        style = `linear-gradient(135deg, ${bg} 0%, ${bg} 45%, ${g1}26 100%), radial-gradient(300px circle at 90% -10%, ${g1}14 0%, transparent 60%), radial-gradient(220px circle at 10% 110%, ${g2}12 0%, transparent 60%), ${bg}`; break;
+                    case 'radial-gradient':
+                        style = `radial-gradient(300px circle at 30% 10%, ${g1}26 0%, transparent 55%), radial-gradient(380px circle at 80% 80%, ${g2}1a 0%, transparent 60%), ${bg}`; break;
+                    case 'mesh-gradient':
+                        style = `radial-gradient(at 30% 30%, ${g1}26 0px, transparent 45%), radial-gradient(at 70% 70%, ${g2}1f 0px, transparent 45%), radial-gradient(at 60% 30%, ${g3}14 0px, transparent 45%), ${bg}`; break;
+                    case 'subtle-gradient':
+                        style = `linear-gradient(135deg, ${bg} 0%, ${g1}1a 50%, ${g2}14 100%)`; break;
+                    case 'aurora-gradient':
+                        style = `radial-gradient(300px circle at 10% 20%, ${g1}26 0%, transparent 55%), radial-gradient(280px circle at 80% 30%, ${g2}1f 0%, transparent 55%), radial-gradient(360px circle at 50% 80%, ${g3}1a 0%, transparent 60%), ${bg}`; break;
+                    case 'sunset-gradient':
+                        style = `linear-gradient(180deg, ${g1}33 0%, ${g1}26 30%, ${g2}26 70%, ${bg} 100%)`; break;
+                    case 'ocean-gradient':
+                        style = `radial-gradient(280px ellipse at top, ${g1}26 0%, transparent 40%), radial-gradient(260px ellipse at bottom, ${g2}1f 0%, transparent 40%), linear-gradient(180deg, ${bg} 0%, ${g3}19 100%)`; break;
+                    case 'spotlight-gradient':
+                        style = `radial-gradient(300px circle at 70% 30%, ${g1}33 0%, ${g1}1a 28%, ${bg} 70%)`; break;
+                    default:
+                        style = bg;
+                }
+                el.style.background = style;
+            });
+        };
+
+        window.buildOverlayPreviews();
+
+        gradientOverlay.querySelectorAll('.gradient-variant').forEach((item) => {
+            const type = item.getAttribute('data-type');
+			item.addEventListener('mouseenter', () => {
+                previewPrevType = getCurrentBackgroundType();
+                previewActive = true;
+                // preview without committing
+                // do not change stored type; only draw preview once
+                const original = previewPrevType;
+                root.style.setProperty('--background-type', type);
+                updateBackgroundPreview();
+                root.style.setProperty('--background-type', original);
+            });
+			item.addEventListener('click', () => {
+                setBackgroundType(type);
+                updateBackgroundPreview();
+                recordHistory();
+                hideOverlay();
+            });
+        });
+    }
 });

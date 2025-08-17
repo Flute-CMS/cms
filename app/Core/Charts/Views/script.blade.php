@@ -24,7 +24,31 @@
 
                 const start = () => {
                     try {
-                        const chart = new ApexCharts(el, options);
+                        const themedOptions = {
+                            ...options,
+                            chart: {
+                                ...options.chart,
+                                foreColor: getComputedStyle(document.documentElement).getPropertyValue('--text')?.trim() || options.chart?.foreColor,
+                                fontFamily: 'SF Pro Display, Manrope, Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
+                                background: 'transparent',
+                            },
+                            grid: {
+                                ...options.grid,
+                                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--transp-1')?.trim() || '#e5e5e5',
+                            },
+                            tooltip: {
+                                theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
+                                style: { fontSize: '12px' },
+                            },
+                            legend: {
+                                ...options.legend,
+                                fontSize: '12px',
+                                labels: { colors: getComputedStyle(document.documentElement).getPropertyValue('--text-400')?.trim() || undefined },
+                            },
+                            colors: options.colors?.map?.(c => c) || options.colors,
+                        };
+
+                        const chart = new ApexCharts(el, themedOptions);
                         chart.render().then(() => {
                             el.closest('.chart-wrapper')?.classList.remove('skeleton');
                             this.fluteCharts[chartId] = chart;

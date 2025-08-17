@@ -29,11 +29,13 @@ class ModuleInstall implements ModuleActionInterface
 
         $moduleGet = $this->moduleManager->getModule($module->key);
 
-        if (!$moduleGet)
+        if (!$moduleGet) {
             throw new \Exception("Module {$module->key} wasn't found in the system");
+        }
 
-        if ($moduleGet->status !== 'notinstalled')
+        if ($moduleGet->status !== 'notinstalled') {
             throw new \RuntimeException('Module already installed');
+        }
 
         $this->checkModuleDependencies($moduleGet);
 
@@ -53,13 +55,15 @@ class ModuleInstall implements ModuleActionInterface
             /** @var AbstractModuleInstaller */
             $installer = new $installerClassDir($module->key);
 
-            if (!method_exists($installer, 'install'))
+            if (!method_exists($installer, 'install')) {
                 throw new \RuntimeException("install method into {$installerClassDir} wasn't found");
+            }
 
             $install = $installer->install($module);
 
-            if (!$install)
+            if (!$install) {
                 return false;
+            }
 
             if (!empty($item = $installer->getNavItem())) {
                 $this->createNavItem($item);
@@ -88,6 +92,7 @@ class ModuleInstall implements ModuleActionInterface
             $this->moduleDependencies->checkDependencies($module->dependencies, $this->moduleManager->getActive(), $themeManager->getThemeInfo());
         } catch (ModuleDependencyException $e) {
             logs('modules')->emergency("Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
+
             throw new ModuleDependencyException($e->getMessage());
         }
     }

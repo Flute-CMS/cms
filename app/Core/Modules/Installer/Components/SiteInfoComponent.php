@@ -61,7 +61,7 @@ class SiteInfoComponent extends FluteComponent
         $this->footer_description = request()->input('footer_description', $config['footer_description'] ?? $this->footer_description);
 
         if (empty($this->url)) {
-            $protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://';
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://';
             $this->url = $protocol . $_SERVER['HTTP_HOST'];
         }
 
@@ -85,7 +85,7 @@ class SiteInfoComponent extends FluteComponent
                 'footer_description' => 'nullable|max-str-len:255',
             ]);
 
-            if (! $validator) {
+            if (!$validator) {
                 return;
             }
 
@@ -120,7 +120,7 @@ class SiteInfoComponent extends FluteComponent
 
     /**
      * Get list of timezones
-     * 
+     *
      * @return array
      */
     protected function getTimezones(): array
@@ -137,7 +137,7 @@ class SiteInfoComponent extends FluteComponent
             'Europe' => \DateTimeZone::EUROPE,
             'Indian' => \DateTimeZone::INDIAN,
             'Pacific' => \DateTimeZone::PACIFIC,
-            'UTC' => \DateTimeZone::UTC
+            'UTC' => \DateTimeZone::UTC,
         ];
 
         foreach ($regions as $name => $mask) {
@@ -152,7 +152,7 @@ class SiteInfoComponent extends FluteComponent
 
     /**
      * Render the component
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function render()

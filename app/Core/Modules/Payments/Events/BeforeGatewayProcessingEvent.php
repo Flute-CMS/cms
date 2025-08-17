@@ -2,8 +2,8 @@
 
 namespace Flute\Core\Modules\Payments\Events;
 
-use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\PaymentGateway;
+use Flute\Core\Database\Entities\PaymentInvoice;
 use Omnipay\Common\GatewayInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 

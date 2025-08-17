@@ -55,8 +55,8 @@ abstract class Layout implements LayoutInterface
         }
 
         $build = collect($this->layouts)
-            ->map(fn($layouts) => Arr::wrap($layouts))
-            ->map(fn(iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
+            ->map(fn ($layouts) => Arr::wrap($layouts))
+            ->map(fn (iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
             ->collapse()
             ->all();
 
@@ -78,8 +78,8 @@ abstract class Layout implements LayoutInterface
     {
         return collect($layouts)
             ->flatten()
-            ->map(fn($layout) => is_object($layout) ? $layout : app()->get($layout))
-            ->filter(fn() => $this->isVisible())
+            ->map(fn ($layout) => is_object($layout) ? $layout : app()->get($layout))
+            ->filter(fn () => $this->isVisible())
             ->reduce(function ($build, self $layout) use ($key, $repository) {
                 $build[$key][] = $layout->build($repository);
 
@@ -87,7 +87,7 @@ abstract class Layout implements LayoutInterface
             }, []);
     }
 
-    public function jsonSerialize() : array
+    public function jsonSerialize(): array
     {
         $props = collect(get_object_vars($this));
 

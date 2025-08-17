@@ -74,6 +74,7 @@ class Toggle extends Field
     public function value(mixed $value): Field
     {
         $this->checked($value);
+
         return $this;
     }
 
@@ -86,6 +87,7 @@ class Toggle extends Field
     public function label(string $value)
     {
         $this->set('label', $value);
+
         return $this;
     }
 
@@ -98,6 +100,7 @@ class Toggle extends Field
     public function checked(bool $value = false)
     {
         $this->set('checked', $value);
+
         return $this;
     }
 
@@ -110,6 +113,7 @@ class Toggle extends Field
     public function sendTrueOrFalse(bool $value = false)
     {
         $this->set('sendTrueOrFalse', $value);
+
         return $this;
     }
 
@@ -122,18 +126,20 @@ class Toggle extends Field
     public function additionalClass(string $value)
     {
         $this->attributes['class'] .= ' ' . $value;
+
         return $this;
     }
 
     /**
      * Настраивает toggle для работы с YOYO/HTMX
-     * 
+     *
      * @return $this
      */
     public function yoyo()
     {
         $this->set('yoyo', true);
         $this->set('hx-trigger', 'change');
+
         return $this;
     }
 }

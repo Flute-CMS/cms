@@ -2,10 +2,8 @@
 
 namespace Flute\Admin\Packages\Update\Screens;
 
-use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
-use Flute\Admin\Platform\Support\Color;
 use Flute\Core\App;
 use Flute\Core\Database\Entities\Theme;
 use Flute\Core\ModulesManager\ModuleManager;
@@ -33,6 +31,13 @@ class UpdateScreen extends Screen
             ->add(__('admin-update.title'));
 
         $this->updateService = app(UpdateService::class);
+        $savedChannel = config('app.update_channel', 'stable');
+        $channel = request()->get('channel') ?? $savedChannel;
+        $this->updateService->setChannel($channel);
+
+        if (request()->get('mock') === '1') {
+            $this->updateService->enableMockData(true);
+        }
     }
 
     /**
@@ -45,16 +50,12 @@ class UpdateScreen extends Screen
         return [
             LayoutFactory::view('admin-update::components.javascript'),
 
-            LayoutFactory::view('admin-update::layouts.cms-update', [
+            LayoutFactory::view('admin-update::layouts.update-center', [
                 'current_version' => App::VERSION,
                 'update' => $updates['cms'] ?? null,
                 'modules' => $updates['modules'] ?? [],
                 'themes' => $updates['themes'] ?? [],
-            ])->setVisible(! empty($updates['cms']) || ! empty($updates['modules']) || ! empty($updates['themes'])),
-
-            LayoutFactory::view('admin-update::components.no-updates')->setVisible(
-                empty($updates['cms']) && empty($updates['modules']) && empty($updates['themes'])
-            ),
+            ]),
         ];
     }
 
@@ -63,25 +64,7 @@ class UpdateScreen extends Screen
      */
     public function commandBar(): array
     {
-        $updates = $this->updateService->getAvailableUpdates();
-        $hasUpdates = !empty($updates['cms']) || !empty($updates['modules']) || !empty($updates['themes']);
-
-        $commands = [
-            Button::make(__('admin-update.check_updates'))
-                ->icon('ph.bold.arrows-clockwise-bold')
-                ->method('handleCheckUpdates'),
-        ];
-
-        if ($hasUpdates) {
-            $commands[] = Button::make(__('admin-update.update_all'))
-                ->icon('ph.bold.arrow-circle-up-bold')
-                ->method('handleUpdateAll')
-                ->confirm(__('admin-update.update_all_confirm'))
-                ->confirmType('success')
-                ->type(Color::ACCENT);
-        }
-
-        return $commands;
+        return [];
     }
 
     /**
@@ -91,7 +74,21 @@ class UpdateScreen extends Screen
     {
         $this->updateService->clearCache();
         $this->updateService->getAvailableUpdates(true);
-        
+
+        $this->flashMessage(__('admin-update.check_complete'));
+    }
+
+    public function switchChannel(): void
+    {
+        $data = request()->all();
+        $channel = in_array(($data['channel'] ?? ''), ['stable', 'early'], true) ? $data['channel'] : 'stable';
+        $currentAppConfig = config('app');
+        $currentAppConfig['update_channel'] = $channel;
+        config()->set('app', $currentAppConfig);
+        config()->save();
+        $this->updateService->setChannel($channel);
+        $this->updateService->clearCache();
+        $this->updateService->getAvailableUpdates(true);
         $this->flashMessage(__('admin-update.check_complete'));
     }
 
@@ -106,6 +103,7 @@ class UpdateScreen extends Screen
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
+
         try {
             $data = request()->all();
 
@@ -117,7 +115,7 @@ class UpdateScreen extends Screen
 
             $this->updateService->clearCache();
             $updates = $this->updateService->getAvailableUpdates(true);
-            
+
             if (($type === 'cms' && empty($updates['cms'])) ||
                 ($type === 'module' && (empty($id) || empty($updates['modules'][$id]))) ||
                 ($type === 'theme' && (empty($id) || empty($updates['themes'][$id])))
@@ -128,7 +126,7 @@ class UpdateScreen extends Screen
             $this->flashMessage(__('admin-update.update_downloading'));
             $packageFile = $this->updateService->downloadUpdate($type, $id, $version);
 
-            if (empty($packageFile) || ! file_exists($packageFile)) {
+            if (empty($packageFile) || !file_exists($packageFile)) {
                 throw new \RuntimeException(__('admin-update.update_failed'));
             }
 
@@ -143,15 +141,15 @@ class UpdateScreen extends Screen
 
             if ($success) {
                 $this->updateService->clearCache();
-                
+
                 app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
-                
+
                 if (file_exists($packageFile)) {
                     @unlink($packageFile);
                 }
 
                 $this->updateService->getAvailableUpdates(true);
-                
+
                 $this->flashMessage(__('admin-update.update_complete'));
             } else {
                 throw new \RuntimeException(__('admin-update.update_failed'));
@@ -171,9 +169,10 @@ class UpdateScreen extends Screen
     protected function updateModule(string $moduleId, array $data): bool
     {
         $module = app(ModuleManager::class)->getModule($moduleId);
-        if (! $module) {
+        if (!$module) {
             throw new \InvalidArgumentException("Module {$moduleId} not found");
         }
+
         return (new ModuleUpdater($module))->update($data);
     }
 
@@ -183,10 +182,10 @@ class UpdateScreen extends Screen
     protected function updateTheme(string $themeId, array $data): bool
     {
         $theme = app(ThemeManager::class)->getTheme($themeId);
-        if (! $theme) {
+        if (!$theme) {
             throw new \InvalidArgumentException("Theme {$themeId} not found");
         }
-        
+
         $themeData = app(ThemeManager::class)->getThemeData($themeId);
 
         $theme = Theme::findOne(['key' => $themeId]);
@@ -205,29 +204,31 @@ class UpdateScreen extends Screen
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
+
         try {
             $this->flashMessage(__('admin-update.update_all_preparing'));
 
             $this->updateService->clearCache();
             $updates = $this->updateService->getAvailableUpdates(true);
-            
+
             $totalUpdates = 0;
             $successfulUpdates = 0;
 
             if (!empty($updates['cms'])) {
                 $totalUpdates++;
+
                 try {
                     $this->flashMessage(__('admin-update.update_downloading') . ' (CMS)');
                     $packageFile = $this->updateService->downloadUpdate('cms', null, $updates['cms']['version']);
-                    
+
                     if (!empty($packageFile) && file_exists($packageFile)) {
                         $this->flashMessage(__('admin-update.update_extracting') . ' (CMS)');
                         $success = (new CmsUpdater())->update(['package_file' => $packageFile]);
-                        
+
                         if ($success) {
                             $successfulUpdates++;
                         }
-                        
+
                         if (file_exists($packageFile)) {
                             @unlink($packageFile);
                         }
@@ -240,18 +241,19 @@ class UpdateScreen extends Screen
             if (!empty($updates['modules'])) {
                 foreach ($updates['modules'] as $moduleId => $moduleUpdate) {
                     $totalUpdates++;
+
                     try {
                         $this->flashMessage(__('admin-update.update_downloading') . " ({$moduleUpdate['name']})");
                         $packageFile = $this->updateService->downloadUpdate('module', $moduleId, $moduleUpdate['version']);
-                        
+
                         if (!empty($packageFile) && file_exists($packageFile)) {
                             $this->flashMessage(__('admin-update.update_extracting') . " ({$moduleUpdate['name']})");
                             $success = $this->updateModule($moduleId, ['package_file' => $packageFile]);
-                            
+
                             if ($success) {
                                 $successfulUpdates++;
                             }
-                            
+
                             if (file_exists($packageFile)) {
                                 @unlink($packageFile);
                             }
@@ -265,18 +267,19 @@ class UpdateScreen extends Screen
             if (!empty($updates['themes'])) {
                 foreach ($updates['themes'] as $themeId => $themeUpdate) {
                     $totalUpdates++;
+
                     try {
                         $this->flashMessage(__('admin-update.update_downloading') . " ({$themeUpdate['name']})");
                         $packageFile = $this->updateService->downloadUpdate('theme', $themeId, $themeUpdate['version']);
-                        
+
                         if (!empty($packageFile) && file_exists($packageFile)) {
                             $this->flashMessage(__('admin-update.update_extracting') . " ({$themeUpdate['name']})");
                             $success = $this->updateTheme($themeId, ['package_file' => $packageFile]);
-                            
+
                             if ($success) {
                                 $successfulUpdates++;
                             }
-                            
+
                             if (file_exists($packageFile)) {
                                 @unlink($packageFile);
                             }
@@ -289,11 +292,11 @@ class UpdateScreen extends Screen
 
             $this->updateService->clearCache();
             app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
-            
+
             if (function_exists('opcache_reset')) {
                 opcache_reset();
             }
-            
+
             $this->updateService->getAvailableUpdates(true);
 
             if ($successfulUpdates === $totalUpdates && $totalUpdates > 0) {

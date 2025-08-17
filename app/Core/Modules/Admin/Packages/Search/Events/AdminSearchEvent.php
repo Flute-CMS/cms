@@ -2,8 +2,8 @@
 
 namespace Flute\Admin\Packages\Search\Events;
 
-use Symfony\Contracts\EventDispatcher\Event;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Event that occurs when searching in the admin panel.
@@ -22,7 +22,7 @@ class AdminSearchEvent extends Event
         $this->value = $value;
     }
 
-    public function getValue() : string
+    public function getValue(): string
     {
         return $this->value;
     }
@@ -30,7 +30,7 @@ class AdminSearchEvent extends Event
     /**
      * Add search result.
      */
-    public function add(AdminSearchResult $result) : void
+    public function add(AdminSearchResult $result): void
     {
         $this->results[] = $result;
     }
@@ -38,7 +38,7 @@ class AdminSearchEvent extends Event
     /**
      * @return AdminSearchResult[]
      */
-    public function getResults() : array
+    public function getResults(): array
     {
         return $this->results;
     }

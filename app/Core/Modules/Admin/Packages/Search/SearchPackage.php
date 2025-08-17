@@ -11,7 +11,7 @@ class SearchPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -26,7 +26,7 @@ class SearchPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return ['admin'];
     }
@@ -34,12 +34,12 @@ class SearchPackage extends AbstractAdminPackage
     /**
      * {@inheritdoc}
      */
-    public function getMenuItems() : array
+    public function getMenuItems(): array
     {
         return [];
     }
 
-    public function getPriority() : int
+    public function getPriority(): int
     {
         return 0;
     }

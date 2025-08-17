@@ -33,7 +33,7 @@ class Metric extends Layout
 
     /**
      * Create a new Metric instance
-     * 
+     *
      * @param array $labels
      */
     public function __construct(array $labels)
@@ -43,7 +43,7 @@ class Metric extends Layout
 
     /**
      * Set icon for specific metric
-     * 
+     *
      * @param string $label
      * @param string $icon
      * @return $this
@@ -51,24 +51,26 @@ class Metric extends Layout
     public function setIcon(string $label, string $icon): self
     {
         $this->icons[$label] = $icon;
+
         return $this;
     }
 
     /**
      * Set multiple icons at once
-     * 
+     *
      * @param array $icons
      * @return $this
      */
     public function setIcons(array $icons): self
     {
         $this->icons = array_merge($this->icons, $icons);
+
         return $this;
     }
 
     /**
      * Get icon for metric
-     * 
+     *
      * @param string $label
      * @return string|null
      */
@@ -79,7 +81,7 @@ class Metric extends Layout
 
     /**
      * Build the layout
-     * 
+     *
      * @param Repository $repository
      * @return Factory|\Illuminate\View\View|void
      */
@@ -90,13 +92,13 @@ class Metric extends Layout
         if (!$this->isVisible() || empty($this->labels)) {
             return;
         }
-        
-        $metrics = collect($this->labels)->mapWithKeys(function(string $value, string $key) use ($repository) {
+
+        $metrics = collect($this->labels)->mapWithKeys(function (string $value, string $key) use ($repository) {
             return [
                 $key => [
                     'value' => $repository->getContent($value, ''),
-                    'icon' => $this->getIcon($key)
-                ]
+                    'icon' => $this->getIcon($key),
+                ],
             ];
         });
 
@@ -108,13 +110,14 @@ class Metric extends Layout
 
     /**
      * Set title for metrics group
-     * 
+     *
      * @param string $title
      * @return $this
      */
     public function title(string $title): self
     {
         $this->title = $title;
+
         return $this;
     }
 }

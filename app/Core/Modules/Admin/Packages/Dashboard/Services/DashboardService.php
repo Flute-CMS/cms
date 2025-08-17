@@ -3,14 +3,14 @@
 namespace Flute\Admin\Packages\Dashboard\Services;
 
 use Carbon\Carbon;
-use Flute\Admin\Platform\Layouts\LayoutFactory;
+use DateTimeImmutable;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Layouts\Chart;
-use Illuminate\Support\Collection;
-use Flute\Core\Database\Entities\User;
+use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Core\Database\Entities\Notification;
-use DateTimeImmutable;
 use Flute\Core\Database\Entities\PaymentInvoice;
+use Flute\Core\Database\Entities\User;
+use Illuminate\Support\Collection;
 
 /**
  * Service class for handling dashboard layouts and tabs
@@ -96,39 +96,38 @@ class DashboardService
             }
         }
 
-        // Calculate percentage differences
         $totalUsersDiff = $totalUsersYesterday > 0
-            ? (($totalUsers - $totalUsersYesterday) / $totalUsersYesterday) * 100
-            : 100;
+            ? (($totalUsers - $totalUsersYesterday) / max($totalUsersYesterday, 1)) * 100
+            : ($totalUsers > 0 ? 0 : 0);
 
         $activeUsersDiff = $activeUsersYesterday > 0
-            ? (($activeUsers - $activeUsersYesterday) / $activeUsersYesterday) * 100
-            : ($activeUsers > 0 ? 100 : 0);
+            ? (($activeUsers - $activeUsersYesterday) / max($activeUsersYesterday, 1)) * 100
+            : 0;
 
         $onlineUsersDiff = $onlineUsersLastWeek > 0
-            ? (($onlineUsers - $onlineUsersLastWeek) / $onlineUsersLastWeek) * 100
-            : ($onlineUsers > 0 ? 100 : 0);
+            ? (($onlineUsers - $onlineUsersLastWeek) / max($onlineUsersLastWeek, 1)) * 100
+            : 0;
 
         $newUsersDiff = $newUsersYesterday > 0
-            ? (($newUsersToday - $newUsersYesterday) / $newUsersYesterday) * 100
-            : ($newUsersToday > 0 ? 100 : 0);
+            ? (($newUsersToday - $newUsersYesterday) / max($newUsersYesterday, 1)) * 100
+            : 0;
 
         return [
             'total_users' => [
                 'value' => number_format($totalUsers),
-                'diff' => round($totalUsersDiff, 1)
+                'diff' => round($totalUsersDiff, 1),
             ],
             'active_users' => [
                 'value' => number_format($activeUsers),
-                'diff' => round($activeUsersDiff, 1)
+                'diff' => round($activeUsersDiff, 1),
             ],
             'online_users' => [
                 'value' => number_format($onlineUsers),
-                'diff' => round($onlineUsersDiff, 1)
+                'diff' => round($onlineUsersDiff, 1),
             ],
             'new_users_today' => [
                 'value' => number_format($newUsersToday),
-                'diff' => round($newUsersDiff, 1)
+                'diff' => round($newUsersDiff, 1),
             ],
         ];
     }
@@ -209,10 +208,10 @@ class DashboardService
             'series' => [
                 [
                     'name' => "New Users",
-                    'data' => $monthlyRegistrations
-                ]
+                    'data' => $monthlyRegistrations,
+                ],
             ],
-            'labels' => $labels
+            'labels' => $labels,
         ];
     }
 
@@ -253,14 +252,14 @@ class DashboardService
             'series' => [
                 [
                     'name' => "Active Users",
-                    'data' => $dailyActive
+                    'data' => $dailyActive,
                 ],
                 [
                     'name' => "Online Users",
-                    'data' => $dailyOnline
-                ]
+                    'data' => $dailyOnline,
+                ],
             ],
-            'labels' => $labels
+            'labels' => $labels,
         ];
     }
 
@@ -322,37 +321,37 @@ class DashboardService
 
         // Calculate percentage differences
         $revenueDiff = $yesterdayRevenue > 0
-            ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100
-            : ($todayRevenue > 0 ? 100 : 0);
+            ? (($todayRevenue - $yesterdayRevenue) / max($yesterdayRevenue, 1)) * 100
+            : 0;
 
         $monthlyRevenueDiff = $lastMonthRevenue > 0
-            ? (($totalRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100
-            : 100;
+            ? (($totalRevenue - $lastMonthRevenue) / max($lastMonthRevenue, 1)) * 100
+            : 0;
 
         $paymentsDiff = $yesterdayPayments > 0
-            ? (($successfulPayments - $yesterdayPayments) / $yesterdayPayments) * 100
-            : ($successfulPayments > 0 ? 100 : 0);
+            ? (($successfulPayments - $yesterdayPayments) / max($yesterdayPayments, 1)) * 100
+            : 0;
 
         $promoUsageDiff = $lastMonthPromoUsage > 0
-            ? (($promoUsage - $lastMonthPromoUsage) / $lastMonthPromoUsage) * 100
-            : ($promoUsage > 0 ? 100 : 0);
+            ? (($promoUsage - $lastMonthPromoUsage) / max($lastMonthPromoUsage, 1)) * 100
+            : 0;
 
         return [
             'total_revenue' => [
                 'value' => number_format($totalRevenue, 2) . ' ' . config('lk.currency_view'),
-                'diff' => round($monthlyRevenueDiff, 1)
+                'diff' => round($monthlyRevenueDiff, 1),
             ],
             'today_revenue' => [
                 'value' => number_format($todayRevenue, 2) . ' ' . config('lk.currency_view'),
-                'diff' => round($revenueDiff, 1)
+                'diff' => round($revenueDiff, 1),
             ],
             'successful_payments' => [
                 'value' => number_format($successfulPayments),
-                'diff' => round($paymentsDiff, 1)
+                'diff' => round($paymentsDiff, 1),
             ],
             'promo_usage' => [
                 'value' => number_format($promoUsage),
-                'diff' => round($promoUsageDiff, 1)
+                'diff' => round($promoUsageDiff, 1),
             ],
         ];
     }
@@ -393,14 +392,14 @@ class DashboardService
             'series' => [
                 [
                     'name' => "Daily Revenue",
-                    'data' => $dailyRevenue
+                    'data' => $dailyRevenue,
                 ],
                 [
                     'name' => "Daily Payments",
-                    'data' => $dailyPayments
-                ]
+                    'data' => $dailyPayments,
+                ],
             ],
-            'labels' => $labels
+            'labels' => $labels,
         ];
     }
 
@@ -432,7 +431,7 @@ class DashboardService
 
         return [
             'series' => $data,
-            'labels' => $labels
+            'labels' => $labels,
         ];
     }
 
@@ -479,9 +478,9 @@ class DashboardService
                             ->description(__('admin-dashboard.descriptions.user_activity'))
                             ->dataset($userActivityData['series'])
                             ->labels($userActivityData['labels']),
-                    ])
+                    ]),
                 ]),
-            'vars' => $userMetrics
+            'vars' => $userMetrics,
         ];
     }
 
@@ -528,9 +527,9 @@ class DashboardService
                             ->description(__('admin-dashboard.descriptions.payment_methods'))
                             ->dataset($paymentMethodsData['series'])
                             ->labels($paymentMethodsData['labels']),
-                    ])
+                    ]),
                 ]),
-            'vars' => $paymentMetrics
+            'vars' => $paymentMetrics,
         ];
     }
 
@@ -559,6 +558,7 @@ class DashboardService
     {
         $this->tabs->push($tab);
         $this->vars = $this->vars->merge($vars);
+
         return $this;
     }
 
@@ -590,7 +590,7 @@ class DashboardService
     public function getLayout(): array
     {
         return [
-            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false)
+            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
         ];
     }
 }

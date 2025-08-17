@@ -23,7 +23,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
 
     public function boot(array $variables, array $attributes)
     {
-        $data = array_merge($variables, $this->request->all());
+        if (!is_array($variables)) {
+            $variables = [];
+        }
+        $requestData = $this->request->all();
+        if (!is_array($requestData)) {
+            $requestData = [];
+        }
+
+        $data = array_merge($variables, $requestData);
 
         $this->variables = $variables;
 
@@ -34,13 +42,13 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $this->validator = validator();
 
         foreach ($publicProperties as $property) {
-            if (! in_array($property, $this->excludesVariables)) {
+            if (!in_array($property, $this->excludesVariables)) {
                 $this->{$property} = $data[$property] ?? $this->{$property};
             }
         }
 
         foreach ($this->getDynamicProperties() as $property) {
-            if (! in_array($property, $this->excludesVariables)) {
+            if (!in_array($property, $this->excludesVariables)) {
                 $this->{$property} = $data[$property] ?? null;
             }
         }
@@ -58,7 +66,8 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      */
     public function validate(array $rules, array $data = null, array $messages = [])
     {
-        $data = $data ?? $this->getPublicProperties();
+        $data ??= $this->getPublicProperties();
+
         return $this->validator->validate($data, $rules, $messages, null);
     }
 
@@ -84,7 +93,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
 
     /**
      * Show confirmation dialog.
-     * 
+     *
      * @param string $actionKey The action key
      * @param string $type The confirmation type (accent, primary, error, warning, info)
      * @param string $message The confirmation message
@@ -108,15 +117,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
             'type' => $type,
             'action' => $action,
             'originalRequestData' => $this->request->all(),
-            'withoutTrigger' => $withoutTrigger
+            'withoutTrigger' => $withoutTrigger,
         ]);
     }
 
     /**
      * Check if an action has been confirmed.
-     * 
+     *
      * @param string $actionKey A unique key to identify this confirmed action
-     * 
+     *
      * @return bool
      */
     public function confirmed(string $actionKey): bool
@@ -198,7 +207,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @param string $name
      * @param $error
-     * 
+     *
      * @return void
      */
     public function inputError(string $name, $error)
@@ -243,6 +252,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         foreach ($properties as $key => $value) {
             $this->$key = $value;
         }
+
         return $this;
     }
 
@@ -294,13 +304,14 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * @param string|null $title The confirmation dialog title
      * @param string|null $confirmText The text for the confirm button
      * @param string|null $cancelText The text for the cancel button
-     * 
+     *
      * @return mixed The result of the action if confirmed
      */
     public function withConfirmation(string $actionKey, string $type, string $message, callable $action, ?string $title = null, ?string $confirmText = null, ?string $cancelText = null)
     {
-        if (! $this->confirmed($actionKey)) {
+        if (!$this->confirmed($actionKey)) {
             $this->confirm($actionKey, $type, $message, $title, $confirmText, $cancelText);
+
             return null;
         }
 

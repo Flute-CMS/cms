@@ -1,73 +1,88 @@
-<div>
-    <div class="marketplace-filters">
-        <div class="search-filter">
-            <x-forms.label>{{ __('admin-marketplace.labels.search_modules') }}</x-forms.label>
-            <x-forms.field hx-trigger="input changed delay:500ms" yoyo:get="searchChanged">
-                <x-fields.input type="search" name="searchQuery" value="{{ $searchQuery }}"
-                    placeholder="{{ __('admin-marketplace.labels.search_modules') }}" />
-            </x-forms.field>
-        </div>
-        <div class="filter-categories">
-            <x-forms.label>{{ __('admin-marketplace.labels.category') }}</x-forms.label>
-            <x-forms.field hx-trigger="change" yoyo:get="categoryFilterChanged">
-                <x-fields.select name="selectedCategory"
-                    placeholder="{{ __('admin-marketplace.labels.all_categories') }}">
-                    <option value="" @if(empty($selectedCategory)) selected @endif>
-                        {{ __('admin-marketplace.labels.all_categories') }}
-                    </option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category['slug'] }}" @if($selectedCategory === $category['slug']) selected @endif>
-                            {{ $category['name'] }}
-                        </option>
-                    @endforeach
-                    </x-forms.select>
-            </x-forms.field>
-        </div>
-        <div class="filter-price">
-            <x-forms.label>{{ __('admin-marketplace.labels.price') }}</x-forms.label>
-            <x-forms.field hx-trigger="change" yoyo:get="priceFilterChanged">
-                <x-fields.select name="priceFilter" hx-trigger="change">
-                    <option value="" @if(empty($priceFilter)) selected @endif>
-                        {{ __('admin-marketplace.labels.all_modules') }}
-                    </option>
-                    <option value="free" @if($priceFilter === 'free') selected @endif>
-                        {{ __('admin-marketplace.labels.free_only') }}
-                    </option>
-                    <option value="paid" @if($priceFilter === 'paid') selected @endif>
-                        {{ __('admin-marketplace.labels.paid_only') }}
-                    </option>
-                    </x-forms.select>
-            </x-forms.field>
-        </div>
-        <div class="filter-status">
-            <x-forms.label>{{ __('admin-marketplace.labels.status') }}</x-forms.label>
-            <x-forms.field hx-trigger="change" yoyo:get="statusFilterChanged">
-                <x-fields.select name="statusFilter" hx-trigger="change">
-                    <option value="" @if(empty($statusFilter)) selected @endif>
-                        {{ __('admin-marketplace.labels.all_modules') }}
-                    </option>
-                    <option value="installed" @if($statusFilter === 'installed') selected @endif>
-                        {{ __('admin-marketplace.labels.installed_only') }}
-                    </option>
-                    <option value="notinstalled" @if($statusFilter === 'notinstalled') selected @endif>
-                        {{ __('admin-marketplace.labels.not_installed') }}
-                    </option>
-                    <option value="update" @if($statusFilter === 'update') selected @endif>
-                        {{ __('admin-marketplace.labels.updates_available') }}
-                    </option>
-                    </x-forms.select>
-            </x-forms.field>
-        </div>
-        @if(! empty($searchQuery) || ! empty($selectedCategory) || ! empty($priceFilter) || ! empty($statusFilter))
-            <div class="clear-filters">
-                <x-admin::button type="outline-primary" size="small" yoyo:post="clearFilters">
-                    {{ __('admin-marketplace.labels.clear_filters') }}
-                    <x-icon path="ph.bold.x-bold" />
-                </x-admin::button>
+@php
+    $mods = is_array($modules) ? $modules : [];
+@endphp
+
+<div class="admin-marketplace shadcn view-grid">
+    <form class="mp-toolbar card-gradient" yoyo yoyo:on="changed change" yoyo:post="handleFilters">
+        <div class="mp-toolbar-row">
+            <div class="mp-search">
+                <x-fields.input type="search" name="q" value="{{ $searchQuery }}"
+                    placeholder="{{ __('admin-marketplace.labels.search_modules') }}" yoyo:on="input delay:400ms"
+                    yoyo:post="handleFilters" />
             </div>
-        @endif
-    </div>
-    @if(empty(config('app.flute_key')))
+
+            <div class="mp-controls">
+                <div class="segment" role="group" aria-label="{{ __('admin-marketplace.labels.price') }}">
+                    @php $p = $priceFilter; @endphp
+                    <input type="radio" id="price_all" name="price" value="" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($p === '') checked @endif>
+                    <label class="seg" for="price_all">{{ __('admin-marketplace.labels.all_modules') }}</label>
+                    <input type="radio" id="price_free" name="price" value="free" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($p === 'free') checked @endif>
+                    <label class="seg" for="price_free">{{ __('admin-marketplace.labels.free_only') }}</label>
+                    <input type="radio" id="price_paid" name="price" value="paid" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($p === 'paid') checked @endif>
+                    <label class="seg" for="price_paid">{{ __('admin-marketplace.labels.paid_only') }}</label>
+                </div>
+
+                <div class="segment" role="group" aria-label="{{ __('admin-marketplace.labels.status') }}">
+                    @php $s = $statusFilter; @endphp
+                    <input type="radio" id="status_all" name="status" value="" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($s === '') checked @endif>
+                    <label class="seg" for="status_all">{{ __('admin-marketplace.labels.all_modules') }}</label>
+                    <input type="radio" id="status_installed" name="status" value="installed" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($s === 'installed') checked @endif>
+                    <label class="seg"
+                        for="status_installed">{{ __('admin-marketplace.labels.installed_only') }}</label>
+                    <input type="radio" id="status_notinstalled" name="status" value="notinstalled" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($s === 'notinstalled') checked @endif>
+                    <label class="seg"
+                        for="status_notinstalled">{{ __('admin-marketplace.labels.not_installed') }}</label>
+                    <input type="radio" id="status_update" name="status" value="update" yoyo:on="change" yoyo:post="handleFilters"
+                        @if ($s === 'update') checked @endif>
+                    <label class="seg"
+                        for="status_update">{{ __('admin-marketplace.labels.updates_available') }}</label>
+                </div>
+            </div>
+        </div>
+
+        @php
+            $total = is_array($modules) ? count($modules) : 0;
+            $installedCount = 0;
+            $updatesCount = 0;
+            $freeCount = 0;
+            $paidCount = 0;
+            if (!empty($modules)) {
+                foreach ($modules as $m) {
+                    $paid = !empty($m['isPaid']);
+                    $paid ? $paidCount++ : $freeCount++;
+                    $k = $m['name'] ?? null;
+                    if ($k && $moduleManager && $moduleManager->issetModule($k)) {
+                        $mod = $moduleManager->getModule($k);
+                        if ($mod->status !== 'notinstalled') {
+                            $installedCount++;
+                            $cur = $m['currentVersion'] ?? '0.0.0';
+                            $ins = $mod->installedVersion ?? '0.0.0';
+                            if (version_compare($cur, $ins, '>')) {
+                                $updatesCount++;
+                            }
+                        }
+                    }
+                }
+            }
+        @endphp
+        <div class="mp-summary">
+            <span class="chip">{{ $total }} {{ __('admin-marketplace.labels.modules') ?? 'modules' }}</span>
+            <span class="chip success">{{ $installedCount }}
+                {{ __('admin-marketplace.labels.installed_only') }}</span>
+            <span class="chip warning">{{ $updatesCount }}
+                {{ __('admin-marketplace.labels.updates_available') }}</span>
+            <span class="chip">{{ $freeCount }} {{ __('admin-marketplace.labels.free') }}</span>
+            <span class="chip accent">{{ $paidCount }} {{ __('admin-marketplace.labels.paid') }}</span>
+        </div>
+    </form>
+
+    @if (empty(config('app.flute_key')))
         <x-admin::alert type="danger" withClose="false">
             {{ __('admin-marketplace.messages.flute_key_not_set') }}
         </x-admin::alert>
@@ -76,89 +91,96 @@
             {{ __('admin-marketplace.labels.no_modules_found') }}
         </x-admin::alert>
     @else
-
-        <div class="marketplace-list">
-            @if($isLoading)
-                <div class="marketplace-loading">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">{{ __('admin-marketplace.messages.loading') }}</span>
+        <div class="marketplace-grid" data-grid>
+            @if ($isLoading)
+                @for ($i = 0; $i < 6; $i++)
+                    <div class="mp-card skeleton">
+                        <div class="cover"></div>
+                        <div class="body">
+                            <div class="line w-70"></div>
+                            <div class="line w-40 mt-6"></div>
+                            <div class="line w-50 mt-10"></div>
+                        </div>
                     </div>
-                    <div class="mt-2">{{ __('admin-marketplace.messages.loading') }}</div>
-                </div>
+                @endfor
             @endif
-            @foreach($modules as $module)
-                <article class="marketplace-module-card">
-                    <div class="module-image">
-                        @if(! empty($module['primaryImage']))
-                            <img src="{{ str_starts_with($module['primaryImage'], 'http') ? $module['primaryImage'] : config('app.flute_market_url').$module['primaryImage'] }}"
+
+            @foreach ($mods as $module)
+                @php
+                    $key = $module['name'] ?? '';
+                    $isInstalled =
+                        $key &&
+                        $moduleManager &&
+                        $moduleManager->issetModule($key) &&
+                        $moduleManager->getModule($key)->status !== 'notinstalled';
+                    $needsUpdate =
+                        $isInstalled &&
+                        version_compare(
+                            $module['currentVersion'] ?? '0.0.0',
+                            $moduleManager->getModule($key)->installedVersion ?? '0.0.0',
+                            '>',
+                        );
+                @endphp
+                <div class="mp-card {{ !empty($module['isPaid']) ? 'paid' : 'free' }}"
+                    hx-swap="morph:outerHTML transition:true"
+                    data-name="{{ strtolower(preg_replace('/[^a-z0-9]+/i', '-', $module['name'] ?? '')) }}"
+                    data-downloads="{{ $module['downloadCount'] ?? 0 }}"
+                    data-paid="{{ !empty($module['isPaid']) ? 1 : 0 }}" data-installed="{{ $isInstalled ? 1 : 0 }}">
+                    <a class="cover" hx-boost="true" hx-target="#main" yoyo:ignore
+                        href="{{ url('/admin/marketplace/' . $module['slug']) }}">
+                        @if (!empty($module['primaryImage']))
+                            <img loading="lazy"
+                                data-src="{{ str_starts_with($module['primaryImage'], 'http') ? $module['primaryImage'] : config('app.flute_market_url') . $module['primaryImage'] }}"
+                                src="{{ str_starts_with($module['primaryImage'], 'http') ? $module['primaryImage'] : config('app.flute_market_url') . $module['primaryImage'] }}"
                                 alt="{{ $module['name'] }}">
                         @else
-                            <div class="placeholder-icon">
-                                <x-icon path="ph.regular.package" />
-                            </div>
+                            <div class="placeholder"><x-icon path="ph.regular.package" /></div>
                         @endif
-                    </div>
-                    <div class="module-content">
-                        <div class="module-title">
-                            {{ $module['name'] }}
-                            @if(! empty($module['isPaid']))
-                                <span class="badge warning">{{ __('admin-marketplace.labels.paid') }}</span>
-                            @else
-                                <span class="badge success">{{ __('admin-marketplace.labels.free') }}</span>
-                            @endif
-                        </div>
-                        @php $rawDesc = $module['description'] ?? ''; @endphp
-                        <div class="module-description markdown-content @if(strlen($rawDesc) > 200) collapsed @endif">
-                            {!! markdown()->parse($rawDesc ?: __('admin-marketplace.messages.no_description')) !!}
-                        </div>
-                        @if(strlen($rawDesc) > 200)
-                            <button type="button" class="read-more" onclick="this.previousElementSibling.classList.toggle('collapsed'); this.textContent = this.textContent === 'Читать дальше' ? 'Свернуть' : 'Читать дальше';">Читать дальше</button>
-                        @endif
-                        <div class="module-meta">
-                            <div class="version">
-                                <x-icon path="ph.regular.tag" />
-                                {{ __('admin-marketplace.labels.version') }}: {{ $module['currentVersion'] ?? '1.0.0' }}
-                            </div>
-                            @if(! empty($module['downloadCount']))
-                                <div class="downloads">
-                                    <x-icon path="ph.regular.download-simple" />
-                                    {{ $module['downloadCount'] }}
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="module-actions">
-                        <x-admin::button href="{{ url(config('app.flute_market_url').'/product/'.$module['slug']) }}"
-                            size="small" target="_blank" withoutHtmx type="outline-primary">
-                            {{ __('admin-marketplace.actions.details') }}
-                        </x-admin::button>
-
-                        @php
-                            $key = $module['name'];
-                            $isInstalled = $moduleManager && $moduleManager->issetModule($key)
-                                && $moduleManager->getModule($key)->status !== 'notinstalled';
-                            $needsUpdate = $isInstalled
-                                && version_compare($module['currentVersion'] ?? '0.0.0', $moduleManager->getModule($key)->installedVersion ?? '0.0.0', '>');
-                        @endphp
-
-                        @if($isInstalled && $needsUpdate)
-                            <x-admin::button href="{{ url('/admin/update') }}" size="small" type="warning">
-                                {{ __('admin-marketplace.actions.update') }}
-                            </x-admin::button>
+                        @if ($needsUpdate)
+                            <span class="flag warning">{{ __('admin-marketplace.labels.updates_available') }}</span>
                         @elseif($isInstalled)
-                            <x-admin::button size="small" type="success" disabled>
-                                {{ __('admin-marketplace.actions.installed') }}
-                            </x-admin::button>
-                        @else
-                            <x-admin::button yoyo:post="installModule('{{ $module['slug'] }}')" hx-trigger="confirmed"
+                            <span class="flag success">{{ __('admin-marketplace.actions.installed') }}</span>
+                        @endif
+                    </a>
+                    <div class="body">
+                        <div class="top">
+                            <a class="title" hx-boost="true" hx-target="#main" yoyo:ignore
+                                href="{{ url('/admin/marketplace/' . $module['slug']) }}">{{ $module['name'] }}</a>
+                            <div class="badges">
+                                @if (!empty($module['isPaid']))
+                                    <span class="chip accent">{{ __('admin-marketplace.labels.paid') }}</span>
+                                @else
+                                    <span class="chip">{{ __('admin-marketplace.labels.free') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="meta">
+                            <span class="muted">{{ $module['author'] ?? 'Flames' }}</span>
+                            <span class="dot"></span>
+                            <span class="muted">v{{ $module['currentVersion'] ?? '1.0.0' }}</span>
+                            <span class="dot"></span>
+                            <span class="muted">{{ $module['downloadCount'] ?? 0 }}
+                                {{ __('admin-marketplace.labels.downloads') }}</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <a hx-boost="true" yoyo:ignore href="{{ url('/admin/marketplace/' . $module['slug']) }}"
+                            hx-target="#main" data-tooltip="{{ __('admin-marketplace.actions.details') }}"
+                            class="mp-details-button">
+                            <x-icon path="ph.bold.info-bold" />
+                        </a>
+                        @if (!$isInstalled)
+                            <button yoyo:post="installModule('{{ $module['slug'] }}')" hx-trigger="confirmed"
                                 hx-flute-confirm="{{ __('admin-marketplace.messages.install_confirm', ['module' => $module['name']]) }}"
                                 hx-flute-confirm-title="{{ __('admin-marketplace.messages.install_confirm_title') }}"
-                                hx-flute-confirm-type="warning" size="small" type="accent">
-                                {{ __('admin-marketplace.actions.install') }}
-                            </x-admin::button>
+                                hx-flute-confirm-type="warning"
+                                data-tooltip="{{ __('admin-marketplace.actions.install') }}"
+                                class="mp-install-button">
+                                <x-icon path="ph.bold.download-simple-bold" />
+                            </button>
                         @endif
                     </div>
-                </article>
+                </div>
             @endforeach
         </div>
     @endif

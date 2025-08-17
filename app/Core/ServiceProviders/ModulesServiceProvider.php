@@ -2,16 +2,15 @@
 
 namespace Flute\Core\ServiceProviders;
 
+use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleFinder;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\ModulesManager\ModuleRegister;
-use Flute\Core\ModulesManager\ModuleActions;
-
 use Flute\Core\Support\AbstractServiceProvider;
 
 class ModulesServiceProvider extends AbstractServiceProvider
 {
-    public function register(\DI\ContainerBuilder $containerBuilder) : void
+    public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
             ModuleFinder::class => \DI\create(),

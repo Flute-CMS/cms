@@ -21,7 +21,7 @@ class GlobalProfiler
     public static function start(): void
     {
         $config = include BASE_PATH . 'config/profiler.php';
-        
+
         if (self::$enabled || !$config['enabled'] || !is_debug()) {
             return;
         }
@@ -38,16 +38,16 @@ class GlobalProfiler
                         'array_key_exists',
                         'isset',
                         'empty',
-                        'microtime'
-                    ]
+                        'microtime',
+                    ],
                 ],
                 'save.handler' => \Xhgui\Profiler\Profiler::SAVER_UPLOAD,
-                'save.handler.upload' => array(
+                'save.handler.upload' => [
                     'url' => $config['url'],
                     'timeout' => 3,
                     'token' => $config['token'],
                     'verify' => $config['verify'],
-                ),
+                ],
             ]);
 
             self::$profiler->start();
@@ -124,7 +124,7 @@ class GlobalProfiler
                 'wall_time' => $wallTime,
                 'cpu_time' => ($data['cpu'] ?? 0) / 1_000_000,
                 'memory' => $data['mu'] ?? 0,
-                'calls' => $data['ct'] ?? 1
+                'calls' => $data['ct'] ?? 1,
             ];
         }
 
@@ -148,6 +148,7 @@ class GlobalProfiler
             if (preg_match('/\\\\Modules\\\\([^\\\\]+)/', $function, $matches)) {
                 return 'Module: ' . $matches[1];
             }
+
             return 'Modules';
         }
 
@@ -201,7 +202,7 @@ class GlobalProfiler
                 'cpu_time' => ($data['cpu'] ?? 0) / 1_000_000,
                 'memory' => $data['mu'] ?? 0,
                 'calls' => $data['ct'] ?? 1,
-                'category' => self::categorizeFunction($function)
+                'category' => self::categorizeFunction($function),
             ];
         }
 
@@ -230,7 +231,7 @@ class GlobalProfiler
                 'url' => $_SERVER['REQUEST_URI'] ?? 'cli',
                 'method' => $_SERVER['REQUEST_METHOD'] ?? 'CLI',
                 'total_time' => self::$profileData['meta']['request_ts']['wt'] ?? 0,
-                'profile' => self::$profileData['profile'] ?? []
+                'profile' => self::$profileData['profile'] ?? [],
             ];
 
             file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT));

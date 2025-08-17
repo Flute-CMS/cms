@@ -9,14 +9,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class UserSearchListener implements EventSubscriberInterface
 {
-    public static function getSubscribedEvents() : array
+    public static function getSubscribedEvents(): array
     {
         return [
             AdminSearchEvent::NAME => 'onAdminSearch',
         ];
     }
 
-    public function onAdminSearch(AdminSearchEvent $event) : void
+    public function onAdminSearch(AdminSearchEvent $event): void
     {
         $searchValue = $event->getValue();
         $searchValue = trim($searchValue);
@@ -29,11 +29,11 @@ class UserSearchListener implements EventSubscriberInterface
 
         if (empty($searchValue)) {
             $users = User::query()->orderBy('name', 'asc')->limit(10)->fetchAll();
-            
+
             foreach ($users as $user) {
                 $event->add($this->createUserSearchResult($user, 1));
             }
-            
+
             return;
         }
 
@@ -53,7 +53,7 @@ class UserSearchListener implements EventSubscriberInterface
 
     /**
      * Create a search result for a user
-     * 
+     *
      * @param User $user
      * @param int $relevance
      * @return AdminSearchResult
@@ -71,12 +71,12 @@ class UserSearchListener implements EventSubscriberInterface
 
     /**
      * Calculate relevance score for search result
-     * 
+     *
      * @param string $searchValue
      * @param User $user
      * @return int
      */
-    protected static function calculateRelevance(string $searchValue, User $user) : int
+    protected static function calculateRelevance(string $searchValue, User $user): int
     {
         $relevance = 1;
 

@@ -30,7 +30,7 @@ class GitHubUpdater
             'base_uri' => 'https://api.github.com/',
             'timeout' => 60.0,
             'headers' => [
-                'User-Agent' => 'PHP'
+                'User-Agent' => 'PHP',
             ],
         ]);
     }
@@ -44,9 +44,10 @@ class GitHubUpdater
                 $response = $this->httpClient->get($url);
                 $decode = json_decode($response->getBody()->getContents(), true);
 
-                return isset($decode[0]) ? $decode[0] : $decode;
+                return $decode[0] ?? $decode;
             } catch (RequestException $e) {
                 logs()->error("Failed to fetch latest release: {$e->getMessage()}");
+
                 return null;
             }
         }, 300);
@@ -55,6 +56,7 @@ class GitHubUpdater
     public function getLatestVersion()
     {
         $release = $this->getLatestRelease();
+
         return isset($release['tag_name']) ? str_replace('v', '', $release['tag_name']) : '';
     }
 
@@ -69,7 +71,7 @@ class GitHubUpdater
         $latestVersion = str_replace('v', '', $release['tag_name']);
 
         if (!version_compare($this->currentVersion, $latestVersion, '<')) {
-            throw new AlreadyInstalledException;
+            throw new AlreadyInstalledException();
         }
 
         $zipUrl = $release['zipball_url'];
@@ -101,14 +103,15 @@ class GitHubUpdater
             }
         } catch (RequestException $e) {
             logs()->error("Failed to download file: {$e->getMessage()}");
+
             throw $e;
         }
     }
 
     protected function extractZip($zipFile, $extractTo, array $foldersToExtract)
     {
-        $zip = new \ZipArchive;
-        if ($zip->open($zipFile) === TRUE) {
+        $zip = new \ZipArchive();
+        if ($zip->open($zipFile) === true) {
             $foldersToExtract = array_map(function ($folder) {
                 return rtrim($folder, '/') . '/';
             }, $foldersToExtract);
@@ -128,11 +131,12 @@ class GitHubUpdater
                             $extractedPath = $extractTo . $filename;
 
                             if (is_dir($extractedPath)) {
-                                if (!file_exists($targetPath))
-                                    mkdir($targetPath, 0777, true);
+                                if (!file_exists($targetPath)) {
+                                    mkdir($targetPath, 0o777, true);
+                                }
                             } else {
                                 if (!is_dir(dirname($targetPath))) {
-                                    mkdir(dirname($targetPath), 0777, true);
+                                    mkdir(dirname($targetPath), 0o777, true);
                                 }
                                 rename($extractedPath, $targetPath);
                             }
@@ -155,7 +159,7 @@ class GitHubUpdater
             return;
         }
 
-        $files = array_diff(scandir($dir), array('.', '..'));
+        $files = array_diff(scandir($dir), ['.', '..']);
 
         foreach ($files as $file) {
             (is_dir("$dir/$file")) ? $this->deleteDirectory("$dir/$file") : unlink("$dir/$file");

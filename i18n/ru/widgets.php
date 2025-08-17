@@ -52,10 +52,6 @@ return [
         'description' => 'Основной контент страницы из шаблонов',
         'no_content' => 'Контент отсутствует',
     ],
-    
-    // BattlePass widgets
-    'UserStatsWidget' => 'Статистика BattlePass',
-    'TopPlayersWidget' => 'Топ игроки BattlePass',
-    'LevelProgressWidget' => 'Прогресс уровня BattlePass',
-    'MissionsWidget' => 'Миссии BattlePass',
+
+    'no_payments' => 'Платежей нет',
 ];

@@ -2,28 +2,28 @@
 
 namespace Flute\Admin\Packages\User\Screens;
 
+use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Components\Cells\BadgeLink;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
-use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
+use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserActionLog;
 use Flute\Core\Database\Entities\UserBlock;
-use Flute\Core\Database\Entities\PaymentInvoice;
-use Flute\Core\Logging\LogRendererManager;
-use Flute\Core\Database\Entities\UserSocialNetwork;
 use Flute\Core\Database\Entities\UserDevice;
-use Flute\Admin\Packages\User\Services\AdminUsersService;
+use Flute\Core\Database\Entities\UserSocialNetwork;
+use Flute\Core\Logging\LogRendererManager;
 
 /**
  * Screen for adding and editing users.
@@ -47,15 +47,16 @@ class UserEditScreen extends Screen
     /**
      * Initialize the screen when loaded.
      */
-    public function mount() : void
+    public function mount(): void
     {
         $this->usersService = app(AdminUsersService::class);
 
         $this->userId = (int) request()->input('id');
 
-        if (! $this->userId) {
+        if (!$this->userId) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
             $this->redirectTo('/admin/users', 300);
+
             return;
         }
 
@@ -67,13 +68,14 @@ class UserEditScreen extends Screen
             ->add($this->user->name ?? 'unknown');
     }
 
-    protected function initUser() : void
+    protected function initUser(): void
     {
         $this->user = rep(User::class)->findByPK($this->userId);
 
-        if (! $this->user) {
+        if (!$this->user) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
             $this->redirectTo('/admin/users', 300);
+
             return;
         }
 
@@ -89,7 +91,7 @@ class UserEditScreen extends Screen
     /**
      * Command bar with save button.
      */
-    public function commandBar() : array
+    public function commandBar(): array
     {
         $buttons = [
             Button::make(__('admin-users.buttons.to_profile'))
@@ -115,7 +117,7 @@ class UserEditScreen extends Screen
     /**
      * Determine the layout of the screen using tabs.
      */
-    public function layout() : array
+    public function layout(): array
     {
         return [
             LayoutFactory::tabs([
@@ -174,7 +176,7 @@ class UserEditScreen extends Screen
                             ->filePond()
                             ->accept('image/png, image/jpeg, image/gif, image/webp')
                             ->defaultFile(asset($this->user?->avatar ?? config('profile.default_avatar')))
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.avatar.label'))
                         ->small(__('admin-users.fields.avatar.help')),
@@ -185,7 +187,7 @@ class UserEditScreen extends Screen
                             ->filePond()
                             ->accept('image/png, image/jpeg, image/gif, image/webp')
                             ->defaultFile(asset($this->user?->banner ?? config('profile.default_banner')))
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.banner.label'))
                         ->small(__('admin-users.fields.banner.help')),
@@ -196,7 +198,7 @@ class UserEditScreen extends Screen
                         Input::make('name')
                             ->type('text')
                             ->value($this->user?->name ?? '')
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.name.label'))
                         ->required(),
@@ -205,7 +207,7 @@ class UserEditScreen extends Screen
                         Input::make('login')
                             ->type('text')
                             ->value($this->user?->login ?? '')
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.login.label'))
                         ->small(__('admin-users.fields.login.help')),
@@ -215,7 +217,7 @@ class UserEditScreen extends Screen
                     Input::make('email')
                         ->type('email')
                         ->value($this->user?->email ?? '')
-                        ->disabled(! $canEditUser)
+                        ->disabled(!$canEditUser)
                 )
                     ->label(__('admin-users.fields.email.label'))
                     ->required(),
@@ -225,7 +227,7 @@ class UserEditScreen extends Screen
                         Input::make('uri')
                             ->type('text')
                             ->value($this->user?->uri ?? '')
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.uri.label'))
                         ->small(__('admin-users.fields.uri.help')),
@@ -235,7 +237,7 @@ class UserEditScreen extends Screen
                             ->type('number')
                             ->step('0.01')
                             ->value($this->user?->balance ?? 0)
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.balance.label'))
                         ->small(__('admin-users.fields.balance.help')),
@@ -247,11 +249,12 @@ class UserEditScreen extends Screen
                         ->multiple(true)
                         ->value($this->user?->roles)
                         ->placeholder(__('admin-users.fields.roles.placeholder'))
-                        ->disabled(! $canManageRoles)
+                        ->disabled(!$canManageRoles)
                         ->filter(function ($role) {
                             if (user()->can('admin.boss')) {
                                 return true;
                             }
+
                             return $role->priority < user()->getHighestPriority();
                         })
                 )
@@ -261,7 +264,7 @@ class UserEditScreen extends Screen
                     LayoutFactory::field(
                         Toggle::make('verified')
                             ->checked($this->user?->verified ?? false)
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.verified.label'))
                         ->popover(__('admin-users.fields.verified.help')),
@@ -269,7 +272,7 @@ class UserEditScreen extends Screen
                     LayoutFactory::field(
                         Toggle::make('hidden')
                             ->checked($this->user?->hidden ?? false)
-                            ->disabled(! $canEditUser)
+                            ->disabled(!$canEditUser)
                     )
                         ->label(__('admin-users.fields.hidden.label'))
                         ->popover(__('admin-users.fields.hidden.help')),
@@ -280,7 +283,7 @@ class UserEditScreen extends Screen
             LayoutFactory::rows([
                 Button::make($this->user?->isBlocked() ? __('admin-users.buttons.unblock') : __('admin-users.buttons.block'))
                     ->type($this->user?->isBlocked() ? Color::OUTLINE_SUCCESS : Color::OUTLINE_DANGER)
-                    ->setVisible(! $isCurrentUser && $canEditUser)
+                    ->setVisible(!$isCurrentUser && $canEditUser)
                     ->icon($this->user?->isBlocked() ? 'ph.bold.lock-open-bold' : 'ph.bold.lock-bold')
                     ->method($this->user?->isBlocked() ? 'unblockUser' : 'blockUser')
                     ->fullWidth(),
@@ -295,7 +298,7 @@ class UserEditScreen extends Screen
                 Button::make(__('admin-users.buttons.clear_sessions'))
                     ->type(Color::OUTLINE_WARNING)
                     ->icon('ph.bold.sign-out-bold')
-                    ->setVisible($canManageSessions && ! $isCurrentUser)
+                    ->setVisible($canManageSessions && !$isCurrentUser)
                     ->method('clearUserSessions')
                     ->confirm(__('admin-users.confirms.clear_sessions'))
                     ->fullWidth(),
@@ -303,7 +306,7 @@ class UserEditScreen extends Screen
                 Button::make(__('admin-users.buttons.delete_user'))
                     ->type(Color::OUTLINE_DANGER)
                     ->icon('ph.bold.trash-bold')
-                    ->setVisible($canDeleteUsers && ! $isCurrentUser)
+                    ->setVisible($canDeleteUsers && !$isCurrentUser)
                     ->method('deleteUser')
                     ->confirm(__('admin-users.confirms.delete_user'))
                     ->fullWidth(),
@@ -333,7 +336,7 @@ class UserEditScreen extends Screen
         ])
             ->searchable([
                 'deviceDetails',
-                'ip'
+                'ip',
             ])
             ->commands([
                 Button::make(__('admin-users.buttons.clear_sessions'))
@@ -348,7 +351,7 @@ class UserEditScreen extends Screen
     /**
      * Device actions dropdown.
      */
-    private function deviceActionsDropdown(UserDevice $device) : string
+    private function deviceActionsDropdown(UserDevice $device): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -390,7 +393,7 @@ class UserEditScreen extends Screen
             TD::make('hidden', __('admin-users.table.visibility'))
                 ->render(
                     fn (UserSocialNetwork $network) =>
-                    view('admin-users::cells.visibility-badge', ['visible' => ! $network->hidden])
+                    view('admin-users::cells.visibility-badge', ['visible' => !$network->hidden])
                 )
                 ->width('100px'),
 
@@ -402,7 +405,7 @@ class UserEditScreen extends Screen
                 'socialNetwork.key',
                 'value',
                 'name',
-                'url'
+                'url',
             ])
             ->commands([
                 Button::make(__('admin-users.buttons.add_social'))
@@ -485,16 +488,18 @@ class UserEditScreen extends Screen
      */
     public function saveUser()
     {
-        if (! user()->can($this->user)) {
+        if (!user()->can($this->user)) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
             return;
         }
 
         $data = request()->input();
         $files = request()->files;
 
-        if (isset($data['roles']) && ! user()->can('admin.roles')) {
+        if (isset($data['roles']) && !user()->can('admin.roles')) {
             $this->flashMessage(__('admin-users.messages.no_permission_roles'), 'error');
+
             return;
         }
 
@@ -511,7 +516,7 @@ class UserEditScreen extends Screen
             'hidden' => ['sometimes', 'boolean'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -529,13 +534,15 @@ class UserEditScreen extends Screen
      */
     public function blockUser()
     {
-        if (! user()->can($this->user)) {
+        if (!user()->can($this->user)) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
             return;
         }
 
         if (user()->getCurrentUser()?->id === $this->user?->id) {
             $this->flashMessage(__('admin-users.messages.cant_self_block'), 'error');
+
             return;
         }
 
@@ -547,8 +554,9 @@ class UserEditScreen extends Screen
      */
     public function unblockUser()
     {
-        if (! user()->can($this->user)) {
+        if (!user()->can($this->user)) {
             $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
             return;
         }
 
@@ -596,8 +604,9 @@ class UserEditScreen extends Screen
         $userId = $this->modalParams->get('userId');
 
         $user = rep(User::class)->findByPK($userId);
-        if (! $user) {
+        if (!$user) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'danger');
+
             return;
         }
 
@@ -606,7 +615,7 @@ class UserEditScreen extends Screen
             'blockedUntil' => ['nullable', 'date'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -623,7 +632,7 @@ class UserEditScreen extends Screen
     /**
      * Social network actions dropdown.
      */
-    private function socialNetworkActionsDropdown(UserSocialNetwork $network) : string
+    private function socialNetworkActionsDropdown(UserSocialNetwork $network): string
     {
         return DropDown::make()
             ->icon('ph.regular.dots-three-outline-vertical')
@@ -708,7 +717,7 @@ class UserEditScreen extends Screen
             'name' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -730,8 +739,9 @@ class UserEditScreen extends Screen
         $networkId = $parameters->get('networkId');
         $network = rep(UserSocialNetwork::class)->findByPK($networkId);
 
-        if (! $network) {
+        if (!$network) {
             $this->flashMessage(__('admin-users.messages.social_not_found'), 'danger');
+
             return;
         }
 
@@ -780,7 +790,7 @@ class UserEditScreen extends Screen
             'name' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 
@@ -831,13 +841,15 @@ class UserEditScreen extends Screen
      */
     public function clearUserSessions()
     {
-        if (! user()->can('admin.users')) {
+        if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_sessions'), 'error');
+
             return;
         }
 
         if (user()->getCurrentUser()?->id === $this->user?->id) {
             $this->flashMessage(__('admin-users.messages.cant_self_clear_sessions'), 'error');
+
             return;
         }
 
@@ -855,18 +867,21 @@ class UserEditScreen extends Screen
      */
     public function deleteUser()
     {
-        if (! user()->can('admin.users')) {
+        if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
         if (user()->getCurrentUser()?->id === $this->user?->id) {
             $this->flashMessage(__('admin-users.messages.cant_self_delete'), 'error');
+
             return;
         }
 
         if (!user()->can($this->user)) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
+
             return;
         }
 
@@ -907,8 +922,9 @@ class UserEditScreen extends Screen
      */
     public function applyResetPassword()
     {
-        if (! user()->can('admin.users')) {
+        if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_reset_password'), 'error');
+
             return;
         }
 
@@ -919,7 +935,7 @@ class UserEditScreen extends Screen
             'password_confirmation' => ['required', 'string'],
         ], $data);
 
-        if (! $validation) {
+        if (!$validation) {
             return;
         }
 

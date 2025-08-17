@@ -194,7 +194,7 @@ function onModalShow(modalElement) {
         const $container = $modalElement.find('.modal__container');
 
         if ($container.length) {
-            $container.css('height', '0vh');
+            $container.css('height', '0dvh');
             $container[0].offsetHeight;
         }
 
@@ -322,7 +322,7 @@ function calculateModalHeight($modal) {
         }
 
         const startHeightVh = $modal.data('startHeightVh');
-        $modal.find('.modal__container').css('height', `${startHeightVh}vh`);
+        $modal.find('.modal__container').css('height', `${startHeightVh}dvh`);
 
         if (!$modal.data('heightRecalculated')) {
             setTimeout(() => calculateModalHeight($modal), 150);
@@ -380,7 +380,7 @@ function addDragEvents($modal) {
         let maxHeightVh = ($modal.data('maxHeightVh') || 100) + 5;
 
         newHeightVh = Math.max(minHeightVh, Math.min(newHeightVh, maxHeightVh));
-        $modal.find('.modal__container').css('height', `${newHeightVh}vh`);
+        $modal.find('.modal__container').css('height', `${newHeightVh}dvh`);
     }
 
     function dragEnd() {
@@ -399,7 +399,7 @@ function addDragEvents($modal) {
                 $modal[0].dialogInstance.hide();
             }
         } else if (currentHeightVh >= maxHeightVh - 5) {
-            $modal.find('.modal__container').css('height', `${maxHeightVh}vh`);
+            $modal.find('.modal__container').css('height', `${maxHeightVh}dvh`);
             if (maxHeightVh === 100) {
                 $modal.addClass('fullscreen');
                 $dragHandle.attr('aria-expanded', 'true');
@@ -407,7 +407,7 @@ function addDragEvents($modal) {
         } else {
             $modal
                 .find('.modal__container')
-                .css('height', `${startHeightVh}vh`);
+                .css('height', `${startHeightVh}dvh`);
             $modal.removeClass('fullscreen');
             $dragHandle.attr('aria-expanded', 'false');
         }
@@ -424,7 +424,7 @@ function addDragEvents($modal) {
             event.preventDefault();
             if (!$modal.hasClass('fullscreen')) {
                 // Expand to full height
-                $modal.find('.modal__container').css('height', '100vh');
+                $modal.find('.modal__container').css('height', '100dvh');
                 $modal.addClass('fullscreen');
                 $dragHandle.attr('aria-expanded', 'true');
                 $dragHandle.attr('aria-label', 'Collapse modal');
@@ -433,7 +433,7 @@ function addDragEvents($modal) {
                 const startHeightVh = $modal.data('startHeightVh') || 50;
                 $modal
                     .find('.modal__container')
-                    .css('height', `${startHeightVh}vh`);
+                    .css('height', `${startHeightVh}dvh`);
                 $modal.removeClass('fullscreen');
                 $dragHandle.attr('aria-expanded', 'false');
                 $dragHandle.attr('aria-label', 'Expand modal');
@@ -469,7 +469,7 @@ function addDragEvents($modal) {
 
             $modal
                 .find('.modal__container')
-                .css('height', `${currentHeightVh}vh`);
+                .css('height', `${currentHeightVh}dvh`);
         }
     });
 

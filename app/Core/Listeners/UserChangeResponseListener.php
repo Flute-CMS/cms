@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Listeners;
 
+use Flute\Core\Database\Entities\User;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Events\UserChangedEvent;
-use Flute\Core\Database\Entities\User;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserChangeResponseListener
@@ -12,14 +12,14 @@ class UserChangeResponseListener
     /** @var User|null */
     private static ?User $changedUser = null;
 
-    public static function onUserChanged(UserChangedEvent $event) : void
+    public static function onUserChanged(UserChangedEvent $event): void
     {
         self::$changedUser = $event->getUser();
     }
 
-    public static function onResponse(ResponseEvent $event) : void
+    public static function onResponse(ResponseEvent $event): void
     {
-        if (! self::$changedUser) {
+        if (!self::$changedUser) {
             return;
         }
 
@@ -27,7 +27,7 @@ class UserChangeResponseListener
         self::addUserChangeTrigger($response, self::$changedUser);
     }
 
-    private static function addUserChangeTrigger(Response $response, User $user) : void
+    private static function addUserChangeTrigger(Response $response, User $user): void
     {
         $userData = [
             'id' => $user->id,
@@ -36,7 +36,7 @@ class UserChangeResponseListener
             'banner' => $user->banner ?? '',
             'balance' => $user->balance ?? 0,
             'uri' => $user->uri ?? '',
-            'email' => $user->email ?? ''
+            'email' => $user->email ?? '',
         ];
 
         $userData['online'] = $user->isOnline();

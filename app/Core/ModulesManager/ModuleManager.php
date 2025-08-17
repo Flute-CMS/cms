@@ -58,10 +58,10 @@ class ModuleManager
 
     /**
      * Initialize the module manager.
-     * 
+     *
      * @return void
      */
-    public function initialize() : void
+    public function initialize(): void
     {
         if ($this->initialized || !is_installed()) {
             return;
@@ -84,10 +84,10 @@ class ModuleManager
 
     /**
      * Get the module dependencies.
-     * 
+     *
      * @return ModuleDependencies
      */
-    public function getModuleDependencies() : ModuleDependencies
+    public function getModuleDependencies(): ModuleDependencies
     {
         $this->initialize();
 
@@ -96,10 +96,10 @@ class ModuleManager
 
     /**
      * Get the active modules.
-     * 
+     *
      * @return Collection
      */
-    public function getActive() : Collection
+    public function getActive(): Collection
     {
         $this->initialize();
 
@@ -108,11 +108,11 @@ class ModuleManager
 
     /**
      * Get the module json.
-     * 
+     *
      * @param string $key
      * @return string
      */
-    public function getModuleJson(string $key) : string
+    public function getModuleJson(string $key): string
     {
         $this->initialize();
 
@@ -121,11 +121,11 @@ class ModuleManager
 
     /**
      * Get the module.
-     * 
+     *
      * @param string $key
      * @return ModuleInformation
      */
-    public function getModule(string $key) : ModuleInformation
+    public function getModule(string $key): ModuleInformation
     {
         $this->initialize();
 
@@ -138,11 +138,11 @@ class ModuleManager
 
     /**
      * Check if the module exists.
-     * 
+     *
      * @param string $key
      * @return bool
      */
-    public function issetModule(string $key) : bool
+    public function issetModule(string $key): bool
     {
         $this->initialize();
 
@@ -151,10 +151,10 @@ class ModuleManager
 
     /**
      * Refresh the modules.
-     * 
+     *
      * @return void
      */
-    public function refreshModules() : void
+    public function refreshModules(): void
     {
         $this->clearCache();
 
@@ -171,37 +171,39 @@ class ModuleManager
 
     /**
      * Run the composer install only if necessary.
-     * 
+     *
      * For module installation/update: only run if module has a composer.json file
      * For module uninstallation: run without checking since module directory is already gone
-     * 
+     *
      * @param ModuleInformation|null $module Module to check for composer.json
      * @param bool $forceUpdate Force update regardless of composer.json existence
      * @return bool Whether composer update was executed
      */
-    public function runComposerInstall(?ModuleInformation $module = null, bool $forceUpdate = false) : bool
+    public function runComposerInstall(?ModuleInformation $module = null, bool $forceUpdate = false): bool
     {
         if ($forceUpdate || $module === null) {
-            app(ComposerManager::class)->update();
+            app(ComposerManager::class)->install();
+
             return true;
         }
-        
+
         $composerJsonPath = path('app/Modules/' . $module->key . '/composer.json');
-        
+
         if (!fs()->exists($composerJsonPath)) {
             return false;
         }
-        
-        app(ComposerManager::class)->update();
+
+        app(ComposerManager::class)->install();
+
         return true;
     }
 
     /**
      * Get the modules.
-     * 
+     *
      * @return Collection
      */
-    public function getModules() : Collection
+    public function getModules(): Collection
     {
         $this->initialize();
 
@@ -210,7 +212,7 @@ class ModuleManager
 
     /**
      * Clear the cache.
-     * 
+     *
      * @return void
      */
     public function clearCache()
@@ -220,7 +222,7 @@ class ModuleManager
         cache()->delete('flute.modules.json');
     }
 
-    protected function checkModulesDependencies() : void
+    protected function checkModulesDependencies(): void
     {
         $stateHash = md5(json_encode($this->activeModules->keys()));
 
@@ -236,7 +238,7 @@ class ModuleManager
                 $this->dependencyChecker->checkDependencies($module->dependencies, $this->activeModules, $themeManager->getThemeInfo());
             } catch (ModuleDependencyException $e) {
                 logs('modules')->emergency("[EMERGENCY MODULE SHUTDOWN] Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
-                (new ModuleActions)->disableModule($module, $this);
+                (new ModuleActions())->disableModule($module, $this);
 
                 if (is_debug()) {
                     throw new ModuleDependencyException($e->getMessage());
@@ -247,34 +249,34 @@ class ModuleManager
         cache()->set('modules.dependencies.hash', $stateHash, self::CACHE_TIME);
     }
 
-    protected function registerModules() : void
+    protected function registerModules(): void
     {
         $this->initialize();
 
         ModuleRegister::registerServiceProviders($this->serviceProviders);
     }
 
-    protected function setInstalledModules() : void
+    protected function setInstalledModules(): void
     {
         $this->installedModules = $this->filterModules(self::NOTINSTALLED, true);
     }
 
-    protected function setActiveModules() : void
+    protected function setActiveModules(): void
     {
         $this->activeModules = $this->filterModules(self::ACTIVE);
     }
 
-    protected function setDisabledModules() : void
+    protected function setDisabledModules(): void
     {
         $this->disabledModules = $this->filterModules(self::DISABLED);
     }
 
-    protected function setNotInstalledModules() : void
+    protected function setNotInstalledModules(): void
     {
         $this->notInstalledModules = $this->filterModules(self::NOTINSTALLED);
     }
 
-    protected function setServiceProviders() : void
+    protected function setServiceProviders(): void
     {
         $providers = [];
 
@@ -293,19 +295,19 @@ class ModuleManager
             }
         }
 
-        usort($providers, fn($a, $b) => $a['order'] <=> $b['order']);
+        usort($providers, fn ($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
     }
 
-    protected function loadModulesJson() : void
+    protected function loadModulesJson(): void
     {
         $this->modulesJson = cache()->callback('flute.modules.json', function () {
             return ModuleFinder::getAllJson($this->modulesPath);
         }, self::CACHE_TIME);
     }
 
-    protected function loadModulesFromDatabase() : void
+    protected function loadModulesFromDatabase(): void
     {
         $this->modulesDatabase = cache()->callback('flute.modules.alldb', function () {
             return Module::findAll();
@@ -314,7 +316,7 @@ class ModuleManager
         $this->setCurrentStatusModules();
     }
 
-    protected function setCurrentStatusModules() : void
+    protected function setCurrentStatusModules(): void
     {
         $columnsDb = array_column($this->modulesDatabase, 'key');
 
@@ -334,9 +336,9 @@ class ModuleManager
         }
     }
 
-    protected function createModuleInDatabase(ModuleInformation $moduleInformation) : void
+    protected function createModuleInDatabase(ModuleInformation $moduleInformation): void
     {
-        $module = new Module;
+        $module = new Module();
         $module->key = $moduleInformation->key;
         $module->name = $moduleInformation->name;
         $module->description = $moduleInformation->description;
@@ -368,14 +370,14 @@ class ModuleManager
         }, self::CACHE_TIME);
     }
 
-    protected function createModuleInCollection(string $moduleName, ModuleInformation $moduleInformation) : void
+    protected function createModuleInCollection(string $moduleName, ModuleInformation $moduleInformation): void
     {
         $this->eventDispatcher->dispatch(new ModuleRegistered($moduleName, $moduleInformation), ModuleRegistered::NAME);
 
         $this->modules->put($moduleName, $moduleInformation);
     }
 
-    protected function filterModules(string $status, bool $notEqual = false) : Collection
+    protected function filterModules(string $status, bool $notEqual = false): Collection
     {
         return $this->modules->filter(function (ModuleInformation $module) use ($status, $notEqual) {
             return $notEqual ? ($module->status !== $status) : ($module->status === $status);

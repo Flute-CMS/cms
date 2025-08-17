@@ -5,8 +5,8 @@ namespace Flute\Admin\Packages\Roles\Screens;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\CheckBox;
+use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
@@ -50,10 +50,10 @@ class RoleListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('roles', [
-                Sight::make()->render(fn(Role $role) => view('admin-roles::cells.role-name', compact('role'))),
+                Sight::make()->render(fn (Role $role) => view('admin-roles::cells.role-name', compact('role'))),
                 Sight::make('actions', __('admin-roles.table.actions'))
                     ->render(
-                        fn(Role $role) => DropDown::make()
+                        fn (Role $role) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-roles.buttons.edit'))
@@ -80,6 +80,7 @@ class RoleListScreen extends Screen
         $sortableResult = json_decode(request()->input('sortableResult', '[]'), true);
         if (!$sortableResult) {
             $this->flashMessage(__('admin-roles.messages.invalid_sort'), 'danger');
+
             return;
         }
 
@@ -122,7 +123,7 @@ class RoleListScreen extends Screen
     public function createRoleModal(Repository $parameters)
     {
         $permissions = collect(Permission::findAll())
-            ->filter(fn($permission) => user()->can($permission->name))
+            ->filter(fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
@@ -160,7 +161,7 @@ class RoleListScreen extends Screen
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes
+            ...$permissionsCheckboxes,
         ])
             ->title(__('admin-roles.modal.create.title'))
             ->applyButton(__('admin-roles.modal.create.submit'))
@@ -236,11 +237,12 @@ class RoleListScreen extends Screen
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+
             return;
         }
 
         $permissions = collect(Permission::findAll())
-            ->filter(fn($permission) => user()->can($permission->name))
+            ->filter(fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
@@ -282,7 +284,7 @@ class RoleListScreen extends Screen
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes
+            ...$permissionsCheckboxes,
         ])
             ->title(__('admin-roles.modal.edit.title'))
             ->applyButton(__('admin-roles.modal.edit.submit'))
@@ -300,6 +302,7 @@ class RoleListScreen extends Screen
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+
             return;
         }
 
@@ -363,6 +366,7 @@ class RoleListScreen extends Screen
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+
             return;
         }
 

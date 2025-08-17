@@ -74,7 +74,7 @@ abstract class Sortable extends Layout
             return;
         }
 
-        $columns = collect($this->columns())->filter(static fn(Sight $sight) => $sight->isVisible());
+        $columns = collect($this->columns())->filter(static fn (Sight $sight) => $sight->isVisible());
 
         $rows = collect()->merge($repository->getContent($this->target));
 
@@ -94,28 +94,28 @@ abstract class Sortable extends Layout
         ]);
     }
 
-    public function popover(string $popover) : self
+    public function popover(string $popover): self
     {
         $this->popover = $popover;
 
         return $this;
     }
 
-    public function commands(array $commands) : self
+    public function commands(array $commands): self
     {
         $this->commands = $commands;
 
         return $this;
     }
 
-    public function description(?string $description = null) : self
+    public function description(?string $description = null): self
     {
         $this->description = $description;
 
         return $this;
     }
 
-    public function onSortEnd(string $method) : self
+    public function onSortEnd(string $method): self
     {
         $this->onSortEnd = $method;
 
@@ -125,12 +125,12 @@ abstract class Sortable extends Layout
     /**
      * @return array
      */
-    abstract protected function columns() : iterable;
+    abstract protected function columns(): iterable;
 
     /**
      * @return Rows
      */
-    public function title(?string $title = null) : self
+    public function title(?string $title = null): self
     {
         $this->title = $title;
 
@@ -144,24 +144,24 @@ abstract class Sortable extends Layout
      *
      * @return $this
      */
-    public function showBlockHeaders(bool $showHeaders = true) : self
+    public function showBlockHeaders(bool $showHeaders = true): self
     {
         $this->showBlockHeaders = $showHeaders;
 
         return $this;
     }
 
-    protected function iconNotFound() : string
+    protected function iconNotFound(): string
     {
         return 'ph.bold.smiley-melting-bold';
     }
 
-    protected function textNotFound() : string
+    protected function textNotFound(): string
     {
         return __('def.no_results_found');
     }
 
-    protected function subNotFound() : string
+    protected function subNotFound(): string
     {
         return __('def.import_or_create');
     }

@@ -23,7 +23,7 @@ class NavbarItemFormat
             'icon' => $navbarItem->icon,
             'new_tab' => $navbarItem->new_tab,
             'children' => [],
-            'roles' => []
+            'roles' => [],
         ];
 
         foreach ($navbarItem->children as $child) {

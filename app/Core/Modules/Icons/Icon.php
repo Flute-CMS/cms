@@ -36,7 +36,7 @@ class Icon extends HtmlString implements Stringable
         $item = Arr::first($dom->getElementsByTagName('svg'));
 
         collect($attributes)
-            ->each(static fn(string $value, string $key) => $item->setAttribute($key, $value));
+            ->each(static fn (string $value, string $key) => $item->setAttribute($key, $value));
 
         $this->html = $dom->saveHTML();
 

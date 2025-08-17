@@ -13,9 +13,9 @@ class FileSystemService extends Filesystem
      *
      * @return void
      */
-    public function importHelpers() : void
+    public function importHelpers(): void
     {
-        $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache';
+        $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.php';
 
         if ($this->isCacheValid($cacheFile)) {
             require_once $cacheFile;
@@ -33,7 +33,7 @@ class FileSystemService extends Filesystem
      *
      * @return void
      */
-    private function generateHelpersCache(string $dir, string $cacheFile) : void
+    private function generateHelpersCache(string $dir, string $cacheFile): void
     {
         $finder = new Finder();
         $finder->files()->ignoreDotFiles(true)->in($dir)->sortByName();
@@ -59,7 +59,7 @@ class FileSystemService extends Filesystem
         require_once $cacheFile;
     }
 
-    private function minifyWhitespace(string $content) : string
+    private function minifyWhitespace(string $content): string
     {
         $content = preg_replace('/\s+/', ' ', $content);
         $content = preg_replace('/\s*([{}();,:<>+-=])\s*/', '$1', $content);
@@ -74,7 +74,7 @@ class FileSystemService extends Filesystem
      *
      * @return string
      */
-    private function removeComments(string $content) : string
+    private function removeComments(string $content): string
     {
         return preg_replace([
             '/\/\*.*?\*\//s',
@@ -89,7 +89,7 @@ class FileSystemService extends Filesystem
      *
      * @return string
      */
-    private function removeEmptyLines(string $content) : string
+    private function removeEmptyLines(string $content): string
     {
         return preg_replace('/^\s*[\r\n]+/m', '', $content);
     }
@@ -98,10 +98,10 @@ class FileSystemService extends Filesystem
      * Remove PHP opening tags from the content.
      *
      * @param string $content
-     * 
+     *
      * @return string
      */
-    private function removePhpTags(string $content) : string
+    private function removePhpTags(string $content): string
     {
         return preg_replace('/<\?php\s*/', '', $content);
     }
@@ -110,12 +110,13 @@ class FileSystemService extends Filesystem
      * Extract all "use" statements from the content.
      *
      * @param string $content
-     * 
+     *
      * @return array
      */
-    private function extractUseStatements(string $content) : array
+    private function extractUseStatements(string $content): array
     {
         preg_match_all('/^use\s+[^;]+;/m', $content, $matches);
+
         return $matches[0] ?? [];
     }
 
@@ -123,10 +124,10 @@ class FileSystemService extends Filesystem
      * Remove all "use" statements from the content.
      *
      * @param string $content
-     * 
+     *
      * @return string
      */
-    private function removeUseStatements(string $content) : string
+    private function removeUseStatements(string $content): string
     {
         return preg_replace('/^use\s+[^;]+;/m', '', $content);
     }
@@ -138,7 +139,7 @@ class FileSystemService extends Filesystem
      *
      * @return bool
      */
-    private function isCacheValid(string $cacheFile) : bool
+    private function isCacheValid(string $cacheFile): bool
     {
         return file_exists($cacheFile) && is_readable($cacheFile);
     }
@@ -152,7 +153,7 @@ class FileSystemService extends Filesystem
      * @return void
      * @throws Exception
      */
-    public function updateConfig(string $filePath, array $newConfig) : void
+    public function updateConfig(string $filePath, array $newConfig): void
     {
         if (!is_writable($filePath)) {
             throw new Exception(sprintf('Configuration file "%s" is not writable.', $filePath));

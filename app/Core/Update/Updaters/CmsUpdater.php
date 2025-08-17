@@ -9,7 +9,7 @@ class CmsUpdater extends AbstractUpdater
 {
     /**
      * Папки, которые нужно обновлять
-     * 
+     *
      * @var array
      */
     protected array $allowedFolders = [
@@ -17,12 +17,12 @@ class CmsUpdater extends AbstractUpdater
         'bootstrap',
         'i18n',
         'public',
-        'storage'
+        'storage',
     ];
 
     /**
      * Файлы, которые нужно исключить из обновления
-     * 
+     *
      * @var array
      */
     protected array $excludedFiles = [
@@ -30,7 +30,7 @@ class CmsUpdater extends AbstractUpdater
         'social-image.jpg',
         'social-image.png',
         'social-image.jpeg',
-        'social-image.webp'
+        'social-image.webp',
     ];
 
     public function getCurrentVersion(): string
@@ -62,6 +62,7 @@ class CmsUpdater extends AbstractUpdater
     {
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
             logs()->error('Update package file not found: ' . ($data['package_file'] ?? 'null'));
+
             return false;
         }
 
@@ -69,12 +70,13 @@ class CmsUpdater extends AbstractUpdater
         $extractDir = storage_path('app/temp/updates/cms-extract-' . time());
 
         if (!is_dir($extractDir)) {
-            mkdir($extractDir, 0755, true);
+            mkdir($extractDir, 0o755, true);
         }
 
         $zip = new ZipArchive();
         if ($zip->open($packageFile) !== true) {
             logs()->error('Failed to open update package: ' . $packageFile);
+
             return false;
         }
 
@@ -103,13 +105,14 @@ class CmsUpdater extends AbstractUpdater
         } catch (\Exception $e) {
             logs()->error('Error during CMS update: ' . $e->getMessage());
             $this->removeDirectory($extractDir);
+
             return false;
         }
     }
 
     /**
      * Получить корневой путь к проекту
-     * 
+     *
      * @return string
      */
     protected function getBasePath(): string
@@ -119,7 +122,7 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Создать бэкап перед обновлением
-     * 
+     *
      * @return bool
      */
     protected function createBackup(): bool
@@ -131,13 +134,13 @@ class CmsUpdater extends AbstractUpdater
         $backupDir = storage_path('backup/cms-' . date('Y-m-d-His'));
 
         if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+            mkdir($backupDir, 0o755, true);
         }
 
         $dirsToCopy = [
             'app/Core' => $backupDir . '/app/Core',
             'app/Helpers' => $backupDir . '/app/Helpers',
-            'app/Themes' => $backupDir . '/app/Themes'
+            'app/Themes' => $backupDir . '/app/Themes',
         ];
 
         foreach ($dirsToCopy as $source => $target) {
@@ -149,12 +152,13 @@ class CmsUpdater extends AbstractUpdater
         }
 
         logs()->info('CMS backup created: ' . $backupDir);
+
         return true;
     }
 
     /**
      * Копировать директорию рекурсивно
-     * 
+     *
      * @param string $source
      * @param string $destination
      * @return bool
@@ -166,7 +170,7 @@ class CmsUpdater extends AbstractUpdater
         }
 
         if (!is_dir($destination)) {
-            $dirPerms = fileperms($source) & 0777;
+            $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
             chmod($destination, $dirPerms);
             @chown($destination, fileowner($source));
@@ -190,7 +194,7 @@ class CmsUpdater extends AbstractUpdater
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
                 copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0777;
+                $filePerms = fileperms($sourcePath) & 0o777;
                 chmod($destinationPath, $filePerms);
                 @chown($destinationPath, fileowner($sourcePath));
                 @chgrp($destinationPath, filegroup($sourcePath));
@@ -198,12 +202,13 @@ class CmsUpdater extends AbstractUpdater
         }
 
         closedir($directory);
+
         return true;
     }
 
     /**
      * Проверить, нужно ли исключить файл из обновления
-     * 
+     *
      * @param string $filename
      * @return bool
      */
@@ -214,7 +219,7 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Удалить директорию рекурсивно
-     * 
+     *
      * @param string $directory
      * @return bool
      */
@@ -245,7 +250,7 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Очистить кэш
-     * 
+     *
      * @return void
      */
     protected function clearCache(): void
@@ -253,7 +258,7 @@ class CmsUpdater extends AbstractUpdater
         $viewsCachePath = storage_path('app/views');
         if (is_dir($viewsCachePath)) {
             $this->removeDirectory($viewsCachePath);
-            mkdir($viewsCachePath, 0755, true);
+            mkdir($viewsCachePath, 0o755, true);
         }
 
         cache()->clear();

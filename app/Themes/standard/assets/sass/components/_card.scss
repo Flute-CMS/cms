@@ -1,11 +1,13 @@
 .card {
     @extend .blur-bg;
 
-    border-radius: var(--border1);
-    border: 1px solid var(--transp-1);
     background-color: var(--transp-05);
+
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border1);
+    box-shadow: 0 10px 30px -20px rgba(0,0,0,.25);
     overflow: hidden;
-    box-shadow: var(--shadow-small);
+    @include transition(box-shadow, transform);
 
     &-img-top {
         width: 100%;
@@ -13,7 +15,7 @@
     }
 
     &-header {
-        padding: 1.2em 1.5em;
+        padding: 1.1em 1.3em;
         border-bottom: 1px solid var(--transp-1);
 
         .card-title {
@@ -27,15 +29,8 @@
     }
 
     &-body {
-        &:not(.withoutPadding) {
-            padding: 1em 1.5em;
-        }
+        &:not(.withoutPadding) { padding: 1.1em 1.3em; }
     }
 
-    &-footer {
-        padding: 1em 1.5em;
-        padding-bottom: 1.25em;
-        // background-color: var(--background-800);
-        border-top: 1px solid var(--transp-1);
-    }
+    &-footer { padding: 1.1em 1.3em 1.25em; border-top: 1px solid var(--transp-1); }
 }

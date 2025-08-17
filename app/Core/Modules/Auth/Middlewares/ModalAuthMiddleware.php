@@ -22,11 +22,11 @@ class ModalAuthMiddleware extends BaseMiddleware
     public function handle(FluteRequest $request, \Closure $next, ...$args): Response
     {
         $useModalAuth = config('auth.only_modal');
-        
+
         if ($useModalAuth && !$request->htmx()->isHtmxRequest()) {
             return $this->error()->notFound();
         }
-        
+
         return $next($request);
     }
-} 
+}

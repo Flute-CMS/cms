@@ -43,12 +43,12 @@ class ModuleFinder
 
     /**
      * Get module json file
-     * 
+     *
      * @param string $jsonPath
-     * 
+     *
      * @return string
      */
-    public static function getModuleJson( string $jsonPath ) : string
+    public static function getModuleJson(string $jsonPath): string
     {
         return file_get_contents($jsonPath);
     }

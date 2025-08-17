@@ -14,7 +14,7 @@
     <div class="notification-content">
         <div class="notification-header">
             <div class="notification-name">
-                <h6>{{ __($notification->title) }}</h6>
+                <h6>{{ __(key: $notification->title) }}</h6>
                 <small class="notification-date">{{ carbon($notification->createdAt)->diffForHumans() }}</small>
             </div>
 
@@ -26,7 +26,7 @@
         {{-- FOR NOW, SUPPORTS ONLY TEXT --}}
         @if ($notification->type == 'text')
             @if (!empty($notification->content))
-                <div class="notification-text">
+                <div class="notification-text md-content">
                     {!! markdown()->parse($notification->content) !!}
                 </div>
             @endif

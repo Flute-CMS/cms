@@ -17,11 +17,13 @@ class UserExistsMiddleware extends BaseMiddleware
             $user = user()->getByRoute($profileId);
         }
 
-        if (empty($user))
+        if (empty($user)) {
             return $this->error()->notFound();
+        }
 
-        if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id)
+        if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
             return $this->error()->custom(__('profile.profile_hidden'), 404);
+        }
 
         return $next($request);
     }

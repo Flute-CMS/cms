@@ -54,7 +54,7 @@ class PasswordResetComponent extends Component
         ], [
             'loginOrEmail' => [
                 'required',
-                'regex:/^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|([a-zA-Z0-9._-]+)$/'
+                'regex:/^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|([a-zA-Z0-9._-]+)$/',
             ],
         ]);
     }
@@ -63,20 +63,22 @@ class PasswordResetComponent extends Component
     {
         /** @var CaptchaService $captchaService */
         $captchaService = app(CaptchaService::class);
-        
+
         if (!$captchaService->isEnabled('password_reset')) {
             return true;
         }
 
         $captchaResponse = request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response');
-        
+
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();
+
             return false;
         }
 
         if (!$captchaService->verify($captchaResponse, $captchaService->getType())) {
             toast()->error(__('auth.captcha_invalid'))->push();
+
             return false;
         }
 

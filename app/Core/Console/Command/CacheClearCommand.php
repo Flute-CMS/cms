@@ -21,7 +21,7 @@ class CacheClearCommand extends Command
             ->setHelp('This command allows you to clear the all Flute cache.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 

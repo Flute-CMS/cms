@@ -13,7 +13,7 @@ class SelectRegistry
 {
     /**
      * @var array<string, array>
-     * Example: 
+     * Example:
      *  [
      *    'servers' => [
      *      'class' => 'Flute\\Core\\Database\\Entities\\Server',
@@ -36,7 +36,7 @@ class SelectRegistry
     /**
      * Register a new entity for select search.
      */
-    public function registerEntity(string $alias, array $config) : void
+    public function registerEntity(string $alias, array $config): void
     {
         $this->entities[$alias] = $config;
     }
@@ -44,7 +44,7 @@ class SelectRegistry
     /**
      * Get entity configuration (alias => config).
      */
-    public function getEntityConfig(string $alias) : ?array
+    public function getEntityConfig(string $alias): ?array
     {
         return $this->entities[$alias] ?? null;
     }
@@ -52,7 +52,7 @@ class SelectRegistry
     /**
      * Check if the user has permission to read this alias.
      */
-    public function canUserAccessAlias(string $alias) : bool
+    public function canUserAccessAlias(string $alias): bool
     {
         $config = $this->getEntityConfig($alias);
         if (!$config) {
@@ -62,10 +62,11 @@ class SelectRegistry
         if (!$perm) {
             return false;
         }
+
         return user()->can($perm);
     }
 
-    public function getEntities() : array
+    public function getEntities(): array
     {
         return [
             'servers' => [

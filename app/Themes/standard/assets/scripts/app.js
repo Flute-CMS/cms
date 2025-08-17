@@ -191,7 +191,6 @@ class FluteApp {
             }
         });
 
-        // Add CSRF token to HTMX requests
         window.addEventListener('htmx:configRequest', (evt) => {
             const csrfToken = document
                 .querySelector('meta[name="csrf-token"]')
@@ -210,6 +209,14 @@ class FluteApp {
         htmx.on('htmx:afterRequest', (e) => this.handleNProgress(e, 'done'));
         htmx.on('htmx:sendError', (e) => this.handleNProgress(e, 'done'));
         htmx.on('htmx:historyRestore', NProgress.remove);
+
+        const ensureScrollUnlocked = () => {
+            document.body.classList.remove('no-scroll');
+        };
+        htmx.on('htmx:beforeSwap', ensureScrollUnlocked);
+        htmx.on('htmx:afterSwap', ensureScrollUnlocked);
+        htmx.on('htmx:afterSettle', ensureScrollUnlocked);
+        htmx.on('htmx:historyRestore', ensureScrollUnlocked);
 
         // Modal duplication prevention
         htmx.on('htmx:beforeSwap', (event) => {

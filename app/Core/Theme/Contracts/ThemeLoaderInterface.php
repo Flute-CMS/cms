@@ -59,15 +59,15 @@ interface ThemeLoaderInterface
 
     /**
      * Add custom path to the some file
-     * 
+     *
      * @param string $moduleInterfacePath path in the modules directory
      * @param string $replacedInterfacePath path in the current template
-     * 
+     *
      * @return void
      */
     public function addCustomPath(string $moduleInterfacePath, string $replacedInterfacePath): void;
 
-    public function getReplacement( ?string $interfacePath = null );
+    public function getReplacement(?string $interfacePath = null);
     public function getName(): string;
 
     public function setName(string $name): void;

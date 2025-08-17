@@ -32,7 +32,7 @@ class InstallerView
 
     /**
      * InstallerView constructor.
-     * 
+     *
      * @param Template $template
      * @param InstallerConfig $installerConfig
      */
@@ -44,7 +44,7 @@ class InstallerView
 
     /**
      * Render an installer view
-     * 
+     *
      * @param array $data
      * @return string
      */
@@ -67,7 +67,7 @@ class InstallerView
 
     /**
      * Render a step view
-     * 
+     *
      * @param int $step
      * @param FluteRequest $request
      * @param array $data

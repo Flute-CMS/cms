@@ -9,11 +9,13 @@ class IsGuestMiddleware extends BaseMiddleware
 {
     public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
-        if (!is_installed())
+        if (!is_installed()) {
             return $next($request);
+        }
 
-        if (user()->isLoggedIn())
+        if (user()->isLoggedIn()) {
             return $this->error()->notFound();
+        }
 
         return $next($request);
     }

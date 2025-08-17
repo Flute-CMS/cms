@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Flute\Admin\Platform\Fields;
 
-use Flute\Admin\Platform\Fields\Cell;
 use Illuminate\Contracts\View\Factory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\View\View;
 
 class Sight extends Cell

@@ -29,4 +29,4 @@ class TemplateRenderTiming
     {
         return self::$times;
     }
-} 
+}

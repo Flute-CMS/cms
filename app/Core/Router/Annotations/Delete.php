@@ -25,4 +25,4 @@ class Delete extends Route
     ) {
         parent::__construct($uri, ['DELETE'], $name, $middleware, $where, $defaults);
     }
-} 
+}

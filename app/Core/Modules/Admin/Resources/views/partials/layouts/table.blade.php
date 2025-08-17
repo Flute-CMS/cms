@@ -32,6 +32,30 @@
     @endempty
 </div>
 
+@empty(!$bulkBar)
+    <div class="bulk-actions-floating" id="bulk-actions-{{ $tableId ?? '' }}" data-bulk-table="{{ $tableId ?? '' }}" style="display:none">
+        <div class="bulk-actions-inner">
+            <div class="bulk-chip">
+                <span>{{ __('admin.bulk.selected') }}:</span>
+                <strong class="bulk-selected-count">0</strong>
+            </div>
+
+            <div class="bulk-actions-scroll">
+                @foreach ($bulkBar as $action)
+                    {!! $action !!}
+                @endforeach
+            </div>
+
+            <button type="button" class="btn btn-outline-primary btn-small bulk-clear-btn"
+                aria-label="{{ __('admin.bulk.clear_selection') }}"
+                data-tooltip="{{ __('admin.bulk.clear_selection') }}"
+                data-table-id="{{ $tableId ?? '' }}">
+                <x-icon path="ph.regular.x" />
+            </button>
+        </div>
+    </div>
+@endempty
+
 <article class="card mb-3 table-card" hx-swap="outerHTML">
     <div class="table-responsive">
         <table @class([

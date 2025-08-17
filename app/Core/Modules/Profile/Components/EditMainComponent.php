@@ -49,7 +49,7 @@ class EditMainComponent extends FluteComponent
     public function render()
     {
         return $this->view('flute::components.profile-tabs.edit.main', [
-            'user' => $this->user
+            'user' => $this->user,
         ]);
     }
 
@@ -73,16 +73,16 @@ class EditMainComponent extends FluteComponent
     {
         if (
             $this->validate([
-                'theme' => 'required|in:dark,light,system'
+                'theme' => 'required|in:dark,light,system',
             ])
         ) {
             if ($this->theme === 'system') {
                 cookie()->remove('theme');
             } else {
-                cookie()->set('theme', $this->theme, httpOnly: false);
+                cookie()->set('theme', $this->theme);
 
                 $this->dispatchBrowserEvent('switch-theme', [
-                    'theme' => $this->theme
+                    'theme' => $this->theme,
                 ]);
             }
 
@@ -94,7 +94,7 @@ class EditMainComponent extends FluteComponent
     {
         if (
             $this->validate([
-                'privacy' => 'required|in:hidden,visible'
+                'privacy' => 'required|in:hidden,visible',
             ])
         ) {
             $this->user->hidden = $this->privacy === 'hidden';
@@ -132,7 +132,7 @@ class EditMainComponent extends FluteComponent
      */
     public function saveImages()
     {
-        if (! $this->validateImages()) {
+        if (!$this->validateImages()) {
             return;
         }
 
@@ -142,6 +142,7 @@ class EditMainComponent extends FluteComponent
 
         if ($uploadsDir === false) {
             $this->addUploadDirectoryError();
+
             return;
         }
 
@@ -150,6 +151,7 @@ class EditMainComponent extends FluteComponent
 
         if ($avatarError || $bannerError) {
             $this->handleImageErrors($avatarError, $bannerError);
+
             return;
         }
 
@@ -185,11 +187,13 @@ class EditMainComponent extends FluteComponent
 
                 $this->removeOldFile($field, $uploadsDir);
                 $this->user->$field = $newFile;
+
                 return null;
             } catch (\Exception $e) {
                 return $e->getMessage();
             }
         }
+
         return null;
     }
 
@@ -249,12 +253,13 @@ class EditMainComponent extends FluteComponent
      */
     public function savePassword()
     {
-        if (! $this->validateSavePassword()) {
+        if (!$this->validateSavePassword()) {
             return;
         }
 
-        if (!empty($this->user->password) && ! password_verify($this->current_password, $this->user->password)) {
+        if (!empty($this->user->password) && !password_verify($this->current_password, $this->user->password)) {
             $this->inputError('current_password', __('profile.edit.main.change_password.current_password_incorrect'));
+
             return;
         }
 
@@ -274,7 +279,7 @@ class EditMainComponent extends FluteComponent
     public function deleteAccount()
     {
         if ($this->validateDeleteAccount()) {
-            if (! $this->confirmed('delete_account_confirmation')) {
+            if (!$this->confirmed('delete_account_confirmation')) {
                 $this->confirm(
                     actionKey: 'delete_account_confirmation',
                     message: __('profile.edit.main.delete_account.confirm_message'),
@@ -317,13 +322,13 @@ class EditMainComponent extends FluteComponent
                 'regex:/^[a-zA-Z0-9._-]+$/',
                 'min-str-len:' . config('auth.validation.login.min_length'),
                 'max-str-len:' . config('auth.validation.login.max_length'),
-                'unique:users,login,' . $this->user->id
+                'unique:users,login,' . $this->user->id,
             ],
             'email' => [
                 'required',
                 'email',
                 'max-str-len:255',
-                'unique:users,email,' . $this->user->id
+                'unique:users,email,' . $this->user->id,
             ],
             'uri' => 'nullable|string|max-str-len:60|regex:/^[a-zA-Z0-9._-]+$/|unique:users,uri,' . $this->user->id,
         ]);
@@ -360,10 +365,11 @@ class EditMainComponent extends FluteComponent
     {
         if (empty($this->user->login) || empty($this->user->email)) {
             $this->flashMessage(__('profile.edit.main.password_change.login_and_email_required'), 'error');
+
             return false;
         }
 
-        $requiresCurrentPassword = ! empty($this->user->password);
+        $requiresCurrentPassword = !empty($this->user->password);
 
         $rules = [
             'new_password' => [

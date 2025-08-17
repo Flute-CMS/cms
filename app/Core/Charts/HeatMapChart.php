@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Flute\Core\Charts;
-
 
 use Flute\Core\Charts\Contracts\MustAddComplexData;
 use Flute\Core\Charts\Traits\ComplexChartDataAggregator;
@@ -17,7 +15,7 @@ class HeatMapChart extends FluteChart implements MustAddComplexData
         $this->type = 'heatmap';
     }
 
-    public function addHeat(string $name, array $data) :HeatMapChart
+    public function addHeat(string $name, array $data): HeatMapChart
     {
         return $this->addData($name, $data);
     }

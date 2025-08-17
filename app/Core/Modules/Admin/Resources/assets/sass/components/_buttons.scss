@@ -93,8 +93,6 @@ $sizes: (
     cursor: pointer;
     font-weight: 500;
     position: relative;
-    line-height: 2.25;
-    gap: 5px;
     width: max-content;
 
     &::after {
@@ -229,5 +227,12 @@ $sizes: (
                 opacity: 0;
             }
         }
+    }
+
+    .btn-label {
+        display: inline-flex;
+        align-items: center;
+        line-height: 2.25;
+        gap: 5px;
     }
 }

@@ -6,14 +6,14 @@ class SystemRequirements
 {
     /**
      * Minimum PHP version required
-     * 
+     *
      * @var string
      */
     protected $minPhpVersion = '8.2.0';
 
     /**
      * Required PHP extensions
-     * 
+     *
      * @var array
      */
     protected $requiredExtensions = [
@@ -33,7 +33,7 @@ class SystemRequirements
 
     /**
      * Directories that need to be writable
-     * 
+     *
      * @var array
      */
     protected $writableDirectories = [
@@ -48,10 +48,10 @@ class SystemRequirements
 
     /**
      * Check PHP version requirements
-     * 
+     *
      * @return array
      */
-    public function checkPhpRequirements() : array
+    public function checkPhpRequirements(): array
     {
         $currentVersion = phpversion();
         $check = version_compare($currentVersion, $this->minPhpVersion, '>=');
@@ -62,16 +62,16 @@ class SystemRequirements
                 'current' => $currentVersion,
                 'required' => $this->minPhpVersion,
                 'status' => $check,
-            ]
+            ],
         ];
     }
 
     /**
      * Check PHP extension requirements
-     * 
+     *
      * @return array
      */
-    public function checkExtensionRequirements() : array
+    public function checkExtensionRequirements(): array
     {
         $results = [];
 
@@ -89,10 +89,10 @@ class SystemRequirements
 
     /**
      * Check directory permission requirements
-     * 
+     *
      * @return array
      */
-    public function checkDirectoryRequirements() : array
+    public function checkDirectoryRequirements(): array
     {
         $results = [];
         $basePath = path();
@@ -101,8 +101,8 @@ class SystemRequirements
             $path = $basePath.'/'.$directory;
 
             // Create directory if it doesn't exist
-            if (! file_exists($path)) {
-                @mkdir($path, 0755, true);
+            if (!file_exists($path)) {
+                @mkdir($path, 0o755, true);
             }
 
             $isWritable = is_writable($path);
@@ -120,25 +120,25 @@ class SystemRequirements
 
     /**
      * Check if all requirements are met
-     * 
+     *
      * @return bool
      */
-    public function allRequirementsMet() : bool
+    public function allRequirementsMet(): bool
     {
         foreach ($this->checkPhpRequirements() as $check) {
-            if (! $check['status']) {
+            if (!$check['status']) {
                 return false;
             }
         }
 
         foreach ($this->checkExtensionRequirements() as $check) {
-            if (! $check['status']) {
+            if (!$check['status']) {
                 return false;
             }
         }
 
         foreach ($this->checkDirectoryRequirements() as $check) {
-            if (! $check['status']) {
+            if (!$check['status']) {
                 return false;
             }
         }

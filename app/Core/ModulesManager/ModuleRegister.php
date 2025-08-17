@@ -9,7 +9,7 @@ use Flute\Core\Support\ModuleServiceProvider;
 
 class ModuleRegister
 {
-    /** @var array $modulesBootTimes Времена загрузки модулей */
+    /** @var array Времена загрузки модулей */
     protected static array $modulesBootTimes = [];
 
     /**
@@ -27,6 +27,7 @@ class ModuleRegister
 
                 if (!class_exists(self::normalizeClassPath($classPath))) {
                     logs('modules')->error("Module $classPath wasn't found in the FileSystem!");
+
                     continue;
                 }
 
@@ -68,26 +69,29 @@ class ModuleRegister
                 logs('modules')->error($e);
 
                 // Schema exception is not critical and can be ignored
-                if (user()->can('admin.boss') && !($e instanceof ORMException)) throw $e;
+                if (user()->can('admin.boss') && !($e instanceof ORMException)) {
+                    throw $e;
+                }
             }
         }
     }
 
     /**
      * Create an instance of a class by its path.
-     * 
+     *
      * @param string $classPath Path to the class.
      * @return object New instance of the class.
      */
     protected static function instantiateClass(string $classPath): object
     {
         $path = self::normalizeClassPath($classPath);
-        return new $path;
+
+        return new $path();
     }
 
     /**
      * Normalize the path to the class, replacing '/' with '\'.
-     * 
+     *
      * @param string $class Original path to the class.
      * @return string Normalized path to the class.
      */
@@ -98,7 +102,7 @@ class ModuleRegister
 
     /**
      * Get modules boot times
-     * 
+     *
      * @return array
      */
     public static function getModulesBootTimes(): array

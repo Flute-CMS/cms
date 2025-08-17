@@ -2,9 +2,9 @@
 
 namespace Flute\Core\Services;
 
-use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
 use Monolog\Processor\IntrospectionProcessor;
 use Monolog\Processor\WebProcessor;
 
@@ -39,7 +39,7 @@ class LoggerService
             self::MAX_FILES,
             $logLevel,
             true,
-            0666,
+            0o666,
             true
         );
 

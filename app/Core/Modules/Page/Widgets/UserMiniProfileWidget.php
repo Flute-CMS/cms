@@ -2,14 +2,12 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
-use Flute\Core\Modules\Page\Widgets\AbstractWidget;
-
 class UserMiniProfileWidget extends AbstractWidget
 {
     /**
      * Returns the unique name of the widget.
      */
-    public function getName() : string
+    public function getName(): string
     {
         return 'widgets.user_mini_profile';
     }
@@ -17,7 +15,7 @@ class UserMiniProfileWidget extends AbstractWidget
     /**
      * Returns the icon of the widget.
      */
-    public function getIcon() : string
+    public function getIcon(): string
     {
         return 'ph.regular.user-circle';
     }
@@ -25,20 +23,20 @@ class UserMiniProfileWidget extends AbstractWidget
     /**
      * Renders the widget with specified settings.
      */
-    public function render(array $settings) : string|null
+    public function render(array $settings): string|null
     {
         $user = user()->getCurrentUser();
-        
+
         return view('flute::widgets.user-mini-profile', [
             'user' => $user,
-            'settings' => $settings
+            'settings' => $settings,
         ])->render();
     }
 
     /**
      * Returns the category of the widget.
      */
-    public function getCategory() : string
+    public function getCategory(): string
     {
         return 'users';
     }
@@ -46,8 +44,8 @@ class UserMiniProfileWidget extends AbstractWidget
     /**
      * Returns the default width for gridstack.
      */
-    public function getDefaultWidth() : int
+    public function getDefaultWidth(): int
     {
         return 3;
     }
-} 
+}

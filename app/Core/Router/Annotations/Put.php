@@ -25,4 +25,4 @@ class Put extends Route
     ) {
         parent::__construct($uri, ['PUT'], $name, $middleware, $where, $defaults);
     }
-} 
+}

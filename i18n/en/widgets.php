@@ -53,4 +53,6 @@ return [
         'description' => 'Main page content from templates',
         'no_content' => 'No content available',
     ],
+
+    'no_payments' => 'No payments',
 ];

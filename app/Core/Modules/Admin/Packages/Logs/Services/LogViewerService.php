@@ -30,7 +30,7 @@ class LogViewerService
     public function getLogContent(string $logFile, int $lines = 500): array
     {
         $cacheKey = $this->getCacheKey($logFile, $lines);
-        
+
         if ($this->isCacheValid($cacheKey)) {
             return $this->logCache[$cacheKey]['data'];
         }
@@ -43,8 +43,8 @@ class LogViewerService
 
         $content = $this->readLastLines($logPath, $lines);
         $parsedEntries = $this->parseLogContent($content);
-        
-        usort($parsedEntries, function($a, $b) {
+
+        usort($parsedEntries, function ($a, $b) {
             return strtotime($b['datetime']) <=> strtotime($a['datetime']);
         });
 
@@ -97,14 +97,14 @@ class LogViewerService
         try {
             $lines = file($filePath, FILE_IGNORE_NEW_LINES);
             $totalLines = count($lines);
-            
+
             if ($errorLine <= 0 || $errorLine > $totalLines) {
                 return [];
             }
 
             $startLine = max(1, $errorLine - $contextLines);
             $endLine = min($totalLines, $errorLine + $contextLines);
-            
+
             $context = [];
             for ($i = $startLine; $i <= $endLine; $i++) {
                 $context[] = [
@@ -127,7 +127,7 @@ class LogViewerService
     {
         $realPath = realpath($filePath);
         $basePath = realpath(BASE_PATH);
-        
+
         if (!$realPath || !$basePath || strpos($realPath, $basePath) !== 0) {
             return false;
         }
@@ -170,6 +170,7 @@ class LogViewerService
             if (preg_match($pattern, $message, $matches)) {
                 $filePath = $matches[1] ?? '';
                 $lineNumber = (int)($matches[2] ?? 0);
+
                 break;
             }
         }
@@ -189,7 +190,7 @@ class LogViewerService
     {
         $basePath = realpath(BASE_PATH);
         $realPath = realpath($filePath);
-        
+
         if ($basePath && $realPath && strpos($realPath, $basePath) === 0) {
             return ltrim(substr($realPath, strlen($basePath)), '/\\');
         }
@@ -208,7 +209,7 @@ class LogViewerService
         }
 
         $this->clearLogCache($logger);
-        
+
         return file_put_contents($logPath, '') !== false;
     }
 
@@ -236,7 +237,7 @@ class LogViewerService
             $message = $match[4] ?? '';
 
             $messageParts = $this->parseMessageAndContext($message);
-            
+
             $cleanMessage = $this->sanitizeMessage($messageParts['message']);
 
             $fileInfo = $this->extractFileInfo($message);
@@ -266,7 +267,7 @@ class LogViewerService
                 'full_message' => trim($message),
                 'severity' => $this->getLevelSeverity($level),
                 'file_info' => $fileInfo,
-                'code_context' => $fileInfo['file_path'] && $fileInfo['line_number'] 
+                'code_context' => $fileInfo['file_path'] && $fileInfo['line_number']
                     ? $this->getFileContext($fileInfo['file_path'], $fileInfo['line_number'], 20)
                     : [],
             ];
@@ -281,23 +282,23 @@ class LogViewerService
     protected function parseMessageAndContext(string $message): array
     {
         $contextStart = strrpos($message, ' {');
-        
+
         if ($contextStart !== false) {
             $messageText = trim(substr($message, 0, $contextStart));
             $contextJson = trim(substr($message, $contextStart));
-            
+
             $context = json_decode($contextJson, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 return [
                     'message' => $messageText,
-                    'context' => $contextJson
+                    'context' => $contextJson,
                 ];
             }
         }
 
         return [
             'message' => trim($message),
-            'context' => ''
+            'context' => '',
         ];
     }
 
@@ -309,9 +310,9 @@ class LogViewerService
         $message = preg_replace('/(\?|&)accessKey=([^&\s]+)/i', '$1accessKey=***', $message);
         $message = preg_replace('/password["\']?\s*[:=]\s*["\']?([^"\'\s,}]+)/i', 'password="***"', $message);
         $message = preg_replace('/token["\']?\s*[:=]\s*["\']?([^"\'\s,}]+)/i', 'token="***"', $message);
-        
+
         $message = str_replace("\n", "<br>", $message);
-        
+
         return $message;
     }
 
@@ -341,7 +342,7 @@ class LogViewerService
     {
         $result = [];
         $logsPath = path('storage/logs');
-        
+
         if (!is_dir($logsPath)) {
             return $result;
         }
@@ -369,7 +370,7 @@ class LogViewerService
             }
         }
 
-        uasort($result, function($a, $b) {
+        uasort($result, function ($a, $b) {
             return $b['modified_timestamp'] <=> $a['modified_timestamp'];
         });
 
@@ -382,7 +383,7 @@ class LogViewerService
     protected function getLogLevelStats(string $logFile): array
     {
         $cacheKey = 'stats_' . $logFile;
-        
+
         if ($this->isCacheValid($cacheKey)) {
             return $this->logCache[$cacheKey]['data'];
         }
@@ -399,6 +400,7 @@ class LogViewerService
         }
 
         $this->cacheLogData($cacheKey, $stats);
+
         return $stats;
     }
 
@@ -413,6 +415,7 @@ class LogViewerService
         }
 
         $lastModified = filemtime($logPath);
+
         return (time() - $lastModified) < 3600;
     }
 
@@ -445,11 +448,11 @@ class LogViewerService
 
         $content = file_get_contents($logPath);
         $systemInfo = $this->getSystemInfo();
-        
+
         $exportContent = "# System Information\n";
         $exportContent .= "Export Date: " . date('Y-m-d H:i:s') . "\n";
         $exportContent .= "Log File: " . $logFile . "\n\n";
-        
+
         foreach ($systemInfo as $section => $data) {
             $exportContent .= "## " . $section . "\n";
             foreach ($data as $key => $value) {
@@ -457,25 +460,25 @@ class LogViewerService
             }
             $exportContent .= "\n";
         }
-        
+
         $exportContent .= "# Log Content\n\n";
         $exportContent .= $content;
-        
+
         $tempDir = path('storage/app/temp');
         if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
+            mkdir($tempDir, 0o755, true);
         }
-        
+
         $exportFileName = 'log_export_' . date('Y-m-d_H-i-s') . '_' . pathinfo($logFile, PATHINFO_FILENAME) . '.txt';
         $exportFilePath = $tempDir . '/' . $exportFileName;
-        
+
         if (file_put_contents($exportFilePath, $exportContent) === false) {
             throw new \Exception('Failed to create export file');
         }
-        
+
         return $exportFilePath;
     }
-    
+
     /**
      * Get comprehensive system information
      */
@@ -485,7 +488,7 @@ class LogViewerService
         $memoryInfo = $this->getMemoryInfo();
         $phpInfo = $this->getPhpInfo();
         $fluteInfo = $this->getFluteInfo();
-        
+
         return [
             'Server' => [
                 'PHP Version' => PHP_VERSION,
@@ -510,11 +513,11 @@ class LogViewerService
     protected function getDiskInfo(): array
     {
         $diskInfo = [];
-        
+
         if (function_exists('disk_free_space') && function_exists('disk_total_space')) {
             $diskFree = disk_free_space('/');
             $diskTotal = disk_total_space('/');
-            
+
             if ($diskFree !== false && $diskTotal !== false) {
                 $diskUsed = $diskTotal - $diskFree;
                 $diskInfo = [
@@ -525,7 +528,7 @@ class LogViewerService
                 ];
             }
         }
-        
+
         return $diskInfo ?: ['Status' => 'Disk information not available'];
     }
 
@@ -579,9 +582,10 @@ class LogViewerService
     {
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
+
             return sprintf('%.2f %.2f %.2f', $load[0], $load[1], $load[2]);
         }
-        
+
         return 'Not available';
     }
 
@@ -592,13 +596,13 @@ class LogViewerService
     {
         $keyExtensions = ['curl', 'gd', 'mbstring', 'openssl', 'pdo_mysql', 'zip', 'json', 'bcmath'];
         $loaded = [];
-        
+
         foreach ($keyExtensions as $ext) {
             if (extension_loaded($ext)) {
                 $loaded[] = $ext;
             }
         }
-        
+
         return implode(', ', $loaded);
     }
 
@@ -609,7 +613,7 @@ class LogViewerService
     {
         $logPath = path('storage/logs/' . $logFile);
         $lastModified = file_exists($logPath) ? filemtime($logPath) : 0;
-        
+
         return md5($logFile . '_' . $lines . '_' . $lastModified);
     }
 
@@ -623,6 +627,7 @@ class LogViewerService
         }
 
         $cacheData = $this->logCache[$cacheKey];
+
         return (time() - $cacheData['timestamp']) < $this->cacheLifetime;
     }
 
@@ -633,7 +638,7 @@ class LogViewerService
     {
         $this->logCache[$cacheKey] = [
             'data' => $data,
-            'timestamp' => time()
+            'timestamp' => time(),
         ];
 
         if (count($this->logCache) > 50) {
@@ -659,7 +664,7 @@ class LogViewerService
     protected function cleanupCache(): void
     {
         $now = time();
-        
+
         foreach ($this->logCache as $key => $data) {
             if (($now - $data['timestamp']) > $this->cacheLifetime) {
                 unset($this->logCache[$key]);

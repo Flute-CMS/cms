@@ -7,7 +7,6 @@ use Flute\Core\Cache\Adapters\ArrayAdapterCacheDriver;
 use Flute\Core\Cache\Adapters\FileSystemAdapterCacheDriver;
 use Flute\Core\Cache\Adapters\MemcachedAdapterCacheDriver;
 use Flute\Core\Cache\Adapters\RedisAdapterCacheDriver;
-use Flute\Core\Cache\Contracts\CacheInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -42,7 +41,7 @@ class CacheManager
      * @param array $config
      * @return AbstractCacheDriver
      */
-    public function create(array $config) : AbstractCacheDriver
+    public function create(array $config): AbstractCacheDriver
     {
         $driver = $config['driver'] ?? 'array';
 
@@ -63,7 +62,7 @@ class CacheManager
      * @return AbstractCacheDriver
      * @throws \RuntimeException
      */
-    public function getAdapter() : AbstractCacheDriver
+    public function getAdapter(): AbstractCacheDriver
     {
         if ($this->adapter === null) {
             throw new \RuntimeException("Cache adapter has not been created yet.");

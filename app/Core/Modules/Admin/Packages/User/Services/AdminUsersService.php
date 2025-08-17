@@ -3,11 +3,12 @@
 namespace Flute\Admin\Packages\User\Services;
 
 use Flute\Core\Database\Entities\Role;
+use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserBlock;
 use Flute\Core\Database\Entities\UserDevice;
 use Flute\Core\Database\Entities\UserSocialNetwork;
-use Flute\Core\Database\Entities\SocialNetwork;
+use Flute\Core\Services\DiscordService;
 use Flute\Core\Support\FileUploader;
 
 class AdminUsersService
@@ -68,7 +69,7 @@ class AdminUsersService
                 }
             }
 
-            if (! empty($roleIds)) {
+            if (!empty($roleIds)) {
                 $allowedRoles = array_filter(
                     Role::findAll(),
                     static fn ($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
@@ -81,6 +82,14 @@ class AdminUsersService
         }
 
         $user->saveOrFail();
+
+        try {
+            if ($user->getSocialNetwork('Discord')) {
+                app()->get(DiscordService::class)->linkRoles($user, $user->roles);
+            }
+        } catch (\Throwable $e) {
+            logs()->warning($e);
+        }
     }
 
     /**
@@ -120,13 +129,13 @@ class AdminUsersService
     private function updateUserData(User $user, array $data): void
     {
         $user->name = $data['name'];
-        if (! empty($data['login'])) {
+        if (!empty($data['login'])) {
             $user->login = $data['login'];
         }
-        if (! empty($data['uri'])) {
+        if (!empty($data['uri'])) {
             $user->uri = $data['uri'];
         }
-        if (! empty($data['email'])) {
+        if (!empty($data['email'])) {
             $user->email = $data['email'];
         }
         $user->balance = floatval($data['balance']);
@@ -195,7 +204,7 @@ class AdminUsersService
     {
         $device = UserDevice::findByPK($deviceId);
 
-        if (! $device || $device->user->id !== $user->id) {
+        if (!$device || $device->user->id !== $user->id) {
             throw new \Exception(__('admin-users.messages.session_not_found'));
         }
 
@@ -212,7 +221,7 @@ class AdminUsersService
     public function addSocialNetwork(User $user, array $data): void
     {
         $socialNetwork = SocialNetwork::findByPK($data['socialNetwork']);
-        if (! $socialNetwork) {
+        if (!$socialNetwork) {
             throw new \Exception(__('admin-users.messages.social_not_found'));
         }
 
@@ -231,7 +240,7 @@ class AdminUsersService
     public function updateSocialNetwork(int $networkId, array $data): void
     {
         $network = UserSocialNetwork::findByPK($networkId);
-        if (! $network) {
+        if (!$network) {
             throw new \Exception(__('admin-users.messages.social_not_found'));
         }
 
@@ -247,11 +256,11 @@ class AdminUsersService
     public function toggleSocialNetworkVisibility(int $networkId): void
     {
         $network = UserSocialNetwork::findByPK($networkId);
-        if (! $network) {
+        if (!$network) {
             throw new \Exception(__('admin-users.messages.social_not_found'));
         }
 
-        $network->hidden = ! $network->hidden;
+        $network->hidden = !$network->hidden;
         $network->save();
     }
 
@@ -261,7 +270,7 @@ class AdminUsersService
     public function deleteSocialNetwork(int $networkId): void
     {
         $network = rep(UserSocialNetwork::class)->findByPK($networkId);
-        if (! $network) {
+        if (!$network) {
             throw new \Exception(__('admin-users.messages.social_not_found'));
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 /*!
 * Hybridauth
 * https://hybridauth.github.io | https://github.com/hybridauth/hybridauth
@@ -8,8 +9,8 @@
 namespace Hybridauth\Provider;
 
 use Hybridauth\Adapter\OpenID;
-use Hybridauth\Exception\UnexpectedApiResponseException;
 use Hybridauth\Data;
+use Hybridauth\Exception\UnexpectedApiResponseException;
 
 /**
  * Steam OpenID provider adapter.
@@ -107,7 +108,7 @@ class HttpsSteam extends OpenID
 
         $data = json_decode($response);
 
-        $data = isset($data->response->players[0]) ? $data->response->players[0] : null;
+        $data = $data->response->players[0] ?? null;
 
         $data = new Data\Collection($data);
 

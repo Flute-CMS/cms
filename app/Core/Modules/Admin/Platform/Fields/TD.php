@@ -2,7 +2,6 @@
 
 namespace Flute\Admin\Platform\Fields;
 
-use Flute\Admin\Platform\Fields\Cell;
 use Flute\Admin\Platform\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
@@ -87,6 +86,11 @@ class TD extends Cell
      * @var array
      */
     protected $attributes = [];
+
+    /**
+     * @var bool
+     */
+    protected $isSelection = false;
 
     /**
      * @param string|int $width
@@ -198,6 +202,16 @@ class TD extends Cell
      */
     public function buildTh(): Factory|View
     {
+        // Special rendering for selection column
+        if ($this->isSelection) {
+            $tableId = $this->getAttribute('tableId', 'default');
+
+            return view('admin::partials.layouts.th-selection', [
+                'tableId' => $tableId,
+                'aria_hidden' => $this->hasAttribute('hidden') ? 'true' : null,
+            ]);
+        }
+
         $style = $this->style;
         $width = is_numeric($this->width) ? $this->width . 'px' : $this->width;
         $minWidth = is_numeric($this->minWidth) ? $this->minWidth . 'px' : $this->minWidth;
@@ -255,6 +269,14 @@ class TD extends Cell
                 : (is_array($source) ? $source[$this->name] : $source->{$this->name});
         }
 
+        if ($this->isSelection) {
+            return view('admin::partials.layouts.td-selection', [
+                'value' => $value,
+                'aria_hidden' => $this->hasAttribute('hidden') ? 'true' : null,
+                'tableId' => $this->getAttribute('tableId', 'default'),
+            ]);
+        }
+
         return view('admin::partials.layouts.td', [
             'align' => $this->align,
             'value' => $value,
@@ -301,7 +323,7 @@ class TD extends Cell
      */
     public function buildItemMenu(): Factory|View|null
     {
-        if (! $this->isAllowUserHidden()) {
+        if (!$this->isAllowUserHidden()) {
             return null;
         }
 
@@ -356,7 +378,7 @@ class TD extends Cell
      */
     public function disableSearch(bool $disable = true): self
     {
-        $this->searchable = ! $disable;
+        $this->searchable = !$disable;
 
         return $this;
     }
@@ -391,9 +413,28 @@ class TD extends Cell
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
+    /**
+     * Mark this column as a selection column (checkboxes).
+     */
+    public function asSelection(bool $selection = true): self
+    {
+        $this->isSelection = $selection;
+        $this->disableSearch();
+        $this->cantHide();
+
+        return $this;
+    }
+
+    /**
+     * Create a ready-to-use selection column.
+     */
+    public static function selection(string $name = 'id'): self
+    {
+        return static::make($name)->asSelection();
+    }
     /**
      * Check if the column should be hidden based on user preferences in cookies.
      *
@@ -402,14 +443,14 @@ class TD extends Cell
      */
     public function isHiddenByUserPreference(string $tableId): bool
     {
-        if (! $this->isAllowUserHidden()) {
+        if (!$this->isAllowUserHidden()) {
             return false;
         }
 
         $cookieKey = "columns_{$tableId}";
         $cookieValue = cookie()->get($cookieKey) ?? null;
 
-        if (! $cookieValue) {
+        if (!$cookieValue) {
             return $this->defaultHidden;
         }
 
@@ -418,7 +459,7 @@ class TD extends Cell
             $columnSlug = $this->sluggable();
 
             if (isset($preferences[$columnSlug])) {
-                return ! $preferences[$columnSlug];
+                return !$preferences[$columnSlug];
             }
         } catch (\Exception $e) {
         }
@@ -436,6 +477,7 @@ class TD extends Cell
     public function setAttribute(string $name, $value): self
     {
         $this->attributes[$name] = $value;
+
         return $this;
     }
 
@@ -470,10 +512,10 @@ class TD extends Cell
 
         $this->defaultSort = $defaultSort;
         $this->defaultSortDirection = $defaultSortDirection;
-        
+
         $this->setAttribute('defaultSort', $defaultSort);
         $this->setAttribute('defaultSortDirection', $defaultSortDirection);
-        
+
         return $this;
     }
 }

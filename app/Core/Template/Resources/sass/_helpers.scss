@@ -830,21 +830,8 @@
 /* ===== Special Effects ===== */
 .blur-bg {
     position: relative;
-    opacity: 1;
-
-    &::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: inherit;
-        z-index: -1;
-        top: 0;
-        left: 0;
-        pointer-events: none;
-    }
+    backdrop-filter: saturate(150%) blur(14px);
+    -webkit-backdrop-filter: saturate(150%) blur(14px);
 }
 
 .icon-hover {

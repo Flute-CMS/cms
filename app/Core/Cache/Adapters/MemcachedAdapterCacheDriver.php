@@ -3,8 +3,8 @@
 namespace Flute\Core\Cache\Adapters;
 
 use Flute\Core\Cache\AbstractCacheDriver;
-use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 
 class MemcachedAdapterCacheDriver extends AbstractCacheDriver
 {

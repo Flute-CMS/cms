@@ -27,7 +27,7 @@ class RedirectResponse extends BaseRedirectResponse
 
     /**
      * Route dispatcher instance.
-     * 
+     *
      * @var Router
      */
     protected RouterInterface $router;
@@ -56,7 +56,7 @@ class RedirectResponse extends BaseRedirectResponse
      * @param  mixed  $value
      * @return $this
      */
-    public function with($key, $value = null) : RedirectResponse
+    public function with($key, $value = null): RedirectResponse
     {
         $key = is_array($key) ? $key : [$key => $value];
 
@@ -73,7 +73,7 @@ class RedirectResponse extends BaseRedirectResponse
      * @param  array  $cookies
      * @return $this
      */
-    public function withCookies(array $cookies) : RedirectResponse
+    public function withCookies(array $cookies): RedirectResponse
     {
         foreach ($cookies as $cookie) {
             $this->headers->setCookie($cookie);
@@ -88,12 +88,13 @@ class RedirectResponse extends BaseRedirectResponse
      * @param  array|null  $input
      * @return $this
      */
-    public function withInput(array $input = null) : RedirectResponse
+    public function withInput(array $input = null): RedirectResponse
     {
-        $inputs = ! is_null($input) ? $input : $this->request->input();
+        $inputs = !is_null($input) ? $input : $this->request->input();
 
-        foreach ($inputs as $key => $value)
+        foreach ($inputs as $key => $value) {
             $this->session->set("__input_$key", $value);
+        }
 
         return $this;
     }
@@ -104,7 +105,7 @@ class RedirectResponse extends BaseRedirectResponse
      * @param  array  $input
      * @return array
      */
-    protected function removeFilesFromInput(array $input) : array
+    protected function removeFilesFromInput(array $input): array
     {
         foreach ($input as $key => $value) {
             if (is_array($value)) {
@@ -124,7 +125,7 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return $this
      */
-    public function onlyInput() : RedirectResponse
+    public function onlyInput(): RedirectResponse
     {
         return $this->withInput($this->request->only(func_get_args()));
     }
@@ -134,7 +135,7 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return $this
      */
-    public function exceptInput() : RedirectResponse
+    public function exceptInput(): RedirectResponse
     {
         return $this->withInput($this->request->except(func_get_args()));
     }
@@ -143,18 +144,18 @@ class RedirectResponse extends BaseRedirectResponse
      * Flash a container of errors to the session.
      *
      * @param  array|string  $values
-     * 
+     *
      * @return $this
      */
-    public function withErrors($values) : RedirectResponse
+    public function withErrors($values): RedirectResponse
     {
         $errors = $this->session->get('error', []);
 
-        if (! is_array($errors)) {
+        if (!is_array($errors)) {
             $errors = [];
         }
 
-        $errors = array_merge($errors, ! is_array($values) ? [$values] : $values);
+        $errors = array_merge($errors, !is_array($values) ? [$values] : $values);
 
         $this->session->getFlashBag()->set('error', $errors);
 
@@ -167,7 +168,7 @@ class RedirectResponse extends BaseRedirectResponse
      * @param string $fragment
      * @return $this
      */
-    public function withFragment(string $fragment) : RedirectResponse
+    public function withFragment(string $fragment): RedirectResponse
     {
         return $this->withoutFragment()
             ->setTargetUrl($this->getTargetUrl().'#'.Strings::after($fragment, '#'));
@@ -178,7 +179,7 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return $this
      */
-    public function withoutFragment() : RedirectResponse
+    public function withoutFragment(): RedirectResponse
     {
         return $this->setTargetUrl(Strings::before($this->getTargetUrl(), '#'));
     }
@@ -190,7 +191,7 @@ class RedirectResponse extends BaseRedirectResponse
      * @param  array  $headers
      * @return $this
      */
-    public function back(int $status = 302, array $headers = []) : RedirectResponse
+    public function back(int $status = 302, array $headers = []): RedirectResponse
     {
         $referrer = $this->request->headers->get('referer');
 
@@ -204,7 +205,7 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return FluteRequest|null
      */
-    public function getRequest() : ?FluteRequest
+    public function getRequest(): ?FluteRequest
     {
         return $this->request;
     }
@@ -225,7 +226,7 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return SessionService|null
      */
-    public function getSession() : ?SessionService
+    public function getSession(): ?SessionService
     {
         return $this->session;
     }
@@ -248,10 +249,10 @@ class RedirectResponse extends BaseRedirectResponse
      * @param array $parameters
      * @param int $status
      * @param array $headers
-     * 
+     *
      * @return $this
      */
-    public function route(string $name, array $parameters = [], int $status = 302, array $headers = []) : RedirectResponse
+    public function route(string $name, array $parameters = [], int $status = 302, array $headers = []): RedirectResponse
     {
         $url = router()->url($name, $parameters);
 

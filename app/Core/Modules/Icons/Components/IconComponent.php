@@ -92,7 +92,7 @@ class IconComponent extends Component
         return function (array $data = []) {
             return render('flute-icons::icon', [
                 'html' => $this->finder->loadFile($this->path),
-                'data' => collect($this->extractPublicProperties())->merge($data['attributes'] ?? [])->filter(fn($value) => is_string($value)),
+                'data' => collect($this->extractPublicProperties())->merge($data['attributes'] ?? [])->filter(fn ($value) => is_string($value)),
             ])->render();
         };
     }

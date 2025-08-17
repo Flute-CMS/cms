@@ -15,7 +15,7 @@ use Flute\Core\Router\Router;
 |
 */
 
-router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], function (Router $router) {
+router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/pages/'], function (Router $router) {
     $router->delete('delete-widget/{id}', [WidgetController::class, 'deleteWidget'])
         ->name('pages.deleteWidget');
 
@@ -48,7 +48,7 @@ router()->group(['middleware' => 'can:admin.pages', 'prefix' => 'api/pages/'], f
 
     $router->get('get-layout', [WidgetController::class, 'getLayout'])
         ->name('pages.getLayout');
-    
+
     $router->post('save-seo', [PageController::class, 'saveSEO'])
         ->name('pages.saveSEO');
 

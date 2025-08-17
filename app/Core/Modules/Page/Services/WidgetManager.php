@@ -3,7 +3,9 @@
 namespace Flute\Core\Modules\Page\Services;
 
 use Flute\Core\Modules\Page\Widgets\ActivePromoCodesWidget;
+use Flute\Core\Modules\Page\Widgets\ContentWidget;
 use Flute\Core\Modules\Page\Widgets\Contracts\WidgetInterface;
+use Flute\Core\Modules\Page\Widgets\EditorWidget;
 use Flute\Core\Modules\Page\Widgets\EmptyWidget;
 use Flute\Core\Modules\Page\Widgets\RecentPaymentsWidget;
 use Flute\Core\Modules\Page\Widgets\TopDonorsWidget;
@@ -11,10 +13,8 @@ use Flute\Core\Modules\Page\Widgets\UserMiniProfileWidget;
 use Flute\Core\Modules\Page\Widgets\UsersNewWidget;
 use Flute\Core\Modules\Page\Widgets\UsersOnlineWidget;
 use Flute\Core\Modules\Page\Widgets\UsersTodayWidget;
-use Flute\Core\Modules\Page\Widgets\EditorWidget;
-use Flute\Core\Modules\Page\Widgets\ContentWidget;
-use Psr\Container\ContainerInterface;
 use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
 
 class WidgetManager
 {
@@ -40,18 +40,34 @@ class WidgetManager
      */
     public function registerWidget(string $name, string $class): void
     {
-        if (! class_exists($class)) {
+        if (!class_exists($class)) {
             throw new InvalidArgumentException("Class {$class} does not exist.");
         }
 
-        if (! in_array(WidgetInterface::class, class_implements($class ?? []))) {
+        if (!in_array(WidgetInterface::class, class_implements($class ?? []))) {
             throw new InvalidArgumentException("Class {$class} must implement WidgetInterface.");
         }
 
         if (isset($this->widgets[$name])) {
-            throw new InvalidArgumentException("Widget already exists - {$name}");
+            if ($this->widgets[$name] !== $class) {
+                throw new InvalidArgumentException("Widget already exists - {$name}");
+            }
         }
+
         $this->widgets[$name] = $class;
+
+        $base = preg_replace('/Widget$/', '', $name);
+        if ($base && !isset($this->widgets[$base])) {
+            $this->widgets[$base] = $class;
+        }
+        $kebab = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $base));
+        if ($kebab && !isset($this->widgets[$kebab])) {
+            $this->widgets[$kebab] = $class;
+        }
+        $kebabUcFirst = ucfirst($kebab);
+        if ($kebabUcFirst && !isset($this->widgets[$kebabUcFirst])) {
+            $this->widgets[$kebabUcFirst] = $class;
+        }
     }
 
     /**
@@ -60,7 +76,14 @@ class WidgetManager
     public function getWidgets(): array
     {
         $instances = [];
+        $seenClasses = [];
+
         foreach ($this->widgets as $name => $class) {
+            if (isset($seenClasses[$class])) {
+                continue;
+            }
+
+            $seenClasses[$class] = true;
 
             $instance = $this->container->get($class);
 
@@ -70,6 +93,7 @@ class WidgetManager
 
             $instances[$name] = $instance;
         }
+
         return $instances;
     }
 
@@ -81,6 +105,7 @@ class WidgetManager
         if (!isset($this->widgets[$name])) {
             throw new InvalidArgumentException("Widget {$name} is not registered in the system.");
         }
+
         return $this->container->get($this->widgets[$name]);
     }
 
@@ -114,6 +139,7 @@ class WidgetManager
             }
             $categories[$category][$name] = $widget;
         }
+
         return $categories;
     }
 }

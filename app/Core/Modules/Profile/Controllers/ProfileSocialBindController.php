@@ -4,9 +4,9 @@ namespace Flute\Core\Modules\Profile\Controllers;
 
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\UserSocialNetwork;
-use Flute\Core\Services\DiscordService;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Exceptions\UserNotFoundException;
+use Flute\Core\Services\DiscordService;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
@@ -107,8 +107,9 @@ class ProfileSocialBindController extends BaseController
 
         transaction($socialNetwork, 'delete')->run();
 
-        if ($provider === 'Discord')
+        if ($provider === 'Discord') {
             app()->get(DiscordService::class)->clearRoles(user()->getCurrentUser());
+        }
 
         return redirect()->back()->with('success', t('profile.s_social.social_disconnected'));
     }
@@ -146,6 +147,7 @@ class ProfileSocialBindController extends BaseController
     protected function socialError(string $error): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+
         return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
     }
 
@@ -157,6 +159,7 @@ class ProfileSocialBindController extends BaseController
     protected function socialSuccess(): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+
         return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
     }
 }

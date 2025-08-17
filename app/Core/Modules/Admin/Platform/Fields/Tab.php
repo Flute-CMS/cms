@@ -19,6 +19,7 @@ class Tab extends Field
     public function title(string $title): self
     {
         $this->set('title', $title);
+
         return $this;
     }
 
@@ -31,6 +32,7 @@ class Tab extends Field
     public function badge($badge): self
     {
         $this->set('badge', $badge);
+
         return $this;
     }
 
@@ -43,6 +45,7 @@ class Tab extends Field
     public function icon(string $icon): self
     {
         $this->set('icon', $icon);
+
         return $this;
     }
 
@@ -55,6 +58,7 @@ class Tab extends Field
     public function active(bool $active = true): self
     {
         $this->set('active', $active);
+
         return $this;
     }
 
@@ -67,6 +71,7 @@ class Tab extends Field
     public function layouts(array $layouts): self
     {
         $this->set('layouts', $layouts);
+
         return $this;
     }
 
@@ -79,6 +84,7 @@ class Tab extends Field
     public function slug($slug): self
     {
         $this->set('slug', $slug);
+
         return $this;
     }
 
@@ -91,6 +97,7 @@ class Tab extends Field
     public function href(string $href): self
     {
         $this->set('href', $href);
+
         return $this;
     }
 

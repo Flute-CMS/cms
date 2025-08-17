@@ -2,7 +2,6 @@
 
 return array (
   'locale' => 'ru',
-  'cache' => true,
   'available' => 
   array (
     0 => 'en',

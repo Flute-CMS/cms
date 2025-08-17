@@ -10,42 +10,42 @@ class MarketplaceService
 {
     /**
      * API базовый URL
-     * 
+     *
      * @var string
      */
     protected string $apiBaseUrl;
 
     /**
      * API ключ
-     * 
+     *
      * @var string
      */
     protected string $apiKey;
 
     /**
      * HTTP клиент
-     * 
+     *
      * @var Client
      */
     protected Client $client;
 
     /**
      * API URL маркетплейса
-     * 
+     *
      * @var string
      */
     protected string $apiUrl;
 
     /**
      * Список модулей в кеше
-     * 
+     *
      * @var array|null
      */
     protected ?array $cachedModules = null;
 
     /**
      * Время кеширования модулей (в секундах)
-     * 
+     *
      * @var int
      */
     protected int $cacheTime = 3600; // 1 hour
@@ -67,7 +67,7 @@ class MarketplaceService
 
     /**
      * Получить список модулей
-     * 
+     *
      * @param string $searchQuery Строка поиска
      * @param string $category Категория модулей
      * @param bool $force Принудительное обновление кеша
@@ -109,12 +109,13 @@ class MarketplaceService
                 }
 
                 $modules = json_decode($body, true) ?? [];
-                
+
                 $this->updateModuleCacheKeys('marketplace_modules_' . md5($searchQuery . '_' . $category));
-                
+
                 return $modules;
             } catch (GuzzleException $e) {
                 logs()->error('Marketplace API error: ' . $e->getMessage());
+
                 throw new \Exception('Error connecting to the marketplace API: ' . $e->getMessage());
             }
         }, $this->cacheTime);
@@ -122,7 +123,7 @@ class MarketplaceService
 
     /**
      * Save module cache keys for subsequent cleanup
-     * 
+     *
      * @param string $cacheKey
      * @return void
      */
@@ -137,7 +138,7 @@ class MarketplaceService
 
     /**
      * Get module information by slug
-     * 
+     *
      * @param string $slug
      * @return array
      * @throws Exception
@@ -160,16 +161,18 @@ class MarketplaceService
 
                 if ($statusCode !== 200) {
                     $error = json_decode($body, true);
+
                     throw new \Exception($error['error'] ?? 'Module not found');
                 }
 
                 $module = json_decode($body, true) ?? [];
-                
+
                 $this->updateModuleCacheKeys('marketplace_module_' . $slug);
-                
+
                 return $module;
             } catch (GuzzleException $e) {
                 logs()->error('Marketplace API error: ' . $e->getMessage());
+
                 throw new \Exception('Error connecting to the marketplace API: ' . $e->getMessage());
             }
         }, $this->cacheTime);
@@ -177,7 +180,7 @@ class MarketplaceService
 
     /**
      * Get module version history
-     * 
+     *
      * @param string $slug
      * @return array
      * @throws Exception
@@ -199,16 +202,18 @@ class MarketplaceService
 
                 if ($statusCode !== 200) {
                     $error = json_decode($body, true);
+
                     throw new \Exception($error['error'] ?? 'Failed to get module version history');
                 }
 
                 $versions = json_decode($body, true) ?? [];
-                
+
                 $this->updateModuleCacheKeys('marketplace_module_versions_' . $slug);
-                
+
                 return $versions;
             } catch (GuzzleException $e) {
                 logs()->error('Marketplace API error: ' . $e->getMessage());
+
                 throw new \Exception('Error connecting to the marketplace API: ' . $e->getMessage());
             }
         }, $this->cacheTime);
@@ -216,7 +221,7 @@ class MarketplaceService
 
     /**
      * Get module categories (filters)
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -237,13 +242,16 @@ class MarketplaceService
 
                 if ($statusCode !== 200) {
                     $error = json_decode($body, true);
+
                     throw new \Exception($error['error'] ?? 'Failed to get module categories');
                 }
 
                 $data = json_decode($body, true) ?? [];
+
                 return $data['tags'] ?? [];
             } catch (GuzzleException $e) {
                 logs()->error('Marketplace API error: ' . $e->getMessage());
+
                 throw new \Exception('Error connecting to the marketplace API: ' . $e->getMessage());
             }
         }, $this->cacheTime);
@@ -251,7 +259,7 @@ class MarketplaceService
 
     /**
      * Download module
-     * 
+     *
      * @param string $slug
      * @return string Path to the downloaded file
      * @throws Exception
@@ -278,13 +286,14 @@ class MarketplaceService
             return storage_path('app/temp/modules/' . $slug . '.zip');
         } catch (GuzzleException $e) {
             logs()->error('Marketplace API error: ' . $e->getMessage());
+
             throw new \Exception('Error connecting to the marketplace API: ' . $e->getMessage());
         }
     }
 
     /**
      * Get PHP version
-     * 
+     *
      * @return string
      */
     private function getPHPVersion(): string
@@ -294,7 +303,7 @@ class MarketplaceService
 
     /**
      * Clear
-     * 
+     *
      * @return void
      */
     public function clearCache(): void

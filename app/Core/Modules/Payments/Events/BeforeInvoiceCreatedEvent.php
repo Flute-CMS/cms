@@ -52,4 +52,4 @@ class BeforeInvoiceCreatedEvent extends Event
     {
         $this->additionalData = $data;
     }
-} 
+}

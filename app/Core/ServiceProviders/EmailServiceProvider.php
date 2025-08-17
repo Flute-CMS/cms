@@ -13,7 +13,7 @@ class EmailServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             EmailService::class => \DI\create(),
-            "email" => \DI\get(EmailService::class)
+            "email" => \DI\get(EmailService::class),
         ]);
     }
 
@@ -23,11 +23,13 @@ class EmailServiceProvider extends AbstractServiceProvider
             $events = $container->get('events');
             $email = $container->get('email');
 
-            if ($container->get('auth.reset_password'))
+            if ($container->get('auth.reset_password')) {
                 $events->addListener(PasswordResetRequestedEvent::NAME, [$email, 'handlePasswordReset']);
+            }
 
-            if ($container->get('auth.registration.confirm_email'))
+            if ($container->get('auth.registration.confirm_email')) {
                 $events->addListener(UserRegisteredEvent::NAME, [$email, 'handleRegistered']);
+            }
         }
     }
 }

@@ -42,15 +42,16 @@
                     data-accept="{{ $attributes->get('accept', '') }}" @readonly($readOnly)
                     {{ $hasError ? 'aria-invalid=true' : '' }} @if ($multiple) multiple @endif
                     {{ $attributes->merge(['class' => 'filepond input__field']) }} />
-                {{-- @elseif ($type === 'color')
-            <input type="text" name="{{ $name }}" id="{{ $inputId }}"
-                value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }}
-                @readonly($readOnly) data-color="{{ $value ?: '#42445A' }}"
-                @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
-                {{ $attributes->merge(['class' => 'input__field input__field-color']) }} />
-            <div class="color-picker-container">
-                <div class="color-preview" data-color-value="{{ $value ?: '#42445A' }}"></div>
-            </div> --}}
+            @elseif ($type === 'color')
+                <div class="color-input-container" style="display:flex;align-items:center;gap:.5em;width:100%">
+                    <div class="pickr pickr-trigger" role="button" tabindex="0" aria-label="{{ __('def.select_color') }}" data-input-id="{{ $inputId }}"></div>
+
+                    <input type="text" name="{{ $name }}" id="{{ $inputId }}"
+                        value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }}
+                        @readonly($readOnly) data-color="{{ $value ?: '#42445A' }}"
+                        @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
+                        {{ $attributes->merge(['class' => 'input__field input__field-color']) }} />
+                </div>
             @elseif ($type === 'datetime')
                 <input type="text" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}"
                     {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)

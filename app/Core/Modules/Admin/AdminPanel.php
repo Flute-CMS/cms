@@ -124,9 +124,9 @@ class AdminPanel
 
                     return response()->view('admin::layouts.screen', [
                         'screen' => $screenString,
-                        'slug' => $url
+                        'slug' => $url,
                     ]);
-                });
+                })->middleware('can:admin');
             });
         }
     }
@@ -140,6 +140,7 @@ class AdminPanel
             foreach ($this->componentsCache as $alias => $componentView) {
                 template()->getBlade()->compiler()->component($componentView, $alias);
             }
+
             return;
         }
 

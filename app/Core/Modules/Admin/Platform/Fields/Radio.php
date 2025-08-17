@@ -73,7 +73,7 @@ class Radio extends Field
     /**
      * @return $this
      */
-    protected function modifyValue() : self
+    protected function modifyValue(): self
     {
         return $this->checked($this->get('value'));
     }

@@ -83,9 +83,9 @@ class RichText extends Field
      * @var array
      */
     protected $attributes = [
-        'class'      => 'form-control markdown-editor',
-        'value'      => null,
-        'height'     => 300,
+        'class' => 'form-control markdown-editor',
+        'value' => null,
+        'height' => 300,
         'spellcheck' => false,
     ];
 
@@ -124,6 +124,7 @@ class RichText extends Field
     public function label(string $value)
     {
         $this->set('label', $value);
+
         return $this;
     }
 
@@ -137,6 +138,7 @@ class RichText extends Field
     {
         $this->height = $value;
         $this->set('height', $value);
+
         return $this;
     }
 
@@ -149,6 +151,7 @@ class RichText extends Field
     public function toolbar(array $value)
     {
         $this->toolbar = $value;
+
         return $this;
     }
 
@@ -161,6 +164,7 @@ class RichText extends Field
     public function spellcheck(bool $value = true)
     {
         $this->set('spellcheck', $value);
+
         return $this;
     }
 
@@ -173,6 +177,7 @@ class RichText extends Field
     public function enableImageUpload(bool $value = true)
     {
         $this->enableImageUpload = $value;
+
         return $this;
     }
 
@@ -185,6 +190,7 @@ class RichText extends Field
     public function imageUploadEndpoint(string $value)
     {
         $this->imageUploadEndpoint = $value;
+
         return $this;
     }
 
@@ -200,10 +206,11 @@ class RichText extends Field
         switch ($preset) {
             case 'minimal':
                 $this->toolbar = [
-                    'bold', 'italic', '|', 
-                    'unordered-list', 'ordered-list', '|', 
-                    'link', '|', 'preview'
+                    'bold', 'italic', '|',
+                    'unordered-list', 'ordered-list', '|',
+                    'link', '|', 'preview',
                 ];
+
                 break;
             case 'basic':
                 $this->toolbar = [
@@ -212,11 +219,12 @@ class RichText extends Field
                     'link', 'image', '|',
                     'preview', 'guide',
                 ];
+
                 break;
             case 'full':
                 $this->toolbar = [
-                    'bold', 'italic', 'strikethrough', 'heading', 'heading-smaller', 'heading-bigger', 
-                    '|', 
+                    'bold', 'italic', 'strikethrough', 'heading', 'heading-smaller', 'heading-bigger',
+                    '|',
                     'code', 'quote', 'unordered-list', 'ordered-list', 'horizontal-rule',
                     '|',
                     'link', 'image', 'table',
@@ -225,6 +233,7 @@ class RichText extends Field
                     '|',
                     'guide',
                 ];
+
                 break;
             case 'standard':
             default:
@@ -236,15 +245,16 @@ class RichText extends Field
                     '|',
                     'guide',
                 ];
+
                 break;
         }
-        
+
         return $this;
     }
 
     /**
      * Get the field's attributes
-     * 
+     *
      * @return array
      */
     public function getAttributes(): array
@@ -252,16 +262,16 @@ class RichText extends Field
         $attributes = parent::getAttributes();
         $attributes['data-height'] = $this->height;
         $attributes['data-spellcheck'] = $this->get('spellcheck') ? 'true' : 'false';
-        
+
         if ($this->toolbar !== null) {
             $attributes['data-toolbar'] = json_encode($this->toolbar);
         }
-        
+
         if ($this->enableImageUpload) {
             $attributes['data-upload'] = 'true';
             $attributes['data-upload-url'] = $this->imageUploadEndpoint;
         }
-        
+
         return $attributes;
     }
-} 
+}

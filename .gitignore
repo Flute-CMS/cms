@@ -19,3 +19,5 @@
 colors.json
 .kiro
 storage/app/orm_schema.php
+php-cs-fixer
+/.php-cs-fixer.cache

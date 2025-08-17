@@ -2,19 +2,19 @@
 
 namespace Flute\Core\Database;
 
-use Flute\Core\App;
 use Cycle\Database\Config\DatabaseConfig as CycleDatabaseConfig;
 use Cycle\Database\DatabaseManager as CycleDatabaseManager;
 use Exception;
+use Flute\Core\App;
 
 class DatabaseManager
 {
     protected App $app;
     protected CycleDatabaseManager $dbal;
-    
+
     // Static instance for singleton pattern
     protected static ?self $instance = null;
-    
+
     /**
      * Get the singleton instance of DatabaseManager
      *
@@ -30,7 +30,7 @@ class DatabaseManager
             }
             self::$instance = new self($app);
         }
-        
+
         return self::$instance;
     }
 

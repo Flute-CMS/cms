@@ -45,7 +45,7 @@ class Route implements RouteInterface
     /**
      * Execute the route action.
      */
-    public function run(FluteRequest $request, array $parameters, Container $container) : Response
+    public function run(FluteRequest $request, array $parameters, Container $container): Response
     {
         $action = $this->action;
 
@@ -90,22 +90,23 @@ class Route implements RouteInterface
 
     /**
      * Set a callback to be executed after the route is modified
-     * 
+     *
      * @param \Closure $callback Callback function with the route as parameter
      * @return self
      */
-    public function setAfterModifyCallback(\Closure $callback) : self
+    public function setAfterModifyCallback(\Closure $callback): self
     {
         $this->afterModifyCallback = $callback;
+
         return $this;
     }
 
     /**
      * Execute the after modify callback if set
-     * 
+     *
      * @return void
      */
-    protected function executeAfterModifyCallback() : void
+    protected function executeAfterModifyCallback(): void
     {
         if ($this->afterModifyCallback !== null) {
             call_user_func($this->afterModifyCallback, $this);
@@ -115,10 +116,11 @@ class Route implements RouteInterface
     /**
      * Add middleware to the route.
      */
-    public function middleware(array|string|null $middleware) : self
+    public function middleware(array|string|null $middleware): self
     {
-        if (is_null($middleware))
+        if (is_null($middleware)) {
             return $this;
+        }
 
         $this->middleware = array_merge($this->middleware, (array) $middleware);
 
@@ -135,7 +137,7 @@ class Route implements RouteInterface
     /**
      * Assign a name to the route.
      */
-    public function name(string $name) : self
+    public function name(string $name): self
     {
         $this->name = $name;
 
@@ -152,7 +154,7 @@ class Route implements RouteInterface
     /**
      * Add constraints to route parameters.
      */
-    public function where(string|array $parameter, string|null $pattern = null) : self
+    public function where(string|array $parameter, string|null $pattern = null): self
     {
         if (is_array($parameter)) {
             $this->requirements = array_merge($this->requirements, $parameter);
@@ -170,7 +172,7 @@ class Route implements RouteInterface
     /**
      * Get the route name.
      */
-    public function getName() : ?string
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -178,7 +180,7 @@ class Route implements RouteInterface
     /**
      * Get the route URI.
      */
-    public function getUri() : string
+    public function getUri(): string
     {
         return $this->uri;
     }
@@ -186,7 +188,7 @@ class Route implements RouteInterface
     /**
      * Set route parameters.
      */
-    public function setParameters(array $parameters) : void
+    public function setParameters(array $parameters): void
     {
         $this->parameters = $parameters;
     }
@@ -194,7 +196,7 @@ class Route implements RouteInterface
     /**
      * Get middleware assigned to the route.
      */
-    public function getMiddleware() : array
+    public function getMiddleware(): array
     {
         $middleware = $this->middleware;
 
@@ -208,10 +210,10 @@ class Route implements RouteInterface
 
     /**
      * Get excluded middleware for the route.
-     * 
+     *
      * @return array
      */
-    public function getExcludedMiddleware() : array
+    public function getExcludedMiddleware(): array
     {
         return $this->groupAttributes['excluded_middleware'] ?? [];
     }
@@ -219,7 +221,7 @@ class Route implements RouteInterface
     /**
      * Get parameter constraints.
      */
-    public function getRequirements() : array
+    public function getRequirements(): array
     {
         return $this->requirements;
     }
@@ -227,7 +229,7 @@ class Route implements RouteInterface
     /**
      * Get the route action.
      */
-    public function getAction() : mixed
+    public function getAction(): mixed
     {
         return $this->action;
     }
@@ -235,13 +237,13 @@ class Route implements RouteInterface
     /**
      * Set group attributes for the route.
      */
-    public function setGroupAttributes(array $attributes) : void
+    public function setGroupAttributes(array $attributes): void
     {
         $this->groupAttributes = $attributes;
 
         if (isset($attributes['prefix'])) {
             $prefix = trim($attributes['prefix'], '/');
-            if (! empty($prefix)) {
+            if (!empty($prefix)) {
                 $this->uri = '/'.trim($prefix, '/').'/'.trim(ltrim($this->uri, '/'), '/');
                 $this->symfonyRoute->setPath($this->uri);
             }
@@ -257,7 +259,7 @@ class Route implements RouteInterface
     /**
      * Set default values for route parameters.
      */
-    public function defaults(string $key, mixed $value) : self
+    public function defaults(string $key, mixed $value): self
     {
         $this->defaults[$key] = $value;
 
@@ -273,42 +275,43 @@ class Route implements RouteInterface
     /**
      * Get default parameter values.
      */
-    public function getDefaults() : array
+    public function getDefaults(): array
     {
         return $this->defaults;
     }
 
-    public function getSymfonyRoute() : \Symfony\Component\Routing\Route
+    public function getSymfonyRoute(): \Symfony\Component\Routing\Route
     {
         return $this->symfonyRoute;
     }
 
-    public function setSymfonyRoute(\Symfony\Component\Routing\Route $symfonyRoute) : void
+    public function setSymfonyRoute(\Symfony\Component\Routing\Route $symfonyRoute): void
     {
         $this->symfonyRoute = $symfonyRoute;
     }
 
     /**
      * Exclude middleware from the route.
-     * 
+     *
      * @param array|string $middleware Middleware to exclude
      * @return self
      */
-    public function withoutMiddleware(array|string $middleware) : self
+    public function withoutMiddleware(array|string $middleware): self
     {
         $excludedMiddleware = $this->getExcludedMiddleware();
         $newExcluded = is_array($middleware) ? $middleware : [$middleware];
-        
+
         $this->groupAttributes['excluded_middleware'] = array_merge($excludedMiddleware, $newExcluded);
-        
+
         $this->executeAfterModifyCallback();
-        
+
         return $this;
     }
 
     public function setIsAdmin(bool $isAdmin): self
     {
         $this->isAdmin = $isAdmin;
+
         return $this;
     }
 

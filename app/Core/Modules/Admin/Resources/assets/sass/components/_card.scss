@@ -1,42 +1,40 @@
 .card {
-    @extend .blur-bg;
+	@extend .blur-bg;
 
-    border-radius: var(--border1);
-    background-color: var(--transp-05);
-    border: 1px solid var(--transp-1);
+	border-radius: var(--border1);
+	background-color: var(--transp-05);
+	border: 1px solid var(--transp-1);
+	box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.4);
 
-    &-img-top {
-        width: 100%;
-        height: auto;
-    }
+	@include transition(box-shadow, transform);
 
-    &-header {
-        padding: 1.5em;
-        border-bottom: 1px solid var(--transp-1);
+	&-img-top {
+		width: 100%;
+		height: auto;
+	}
 
-        .card-title {
-            margin: 0;
-        }
+	&-header {
+		padding: 1.1em 1.3em;
+		border-bottom: 1px solid var(--transp-1);
 
-        .card-subtitle {
-            margin-top: 0.25rem;
-            color: var(--text-200);
-        }
-    }
+		.card-title {
+			margin: 0;
+		}
 
-    &-body {
-        &:not(.withoutPadding) {
-            padding: 1.5em;
+		.card-subtitle {
+			margin-top: 0.25rem;
+			color: var(--text-200);
+		}
+	}
 
-            @include media(mobile) {
-                padding: 1em;
-            }
-        }
-    }
+	&-body {
+		&:not(.withoutPadding) {
+			padding: 1.1em 1.3em;
+		}
+	}
 
-    &-footer {
-        padding: 1.5em;
-        padding-bottom: 1.25em;
-        border-top: 1px solid var(--transp-1);
-    }
+	&-footer {
+		padding: 1.1em 1.3em 1.25em;
+		border-top: 1px solid var(--transp-1);
+	}
 }

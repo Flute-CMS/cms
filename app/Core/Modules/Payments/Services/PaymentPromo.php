@@ -15,9 +15,9 @@ class PaymentPromo
      * @param ?string $code Promo code to validate.
      * @param int $userId User ID for whom the promo code is being validated.
      * @param float $amount Amount of the purchase
-     * 
+     *
      * @return array
-     * 
+     *
      * @throws PaymentPromoException
      */
     public function validate(?string $code, int $userId = 0, float $amount = 0): array
@@ -52,14 +52,14 @@ class PaymentPromo
         }
 
         $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
-        
+
         if (!empty($promoCode->roles)) {
             $currentUser = $userId === 0 ? user()->getCurrentUser() : ($userId ? User::findByPK($userId) : null);
             if ($currentUser) {
-                $userRoleIds = array_map(fn($role) => $role->id, $currentUser->roles);
-                $promoRoleIds = array_map(fn($role) => $role->id, $promoCode->roles);
+                $userRoleIds = array_map(fn ($role) => $role->id, $currentUser->roles);
+                $promoRoleIds = array_map(fn ($role) => $role->id, $promoCode->roles);
                 $hasAllowedRole = !empty(array_intersect($userRoleIds, $promoRoleIds));
-                
+
                 if (!$hasAllowedRole) {
                     throw new PaymentPromoException(__('lk.promo_role_not_allowed'));
                 }
@@ -86,17 +86,17 @@ class PaymentPromo
         return [
             'message' => $this->getPromoMessage($promoCode),
             'type' => $promoCode->type,
-            'value' => $promoCode->value
+            'value' => $promoCode->value,
         ];
     }
 
     /**
      * Get promo message
-     * 
+     *
      * @param PromoCode $promoCode
-     * 
+     *
      * @return string
-     * 
+     *
      * @throws PaymentPromoException
      */
     protected function getPromoMessage(PromoCode $promoCode)
@@ -104,9 +104,11 @@ class PaymentPromo
         switch ($promoCode->type) {
             case 'amount':
                 $message = __('lk.promo_amount', [':value' => $promoCode->value, ':currency' => config('lk.currency_view')]);
+
                 break;
             case 'percentage':
                 $message = __('lk.promo_percentage', [':percentage' => $promoCode->value]);
+
                 break;
             default:
                 throw new PaymentPromoException(__('lk.promo_invalid_type'));
@@ -128,7 +130,7 @@ class PaymentPromo
 
     /**
      * Exists the promo code
-     * 
+     *
      * @return bool
      */
     public function exists(string $code): bool

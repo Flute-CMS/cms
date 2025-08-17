@@ -46,7 +46,7 @@ class ActiveRouter
     {
         $routes = is_array($routes) ? $routes : func_get_args();
 
-        list($routes, $ignoredRoutes) = $this->parseIgnoredRoutes($routes);
+        [$routes, $ignoredRoutes] = $this->parseIgnoredRoutes($routes);
 
         if ($this->isPath($routes) || $this->isFullPath($routes) || $this->isRoute($routes)) {
             if (count($ignoredRoutes) && ($this->isPath($ignoredRoutes) || $this->isFullPath($ignoredRoutes) || $this->isRoute($ignoredRoutes))) {

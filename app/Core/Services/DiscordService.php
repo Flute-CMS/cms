@@ -2,12 +2,10 @@
 
 namespace Flute\Core\Services;
 
-use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class DiscordService
 {
@@ -26,8 +24,9 @@ class DiscordService
 
     public function linkRoles(User $user, array $roles = [])
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -35,6 +34,18 @@ class DiscordService
             return false;
         }
 
+        if (!empty($discordInfo['token']) && !empty($discordInfo['guild_id'])) {
+            return $this->linkRolesViaBot($user, $roles, $discordInfo);
+        }
+
+        return $this->linkRolesViaRoleConnections($user, $roles, $discordInfo);
+    }
+
+    /**
+     * Sync roles using Discord Role Connections (user OAuth access token)
+     */
+    protected function linkRolesViaRoleConnections(User $user, array $roles, array $discordInfo)
+    {
         $clientId = $discordInfo['id'];
         $url = self::BASE_URL . "/users/@me/applications/{$clientId}/role-connection";
         $accessToken = $this->getUserAccessToken($user);
@@ -55,8 +66,8 @@ class DiscordService
                             'platform_name' => config('app.name'),
                             'metadata' => [
                                 'role_id' => $role->id,
-                            ]
-                        ]
+                            ],
+                        ],
                     ]);
 
                     if (isset($roles[$key + 1])) {
@@ -81,8 +92,8 @@ class DiscordService
                         'platform_name' => config('app.name'),
                         'metadata' => [
                             'role_id' => 0,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -96,10 +107,105 @@ class DiscordService
         return true;
     }
 
+    /**
+     * Sync roles using Bot token at Guild level
+     */
+    protected function linkRolesViaBot(User $user, array $roles, array $discordInfo)
+    {
+        $guildId = $discordInfo['guild_id'];
+        $botToken = $discordInfo['token'];
+
+        $userSocial = $user->getSocialNetwork('Discord');
+        if (!$userSocial) {
+            return false;
+        }
+
+        $discordUserId = $userSocial->value;
+
+        $rolesMap = isset($discordInfo['roles_map']) && is_array($discordInfo['roles_map'])
+            ? $discordInfo['roles_map']
+            : [];
+
+        $targetGuildRoleIds = [];
+        foreach ($roles as $role) {
+            $fluteRoleId = $role->id;
+            if (isset($rolesMap[$fluteRoleId])) {
+                $targetGuildRoleIds[] = (string) $rolesMap[$fluteRoleId];
+            }
+        }
+
+        $targetGuildRoleIds = array_values(array_unique($targetGuildRoleIds));
+
+        $currentRoles = [];
+
+        try {
+            $response = $this->client->request('GET', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}", [
+                'headers' => [
+                    'Authorization' => 'Bot ' . $botToken,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+            $data = json_decode($response->getBody()->getContents(), true);
+            $currentRoles = isset($data['roles']) && is_array($data['roles']) ? $data['roles'] : [];
+        } catch (ClientException $e) {
+            if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
+                logs()->warning('Discord member not found in guild for user #' . $user->id . ' (Discord ID ' . $discordUserId . '). Skipping bot role sync.');
+
+                return false;
+            }
+            logs()->error($e);
+            if (is_debug()) {
+                throw $e;
+            }
+        }
+
+        $managedRoleIds = array_values(array_unique(array_map('strval', array_values($rolesMap))));
+        $currentManaged = array_values(array_intersect($currentRoles, $managedRoleIds));
+        $toAdd = array_values(array_diff($targetGuildRoleIds, $currentManaged));
+        $toRemove = array_values(array_diff($currentManaged, $targetGuildRoleIds));
+
+        foreach ($toRemove as $discordRoleId) {
+            try {
+                $this->client->request('DELETE', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
+                    'headers' => [
+                        'Authorization' => 'Bot ' . $botToken,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                usleep(250000);
+            } catch (ClientException $e) {
+                logs()->error($e);
+                if (is_debug()) {
+                    throw $e;
+                }
+            }
+        }
+
+        foreach ($toAdd as $discordRoleId) {
+            try {
+                $this->client->request('PUT', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
+                    'headers' => [
+                        'Authorization' => 'Bot ' . $botToken,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
+                usleep(250000);
+            } catch (ClientException $e) {
+                logs()->error($e);
+                if (is_debug()) {
+                    throw $e;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public function refreshAccessToken(string $refreshToken, int $userId)
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -114,7 +220,7 @@ class DiscordService
                     'client_secret' => $discordInfo['secret'],
                     'grant_type' => 'refresh_token',
                     'refresh_token' => $refreshToken,
-                ]
+                ],
             ]);
         } catch (ClientException $e) {
             logs()->error($e);
@@ -143,11 +249,13 @@ class DiscordService
 
     public function registerMetadata()
     {
-        if (!config('app.discord_link_roles'))
+        if (!config('app.discord_link_roles')) {
             return false;
+        }
 
-        if (cache()->has('flute.discord_roles_metadata'))
+        if (cache()->has('flute.discord_roles_metadata')) {
             return;
+        }
 
         $discordInfo = $this->getDiscordInfo();
 
@@ -170,7 +278,7 @@ class DiscordService
                         'description' => __('def.discord_role_desc'),
                         'type' => 2,
                     ],
-                ]
+                ],
             ]);
         } catch (ClientException $e) {
             logs()->error($e);
