@@ -10,13 +10,14 @@
         <x-tabs name="notifications">
             <x-slot:headings>
                 <x-tab-heading name="unread" label="{{ __('def.not_read') }}"
-                    url="{{ url('sidebar/notifications/unread') }}" badge="{{ $countUnread ?? 0 }}" active data-no-close />
+                    url="{{ url('sidebar/notifications/unread') }}" badge="{{ $countUnread ?? 0 }}" active="true"
+                    data-no-close />
                 <x-tab-heading name="all" url="{{ url('sidebar/notifications/all') }}" label="{{ __('def.all') }}"
                     badge="{{ $countAll ?? 0 }}" data-no-close />
             </x-slot:headings>
 
             <x-tab-body>
-                <x-tab-content name="unread" active>
+                <x-tab-content name="unread" active="true">
                     <div class="skeleton notifications__skeleton mt-3"></div>
                     <div class="skeleton notifications__skeleton"></div>
                     <div class="skeleton notifications__skeleton"></div>

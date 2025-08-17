@@ -36,15 +36,6 @@ class PaymentServiceProvider extends AbstractServiceProvider
             logs('modules')->warning('Payments boot: database not ready yet: ' . $e->getMessage());
         }
 
-        events()->addDeferredListener(TemplateInitialized::NAME, function () use ($container) {
-            try {
-                $container->get(GatewayInitializer::class);
-                $container->get(PaymentsCleaner::class)->cleanOldPayments();
-            } catch (\Throwable $e) {
-                logs('modules')->error('Payments init error: ' . $e->getMessage());
-            }
-        });
-
         events()->addDeferredListener(TemplateInitialized::NAME, [TemplateListener::class, 'handle']);
     }
 }

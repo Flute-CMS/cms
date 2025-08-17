@@ -11,6 +11,7 @@ use Flute\Core\Router\Router;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -42,13 +43,18 @@ class RouterServiceProvider extends AbstractServiceProvider
             }),
 
             RateLimiterFactory::class => \DI\factory(function (Container $c) {
-                $storage = new InMemoryStorage();
+                $storage = new CacheStorage($c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter());
 
+                $cfg = config('rate_limit', [
+                    'policy' => 'fixed_window',
+                    'limit' => 60,
+                    'interval' => '1 minute',
+                ]);
                 $config = [
                     'id' => 'global',
-                    'policy' => 'fixed_window',
-                    'limit' => 100,
-                    'interval' => '1 minute',
+                    'policy' => $cfg['policy'],
+                    'limit' => $cfg['limit'],
+                    'interval' => $cfg['interval'],
                 ];
 
                 return new RateLimiterFactory($config, $storage);

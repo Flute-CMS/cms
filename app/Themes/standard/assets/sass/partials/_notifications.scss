@@ -93,10 +93,8 @@
     }
 
     &-text {
-        font-weight: 500;
-        font-size: var(--p-small);
         background-color: var(--transp-1);
-        padding: .3rem 1rem;
+        padding: .5rem 1rem;
         border-radius: var(--border05);
     }
 
@@ -117,8 +115,6 @@
 
         h6 {
             @extend .text-ellipsis;
-
-            line-height: 1;
         }
     }
 

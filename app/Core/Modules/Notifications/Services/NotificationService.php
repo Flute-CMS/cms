@@ -299,7 +299,7 @@ class NotificationService
      */
     public function create(Notification $note): void
     {
-        transaction($note)->run();
+        $note->saveOrFail();
         $this->invalidateCache();
     }
 

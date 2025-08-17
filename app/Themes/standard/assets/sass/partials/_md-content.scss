@@ -3,6 +3,10 @@
 	color: var(--text-100);
 	font-size: var(--p-small);
 
+    p {
+        line-height: inherit;
+    }
+
 	> :first-child {
 		margin-top: 0;
 	}
