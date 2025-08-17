@@ -451,8 +451,8 @@ class SocialService implements SocialServiceInterface
 
         $userSocialNetwork = UserSocialNetwork::query()
             ->where([
-                'user' => $user->id,
-                'socialNetwork' => $social['entity']->id,
+                'user.id' => $user->id,
+                'socialNetwork.id' => $social['entity']->id,
                 'user.isTemporary' => false,
             ])
             ->fetchOne();
