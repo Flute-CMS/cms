@@ -80,6 +80,11 @@ class Select {
             },
         };
 
+        if (select.dataset.allowAdd === 'true') {
+            config.create = true;
+            config.persist = false;
+        }
+
         if (isMultiple && !config.plugins.includes('remove_button')) {
             config.plugins.push('remove_button');
         }
