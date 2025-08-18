@@ -1263,10 +1263,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 root.style.setProperty('--background-type', original);
             });
 			item.addEventListener('click', () => {
+                // Commit selection: disable preview restore so hideOverlay won't roll back
+                previewActive = false;
                 setBackgroundType(type);
                 updateBackgroundPreview();
                 recordHistory();
                 hideOverlay();
+                toggleGradientInputs(type !== 'solid');
             });
         });
     }

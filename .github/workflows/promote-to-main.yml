@@ -188,8 +188,7 @@ jobs:
             -x "tests/*" \
             -x "*.md" \
             -x "phpstan.neon" \
-            -x ".php-cs-fixer.*" \
-            -x "composer.lock"
+            -x ".php-cs-fixer.*"
             
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
           

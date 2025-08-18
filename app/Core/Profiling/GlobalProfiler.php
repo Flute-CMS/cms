@@ -20,6 +20,10 @@ class GlobalProfiler
      */
     public static function start(): void
     {
+        if (!file_exists(BASE_PATH . 'config/profiler.php')) {
+            return;
+        }
+
         $config = include BASE_PATH . 'config/profiler.php';
 
         if (self::$enabled || !$config['enabled'] || !is_debug()) {

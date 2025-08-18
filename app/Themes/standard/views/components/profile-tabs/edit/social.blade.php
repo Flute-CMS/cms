@@ -37,7 +37,7 @@
                         </div>
                     @else
                         <x-button type="outline-primary" size="tiny"
-                            data-connect="{{ url('profile/social/bind/' . $network->key) }}">
+                            data-connect="{{ url('profile/social/bind/' . $network->key) }}?popup=1">
                             {{ __('profile.edit.social.connect') }}
 
                             <x-icon path="ph.regular.plus" />
