@@ -19,7 +19,9 @@ class SocialAuthController extends BaseController
 
                 flash()->add('success', __('auth.errors.social_binded'));
 
-                return response()->redirect('/profile/settings?tab=social');
+                $redirectUrl = redirect('/profile/settings?tab=social')->getTargetUrl();
+
+                return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
             }
 
             $user = social()->authenticateWithRegister(ucfirst($provider));
@@ -30,22 +32,43 @@ class SocialAuthController extends BaseController
 
             flash()->add('success', __('auth.login_success'));
 
-            return response()->redirect('/');
+            $redirectUrl = redirect('/')->getTargetUrl();
+
+            return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
         } catch (NeedRegistrationException $e) {
-            return $this->error('This function is not supported yet.', 404);
+            return $this->socialError('This function is not supported yet.', $request);
         } catch (UserNotFoundException $e) {
-            return $this->error(__('auth.errors.user_not_found'));
+            return $this->socialError(__('auth.errors.user_not_found'), $request);
         } catch (SocialNotFoundException $e) {
-            return $this->error(__('auth.errors.social_not_found'));
+            return $this->socialError(__('auth.errors.social_not_found'), $request);
         } catch (\Exception $e) {
             logs()->error($e);
 
             if (is_debug()) {
                 throw $e;
             }
-
-            return $this->error(__('auth.errors.unknown'));
+            return $this->socialError(__('auth.errors.unknown'), $request);
         }
+    }
+
+    /**
+     * Returns a successful response for social network authorization in popup flows.
+     */
+    protected function socialSuccess(FluteRequest $request = null)
+    {
+        $redirectUrl = redirect('/')->getTargetUrl();
+
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+    }
+
+    /**
+     * Returns an error response for social network authorization in popup flows.
+     */
+    protected function socialError(string $error, FluteRequest $request = null)
+    {
+        $redirectUrl = redirect('/')->getTargetUrl();
+
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
     }
 
     // public function getSocialRegister( FluteRequest $request )

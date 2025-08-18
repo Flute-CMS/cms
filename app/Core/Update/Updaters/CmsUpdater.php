@@ -3,6 +3,7 @@
 namespace Flute\Core\Update\Updaters;
 
 use Flute\Core\App;
+use Flute\Core\Composer\ComposerManager;
 use ZipArchive;
 
 class CmsUpdater extends AbstractUpdater
@@ -18,6 +19,16 @@ class CmsUpdater extends AbstractUpdater
         'i18n',
         'public',
         'storage',
+    ];
+
+    /**
+     * Root-level files to copy from the update package
+     *
+     * @var array
+     */
+    protected array $allowedFiles = [
+        'composer.json',
+        'composer.lock',
     ];
 
     /**
@@ -97,6 +108,24 @@ class CmsUpdater extends AbstractUpdater
                 }
             }
 
+            // Copy allowed root files (like composer.json / composer.lock)
+            foreach ($this->allowedFiles as $file) {
+                $sourceFile = $rootDir . '/' . $file;
+                $targetFile = $this->getBasePath() . '/' . $file;
+                if (is_file($sourceFile)) {
+                    $this->copyFile($sourceFile, $targetFile);
+                }
+            }
+
+            // If composer files changed or exist in the package, ensure dependencies are installed
+            if (is_file($this->getBasePath() . '/composer.json')) {
+                try {
+                    (new ComposerManager())->install();
+                } catch (\Throwable $e) {
+                    logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
+                }
+            }
+
             $this->clearCache();
 
             $this->removeDirectory($extractDir);
@@ -169,6 +198,7 @@ class CmsUpdater extends AbstractUpdater
             return false;
         }
 
+        // If destination doesn't exist, create it with source's perms/owner/group.
         if (!is_dir($destination)) {
             $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
@@ -193,17 +223,55 @@ class CmsUpdater extends AbstractUpdater
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
+                $preservePerms = null;
+                $preserveOwner = null;
+                $preserveGroup = null;
+
+                if (is_file($destinationPath)) {
+                    $preservePerms = fileperms($destinationPath) & 0o755;
+                    $preserveOwner = fileowner($destinationPath);
+                    $preserveGroup = filegroup($destinationPath);
+                }
+
                 copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+
+                if ($preservePerms !== null) {
+                    chmod($destinationPath, $preservePerms);
+                    @chown($destinationPath, $preserveOwner);
+                    @chgrp($destinationPath, $preserveGroup);
+                } else {
+                    $filePerms = fileperms($sourcePath) & 0o777;
+                    chmod($destinationPath, $filePerms);
+                    @chown($destinationPath, fileowner($sourcePath));
+                    @chgrp($destinationPath, filegroup($sourcePath));
+                }
             }
         }
 
         closedir($directory);
 
         return true;
+    }
+
+    /**
+     * Copy a single file with permissions/ownership preserved where possible
+     */
+    protected function copyFile(string $sourceFile, string $targetFile): void
+    {
+        $targetDir = dirname($targetFile);
+        if (!is_dir($targetDir)) {
+            $dirPerms = fileperms(dirname($sourceFile)) & 0o777;
+            mkdir($targetDir, $dirPerms, true);
+            chmod($targetDir, $dirPerms);
+            @chown($targetDir, fileowner(dirname($sourceFile)));
+            @chgrp($targetDir, filegroup(dirname($sourceFile)));
+        }
+
+        copy($sourceFile, $targetFile);
+        $filePerms = fileperms($sourceFile) & 0o777;
+        chmod($targetFile, $filePerms);
+        @chown($targetFile, fileowner($sourceFile));
+        @chgrp($targetFile, filegroup($sourceFile));
     }
 
     /**

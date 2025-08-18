@@ -10,7 +10,6 @@
 # Development configuration
 phpstan.neon export-ignore
 .php-cs-fixer.php export-ignore
-composer.lock export-ignore
 
 # Documentation (keep only essential ones)
 CONTRIBUTING.md export-ignore
