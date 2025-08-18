@@ -68,7 +68,10 @@ class SocialAuthController extends BaseController
     {
         $redirectUrl = redirect('/')->getTargetUrl();
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
+        $errorJs = json_encode($error);
+        $redirectUrlJs = json_encode($redirectUrl);
+
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
     }
 
     // public function getSocialRegister( FluteRequest $request )
