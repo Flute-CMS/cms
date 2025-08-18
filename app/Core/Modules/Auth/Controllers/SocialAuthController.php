@@ -47,6 +47,7 @@ class SocialAuthController extends BaseController
             if (is_debug()) {
                 throw $e;
             }
+
             return $this->socialError(__('auth.errors.unknown'), $request);
         }
     }
