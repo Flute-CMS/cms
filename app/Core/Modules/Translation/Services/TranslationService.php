@@ -95,12 +95,25 @@ class TranslationService
             app()->setLang($defaultLocale);
         }
 
-        $cacheDir = is_performance() ? path('storage/app/translations') : null;
+        // Enable on-disk translation caching only when performance mode is requested
+        // and the required Symfony Config classes are available. Missing the
+        // symfony/config package causes Translator to throw a fatal error when
+        // attempting to create the config cache factory, so detect that and
+        // silently fall back to non-cached mode.
+        $requestedCacheDir = is_performance() ? path('storage/app/translations') : null;
         $debug = is_debug();
+
+        $cacheDir = $requestedCacheDir;
+        if ($requestedCacheDir) {
+            if (!class_exists('Symfony\\Component\\Config\\ConfigCacheFactory') && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')) {
+                logs()->warning('Symfony Config component is missing; disabling translation catalogue cache.');
+                $cacheDir = null;
+            }
+        }
 
         $this->translator = new Translator($defaultLocale, null, $cacheDir, $debug);
 
-        $this->performance = is_performance();
+        $this->performance = ($cacheDir !== null);
 
         $this->translator->addLoader('file', new PhpFileLoader());
         $this->translator->setLocale($defaultLocale);

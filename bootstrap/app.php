@@ -13,14 +13,17 @@ if (!defined('BASE_PATH')) {
 }
 
 if (!extension_loaded('ionCube Loader') && isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+    http_response_code(500);
     exit('Flute requires ioncube_loader extension to be enabled.');
 }
 
 if (version_compare(PHP_VERSION, '8.2', '<')) {
+    http_response_code(500);
     exit('Flute requires PHP version 8.2 or higher.');
 }
 
 if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
+    http_response_code(500);
     exit('Folder "vendor" wasn\'t found. Please, check your files again');
 }
 

@@ -484,6 +484,7 @@ class Router implements RouterInterface
                 try {
                     $dumper = new CompiledUrlMatcherDumper($compilable);
                     $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                    $compiledSource = (string)$compiledSource;
                     $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
                     file_put_contents($cacheFile, $php);
                 } catch (\Throwable $e) {

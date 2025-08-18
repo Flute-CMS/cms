@@ -33,7 +33,8 @@
                     </x-button>
 
                     @if ($code == 404)
-                        <x-button href="{{ url()->previous() }}" swap="{{ !str_contains(url()->previous(), 'admin/') ? 'true' : 'false' }}" type="outline-accent" class="error-button">
+                        @php $prevUrl = (string)url()->previous(); @endphp
+                        <x-button href="{{ $prevUrl }}" swap="{{ !str_contains($prevUrl, 'admin/') ? 'true' : 'false' }}" type="outline-accent" class="error-button">
                             <x-icon path="ph.regular.arrow-left" />
                             {{ __('error.go_back') }}
                         </x-button>

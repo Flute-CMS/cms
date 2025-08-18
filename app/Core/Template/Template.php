@@ -396,7 +396,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     {
         $path = request()->getPathInfo();
 
-        if (strpos($section, 'profile_') === 0 && !str_contains($path, '/profile')) {
+        if (strpos($section, 'profile_') === 0 && !str_contains((string)$path, '/profile')) {
             return false;
         }
 

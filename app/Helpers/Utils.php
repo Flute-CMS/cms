@@ -111,6 +111,7 @@ if (! function_exists('tt')) {
     function tt(string $path = ''): string
     {
         $pathTheme = str_replace('.blade.php', '', app()->getTheme() . '/' . ltrim($path, '/'));
+        $pathTheme = (string) $pathTheme;
         return str_contains($pathTheme, 'app/Themes/') ? $pathTheme : sprintf('Themes/%s', $pathTheme);
     }
 }
