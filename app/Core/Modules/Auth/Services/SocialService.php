@@ -479,6 +479,7 @@ class SocialService implements SocialServiceInterface
         if ($existingSocial && $existingSocial->user->id !== $user->id) {
             if ($existingSocial->user->isTemporary()) {
                 $tempUserId = $existingSocial->user->id;
+
                 try {
                     transaction($existingSocial, 'delete')->run();
                     $tempUser = User::findByPK($tempUserId);
@@ -487,6 +488,7 @@ class SocialService implements SocialServiceInterface
                     }
                 } catch (\Exception $e) {
                     logs()->error("Error deleting temporary user during bind: " . $e->getMessage());
+
                     throw new \Exception('Failed to reassign social account. Please try again.');
                 }
             } else {
@@ -515,6 +517,7 @@ class SocialService implements SocialServiceInterface
                 transaction($userSocialNetwork)->run();
             } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
                 logs()->warning($e);
+
                 throw new \Exception('This social account is already linked to another user.');
             }
         } else {
@@ -534,6 +537,7 @@ class SocialService implements SocialServiceInterface
                 transaction($userSocialNetwork)->run();
             } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
                 logs()->warning($e);
+
                 throw new \Exception('This social account is already linked to another user.');
             }
         }
