@@ -169,7 +169,7 @@
                         @elseif (!empty($m['description']))
                             @php
                                 $desc = (string) $m['description'];
-                                $hasNewlines = str_contains($desc, "\n");
+                                $hasNewlines = str_contains((string)$desc, "\n");
                                 $inlineDashCount = preg_match_all('/\s-\s+/', $desc, $__m) ?: 0;
                                 $looksLikeInlineList = !$hasNewlines && $inlineDashCount > 0;
                             @endphp

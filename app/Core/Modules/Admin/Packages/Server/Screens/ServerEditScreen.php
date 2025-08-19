@@ -563,7 +563,7 @@ class ServerEditScreen extends Screen
             return;
         }
 
-        if (str_contains($data['ip'], ':')) {
+        if (str_contains((string)($data['ip'] ?? ''), ':')) {
             $this->inputError('ip', __('admin-server.messages.invalid_ip'));
 
             return;
