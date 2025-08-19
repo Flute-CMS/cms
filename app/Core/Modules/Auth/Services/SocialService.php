@@ -395,7 +395,18 @@ class SocialService implements SocialServiceInterface
         $userSocialNetwork->socialNetwork = $socialNetwork;
         $userSocialNetwork->linkedAt = new \DateTimeImmutable();
 
-        transaction([$user, $userSocialNetwork])->run();
+        try {
+            transaction([$user, $userSocialNetwork])->run();
+        } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
+            logs()->warning($e);
+
+            $existingUser = $this->findUserBySocialProfile($userProfile);
+            if ($existingUser) {
+                return $existingUser;
+            }
+
+            throw $e;
+        }
 
         events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
@@ -460,6 +471,28 @@ class SocialService implements SocialServiceInterface
         $profile = $authData['profile'];
         $token = $authData['adapter']->getAccessToken();
 
+        $existingSocial = UserSocialNetwork::query()
+            ->where(['value' => $profile->identifier])
+            ->load(['user'])
+            ->fetchOne();
+
+        if ($existingSocial && $existingSocial->user->id !== $user->id) {
+            if ($existingSocial->user->isTemporary()) {
+                $tempUserId = $existingSocial->user->id;
+                try {
+                    transaction($existingSocial, 'delete')->run();
+                    $tempUser = User::findByPK($tempUserId);
+                    if ($tempUser) {
+                        transaction($tempUser, 'delete')->run();
+                    }
+                } catch (\Exception $e) {
+                    logs()->error("Error deleting temporary user during bind: " . $e->getMessage());
+                    throw new \Exception('Failed to reassign social account. Please try again.');
+                }
+            } else {
+                throw new \Exception('This social account is already linked to another user.');
+            }
+        }
         $now = new \DateTimeImmutable();
 
         if ($userSocialNetwork) {
@@ -478,7 +511,12 @@ class SocialService implements SocialServiceInterface
                 $userSocialNetwork->additional = json_encode($token);
             }
 
-            transaction($userSocialNetwork)->run();
+            try {
+                transaction($userSocialNetwork)->run();
+            } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
+                logs()->warning($e);
+                throw new \Exception('This social account is already linked to another user.');
+            }
         } else {
             $userSocialNetwork = new UserSocialNetwork();
             $userSocialNetwork->value = $profile->identifier;
@@ -492,7 +530,12 @@ class SocialService implements SocialServiceInterface
                 $userSocialNetwork->additional = json_encode($token);
             }
 
-            transaction($userSocialNetwork)->run();
+            try {
+                transaction($userSocialNetwork)->run();
+            } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
+                logs()->warning($e);
+                throw new \Exception('This social account is already linked to another user.');
+            }
         }
 
         if (!isset($user->roles)) {
