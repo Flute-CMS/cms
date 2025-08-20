@@ -109,9 +109,11 @@ class Server extends ActiveRecord
         return $this->getSettings()[$key] ?? null;
     }
 
-    public function getRank(?string $rank, int $points): string
+    public function getRank(?string $rank, ?int $points): string
     {
-        if ($this->ranks_premier && $points > 0) {
+        $points = $points ?? 0;
+        
+        if ($this->ranks_premier) {
             $rankClass = 'gray-rank';
             
             if ($points > 30000) $rankClass = 'gold-rank';
@@ -120,7 +122,7 @@ class Server extends ActiveRecord
             else if ($points > 15000) $rankClass = 'purple-rank';
             else if ($points > 10000) $rankClass = 'blue-rank';
             else if ($points > 5000) $rankClass = 'wblue-rank';
-            return '<div class="premier-rank ' . $rankClass . '">' . (!empty($points) ? $points : '0') . '</div>';
+            return '<div class="premier-rank ' . $rankClass . '">' . $points . '</div>';
         }
 
         if (empty($rank) || $rank === '0') {

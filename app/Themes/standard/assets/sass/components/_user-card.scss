@@ -212,13 +212,31 @@
 		padding: 5px 10px;
 		border-radius: 999px;
 		border: 1px solid var(--role-color);
-		color: var(--role-color);
+        position: relative;
+        background-color: var(--blurred-background);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+
+        &::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            background-color: var(--role-color);
+            width: 50px;
+            height: 50px;
+            right: -10px;
+            top: -20px;
+            opacity: .7;
+            z-index: -1;
+            filter: blur(20px);
+        }
 
 		.role-swatch {
 			width: 9px;
 			height: 9px;
 			border-radius: 3px;
 		}
+
 		.role-name {
 			font-size: 12px;
 			font-weight: 700;
@@ -230,6 +248,7 @@
 		align-items: center;
 		gap: 10px;
 		flex-wrap: wrap;
+        margin-left: var(--space-2xs);
 
 		.role-dot {
 			width: 18px;
@@ -239,6 +258,12 @@
 			background: var(--dot-color, var(--transp-2));
 			box-shadow: inset 0 0 0 1px
 				color-mix(in srgb, var(--dot-color, #000) 18%, transparent);
+            opacity: .8;
+            transition: opacity 0.12s ease;
+
+            &:hover {
+                opacity: 1;
+            }
 		}
 		.role-dot.more {
 			display: grid;
