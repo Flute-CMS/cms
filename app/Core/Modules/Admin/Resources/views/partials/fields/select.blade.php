@@ -8,7 +8,6 @@
 
     $value = request()->input($name, $value);
     
-    // Преобразовать значение в массив, если это multiple селект
     if ($multiple && !is_array($value) && !empty($value)) {
         $value = [$value];
     }
@@ -22,6 +21,7 @@
                 @if ($disabled) disabled @endif data-select data-mode="{{ $mode }}"
                 data-max-items="{{ $maxItems }}" data-plugins="{!! $plugins !!}"
                 placeholder="{{ $placeholder }}"
+                data-allow-add="{{ $attributes->get('data-allow-add') }}"
                 @if ($mode === 'async') data-search-url="{{ $attributes->get('data-search-url') }}"
                         data-search-min-length="{{ $attributes->get('data-search-min-length') }}"
                         data-search-delay="{{ $attributes->get('data-search-delay') }}"

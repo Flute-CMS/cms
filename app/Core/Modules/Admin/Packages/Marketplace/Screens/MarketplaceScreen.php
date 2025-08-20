@@ -235,7 +235,7 @@ class MarketplaceScreen extends Screen
 
         if (!empty($this->searchQuery)) {
             $filteredModules = array_filter($filteredModules, function ($module) {
-                return str_contains(strtolower($module['name']), strtolower($this->searchQuery));
+                return str_contains(strtolower((string)($module['name'] ?? '')), strtolower((string)$this->searchQuery));
             });
         }
 

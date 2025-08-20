@@ -105,6 +105,7 @@ class Select extends Field implements ComplexFieldConcern
         'data-max-items',
         'data-preload',
         'data-plugins',
+        'data-allow-add',
     ];
 
     public function __construct()
@@ -113,18 +114,6 @@ class Select extends Field implements ComplexFieldConcern
             $this->configureSelect();
         });
     }
-
-    /**
-     * @param string $model
-     */
-    // public function fromModel($model, string $name, ?string $key = null): self
-    // {
-    //     /* @var $model Model */
-    //     $model = is_object($model) ? $model : new $model;
-    //     $key = $key ?? $model->getModel()->getKeyName();
-
-    //     return $this->setFromEloquent($model, $name, $key);
-    // }
 
     /**
      * @param string      $enum
@@ -157,34 +146,6 @@ class Select extends Field implements ComplexFieldConcern
             $this->set('value', $value);
         });
     }
-
-    // private function setFromEloquent($model, string $name, string $key): self
-    // {
-    //     $options = $model->pluck($name, $key);
-
-    //     $this->set('options', $options);
-
-    //     return $this->addBeforeRender(function () use ($name) {
-    //         $value = [];
-
-    //         collect($this->get('value'))->each(static function ($item) use (&$value, $name) {
-    //             if (is_object($item)) {
-    //                 $value[$item->id] = $item->$name;
-    //             } else {
-    //                 $value[] = $item;
-    //             }
-    //         });
-
-    //         $this->set('value', $value);
-    //     });
-    // }
-
-    // public function fromQuery(Builder $builder, string $name, ?string $key = null): self
-    // {
-    //     $key = $key ?? $builder->getModel()->getKeyName();
-
-    //     return $this->setFromEloquent($builder->get(), $name, $key);
-    // }
 
     public function empty(string $name = '', string $key = ''): self
     {
@@ -224,6 +185,9 @@ class Select extends Field implements ComplexFieldConcern
         $this->set('multiple', $this->getConfig('multiple'))
             ->set('maxItems', $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1)
             ->set('mode', $this->getConfig('mode'));
+
+        // Expose allowAdd flag to template via data attribute
+        $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
 
         // Configure plugins
         $plugins = $this->getConfig('plugins', []);
@@ -537,5 +501,10 @@ class Select extends Field implements ComplexFieldConcern
     public function filter(callable $callback): self
     {
         return $this->setConfig('filter', $callback);
+    }
+
+    public function allowAdd(bool $allow = true): self
+    {
+        return $this->setConfig('allowAdd', $allow);
     }
 }

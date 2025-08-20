@@ -240,7 +240,7 @@ class CmsUpdater extends AbstractUpdater
                     @chown($destinationPath, $preserveOwner);
                     @chgrp($destinationPath, $preserveGroup);
                 } else {
-                    $filePerms = fileperms($sourcePath) & 0o777;
+                    $filePerms = fileperms($sourcePath) & 0o755;
                     chmod($destinationPath, $filePerms);
                     @chown($destinationPath, fileowner($sourcePath));
                     @chgrp($destinationPath, filegroup($sourcePath));
@@ -268,7 +268,8 @@ class CmsUpdater extends AbstractUpdater
         }
 
         copy($sourceFile, $targetFile);
-        $filePerms = fileperms($sourceFile) & 0o777;
+        // Apply a consistent permission mask for copied files
+        $filePerms = fileperms($sourceFile) & 0o755;
         chmod($targetFile, $filePerms);
         @chown($targetFile, fileowner($sourceFile));
         @chgrp($targetFile, filegroup($sourceFile));

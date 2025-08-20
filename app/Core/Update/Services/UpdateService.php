@@ -181,7 +181,7 @@ class UpdateService
                 return [];
             }
 
-            $url = (str_contains(config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL) . '/updates';
+            $url = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL) . '/updates';
 
             $response = $client->request('GET', $url, [
                 'headers' => [
@@ -459,7 +459,7 @@ class UpdateService
 
             $baseUrl = '';
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $baseUrl = (str_contains(config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
+                $baseUrl = (str_contains((string)config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
             }
 
             // parse ?token

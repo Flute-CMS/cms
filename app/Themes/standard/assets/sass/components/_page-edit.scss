@@ -280,15 +280,14 @@ body.page-edit-mode {
 				}
 
 				&-content {
+                    @extend .blur-bg;
+
 					display: none;
 					position: fixed;
 					left: 50%;
 					transform: translate(-50%, 20px);
 					width: min(900px, 95%);
-					bottom: 90px;
-					background-color: var(--blurred-background);
-					backdrop-filter: blur(20px);
-					-webkit-backdrop-filter: blur(20px);
+					bottom: 70px;
 					border-radius: 20px;
 					box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.12);
 					opacity: 0;
@@ -296,6 +295,7 @@ body.page-edit-mode {
 					max-height: 60vh;
 					overflow-y: auto;
 					z-index: 9999;
+                    background-color: var(--blurred-background);
 
 					&::after {
 						content: "";
@@ -306,10 +306,25 @@ body.page-edit-mode {
 						pointer-events: none;
 					}
 
+                    &::before {
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        border-radius: inherit;
+                        background: radial-gradient(circle, var(--primary) 0%, var(--blurred-background) 100%);
+                        z-index: -1;
+                        opacity: 0;
+                        transition: opacity 0.2s ease, transform 0.2s ease;
+                    }
+
 					&.active {
 						display: block;
 						opacity: 1;
 						transform: translate(-50%, 0);
+
+                        &::before {
+                            opacity: .1;
+                        }
 					}
 
 					.page-edit-widgets-list {
