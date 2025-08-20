@@ -140,11 +140,12 @@
 		"allow-plugins": {
 			"php-http/discovery": true,
 			"wikimedia/composer-merge-plugin": true
+		},
+		"platform": {
+			"php": "8.2.999"
 		}
 	},
-	"platform": {
-		"php": "8.2.999"
-	},
+
 	"minimum-stability": "stable",
 	"prefer-stable": true
 }
