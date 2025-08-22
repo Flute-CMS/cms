@@ -3,12 +3,12 @@
 namespace Flute\Admin\Packages\Marketplace\Screens;
 
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
+use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\ModulesManager\ModuleManager;
-use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 
 class MarketplaceProductScreen extends Screen
 {
@@ -102,6 +102,7 @@ class MarketplaceProductScreen extends Screen
             foreach ($allModules as $m) {
                 if (($m['slug'] ?? '') === $slug) {
                     $moduleData = $m;
+
                     break;
                 }
             }
@@ -122,6 +123,7 @@ class MarketplaceProductScreen extends Screen
                     foreach ($allModules as $m) {
                         if (($m['slug'] ?? '') === $slug) {
                             $moduleData = $m;
+
                             break;
                         }
                     }
@@ -137,6 +139,7 @@ class MarketplaceProductScreen extends Screen
                         logs()->error($e2);
                         $this->flashMessage($e2->getMessage(), 'error');
                         $this->isLoading = false;
+
                         return;
                     }
                 } else {
@@ -163,6 +166,7 @@ class MarketplaceProductScreen extends Screen
                 $moduleInstaller->updateComposerDependencies();
             } catch (\Exception $e) {
                 $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+
                 throw $e;
             }
 

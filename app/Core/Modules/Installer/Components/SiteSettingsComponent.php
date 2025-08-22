@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
-use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;

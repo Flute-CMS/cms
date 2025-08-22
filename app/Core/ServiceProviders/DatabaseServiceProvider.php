@@ -26,6 +26,7 @@ class DatabaseServiceProvider extends AbstractServiceProvider
             \Cycle\ORM\ORMInterface::class => \DI\factory(function (\DI\Container $c) {
                 /** @var DatabaseConnection $conn */
                 $conn = $c->get(DatabaseConnection::class);
+
                 return $conn->getOrm();
             }),
             \Cycle\ORM\ORM::class => \DI\get(\Cycle\ORM\ORMInterface::class),

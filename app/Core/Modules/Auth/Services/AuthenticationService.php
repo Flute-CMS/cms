@@ -602,7 +602,7 @@ class AuthenticationService
         $this->session->set('just_logged_in_at', time());
 
         user()->setCurrentUser($user);
-        
+
         $roleId = config('auth.default_role');
 
         if ($roleId) {

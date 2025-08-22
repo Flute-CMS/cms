@@ -685,6 +685,7 @@ class SocialService implements SocialServiceInterface
 
             if ($isDefault && $photoUrl) {
                 $user->avatar = $photoUrl;
+
                 try {
                     transaction($user)->run();
                 } catch (\Exception $e) {
