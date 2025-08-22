@@ -158,6 +158,7 @@ function uploadFile(file) {
 
     if (token) {
         xhr.setRequestHeader('X-CSRF-Token', token);
+        formData.append('_csrf_token', token);
     }
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 

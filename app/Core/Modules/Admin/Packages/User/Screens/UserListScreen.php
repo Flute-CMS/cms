@@ -69,7 +69,6 @@ class UserListScreen extends Screen
 
                             TD::make('role', __('admin-users.table.role'))
                                 ->width('120px')
-                                ->sort()
                                 ->render(function (User $user) {
                                     $mainRole = $user->getMainRole();
 

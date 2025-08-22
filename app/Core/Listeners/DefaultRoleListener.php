@@ -7,7 +7,7 @@ use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
 
 class DefaultRoleListener
 {
-    public function handle(UserRegisteredEvent $event)
+    public static function handle(UserRegisteredEvent $event)
     {
         $user = $event->getUser();
 
