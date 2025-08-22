@@ -4,6 +4,9 @@
             {{ __('admin-marketplace.labels.no_modules_found') }}
         </x-admin::alert>
     @else
+        @if ($isLoading)
+            <div class="loading">Loading...</div>
+        @endif
         <div class="details-header card-gradient {{ !empty($module['isPaid']) ? 'paid' : '' }}">
             <div class="cover">
                 @if(! empty($module['primaryImage']))
@@ -52,6 +55,7 @@
                         <x-admin::button href="{{ url(config('app.flute_market_url').'/product/'.$module['slug']) }}" target="_blank" withoutHtmx type="secondary">
                             {{ __('admin-marketplace.actions.details') }}
                         </x-admin::button>
+
                         @if ($needsUpdate)
                             <x-admin::button yoyo:post="installModule('{{ $module['slug'] }}')" hx-trigger="confirmed"
                                              hx-flute-confirm="{{ __('admin-marketplace.messages.update_confirm', ['module' => $module['name']]) }}"
@@ -71,8 +75,35 @@
                                 {{ __('admin-marketplace.actions.install') }}
                             </x-admin::button>
                         @else
-                            <x-admin::button type="success" disabled>
-                                {{ __('admin-marketplace.actions.installed') }}
+                            @php
+                                $status = $moduleManager->getModule($module['name'])->status ?? 'disabled';
+                            @endphp
+                            @if ($status === 'active')
+                                <x-admin::button yoyo:post="deactivateModule('{{ $module['name'] }}')" hx-trigger="confirmed"
+                                                 hx-flute-confirm="{{ __('admin-marketplace.messages.deactivate_confirm', ['module' => $module['name']]) }}"
+                                                 hx-flute-confirm-title="{{ __('admin-marketplace.messages.deactivate_confirm_title') }}"
+                                                 hx-flute-confirm-type="warning"
+                                                 type="secondary"
+                                >
+                                    {{ __('admin-marketplace.actions.deactivate') }}
+                                </x-admin::button>
+                            @else
+                                <x-admin::button yoyo:post="activateModule('{{ $module['name'] }}')" hx-trigger="confirmed"
+                                                 hx-flute-confirm="{{ __('admin-marketplace.messages.activate_confirm', ['module' => $module['name']]) }}"
+                                                 hx-flute-confirm-title="{{ __('admin-marketplace.messages.activate_confirm_title') }}"
+                                                 hx-flute-confirm-type="warning"
+                                                 type="primary"
+                                >
+                                    {{ __('admin-marketplace.actions.activate') }}
+                                </x-admin::button>
+                            @endif
+                            <x-admin::button yoyo:post="uninstallModule('{{ $module['name'] }}')" hx-trigger="confirmed"
+                                             hx-flute-confirm="{{ __('admin-marketplace.messages.uninstall_confirm', ['module' => $module['name']]) }}"
+                                             hx-flute-confirm-title="{{ __('admin-marketplace.messages.uninstall_confirm_title') }}"
+                                             hx-flute-confirm-type="danger"
+                                             type="danger"
+                            >
+                                {{ __('admin-marketplace.actions.uninstall') }}
                             </x-admin::button>
                         @endif
                     </div>

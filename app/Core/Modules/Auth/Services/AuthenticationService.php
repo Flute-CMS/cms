@@ -602,5 +602,20 @@ class AuthenticationService
         $this->session->set('just_logged_in_at', time());
 
         user()->setCurrentUser($user);
+
+        $roleId = config('auth.default_role');
+
+        if ($roleId) {
+            try {
+                $role = \Flute\Core\Database\Entities\Role::findByPK($roleId);
+
+                if ($role && !$user->hasRole($role->name) && !$user->isTemporary()) {
+                    $user->addRole($role);
+                    transaction($user)->run();
+                }
+            } catch (\Throwable $e) {
+                logs()->warning($e);
+            }
+        }
     }
 }

@@ -31,7 +31,6 @@ class PaymentServiceProvider extends AbstractServiceProvider
         try {
             /** @var \Flute\Core\Database\DatabaseConnection $db */
             $db = $container->get(\Flute\Core\Database\DatabaseConnection::class);
-            $db->recompileIfNeeded();
         } catch (\Throwable $e) {
             logs('modules')->warning('Payments boot: database not ready yet: ' . $e->getMessage());
         }

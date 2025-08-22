@@ -71,7 +71,7 @@ class RegisterComponent extends FluteComponent
             ],
             'login' => [
                 'required',
-                'regex:/^[a-zA-Z0-9._-]+$/',
+                'regex:/^[\p{L}\p{N}._-]+$/u',
                 'min-str-len:' . config('auth.validation.login.min_length'),
                 'max-str-len:' . config('auth.validation.login.max_length'),
             ],

@@ -75,6 +75,8 @@ class ModuleInstall implements ModuleActionInterface
 
         $this->moduleManager->runComposerInstall($module);
 
+        app(DatabaseConnection::class)->forceRefreshSchema();
+
         return true;
     }
 

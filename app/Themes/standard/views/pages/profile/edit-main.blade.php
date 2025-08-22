@@ -27,7 +27,8 @@
                                 <li>
                                     <a hx-get="{{ url('profile/settings')->addParams(['tab' => $tab['path']]) }}"
                                         class="profile-edit__sidebar-item @if ($tab['path'] === $activePath) active @endif"
-                                        hx-target="#tab-content" hx-push-url="true" data-tab-path="{{ $tab['path'] }}" hx-swap="innerHTML show:#main:top">
+                                        hx-target="#tab-content" hx-push-url="true" data-tab-path="{{ $tab['path'] }}" hx-swap="innerHTML show:#main:top"
+                                        @if ($tab['path'] === $activePath) hx-trigger="click once" @endif>
                                         @if ($tab['icon'])
                                             <x-icon path="{{ $tab['icon'] }}" />
                                         @endif

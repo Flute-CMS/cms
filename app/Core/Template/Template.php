@@ -574,7 +574,20 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $params = $this->beforeRenderEvent($path, $variables);
 
-        $content = $this->blade->make($params->view, $params->variables, $mergeData);
+        try {
+            $content = $this->blade->make($params->view, $params->variables, $mergeData);
+        } catch (\Throwable $e) {
+            $root = $e;
+            while ($root->getPrevious() !== null) {
+                $root = $root->getPrevious();
+            }
+
+            if ($root !== $e) {
+                throw $root;
+            }
+
+            throw $e;
+        }
 
         $elapsed = microtime(true) - $startRender;
 

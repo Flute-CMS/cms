@@ -117,6 +117,17 @@ class TablePaymentsComponent extends Table
                     ])->render();
                 },
             ],
+            [
+                'label' => __('profile.edit.payments.table.actions'),
+                'field' => 'actions',
+                'allowSort' => false,
+                'searchable' => false,
+                'renderer' => function (PaymentInvoice $row) {
+                    return view('flute::components.profile-tabs.edit.payments.pay-button', [
+                        'invoice' => $row,
+                    ])->render();
+                },
+            ],
         ];
     }
 }

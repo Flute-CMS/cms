@@ -30,7 +30,7 @@ class InstallerServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        if (!is_installed()) {
+        if (!is_installed() && !is_cli()) {
             $currentUrl = (string) url()->current();
             if (!str_contains($currentUrl, '/install') && !str_contains($currentUrl, '/live')) {
                 die(response()->redirect('/install'));

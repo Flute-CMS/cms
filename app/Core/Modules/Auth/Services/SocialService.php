@@ -282,6 +282,8 @@ class SocialService implements SocialServiceInterface
         $existingUser = $this->findUserBySocialProfile($authData['profile']);
 
         if ($existingUser) {
+            $this->updateAvatarFromProfileIfNeeded($existingUser, $authData['profile']);
+
             return $existingUser;
         }
 
@@ -550,6 +552,8 @@ class SocialService implements SocialServiceInterface
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
         }
 
+        $this->updateAvatarFromProfileIfNeeded($user, $profile);
+
         $authData['adapter']->disconnect();
 
         try {
@@ -659,6 +663,37 @@ class SocialService implements SocialServiceInterface
             }
         } catch (\Hybridauth\Exception\InvalidArgumentException $e) {
             logs()->warning($e);
+        }
+    }
+
+    /**
+     * Update user's avatar from social profile if current avatar is default or empty.
+     *
+     * @param User $user
+     * @param Profile $profile
+     * @return void
+     */
+    private function updateAvatarFromProfileIfNeeded(User $user, Profile $profile): void
+    {
+        try {
+            $currentAvatar = $user->avatar ?? '';
+            $defaultAvatar = config('profile.default_avatar');
+
+            $isDefault = empty($currentAvatar) || $currentAvatar === $defaultAvatar || str_contains($currentAvatar, basename($defaultAvatar));
+
+            $photoUrl = $profile->photoURL ?? null;
+
+            if ($isDefault && $photoUrl) {
+                $user->avatar = $photoUrl;
+
+                try {
+                    transaction($user)->run();
+                } catch (\Exception $e) {
+                    logs()->warning('Failed to update user avatar from social profile: ' . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            logs()->warning('Error while updating avatar from social profile: ' . $e->getMessage());
         }
     }
 }

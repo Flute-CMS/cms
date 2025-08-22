@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
-use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
@@ -63,8 +62,6 @@ class AdminUserComponent extends FluteComponent
 
                 return;
             }
-
-            app(DatabaseConnection::class)->recompileIfNeeded(true);
 
             $user = new User();
             $user->name = $this->name;

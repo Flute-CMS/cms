@@ -258,4 +258,5 @@
     "debug_message"           => "The site is in debug mode. All site data may be available to third parties. Also, in debug mode, some functions may be available that are not available in maintenance mode.",
     "never"                   => "Never",
     "not_online"              => "Not online",
+    "pay"                     => "Pay",
 ];

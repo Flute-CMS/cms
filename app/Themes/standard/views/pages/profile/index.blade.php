@@ -179,7 +179,8 @@
                                             <x-slot:headings>
                                                 @foreach ($tabs as $key => $tab)
                                                     <x-tab-heading name="{{ $tab['path'] }}"
-                                                        url="{{ url('profile/' . $user->getUrl())->addParams(['tab' => $tab['path']]) }}"
+                                                        url="{{ $tab['path'] === $activePath ? '' : url('profile/' . $user->getUrl())->addParams(['tab' => $tab['path']]) }}"
+                                                        withoutHtmx="{{ $tab['path'] === $activePath }}"
                                                         active="{{ $tab['path'] === $activePath }}"
                                                         aria-label="{{ __($tab['title']) }}">
                                                         @if ($tab['icon'])

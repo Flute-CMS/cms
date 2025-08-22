@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager\Actions;
 
+use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Contracts\ModuleActionInterface;
 use Flute\Core\ModulesManager\Exceptions\ModuleDependencyException;
@@ -51,6 +52,8 @@ class ModuleUpdate implements ModuleActionInterface
         $this->dispatchUpdateEvent($module);
 
         $this->moduleManager->runComposerInstall($module);
+
+        app(DatabaseConnection::class)->forceRefreshSchema();
 
         return true;
     }

@@ -15,9 +15,11 @@
             <div class="payment-list">
                 @foreach ($payments as $payment)
                     <div class="payment-item">
-                        <a href="{{ url('profile/' . $payment->user->getUrl()) }}" class="payment-user-wrapper" data-user-card>
+                        <a href="{{ url('profile/' . $payment->user->getUrl()) }}" class="payment-user-wrapper"
+                            data-user-card>
                             <div class="payment-avatar">
-                                <img src="{{ asset($payment->user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $payment->user->name }}" />
+                                <img src="{{ asset($payment->user->avatar ?? config('profile.default_avatar')) }}"
+                                    alt="{{ $payment->user->name }}" />
                             </div>
                             <div class="payment-info">
                                 <div class="payment-user">
