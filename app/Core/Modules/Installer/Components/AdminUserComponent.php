@@ -64,8 +64,6 @@ class AdminUserComponent extends FluteComponent
                 return;
             }
 
-            app(DatabaseConnection::class)->recompileIfNeeded(true);
-
             $user = new User();
             $user->name = $this->name;
             $user->email = $this->email;

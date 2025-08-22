@@ -81,6 +81,10 @@ class ProfileIndexController extends BaseController
             return $this->errors()->notFound();
         }
 
+        if ($user->hidden && !(user()->isLoggedIn() && (user()->id === $user->id || user()->can('admin.users')))) {
+            return $this->errors()->forbidden(__('profile.profile_hidden'));
+        }
+
         $this->dispatchEvent($user, 'mini');
 
         return view('flute::partials.user-card', [

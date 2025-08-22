@@ -157,6 +157,8 @@ class FooterListScreen extends Screen
 
         orm()->getHeap()->clean();
 
+        $this->clearFooterCache();
+
         $this->loadFooterItems();
     }
 
@@ -260,6 +262,10 @@ class FooterListScreen extends Screen
 
         $this->flashMessage(__('admin-footer.messages.item_created'), 'success');
         $this->closeModal();
+
+        // Clear footer cache to ensure persistence after save
+        $this->clearFooterCache();
+
         $this->loadFooterItems();
     }
 
@@ -351,6 +357,9 @@ class FooterListScreen extends Screen
 
         $this->flashMessage(__('admin-footer.messages.item_updated'), 'success');
         $this->closeModal();
+
+        $this->clearFooterCache();
+
         $this->loadFooterItems();
     }
 
@@ -376,6 +385,9 @@ class FooterListScreen extends Screen
 
         $footerItem->delete();
         $this->flashMessage(__('admin-footer.messages.item_deleted'), 'success');
+
+        $this->clearFooterCache();
+
         $this->loadFooterItems();
     }
 
@@ -443,6 +455,9 @@ class FooterListScreen extends Screen
 
         $this->flashMessage(__('admin-footer.messages.social_created'), 'success');
         $this->closeModal();
+
+        $this->clearFooterCache();
+
         $this->loadSocials();
     }
 
@@ -528,6 +543,9 @@ class FooterListScreen extends Screen
 
         $this->flashMessage(__('admin-footer.messages.social_updated'), 'success');
         $this->closeModal();
+
+        $this->clearFooterCache();
+
         $this->loadSocials();
     }
 
@@ -547,6 +565,25 @@ class FooterListScreen extends Screen
 
         $footerSocial->delete();
         $this->flashMessage(__('admin-footer.messages.social_deleted'), 'success');
+
+        $this->clearFooterCache();
+
         $this->loadSocials();
+    }
+
+    /**
+     * Clear all cached footer keys matching the cache key prefix.
+     */
+    private function clearFooterCache(): void
+    {
+        try {
+            $pattern = \Flute\Core\Services\FooterService::CACHE_KEY . '*';
+            $keys = cache()->getKeys($pattern);
+            foreach ($keys as $key) {
+                cache()->delete($key);
+            }
+        } catch (\Throwable $e) {
+            // Swallow exceptions to avoid breaking admin UI
+        }
     }
 }

@@ -383,7 +383,7 @@ final class App
         if (!defined('FLUTE_ROUTER_START')) {
             define('FLUTE_ROUTER_START', microtime(true));
         }
-
+        
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
 
         /** @var RouterInterface $router */

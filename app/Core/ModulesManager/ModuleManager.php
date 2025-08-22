@@ -249,7 +249,7 @@ class ModuleManager
         cache()->set('modules.dependencies.hash', $stateHash, self::CACHE_TIME);
     }
 
-    protected function registerModules(): void
+    public function registerModules(): void
     {
         $this->initialize();
 

@@ -313,13 +313,13 @@ class EditMainComponent extends FluteComponent
         return $this->validate([
             'name' => [
                 'required',
-                'human-name',
+                'regex:/^(?!.*[<>])[\p{L}\p{N}\p{M}\p{Pd}\p{Pc}\p{Sk}\p{So}\s.\-_!"@#$%&*+,.:;?\\/\|()\[\]]+$/u',
                 'min-str-len:' . config('auth.validation.name.min_length'),
                 'max-str-len:' . config('auth.validation.name.max_length'),
             ],
             'login' => [
                 'required',
-                'regex:/^[a-zA-Z0-9._-]+$/',
+                'regex:/^[\p{L}\p{N}._-]+$/u',
                 'min-str-len:' . config('auth.validation.login.min_length'),
                 'max-str-len:' . config('auth.validation.login.max_length'),
                 'unique:users,login,' . $this->user->id,

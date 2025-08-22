@@ -67,7 +67,20 @@ class Route implements RouteInterface
 
                 // Support laravel blade view.
                 if ($response instanceof View) {
-                    return response()->make($response->render());
+                    try {
+                        return response()->make($response->render());
+                    } catch (\Throwable $e) {
+                        $root = $e;
+                        while ($root->getPrevious() !== null) {
+                            $root = $root->getPrevious();
+                        }
+
+                        if ($root !== $e) {
+                            throw $root;
+                        }
+
+                        throw $e;
+                    }
                 }
 
                 // Support rendered fragments or other...

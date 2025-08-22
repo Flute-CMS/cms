@@ -104,6 +104,8 @@ class NavigationListScreen extends Screen
 
         orm()->getHeap()->clean();
 
+        $this->clearNavbarCache();
+
         $this->loadNavbarItems();
     }
 
@@ -295,6 +297,9 @@ class NavigationListScreen extends Screen
 
         $this->flashMessage(__('admin-navigation.messages.item_created'), 'success');
         $this->closeModal();
+
+        $this->clearNavbarCache();
+
         $this->loadNavbarItems();
     }
 
@@ -490,6 +495,9 @@ class NavigationListScreen extends Screen
 
         $this->flashMessage(__('admin-navigation.messages.item_updated'), 'success');
         $this->closeModal();
+
+        $this->clearNavbarCache();
+
         $this->loadNavbarItems();
     }
 
@@ -518,6 +526,25 @@ class NavigationListScreen extends Screen
 
         $navbarItem->delete();
         $this->flashMessage(__('admin-navigation.messages.item_deleted'), 'success');
+
+        $this->clearNavbarCache();
+
         $this->loadNavbarItems();
+    }
+
+    /**
+     * Clear all cached navbar keys matching the cache key prefix.
+     */
+    private function clearNavbarCache(): void
+    {
+        try {
+            $pattern = \Flute\Core\Services\NavbarService::CACHE_KEY . '*';
+            $keys = cache()->getKeys($pattern);
+            foreach ($keys as $key) {
+                cache()->delete($key);
+            }
+        } catch (\Throwable $e) {
+            // Do not break admin flow if cache clearing fails
+        }
     }
 }

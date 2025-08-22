@@ -103,8 +103,6 @@ class SiteSettingsComponent extends FluteComponent
             config()->set('app', $config);
             config()->save();
 
-            app(DatabaseConnection::class)->recompileIfNeeded(true);
-
             $user = User::query()->load('roles.permissions')->where('verified', true)->where(['roles.permissions.name' => 'admin.boss'])->fetchOne();
 
             auth()->authenticateById($user->id);
