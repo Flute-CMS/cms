@@ -3,7 +3,7 @@
 return [
     'title' => [
         'roles' => 'Cargos',
-        'roles_description' => 'Gerenciamento de cargos de usuário. O cargo mais alto tem a prioridade máxima.',
+        'roles_description' => 'Gerenciamento de cargos de usuário. O cargo mais alto tem a maior prioridade.',
     ],
     'breadcrumbs' => [
         'roles' => 'Cargos',
@@ -30,14 +30,14 @@ return [
         ],
         'delete' => [
             'title' => 'Excluir Cargo',
-            'confirm' => 'Tem certeza que deseja excluir este cargo?',
+            'confirm' => 'Tem certeza de que deseja excluir este cargo?',
         ],
     ],
     'fields' => [
         'name' => [
-            'label' => 'Nome do Cargo',
+            'label' => 'Nome da Cargo',
             'placeholder' => 'Digite o nome do cargo',
-            'help' => 'Um nome exclusivo para o cargo',
+            'help' => 'Um nome único para o cargo',
         ],
         'color' => [
             'label' => 'Cor',
@@ -47,13 +47,18 @@ return [
             'label' => 'Permissões',
             'help' => 'Selecione as permissões para este cargo',
         ],
+        'icon' => [
+            'label' => 'Ícone',
+            'placeholder' => 'ph.regular... ou <svg...',
+            'help' => 'Ícone associado ao cargo',
+        ],
     ],
     'messages' => [
         'created' => 'Cargo criado com sucesso.',
         'updated' => 'Cargo atualizado com sucesso.',
         'deleted' => 'Cargo excluído com sucesso.',
         'not_found' => 'Cargo não encontrado ou você não tem permissão para editá-lo.',
-        'invalid_sort' => 'Ordenar dados inválidos.',
-        'no_permissions' => 'Selecione pelo menos uma permissão.',
+        'invalid_sort' => 'Dados de ordenação inválidos.',
+        'no_permissions' => 'Por favor, selecione ao menos uma permissão.',
     ],
 ];
