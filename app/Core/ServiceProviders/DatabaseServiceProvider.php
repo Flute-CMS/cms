@@ -27,14 +27,16 @@ class DatabaseServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        $conn = $container->get(DatabaseConnection::class);
-        
-        if (is_installed()) {
-            try {
+        try {
+            $conn = $container->get(DatabaseConnection::class);
+
+            if (is_installed()) {
                 $conn->recompileIfNeeded();
-            } catch (\Throwable $e) {
-                logs('database')->warning('Early ORM init failed: ' . $e->getMessage());
+            } else {
+                $conn->recompileIfNeeded(true);
             }
+        } catch (\Throwable $e) {
+            logs('database')->warning('Early ORM init failed: ' . $e->getMessage());
         }
     }
 }
