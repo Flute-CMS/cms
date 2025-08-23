@@ -1,8 +1,8 @@
 <?php
 
 return [
-    "title"                         => "Erro",
-    "go_back"                       => "Voltar",
+    "title"                        => "Erro",
+    "go_back"                      => "Voltar",
     "404_description"              => "A página que você está procurando pode ter sido removida, renomeada ou estar temporariamente indisponível.",
     "403_description"              => "Você não tem permissão para acessar esta página. Por favor, entre em contato com o administrador se você acredita que isto é um erro.",
     "500_description"              => "Algo deu errado em nosso servidor. Estamos trabalhando para corrigir o problema. Por favor, tente novamente mais tarde.",

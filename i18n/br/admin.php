@@ -21,4 +21,14 @@
     "accent_text"      => "Texto de destaque",
     "preview"          => "Pré-visualizar",
     "performance_info" => "O carregamento da página demorou mais que o normal. Consulte a <a href='https://flute-cms.com/docs/performance' target='_blank'>documentação</a> para dicas de otimização de desempenho.",
-    ];
+    "bulk" => [
+        "selected" => "Selecioar",
+        "enable_selected" => "Ativar selecionado",
+        "disable_selected" => "Desativar selecionado",
+        "delete_selected" => "Excluir selecionado",
+        "clear_selection" => "Limpar",
+    ],
+    "confirms" => [
+        "delete_selected" => "Excluir itens selecionados?",
+    ],
+];
