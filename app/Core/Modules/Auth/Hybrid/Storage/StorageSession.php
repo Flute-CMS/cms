@@ -17,7 +17,18 @@ class StorageSession implements StorageInterface
     {
         $storage = session()->get('HYBRIDAUTH::STORAGE', []);
 
-        return $storage[$key] ?? null;
+        $value = $storage[$key] ?? null;
+
+        if (is_array($value) && isset($value['__lateObject'])) {
+            try {
+                return unserialize($value['__lateObject']);
+            } catch (\Throwable $e) {
+                logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
+                return $value;
+            }
+        }
+
+        return $value;
     }
 
     /**

@@ -283,6 +283,7 @@ class SocialService implements SocialServiceInterface
 
         if ($existingUser) {
             $this->updateAvatarFromProfileIfNeeded($existingUser, $authData['profile']);
+            $this->updateBannerFromProfileIfNeeded($existingUser, $authData['profile']);
 
             return $existingUser;
         }
@@ -306,8 +307,29 @@ class SocialService implements SocialServiceInterface
     {
         $this->initializeHybridAuth($providerName, $bind);
 
-        $adapter = $this->hybridauth->authenticate($this->normalizeProviderName($providerName));
-        $userProfile = $adapter->getUserProfile();
+        try {
+            $adapter = $this->hybridauth->authenticate($this->normalizeProviderName($providerName));
+            $userProfile = $adapter->getUserProfile();
+        } catch (\Hybridauth\Exception\UnexpectedApiResponseException $e) {
+            try {
+                if (isset($adapter) && method_exists($adapter, 'getStorage')) {
+                    $adapter->getStorage()->clear();
+                }
+            } catch (\Throwable $inner) {
+                logs()->warning($inner);
+            }
+
+            try {
+                if (isset($adapter) && method_exists($adapter, 'disconnect')) {
+                    $adapter->disconnect();
+                }
+            } catch (\Throwable $inner) {
+                logs()->warning($inner);
+            }
+
+            logs()->warning('Social authenticate UnexpectedApiResponseException: ' . $e->getMessage());
+            throw new Exception('Failed to load social profile. Please try again.');
+        }
 
         $this->clearAuthData();
 
@@ -329,7 +351,6 @@ class SocialService implements SocialServiceInterface
      */
     private function initializeHybridAuth(string $providerName = null, bool $bind = false): void
     {
-        // Use a unified callback endpoint for both authentication and binding
         $callbackUrl = url("social/$providerName")->get();
 
         $this->hybridauth = new Hybridauth([
@@ -386,7 +407,6 @@ class SocialService implements SocialServiceInterface
         $user->uri = null;
         $user->login = null;
         $user->avatar = $avatarPath;
-        $user->banner = config('profile.default_banner');
         $user->verified = true;
 
         $userSocialNetwork = new UserSocialNetwork();
@@ -415,6 +435,8 @@ class SocialService implements SocialServiceInterface
         if ($socialNetwork->key === "Discord") {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
         }
+
+        $this->updateBannerFromProfileIfNeeded($user, $userProfile);
 
         return $user;
     }
@@ -694,6 +716,33 @@ class SocialService implements SocialServiceInterface
             }
         } catch (\Throwable $e) {
             logs()->warning('Error while updating avatar from social profile: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update user's banner from social profile if current banner is default or empty.
+     */
+    private function updateBannerFromProfileIfNeeded(User $user, Profile $profile): void
+    {
+        try {
+            $currentBanner = $user->banner ?? '';
+            $defaultBanner = config('profile.default_banner');
+
+            $isDefault = empty($currentBanner) || $currentBanner === $defaultBanner || str_contains($currentBanner, basename($defaultBanner));
+
+            $bannerUrl = $profile->data['bannerURL'] ?? null;
+
+            if ($isDefault && $bannerUrl) {
+                $user->banner = $bannerUrl;
+
+                try {
+                    $user->saveOrFail();
+                } catch (\Exception $e) {
+                    logs()->warning('Failed to update user banner from social profile: ' . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            logs()->warning('Error while updating banner from social profile: ' . $e->getMessage());
         }
     }
 }
