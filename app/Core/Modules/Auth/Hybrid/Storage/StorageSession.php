@@ -48,6 +48,7 @@ class StorageSession implements StorageInterface
     {
         if ($key === null) {
             session()->remove('HYBRIDAUTH::STORAGE');
+
             return;
         }
 
