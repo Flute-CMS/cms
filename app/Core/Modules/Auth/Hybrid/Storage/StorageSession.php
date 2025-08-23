@@ -24,6 +24,7 @@ class StorageSession implements StorageInterface
                 return unserialize($value['__lateObject']);
             } catch (\Throwable $e) {
                 logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
+
                 return $value;
             }
         }

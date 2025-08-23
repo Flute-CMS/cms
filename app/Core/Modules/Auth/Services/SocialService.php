@@ -328,6 +328,7 @@ class SocialService implements SocialServiceInterface
             }
 
             logs()->warning('Social authenticate UnexpectedApiResponseException: ' . $e->getMessage());
+
             throw new Exception('Failed to load social profile. Please try again.');
         }
 
