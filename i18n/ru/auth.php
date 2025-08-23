@@ -62,6 +62,7 @@ return [
     "captcha_required" => "Пожалуйста, пройдите проверку капчи",
     "captcha_invalid" => "Проверка капчи не пройдена. Попробуйте еще раз",
     "account_not_verified" => "Аккаунт не подтвержден.",
+    "register_email" => "Письмо с подтверждением email отправлено на ваш email.",
     "errors" => [
         "user_not_found" => "Пользователь не найден",
         "social_not_found" => "Соц.сеть не найдена",

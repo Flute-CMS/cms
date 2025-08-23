@@ -46,8 +46,10 @@ if (!function_exists("db")) {
 
 if (!function_exists("orm")) {
     /**
-     * Get the orm instance
-     * 
+     * Get the ORM instance. Returns a fully initialized ORM object.
+     * In early bootstrap (installer) DatabaseConnection may not have the
+     * ORM initialized yet, so we guard and initialize lazily.
+     *
      * @return ORM
      */
     function orm(): ORM
@@ -55,10 +57,12 @@ if (!function_exists("orm")) {
         static $orm = null;
 
         if ($orm === null) {
-            $orm = app(DatabaseConnection::class);
+            $dbConn = app(DatabaseConnection::class);
+
+            $orm = $dbConn->getOrm();
         }
 
-        return $orm->getOrm();
+        return $orm;
     }
 }
 
