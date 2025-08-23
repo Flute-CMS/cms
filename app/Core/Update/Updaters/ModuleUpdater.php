@@ -371,16 +371,16 @@ class ModuleUpdater extends AbstractUpdater
                     $dirPerms = fileperms($sourcePath) & 0o777;
                     mkdir($destinationPath, $dirPerms, true);
                     chmod($destinationPath, $dirPerms);
-                    @chown($destinationPath, fileowner($sourcePath));
-                    @chgrp($destinationPath, filegroup($sourcePath));
+                    $this->safeChown($destinationPath, fileowner($sourcePath));
+                    $this->safeChgrp($destinationPath, filegroup($sourcePath));
                 }
                 $this->copyModuleFiles($sourcePath, $destinationPath);
             } else {
                 copy($sourcePath, $destinationPath);
                 $filePerms = fileperms($sourcePath) & 0o777;
                 chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+                $this->safeChown($destinationPath, fileowner($sourcePath));
+                $this->safeChgrp($destinationPath, filegroup($sourcePath));
             }
         }
 
@@ -406,8 +406,8 @@ class ModuleUpdater extends AbstractUpdater
             $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
             chmod($destination, $dirPerms);
-            @chown($destination, fileowner($source));
-            @chgrp($destination, filegroup($source));
+            $this->safeChown($destination, fileowner($source));
+            $this->safeChgrp($destination, filegroup($source));
         }
 
         $directory = opendir($source);
@@ -429,8 +429,8 @@ class ModuleUpdater extends AbstractUpdater
                 copy($sourcePath, $destinationPath);
                 $filePerms = fileperms($sourcePath) & 0o777;
                 chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+                $this->safeChown($destinationPath, fileowner($sourcePath));
+                $this->safeChgrp($destinationPath, filegroup($sourcePath));
             }
         }
 
