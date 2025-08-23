@@ -55,14 +55,24 @@ class ContainerControllerResolver
         $args = [];
 
         foreach ($params as $param) {
-            if ($param->getType() && !$param->getType()->isBuiltin()) {
-                $paramClass = $param->getType()->getName();
+            $type = $param->getType();
+            if ($type && !$type instanceof \ReflectionNamedType || ($type && method_exists($type, 'isBuiltin') && !$type->isBuiltin())) {
+                $paramClass = method_exists($type, 'getName') ? $type->getName() : (string) $type;
 
                 try {
                     $id = $request->attributes->get($param->getName());
                     $args[] = $this->fetchModel($paramClass, $id);
                 } catch (SchemaException | ResourceNotFoundException $e) {
-                    $args[] = $this->container->get($paramClass);
+                    if ($paramClass === \Cycle\ORM\ORMInterface::class || $paramClass === \Cycle\ORM\ORM::class) {
+                        try {
+                            $dbConn = app(\Flute\Core\Database\DatabaseConnection::class);
+                            $args[] = $dbConn->getOrm();
+                        } catch (\Throwable $ex) {
+                            throw new \DI\NotFoundException('ORM is not available: ' . $ex->getMessage());
+                        }
+                    } else {
+                        $args[] = $this->container->get($paramClass);
+                    }
                 }
             } elseif ($request->attributes->has($param->getName())) {
                 $args[] = $request->attributes->get($param->getName());

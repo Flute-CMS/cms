@@ -15,7 +15,21 @@ class StorageSession implements StorageInterface
      */
     public function get($key)
     {
-        return session()->get($key);
+        $storage = session()->get('HYBRIDAUTH::STORAGE', []);
+
+        $value = $storage[$key] ?? null;
+
+        if (is_array($value) && isset($value['__lateObject'])) {
+            try {
+                return unserialize($value['__lateObject']);
+            } catch (\Throwable $e) {
+                logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
+
+                return $value;
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -26,14 +40,15 @@ class StorageSession implements StorageInterface
      */
     public function set($key, $value)
     {
-        session()->set($key, $value);
-        $key = strtolower($key);
+        $storage = session()->get('HYBRIDAUTH::STORAGE', []);
 
         if (is_object($value)) {
-            $value = ['lateObject' => serialize($value)];
+            $value = ['__lateObject' => serialize($value)];
         }
 
-        session()->set($key, $value);
+        $storage[$key] = $value;
+
+        session()->set('HYBRIDAUTH::STORAGE', $storage);
     }
 
     /**
@@ -44,9 +59,16 @@ class StorageSession implements StorageInterface
     public function delete($key = null): void
     {
         if ($key === null) {
-            unset($_SESSION['HYBRIDAUTH::STORAGE']);
-        } else {
-            unset($_SESSION['HYBRIDAUTH::STORAGE'][$key]);
+            session()->remove('HYBRIDAUTH::STORAGE');
+
+            return;
+        }
+
+        $storage = session()->get('HYBRIDAUTH::STORAGE', []);
+
+        if (isset($storage[$key])) {
+            unset($storage[$key]);
+            session()->set('HYBRIDAUTH::STORAGE', $storage);
         }
     }
 
@@ -57,7 +79,15 @@ class StorageSession implements StorageInterface
      */
     public function deleteMatch($key)
     {
-        session()->remove($key);
+        $storage = session()->get('HYBRIDAUTH::STORAGE', []);
+
+        foreach (array_keys($storage) as $k) {
+            if (strpos($k, $key) !== false) {
+                unset($storage[$k]);
+            }
+        }
+
+        session()->set('HYBRIDAUTH::STORAGE', $storage);
     }
 
     /**
@@ -65,6 +95,6 @@ class StorageSession implements StorageInterface
      */
     public function clear()
     {
-        session()->clear();
+        session()->remove('HYBRIDAUTH::STORAGE');
     }
 }

@@ -259,4 +259,5 @@
     "never"                   => "Never",
     "not_online"              => "Not online",
     "pay"                     => "Pay",
+    "offline"                 => "Offline",
 ];

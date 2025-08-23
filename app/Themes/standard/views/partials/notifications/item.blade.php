@@ -1,7 +1,7 @@
 <li class="notification-item {{ $notification->viewed ? 'viewed' : 'unread' }} {{ $notification->url ? 'hovered' : '' }}"
     data-id="{{ $notification->id }}"
     @if (!$notification->viewed) hx-put="{{ url('api/notifications/' . $notification->id) }}"
-            hx-trigger="load"
+            hx-trigger="revealed once"
             hx-swap="none" @endif
     @if ($notification->url) onclick="location.href='{{ url($notification->url) }}'" @endif>
     <div class="notification-icon">

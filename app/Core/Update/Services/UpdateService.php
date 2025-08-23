@@ -455,11 +455,11 @@ class UpdateService
 
             $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
 
-            $client = new Client(['timeout' => 30, 'verify' => !config('app.debug')]);
+            $client = new Client(['timeout' => 120, 'verify' => !config('app.debug')]);
 
             $baseUrl = '';
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $baseUrl = (str_contains((string)config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
+                $baseUrl = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
             }
 
             // parse ?token

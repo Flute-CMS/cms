@@ -24,11 +24,16 @@ class DatabaseServiceProvider extends AbstractServiceProvider
             "db.connection" => \DI\get(DatabaseConnection::class),
 
             \Cycle\ORM\ORMInterface::class => \DI\factory(function (\DI\Container $c) {
+                if (!function_exists('is_installed') || !is_installed()) {
+                    throw new \DI\NotFoundException('ORM is not available before installation');
+                }
+
                 /** @var DatabaseConnection $conn */
                 $conn = $c->get(DatabaseConnection::class);
 
                 return $conn->getOrm();
             }),
+
             \Cycle\ORM\ORM::class => \DI\get(\Cycle\ORM\ORMInterface::class),
         ]);
     }

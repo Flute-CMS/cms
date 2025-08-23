@@ -93,6 +93,12 @@ class Discord extends OAuth2
             $userProfile->photoURL .= $data->get('id') . '/' . $data->get('avatar') . '.png';
         }
 
+        if ($data->get('banner')) {
+            $existingData = is_array($userProfile->data ?? null) ? $userProfile->data : [];
+            $existingData['bannerURL'] = 'https://cdn.discordapp.com/banners/' . $data->get('id') . '/' . $data->get('banner') . '.png?size=1024';
+            $userProfile->data = $existingData;
+        }
+
         return $userProfile;
     }
 }

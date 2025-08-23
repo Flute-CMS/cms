@@ -359,6 +359,18 @@ class DatabaseConnection
      */
     public function getOrm(): ORM
     {
+        if (!isset($this->orm)) {
+            try {
+                $this->connect();
+            } catch (\Throwable $e) {
+                if (function_exists('logs')) {
+                    logs('database')->error('Failed to initialize ORM: ' . $e->getMessage());
+                }
+
+                throw $e;
+            }
+        }
+
         return $this->orm;
     }
 

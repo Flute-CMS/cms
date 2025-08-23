@@ -1,38 +1,24 @@
-name: Legacy Build Support (Deprecated)
+name: PHP Composer Build & Upload to Existing Release
 
 on:
   workflow_dispatch:
-    inputs:
-      force_build:
-        description: 'Force build from current branch'
-        required: false
-        default: false
-        type: boolean
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  legacy-build:
+  build:
     runs-on: ubuntu-latest
-    if: github.event.inputs.force_build == 'true'
 
     steps:
-      - name: Deprecation Notice
-        run: |
-          echo "⚠️  This workflow is deprecated!"
-          echo "Please use the new promotion workflow instead:"
-          echo "Actions → Promote to Main → Run workflow"
-          
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
-          tools: composer:v2
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
@@ -46,26 +32,18 @@ jobs:
             ${{ runner.os }}-php-
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-dev --no-progress --optimize-autoloader
+        run: composer install --prefer-dist --no-dev --no-progress
 
-      - name: Create manual build
+      - name: Archive project with vendor
         run: |
-          BUILD_DATE=$(date +"%Y%m%d_%H%M%S")
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          ARCHIVE_NAME="flute-cms-manual-${BRANCH_NAME}-${BUILD_DATE}.zip"
-          
-          zip -r "$ARCHIVE_NAME" . \
-            -x "*.git*" \
-            -x "*.github*" \
-            -x "tests/*" \
-            -x "*.md"
-            
-          echo "Manual build created: $ARCHIVE_NAME"
+          mkdir -p release
+          ARCHIVE_NAME="flute-cms-with-vendor-${GITHUB_REF_NAME}.zip"
+          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*"
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: manual-build
-          path: ${{ env.ARCHIVE_NAME }}
-          retention-days: 7
+      - name: Upload archive to existing GitHub release
+        run: |
+          echo "Uploading release/$ARCHIVE_NAME to release $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" "release/$ARCHIVE_NAME" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
