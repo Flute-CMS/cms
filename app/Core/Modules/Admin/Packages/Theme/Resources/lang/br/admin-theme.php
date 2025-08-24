@@ -30,6 +30,10 @@ return [
             'label' => 'Descrição',
             'placeholder' => 'Inserir descrição do tema',
         ],
+        'author' => [
+            'label' => 'Autor',
+            'placeholder' => 'Inserir autor do tema',
+        ],
     ],
     'buttons' => [
         'save' => 'Salvar',

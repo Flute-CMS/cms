@@ -1,8 +1,8 @@
 <?php
 
 return [
-    "title"                         => "Error",
-    "go_back"                       => "Go back",
+    "title"                        => "Error",
+    "go_back"                      => "Go back",
     "404_description"              => "The page you are looking for might have been removed, renamed, or is temporarily unavailable.",
     "403_description"              => "You do not have permission to access this page. Please contact the administrator if you believe this is an error.",
     "500_description"              => "Something went wrong on our server. We are working to fix the issue. Please try again later.",
