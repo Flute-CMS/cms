@@ -15,7 +15,7 @@ return [
     ],
     'table' => [
         'user' => 'Usuário',
-        'role' => 'Cargo',						 
+        'role' => 'Cargo',
         'balance' => 'Saldo',
         'registration_date' => 'Registrado em',
         'status' => 'Status',

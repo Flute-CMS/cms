@@ -224,29 +224,55 @@ class ModuleManager
 
     protected function checkModulesDependencies(): void
     {
+        static $checking = false;
+        
+        if ($checking) {
+            return;
+        }
+        
         $stateHash = md5(json_encode($this->activeModules->keys()));
 
         if (cache()->get('modules.dependencies.hash') === $stateHash) {
             return;
         }
 
-        /** @var ThemeManager $themeManager */
-        $themeManager = app(ThemeManager::class);
+        $checking = true;
 
-        foreach ($this->activeModules as $module) {
-            try {
-                $this->dependencyChecker->checkDependencies($module->dependencies, $this->activeModules, $themeManager->getThemeInfo());
-            } catch (ModuleDependencyException $e) {
-                logs('modules')->emergency("[EMERGENCY MODULE SHUTDOWN] Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
-                (new ModuleActions())->disableModule($module, $this);
+        try {
+            /** @var ThemeManager $themeManager */
+            $themeManager = app(ThemeManager::class);
+            $modulesToDisable = [];
 
-                if (is_debug()) {
-                    throw new ModuleDependencyException($e->getMessage());
+            foreach ($this->activeModules as $module) {
+                try {
+                    $this->dependencyChecker->checkDependencies($module->dependencies, $this->activeModules, $themeManager->getThemeInfo());
+                } catch (ModuleDependencyException $e) {
+                    logs('modules')->emergency("[EMERGENCY MODULE SHUTDOWN] Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
+                    $modulesToDisable[] = $module;
                 }
             }
-        }
 
-        cache()->set('modules.dependencies.hash', $stateHash, self::CACHE_TIME);
+            if (!empty($modulesToDisable)) {
+                foreach ($modulesToDisable as $module) {
+                    (new ModuleActions())->disableModule($module, $this);
+                }
+
+                cache()->delete('flute.modules.alldb');
+                cache()->delete('modules.dependencies.hash');
+                
+                $this->loadModulesFromDatabase();
+                $this->setInstalledModules();
+                $this->setNotInstalledModules();
+                $this->setDisabledModules();
+                $this->setActiveModules();
+                
+                $stateHash = md5(json_encode($this->activeModules->keys()));
+            }
+
+            cache()->set('modules.dependencies.hash', $stateHash, self::CACHE_TIME);
+        } finally {
+            $checking = false;
+        }
     }
 
     public function registerModules(): void
