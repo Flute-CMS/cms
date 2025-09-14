@@ -28,6 +28,7 @@ use Flute\Core\Traits\RouterTrait;
 use Flute\Core\Traits\SingletonTrait;
 use Flute\Core\Traits\ThemeTrait;
 use Symfony\Component\Console\Application;
+use Flute\Core\Profiling\GlobalProfiler;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -46,7 +47,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = '0.1.8.2';
+    public const VERSION = '0.1.8.3';
 
     /**
      * Set the base path of the application
@@ -97,9 +98,12 @@ final class App
             "app" => \DI\get(self::class),
         ]);
 
-        // check is cli
-        if (!(php_sapi_name() === 'cli' || defined('STDIN')) && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] !== '127.0.0.1') {
-            // $containerBuilder->enableCompilation(BASE_PATH . 'storage/app/cache');
+        // Enable container optimizations outside CLI
+        if (!(php_sapi_name() === 'cli' || defined('STDIN'))) {
+            // In performance mode compile container, always write proxies to disk
+            if (function_exists('is_performance') && is_performance()) {
+                $containerBuilder->enableCompilation(BASE_PATH . 'storage/app/cache');
+            }
             $containerBuilder->writeProxiesToFile(true, BASE_PATH . 'storage/app/proxies');
         }
 
@@ -384,18 +388,40 @@ final class App
             define('FLUTE_ROUTER_START', microtime(true));
         }
 
+        // Optional global profiler (only runs if enabled in config/profiler.php)
+        GlobalProfiler::start();
+
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
+        if (!defined('FLUTE_DB_SETUP_END')) {
+            define('FLUTE_DB_SETUP_END', microtime(true));
+        }
 
         /** @var RouterInterface $router */
         $router = $this->get(RouterInterface::class);
 
-        $res = $this->responseEvent($router->dispatch($this->get(FluteRequest::class)));
+        // Split routing and event phases to measure them separately
+        $request = $this->get(FluteRequest::class);
+        $dispatchResult = $router->dispatch($request);
+        if (!defined('FLUTE_DISPATCH_END')) {
+            define('FLUTE_DISPATCH_END', microtime(true));
+        }
+
+        $res = $this->responseEvent($dispatchResult);
+        if (!defined('FLUTE_EVENTS_END')) {
+            define('FLUTE_EVENTS_END', microtime(true));
+        }
 
         if (!defined('FLUTE_ROUTER_END')) {
             define('FLUTE_ROUTER_END', microtime(true));
         }
 
         $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
+        if (!defined('FLUTE_DEFERRED_SAVE_END')) {
+            define('FLUTE_DEFERRED_SAVE_END', microtime(true));
+        }
+
+        // Stop profiler before sending response
+        GlobalProfiler::stop();
 
         $res->send();
     }

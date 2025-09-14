@@ -18,7 +18,12 @@ class RecentPaymentsWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $recentPayments = PaymentInvoice::query()->where('isPaid', true)->orderBy('paidAt', 'DESC')->limit(5)->fetchAll();
+        $recentPayments = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->orderBy('paidAt', 'DESC')
+            ->limit(5)
+            ->load(['user', 'currency'])
+            ->fetchAll();
 
         return view('flute::widgets.recent-payments', ['payments' => $recentPayments])->render();
     }

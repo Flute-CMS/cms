@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\User;
 
@@ -56,12 +57,26 @@ class TopDonorsWidget extends AbstractWidget
 
         $results = $query->fetchAll();
 
+        if (empty($results)) {
+            return [];
+        }
+
+        $userIds = array_values(array_unique(array_map(static fn ($r) => (int) $r['user_id'], $results)));
+        $userList = User::query()
+            ->where('id', 'IN', new Parameter($userIds))
+            ->fetchAll();
+
+        $usersById = [];
+        foreach ($userList as $u) {
+            $usersById[$u->id] = $u;
+        }
+
         $users = [];
         foreach ($results as $result) {
-            $user = User::findByPK($result['user_id']);
-            if ($user) {
+            $u = $usersById[$result['user_id']] ?? null;
+            if ($u) {
                 $users[] = [
-                    'user' => $user,
+                    'user' => $u,
                     'donated' => (float) $result['total'],
                 ];
             }

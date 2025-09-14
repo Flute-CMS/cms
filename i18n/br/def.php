@@ -255,4 +255,9 @@
     "widget_settings_saved"   => "Configurações do widget salvas com sucesso!",
     "widget_not_found"        => "Widget não encontrado!",
     "change_theme"            => "Alterar tema",
+    "debug_message"           => "O site está em modo de depuração. Todos os dados do site podem estar disponíveis para terceiros. Além disso, no modo de depuração, algumas funções que não estão disponíveis no modo de manutenção podem estar disponíveis.",
+    "never"                   => "Nunca",
+    "not_online"              => "Não on-line",
+    "pay"                     => "Pagar",
+    "offline"                 => "Offline",
 ];

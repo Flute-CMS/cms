@@ -42,6 +42,7 @@ class EventsServiceProvider extends AbstractServiceProvider
         if (!is_cli()) {
             $container->get('events')->addListener(RoutingFinishedEvent::NAME, [RedirectsListener::class, 'onRoutingFinished']);
             $container->get('events')->addListener(ResponseEvent::NAME, [HeadersListener::class, 'onRouteResponse']);
+            $container->get('events')->addListener(ResponseEvent::NAME, [\Flute\Core\Listeners\RequestTimingListener::class, 'onRouteResponse']);
         }
     }
 }

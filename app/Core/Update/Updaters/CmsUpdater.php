@@ -203,8 +203,8 @@ class CmsUpdater extends AbstractUpdater
             $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
             chmod($destination, $dirPerms);
-            @chown($destination, fileowner($source));
-            @chgrp($destination, filegroup($source));
+            $this->safeChown($destination, fileowner($source));
+            $this->safeChgrp($destination, filegroup($source));
         }
 
         $directory = opendir($source);
@@ -237,13 +237,13 @@ class CmsUpdater extends AbstractUpdater
 
                 if ($preservePerms !== null) {
                     chmod($destinationPath, $preservePerms);
-                    @chown($destinationPath, $preserveOwner);
-                    @chgrp($destinationPath, $preserveGroup);
+                    $this->safeChown($destinationPath, $preserveOwner);
+                    $this->safeChgrp($destinationPath, $preserveGroup);
                 } else {
                     $filePerms = fileperms($sourcePath) & 0o755;
                     chmod($destinationPath, $filePerms);
-                    @chown($destinationPath, fileowner($sourcePath));
-                    @chgrp($destinationPath, filegroup($sourcePath));
+                    $this->safeChown($destinationPath, fileowner($sourcePath));
+                    $this->safeChgrp($destinationPath, filegroup($sourcePath));
                 }
             }
         }
@@ -263,16 +263,16 @@ class CmsUpdater extends AbstractUpdater
             $dirPerms = fileperms(dirname($sourceFile)) & 0o777;
             mkdir($targetDir, $dirPerms, true);
             chmod($targetDir, $dirPerms);
-            @chown($targetDir, fileowner(dirname($sourceFile)));
-            @chgrp($targetDir, filegroup(dirname($sourceFile)));
+            $this->safeChown($targetDir, fileowner(dirname($sourceFile)));
+            $this->safeChgrp($targetDir, filegroup(dirname($sourceFile)));
         }
 
         copy($sourceFile, $targetFile);
         // Apply a consistent permission mask for copied files
         $filePerms = fileperms($sourceFile) & 0o755;
         chmod($targetFile, $filePerms);
-        @chown($targetFile, fileowner($sourceFile));
-        @chgrp($targetFile, filegroup($sourceFile));
+        $this->safeChown($targetFile, fileowner($sourceFile));
+        $this->safeChgrp($targetFile, filegroup($sourceFile));
     }
 
     /**

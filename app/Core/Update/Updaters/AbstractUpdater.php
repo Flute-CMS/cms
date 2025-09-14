@@ -33,4 +33,24 @@ abstract class AbstractUpdater
      * Process update
      */
     abstract public function update(array $data): bool;
+
+    /**
+     * Safely change file owner if supported by the runtime
+     */
+    protected function safeChown(string $path, $user): void
+    {
+        if (function_exists('chown')) {
+            @chown($path, $user);
+        }
+    }
+
+    /**
+     * Safely change file group if supported by the runtime
+     */
+    protected function safeChgrp(string $path, $group): void
+    {
+        if (function_exists('chgrp')) {
+            @chgrp($path, $group);
+        }
+    }
 }

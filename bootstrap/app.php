@@ -12,7 +12,7 @@ if (!defined('BASE_PATH')) {
     define('BASE_PATH', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
 }
 
-if (!extension_loaded('ionCube Loader') && isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+if (!extension_loaded('ionCube Loader') && isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') === false && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
     http_response_code(500);
     exit('Flute requires ioncube_loader extension to be enabled.');
 }
@@ -28,6 +28,11 @@ if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
 }
 
 define('FLUTE_BOOTSTRAP_START', microtime(true));
+
+/**
+ * Include the composer autoloader
+ */
+$loader = require BASE_PATH . 'vendor/autoload.php';
 
 use Flute\Core\App;
 use Flute\Core\Profiling\GlobalProfiler;
@@ -72,11 +77,6 @@ use Flute\Core\ServiceProviders\UpdateServiceProvider;
 use Flute\Core\Router\Providers\AttributeRouteServiceProvider;
 
 /**
- * Include the composer autoloader
- */
-$loader = require BASE_PATH . 'vendor/autoload.php';
-
-/**
  * Creates a new application
  */
 $app = new App($loader);
@@ -116,6 +116,7 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(EmailServiceProvider::class)
     ->serviceProvider(FlashServiceProvider::class)
     ->serviceProvider(LoggingServiceProvider::class)
+    ->serviceProvider(SentryServiceProvider::class)
     ->serviceProvider(ViewServiceProvider::class)
     ->serviceProvider(RouterServiceProvider::class)
     ->serviceProvider(AttributeRouteServiceProvider::class)

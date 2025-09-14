@@ -31,21 +31,26 @@ return [
     'modal' => [
         'footer_item' => [
             'create_title' => 'Criar Item de Rodapé',
-            'edit_title' => 'Editar item de rodapé',
+            'edit_title' => 'Editar Item de Rodapé',
             'fields' => [
                 'title' => [
                     'label' => 'Título',
-                    'placeholder' => 'Inserir título do item',
+                    'placeholder' => 'Digite o título do item',
                     'help' => 'Título do item do rodapé',
+                ],
+                'icon' => [
+                    'label' => 'Ícone',
+                    'placeholder' => 'Digite o ícone (ex.: ph.regular.home)',
+                    'help' => 'Identificador do ícone (opcional)',
                 ],
                 'url' => [
                     'label' => 'URL',
-                    'placeholder' => 'Informe a URL (ex.: /contact)',
-                    'help' => 'Endereço do link. Deixe em branco se o item tiver filhos.',
+                    'placeholder' => 'Digite a URL (ex.: /contato)',
+                    'help' => 'Endereço do link. Deixe vazio se o item tiver filhos.',
                 ],
                 'new_tab' => [
-                    'label' => 'Abrir em uma nova aba',
-                    'help' => 'Funciona somente se o URL estiver definido',
+                    'label' => 'Abrir em nova aba',
+                    'help' => 'Funciona apenas se a URL estiver definida',
                 ],
             ],
         ],
@@ -55,28 +60,28 @@ return [
             'fields' => [
                 'name' => [
                     'label' => 'Nome',
-                    'placeholder' => 'Insira o nome da rede social',
+                    'placeholder' => 'Digite o nome da rede social',
                     'help' => 'Nome da rede social (ex.: Discord)',
                 ],
                 'icon' => [
                     'label' => 'Ícone',
-                    'placeholder' => 'Ícone de entrada (ex, ph.regular.discord-logo)',
-                    'help' => 'Identificador de ícone, ex, "ph.bold.discord-logo-bold"',
+                    'placeholder' => 'Digite o ícone (ex.: ph.regular.discord-logo)',
+                    'help' => 'Identificador do ícone, ex.: "ph.bold.discord-logo-bold"',
                 ],
                 'url' => [
                     'label' => 'URL',
-                    'placeholder' => 'Digite a URL (ex: https://discord.gg/yourpage)',
-                    'help' => 'Link para sua página de rede social',
+                    'placeholder' => 'Digite a URL (ex.: https://discord.gg/suapagina)',
+                    'help' => 'Link para a página da sua rede social',
                 ],
             ],
         ],
     ],
     'confirms' => [
-        'delete_item' => 'Tem certeza de que deseja excluir este item de rodapé?',
+        'delete_item' => 'Tem certeza de que deseja excluir este item do rodapé?',
         'delete_social' => 'Tem certeza de que deseja excluir esta rede social?',
     ],
     'messages' => [
-        'invalid_sort_data' => 'Ordenar dados inválidos.',
+        'invalid_sort_data' => 'Dados de ordenação inválidos.',
         'item_created' => 'Item de rodapé criado com sucesso.',
         'item_updated' => 'Item de rodapé atualizado com sucesso.',
         'item_deleted' => 'Item de rodapé excluído com sucesso.',

@@ -35,6 +35,7 @@ return [
         'not_installed' => 'Não instalado',
         'updates_available' => 'Atualizações disponível',
         'clear_filters' => 'Limpar filtros',
+        'overview' => 'Visão Geral',
     ],
     'descriptions' => [
         'marketplace' => 'Encontre e instale módulos para seu site',

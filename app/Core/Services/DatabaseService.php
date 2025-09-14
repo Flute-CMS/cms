@@ -101,18 +101,14 @@ class DatabaseService
      */
     private function fetchModes(string|array $criteria): array
     {
-        $allConnections = $this->getAllConnections();
-        $result = [];
-
         $mods = is_array($criteria) ? $criteria : [$criteria];
 
-        foreach ($allConnections as $connection) {
-            if (in_array($connection->mod, $mods)) {
-                $result[] = $connection;
-            }
+        $query = DatabaseConnection::query()->with('server');
+        if ($mods) {
+            $query->where('mod', 'IN', new Parameter($mods));
         }
 
-        return $result;
+        return $query->fetchAll();
     }
 
     /**
@@ -168,20 +164,18 @@ class DatabaseService
      */
     public function getConnectionInfoByServerId(int $serverId, string|array $mods): ?array
     {
-        $modes = $this->fetchModes($mods);
+        $mods = is_array($mods) ? $mods : [$mods];
 
-        foreach ($modes as $mode) {
-            $connection = DatabaseConnection::query()
-                ->with('server', ['where' => ['id' => $serverId]])
-                ->where('mod', $mode->mod)
-                ->fetchOne();
+        $connection = DatabaseConnection::query()
+            ->with('server', ['where' => ['id' => $serverId]])
+            ->where('mod', 'IN', new Parameter($mods))
+            ->fetchOne();
 
-            if ($connection && $this->isValidMode($connection)) {
-                return [
-                    'server' => $connection->server,
-                    'connection' => $connection,
-                ];
-            }
+        if ($connection && $this->isValidMode($connection)) {
+            return [
+                'server' => $connection->server,
+                'connection' => $connection,
+            ];
         }
 
         return null;
