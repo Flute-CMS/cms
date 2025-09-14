@@ -17,19 +17,34 @@ class ProfileRedirectController extends BaseController
     public function search(FluteRequest $request, $value)
     {
         $redirectUrl = $request->input('else-redirect', null);
+        $stringValue = (string) $value;
+
+        $cacheKey = 'profile.search.resolve.' . sha1($stringValue);
+        $cachedTarget = cache()->get($cacheKey);
+        if (is_string($cachedTarget) && $cachedTarget !== '') {
+            return redirect(url('profile/' . $cachedTarget));
+        }
+
+        if (preg_match('/^\d{1,9}$/', $stringValue) === 1) {
+            $fastUser = user()->get((int) $stringValue);
+            if ($this->isValidUser($fastUser)) {
+                cache()->set($cacheKey, $fastUser->getUrl(), 86400);
+                return redirect(url('profile/' . $fastUser->getUrl()));
+            }
+        }
 
         if (isset(self::$resolveCache[$value])) {
             $user = self::$resolveCache[$value];
         } else {
-            $userNetwork = UserSocialNetwork::query()->where('value', $value)->load('user')->fetchOne();
-            $user = $userNetwork?->user;
-            self::$resolveCache[$value] = $user;
-        }
-
-        if (!$this->isValidUser($user)) {
-            $event = events()->dispatch(new ProfileSearchEvent($value), ProfileSearchEvent::NAME);
+            $event = events()->dispatch(new ProfileSearchEvent($stringValue), ProfileSearchEvent::NAME);
             $candidate = $event->getUser();
             $user = $this->isValidUser($candidate) ? $candidate : null;
+
+            if (!$this->isValidUser($user)) {
+                $userNetwork = UserSocialNetwork::query()->where('value', $stringValue)->load('user')->fetchOne();
+                $user = $userNetwork?->user;
+            }
+
             self::$resolveCache[$value] = $user;
         }
 
@@ -46,6 +61,8 @@ class ProfileRedirectController extends BaseController
         if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
             return $this->error(__('profile.profile_hidden'));
         }
+
+        cache()->set($cacheKey, $user->getUrl(), 86400);
 
         return redirect(url('profile/'.$user->getUrl()));
     }

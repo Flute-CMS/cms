@@ -32,16 +32,25 @@ class ProfileIndexController extends BaseController
     public function index(FluteRequest $request, $id, ProfileTabService $profileTabService)
     {
         abort_if($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
+        $stringId = (string) $id;
+        $cacheKey = 'profile.search.resolve.' . sha1($stringId);
+        $cachedTarget = cache()->get($cacheKey);
 
-        $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
-        $candidate = $searchEvent->getUser();
-        $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+        if (is_string($cachedTarget) && $cachedTarget !== '') {
+            $user = is_numeric($cachedTarget) ? user()->get((int) $cachedTarget) : user()->getByRoute($cachedTarget);
+        } else {
+            $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
+            $candidate = $searchEvent->getUser();
+            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+        }
 
         if (!$user) {
             return $this->errors()->notFound();
         }
 
         $this->dispatchEvent($user);
+
+        cache()->set($cacheKey, $user->getUrl(), 86400);
 
         if ($request->isOnlyHtmx() && $this->path !== '') {
             return response()->make($profileTabService->renderTabsByPath($this->path, $user));
@@ -75,9 +84,17 @@ class ProfileIndexController extends BaseController
 
     public function mini($id, ProfileTabService $profileTabService)
     {
-        $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
-        $candidate = $searchEvent->getUser();
-        $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+        $stringId = (string) $id;
+        $cacheKey = 'profile.search.resolve.' . sha1($stringId);
+        $cachedTarget = cache()->get($cacheKey);
+
+        if (is_string($cachedTarget) && $cachedTarget !== '') {
+            $user = is_numeric($cachedTarget) ? user()->get((int) $cachedTarget) : user()->getByRoute($cachedTarget);
+        } else {
+            $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
+            $candidate = $searchEvent->getUser();
+            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+        }
 
         if (!$user) {
             return $this->errors()->notFound();
@@ -88,6 +105,8 @@ class ProfileIndexController extends BaseController
         }
 
         $this->dispatchEvent($user, 'mini');
+
+        cache()->set($cacheKey, $user->getUrl(), 86400);
 
         return view('flute::partials.user-card', [
             'id' => $user->id,

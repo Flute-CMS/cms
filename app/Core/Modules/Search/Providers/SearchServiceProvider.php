@@ -33,7 +33,9 @@ class SearchServiceProvider extends AbstractServiceProvider
     {
         $value = $searchEvent->getValue();
 
-        $foundUsers = User::query()->where('name', 'like', "%$value%")->fetchAll();
+        $foundUsers = User::query()->where('name', 'like', "%$value%")
+            ->limit(20)
+            ->fetchAll();
 
         if (sizeof($foundUsers) > 0) {
             foreach ($foundUsers as $foundUser) {

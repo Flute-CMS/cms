@@ -15,8 +15,17 @@ class SearchController extends BaseController
             return $this->json(['error' => 'Invalid query'], 422);
         }
 
-        return response()->json(
-            app("search")->emit($value)
-        );
+        $cacheKey = 'api.search.results.' . sha1(mb_strtolower($value));
+        $cached = cache()->get($cacheKey);
+
+        if ($cached !== null) {
+            return response()->json($cached);
+        }
+
+        $results = app("search")->emit($value);
+
+        cache()->set($cacheKey, $results, 30);
+
+        return response()->json($results);
     }
 }

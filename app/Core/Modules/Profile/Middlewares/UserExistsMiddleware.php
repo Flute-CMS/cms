@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Profile\Middlewares;
 
+use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 
@@ -11,17 +12,33 @@ class UserExistsMiddleware extends BaseMiddleware
     {
         $profileId = $request->input('id');
 
-        if (is_numeric($profileId)) {
-            $user = user()->get(intval($profileId));
-        } else {
-            $user = user()->getByRoute($profileId);
+        $isNumeric = is_numeric($profileId);
+        $cacheKey = $isNumeric
+            ? 'profile.exists.id.' . (int) $profileId
+            : 'profile.exists.uri.' . sha1((string) $profileId);
+
+        $cached = cache()->get($cacheKey);
+        if (is_array($cached)) {
+            if ($cached['hidden'] === true && (!user()->isLoggedIn() || (!user()->can('admin.users') && user()->id !== $cached['id']))) {
+                return $this->error()->custom(__('profile.profile_hidden'), 404);
+            }
+
+            return $next($request);
         }
 
-        if (empty($user)) {
+        if ($isNumeric) {
+            $found = User::query()->where(['id' => (int) $profileId])->fetchOne();
+        } else {
+            $found = User::query()->where(['uri' => (string) $profileId])->fetchOne();
+        }
+
+        if (empty($found)) {
             return $this->error()->notFound();
         }
 
-        if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
+        cache()->set($cacheKey, ['id' => $found->id, 'hidden' => (bool) $found->hidden], 600);
+
+        if ($found->hidden === true && (!user()->isLoggedIn() || (!user()->can('admin.users') && user()->id !== $found->id))) {
             return $this->error()->custom(__('profile.profile_hidden'), 404);
         }
 
