@@ -48,10 +48,10 @@ class TopDonorsWidget extends AbstractWidget
 
         $query->columns([
             'user_id',
-            new \Cycle\Database\Injection\Expression('COALESCE(SUM(original_amount), 0) AS total'),
+            new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0) AS total'),
         ]);
         $query->groupBy('user_id');
-        $query->orderBy(new \Cycle\Database\Injection\Expression('COALESCE(SUM(original_amount), 0)'), 'DESC');
+        $query->orderBy(new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0)'), 'DESC');
         $query->limit($limit);
 
         $results = $query->fetchAll();

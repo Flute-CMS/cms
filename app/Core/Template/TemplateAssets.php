@@ -57,6 +57,8 @@ class TemplateAssets
 
         $this->scssCompiler = new Compiler();
         $this->scssCompiler->setOutputStyle($this->minifyAssets ? OutputStyle::COMPRESSED : OutputStyle::EXPANDED);
+
+        $this->scssCompiler->addImportPath(path('app'));
     }
 
     /**
@@ -78,6 +80,8 @@ class TemplateAssets
 
             return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction($expression, false); ?>";
         });
+
+        $this->loadThemeScssAppends();
     }
 
     /**
@@ -133,6 +137,8 @@ class TemplateAssets
      */
     public function assetFunction(string $expression, bool $urlOnly = false): string
     {
+        $expression = $this->applyAssetReplacement($expression);
+
         $filePath = $this->resolveFilePath($expression);
         $extension = $this->getFileExtension($expression, $filePath);
         $pathParts = explode("/", $expression);
@@ -145,6 +151,103 @@ class TemplateAssets
         }
 
         return $this->processAssetBasedOnExtension($extension, $expression, $filePath, $urlOnly);
+    }
+
+    /**
+     * Apply theme.json asset replacement rules to the asset expression.
+     * Supports:
+     *  - asset_replacements: direct mapping
+     *  - asset_module_replacements: regex mapping
+     *  - asset_wildcard_replacements: fnmatch-style mapping
+     */
+    private function applyAssetReplacement(string $expression): string
+    {
+        // normalize / and \
+        $expression = str_replace(['/', '\\'], '/', $expression);
+        $normalizeBasePath = str_replace(['/', '\\'], '/', BASE_PATH);
+        
+        $expression = str_replace([$normalizeBasePath, '/app/'], ['', ''], $expression);
+
+        try {
+            /** @var ThemeManager $themeManager */
+            $themeManager = app(ThemeManager::class);
+            $themeData = $themeManager->getThemeData($themeManager->getCurrentTheme()) ?? [];
+
+            // 1) Direct mappings
+            $replacements = $themeData['asset_replacements'] ?? [];
+            if (isset($replacements[$expression])) {
+                return (string) $replacements[$expression];
+            }
+
+            // 2) Regex mappings
+            $regexReplacements = $themeData['asset_module_replacements'] ?? [];
+            foreach ($regexReplacements as $pattern => $replacement) {
+                // suppress invalid pattern warnings
+                $ok = @preg_match($pattern, $expression);
+                if ($ok === 1) {
+                    $new = @preg_replace($pattern, (string) $replacement, $expression);
+                    if (is_string($new) && $new !== '') {
+                        return $new;
+                    }
+                }
+            }
+
+            // 3) Wildcard mappings
+            $wildcardReplacements = $themeData['asset_wildcard_replacements'] ?? [];
+            foreach ($wildcardReplacements as $pattern => $replacement) {
+                if (fnmatch($pattern, $expression)) {
+                    $base = basename($expression);
+                    return str_replace('*', $base, (string) $replacement);
+                }
+            }
+        } catch (\Throwable $e) {
+            logs('templates')->error('Asset replacement failed: ' . $e->getMessage());
+        }
+
+        return $expression;
+    }
+
+    /**
+     * Load additional SCSS files to append from theme.json.
+     * Expected structure in theme.json:
+     * {
+     *   "asset_scss_append": {
+     *     "main": ["Themes/mytheme/assets/sass/overrides.scss", ...],
+     *     "admin": ["Themes/mytheme/assets/sass/admin-overrides.scss", ...]
+     *   }
+     * }
+     */
+    private function loadThemeScssAppends(): void
+    {
+        try {
+            /** @var ThemeManager $themeManager */
+            $themeManager = app(ThemeManager::class);
+            $themeData = $themeManager->getThemeData($themeManager->getCurrentTheme()) ?? [];
+
+            $append = $themeData['asset_scss_append'] ?? [];
+
+            // Backward-compatible: allow a flat array to mean current context
+            if (isset($append[0]) && is_string($append[0])) {
+                $append = [
+                    $this->context => $append,
+                ];
+            }
+
+            foreach (['main', 'admin'] as $ctx) {
+                if (!empty($append[$ctx]) && is_array($append[$ctx])) {
+                    foreach ($append[$ctx] as $expr) {
+                        if (!is_string($expr) || trim($expr) === '') {
+                            continue;
+                        }
+
+                        $resolved = $this->resolveFilePath($expr);
+                        $this->addScssFile($resolved, $ctx);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            logs('templates')->error('Failed to load theme SCSS appends: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -172,6 +275,11 @@ class TemplateAssets
     {
         if (strpos($expression, BASE_PATH) !== false) {
             return $expression;
+        }
+
+        // Support expressions that already start with 'app/...'
+        if (strpos($expression, 'app/') === 0) {
+            return path($expression);
         }
 
         // Try to find with fallback for theme assets

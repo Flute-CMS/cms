@@ -26,9 +26,10 @@ class ProfileRedirectController extends BaseController
             self::$resolveCache[$value] = $user;
         }
 
-        if (!$user) {
+        if (!$this->isValidUser($user)) {
             $event = events()->dispatch(new ProfileSearchEvent($value), ProfileSearchEvent::NAME);
-            $user = $event->getUser();
+            $candidate = $event->getUser();
+            $user = $this->isValidUser($candidate) ? $candidate : null;
             self::$resolveCache[$value] = $user;
         }
 
@@ -38,10 +39,19 @@ class ProfileRedirectController extends BaseController
             return $this->error(__('def.user_not_found'), 404);
         }
 
+        if (!$this->isValidUser($user)) {
+            return $this->error(__('def.user_not_found'), 404);
+        }
+
         if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
             return $this->error(__('profile.profile_hidden'));
         }
 
         return redirect(url('profile/'.$user->getUrl()));
+    }
+
+    private function isValidUser($user): bool
+    {
+        return $user instanceof \Flute\Core\Database\Entities\User && isset($user->id) && is_int($user->id) && $user->id > 0;
     }
 }

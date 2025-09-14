@@ -555,8 +555,8 @@ class ServerEditScreen extends Screen
             'ranks' => ['required', 'string', 'max-str-len:255'],
             'ranks_format' => ['required', 'string', 'max-str-len:255'],
             'ranks_premier' => ['nullable', 'boolean'],
-            'settings__query_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'settings__rcon_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'settings__query_port' => ['nullable', 'max:65535'],
+            'settings__rcon_port' => ['nullable', 'max:65535'],
         ], $data);
 
         if (!$validation) {

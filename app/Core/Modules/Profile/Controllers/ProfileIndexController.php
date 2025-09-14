@@ -34,7 +34,8 @@ class ProfileIndexController extends BaseController
         abort_if($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
 
         $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
-        $user = $searchEvent->getUser() ?? $this->getUser($id);
+        $candidate = $searchEvent->getUser();
+        $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
 
         if (!$user) {
             return $this->errors()->notFound();
@@ -75,7 +76,8 @@ class ProfileIndexController extends BaseController
     public function mini($id, ProfileTabService $profileTabService)
     {
         $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
-        $user = $searchEvent->getUser() ?? $this->getUser($id);
+        $candidate = $searchEvent->getUser();
+        $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
 
         if (!$user) {
             return $this->errors()->notFound();
@@ -101,16 +103,22 @@ class ProfileIndexController extends BaseController
      */
     private function getLastLoggedPhrase($lastLoggedDateTime): string
     {
+        if (!$lastLoggedDateTime instanceof \DateTimeInterface) {
+            return __('def.not_online');
+        }
+
         $now = new \DateTime();
         $interval = $now->getTimestamp() - $lastLoggedDateTime->getTimestamp();
 
         if ($interval <= 600) {
             return __('def.online');
-        } elseif ($lastLoggedDateTime->getTimestamp() > 0) {
-            return \Carbon\Carbon::parse($lastLoggedDateTime)->diffForHumans();
-        } else {
-            return __('def.not_online');
         }
+
+        if ($lastLoggedDateTime->getTimestamp() > 0) {
+            return \Carbon\Carbon::parse($lastLoggedDateTime)->diffForHumans();
+        }
+
+        return __('def.not_online');
     }
 
     /**
