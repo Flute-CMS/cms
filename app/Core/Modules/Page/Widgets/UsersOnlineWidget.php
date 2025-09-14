@@ -31,11 +31,10 @@ class UsersOnlineWidget extends AbstractWidget
     {
         $onlineUsers = User::query()
                 ->where('last_logged', '>=', (new \DateTimeImmutable())->modify('-10 minutes'))
+                ->where('hidden', false)
                 ->orderBy(['last_logged' => 'DESC'])
                 ->limit($settings['max_display'] ?? 10)
                 ->fetchAll();
-
-        $onlineUsers = array_filter($onlineUsers, static fn ($u) => !$u->hidden);
 
         usort($onlineUsers, static function ($a, $b) {
             return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);

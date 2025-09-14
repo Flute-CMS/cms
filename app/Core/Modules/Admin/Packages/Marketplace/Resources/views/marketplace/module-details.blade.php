@@ -76,7 +76,12 @@
                             </x-admin::button>
                         @else
                             @php
-                                $status = $moduleManager->getModule($module['name'])->status ?? 'disabled';
+                                $status = $status ?? '';
+                                if ($status === '') {
+                                    $mm = app(\Flute\Core\ModulesManager\ModuleManager::class);
+                                    $moduleInfo = $mm->getModule($module['name'] ?? '');
+                                    $status = $moduleInfo->status ?? 'disabled';
+                                }
                             @endphp
                             @if ($status === 'active')
                                 <x-admin::button yoyo:post="deactivateModule('{{ $module['name'] }}')" hx-trigger="confirmed"

@@ -59,7 +59,7 @@ class FluteApp {
 	}
 
 	checkAuthStatus() {
-		fetch(window.location.href, {
+		fetch(u(), {
 			method: "HEAD",
 			headers: {
 				"X-Requested-With": "XMLHttpRequest",
@@ -83,7 +83,7 @@ class FluteApp {
 			this.authToken = newAuthToken;
 
 			const verify = () =>
-				fetch(window.location.href, {
+				fetch(u(), {
 					method: "HEAD",
 					headers: { "X-Requested-With": "XMLHttpRequest" },
 				})

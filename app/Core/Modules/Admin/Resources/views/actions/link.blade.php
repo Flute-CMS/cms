@@ -1,3 +1,6 @@
+@if (is_callable($typeForm))
+    {!! $typeForm(get_defined_vars()) !!}
+@else
 @component($typeForm, get_defined_vars())
     <a
         data-turbo="{{ var_export($turbo) }}"
@@ -10,3 +13,4 @@
         {{ $name ?? '' }}
     </a>
 @endcomponent
+@endif

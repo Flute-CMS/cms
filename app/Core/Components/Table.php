@@ -219,10 +219,10 @@ abstract class Table extends FluteComponent
         $queryParams = request()->all();
         $queryParams['page'] = $page;
 
-        $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams));
+        $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams)->get());
     }
 
-    public function searchChanged()
+    public function searchChanged($value)
     {
         $this->search = request()->input('search', $this->search);
         $this->page = 1;
@@ -231,7 +231,7 @@ abstract class Table extends FluteComponent
         $queryParams['search'] = $this->search;
         $queryParams['page'] = 1;
 
-        $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams));
+        $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams)->get());
     }
 
     /**

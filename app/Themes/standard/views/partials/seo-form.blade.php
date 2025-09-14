@@ -1,5 +1,4 @@
 <div class="right_sidebar__content w-100 mt-2 h-full" id="page-seo-dialog-content">
-
     <form id="page-seo-form" class="auth-form" hx-swap="morph:outerHTML">
         <input type="hidden" name="route" value="{{ $route }}">
         <x-forms.field class="mb-3">

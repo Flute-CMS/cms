@@ -2,7 +2,7 @@
     @if ($showSearch ?? true)
         <header class="table__header">
             <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms" yoyo
-                yoyo:get="searchChanged">
+                yoyo:get="searchChanged('{{ $search ?? '' }}')">
                 <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}" :value="$search ?? ''">
                     <x-slot name="prefix">
                         <x-icon path="ph.regular.magnifying-glass" />
@@ -32,7 +32,11 @@
                             <th @class(['table-header', 'sortable' => $allowSort])
                                 @if ($width) width="{{ $width }}" @endif
                                 @if ($allowSort) yoyo:on="click" yoyo:get="sortBy('{{ $column['field'] }}')" @endif>
-                                <div @class(['table-th', 'flex-center' => $align === 'center', 'flex-end' => $align === 'right'])>
+                                <div @class([
+                                    'table-th',
+                                    'flex-center' => $align === 'center',
+                                    'flex-end' => $align === 'right',
+                                ])>
                                     {{ $column['label'] }}
                                     @if ($sortIcon && $allowSort)
                                         <span class="sort-icon"><x-icon :path="$sortIcon" /></span>

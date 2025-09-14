@@ -26,6 +26,10 @@ class SteamService
     protected static array $collectedSteamIds = [];
     protected static array $requestCache = [];
 
+    // Memory leak prevention limits
+    protected static int $maxDeferredRequests = 100;
+    protected static int $maxRequestCache = 500;
+
     public function __construct(string $apiKey, CacheManager $cache)
     {
         $this->apiKey = $apiKey;
@@ -38,6 +42,20 @@ class SteamService
         $this->cacheDuration = config('app.steam_cache_duration', 604800); // 7 days
 
         register_shutdown_function([$this, 'executeBatchRequest']);
+    }
+
+    /**
+     * Clear all static caches to prevent memory leaks
+     *
+     * @return void
+     */
+    public static function clearStaticCaches(): void
+    {
+        self::$pendingSteamIds = [];
+        self::$deferreds = [];
+        self::$collectedSteamIds = [];
+        self::$requestCache = [];
+        self::$isBatchScheduled = false;
     }
 
     /**
@@ -83,6 +101,17 @@ class SteamService
         }
 
         $deferred = new \React\Promise\Deferred();
+
+        if (count(self::$deferreds) >= self::$maxDeferredRequests) {
+            $oldestKeys = array_slice(array_keys(self::$deferreds), 0, 20);
+            foreach ($oldestKeys as $key) {
+                if (isset(self::$deferreds[$key])) {
+                    self::$deferreds[$key]->reject(new \Exception('Request queue full, clearing old requests'));
+                    unset(self::$deferreds[$key]);
+                }
+            }
+        }
+
         self::$deferreds[$steam64] = $deferred;
         self::$collectedSteamIds[] = $steam64;
 
@@ -216,6 +245,14 @@ class SteamService
                             cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
 
                             $originalId = $steamIdMap[$normalizedId] ?? $steamId64;
+
+                            if (count(self::$requestCache) >= self::$maxRequestCache) {
+                                $oldestKeys = array_slice(array_keys(self::$requestCache), 0, 50);
+                                foreach ($oldestKeys as $key) {
+                                    unset(self::$requestCache[$key]);
+                                }
+                            }
+
                             self::$requestCache[$originalId] = $userInfo;
                             $result[$originalId] = $userInfo;
                             unset($uncachedIds[$normalizedId]);

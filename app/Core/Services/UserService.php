@@ -113,6 +113,7 @@ class UserService
      */
     protected function initializeByToken(): void
     {
+        $t0 = microtime(true);
         if (!$this->userToken || !is_installed()) {
             return;
         }
@@ -121,6 +122,7 @@ class UserService
             $tokenInfo = $this->authService->getInfoFromToken($this->userToken);
 
             if (empty($tokenInfo->user)) {
+                logs()->warning('auth.token.no_user_for_token');
                 $this->sessionExpired();
 
                 return;
@@ -132,6 +134,7 @@ class UserService
                 $currentDeviceDetails = $this->userDevice->getUserAgent();
 
                 if ($currentDeviceDetails !== $tokenInfo->userDevice->deviceDetails) {
+                    logs()->warning('auth.token.device_mismatch');
                     $this->sessionExpired();
 
                     return;
@@ -140,6 +143,7 @@ class UserService
 
             if (config('auth.check_ip')) {
                 if ($tokenInfo->userDevice->ip !== request()->ip()) {
+                    logs()->warning('auth.token.ip_mismatch', ['expected' => $tokenInfo->userDevice->ip, 'actual' => request()->ip()]);
                     $this->sessionExpired();
 
                     return;
@@ -155,6 +159,13 @@ class UserService
             }
 
             session()->set('user_id', $tokenInfo->user->id);
+
+            $dt = (int) round((microtime(true) - $t0) * 1000);
+            if ($dt >= 20) {
+                logs()->info('auth.token.initialize_success', ['ms' => $dt, 'user_id' => (int) $tokenInfo->user->id]);
+            } else {
+                logs()->debug('auth.token.initialize_success', ['ms' => $dt, 'user_id' => (int) $tokenInfo->user->id]);
+            }
         } catch (Throwable $e) {
             logs()->error($e);
             $this->sessionExpired();
@@ -171,6 +182,7 @@ class UserService
      */
     public function initializeBySession(): void
     {
+        $t0 = microtime(true);
         if (!is_installed()) {
             return;
         }
@@ -184,7 +196,6 @@ class UserService
                 return;
             }
 
-            // Load user with roles, social networks and permissions to prevent N+1 queries
             $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
 
             if (!$this->currentUser) {
@@ -256,13 +267,11 @@ class UserService
      */
     protected function sessionExpired(): void
     {
+        // Be less aggressive: keep remember token so auto-login can restore session
         auth()->logout();
-        flash()->add('info', __('auth.session_expired'));
-
         if ($this->getUserToken()) {
-            $this->authService->deleteAuthToken($this->getUserToken());
+            // $this->authService->deleteAuthToken($this->getUserToken());
         }
-
         session()->invalidate();
     }
 
@@ -324,10 +333,10 @@ class UserService
             return;
         }
 
-        if ($this->userToken) {
-            $this->initializeByToken();
-        } else {
+        if (session()->has('user_id')) {
             $this->initializeBySession();
+        } elseif ($this->userToken) {
+            $this->initializeByToken();
         }
 
         if ($this->currentUser) {

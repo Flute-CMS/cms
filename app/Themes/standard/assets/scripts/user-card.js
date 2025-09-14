@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
+    if (window.matchMedia && window.matchMedia('(max-width: 480px)').matches) {
+        return;
+    }
+
     const miniProfileEl = document.getElementById('user-card');
     const miniProfileInner = document.getElementById('user-card-inner');
     

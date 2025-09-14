@@ -104,6 +104,9 @@ class Response
      */
     public function make(string $content = '', int $status = 200, array $headers = []): SymfonyResponse
     {
+        if (request()->getMethod() === 'HEAD') {
+            $content = '';
+        }
         $this->response->setContent($content);
         $this->response->setStatusCode($status);
         $this->withHeaders($headers);

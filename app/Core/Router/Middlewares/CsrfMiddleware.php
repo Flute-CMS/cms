@@ -36,7 +36,11 @@ class CsrfMiddleware extends BaseMiddleware
 
     private function shouldValidateToken(FluteRequest $request): bool
     {
-        return !$request->isMethod('GET') && config('app.csrf_enabled');
+        if ($request->isMethod('GET') || $request->isMethod('HEAD') || $request->isMethod('OPTIONS')) {
+            return false;
+        }
+
+        return (bool) config('app.csrf_enabled');
     }
 
     private function isTokenValid(FluteRequest $request): bool

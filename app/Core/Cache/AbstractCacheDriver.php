@@ -94,7 +94,20 @@ abstract class AbstractCacheDriver implements CacheInterface
         $result = $this->cache->save($item);
 
         if (!$result) {
-            $this->logger->error("Failed to save cache for key: {$key}");
+            $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
+            $type = is_object($value) ? get_class($value) : gettype($value);
+            $sizeHint = null;
+
+            try {
+                $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
+            } catch (\Throwable) {
+            }
+            $this->logger->error("Failed to save cache for key: {$key}", [
+                'adapter' => $adapter,
+                'ttl' => $ttl,
+                'value_type' => $type,
+                'value_size_hint' => $sizeHint,
+            ]);
         }
 
         return $result;
@@ -169,7 +182,20 @@ abstract class AbstractCacheDriver implements CacheInterface
             $saveResult = $this->cache->save($item);
 
             if (!$saveResult) {
-                $this->logger->error("Failed to save cache for key: {$key}");
+                $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
+                $type = is_object($value) ? get_class($value) : gettype($value);
+                $sizeHint = null;
+
+                try {
+                    $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
+                } catch (\Throwable) {
+                }
+                $this->logger->error("Failed to save cache for key: {$key}", [
+                    'adapter' => $adapter,
+                    'ttl' => $ttl,
+                    'value_type' => $type,
+                    'value_size_hint' => $sizeHint,
+                ]);
             }
         } else {
             $value = $item->get();

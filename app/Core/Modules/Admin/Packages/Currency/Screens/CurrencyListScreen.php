@@ -194,11 +194,11 @@ class CurrencyListScreen extends Screen
         $currency->save();
 
         if (!empty($selectedPaymentGateways)) {
-            foreach ($selectedPaymentGateways as $pgId) {
-                $paymentGateway = PaymentGateway::findByPK($pgId);
-                if ($paymentGateway) {
-                    $currency->addPayment($paymentGateway);
-                }
+            $paymentGateways = PaymentGateway::query()
+                ->where('id', 'in', new Parameter($selectedPaymentGateways))
+                ->fetchAll();
+            foreach ($paymentGateways as $paymentGateway) {
+                $currency->addPayment($paymentGateway);
             }
         }
         $currency->save();
@@ -328,11 +328,11 @@ class CurrencyListScreen extends Screen
         $currency->clearPayments();
 
         if (!empty($selectedPaymentGateways)) {
-            foreach ($selectedPaymentGateways as $pgId) {
-                $paymentGateway = PaymentGateway::findByPK($pgId);
-                if ($paymentGateway) {
-                    $currency->addPayment($paymentGateway);
-                }
+            $paymentGateways = PaymentGateway::query()
+                ->where('id', 'in', new Parameter($selectedPaymentGateways))
+                ->fetchAll();
+            foreach ($paymentGateways as $paymentGateway) {
+                $currency->addPayment($paymentGateway);
             }
         }
 

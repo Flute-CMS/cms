@@ -180,8 +180,8 @@ class ThemeUpdater extends AbstractUpdater
             $dirPerms = fileperms($source) & 0o777;
             mkdir($destination, $dirPerms, true);
             chmod($destination, $dirPerms);
-            @chown($destination, fileowner($source));
-            @chgrp($destination, filegroup($source));
+            $this->safeChown($destination, fileowner($source));
+            $this->safeChgrp($destination, filegroup($source));
         }
 
         $directory = opendir($source);
@@ -203,8 +203,8 @@ class ThemeUpdater extends AbstractUpdater
                 copy($sourcePath, $destinationPath);
                 $filePerms = fileperms($sourcePath) & 0o777;
                 chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+                $this->safeChown($destinationPath, fileowner($sourcePath));
+                $this->safeChgrp($destinationPath, filegroup($sourcePath));
             }
         }
 

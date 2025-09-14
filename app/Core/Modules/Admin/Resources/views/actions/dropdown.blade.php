@@ -1,3 +1,6 @@
+@if (is_callable($typeForm))
+    {!! $typeForm(get_defined_vars()) !!}
+@else
 @component($typeForm, get_defined_vars())
     @php
         $id = uniqid();
@@ -21,3 +24,4 @@
         </div>
     </div>
 @endcomponent
+@endif

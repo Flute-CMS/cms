@@ -27,7 +27,12 @@ class Route implements RouteInterface
 
     public function __construct(array $methods, string $uri, mixed $action)
     {
-        $this->methods = $methods;
+        $normalizedMethods = array_map('strtoupper', $methods);
+        if (in_array('GET', $normalizedMethods, true) && !in_array('HEAD', $normalizedMethods, true)) {
+            $normalizedMethods[] = 'HEAD';
+        }
+
+        $this->methods = $normalizedMethods;
         $this->uri = $uri;
         $this->action = $action;
 

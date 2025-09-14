@@ -59,4 +59,13 @@ return [
     "guest_description"              => "Para usar todos os recursos do site, faça login.",
     "verification_token_sent"   => "E-mail de verificação enviado para seu e-mail.",
     "verification_token_already_exists" => "Você já solicitou um e-mail de verificação. Por favor, tente novamente em 24 horas.",
+    "captcha_required"          => "Por favor, complete a verificação do captcha",
+    "captcha_invalid"           => "A verificação do captcha falhou. Tente novamente.",
+    "account_not_verified" => "A conta não foi verificada",
+    "register_email" => "E-mail de verificação enviado para seu e-mail.",
+    "errors" => [
+        "user_not_found" => "Usuário não encontrado",
+        "social_not_found" => "Rede social não encontrada",
+        "unknown" => "Erro desconhecido",
+    ],
 ];

@@ -5,7 +5,7 @@ WORKDIR /var/www/html
 
 COPY composer.json composer.lock /tmp/
 
-RUN install-php-extensions @composer bcmath gmp ioncube \
+RUN install-php-extensions @composer bcmath gmp ioncube intl \
     && rm -rf /tmp/composer.json /tmp/composer.lock
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
