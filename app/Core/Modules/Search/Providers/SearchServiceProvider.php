@@ -31,7 +31,14 @@ class SearchServiceProvider extends AbstractServiceProvider
 
     public function searchById(SearchEvent $searchEvent): void
     {
-        $value = $searchEvent->getValue();
+        $value = trim($searchEvent->getValue());
+
+        $steamId = null;
+        if (preg_match('~steamcommunity\.com/(id|profiles)/([A-Za-z0-9_\-]+)~i', $value, $m)) {
+            $steamId = $m[2];
+        } elseif (preg_match('~^STEAM_~i', $value) === 1 || preg_match('~^\d{17}$~', $value) === 1) {
+            $steamId = $value;
+        }
 
         $foundUsers = User::query()->where('name', 'like', "%$value%")
             ->limit(20)
@@ -53,6 +60,21 @@ class SearchServiceProvider extends AbstractServiceProvider
                 $searchResult->setDescription(__('def.profile'));
 
                 $searchEvent->add($searchResult);
+            }
+        }
+
+        if ($steamId) {
+            try {
+                $searchResult = new SearchResult();
+                $searchResult->setType('steam');
+                $searchResult->setId(0);
+                $searchResult->setImage('');
+                $searchResult->setUrl(url('profile/search/' . $steamId));
+                $searchResult->setTitle($steamId);
+                $searchResult->setDescription(__('def.profile'));
+                $searchEvent->add($searchResult);
+            } catch (\Throwable $e) {
+                // ignore
             }
         }
     }

@@ -267,13 +267,11 @@ class UserService
      */
     protected function sessionExpired(): void
     {
+        // Be less aggressive: keep remember token so auto-login can restore session
         auth()->logout();
-        flash()->add('info', __('auth.session_expired'));
-
         if ($this->getUserToken()) {
-            $this->authService->deleteAuthToken($this->getUserToken());
+            // $this->authService->deleteAuthToken($this->getUserToken());
         }
-
         session()->invalidate();
     }
 

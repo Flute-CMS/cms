@@ -2,7 +2,7 @@
 
 return array(
     'remember_me' => true,
-    'remember_me_duration' => '604800',
+    'remember_me_duration' => '2592000',
     'reset_password' => false,
     'security_token' => true,
     'only_social' => false,

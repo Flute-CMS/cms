@@ -18,6 +18,7 @@ use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
+use Flute\Core\Profiling\GlobalProfiler;
 use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Support\FluteEventDispatcher;
 use Flute\Core\Support\FluteRequest;
@@ -28,7 +29,6 @@ use Flute\Core\Traits\RouterTrait;
 use Flute\Core\Traits\SingletonTrait;
 use Flute\Core\Traits\ThemeTrait;
 use Symfony\Component\Console\Application;
-use Flute\Core\Profiling\GlobalProfiler;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
 

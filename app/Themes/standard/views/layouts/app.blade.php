@@ -72,7 +72,9 @@
         $__colors = app('flute.view.manager')->getColors();
         $lightThemeBg = $__colors['light']['--background'] ?? '#ffffff';
         $darkThemeBg = $__colors['dark']['--background'] ?? '#1c1c1e';
-        $currentTheme = config('app.change_theme', true) ? cookie()->get('theme', config('app.default_theme', 'dark')) : config('app.default_theme', 'dark');
+        $currentTheme = config('app.change_theme', true)
+            ? cookie()->get('theme', config('app.default_theme', 'dark'))
+            : config('app.default_theme', 'dark');
         $currentThemeBg = $currentTheme === 'light' ? $lightThemeBg : $darkThemeBg;
     @endphp
     <title>
@@ -207,22 +209,35 @@
     @include('flute::partials.colors')
 
     <script>
-    (function(){
-        function updateThemeColor(){
-            var m=document.querySelector('meta[name="theme-color"]#theme-color-meta');
-            if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');m.id='theme-color-meta';document.head.appendChild(m)}
-            var bg=getComputedStyle(document.documentElement).getPropertyValue('--background').trim()||'{{ $currentThemeBg }}';
-            m.setAttribute('content',bg);
-            var ms1=document.querySelector('meta[name="msapplication-TileColor"]');
-            if(ms1){ms1.setAttribute('content',bg)}
-            var ms2=document.querySelector('meta[name="msapplication-navbutton-color"]');
-            if(ms2){ms2.setAttribute('content',bg)}
-        }
-        document.addEventListener('DOMContentLoaded', updateThemeColor);
-        var o=new MutationObserver(updateThemeColor);
-        o.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-        window.addEventListener('flute:theme-changed', updateThemeColor);
-    })();
+        (function() {
+            function updateThemeColor() {
+                var m = document.querySelector('meta[name="theme-color"]#theme-color-meta');
+                if (!m) {
+                    m = document.createElement('meta');
+                    m.setAttribute('name', 'theme-color');
+                    m.id = 'theme-color-meta';
+                    document.head.appendChild(m)
+                }
+                var bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim() ||
+                    '{{ $currentThemeBg }}';
+                m.setAttribute('content', bg);
+                var ms1 = document.querySelector('meta[name="msapplication-TileColor"]');
+                if (ms1) {
+                    ms1.setAttribute('content', bg)
+                }
+                var ms2 = document.querySelector('meta[name="msapplication-navbutton-color"]');
+                if (ms2) {
+                    ms2.setAttribute('content', bg)
+                }
+            }
+            document.addEventListener('DOMContentLoaded', updateThemeColor);
+            var o = new MutationObserver(updateThemeColor);
+            o.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-theme']
+            });
+            window.addEventListener('flute:theme-changed', updateThemeColor);
+        })();
     </script>
 </head>
 

@@ -97,6 +97,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
             $type = is_object($value) ? get_class($value) : gettype($value);
             $sizeHint = null;
+
             try {
                 $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
             } catch (\Throwable) {
@@ -184,6 +185,7 @@ abstract class AbstractCacheDriver implements CacheInterface
                 $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
                 $type = is_object($value) ? get_class($value) : gettype($value);
                 $sizeHint = null;
+
                 try {
                     $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
                 } catch (\Throwable) {

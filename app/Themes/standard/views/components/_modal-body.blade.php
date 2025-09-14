@@ -32,8 +32,8 @@
             @endif
         </div>
 
-        @if($footer)
+        @isset($footer)
             <footer class="modal__footer">{{ $footer }}</footer>
-        @endif
+        @endisset
     </div>
 </div>

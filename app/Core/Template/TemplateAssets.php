@@ -165,7 +165,7 @@ class TemplateAssets
         // normalize / and \
         $expression = str_replace(['/', '\\'], '/', $expression);
         $normalizeBasePath = str_replace(['/', '\\'], '/', BASE_PATH);
-        
+
         $expression = str_replace([$normalizeBasePath, '/app/'], ['', ''], $expression);
 
         try {
@@ -197,6 +197,7 @@ class TemplateAssets
             foreach ($wildcardReplacements as $pattern => $replacement) {
                 if (fnmatch($pattern, $expression)) {
                     $base = basename($expression);
+
                     return str_replace('*', $base, (string) $replacement);
                 }
             }

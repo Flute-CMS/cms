@@ -1,3 +1,6 @@
+@if (is_callable($typeForm))
+    {!! $typeForm(get_defined_vars()) !!}
+@else
 @component($typeForm, get_defined_vars())
     <x-fields.checkbox name="{{ $attributes['name'] }}" id="{{ $id }}"
         popover="{{ isset($popover) ? $popover : null }}"
@@ -9,3 +12,4 @@
         @endif
     </x-fields.checkbox>
 @endcomponent
+@endif

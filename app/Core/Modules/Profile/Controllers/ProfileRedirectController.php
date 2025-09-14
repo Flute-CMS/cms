@@ -29,6 +29,7 @@ class ProfileRedirectController extends BaseController
             $fastUser = user()->get((int) $stringValue);
             if ($this->isValidUser($fastUser)) {
                 cache()->set($cacheKey, $fastUser->getUrl(), 86400);
+
                 return redirect(url('profile/' . $fastUser->getUrl()));
             }
         }

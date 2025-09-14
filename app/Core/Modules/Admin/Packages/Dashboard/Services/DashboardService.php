@@ -276,7 +276,7 @@ class DashboardService
             ->where('isPaid', true)
             ->count();
 
-        // Yesterday payments count  
+        // Yesterday payments count
         $yesterdayPayments = PaymentInvoice::query()
             ->where('isPaid', true)
             ->where('paidAt', '>', $yesterday)
@@ -436,7 +436,7 @@ class DashboardService
             ->buildQuery();
         $gatewayQuery->columns([
             'gateway',
-            new \Cycle\Database\Injection\Fragment('COUNT(*) as count')
+            new \Cycle\Database\Injection\Fragment('COUNT(*) as count'),
         ]);
         $gatewayQuery->groupBy('gateway');
         $gatewayResults = $gatewayQuery->fetchAll();
