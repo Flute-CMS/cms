@@ -57,6 +57,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     protected array $loadedScripts = [];
 
     /**
+     * Cache size limits to prevent memory leaks
+     */
+    protected int $maxComponentCacheSize = 500;
+    protected int $maxPathCacheSize = 1000;
+
+    /**
      * Create a new Template instance.
      *
      * @param TemplateAssets   $templateAssets The TemplateAssets instance.
@@ -121,6 +127,36 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     }
 
     /**
+     * Add item to path cache with size limit
+     *
+     * @param string $key Cache key
+     * @param mixed $value Cache value
+     * @return void
+     */
+    protected function addToPathCache(string $key, $value): void
+    {
+        if (count($this->pathCache) >= $this->maxPathCacheSize) {
+            array_shift($this->pathCache);
+        }
+        $this->pathCache[$key] = $value;
+    }
+
+    /**
+     * Add item to component cache with size limit
+     *
+     * @param string $key Cache key
+     * @param mixed $value Cache value
+     * @return void
+     */
+    protected function addToComponentCache(string $key, $value): void
+    {
+        if (count($this->componentCache) >= $this->maxComponentCacheSize) {
+            array_shift($this->componentCache);
+        }
+        $this->componentCache[$key] = $value;
+    }
+
+    /**
      * Find file with fallback to standard theme.
      *
      * @param string $relativePath Relative path from theme directory
@@ -137,17 +173,23 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $currentThemePath = $this->getTemplatePath("Themes/{$this->currentTheme}/{$type}/{$relativePath}");
         if (file_exists($currentThemePath)) {
-            return $this->pathCache[$cacheKey] = $currentThemePath;
+            $this->addToPathCache($cacheKey, $currentThemePath);
+
+            return $currentThemePath;
         }
 
         if ($this->currentTheme !== $this->standardTheme) {
             $standardThemePath = $this->getTemplatePath("Themes/{$this->standardTheme}/{$type}/{$relativePath}");
             if (file_exists($standardThemePath)) {
-                return $this->pathCache[$cacheKey] = $standardThemePath;
+                $this->addToPathCache($cacheKey, $standardThemePath);
+
+                return $standardThemePath;
             }
         }
 
-        return $this->pathCache[$cacheKey] = null;
+        $this->addToPathCache($cacheKey, null);
+
+        return null;
     }
 
     /**
@@ -770,7 +812,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             }
         }
 
-        $this->componentCache[$cacheKey] = $components;
+        $this->addToComponentCache($cacheKey, $components);
         $this->registerCachedComponents($components);
 
         $this->setupThemeNamespaces();

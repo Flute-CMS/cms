@@ -225,11 +225,11 @@ class ModuleManager
     protected function checkModulesDependencies(): void
     {
         static $checking = false;
-        
+
         if ($checking) {
             return;
         }
-        
+
         $stateHash = md5(json_encode($this->activeModules->keys()));
 
         if (cache()->get('modules.dependencies.hash') === $stateHash) {
@@ -259,13 +259,13 @@ class ModuleManager
 
                 cache()->delete('flute.modules.alldb');
                 cache()->delete('modules.dependencies.hash');
-                
+
                 $this->loadModulesFromDatabase();
                 $this->setInstalledModules();
                 $this->setNotInstalledModules();
                 $this->setDisabledModules();
                 $this->setActiveModules();
-                
+
                 $stateHash = md5(json_encode($this->activeModules->keys()));
             }
 

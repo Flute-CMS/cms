@@ -33,11 +33,9 @@ class AdminPagesService
      */
     public function deletePage(Page $page): void
     {
-        foreach ($page->blocks as $block) {
-            $block->delete();
-        }
-
-        $page->delete();
+        $entities = $page->blocks;
+        $entities[] = $page;
+        transaction($entities, 'delete')->run();
     }
 
     /**
@@ -89,16 +87,9 @@ class AdminPagesService
         $totalPages = Page::query()->count();
         $totalBlocks = PageBlock::query()->count();
 
-        $pagesWithBlocks = Page::query()
-            ->load('blocks')
-            ->fetchAll();
-
-        $pagesWithBlocksCount = 0;
-        foreach ($pagesWithBlocks as $page) {
-            if (count($page->blocks) > 0) {
-                $pagesWithBlocksCount++;
-            }
-        }
+        $q = PageBlock::query()->buildQuery();
+        $q->columns([new \Cycle\Database\Injection\Expression('COUNT(DISTINCT page_id) AS cnt')]);
+        $pagesWithBlocksCount = (int) ($q->fetchAll()[0]['cnt'] ?? 0);
 
         return [
             'total_pages' => $totalPages,
@@ -113,20 +104,22 @@ class AdminPagesService
      */
     public function getMostUsedWidgets(): array
     {
-        $blocks = PageBlock::query()->fetchAll();
-        $widgets = [];
+        $q = PageBlock::query()->buildQuery();
+        $q->columns([
+            'widget',
+            new \Cycle\Database\Injection\Fragment('COUNT(*) AS cnt'),
+        ]);
+        $q->groupBy('widget');
+        $q->orderBy('cnt', 'DESC');
+        $q->limit(10);
 
-        foreach ($blocks as $block) {
-            $widget = $block->widget;
-            if (!isset($widgets[$widget])) {
-                $widgets[$widget] = 0;
-            }
-            $widgets[$widget]++;
+        $rows = $q->fetchAll();
+        $out = [];
+        foreach ($rows as $row) {
+            $out[$row['widget']] = (int) $row['cnt'];
         }
 
-        arsort($widgets);
-
-        return array_slice($widgets, 0, 10, true);
+        return $out;
     }
 
     /**

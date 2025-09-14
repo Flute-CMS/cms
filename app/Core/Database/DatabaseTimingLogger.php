@@ -20,6 +20,12 @@ class DatabaseTimingLogger implements LoggerInterface
      */
     private static float $totalTime = 0.0;
 
+    /**
+     * Total number of SQL statements executed during current request
+     * @var int
+     */
+    private static int $totalCount = 0;
+
     public function __construct(LoggerInterface $inner)
     {
         $this->inner = $inner;
@@ -34,12 +40,22 @@ class DatabaseTimingLogger implements LoggerInterface
     }
 
     /**
+     * Retrieve total query count for current request.
+     */
+    public static function getTotalCount(): int
+    {
+        return self::$totalCount;
+    }
+
+    /**
      * Intercept log records coming from Cycle DBAL and try to extract elapsed time.
      * Cycle sends messages like "SELECT ... {elapsed: 2.34ms}" or "... 2.34 ms".
      * We parse numeric value and convert ms → s.
      */
     public function log($level, $message, array $context = []): void
     {
+        self::$totalCount++;
+
         if (isset($context['elapsed'])) {
             $elapsed = (float) $context['elapsed'];
             if ($elapsed > 1) {

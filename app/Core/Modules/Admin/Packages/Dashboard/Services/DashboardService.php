@@ -48,57 +48,57 @@ class DashboardService
         $yesterday = $today->modify('-1 day');
         $lastWeek = $today->modify('-7 days');
 
-        // Get all users
-        $users = User::query()->where('isTemporary', false)->fetchAll();
-        $totalUsers = count($users);
+        // Total users
+        $totalUsers = User::query()->where('isTemporary', false)->count();
 
-        // Calculate metrics for current period
-        $activeUsers = 0;
-        $onlineUsers = 0;
-        $newUsersToday = 0;
+        // Total users yesterday (users created up to end of yesterday)
+        $totalUsersYesterday = User::query()
+            ->where('isTemporary', false)
+            ->where('createdAt', '<=', $yesterday)
+            ->count();
 
-        // Calculate metrics for previous period
-        $activeUsersYesterday = 0;
-        $onlineUsersLastWeek = 0;
-        $newUsersYesterday = 0;
-        $totalUsersYesterday = 0;
+        // New users today
+        $newUsersToday = User::query()
+            ->where('isTemporary', false)
+            ->where('createdAt', '>', $today)
+            ->count();
 
-        foreach ($users as $user) {
-            // Current period calculations
-            if ($user->last_logged && $user->isOnline()) {
-                $onlineUsers++;
-            }
+        // New users yesterday
+        $newUsersYesterday = User::query()
+            ->where('isTemporary', false)
+            ->where('createdAt', '>', $yesterday)
+            ->where('createdAt', '<=', $today)
+            ->count();
 
-            if ($user->last_logged && $user->last_logged > $today) {
-                $activeUsers++;
-            }
+        // Active users today (logged since start of today)
+        $activeUsers = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>', $today)
+            ->count();
 
-            if ($user->createdAt > $today) {
-                $newUsersToday++;
-            }
+        // Active users yesterday
+        $activeUsersYesterday = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>', $yesterday)
+            ->where('last_logged', '<=', $today)
+            ->count();
 
-            // Previous period calculations
-            if ($user->last_logged && $user->last_logged > $yesterday && $user->last_logged <= $today) {
-                $activeUsersYesterday++;
-            }
+        // Online users now: last_logged within 10 minutes
+        $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+        $onlineUsers = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>=', $onlineThreshold)
+            ->count();
 
-            if ($user->createdAt > $yesterday && $user->createdAt <= $today) {
-                $newUsersYesterday++;
-            }
-
-            if ($user->createdAt <= $yesterday) {
-                $totalUsersYesterday++;
-            }
-
-            // Calculate online users from last week (for better diff perspective)
-            if ($user->last_logged && $user->last_logged > $lastWeek) {
-                $onlineUsersLastWeek++;
-            }
-        }
+        // Online last week reference (logged since last week)
+        $onlineUsersLastWeek = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>=', $lastWeek)
+            ->count();
 
         $totalUsersDiff = $totalUsersYesterday > 0
             ? (($totalUsers - $totalUsersYesterday) / max($totalUsersYesterday, 1)) * 100
-            : ($totalUsers > 0 ? 0 : 0);
+            : 0;
 
         $activeUsersDiff = $activeUsersYesterday > 0
             ? (($activeUsers - $activeUsersYesterday) / max($activeUsersYesterday, 1)) * 100
@@ -142,34 +142,24 @@ class DashboardService
         $now = new DateTimeImmutable();
         $today = $now->setTime(0, 0);
 
-        // Get all notifications
-        $notifications = Notification::query()->where('isRead', false)->fetchAll();
-        $totalNotifications = count($notifications);
+        // Total unread notifications
+        $unreadNotifications = Notification::query()
+            ->where('viewed', false)
+            ->count();
 
-        $unreadNotifications = 0;
-        $actionsToday = 0;
-        $activeSessions = 0;
+        // Actions today: notifications created today
+        $actionsToday = Notification::query()
+            ->where('createdAt', '>', $today)
+            ->count();
 
-        foreach ($notifications as $notification) {
-            if (!$notification->viewed) {
-                $unreadNotifications++;
-            }
-
-            if ($notification->createdAt > $today) {
-                $actionsToday++;
-            }
-        }
-
-        // Get active sessions from online users
-        $users = User::query()->where('isTemporary', false)->fetchAll();
-        foreach ($users as $user) {
-            if ($user->isOnline()) {
-                $activeSessions++;
-            }
-        }
+        // Active sessions ~ users online now (10 min)
+        $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+        $activeSessions = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>=', $onlineThreshold)
+            ->count();
 
         return [
-            'total_notifications' => $totalNotifications,
             'unread_notifications' => $unreadNotifications,
             'actions_today' => $actionsToday,
             'active_sessions' => $activeSessions,
@@ -185,7 +175,10 @@ class DashboardService
     {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-8 months');
-        $users = User::query()->where('isTemporary', false)->fetchAll();
+        $users = User::query()
+            ->where('isTemporary', false)
+            ->where('createdAt', '>=', $startDate)
+            ->fetchAll();
 
         $monthlyRegistrations = array_fill(0, 9, 0);
         $labels = [];
@@ -224,7 +217,10 @@ class DashboardService
     {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-6 days');
-        $users = User::query()->where('isTemporary', false)->fetchAll();
+        $users = User::query()
+            ->where('isTemporary', false)
+            ->where('last_logged', '>=', $startDate)
+            ->fetchAll();
 
         $dailyActive = array_fill(0, 7, 0);
         $dailyOnline = array_fill(0, 7, 0);
@@ -275,49 +271,63 @@ class DashboardService
         $yesterday = $today->modify('-1 day');
         $lastMonth = $today->modify('-30 days');
 
-        // Get all invoices
-        $invoices = PaymentInvoice::query()->where('isPaid', true)->fetchAll();
+        // Successful payments count (lifetime)
+        $successfulPayments = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->count();
 
-        // Current period metrics
-        $totalRevenue = 0;
-        $todayRevenue = 0;
-        $successfulPayments = 0;
-        $promoUsage = 0;
+        // Yesterday payments count  
+        $yesterdayPayments = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $yesterday)
+            ->where('paidAt', '<=', $today)
+            ->count();
 
-        // Previous period metrics
-        $yesterdayRevenue = 0;
-        $lastMonthRevenue = 0;
-        $yesterdayPayments = 0;
-        $lastMonthPromoUsage = 0;
+        // Promo usage today
+        $promoUsage = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $today)
+            ->where('promoCode_id', 'is not', null)
+            ->count();
 
-        foreach ($invoices as $invoice) {
-            if ($invoice->isPaid) {
-                $totalRevenue += $invoice->amount;
-                $successfulPayments++;
+        // Promo usage last month
+        $lastMonthPromoUsage = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $lastMonth)
+            ->where('promoCode_id', 'is not', null)
+            ->count();
 
-                if ($invoice->paidAt > $today) {
-                    $todayRevenue += $invoice->amount;
-                }
+        // Total revenue (lifetime)
+        $totalRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->buildQuery();
+        $totalRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+        $totalRevenue = $totalRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
 
-                if ($invoice->paidAt > $yesterday && $invoice->paidAt <= $today) {
-                    $yesterdayRevenue += $invoice->amount;
-                    $yesterdayPayments++;
-                }
+        // Today revenue
+        $todayRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $today)
+            ->buildQuery();
+        $todayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+        $todayRevenue = $todayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
 
-                if ($invoice->paidAt > $lastMonth) {
-                    $lastMonthRevenue += $invoice->amount;
-                }
+        // Yesterday revenue
+        $yesterdayRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $yesterday)
+            ->where('paidAt', '<=', $today)
+            ->buildQuery();
+        $yesterdayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+        $yesterdayRevenue = $yesterdayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
 
-                if ($invoice->promoCode) {
-                    if ($invoice->paidAt > $today) {
-                        $promoUsage++;
-                    }
-                    if ($invoice->paidAt > $lastMonth) {
-                        $lastMonthPromoUsage++;
-                    }
-                }
-            }
-        }
+        // Last month revenue
+        $lastMonthRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $lastMonth)
+            ->buildQuery();
+        $lastMonthRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+        $lastMonthRevenue = $lastMonthRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
 
         // Calculate percentage differences
         $revenueDiff = $yesterdayRevenue > 0
@@ -364,28 +374,39 @@ class DashboardService
     protected function calculatePaymentChartData(): array
     {
         $now = new DateTimeImmutable();
-        $startDate = $now->modify('-6 days');
-
-        $invoices = PaymentInvoice::query()->where('isPaid', true)->fetchAll();
+        $startDate = $now->modify('-6 days')->setTime(0, 0);
 
         $dailyRevenue = array_fill(0, 7, 0);
         $dailyPayments = array_fill(0, 7, 0);
         $labels = [];
 
-        // Generate labels for last 7 days using Carbon
+        // Pre-build 7 day windows and labels
+        $days = [];
         for ($i = 0; $i < 7; $i++) {
-            $date = Carbon::now()->subDays($i)->translatedFormat('D');
-            $labels[] = $date;
+            $dayStart = $startDate->modify("+{$i} day");
+            $dayEnd = $dayStart->modify('+1 day');
+            $days[] = [$dayStart, $dayEnd];
+            $labels[] = Carbon::parse($dayStart)->translatedFormat('D');
         }
 
-        foreach ($invoices as $invoice) {
-            if ($invoice->isPaid && $invoice->paidAt) {
-                $dayDiff = $invoice->paidAt->diff($startDate)->d;
-                if ($dayDiff >= 0 && $dayDiff < 7) {
-                    $dailyRevenue[$dayDiff] += $invoice->amount;
-                    $dailyPayments[$dayDiff]++;
-                }
-            }
+        // Query per day using ORM aggregates (keeps memory stable)
+        foreach ($days as $idx => [$dayStart, $dayEnd]) {
+            $revenueQuery = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->where('paidAt', '>=', $dayStart)
+                ->where('paidAt', '<', $dayEnd)
+                ->buildQuery();
+            $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+            $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+
+            $cnt = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->where('paidAt', '>=', $dayStart)
+                ->where('paidAt', '<', $dayEnd)
+                ->count();
+
+            $dailyRevenue[$idx] = (float) $sum;
+            $dailyPayments[$idx] = (int) $cnt;
         }
 
         return [
@@ -410,23 +431,21 @@ class DashboardService
      */
     protected function calculatePaymentMethodsData(): array
     {
-        $invoices = PaymentInvoice::query()->where('isPaid', true)->fetchAll();
-        $gateways = [];
-
-        foreach ($invoices as $invoice) {
-            if ($invoice->isPaid) {
-                if (!isset($gateways[$invoice->gateway])) {
-                    $gateways[$invoice->gateway] = 0;
-                }
-                $gateways[$invoice->gateway]++;
-            }
-        }
+        $gatewayQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->buildQuery();
+        $gatewayQuery->columns([
+            'gateway',
+            new \Cycle\Database\Injection\Fragment('COUNT(*) as count')
+        ]);
+        $gatewayQuery->groupBy('gateway');
+        $gatewayResults = $gatewayQuery->fetchAll();
 
         $data = [];
         $labels = [];
-        foreach ($gateways as $gateway => $count) {
-            $data[] = $count;
-            $labels[] = $gateway;
+        foreach ($gatewayResults as $result) {
+            $data[] = (int) $result['count'];
+            $labels[] = $result['gateway'];
         }
 
         return [

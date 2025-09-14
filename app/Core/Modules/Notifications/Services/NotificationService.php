@@ -321,9 +321,12 @@ class NotificationService
     {
         $items = $this->all();
 
-        foreach ($items as $item) {
-            $this->delete($item->id);
+        if (empty($items)) {
+            return;
         }
+
+        transaction($items, 'delete')->run();
+        $this->invalidateCache();
     }
 
     /**
