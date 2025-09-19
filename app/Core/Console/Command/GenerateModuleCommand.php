@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Console\Command;
 
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -40,9 +41,9 @@ class GenerateModuleCommand extends Command
         $io->section('Basic Module Information');
 
         $moduleNameQuestion = new Question('Please enter the name of the module: ');
-        $moduleNameQuestion->setValidator(function ($answer) {
+        $moduleNameQuestion->setValidator(static function ($answer) {
             if (!preg_match('/^[a-zA-Z]+$/', $answer)) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     'The module name must contain only English letters without spaces.'
                 );
             }
@@ -72,7 +73,7 @@ class GenerateModuleCommand extends Command
         $components = [];
         foreach ($this->componentTypes as $type => $dir) {
             $componentQuestion = new ConfirmationQuestion(
-                "Include $type component? (y/n) [n]: ",
+                "Include {$type} component? (y/n) [n]: ",
                 false
             );
             if ($helper->ask($input, $output, $componentQuestion)) {
@@ -119,7 +120,7 @@ class GenerateModuleCommand extends Command
         $baseDir = BASE_PATH . '/app/Modules/' . $moduleName;
 
         if (file_exists($baseDir)) {
-            $io->error("Module $moduleName already exists");
+            $io->error("Module {$moduleName} already exists");
 
             return Command::FAILURE;
         }
@@ -167,7 +168,7 @@ class GenerateModuleCommand extends Command
         foreach ($directories as $dir) {
             $dirPath = $baseDir . $dir;
             if (!mkdir($dirPath, 0o777, true) && !is_dir($dirPath)) {
-                $io->error("Failed to create directory: $dirPath");
+                $io->error("Failed to create directory: {$dirPath}");
 
                 return Command::FAILURE;
             }
@@ -180,11 +181,11 @@ class GenerateModuleCommand extends Command
         if ($translations) {
             file_put_contents(
                 $baseDir . '/Resources/lang/en/' . strtolower($moduleName) . '.php',
-                "<?php\n\nreturn [\n    'module_name' => '$moduleName',\n    'description' => '$description'\n];"
+                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];"
             );
             file_put_contents(
                 $baseDir . '/Resources/lang/ru/' . strtolower($moduleName) . '.php',
-                "<?php\n\nreturn [\n    'module_name' => '$moduleName',\n    'description' => '$description'\n];"
+                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];"
             );
         }
 
@@ -250,10 +251,10 @@ class GenerateModuleCommand extends Command
         $progressBar->finish();
 
         $io->newLine(2);
-        $io->success("Module structure generated for '$moduleName'");
+        $io->success("Module structure generated for '{$moduleName}'");
         $io->text([
-            "Module location: <info>app/Modules/$moduleName</info>",
-            "To enable this module, run: <info>php flute module:enable $moduleName</info>",
+            "Module location: <info>app/Modules/{$moduleName}</info>",
+            "To enable this module, run: <info>php flute module:enable {$moduleName}</info>",
         ]);
 
         return Command::SUCCESS;
@@ -356,7 +357,7 @@ class GenerateModuleCommand extends Command
             'require' => [],
             'autoload' => [
                 'psr-4' => [
-                    "Flute\\Modules\\$name\\" => "",
+                    "Flute\\Modules\\{$name}\\" => "",
                 ],
             ],
             'authors' => [
@@ -379,7 +380,7 @@ class GenerateModuleCommand extends Command
 
     private function stubScss($name)
     {
-        return "/* {$name} Module Styles */\n\n.{strtolower($name)}-module {\n    // Add your styles here\n}\n";
+        return "/* {$name} Module Styles */\n\n.{strtolower({$name})}-module {\n    // Add your styles here\n}\n";
     }
 
     private function stubJs($name)

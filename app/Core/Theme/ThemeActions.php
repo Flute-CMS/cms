@@ -24,26 +24,6 @@ class ThemeActions
     }
 
     /**
-     * Update the status of a theme.
-     *
-     * @param string $themeName
-     * @param string $status
-     * @throws Throwable
-     */
-    protected function updateThemeStatus(string $themeName, string $status): void
-    {
-        if ($status === ThemeManager::ACTIVE) {
-            $themePast = $this->themeManager->getTheme($this->themeManager->getCurrentTheme());
-            $themePast->status = ThemeManager::DISABLED;
-            transaction($themePast)->run();
-        }
-
-        $theme = $this->themeManager->getTheme($themeName);
-        $theme->status = $status;
-        transaction($theme)->run();
-    }
-
-    /**
      * Update the colors of a theme.
      *
      * @param string $themeName The name of the theme to update
@@ -101,29 +81,10 @@ class ThemeActions
     }
 
     /**
-     * Validate the status of a theme.
-     * If the theme is not installed or disabled, throw an exception.
-     *
-     * @param string $themeName
-     *
-     * @throws Exception if the theme is not installed or not activated
-     */
-    private function validateThemeStatus(string $themeName): void
-    {
-        $theme = Theme::findOne(['key' => $themeName]);
-
-        if ($theme->status === ThemeManager::NOTINSTALLED) {
-            throw new Exception(sprintf("Theme %s is not installed.", $themeName));
-        }
-    }
-
-    /**
      * Activate a theme.
      * If the theme is already active, throw an exception.
      * If there is a current theme, disable it.
      * Then activate the new theme and update its status.
-     *
-     * @param string $themeName
      *
      * @throws Exception|Throwable if the theme is already active
      */
@@ -158,8 +119,6 @@ class ThemeActions
      * Install a theme.
      * Then activate the new theme and update its status.
      * Add the theme to the list of installed themes.
-     *
-     * @param string $themeName
      */
     public function installTheme(string $themeName): void
     {
@@ -179,8 +138,6 @@ class ThemeActions
     /**
      * Disable a theme.
      * Then update its status.
-     *
-     * @param string $themeName
      */
     public function disableTheme(string $themeName): void
     {
@@ -193,8 +150,6 @@ class ThemeActions
     /**
      * Uninstall a theme.
      * Then update its status and remove it from the list of installed themes.
-     *
-     * @param string $themeName
      */
     public function uninstallTheme(string $themeName): void
     {
@@ -212,9 +167,7 @@ class ThemeActions
             return;
         }
 
-        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(function ($theme) use ($themeName) {
-            return $theme !== $themeName;
-        });
+        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(static fn ($theme) => $theme !== $themeName);
 
         if ($this->themeManager->getCurrentTheme() === $themeName) {
             $this->themeManager->fallbackToDefaultTheme();
@@ -224,6 +177,39 @@ class ThemeActions
         transaction($theme, 'delete')->run();
 
         fs()->remove(BASE_PATH . 'app/Themes/' . $themeName);
+    }
+
+    /**
+     * Update the status of a theme.
+     *
+     * @throws Throwable
+     */
+    protected function updateThemeStatus(string $themeName, string $status): void
+    {
+        if ($status === ThemeManager::ACTIVE) {
+            $themePast = $this->themeManager->getTheme($this->themeManager->getCurrentTheme());
+            $themePast->status = ThemeManager::DISABLED;
+            transaction($themePast)->run();
+        }
+
+        $theme = $this->themeManager->getTheme($themeName);
+        $theme->status = $status;
+        transaction($theme)->run();
+    }
+
+    /**
+     * Validate the status of a theme.
+     * If the theme is not installed or disabled, throw an exception.
+     *
+     * @throws Exception if the theme is not installed or not activated
+     */
+    private function validateThemeStatus(string $themeName): void
+    {
+        $theme = Theme::findOne(['key' => $themeName]);
+
+        if ($theme->status === ThemeManager::NOTINSTALLED) {
+            throw new Exception(sprintf("Theme %s is not installed.", $themeName));
+        }
     }
 
     private function isLastActiveTheme(string $themeName): bool

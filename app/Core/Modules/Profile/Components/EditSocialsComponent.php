@@ -8,6 +8,7 @@ use Flute\Core\Support\FluteComponent;
 class EditSocialsComponent extends FluteComponent
 {
     public $socialKey = null;
+
     public $checked = null;
 
     public function changeVisibility()

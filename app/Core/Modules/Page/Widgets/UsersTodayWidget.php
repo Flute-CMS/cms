@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
 
@@ -29,7 +30,7 @@ class UsersTodayWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $startOfDay = new \DateTimeImmutable('today');
+        $startOfDay = new DateTimeImmutable('today');
         $users = User::query()
             ->where('last_logged', '>=', $startOfDay)
             ->where('hidden', false)

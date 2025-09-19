@@ -3,6 +3,7 @@
 namespace Flute\Core\Composer;
 
 use Composer\Console\Application;
+use Exception;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -22,8 +23,8 @@ class ComposerManager
      *
      * @param string $package The name of the package to install.
      *
+     * @throws Exception If the installation fails.
      * @return string The output of the Composer command.
-     * @throws \Exception If the installation fails.
      */
     public function installPackage(string $package)
     {
@@ -50,14 +51,14 @@ class ComposerManager
 
             // Check for errors in the output
             if (strpos($outputContent, 'Installation failed') !== false) {
-                throw new \Exception('Installation failed: ' . $outputContent);
+                throw new Exception('Installation failed: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new \Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            throw new \Exception('Error during package installation: ' . $e->getMessage());
+            throw new Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Error during package installation: ' . $e->getMessage());
         }
     }
 
@@ -91,18 +92,18 @@ class ComposerManager
                 strpos($outputContent, 'Removal failed') !== false ||
                 strpos($outputContent, 'error') !== false
             ) {
-                throw new \Exception('Install failed: ' . $outputContent);
+                throw new Exception('Install failed: ' . $outputContent);
             }
 
             if ($exitCode !== 0) {
-                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new \Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            throw new \Exception('Error during install: ' . $e->getMessage());
+            throw new Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Error during install: ' . $e->getMessage());
         }
     }
 
@@ -136,18 +137,18 @@ class ComposerManager
                 strpos($outputContent, 'Removal failed') !== false ||
                 strpos($outputContent, 'error') !== false
             ) {
-                throw new \Exception('Update failed: ' . $outputContent);
+                throw new Exception('Update failed: ' . $outputContent);
             }
 
             if ($exitCode !== 0) {
-                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new \Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            throw new \Exception('Error during update: ' . $e->getMessage());
+            throw new Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Error during update: ' . $e->getMessage());
         }
     }
 
@@ -156,8 +157,8 @@ class ComposerManager
      *
      * @param string $package The name of the package to remove.
      *
+     * @throws Exception If the removal fails.
      * @return string The output of the Composer command.
-     * @throws \Exception If the removal fails.
      */
     public function removePackage(string $package)
     {
@@ -184,14 +185,14 @@ class ComposerManager
 
             // Check for errors in the output
             if (strpos($outputContent, 'Removal failed') !== false) {
-                throw new \Exception('Removal failed: ' . $outputContent);
+                throw new Exception('Removal failed: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new \Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            throw new \Exception('Error during package removal: ' . $e->getMessage());
+            throw new Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Error during package removal: ' . $e->getMessage());
         }
     }
 
@@ -222,17 +223,17 @@ class ComposerManager
         $guzzle = new Client();
 
         if (!empty($search)) {
-            $res = $guzzle->get("https://packagist.org/search.json?q=$search&per_page=$length&page=$page");
+            $res = $guzzle->get("https://packagist.org/search.json?q={$search}&per_page={$length}&page={$page}");
 
             return json_decode($res->getBody()->getContents(), true);
-        } else {
-            $res = $guzzle->get("https://packagist.org/explore/popular.json?per_page=$length&page=$page");
-            $content = json_decode($res->getBody()->getContents(), true);
-
-            return [
-                'results' => $content['packages'],
-                'total' => $content['total'],
-            ];
         }
+        $res = $guzzle->get("https://packagist.org/explore/popular.json?per_page={$length}&page={$page}");
+        $content = json_decode($res->getBody()->getContents(), true);
+
+        return [
+            'results' => $content['packages'],
+            'total' => $content['total'],
+        ];
+
     }
 }

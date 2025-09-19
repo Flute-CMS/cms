@@ -1,9 +1,9 @@
 <?php
 
 return [    'title' => [        'actions' => 'Ações',
-        'actions_description' => 'Ações no servidor',
-        'integrations' => 'Integrações',
-    ],
+    'actions_description' => 'Ações no servidor',
+    'integrations' => 'Integrações',
+],
 
     'tabs' => [    ],
 
@@ -42,15 +42,15 @@ return [    'title' => [        'actions' => 'Ações',
     ],
 
     'db_connection' => [        'fields' => [
-            'mod' => [            ],
-            'dbname' => [
-                'label' => 'Banco de Dados',
-                'placeholder' => 'Insira o nome do banco de dados',
-            ],
-            'driver' => [            ],
-            'additional' => [            ],            'custom_driver_name' => [            ],
-            'json_settings' => [            ],
+        'mod' => [            ],
+        'dbname' => [
+            'label' => 'Banco de Dados',
+            'placeholder' => 'Insira o nome do banco de dados',
         ],
+        'driver' => [            ],
+        'additional' => [            ],            'custom_driver_name' => [            ],
+        'json_settings' => [            ],
+    ],
         'add' => [        ],
         'edit' => [        ],
         'delete' => [        ],

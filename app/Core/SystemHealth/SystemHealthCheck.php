@@ -10,6 +10,7 @@ use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;
 class SystemHealthCheck
 {
     protected const SYSTEM_CACHE_KEY = 'flute.system_health';
+
     protected array $systemServices = [
         CheckPermissionsMigration::class,
     ];
@@ -31,8 +32,6 @@ class SystemHealthCheck
 
     /**
      * Check if system health check is allowed by cache
-     *
-     * @return bool
      */
     protected function isAllowed(): bool
     {
@@ -41,8 +40,6 @@ class SystemHealthCheck
 
     /**
      * Updates the allowed cache key
-     *
-     * @return void
      */
     protected function updateSystemCacheKey(): void
     {

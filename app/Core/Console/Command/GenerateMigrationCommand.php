@@ -2,6 +2,9 @@
 
 namespace Flute\Core\Console\Command;
 
+use DateTime;
+use DirectoryIterator;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,9 +43,9 @@ class GenerateMigrationCommand extends Command
         $module = $helper->ask($input, $output, $moduleQuestion);
 
         $nameQuestion = new Question('Please enter the name of the migration: ');
-        $nameQuestion->setValidator(function ($answer) {
+        $nameQuestion->setValidator(static function ($answer) {
             if (!preg_match('/^[a-zA-Z_]+$/', $answer)) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     'The migration name must contain only English letters and underscores without spaces.'
                 );
             }
@@ -52,7 +55,7 @@ class GenerateMigrationCommand extends Command
         $name = $helper->ask($input, $output, $nameQuestion);
 
         $directory = BASE_PATH . '/app/Modules/' . $modules[$module] . '/database/migrations/';
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $formattedDate = $dateTime->format('Ymd');
         $formattedTime = $dateTime->format('His');
         $fileName = "{$formattedDate}.{$formattedTime}_0_{$name}.php";
@@ -72,7 +75,7 @@ class GenerateMigrationCommand extends Command
         $modules = [];
 
         if (is_dir($modulesDir)) {
-            foreach (new \DirectoryIterator($modulesDir) as $fileInfo) {
+            foreach (new DirectoryIterator($modulesDir) as $fileInfo) {
                 if ($fileInfo->isDir() && !$fileInfo->isDot()) {
                     $modules[$fileInfo->getFilename()] = $fileInfo->getFilename();
                 }

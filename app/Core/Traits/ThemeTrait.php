@@ -7,12 +7,10 @@ use Flute\Core\Template\Template;
 trait ThemeTrait
 {
     /**
-     * @var string
      */
     public string $theme = "standard";
 
     /**
-     * @var Template
      */
     protected Template $Template;
 

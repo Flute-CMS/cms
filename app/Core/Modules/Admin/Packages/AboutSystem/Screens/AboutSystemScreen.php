@@ -10,22 +10,16 @@ class AboutSystemScreen extends Screen
 {
     /**
      * Screen title
-     *
-     * @var string
      */
     protected ?string $name = null;
 
     /**
      * Screen description
-     *
-     * @var string
      */
     protected ?string $description = null;
 
     /**
      * Mount the screen
-     *
-     * @return void
      */
     public function mount(): void
     {
@@ -36,8 +30,6 @@ class AboutSystemScreen extends Screen
 
     /**
      * Query data for the screen
-     *
-     * @return array
      */
     public function query(): array
     {
@@ -55,8 +47,6 @@ class AboutSystemScreen extends Screen
 
     /**
      * Get the layout elements
-     *
-     * @return array
      */
     public function layout(): array
     {

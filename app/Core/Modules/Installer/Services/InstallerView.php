@@ -32,9 +32,6 @@ class InstallerView
 
     /**
      * InstallerView constructor.
-     *
-     * @param Template $template
-     * @param InstallerConfig $installerConfig
      */
     public function __construct(Template $template, InstallerConfig $installerConfig)
     {
@@ -45,10 +42,9 @@ class InstallerView
     /**
      * Render an installer view
      *
-     * @param array $data
      * @return string
      */
-    public function render(array $data = [], int $currentStep = null)
+    public function render(array $data = [], ?int $currentStep = null)
     {
         $step = $this->installerConfig->getCurrentStep();
         $totalSteps = $this->installerConfig->getTotalSteps();
@@ -68,9 +64,6 @@ class InstallerView
     /**
      * Render a step view
      *
-     * @param int $step
-     * @param FluteRequest $request
-     * @param array $data
      * @return string
      */
     public function renderStep(int $step, FluteRequest $request, array $data = [])

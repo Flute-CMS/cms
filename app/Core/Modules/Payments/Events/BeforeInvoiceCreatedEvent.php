@@ -9,9 +9,13 @@ class BeforeInvoiceCreatedEvent extends Event
     public const NAME = 'payment.before_invoice_created';
 
     protected $gatewayName;
+
     protected $amount;
+
     protected $promo;
+
     protected $currencyCode;
+
     protected $additionalData = [];
 
     public function __construct(string $gatewayName, $amount, ?string $promo = null, ?string $currencyCode = null, array $additionalData = [])

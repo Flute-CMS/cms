@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager\Actions;
 
+use Exception;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Module;
 use Flute\Core\Database\Entities\NavbarItem;
@@ -12,10 +13,12 @@ use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Support\AbstractModuleInstaller;
 use Flute\Core\Theme\ThemeManager;
+use RuntimeException;
 
 class ModuleInstall implements ModuleActionInterface
 {
     protected ModuleManager $moduleManager;
+
     protected ModuleDependencies $moduleDependencies;
 
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
@@ -30,11 +33,11 @@ class ModuleInstall implements ModuleActionInterface
         $moduleGet = $this->moduleManager->getModule($module->key);
 
         if (!$moduleGet) {
-            throw new \Exception("Module {$module->key} wasn't found in the system");
+            throw new Exception("Module {$module->key} wasn't found in the system");
         }
 
         if ($moduleGet->status !== 'notinstalled') {
-            throw new \RuntimeException('Module already installed');
+            throw new RuntimeException('Module already installed');
         }
 
         $this->checkModuleDependencies($moduleGet);
@@ -44,7 +47,7 @@ class ModuleInstall implements ModuleActionInterface
         if (fs()->exists(BASE_PATH . $directory)) {
             try {
                 app(DatabaseConnection::class)->runMigrations($directory);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 app(DatabaseConnection::class)->rollbackMigrations($directory);
 
                 throw $e;
@@ -56,7 +59,7 @@ class ModuleInstall implements ModuleActionInterface
             $installer = new $installerClassDir($module->key);
 
             if (!method_exists($installer, 'install')) {
-                throw new \RuntimeException("install method into {$installerClassDir} wasn't found");
+                throw new RuntimeException("install method into {$installerClassDir} wasn't found");
             }
 
             $install = $installer->install($module);

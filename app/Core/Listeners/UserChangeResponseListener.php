@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserChangeResponseListener
 {
-    /** @var User|null */
+    /**  */
     private static ?User $changedUser = null;
 
     public static function onUserChanged(UserChangedEvent $event): void

@@ -8,9 +8,11 @@ use Tracy\Debugger;
 
 class FluteTracyBar
 {
-    /** @var App */
+    /**  */
     protected App $app;
+
     protected $version;
+
     protected $startTime;
 
     public function __construct(?App $app = null)
@@ -31,17 +33,10 @@ class FluteTracyBar
         $this->addPanels();
     }
 
-    protected function addPanels()
-    {
-        Debugger::getBar()
-            ->addPanel(new ModulesTimingPanel());
-    }
-
     /**
      * Adds a message to Tracy's logger
      *
      * @param mixed $message
-     * @param string $priority
      */
     public function addMessage($message, string $priority = 'info')
     {
@@ -50,12 +45,16 @@ class FluteTracyBar
 
     /**
      * Get total execution time
-     *
-     * @return float
      */
     public function getExecutionTime(): float
     {
         return microtime(true) - $this->startTime;
+    }
+
+    protected function addPanels()
+    {
+        Debugger::getBar()
+            ->addPanel(new ModulesTimingPanel());
     }
 
     protected function getDebugAccess()

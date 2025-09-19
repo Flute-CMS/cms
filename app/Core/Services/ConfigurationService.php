@@ -3,10 +3,13 @@
 namespace Flute\Core\Services;
 
 use Noodlehaus\Config;
+use RuntimeException;
+use Throwable;
 
 class ConfigurationService
 {
     protected string $configsPath;
+
     protected Config $configuration;
 
     public function __construct(string $configsPath = '/config')
@@ -27,7 +30,7 @@ class ConfigurationService
     {
         try {
             return $this->configuration->get($key, $default);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (function_exists('is_debug') && is_debug()) {
                 throw $e;
             }
@@ -62,7 +65,7 @@ class ConfigurationService
             $content = "<?php\n\nreturn " . var_export($configData, true) . ";\n";
 
             if (file_put_contents($filePath, $content) === false) {
-                throw new \RuntimeException("Failed to write configuration to {$filePath}");
+                throw new RuntimeException("Failed to write configuration to {$filePath}");
             }
 
             $writtenFiles[] = $filePath;
@@ -76,7 +79,6 @@ class ConfigurationService
 
         $this->loadConfigurations();
     }
-
 
     public function getConfiguration(): Config
     {

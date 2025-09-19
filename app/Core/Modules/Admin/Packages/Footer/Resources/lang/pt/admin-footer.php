@@ -30,25 +30,25 @@ return [
     ],
     'modal' => [
         'footer_item' => [            'fields' => [
-                'title' => [
-                    'label' => 'Título',                ],
-                'url' => [
-                    'label' => 'URL',                ],
-                'new_tab' => [
-                    'label' => 'Abrir em uma nova aba',                ],
-            ],
+            'title' => [
+                'label' => 'Título',                ],
+            'url' => [
+                'label' => 'URL',                ],
+            'new_tab' => [
+                'label' => 'Abrir em uma nova aba',                ],
+        ],
         ],
         'social' => [            'fields' => [
-                'name' => [
-                    'label' => 'Nome',                ],
-                'icon' => [
-                    'label' => 'Ícone',                ],
-                'url' => [
-                    'label' => 'URL',
-                    'placeholder' => 'Digite a URL (ex: https://discord.gg/yourpage)',
-                    'help' => 'Link para sua página de rede social',
-                ],
+            'name' => [
+                'label' => 'Nome',                ],
+            'icon' => [
+                'label' => 'Ícone',                ],
+            'url' => [
+                'label' => 'URL',
+                'placeholder' => 'Digite a URL (ex: https://discord.gg/yourpage)',
+                'help' => 'Link para sua página de rede social',
             ],
+        ],
         ],
     ],
     'confirms' => [    ],

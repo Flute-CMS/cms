@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Payments\Listeners;
 use Flute\Core\Modules\Payments\Components\PaymentComponent;
 use Flute\Core\Modules\Payments\Initializers\GatewayInitializer;
 use Flute\Core\Modules\Payments\Services\PaymentsCleaner;
+use Throwable;
 
 class TemplateListener
 {
@@ -15,7 +16,7 @@ class TemplateListener
         try {
             app()->get(GatewayInitializer::class);
             app()->get(PaymentsCleaner::class)->cleanOldPayments();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('modules')->error('Payments init error: ' . $e->getMessage());
         }
     }

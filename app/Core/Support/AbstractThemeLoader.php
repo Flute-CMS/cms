@@ -16,13 +16,21 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeLoaderInterface
 {
     protected Template $template;
+
     protected string $name;
+
     protected string $key;
+
     protected string $version;
+
     protected string $author;
+
     protected string $description = "";
+
     protected array $requirements = [];
+
     protected array $replacements = [];
+
     protected array $settings;
 
     /**
@@ -88,8 +96,6 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
      * Method info
      *
      * Return the information of the theme.
-     *
-     * @return array
      */
     public function info(): array
     {
@@ -186,7 +192,7 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
 
     public function loadTranslations()
     {
-        $this->loadFromDirectory('i18n', function ($file) {
+        $this->loadFromDirectory('i18n', static function ($file) {
             $locale = $file->getRelativePath();
             $domain = basename($file->getFilename(), '.php');
             translation()->getTranslator()->addResource('file', $file->getPathname(), $locale, $domain);

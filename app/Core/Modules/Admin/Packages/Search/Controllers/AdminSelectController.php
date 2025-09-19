@@ -6,12 +6,18 @@ use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Select\Repository;
 use Flute\Admin\Packages\Search\SelectRegistry;
 use Flute\Core\Support\FluteRequest;
+
+use function mb_strlen;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+
+use function trim;
 
 class AdminSelectController
 {
     protected SelectRegistry $registry;
+
     protected ORMInterface $orm;
 
     public function __construct(SelectRegistry $registry, ORMInterface $orm)
@@ -23,7 +29,7 @@ class AdminSelectController
     public function search(FluteRequest $request): JsonResponse
     {
         $alias = $request->input('entity');
-        $query = \trim($request->input('query', ''));
+        $query = trim($request->input('query', ''));
 
         $config = $this->registry->getEntityConfig($alias);
         if (!$config) {
@@ -41,7 +47,7 @@ class AdminSelectController
         $limit = $config['limit'] ?? 20;
 
         // Minimum query length = 2
-        if (\mb_strlen($query) < 2 && $query !== '') {
+        if (mb_strlen($query) < 2 && $query !== '') {
             return response()->json([]);
         }
 
@@ -54,7 +60,7 @@ class AdminSelectController
         }
 
         $searchFields = $config['searchFields'] ?? [];
-        $select->where(function ($q) use ($searchFields, $query) {
+        $select->where(static function ($q) use ($searchFields, $query) {
             foreach ($searchFields as $field) {
                 $q->orWhere($field, 'LIKE', "%{$query}%");
             }

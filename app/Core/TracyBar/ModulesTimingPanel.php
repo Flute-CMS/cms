@@ -9,7 +9,7 @@ use Tracy\IBarPanel;
 
 class ModulesTimingPanel implements IBarPanel
 {
-    /** @var App */
+    /**  */
     protected App $app;
 
     /** @var array Core components processing time */
@@ -22,58 +22,7 @@ class ModulesTimingPanel implements IBarPanel
     }
 
     /**
-     * Initialize core component timings
-     */
-    protected function initCoreComponentTimes(): void
-    {
-        // Default core component times structure
-        $this->coreComponentTimes = [
-            'Bootstrapping' => 0,
-            'Container Building' => 0,
-            'Routing' => 0,
-            'Database' => 0,
-            'View Rendering' => 0,
-            'Untracked Operations' => 0,
-        ];
-
-        if (defined('FLUTE_ROUTER_START') && defined('FLUTE_ROUTER_END')) {
-            $this->coreComponentTimes['Routing'] = constant('FLUTE_ROUTER_END') - constant('FLUTE_ROUTER_START');
-        }
-
-        if (defined('FLUTE_CONTAINER_START') && defined('FLUTE_CONTAINER_END')) {
-            $this->coreComponentTimes['Container Building'] = constant('FLUTE_CONTAINER_END') - constant('FLUTE_CONTAINER_START');
-        }
-
-        if (defined('FLUTE_BOOTSTRAP_START') && defined('FLUTE_START')) {
-            $this->coreComponentTimes['Bootstrapping'] = constant('FLUTE_BOOTSTRAP_START') - constant('FLUTE_START');
-        }
-
-        if (defined('FLUTE_DB_TIME')) {
-            $this->coreComponentTimes['Database'] = constant('FLUTE_DB_TIME');
-        }
-
-        if (defined('FLUTE_VIEW_TIME')) {
-            $this->coreComponentTimes['View Rendering'] = constant('FLUTE_VIEW_TIME');
-        }
-
-        $measuredCore = array_sum(array_filter($this->coreComponentTimes, fn ($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
-        if (defined('FLUTE_START')) {
-            $this->coreComponentTimes['Untracked Operations'] = max(0, (microtime(true) - constant('FLUTE_START')) - $measuredCore);
-        }
-
-        // Gather DB time measured via timing logger
-        if (class_exists(\Flute\Core\Database\DatabaseTimingLogger::class)) {
-            $dbTime = \Flute\Core\Database\DatabaseTimingLogger::getTotalTime();
-            if ($dbTime > 0) {
-                $this->coreComponentTimes['Database'] = $dbTime;
-            }
-        }
-    }
-
-    /**
      * Renders HTML code for the Tracy panel tab
-     *
-     * @return string
      */
     public function getTab(): string
     {
@@ -87,8 +36,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders HTML code for the Tracy panel content
-     *
-     * @return string
      */
     public function getPanel(): string
     {
@@ -105,13 +52,11 @@ class ModulesTimingPanel implements IBarPanel
         $modulesBootTimes = ModuleRegister::getModulesBootTimes();
 
         // Filter out zero values for better visibility
-        $bootTimes = array_filter($bootTimes, function ($time) {
+        $bootTimes = array_filter($bootTimes, static function ($time) {
             return $time > 0.0001; // Keep only significant numbers
         });
 
-        $modulesBootTimes = array_filter($modulesBootTimes, function ($time) {
-            return $time > 0.0001;
-        });
+        $modulesBootTimes = array_filter($modulesBootTimes, static fn ($time) => $time > 0.0001);
 
         $id = uniqid('tracy-timing-');
 
@@ -298,9 +243,56 @@ class ModulesTimingPanel implements IBarPanel
     }
 
     /**
+     * Initialize core component timings
+     */
+    protected function initCoreComponentTimes(): void
+    {
+        // Default core component times structure
+        $this->coreComponentTimes = [
+            'Bootstrapping' => 0,
+            'Container Building' => 0,
+            'Routing' => 0,
+            'Database' => 0,
+            'View Rendering' => 0,
+            'Untracked Operations' => 0,
+        ];
+
+        if (defined('FLUTE_ROUTER_START') && defined('FLUTE_ROUTER_END')) {
+            $this->coreComponentTimes['Routing'] = constant('FLUTE_ROUTER_END') - constant('FLUTE_ROUTER_START');
+        }
+
+        if (defined('FLUTE_CONTAINER_START') && defined('FLUTE_CONTAINER_END')) {
+            $this->coreComponentTimes['Container Building'] = constant('FLUTE_CONTAINER_END') - constant('FLUTE_CONTAINER_START');
+        }
+
+        if (defined('FLUTE_BOOTSTRAP_START') && defined('FLUTE_START')) {
+            $this->coreComponentTimes['Bootstrapping'] = constant('FLUTE_BOOTSTRAP_START') - constant('FLUTE_START');
+        }
+
+        if (defined('FLUTE_DB_TIME')) {
+            $this->coreComponentTimes['Database'] = constant('FLUTE_DB_TIME');
+        }
+
+        if (defined('FLUTE_VIEW_TIME')) {
+            $this->coreComponentTimes['View Rendering'] = constant('FLUTE_VIEW_TIME');
+        }
+
+        $measuredCore = array_sum(array_filter($this->coreComponentTimes, static fn ($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
+        if (defined('FLUTE_START')) {
+            $this->coreComponentTimes['Untracked Operations'] = max(0, (microtime(true) - constant('FLUTE_START')) - $measuredCore);
+        }
+
+        // Gather DB time measured via timing logger
+        if (class_exists(\Flute\Core\Database\DatabaseTimingLogger::class)) {
+            $dbTime = \Flute\Core\Database\DatabaseTimingLogger::getTotalTime();
+            if ($dbTime > 0) {
+                $this->coreComponentTimes['Database'] = $dbTime;
+            }
+        }
+    }
+
+    /**
      * Renders the summary panel with total engine time
-     *
-     * @return string
      */
     private function renderSummaryPanel(): string
     {
@@ -386,8 +378,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders the core components panel with detailed timing
-     *
-     * @return string
      */
     private function renderCoreComponentsPanel(): string
     {
@@ -462,8 +452,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Render core optimization suggestions based on bottlenecks
-     *
-     * @return string
      */
     private function renderCoreOptimizationSuggestions(): string
     {
@@ -537,10 +525,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders header with total time
-     *
-     * @param string $title
-     * @param float $totalTime
-     * @return string
      */
     private function renderHeader(string $title, float $totalTime): string
     {
@@ -553,8 +537,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Renders the global profiling panel
-     *
-     * @return string
      */
     private function renderGlobalProfilingPanel(): string
     {
@@ -646,9 +628,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Format bytes to human readable format
-     *
-     * @param int $bytes
-     * @return string
      */
     private function formatBytes(int $bytes): string
     {
@@ -664,9 +643,6 @@ class ModulesTimingPanel implements IBarPanel
 
     /**
      * Get short class name from fully qualified name
-     *
-     * @param string $className
-     * @return string
      */
     private function getShortClassName(string $className): string
     {

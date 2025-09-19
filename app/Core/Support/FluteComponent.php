@@ -59,12 +59,9 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     /**
      * Validate component data against rules.
      *
-     * @param array      $rules
-     * @param array|null $data
-     * @param array      $messages
      * @return bool
      */
-    public function validate(array $rules, array $data = null, array $messages = [])
+    public function validate(array $rules, ?array $data = null, array $messages = [])
     {
         $data ??= $this->getPublicProperties();
 
@@ -125,8 +122,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * Check if an action has been confirmed.
      *
      * @param string $actionKey A unique key to identify this confirmed action
-     *
-     * @return bool
      */
     public function confirmed(string $actionKey): bool
     {
@@ -145,29 +140,8 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     }
 
     /**
-     * Throttle the requests to limit the number of attempts per minute.
-     *
-     * @param string $key The action key.
-     * @param int $maxRequest The maximum number of requests allowed.
-     * @param int $perMinute The time period in minutes.
-     * @param int $burstiness The maximum number of requests in a burst.
-     * @throws TooManyRequestsException
-     */
-    protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
-    {
-        throttler()->throttle(
-            ['action' => $key, request()->ip()],
-            $maxRequest,
-            $perMinute,
-            $burstiness
-        );
-    }
-
-    /**
      * Redirect to a specified URL with optional delay.
      *
-     * @param string $url
-     * @param int    $delay
      * @return void
      */
     public function redirectTo(string $url, int $delay = 0)
@@ -193,8 +167,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     /**
      * Flash a message to the user.
      *
-     * @param string $message
-     * @param string $type
      * @return void
      */
     public function flashMessage(string $message, string $type = 'success')
@@ -204,9 +176,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
 
     /**
      * Flash a error message in input.
-     *
-     * @param string $name
-     * @param $error
      *
      * @return void
      */
@@ -218,10 +187,8 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     /**
      * Skip rendering and respond with a specific HTTP status code.
      *
-     * @param int $statusCode
-     * @return void
-     *
      * @throws BypassRenderMethod
+     * @return void
      */
     public function skipRenderWithStatus(int $statusCode = 204)
     {
@@ -232,7 +199,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     /**
      * Emit an event to other components or the browser.
      *
-     * @param string $event
      * @param mixed  ...$args
      * @return void
      */
@@ -244,7 +210,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     /**
      * Set multiple properties at once.
      *
-     * @param array $properties
      * @return self
      */
     public function setProperties(array $properties)
@@ -260,7 +225,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * Open a modal.
      *
      * @param string $modalId The ID of the modal to open.
-     * @return void
      */
     public function modalOpen(string $modalId): void
     {
@@ -280,16 +244,6 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $this->dispatchBrowserEvent('close-modal', [
             'modalId' => $modalId,
         ]);
-    }
-
-    /**
-     * Get public properties of the component.
-     *
-     * @return array
-     */
-    protected function getPublicProperties()
-    {
-        return $this->viewVars();
     }
 
     /**
@@ -316,5 +270,34 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         }
 
         return $action();
+    }
+
+    /**
+     * Throttle the requests to limit the number of attempts per minute.
+     *
+     * @param string $key The action key.
+     * @param int $maxRequest The maximum number of requests allowed.
+     * @param int $perMinute The time period in minutes.
+     * @param int $burstiness The maximum number of requests in a burst.
+     * @throws TooManyRequestsException
+     */
+    protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
+    {
+        throttler()->throttle(
+            ['action' => $key, request()->ip()],
+            $maxRequest,
+            $perMinute,
+            $burstiness
+        );
+    }
+
+    /**
+     * Get public properties of the component.
+     *
+     * @return array
+     */
+    protected function getPublicProperties()
+    {
+        return $this->viewVars();
     }
 }

@@ -7,6 +7,7 @@ use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Contracts\ModuleActionInterface;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
+use RuntimeException;
 
 class ModuleUninstall implements ModuleActionInterface
 {
@@ -19,7 +20,7 @@ class ModuleUninstall implements ModuleActionInterface
         $installerClassDir = sprintf('Flute\\Modules\\%s\\Installer', $module->key);
 
         if (!$moduleGet) {
-            throw new \RuntimeException("Module wasn't found in the system");
+            throw new RuntimeException("Module wasn't found in the system");
         }
 
         $hasComposerJson = fs()->exists(path('app/Modules/'.$module->key.'/composer.json'));
@@ -36,7 +37,7 @@ class ModuleUninstall implements ModuleActionInterface
             $installer = new $installerClassDir($module->key);
 
             if (!method_exists($installer, 'uninstall')) {
-                throw new \RuntimeException("Uninstall method in the {$installerClassDir} wasn't found");
+                throw new RuntimeException("Uninstall method in the {$installerClassDir} wasn't found");
             }
 
             $uninstall = $installer->uninstall($module);

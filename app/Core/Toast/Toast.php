@@ -7,13 +7,21 @@ use JsonSerializable;
 class Toast implements JsonSerializable
 {
     private ToastType $type;
+
     private string $message;
+
     private ?int $duration = null;
+
     private ?bool $dismissible = null;
+
     private ?array $position = null;
+
     private ?bool $ripple = null;
+
     private string|array|null $icon = null;
+
     private ?string $className = null;
+
     private array $events = [];
 
     public function __construct(string $message, ToastType $type = ToastType::INFO)
@@ -74,7 +82,6 @@ class Toast implements JsonSerializable
      *
      * @param string $eventName Название события ('click', 'dismiss' и т.д.)
      * @param string $callback JavaScript функция-обработчик события.
-     * @return self
      */
     public function on(string $eventName, string $callback): self
     {

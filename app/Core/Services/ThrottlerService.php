@@ -32,9 +32,8 @@ class ThrottlerService
      * @param int|null  $cost         The number of tokens required for the request.
      * @param bool|null $force        Flag to force the request without considering throttling rules.
      *
-     * @return float  The remaining number of tokens after the request is throttled.
-     *
      * @throws TooManyRequestsException  When the request exceeds the allowed rate limit.
+     * @return float  The remaining number of tokens after the request is throttled.
      */
     public function throttle(
         array $criteria,
@@ -75,12 +74,12 @@ class ThrottlerService
 
         if ($accepted) {
             return $bucket->getTokens();
-        } else {
-            $tokensMissing = $cost - $bucket->getTokens();
-            $estimatedWaitingTimeSeconds = $this->calculateEstimatedWaitingTime($tokensMissing, $bandwidthPerSecond);
-
-            throw new TooManyRequestsException('', $estimatedWaitingTimeSeconds);
         }
+        $tokensMissing = $cost - $bucket->getTokens();
+        $estimatedWaitingTimeSeconds = $this->calculateEstimatedWaitingTime($tokensMissing, $bandwidthPerSecond);
+
+        throw new TooManyRequestsException('', $estimatedWaitingTimeSeconds);
+
     }
 
     /**
@@ -153,8 +152,6 @@ class ThrottlerService
      * @param int    $now                   The current timestamp.
      * @param int    $capacity              The capacity of the bucket.
      * @param float  $bandwidthPerSecond    The bandwidth per second of the bucket.
-     *
-     * @return void
      */
     private function updateBucket(
         Bucket $bucket,
@@ -187,8 +184,6 @@ class ThrottlerService
      * Store the bucket.
      *
      * @param Bucket $bucket  The bucket to store.
-     *
-     * @return void
      */
     private function storeBucket(Bucket $bucket): void
     {

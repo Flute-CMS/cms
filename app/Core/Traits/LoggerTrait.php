@@ -8,14 +8,12 @@ use Monolog\Logger;
 trait LoggerTrait
 {
     /**
-     * @var Logger
      */
     protected Logger $logger;
 
     /**
     * Set logger factory instance
     *
-    * @param Logger $logger
     * @return App
     */
     public function setLogger(Logger $logger): self
@@ -27,8 +25,6 @@ trait LoggerTrait
 
     /**
      * Get logger factory instance
-     *
-     * @return Logger
      */
     public function getLogger(): Logger
     {

@@ -8,6 +8,7 @@ use Flute\Core\Database\Entities\PaymentInvoice;
 class PaymentsCleaner
 {
     protected const CACHE_KEY = "flute.payments.check_old";
+
     protected const DAYS = 60;
 
     public function cleanOldPayments()

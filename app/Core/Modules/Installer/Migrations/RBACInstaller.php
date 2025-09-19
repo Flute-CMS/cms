@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Installer\Migrations;
 
+use Exception;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;
@@ -26,7 +27,7 @@ class RBACInstaller
             $this->clearUsers();
             $this->clearRoles();
             $this->clearPermissions();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore error
         }
 
@@ -44,8 +45,6 @@ class RBACInstaller
 
     /**
      * Clear all roles
-     *
-     * @return void
      */
     protected function clearRoles(): void
     {
@@ -54,8 +53,6 @@ class RBACInstaller
 
     /**
      * Clear all permissions
-     *
-     * @return void
      */
     protected function clearPermissions(): void
     {
@@ -64,8 +61,6 @@ class RBACInstaller
 
     /**
      * Clear all users
-     *
-     * @return void
      */
     protected function clearUsers(): void
     {
@@ -76,8 +71,8 @@ class RBACInstaller
      * Create a role.
      *
      * @param string $name The name of the role.
-     * @return Role The created role.
      * @throws Throwable
+     * @return Role The created role.
      */
     protected function createRole(string $name, string $color = "#ffffff"): Role
     {

@@ -19,8 +19,6 @@ class DashboardService
 {
     /**
      * Collection of dashboard tabs
-     *
-     * @var Collection
      */
     protected Collection $tabs;
 
@@ -37,9 +35,44 @@ class DashboardService
     }
 
     /**
+     * Add a new tab to the dashboard
+     */
+    public function addTab(Tab $tab, array $vars = []): self
+    {
+        $this->tabs->push($tab);
+        $this->vars = $this->vars->merge($vars);
+
+        return $this;
+    }
+
+    /**
+     * Get all registered tabs
+     */
+    public function getTabs(): Collection
+    {
+        return $this->tabs;
+    }
+
+    /**
+     * Get all registered vars
+     */
+    public function getVars(): Collection
+    {
+        return $this->vars;
+    }
+
+    /**
+     * Get the main dashboard layout with tabs
+     */
+    public function getLayout(): array
+    {
+        return [
+            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
+        ];
+    }
+
+    /**
      * Calculate user metrics
-     *
-     * @return array
      */
     protected function calculateUserMetrics(): array
     {
@@ -134,8 +167,6 @@ class DashboardService
 
     /**
      * Calculate notification metrics
-     *
-     * @return array
      */
     protected function calculateNotificationMetrics(): array
     {
@@ -168,8 +199,6 @@ class DashboardService
 
     /**
      * Calculate user registration chart data
-     *
-     * @return array
      */
     protected function calculateUserRegistrationData(): array
     {
@@ -210,8 +239,6 @@ class DashboardService
 
     /**
      * Calculate user activity chart data
-     *
-     * @return array
      */
     protected function calculateUserActivityData(): array
     {
@@ -261,8 +288,6 @@ class DashboardService
 
     /**
      * Calculate payment metrics
-     *
-     * @return array
      */
     protected function calculatePaymentMetrics(): array
     {
@@ -368,8 +393,6 @@ class DashboardService
 
     /**
      * Calculate payment statistics for charts
-     *
-     * @return array
      */
     protected function calculatePaymentChartData(): array
     {
@@ -426,8 +449,6 @@ class DashboardService
 
     /**
      * Calculate payment methods distribution
-     *
-     * @return array
      */
     protected function calculatePaymentMethodsData(): array
     {
@@ -456,8 +477,6 @@ class DashboardService
 
     /**
      * Get the main information tab
-     *
-     * @return array
      */
     protected function getMainTab(): array
     {
@@ -505,8 +524,6 @@ class DashboardService
 
     /**
      * Get the payments tab
-     *
-     * @return array
      */
     protected function getPaymentsTab(): array
     {
@@ -554,8 +571,6 @@ class DashboardService
 
     /**
      * Register default dashboard tabs
-     *
-     * @return void
      */
     protected function registerDefaultTabs(): void
     {
@@ -564,52 +579,5 @@ class DashboardService
 
         $paymentsTab = $this->getPaymentsTab();
         $this->addTab($paymentsTab['tab'], $paymentsTab['vars']);
-    }
-
-    /**
-     * Add a new tab to the dashboard
-     *
-     * @param Tab $tab
-     * @param array $vars
-     * @return self
-     */
-    public function addTab(Tab $tab, array $vars = []): self
-    {
-        $this->tabs->push($tab);
-        $this->vars = $this->vars->merge($vars);
-
-        return $this;
-    }
-
-    /**
-     * Get all registered tabs
-     *
-     * @return Collection
-     */
-    public function getTabs(): Collection
-    {
-        return $this->tabs;
-    }
-
-    /**
-     * Get all registered vars
-     *
-     * @return Collection
-     */
-    public function getVars(): Collection
-    {
-        return $this->vars;
-    }
-
-    /**
-     * Get the main dashboard layout with tabs
-     *
-     * @return array
-     */
-    public function getLayout(): array
-    {
-        return [
-            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
-        ];
     }
 }

@@ -15,7 +15,7 @@ use Flute\Core\Router\Router;
 |
 */
 
-router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/pages/'], function (Router $router) {
+router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/pages/'], static function (Router $router) {
     $router->delete('delete-widget/{id}', [WidgetController::class, 'deleteWidget'])
         ->name('pages.deleteWidget');
 

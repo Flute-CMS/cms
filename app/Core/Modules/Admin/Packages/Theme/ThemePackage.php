@@ -46,13 +46,13 @@ class ThemePackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getThemesCount(): int
-    {
-        return sizeof(app(ThemeManager::class)->getAllThemes());
-    }
-
     public function getPriority(): int
     {
         return 14;
+    }
+
+    protected function getThemesCount(): int
+    {
+        return sizeof(app(ThemeManager::class)->getAllThemes());
     }
 }

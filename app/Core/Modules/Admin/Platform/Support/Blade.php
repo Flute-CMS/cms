@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Platform\Support;
 
+use Closure;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\AnonymousComponent;
@@ -20,7 +21,6 @@ class Blade
     /**
      * Used to render a Blade component from a class and an array of data
      *
-     * @param string $class
      * @param mixed  $data
      *
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -35,7 +35,7 @@ class Blade
 
         $view = $component->resolveView();
 
-        if ($view instanceof \Closure) {
+        if ($view instanceof Closure) {
             $view = $component->resolveView()($component->data());
 
             return view($view)->render();
@@ -55,12 +55,9 @@ class Blade
     /**
      * Get instance of the ViewComponent based on the provided class and data
      *
-     * @param string $component
      * @param mixed  $data
      *
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
-     *
-     * @return ViewComponent
      */
     public static function resolveComponent(string $component, $data): ViewComponent
     {

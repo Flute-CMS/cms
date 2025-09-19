@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Git\Exceptions;
 
-class AlreadyInstalledException extends \Exception
+use Exception;
+
+class AlreadyInstalledException extends Exception
 {
 }

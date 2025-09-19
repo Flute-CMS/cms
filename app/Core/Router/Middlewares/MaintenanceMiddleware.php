@@ -2,12 +2,13 @@
 
 namespace Flute\Core\Router\Middlewares;
 
+use Closure;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 
 class MaintenanceMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         if (!is_installed()) {
             return $next($request);

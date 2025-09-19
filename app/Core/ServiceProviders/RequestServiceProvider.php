@@ -16,13 +16,11 @@ class RequestServiceProvider extends AbstractServiceProvider
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            FluteRequest::class => \DI\factory(function () {
-                return FluteRequest::createFromGlobals();
-            }),
+            FluteRequest::class => \DI\factory(static fn () => FluteRequest::createFromGlobals()),
             Request::class => \DI\get(FluteRequest::class),
             RequestInterface::class => \DI\get(FluteRequest::class),
             Response::class => \DI\create(),
-            RequestContext::class => \DI\factory(function (Container $container) {
+            RequestContext::class => \DI\factory(static function (Container $container) {
                 $context = new RequestContext();
                 $context->fromRequest($container->get(Request::class));
 

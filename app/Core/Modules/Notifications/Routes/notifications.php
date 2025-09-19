@@ -4,7 +4,7 @@ use Flute\Core\Modules\Notifications\Controllers\Components\NotificationsSidebar
 use Flute\Core\Modules\Notifications\Controllers\NotificationController;
 use Flute\Core\Router\Contracts\RouterInterface;
 
-$router->group(['prefix' => "api/notifications", 'middleware' => 'auth'], function (RouterInterface $routeGroup) {
+$router->group(['prefix' => "api/notifications", 'middleware' => 'auth'], static function (RouterInterface $routeGroup) {
     $routeGroup->get('/all', [NotificationController::class, 'getAll']);
     $routeGroup->get('/unread', [NotificationController::class, 'getUnread']);
     $routeGroup->get('/count-unread', [NotificationController::class, 'getCountUnread']);

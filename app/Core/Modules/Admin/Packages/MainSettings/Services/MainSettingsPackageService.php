@@ -2,24 +2,23 @@
 
 namespace Flute\Admin\Packages\MainSettings\Services;
 
+use Exception;
 use Flute\Admin\Platform\Repository;
 use Flute\Core\Support\FluteStr;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use PDO;
+use PDOException;
 
 class MainSettingsPackageService
 {
     /**
      * Slaги вкладок для использования в разных методах.
-     *
-     * @var array
      */
     protected array $tabSlugs;
 
     /**
      * Маппинг входных ключей к ключам конфигурации.
-     *
-     * @var array
      */
     protected array $configMappings;
 
@@ -50,7 +49,7 @@ class MainSettingsPackageService
                 'auto_update' => 'app.auto_update',
                 'csrf_enabled' => 'app.csrf_enabled',
                 'convert_to_webp' => 'app.convert_to_webp',
-                    'development_mode' => 'app.development_mode',
+                'development_mode' => 'app.development_mode',
                 'debug' => 'app.debug',
                 'debug_ips' => 'app.debug_ips',
                 'currency_view' => 'lk.currency_view',
@@ -113,8 +112,6 @@ class MainSettingsPackageService
 
     /**
      * Инициализирует базы данных из конфигурации.
-     *
-     * @return Collection
      */
     public function initDatabases(): Collection
     {
@@ -157,8 +154,6 @@ class MainSettingsPackageService
 
     /**
      * Возвращает настройки вкладок.
-     *
-     * @return array
      */
     public function getTabSettings(): array
     {
@@ -242,8 +237,6 @@ class MainSettingsPackageService
 
     /**
      * Возвращает правила валидации для каждой вкладки.
-     *
-     * @return array
      */
     public function getValidationRules(): array
     {
@@ -327,10 +320,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает булевые входные данные.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processBooleanInputs(array $rules, array $inputs): array
     {
@@ -346,10 +335,6 @@ class MainSettingsPackageService
 
     /**
      * Обновляет конфигурацию на основе входных данных и текущей вкладки.
-     *
-     * @param array $inputs
-     * @param string $currentTab
-     * @return void
      */
     public function updateConfig(array $inputs, string $currentTab): void
     {
@@ -404,10 +389,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает входные данные как массив из строки, разделенной запятыми.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processArrayInputs(array $rules, array $inputs): array
     {
@@ -423,10 +404,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает булевые и массивные входные данные.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processInputs(array $rules, array $inputs): array
     {
@@ -439,17 +416,14 @@ class MainSettingsPackageService
     /**
      * Сохраняет настройки на основе текущей вкладки и входных данных.
      *
-     * @param string $currentTab
-     * @param array $data
-     * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function saveSettings(string $currentTab, array $data): bool
     {
         $tabSettings = $this->getTabSettings();
 
         if (!array_key_exists($currentTab, $tabSettings)) {
-            throw new \Exception(__('admin-main-settings.messages.unknown_tab'));
+            throw new Exception(__('admin-main-settings.messages.unknown_tab'));
         }
 
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
@@ -473,8 +447,8 @@ class MainSettingsPackageService
                 case 'mysql':
                     $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
                     $options = [
-                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_TIMEOUT => 5,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_TIMEOUT => 5,
                     ];
 
                     break;
@@ -482,8 +456,8 @@ class MainSettingsPackageService
                 case 'postgres':
                     $dsn = "pgsql:host={$host};port={$port};dbname={$database};";
                     $options = [
-                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_TIMEOUT => 5,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_TIMEOUT => 5,
                     ];
 
                     break;
@@ -492,11 +466,11 @@ class MainSettingsPackageService
                     return __('admin-main-settings.messages.unsupported_driver');
             }
 
-            $pdo = new \PDO($dsn, $user, $password, $options);
+            $pdo = new PDO($dsn, $user, $password, $options);
             $pdo = null;
 
             return true;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return $e->getMessage();
         }
     }

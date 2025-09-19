@@ -2,48 +2,36 @@
 
 namespace Flute\Admin\Platform\Components\Cells;
 
+use Closure;
 use Illuminate\View\Component;
 
 class BadgeLink extends Component
 {
     /**
      * Display value (badge text).
-     *
-     * @var string
      */
-
     public string $value;
 
     /**
      * URL link.
-     *
-     * @var string
      */
-
     public string $url;
 
     /**
      * Row data.
-     *
-     * @var object
      */
-
     public object $_row;
 
     /**
      * CSS‑class for badge.
-     *
-     * @var string
      */
-
-
     public string $badgeClass;
 
     /**
      * BadgeLink constructor.
      *
      * @param string $value      Cell value (will be substituted in badge text).
-     * @param string|\Closure $url Link address. If a string is passed and it contains a placeholder `%s`, it will be replaced with the value.
+     * @param string|Closure $url Link address. If a string is passed and it contains a placeholder `%s`, it will be replaced with the value.
      *                             If a closure is passed, it will be called with the value as an argument.
      * @param string $badgeClass CSS‑class for badge (default is «badge-primary»).
      */
@@ -62,7 +50,7 @@ class BadgeLink extends Component
 
         foreach ($this->_row as $key => $value) {
             if (!is_object($value) && !is_array($value)) {
-                $url = str_replace(":$key", (string) $value, $url);
+                $url = str_replace(":{$key}", (string) $value, $url);
             }
 
             if (is_object($value) || is_array($value)) {
@@ -79,7 +67,7 @@ class BadgeLink extends Component
                         }
                     }
                     if (!is_object($current) && !is_array($current)) {
-                        $url = str_replace(":$path", (string) $current, $url);
+                        $url = str_replace(":{$path}", (string) $current, $url);
                     }
                 } else {
                     $this->processNestedValue($value, $key, $url);
@@ -89,13 +77,6 @@ class BadgeLink extends Component
 
         $this->url = $url;
         $this->badgeClass = $badgeClass;
-    }
-
-    private function processNestedValue($value, $key, $url)
-    {
-        if (is_object($value) && isset($value->{$key})) {
-            $url = str_replace(":$key", $value->{$key}, $url);
-        }
     }
 
     /**
@@ -120,5 +101,12 @@ class BadgeLink extends Component
             htmlspecialchars($this->badgeClass, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($this->value, ENT_QUOTES, 'UTF-8')
         );
+    }
+
+    private function processNestedValue($value, $key, $url)
+    {
+        if (is_object($value) && isset($value->{$key})) {
+            $url = str_replace(":{$key}", $value->{$key}, $url);
+        }
     }
 }

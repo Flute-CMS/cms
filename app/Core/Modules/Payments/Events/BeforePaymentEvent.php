@@ -9,6 +9,7 @@ class BeforePaymentEvent extends Event
     public const NAME = 'payment.before';
 
     protected $amount;
+
     protected $promo;
 
     public function __construct(int $amount, string $promo)

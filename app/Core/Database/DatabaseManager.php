@@ -10,16 +10,24 @@ use Flute\Core\App;
 class DatabaseManager
 {
     protected App $app;
+
     protected CycleDatabaseManager $dbal;
 
     // Static instance for singleton pattern
     protected static ?self $instance = null;
 
     /**
+     * @throws Exception
+     */
+    public function __construct(App $app)
+    {
+        $this->app = $app;
+        $this->configure();
+    }
+
+    /**
      * Get the singleton instance of DatabaseManager
      *
-     * @param App|null $app
-     * @return self
      * @throws Exception
      */
     public static function getInstance(?App $app = null): self
@@ -35,12 +43,21 @@ class DatabaseManager
     }
 
     /**
-     * @throws Exception
+     * Get the Cycle Database Manager instance.
      */
-    public function __construct(App $app)
+    public function getDbal(): CycleDatabaseManager
     {
-        $this->app = $app;
-        $this->configure();
+        return $this->dbal;
+    }
+
+    /**
+     * Get a specific database connection.
+     *
+     * @param string $name The name of the database connection.
+     */
+    public function database(string $name = 'default'): \Cycle\Database\DatabaseInterface
+    {
+        return $this->dbal->database($name);
     }
 
     /**
@@ -55,26 +72,5 @@ class DatabaseManager
         }
 
         $this->dbal = new CycleDatabaseManager($config);
-    }
-
-    /**
-     * Get the Cycle Database Manager instance.
-     *
-     * @return CycleDatabaseManager
-     */
-    public function getDbal(): CycleDatabaseManager
-    {
-        return $this->dbal;
-    }
-
-    /**
-     * Get a specific database connection.
-     *
-     * @param string $name The name of the database connection.
-     * @return \Cycle\Database\DatabaseInterface
-     */
-    public function database(string $name = 'default'): \Cycle\Database\DatabaseInterface
-    {
-        return $this->dbal->database($name);
     }
 }

@@ -84,7 +84,7 @@ class SelectRegistry
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 20,
-                'scope' => function ($select) {
+                'scope' => static function ($select) {
                     if (!user()->can('admin.boss')) {
                         $myPriority = user()->getHighestPriority();
                         $select->where('priority', '<', $myPriority);
@@ -98,7 +98,7 @@ class SelectRegistry
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 20,
-                'scope' => function ($select) {
+                'scope' => static function ($select) {
                     if (!user()->can('admin.boss')) {
                         $myPriority = user()->getHighestPriority();
                         $select->where('priority', '<', $myPriority);

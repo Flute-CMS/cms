@@ -46,11 +46,6 @@ abstract class Block extends Layout
         $this->layouts = $layouts;
     }
 
-    protected function commandBar(): array
-    {
-        return $this->commandBar;
-    }
-
     /**
      * @return mixed
      */
@@ -121,5 +116,10 @@ abstract class Block extends Layout
         $this->variables['morph'] = $morph;
 
         return $this;
+    }
+
+    protected function commandBar(): array
+    {
+        return $this->commandBar;
     }
 }

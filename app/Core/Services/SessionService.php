@@ -28,10 +28,6 @@ class SessionService implements SessionInterface
 
     /**
      * Listen to change lang event.
-     *
-     * @param EventDispatcher $eventDispatcher
-     *
-     * @return void
      */
     public function listen(EventDispatcher $eventDispatcher): void
     {
@@ -51,32 +47,7 @@ class SessionService implements SessionInterface
     }
 
     /**
-     * Sets the session language
-     *
-     * @return void
-     */
-    protected function setSessionLanguage(): void
-    {
-        $availableLanguages = app('lang.available');
-        $defaultLanguage = app('lang.locale');
-        $currentCookieLang = cookie()->get('current_lang');
-        $currentSessionLang = $this->session->get('lang');
-
-        if (cookie()->has('current_lang') && in_array($currentCookieLang, (array) $availableLanguages)) {
-            $lang = $currentCookieLang;
-        } elseif (!$currentSessionLang) {
-            $lang = app(TranslationService::class)->getPreferredLanguage();
-        } else {
-            $lang = in_array($currentSessionLang, (array) $availableLanguages) ? $currentSessionLang : $defaultLanguage;
-        }
-
-        app()->setLang($lang);
-    }
-
-    /**
      * Return flash bang
-     *
-     * @return FlashBagInterface
      */
     public function getFlashBag(): FlashBagInterface
     {
@@ -85,8 +56,6 @@ class SessionService implements SessionInterface
 
     /**
      * Start the session.
-     *
-     * @return bool
      */
     public function start(): bool
     {
@@ -118,8 +87,6 @@ class SessionService implements SessionInterface
 
     /**
      * Gets all session values.
-     *
-     * @return array
      */
     public function all(): array
     {
@@ -249,5 +216,26 @@ class SessionService implements SessionInterface
     public function getMetadataBag(): MetadataBag
     {
         return $this->session->getMetadataBag();
+    }
+
+    /**
+     * Sets the session language
+     */
+    protected function setSessionLanguage(): void
+    {
+        $availableLanguages = app('lang.available');
+        $defaultLanguage = app('lang.locale');
+        $currentCookieLang = cookie()->get('current_lang');
+        $currentSessionLang = $this->session->get('lang');
+
+        if (cookie()->has('current_lang') && in_array($currentCookieLang, (array) $availableLanguages)) {
+            $lang = $currentCookieLang;
+        } elseif (!$currentSessionLang) {
+            $lang = app(TranslationService::class)->getPreferredLanguage();
+        } else {
+            $lang = in_array($currentSessionLang, (array) $availableLanguages) ? $currentSessionLang : $defaultLanguage;
+        }
+
+        app()->setLang($lang);
     }
 }

@@ -19,9 +19,6 @@ class ValidatorStr
     /**
      * Does `$a` overlap with `$b` from the left-hand side.
      *
-     * @param string $a
-     * @param string $b
-     *
      * @return bool|string
      */
     public static function overlapLeft(string $a, string $b)
@@ -36,9 +33,10 @@ class ValidatorStr
 
         if (substr_count($a, '.') > substr_count($b, '.')) {
             return static::overlapLeft(substr($a, 0, strrpos($a, '.')), $b);
-        } else {
-            return static::overlapLeft($a, substr($b, 0, strrpos($b, '.')));
         }
+
+        return static::overlapLeft($a, substr($b, 0, strrpos($b, '.')));
+
     }
 
     /**

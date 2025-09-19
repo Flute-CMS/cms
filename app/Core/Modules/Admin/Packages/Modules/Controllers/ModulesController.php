@@ -43,8 +43,6 @@ class ModulesController extends BaseController
 
     /**
      * Handler for module installation via file upload
-     *
-     * @param FluteRequest $request
      */
     public function installModule(FluteRequest $request)
     {

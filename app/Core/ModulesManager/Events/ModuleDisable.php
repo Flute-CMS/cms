@@ -10,6 +10,7 @@ class ModuleDisable extends Event
     public const NAME = 'module.disable';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

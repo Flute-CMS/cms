@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
 
@@ -30,15 +31,13 @@ class UsersOnlineWidget extends AbstractWidget
     public function render(array $settings): string
     {
         $onlineUsers = User::query()
-                ->where('last_logged', '>=', (new \DateTimeImmutable())->modify('-10 minutes'))
-                ->where('hidden', false)
-                ->orderBy(['last_logged' => 'DESC'])
-                ->limit($settings['max_display'] ?? 10)
-                ->fetchAll();
+            ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
+            ->where('hidden', false)
+            ->orderBy(['last_logged' => 'DESC'])
+            ->limit($settings['max_display'] ?? 10)
+            ->fetchAll();
 
-        usort($onlineUsers, static function ($a, $b) {
-            return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
-        });
+        usort($onlineUsers, static fn ($a, $b) => ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0));
 
         return view('flute::widgets.users-online', [
             'users' => $onlineUsers,

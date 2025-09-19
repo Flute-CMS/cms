@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform;
 
 use Clickfwd\Yoyo\Exceptions\BypassRenderMethod;
 use Clickfwd\Yoyo\YoyoHelpers;
+use Exception;
 use Flute\Admin\Platform\Contracts\ScreenInterface;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Core\Contracts\FluteComponentInterface;
@@ -17,12 +18,14 @@ use Illuminate\Support\Arr;
  */
 abstract class Screen extends FluteComponent implements ScreenInterface
 {
-    protected $additionalLayouts;
-
     public $modalId = null;
+
     public $slug = null;
+
     public $modalParams = null;
+
     public $js = [];
+
     public $css = [];
 
     public array $excludesVariables = [
@@ -33,6 +36,8 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         'js',
         'css',
     ];
+
+    protected $additionalLayouts;
 
     public function boot(array $variables, array $attributes): FluteComponentInterface
     {
@@ -69,8 +74,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * Defines the base view for the screen.
-     *
-     * @return string
      */
     public function screenBaseView(): string
     {
@@ -79,8 +82,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * The name of the screen to be displayed in the header.
-     *
-     * @return string|null
      */
     public function name(): ?string
     {
@@ -89,8 +90,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * Get the JavaScript files to be loaded.
-     *
-     * @return array
      */
     public function getJs(): array
     {
@@ -99,8 +98,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * Get the CSS files to be loaded.
-     *
-     * @return array
      */
     public function getCss(): array
     {
@@ -109,8 +106,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * A description of the screen to be displayed in the header.
-     *
-     * @return string|null
      */
     public function description(): ?string
     {
@@ -119,8 +114,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * The popover text for the screen to be displayed in the header.
-     *
-     * @return string|null
      */
     public function popover(): ?string
     {
@@ -129,8 +122,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * The permissions required to access this screen.
-     *
-     * @return iterable|null
      */
     public function permission(): ?iterable
     {
@@ -151,15 +142,12 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     /**
      * Define the layouts for the screen.
-     *
-     * @return array
      */
     abstract public function layout(): array;
 
     /**
      * Builds the screen using the given data repository.
      *
-     * @param \Flute\Admin\Platform\Repository $repository
      * @return mixed
      */
     public function build(Repository $repository)
@@ -218,23 +206,10 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         ]);
     }
 
-    protected function checkAccess(): bool
-    {
-        if (!user()->isLoggedIn()) {
-            return false; // User is not authenticated
-        }
-
-        if ($this->permission() === null) {
-            return true; // No permissions required
-        }
-
-        return user()->can($this->permission());
-    }
-
     public function openModal(string $modalFunc, $params = null)
     {
         if (!is_callable([$this, $modalFunc])) {
-            throw new \Exception('Modal '.$modalFunc.' function is not callable');
+            throw new Exception('Modal '.$modalFunc.' function is not callable');
         }
 
         $decryptedParams = is_string($params) ? encrypt()->decrypt($params) : $params;
@@ -270,5 +245,18 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
+    }
+
+    protected function checkAccess(): bool
+    {
+        if (!user()->isLoggedIn()) {
+            return false; // User is not authenticated
+        }
+
+        if ($this->permission() === null) {
+            return true; // No permissions required
+        }
+
+        return user()->can($this->permission());
     }
 }

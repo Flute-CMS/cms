@@ -11,7 +11,9 @@ use Illuminate\Support\Collection;
 class ModuleDependencies
 {
     protected array $dependencies;
+
     protected Collection $activeModules;
+
     protected Theme $activeTheme;
 
     /**

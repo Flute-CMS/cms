@@ -34,7 +34,7 @@ class AuthServiceProvider extends AbstractServiceProvider
         if (is_installed()) {
             $this->loadRoutesFrom(cms_path('Auth/Routes/auth.php'));
 
-            events()->addListener(TemplateInitialized::NAME, function (TemplateInitialized $event) {
+            events()->addListener(TemplateInitialized::NAME, static function (TemplateInitialized $event) {
                 $template = $event->getTemplate();
 
                 if (is_admin_path()) {

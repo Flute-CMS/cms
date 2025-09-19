@@ -12,9 +12,6 @@ class Tab extends Field
 {
     /**
      * Set the title of the tab.
-     *
-     * @param string $title
-     * @return self
      */
     public function title(string $title): self
     {
@@ -27,7 +24,6 @@ class Tab extends Field
      * Set the badge of the tab.
      *
      * @param mixed $badge
-     * @return self
      */
     public function badge($badge): self
     {
@@ -38,9 +34,6 @@ class Tab extends Field
 
     /**
      * Set the icon of the tab.
-     *
-     * @param string $icon
-     * @return self
      */
     public function icon(string $icon): self
     {
@@ -51,9 +44,6 @@ class Tab extends Field
 
     /**
      * Set the active tab.
-     *
-     * @param bool $active
-     * @return self
      */
     public function active(bool $active = true): self
     {
@@ -66,7 +56,6 @@ class Tab extends Field
      * Set the nested layouts.
      *
      * @param Layout[] $layouts
-     * @return self
      */
     public function layouts(array $layouts): self
     {
@@ -79,7 +68,6 @@ class Tab extends Field
      * Set the slug for the tab.
      *
      * @param string|int $slug
-     * @return self
      */
     public function slug($slug): self
     {
@@ -90,9 +78,6 @@ class Tab extends Field
 
     /**
      * Set the href for the tab.
-     *
-     * @param string $href
-     * @return self
      */
     public function href(string $href): self
     {
@@ -103,8 +88,6 @@ class Tab extends Field
 
     /**
      * Get the title of the tab.
-     *
-     * @return string|null
      */
     public function getTitle(): ?string
     {
@@ -123,8 +106,6 @@ class Tab extends Field
 
     /**
      * Get the icon of the tab.
-     *
-     * @return string|null
      */
     public function getIcon(): ?string
     {
@@ -138,8 +119,6 @@ class Tab extends Field
 
     /**
      * Check if the tab is active.
-     *
-     * @return bool
      */
     public function isActive(): bool
     {
@@ -168,8 +147,6 @@ class Tab extends Field
 
     /**
      * Get the href for the tab.
-     *
-     * @return string|null
      */
     public function getHref(): ?string
     {

@@ -3,13 +3,15 @@
 namespace Flute\Core\Validator;
 
 use Countable;
+use DateTime;
+use Exception;
 use Flute\Core\Validator\Support\ValidatorStr;
+use InvalidArgumentException;
 use MadeSimple\Arrays\ArrDots;
 
 class FluteValidate
 {
     /**
-     * @param FluteValidator $validator
      */
     public static function addRuleSet(FluteValidator $validator)
     {
@@ -84,7 +86,6 @@ class FluteValidate
      *
      * Проверяет, является ли значение числом.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -105,7 +106,6 @@ class FluteValidate
      *
      * Проверяет, что дата находится после заданной даты или после другой даты из данных.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -127,8 +127,8 @@ class FluteValidate
                     continue;
                 }
 
-                $date1 = \DateTime::createFromFormat('Y-m-d H:i:s', $value) ?: \DateTime::createFromFormat('Y-m-d', $value);
-                $date2 = \DateTime::createFromFormat('Y-m-d H:i:s', $compareValue) ?: \DateTime::createFromFormat('Y-m-d', $compareValue);
+                $date1 = DateTime::createFromFormat('Y-m-d H:i:s', $value) ?: DateTime::createFromFormat('Y-m-d', $value);
+                $date2 = DateTime::createFromFormat('Y-m-d H:i:s', $compareValue) ?: DateTime::createFromFormat('Y-m-d', $compareValue);
 
                 if (!$date1 || !$date2 || $date1 <= $date2) {
                     $validator->addError($attribute, $rule, [
@@ -142,10 +142,10 @@ class FluteValidate
 
                     if ($currentDate->lte($compareDate)) {
                         $validator->addError($attribute, $rule, [
-                                ':date' => $comparison,
-                            ]);
+                            ':date' => $comparison,
+                        ]);
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     if (is_debug()) {
                         throw $e;
                     }
@@ -164,7 +164,6 @@ class FluteValidate
      * Проверяет, является ли значение булевым.
      * Допустимые значения: true, false, 1, 0, "1", "0", "true", "false"
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -196,7 +195,6 @@ class FluteValidate
      *
      * Проверяет, является ли значение целым числом.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -221,7 +219,6 @@ class FluteValidate
      *
      * Проверяет, является ли значение строкой.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -242,7 +239,6 @@ class FluteValidate
      *
      * Проверяет, является ли значение массивом.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -263,7 +259,6 @@ class FluteValidate
      *
      * Проверяет, является ли значение допустимой временной зоной.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -288,32 +283,10 @@ class FluteValidate
     }
 
     /**
-     * Checks whether or not $value is filled,
-     * i.e. $value is no empty string, array or Countable and not null.
-     *
-     * @param mixed $value
-     *
-     * @return bool true when $value is filled, elsewise false
-     */
-    protected static function isFilled($value)
-    {
-        if (is_object($value) && method_exists($value, 'getError')) {
-            return $value->getError() === UPLOAD_ERR_OK;
-        }
-
-        return !(
-            (is_null($value)) ||
-            (is_string($value) && $value === '') ||
-            ((is_array($value) || is_a($value, Countable::class)) && empty($value))
-        );
-    }
-
-    /**
      * nullable
      *
      * Позволяет полю быть null или пустым. Если поле не пустое, продолжает проверку остальных правил.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -330,7 +303,6 @@ class FluteValidate
      *
      * Проверяет, является ли файл изображением по MIME типу.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -399,7 +371,6 @@ class FluteValidate
     /**
      * Validate that an attribute has a file of a given MIME type.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -513,7 +484,6 @@ class FluteValidate
     /**
      * present
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -530,7 +500,6 @@ class FluteValidate
     /**
      * required
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -567,7 +536,6 @@ class FluteValidate
     /**
      * required-if:another-field(,value)+
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -614,7 +582,6 @@ class FluteValidate
     /**
      * required-with:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -628,7 +595,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
+            throw new InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
         }
 
         // If the required with field exists and the pattern field does not
@@ -655,7 +622,6 @@ class FluteValidate
     /**
      * required-with-all:another-field(,another-field)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -670,7 +636,7 @@ class FluteValidate
             $isWild = strpos($field, $validator::WILD) !== false;
             $overlaps[$k] = $isWild ? ValidatorStr::overlapLeft($field, $pattern) : null;
             if ($isWild && $overlaps[$k] === false) {
-                throw new \InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
+                throw new InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
             }
             // Store the longest overlap
             $longest = $isWild && strlen($overlaps[$k]) > strlen($overlaps[$longest]) ? $k : $longest;
@@ -727,7 +693,6 @@ class FluteValidate
     /**
      * required-with-any:another-field(,another-field)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -742,7 +707,7 @@ class FluteValidate
             $isWild = strpos($field, $validator::WILD) !== false;
             $overlaps[$k] = $isWild ? ValidatorStr::overlapLeft($field, $pattern) : null;
             if ($isWild && $overlaps[$k] === false) {
-                throw new \InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
+                throw new InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
             }
             // Store the longest overlap
             $longest = $isWild && strlen($overlaps[$k]) > strlen($overlaps[$longest]) ? $k : $longest;
@@ -751,7 +716,7 @@ class FluteValidate
         // If the pattern field does not exist
         if (!ArrDots::has($data, $pattern, $validator::WILD)) {
             // Check that any "required with" fields are present and not null
-            $required = array_reduce($parameters, function ($required, $field) use ($validator, $data) {
+            $required = array_reduce($parameters, static function ($required, $field) use ($validator, $data) {
                 if (!$required && ArrDots::has($data, $field, $validator::WILD)) {
                     foreach (FluteValidator::getValues($data, $field) as $value) {
                         $required = $required || static::isFilled($value);
@@ -794,7 +759,6 @@ class FluteValidate
     /**
      * required-without:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -808,7 +772,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
+            throw new InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
         }
 
         // If the required with field exists and the pattern field does not
@@ -832,11 +796,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * equals:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -850,7 +812,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
+            throw new InvalidArgumentException('Cannot match pattern (' . $pattern . ') to field (' . $field . ')');
         }
 
         // Check values are equal
@@ -869,7 +831,6 @@ class FluteValidate
     /**
      * not-equals:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -883,7 +844,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern to field');
+            throw new InvalidArgumentException('Cannot match pattern to field');
         }
 
         // Check values are equal
@@ -902,7 +863,6 @@ class FluteValidate
     /**
      * identical:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -916,7 +876,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern to field');
+            throw new InvalidArgumentException('Cannot match pattern to field');
         }
 
         // Check values are equal
@@ -935,7 +895,6 @@ class FluteValidate
     /**
      * not-identical:another-field
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -949,7 +908,7 @@ class FluteValidate
 
         // Check that the pattern and field can be compared
         if ($isWild && $overlap === false) {
-            throw new \InvalidArgumentException('Cannot match pattern to field');
+            throw new InvalidArgumentException('Cannot match pattern to field');
         }
 
         // Check values are equal
@@ -965,11 +924,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * in:<value>(,<value>)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -992,7 +949,6 @@ class FluteValidate
     /**
      * not-in:<value>(,<value>)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1015,7 +971,6 @@ class FluteValidate
     /**
      * contains:<value>(,<value>)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1038,7 +993,6 @@ class FluteValidate
     /**
      * contains-only:<value>(,<value>)*
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1061,7 +1015,6 @@ class FluteValidate
     /**
      * min-arr-count:<minimum_value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1087,7 +1040,6 @@ class FluteValidate
     /**
      * max-arr-count:<minimum_value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1110,11 +1062,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * min:<minimum-value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1140,7 +1090,6 @@ class FluteValidate
     /**
      * max:<minimum_value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1168,7 +1117,6 @@ class FluteValidate
      *
      * Проверяет, что размер файла не превышает заданное значение (в килобайтах).
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1201,7 +1149,6 @@ class FluteValidate
     /**
      * greater-than:<another_field>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1227,7 +1174,6 @@ class FluteValidate
     /**
      * less-than:<another_field>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1251,11 +1197,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * alpha
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1277,7 +1221,6 @@ class FluteValidate
     /**
      * alpha-numeric
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1299,7 +1242,6 @@ class FluteValidate
     /**
      * min-str-len:<minimum_value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1325,7 +1267,6 @@ class FluteValidate
     /**
      * max-str-len:<minimum_value>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1351,7 +1292,6 @@ class FluteValidate
     /**
      * str-len:<exact-length>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1376,7 +1316,6 @@ class FluteValidate
     /**
      * human-name
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1397,11 +1336,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * is:<type>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1427,11 +1364,9 @@ class FluteValidate
         }
     }
 
-
     /**
      * email
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1455,7 +1390,6 @@ class FluteValidate
      *
      * @link http://php.net/manual/en/datetime.createfromformat.php
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1468,7 +1402,7 @@ class FluteValidate
             if (null === $value || empty($value)) {
                 continue;
             }
-            $d = \DateTime::createFromFormat($format, $value);
+            $d = DateTime::createFromFormat($format, $value);
             if ($d && $d->format($format) == $value) {
                 continue;
             }
@@ -1480,7 +1414,6 @@ class FluteValidate
     /**
      * datetime:<format>
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1496,16 +1429,16 @@ class FluteValidate
             }
 
             if ($format) {
-                $dateTime = \DateTime::createFromFormat($format, $value);
-                $errors = \DateTime::getLastErrors();
+                $dateTime = DateTime::createFromFormat($format, $value);
+                $errors = DateTime::getLastErrors();
 
                 if (!$dateTime || $errors['error_count'] > 0 || $errors['warning_count'] > 0) {
                     $validator->addError($attribute, $rule, [':format' => $format]);
                 }
             } else {
                 try {
-                    new \DateTime($value);
-                } catch (\Exception $e) {
+                    new DateTime($value);
+                } catch (Exception $e) {
                     $validator->addError($attribute, $rule);
                 }
             }
@@ -1515,7 +1448,6 @@ class FluteValidate
     /**
      * url
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1537,7 +1469,6 @@ class FluteValidate
     /**
      * uuid
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1558,13 +1489,11 @@ class FluteValidate
         }
     }
 
-
     /**
      * card-number
      *
      * @see http://stackoverflow.com/questions/174730/what-is-the-best-way-to-validate-a-credit-card-in-php
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1617,7 +1546,6 @@ class FluteValidate
      *
      * @see https://www.php.net/preg_match
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1648,7 +1576,6 @@ class FluteValidate
      *
      * @see https://www.php.net/preg_match
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1703,7 +1630,6 @@ class FluteValidate
      *
      * Проверяет, существует ли значение в указанной таблице и столбце базы данных.
      *
-     * @param FluteValidator $validator
      * @param array $data
      * @param string $pattern
      * @param string $rule
@@ -1712,7 +1638,7 @@ class FluteValidate
     public static function exists(FluteValidator $validator, $data, $pattern, $rule, $parameters)
     {
         if (count($parameters) < 2) {
-            throw new \InvalidArgumentException("Правило 'exists' требует как минимум два параметра: таблица и столбец.");
+            throw new InvalidArgumentException("Правило 'exists' требует как минимум два параметра: таблица и столбец.");
         }
 
         $table = $parameters[0];
@@ -1756,5 +1682,26 @@ class FluteValidate
                 ]);
             }
         }
+    }
+
+    /**
+     * Checks whether or not $value is filled,
+     * i.e. $value is no empty string, array or Countable and not null.
+     *
+     * @param mixed $value
+     *
+     * @return bool true when $value is filled, elsewise false
+     */
+    protected static function isFilled($value)
+    {
+        if (is_object($value) && method_exists($value, 'getError')) {
+            return $value->getError() === UPLOAD_ERR_OK;
+        }
+
+        return !(
+            (is_null($value)) ||
+            (is_string($value) && $value === '') ||
+            ((is_array($value) || is_a($value, Countable::class)) && empty($value))
+        );
     }
 }

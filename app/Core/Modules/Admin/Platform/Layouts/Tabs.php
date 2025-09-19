@@ -24,8 +24,6 @@ abstract class Tabs extends Layout
 
     /**
      * The collection of tabs.
-     *
-     * @var array
      */
     protected array $tabs = [];
 
@@ -119,9 +117,9 @@ abstract class Tabs extends Layout
      * Builds the tabs layout.
      *
      * @param Repository $repository The repository instance.
-     * @return \Illuminate\View\View
      *
      * @throws InvalidArgumentException If the slug is not set.
+     * @return \Illuminate\View\View
      */
     public function build(Repository $repository)
     {
@@ -139,7 +137,7 @@ abstract class Tabs extends Layout
             $layouts = $tab->getLayouts();
 
             $builtLayouts = collect($layouts)
-                ->map(fn ($layout) => Arr::wrap($layout))
+                ->map(static fn ($layout) => Arr::wrap($layout))
                 ->flatMap(fn (iterable $layoutGroup, string $key) => $this->buildChild($layoutGroup, $key, $repository))
                 ->all();
 
@@ -167,7 +165,6 @@ abstract class Tabs extends Layout
      *
      * @param string $slug The slug of the tab.
      * @param mixed $tab The tab instance.
-     * @return bool
      */
     protected function isTabActive(string $slug, $tab): bool
     {
@@ -176,11 +173,11 @@ abstract class Tabs extends Layout
             return true;
         }
 
-        if ($activeTab === null && $tab->isActive()) {
-            return true;
-        }
+        return (bool) ($activeTab === null && $tab->isActive())
 
-        return false;
+
+
+        ;
     }
 
     /**

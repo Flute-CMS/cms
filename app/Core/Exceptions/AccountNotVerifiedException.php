@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class AccountNotVerifiedException extends \Exception
+use Exception;
+
+class AccountNotVerifiedException extends Exception
 {
 }

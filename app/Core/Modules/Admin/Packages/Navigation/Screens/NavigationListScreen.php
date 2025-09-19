@@ -15,14 +15,18 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\NavbarItem;
 use Flute\Core\Database\Entities\Role;
+use Throwable;
 
 class NavigationListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.navigation';
 
     public $navbarItems;
+
     public $roles;
 
     public function mount(): void
@@ -54,10 +58,10 @@ class NavigationListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('navbarItems', [
-                Sight::make('title', __('admin-navigation.table.title'))->render(fn (NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
+                Sight::make('title', __('admin-navigation.table.title'))->render(static fn (NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
                 Sight::make('actions', __('admin-navigation.table.actions'))
                     ->render(
-                        fn (NavbarItem $navbarItem) => DropDown::make()
+                        static fn (NavbarItem $navbarItem) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-navigation.buttons.edit'))
@@ -79,15 +83,6 @@ class NavigationListScreen extends Screen
         ];
     }
 
-    protected function loadNavbarItems()
-    {
-        $this->navbarItems = rep(NavbarItem::class)->select()->orderBy('position', 'asc')->where('parent_id', null)->load('children', [
-            'load' => function ($qb) {
-                $qb->orderBy('position', 'asc');
-            },
-        ])->fetchAll();
-    }
-
     /**
      * Обновление позиций пунктов навигации после сортировки
      */
@@ -107,31 +102,6 @@ class NavigationListScreen extends Screen
         $this->clearNavbarCache();
 
         $this->loadNavbarItems();
-    }
-
-    /**
-     * Recalculate positions recursively without sharing the counter between sibling groups.
-     * This guarantees that each parent has its own contiguous ordering so the UI doesn't get
-     * out of sync after drag-and-drop.
-     */
-    private function reorderItems(array $items, ?NavbarItem $parent = null): void
-    {
-        $position = 0;
-
-        foreach ($items as $item) {
-            $navbarItem = NavbarItem::findByPK($item['id']);
-            if (!$navbarItem) {
-                continue;
-            }
-
-            $navbarItem->position = ++$position;
-            $navbarItem->parent = $parent;
-            $navbarItem->save();
-
-            if (!empty($item['children'])) {
-                $this->reorderItems($item['children'], $navbarItem);
-            }
-        }
     }
 
     /**
@@ -320,7 +290,7 @@ class NavigationListScreen extends Screen
 
         $priority = user()->getHighestPriority();
 
-        $roles = array_map(fn ($role) => $role->id, $navbarItem->roles);
+        $roles = array_map(static fn ($role) => $role->id, $navbarItem->roles);
 
         foreach ($this->roles as $role) {
             if ($role->priority <= $priority) {
@@ -532,6 +502,40 @@ class NavigationListScreen extends Screen
         $this->loadNavbarItems();
     }
 
+    protected function loadNavbarItems()
+    {
+        $this->navbarItems = rep(NavbarItem::class)->select()->orderBy('position', 'asc')->where('parent_id', null)->load('children', [
+            'load' => static function ($qb) {
+                $qb->orderBy('position', 'asc');
+            },
+        ])->fetchAll();
+    }
+
+    /**
+     * Recalculate positions recursively without sharing the counter between sibling groups.
+     * This guarantees that each parent has its own contiguous ordering so the UI doesn't get
+     * out of sync after drag-and-drop.
+     */
+    private function reorderItems(array $items, ?NavbarItem $parent = null): void
+    {
+        $position = 0;
+
+        foreach ($items as $item) {
+            $navbarItem = NavbarItem::findByPK($item['id']);
+            if (!$navbarItem) {
+                continue;
+            }
+
+            $navbarItem->position = ++$position;
+            $navbarItem->parent = $parent;
+            $navbarItem->save();
+
+            if (!empty($item['children'])) {
+                $this->reorderItems($item['children'], $navbarItem);
+            }
+        }
+    }
+
     /**
      * Clear all cached navbar keys matching the cache key prefix.
      */
@@ -543,7 +547,7 @@ class NavigationListScreen extends Screen
             foreach ($keys as $key) {
                 cache()->delete($key);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails
         }
     }

@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
+use DateTimeZone;
+use Exception;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;
 
@@ -113,41 +115,9 @@ class SiteInfoComponent extends FluteComponent
             $this->flashMessage(__('def.success'), 'success');
 
             return $this->redirectTo(route('installer.step', ['id' => 7]), 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->errorMessage = $e->getMessage();
         }
-    }
-
-    /**
-     * Get list of timezones
-     *
-     * @return array
-     */
-    protected function getTimezones(): array
-    {
-        $timezones = [];
-        $regions = [
-            'Africa' => \DateTimeZone::AFRICA,
-            'America' => \DateTimeZone::AMERICA,
-            'Antarctica' => \DateTimeZone::ANTARCTICA,
-            'Arctic' => \DateTimeZone::ARCTIC,
-            'Asia' => \DateTimeZone::ASIA,
-            'Atlantic' => \DateTimeZone::ATLANTIC,
-            'Australia' => \DateTimeZone::AUSTRALIA,
-            'Europe' => \DateTimeZone::EUROPE,
-            'Indian' => \DateTimeZone::INDIAN,
-            'Pacific' => \DateTimeZone::PACIFIC,
-            'UTC' => \DateTimeZone::UTC,
-        ];
-
-        foreach ($regions as $name => $mask) {
-            $zones = \DateTimeZone::listIdentifiers($mask);
-            foreach ($zones as $zone) {
-                $timezones[$zone] = $zone;
-            }
-        }
-
-        return $timezones;
     }
 
     /**
@@ -167,5 +137,35 @@ class SiteInfoComponent extends FluteComponent
             'timezones' => $this->timezones,
             'errorMessage' => $this->errorMessage,
         ]);
+    }
+
+    /**
+     * Get list of timezones
+     */
+    protected function getTimezones(): array
+    {
+        $timezones = [];
+        $regions = [
+            'Africa' => DateTimeZone::AFRICA,
+            'America' => DateTimeZone::AMERICA,
+            'Antarctica' => DateTimeZone::ANTARCTICA,
+            'Arctic' => DateTimeZone::ARCTIC,
+            'Asia' => DateTimeZone::ASIA,
+            'Atlantic' => DateTimeZone::ATLANTIC,
+            'Australia' => DateTimeZone::AUSTRALIA,
+            'Europe' => DateTimeZone::EUROPE,
+            'Indian' => DateTimeZone::INDIAN,
+            'Pacific' => DateTimeZone::PACIFIC,
+            'UTC' => DateTimeZone::UTC,
+        ];
+
+        foreach ($regions as $name => $mask) {
+            $zones = DateTimeZone::listIdentifiers($mask);
+            foreach ($zones as $zone) {
+                $timezones[$zone] = $zone;
+            }
+        }
+
+        return $timezones;
     }
 }

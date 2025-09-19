@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Platform\Components\Cells;
 
+use Closure;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
@@ -10,12 +11,6 @@ class Text extends Component
 {
     /**
      * Create a new component instance.
-     *
-     * @param mixed       $value
-     * @param string|null $title
-     * @param string|null $text
-     * @param int|null    $words
-     * @param int|null    $clamp
      */
     public function __construct(
         protected mixed $value,
@@ -29,7 +24,7 @@ class Text extends Component
     /**
      * Get the view/contents that represent the component.
      *
-     * @return \Illuminate\Contracts\View\View|\Closure|string
+     * @return \Illuminate\Contracts\View\View|Closure|string
      */
     public function render()
     {

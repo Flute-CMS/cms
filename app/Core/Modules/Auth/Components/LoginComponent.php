@@ -13,7 +13,9 @@ use Nette\Schema\ValidationException;
 class LoginComponent extends FluteComponent
 {
     public ?string $loginOrEmail = null;
+
     public ?string $password = null;
+
     public $rememberMe;
 
     public function login()
@@ -49,6 +51,11 @@ class LoginComponent extends FluteComponent
                 toast()->error(__('auth.too_many_requests'))->push();
             }
         }
+    }
+
+    public function render()
+    {
+        return $this->view('flute::components.auth.login');
     }
 
     protected function validator()
@@ -89,10 +96,5 @@ class LoginComponent extends FluteComponent
         }
 
         return true;
-    }
-
-    public function render()
-    {
-        return $this->view('flute::components.auth.login');
     }
 }

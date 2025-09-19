@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Update\Updaters;
 
+use Exception;
 use Flute\Core\Database\Entities\Theme;
 use ZipArchive;
 
@@ -9,23 +10,16 @@ class ThemeUpdater extends AbstractUpdater
 {
     /**
      * Информация о теме
-     *
-     * @var Theme
      */
     protected Theme $theme;
 
     /**
      * Данные темы
-     *
-     * @var array
      */
     protected array $themeData;
 
     /**
      * ThemeUpdater constructor.
-     *
-     * @param Theme $theme
-     * @param array $themeData
      */
     public function __construct(Theme $theme, array $themeData)
     {
@@ -117,7 +111,7 @@ class ThemeUpdater extends AbstractUpdater
             $this->removeDirectory($extractDir);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error('Error during theme update: ' . $e->getMessage());
             // Удаляем временные файлы
             $this->removeDirectory($extractDir);
@@ -128,8 +122,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Получить путь к директории темы
-     *
-     * @return string
      */
     protected function getThemeDirectory(): string
     {
@@ -140,8 +132,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Создать бэкап перед обновлением
-     *
-     * @return bool
      */
     protected function createBackup(): bool
     {
@@ -165,10 +155,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Копировать директорию рекурсивно
-     *
-     * @param string $source
-     * @param string $destination
-     * @return bool
      */
     protected function copyDirectory(string $source, string $destination): bool
     {
@@ -215,9 +201,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Удалить директорию рекурсивно
-     *
-     * @param string $directory
-     * @return bool
      */
     protected function removeDirectory(string $directory): bool
     {
@@ -246,8 +229,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Очистить кэш
-     *
-     * @return void
      */
     protected function clearCache(): void
     {
@@ -281,8 +262,6 @@ class ThemeUpdater extends AbstractUpdater
 
     /**
      * Получить путь к публичной директории
-     *
-     * @return string
      */
     protected function public_path(string $path = ''): string
     {

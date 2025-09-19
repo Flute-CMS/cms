@@ -23,14 +23,6 @@ class Field implements Fieldable, Htmlable
     }
 
     /**
-     * A set of closure functions
-     * that must be executed before data is displayed.
-     *
-     * @var Closure[]
-     */
-    private $beforeRender = [];
-
-    /**
      * View template show.
      *
      * @var string
@@ -111,9 +103,14 @@ class Field implements Fieldable, Htmlable
     protected $inlineAttributes = [];
 
     /**
-     * @param string $method
-     * @param array  $parameters
+     * A set of closure functions
+     * that must be executed before data is displayed.
      *
+     * @var Closure[]
+     */
+    private $beforeRender = [];
+
+    /**
      * @return $this|mixed|static
      */
     public function __call(string $method, array $parameters)
@@ -157,24 +154,6 @@ class Field implements Fieldable, Htmlable
     }
 
     /**
-     * Validates that all required attributes are present in the field.
-     *
-     * @throws FieldRequiredAttributeException if any required attribute is missing.
-     *
-     * @return static Returns the current instance for method chaining.
-     */
-    protected function ensureRequiredAttributesArePresent(): self
-    {
-        collect($this->required)
-            ->filter(fn ($attribute) => !array_key_exists($attribute, $this->attributes))
-            ->each(function ($attribute) {
-                throw new FieldRequiredAttributeException($attribute);
-            });
-
-        return $this;
-    }
-
-    /**
      * Renders the field.
      *
      * @throws Throwable
@@ -204,27 +183,7 @@ class Field implements Fieldable, Htmlable
     }
 
     /**
-     * Translates the field's attributes if necessary.
-     *
-     * @return static
-     */
-    private function translateAttributes(): self
-    {
-        $lang = $this->get('lang');
-
-        collect($this->attributes)
-            ->intersectByKeys(array_flip($this->translations))
-            ->each(function ($value, $key) use ($lang) {
-                $this->set($key, is_string($value) ? __($value, [], $lang) : $value);
-            });
-
-        return $this;
-    }
-
-    /**
      * Gets the field's attributes.
-     *
-     * @return array
      */
     public function getAttributes(): array
     {
@@ -232,36 +191,7 @@ class Field implements Fieldable, Htmlable
     }
 
     /**
-     * Gets the allowed attributes for the field.
-     *
-     * @return ComponentAttributeBag
-     */
-    protected function getAllowAttributes(): ComponentAttributeBag
-    {
-        $allow = array_merge($this->universalAttributes, $this->inlineAttributes);
-
-        $attributes = collect($this->getAttributes())
-            ->filter(fn ($value, $attribute) => Str::is($allow, $attribute))
-            ->toArray();
-
-        return (new ComponentAttributeBag())
-            ->merge($attributes);
-    }
-
-    /**
-     * Gets the allowed data attributes for the field.
-     *
-     * @return ComponentAttributeBag
-     */
-    protected function getAllowDataAttributes(): ComponentAttributeBag
-    {
-        return $this->getAllowAttributes()->filter(fn ($value, $key) => Str::startsWith($key, 'data-'));
-    }
-
-    /**
      * Generates a field ID if not already set.
-     *
-     * @param string $defaultId The default ID to set if none is provided.
      *
      * @return static Returns the current instance for method chaining.
      */
@@ -289,55 +219,6 @@ class Field implements Fieldable, Htmlable
     public function get(string $key, $value = null)
     {
         return $this->attributes[$key] ?? $value;
-    }
-
-    /**
-     * Modifies the 'name' attribute of the field by adding a prefix and/or language identifier if they are set.
-     *
-     * If both prefix and language are set, the name will be modified as "prefix[lang]name".
-     * If only the prefix is set, the name will be modified as "prefixname".
-     * If only the language is set, the name will be modified as "lang[name]".
-     *
-     * @return static Returns the current instance for method chaining.
-     */
-    protected function customizeFieldName(): self
-    {
-        $name = $this->get('name');
-        $prefix = $this->get('prefix');
-        $lang = $this->get('lang');
-
-        if ($prefix !== null && $lang !== null) {
-            return $this->set('name', $prefix.'['.$lang.']'.$name);
-        }
-
-        if ($prefix !== null) {
-            return $this->set('name', $prefix.$name);
-        }
-
-        if ($lang !== null) {
-            return $this->set('name', $lang.'['.$name.']');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Modifies the 'value' attribute of the field.
-     *
-     * Retrieves the old value using the getOldValue() method, falling back to the current 'value' attribute if no old value is found.
-     * If the value is a Closure, it will be executed with the current attributes and its result will be used as the value.
-     *
-     * @return static Returns the current instance for method chaining.
-     */
-    protected function updateFieldValue(): self
-    {
-        $value = $this->get('value');
-
-        if ($value instanceof Closure) {
-            $value = $value($this->attributes);
-        }
-
-        return $this->set('value', $value);
     }
 
     /**
@@ -447,8 +328,6 @@ class Field implements Fieldable, Htmlable
      * Converts the field to a string by rendering it.
      *
      * @throws Throwable
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -475,5 +354,113 @@ class Field implements Fieldable, Htmlable
     public function toHtml()
     {
         return $this->render()->toHtml();
+    }
+
+    /**
+     * Validates that all required attributes are present in the field.
+     *
+     * @throws FieldRequiredAttributeException if any required attribute is missing.
+     *
+     * @return static Returns the current instance for method chaining.
+     */
+    protected function ensureRequiredAttributesArePresent(): self
+    {
+        collect($this->required)
+            ->filter(fn ($attribute) => !array_key_exists($attribute, $this->attributes))
+            ->each(static function ($attribute) {
+                throw new FieldRequiredAttributeException($attribute);
+            });
+
+        return $this;
+    }
+
+    /**
+     * Gets the allowed attributes for the field.
+     */
+    protected function getAllowAttributes(): ComponentAttributeBag
+    {
+        $allow = array_merge($this->universalAttributes, $this->inlineAttributes);
+
+        $attributes = collect($this->getAttributes())
+            ->filter(static fn ($value, $attribute) => Str::is($allow, $attribute))
+            ->toArray();
+
+        return (new ComponentAttributeBag())
+            ->merge($attributes);
+    }
+
+    /**
+     * Gets the allowed data attributes for the field.
+     */
+    protected function getAllowDataAttributes(): ComponentAttributeBag
+    {
+        return $this->getAllowAttributes()->filter(static fn ($value, $key) => Str::startsWith($key, 'data-'));
+    }
+
+    /**
+     * Modifies the 'name' attribute of the field by adding a prefix and/or language identifier if they are set.
+     *
+     * If both prefix and language are set, the name will be modified as "prefix[lang]name".
+     * If only the prefix is set, the name will be modified as "prefixname".
+     * If only the language is set, the name will be modified as "lang[name]".
+     *
+     * @return static Returns the current instance for method chaining.
+     */
+    protected function customizeFieldName(): self
+    {
+        $name = $this->get('name');
+        $prefix = $this->get('prefix');
+        $lang = $this->get('lang');
+
+        if ($prefix !== null && $lang !== null) {
+            return $this->set('name', $prefix.'['.$lang.']'.$name);
+        }
+
+        if ($prefix !== null) {
+            return $this->set('name', $prefix.$name);
+        }
+
+        if ($lang !== null) {
+            return $this->set('name', $lang.'['.$name.']');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Modifies the 'value' attribute of the field.
+     *
+     * Retrieves the old value using the getOldValue() method, falling back to the current 'value' attribute if no old value is found.
+     * If the value is a Closure, it will be executed with the current attributes and its result will be used as the value.
+     *
+     * @return static Returns the current instance for method chaining.
+     */
+    protected function updateFieldValue(): self
+    {
+        $value = $this->get('value');
+
+        if ($value instanceof Closure) {
+            $value = $value($this->attributes);
+        }
+
+        return $this->set('value', $value);
+    }
+
+    /**
+     * Translates the field's attributes if necessary.
+     *
+     * @return static
+     */
+    private function translateAttributes(): self
+    {
+        $lang = $this->get('lang');
+
+        collect($this->attributes)
+            ->intersectByKeys(array_flip($this->translations))
+            ->each(function ($value, $key) use ($lang) {
+                $this->set($key, is_string($value) ? __($value, [], $lang) : $value);
+            });
+
+        return $this;
     }
 }

@@ -18,7 +18,6 @@ use Symfony\Component\Mime\Email;
 class EmailService
 {
     /**
-     * @var MailerInterface|null
      */
     private ?MailerInterface $mailer = null;
 
@@ -27,32 +26,6 @@ class EmailService
      * Mail configuration cache.
      */
     private ?array $mailConfig = null;
-
-    /**
-     * Configures email parameters.
-     * Initialization occurs only on the first call.
-     */
-    private function configureMail(): void
-    {
-        if ($this->mailer !== null) {
-            return;
-        }
-
-        $this->mailConfig = config('mail');
-
-        $transport = new EsmtpTransport(
-            $this->mailConfig['host'],
-            $this->mailConfig['port'],
-            $this->mailConfig['secure'] === 'ssl' // SSL or TLS
-        );
-
-        if ($this->mailConfig['smtp']) {
-            $transport->setUsername($this->mailConfig['username']);
-            $transport->setPassword($this->mailConfig['password']);
-        }
-
-        $this->mailer = new Mailer($transport);
-    }
 
     /**
      * Sends an email.
@@ -86,8 +59,6 @@ class EmailService
 
     /**
      * Handles the password reset event.
-     *
-     * @param PasswordResetRequestedEvent $event
      */
     public function handlePasswordReset(PasswordResetRequestedEvent $event): void
     {
@@ -107,8 +78,6 @@ class EmailService
 
     /**
      * Handles the user registration event.
-     *
-     * @param UserRegisteredEvent $event
      */
     public function handleRegistered(UserRegisteredEvent $event): void
     {
@@ -130,5 +99,31 @@ class EmailService
         } catch (Exception $e) {
             logs()->error("Email registration failed: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Configures email parameters.
+     * Initialization occurs only on the first call.
+     */
+    private function configureMail(): void
+    {
+        if ($this->mailer !== null) {
+            return;
+        }
+
+        $this->mailConfig = config('mail');
+
+        $transport = new EsmtpTransport(
+            $this->mailConfig['host'],
+            $this->mailConfig['port'],
+            $this->mailConfig['secure'] === 'ssl' // SSL or TLS
+        );
+
+        if ($this->mailConfig['smtp']) {
+            $transport->setUsername($this->mailConfig['username']);
+            $transport->setPassword($this->mailConfig['password']);
+        }
+
+        $this->mailer = new Mailer($transport);
     }
 }

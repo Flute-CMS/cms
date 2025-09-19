@@ -36,7 +36,7 @@ class Field extends Layout
     ];
 
     public function __construct(
-        \Flute\Admin\Platform\Field $field = null,
+        ?\Flute\Admin\Platform\Field $field = null,
         array $classes = []
     ) {
         if ($field) {
@@ -50,9 +50,6 @@ class Field extends Layout
 
     /**
      * Sets the label text.
-     *
-     * @param string $label
-     * @return self
      */
     public function label(string $label): self
     {
@@ -77,9 +74,6 @@ class Field extends Layout
 
     /**
      * Sets the small/help text.
-     *
-     * @param string $small
-     * @return self
      */
     public function small(string $small): self
     {
@@ -90,9 +84,6 @@ class Field extends Layout
 
     /**
      * Sets the right-side content.
-     *
-     * @param string $right
-     * @return self
      */
     public function right(string $right): self
     {
@@ -103,9 +94,6 @@ class Field extends Layout
 
     /**
      * Sets the Input component.
-     *
-     * @param \Flute\Admin\Platform\Field $input
-     * @return self
      */
     public function field(\Flute\Admin\Platform\Field $field): self
     {
@@ -118,7 +106,6 @@ class Field extends Layout
      * Adds CSS classes to the field.
      *
      * @param string|array $classes
-     * @return self
      */
     public function addClass($classes): self
     {
@@ -135,9 +122,7 @@ class Field extends Layout
     /**
      * Sets a custom attribute.
      *
-     * @param string $key
      * @param mixed  $value
-     * @return self
      */
     public function setAttribute(string $key, $value): self
     {
@@ -149,7 +134,6 @@ class Field extends Layout
     /**
      * Builds the field layout.
      *
-     * @param Repository $repository
      * @return \Illuminate\Contracts\View\View|null
      */
     public function build(Repository $repository)

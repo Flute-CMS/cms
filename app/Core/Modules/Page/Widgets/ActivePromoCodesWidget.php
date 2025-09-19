@@ -2,6 +2,9 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use function count;
+
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\PromoCode;
 
 class ActivePromoCodesWidget extends AbstractWidget
@@ -18,7 +21,7 @@ class ActivePromoCodesWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         $currentUser = user()->getCurrentUser();
 
         $promoCodes = PromoCode::query()
@@ -29,17 +32,17 @@ class ActivePromoCodesWidget extends AbstractWidget
             ->fetchAll();
 
         $promoCodes = array_filter($promoCodes, static function (PromoCode $code) use ($currentUser) {
-            if ($code->expires_at !== null && $code->expires_at < new \DateTimeImmutable()) {
+            if ($code->expires_at !== null && $code->expires_at < new DateTimeImmutable()) {
                 return false;
             }
 
-            if ($code->max_usages !== null && \count($code->usages) >= $code->max_usages) {
+            if ($code->max_usages !== null && count($code->usages) >= $code->max_usages) {
                 return false;
             }
 
             if (!empty($code->roles) && $currentUser) {
-                $userRoleIds = array_map(fn ($role) => $role->id, $currentUser->roles);
-                $promoRoleIds = array_map(fn ($role) => $role->id, $code->roles);
+                $userRoleIds = array_map(static fn ($role) => $role->id, $currentUser->roles);
+                $promoRoleIds = array_map(static fn ($role) => $role->id, $code->roles);
                 if (empty(array_intersect($userRoleIds, $promoRoleIds))) {
                     return false;
                 }

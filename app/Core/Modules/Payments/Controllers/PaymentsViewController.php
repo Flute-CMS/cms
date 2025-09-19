@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Payments\Controllers;
 
+use Exception;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Support\BaseController;
@@ -35,7 +36,7 @@ class PaymentsViewController extends BaseController
 
         try {
             payments()->processor()->processPayment($invoice, $gateway);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->errors()->badRequest($e->getMessage());
         }
     }

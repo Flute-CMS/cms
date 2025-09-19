@@ -17,9 +17,7 @@ class TranslationServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             TranslationService::class => \DI\autowire(),
-            "translation" => \DI\factory(function (TranslationService $service, Container $container) {
-                return $container->get(TranslationService::class)->getTranslator();
-            }),
+            "translation" => \DI\factory(static fn (TranslationService $service, Container $container) => $container->get(TranslationService::class)->getTranslator()),
         ]);
     }
 

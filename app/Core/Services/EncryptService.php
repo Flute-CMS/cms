@@ -5,6 +5,10 @@ namespace Flute\Core\Services;
 use Exception;
 use Flute\Core\Exceptions\DecryptException;
 use Flute\Core\Exceptions\EncryptException;
+
+use function openssl_decrypt;
+use function openssl_encrypt;
+
 use RuntimeException;
 
 /**
@@ -15,22 +19,16 @@ class EncryptService
 {
     /**
      * The encryption key.
-     *
-     * @var string
      */
     protected string $key;
 
     /**
      * The algorithm used for encryption.
-     *
-     * @var string
      */
     protected string $cipher;
 
     /**
      * The supported cipher algorithms and their properties.
-     *
-     * @var array
      */
     private static array $supportedCiphers = [
         'aes-128-cbc' => ['size' => 16, 'aead' => false],
@@ -42,11 +40,8 @@ class EncryptService
     /**
      * Create a new encrypted instance.
      *
-     * @param string $key
-     * @param string $cipher
+     * @throws RuntimeException
      * @return void
-     *
-     * @throws \RuntimeException
      */
     public function __construct(string $key, string $cipher = 'aes-256-cbc')
     {
@@ -63,10 +58,6 @@ class EncryptService
 
     /**
      * Determine if the given key and cipher combination is valid.
-     *
-     * @param string $key
-     * @param string $cipher
-     * @return bool
      */
     public static function supported(string $key, string $cipher): bool
     {
@@ -80,8 +71,6 @@ class EncryptService
     /**
      * Create a new encryption key for the given cipher.
      *
-     * @param string $cipher
-     * @return string
      * @throws Exception
      */
     public static function generateKey(string $cipher): string
@@ -93,8 +82,6 @@ class EncryptService
      * Encrypt the given value.
      *
      * @param mixed $value
-     * @param bool $serialize
-     * @return string
      *
      * @throws EncryptException
      * @throws Exception
@@ -103,7 +90,7 @@ class EncryptService
     {
         $iv = random_bytes(openssl_cipher_iv_length(strtolower($this->cipher)));
 
-        $value = \openssl_encrypt(
+        $value = openssl_encrypt(
             $serialize ? serialize($value) : $value,
             strtolower($this->cipher),
             $this->key,
@@ -135,9 +122,6 @@ class EncryptService
     /**
      * Encrypt a string without serialization.
      *
-     * @param string $value
-     * @return string
-     *
      * @throws EncryptException
      */
     public function encryptString(string $value): string
@@ -148,11 +132,8 @@ class EncryptService
     /**
      * Decrypt the given value.
      *
-     * @param string $payload
-     * @param bool $serialize
-     * @return mixed
-     *
      * @throws DecryptException
+     * @return mixed
      */
     public function decrypt(string $payload, bool $serialize = true)
     {
@@ -167,7 +148,7 @@ class EncryptService
         // Here we will decrypt the value. If we are able to successfully decrypt it
         // we will then serialize it and return it out to the caller. If we are
         // unable to decrypt this value we will throw out an exception message.
-        $decrypted = \openssl_decrypt(
+        $decrypted = openssl_decrypt(
             $payload['value'],
             strtolower($this->cipher),
             $this->key,
@@ -186,9 +167,6 @@ class EncryptService
     /**
      * Decrypt the given string without serialization.
      *
-     * @param string $payload
-     * @return string
-     *
      * @throws DecryptException
      */
     public function decryptString(string $payload): string
@@ -197,11 +175,17 @@ class EncryptService
     }
 
     /**
+     * Get the encryption key that the encrypted is currently using.
+     */
+    public function getKey(): string
+    {
+        return $this->key;
+    }
+
+    /**
      * Create a MAC for the given value.
      *
-     * @param string $iv
      * @param  mixed  $value
-     * @return string
      */
     protected function hash(string $iv, $value): string
     {
@@ -210,9 +194,6 @@ class EncryptService
 
     /**
      * Get the JSON array from the given payload.
-     *
-     * @param string $payload
-     * @return array
      *
      * @throws DecryptException
      */
@@ -238,7 +219,6 @@ class EncryptService
      * Verify that the encryption payload is valid.
      *
      * @param  mixed  $payload
-     * @return bool
      */
     protected function validPayload($payload): bool
     {
@@ -261,9 +241,6 @@ class EncryptService
 
     /**
      * Determine if the MAC for the given payload is valid.
-     *
-     * @param  array  $payload
-     * @return bool
      */
     protected function validMac(array $payload): bool
     {
@@ -276,9 +253,8 @@ class EncryptService
     /**
      * Ensure the given tag is a valid tag given the selected cipher.
      *
-     * @param string $tag
-     * @return void
      * @throws DecryptException
+     * @return void
      */
     protected function ensureTagIsValid(string $tag)
     {
@@ -287,15 +263,5 @@ class EncryptService
                 throw new DecryptException('The tag is invalid.');
             }
         }
-    }
-
-    /**
-     * Get the encryption key that the encrypted is currently using.
-     *
-     * @return string
-     */
-    public function getKey(): string
-    {
-        return $this->key;
     }
 }

@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Profile\Components;
 
 use Carbon\Carbon;
+use DateTimeInterface;
 use Flute\Core\Components\Table;
 use Flute\Core\Database\Entities\PaymentInvoice;
 
@@ -37,30 +38,26 @@ class TablePaymentsComponent extends Table
                 'field' => 'transactionId',
                 'allowSort' => true,
                 'searchable' => true,
-                'renderer' => function (PaymentInvoice $row) {
-                    return view('flute::components.profile-tabs.edit.payments.transaction-id', [
-                        'transactionId' => $row->transactionId,
-                        'id' => $row->id,
-                    ])->render();
-                },
+                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.transaction-id', [
+                    'transactionId' => $row->transactionId,
+                    'id' => $row->id,
+                ])->render(),
             ],
             [
                 'label' => __('profile.edit.payments.table.gateway'),
                 'field' => 'gateway',
                 'allowSort' => true,
                 'searchable' => true,
-                'renderer' => function (PaymentInvoice $row) {
-                    return view('flute::components.profile-tabs.edit.payments.payment-gateway', [
-                        'gateway' => $row->gateway,
-                    ])->render();
-                },
+                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.payment-gateway', [
+                    'gateway' => $row->gateway,
+                ])->render(),
             ],
             [
                 'label' => __('profile.edit.payments.table.amount'),
                 'field' => 'amount',
                 'allowSort' => true,
                 'searchable' => false,
-                'renderer' => function (PaymentInvoice $row) {
+                'renderer' => static function (PaymentInvoice $row) {
                     $currencyCode = $row->currency ? $row->currency->code : 'USD';
 
                     return view('flute::components.profile-tabs.edit.payments.amount', [
@@ -75,19 +72,17 @@ class TablePaymentsComponent extends Table
                 'field' => 'isPaid',
                 'allowSort' => true,
                 'searchable' => false,
-                'renderer' => function (PaymentInvoice $row) {
-                    return view('flute::components.profile-tabs.edit.payments.payment-status', [
-                        'isPaid' => $row->isPaid,
-                        'paidAt' => $row->paidAt,
-                    ])->render();
-                },
+                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.payment-status', [
+                    'isPaid' => $row->isPaid,
+                    'paidAt' => $row->paidAt,
+                ])->render(),
             ],
             [
                 'label' => __('profile.edit.payments.table.promo'),
                 'field' => 'promoCode',
                 'allowSort' => false,
                 'searchable' => false,
-                'renderer' => function (PaymentInvoice $row) {
+                'renderer' => static function (PaymentInvoice $row) {
                     if (!$row->promoCode) {
                         return '-';
                     }
@@ -106,8 +101,8 @@ class TablePaymentsComponent extends Table
                 'searchable' => false,
                 'defaultSort' => true,
                 'defaultDirection' => 'desc',
-                'renderer' => function (PaymentInvoice $row) {
-                    $date = $row->createdAt instanceof \DateTimeInterface
+                'renderer' => static function (PaymentInvoice $row) {
+                    $date = $row->createdAt instanceof DateTimeInterface
                         ? Carbon::instance($row->createdAt)
                         : Carbon::parse($row->createdAt);
 
@@ -122,11 +117,9 @@ class TablePaymentsComponent extends Table
                 'field' => 'actions',
                 'allowSort' => false,
                 'searchable' => false,
-                'renderer' => function (PaymentInvoice $row) {
-                    return view('flute::components.profile-tabs.edit.payments.pay-button', [
-                        'invoice' => $row,
-                    ])->render();
-                },
+                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.pay-button', [
+                    'invoice' => $row,
+                ])->render(),
             ],
         ];
     }

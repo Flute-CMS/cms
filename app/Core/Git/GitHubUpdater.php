@@ -2,17 +2,23 @@
 
 namespace Flute\Core\Git;
 
+use Exception;
 use Flute\Core\Git\Exceptions\AlreadyInstalledException;
 use Flute\Core\Git\Exceptions\FailedToExtractException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use ZipArchive;
 
 class GitHubUpdater
 {
     protected string $repoOwner;
+
     protected string $repoName;
+
     protected ?string $currentVersion;
+
     protected ?string $downloadDir;
+
     protected Client $httpClient;
 
     public function __construct(string $repoOwner, string $repoName, ?string $currentVersion = null, ?string $downloadDir = null)
@@ -65,7 +71,7 @@ class GitHubUpdater
         $release = $this->getLatestRelease();
 
         if (!$release) {
-            throw new \Exception('Unable to get the latest release.');
+            throw new Exception('Unable to get the latest release.');
         }
 
         $latestVersion = str_replace('v', '', $release['tag_name']);
@@ -84,7 +90,7 @@ class GitHubUpdater
 
         try {
             fs()->remove($zipFile);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->warning($e);
         }
 
@@ -99,7 +105,7 @@ class GitHubUpdater
             $response = $this->httpClient->get($url, ['sink' => $path]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception("Failed to download file: HTTP " . $response->getStatusCode());
+                throw new Exception("Failed to download file: HTTP " . $response->getStatusCode());
             }
         } catch (RequestException $e) {
             logs()->error("Failed to download file: {$e->getMessage()}");
@@ -110,11 +116,9 @@ class GitHubUpdater
 
     protected function extractZip($zipFile, $extractTo, array $foldersToExtract)
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         if ($zip->open($zipFile) === true) {
-            $foldersToExtract = array_map(function ($folder) {
-                return rtrim($folder, '/') . '/';
-            }, $foldersToExtract);
+            $foldersToExtract = array_map(static fn ($folder) => rtrim($folder, '/') . '/', $foldersToExtract);
 
             $rootFolder = $zip->getNameIndex(0);
             $rootFolder = substr($rootFolder, 0, strpos($rootFolder, '/') + 1);
@@ -162,7 +166,7 @@ class GitHubUpdater
         $files = array_diff(scandir($dir), ['.', '..']);
 
         foreach ($files as $file) {
-            (is_dir("$dir/$file")) ? $this->deleteDirectory("$dir/$file") : unlink("$dir/$file");
+            (is_dir("{$dir}/{$file}")) ? $this->deleteDirectory("{$dir}/{$file}") : unlink("{$dir}/{$file}");
         }
 
         return rmdir($dir);

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager;
 
+use Exception;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Events\ModuleRegistered;
@@ -17,25 +18,40 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class ModuleManager
 {
-    public Collection $installedModules;
-    public Collection $notInstalledModules;
-    public Collection $disabledModules;
-    public Collection $activeModules;
-
     public const ACTIVE = 'active';
+
     public const DISABLED = 'disabled';
+
     public const NOTINSTALLED = 'notinstalled';
+
     public const INSTALLED = 'installed';
 
     protected const CACHE_TIME = 60 * 60; // 1 hour
+
+    public Collection $installedModules;
+
+    public Collection $notInstalledModules;
+
+    public Collection $disabledModules;
+
+    public Collection $activeModules;
+
     protected Collection $modules;
+
     protected string $modulesPath;
+
     protected array $modulesJson;
+
     protected array $modulesDatabase;
+
     protected array $serviceProviders;
+
     protected bool $performance;
+
     protected ?ModuleDependencies $dependencyChecker;
+
     protected ?EventDispatcher $eventDispatcher;
+
     protected bool $initialized = false;
 
     public function __construct(ModuleDependencies $dependencyChecker, EventDispatcher $eventDispatcher)
@@ -58,8 +74,6 @@ class ModuleManager
 
     /**
      * Initialize the module manager.
-     *
-     * @return void
      */
     public function initialize(): void
     {
@@ -84,8 +98,6 @@ class ModuleManager
 
     /**
      * Get the module dependencies.
-     *
-     * @return ModuleDependencies
      */
     public function getModuleDependencies(): ModuleDependencies
     {
@@ -96,8 +108,6 @@ class ModuleManager
 
     /**
      * Get the active modules.
-     *
-     * @return Collection
      */
     public function getActive(): Collection
     {
@@ -108,9 +118,6 @@ class ModuleManager
 
     /**
      * Get the module json.
-     *
-     * @param string $key
-     * @return string
      */
     public function getModuleJson(string $key): string
     {
@@ -121,16 +128,13 @@ class ModuleManager
 
     /**
      * Get the module.
-     *
-     * @param string $key
-     * @return ModuleInformation
      */
     public function getModule(string $key): ModuleInformation
     {
         $this->initialize();
 
         if (!$this->issetModule($key)) {
-            throw new \Exception("Module {$key} wasn't found");
+            throw new Exception("Module {$key} wasn't found");
         }
 
         return $this->modules->get($key);
@@ -138,9 +142,6 @@ class ModuleManager
 
     /**
      * Check if the module exists.
-     *
-     * @param string $key
-     * @return bool
      */
     public function issetModule(string $key): bool
     {
@@ -151,8 +152,6 @@ class ModuleManager
 
     /**
      * Refresh the modules.
-     *
-     * @return void
      */
     public function refreshModules(): void
     {
@@ -200,8 +199,6 @@ class ModuleManager
 
     /**
      * Get the modules.
-     *
-     * @return Collection
      */
     public function getModules(): Collection
     {
@@ -220,6 +217,13 @@ class ModuleManager
         cache()->delete('flute.modules.collection');
         cache()->delete('flute.modules.alldb');
         cache()->delete('flute.modules.json');
+    }
+
+    public function registerModules(): void
+    {
+        $this->initialize();
+
+        ModuleRegister::registerServiceProviders($this->serviceProviders);
     }
 
     protected function checkModulesDependencies(): void
@@ -275,13 +279,6 @@ class ModuleManager
         }
     }
 
-    public function registerModules(): void
-    {
-        $this->initialize();
-
-        ModuleRegister::registerServiceProviders($this->serviceProviders);
-    }
-
     protected function setInstalledModules(): void
     {
         $this->installedModules = $this->filterModules(self::NOTINSTALLED, true);
@@ -321,23 +318,19 @@ class ModuleManager
             }
         }
 
-        usort($providers, fn ($a, $b) => $a['order'] <=> $b['order']);
+        usort($providers, static fn ($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
     }
 
     protected function loadModulesJson(): void
     {
-        $this->modulesJson = cache()->callback('flute.modules.json', function () {
-            return ModuleFinder::getAllJson($this->modulesPath);
-        }, self::CACHE_TIME);
+        $this->modulesJson = cache()->callback('flute.modules.json', fn () => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
     }
 
     protected function loadModulesFromDatabase(): void
     {
-        $this->modulesDatabase = cache()->callback('flute.modules.alldb', function () {
-            return Module::findAll();
-        }, self::CACHE_TIME);
+        $this->modulesDatabase = cache()->callback('flute.modules.alldb', static fn () => Module::findAll(), self::CACHE_TIME);
 
         $this->setCurrentStatusModules();
     }
@@ -375,7 +368,7 @@ class ModuleManager
             logs('modules')->info("Module {$module->key} was initialized in database");
 
             $this->modulesDatabase[] = $module;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs('modules')->error("Ошибка при создании модуля в базе данных: " . $e->getMessage());
         }
     }
@@ -405,8 +398,6 @@ class ModuleManager
 
     protected function filterModules(string $status, bool $notEqual = false): Collection
     {
-        return $this->modules->filter(function (ModuleInformation $module) use ($status, $notEqual) {
-            return $notEqual ? ($module->status !== $status) : ($module->status === $status);
-        });
+        return $this->modules->filter(static fn (ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
     }
 }

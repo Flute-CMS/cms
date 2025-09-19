@@ -18,7 +18,9 @@ use Flute\Core\Database\Entities\Role;
 class RoleListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.roles';
 
     public $roles;
@@ -50,10 +52,10 @@ class RoleListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('roles', [
-                Sight::make()->render(fn (Role $role) => view('admin-roles::cells.role-name', compact('role'))),
+                Sight::make()->render(static fn (Role $role) => view('admin-roles::cells.role-name', compact('role'))),
                 Sight::make('actions', __('admin-roles.table.actions'))
                     ->render(
-                        fn (Role $role) => DropDown::make()
+                        static fn (Role $role) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-roles.buttons.edit'))
@@ -91,46 +93,20 @@ class RoleListScreen extends Screen
         $this->loadRoles();
     }
 
-    private function reorderRoles(array $roles)
-    {
-        foreach (array_reverse($roles) as $index => $roleId) {
-            $role = Role::findByPK((int) $roleId['id']);
-
-            if (!$role || $role->priority > user()->getHighestPriority()) {
-                continue;
-            }
-
-            $role->priority = $index;
-
-            $role->save();
-        }
-    }
-
-    protected function loadRoles()
-    {
-        $highestPriority = user()->getHighestPriority();
-
-        $this->roles = rep(Role::class)
-            ->select()
-            ->where('priority', '<=', $highestPriority)
-            ->orderBy('priority', 'desc')
-            ->fetchAll();
-    }
-
     /**
      * Модальное окно для добавления новой роли
      */
     public function createRoleModal(Repository $parameters)
     {
         $permissions = collect(Permission::findAll())
-            ->filter(fn ($permission) => user()->can($permission->name))
+            ->filter(static fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
         $permissionsCheckboxes = [];
         foreach ($permissions as $id => $name) {
             $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.$name")
+                CheckBox::make("permissions.{$name}")
                     ->label($name)
                     ->popover(__('permissions.' . $name))
             );
@@ -242,14 +218,14 @@ class RoleListScreen extends Screen
         }
 
         $permissions = collect(Permission::findAll())
-            ->filter(fn ($permission) => user()->can($permission->name))
+            ->filter(static fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
         $permissionsCheckboxes = [];
         foreach ($permissions as $id => $name) {
             $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.$name")
+                CheckBox::make("permissions.{$name}")
                     ->label($name)
                     ->popover(__('permissions.' . $name))
                     ->checked($role->hasPermission(Permission::findByPK($id)))
@@ -374,5 +350,31 @@ class RoleListScreen extends Screen
 
         $this->flashMessage(__('admin-roles.messages.deleted'), 'success');
         $this->loadRoles();
+    }
+
+    protected function loadRoles()
+    {
+        $highestPriority = user()->getHighestPriority();
+
+        $this->roles = rep(Role::class)
+            ->select()
+            ->where('priority', '<=', $highestPriority)
+            ->orderBy('priority', 'desc')
+            ->fetchAll();
+    }
+
+    private function reorderRoles(array $roles)
+    {
+        foreach (array_reverse($roles) as $index => $roleId) {
+            $role = Role::findByPK((int) $roleId['id']);
+
+            if (!$role || $role->priority > user()->getHighestPriority()) {
+                continue;
+            }
+
+            $role->priority = $index;
+
+            $role->save();
+        }
     }
 }

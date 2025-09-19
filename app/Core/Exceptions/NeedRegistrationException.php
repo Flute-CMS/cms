@@ -2,9 +2,10 @@
 
 namespace Flute\Core\Exceptions;
 
+use Exception;
 use Hybridauth\User\Profile;
 
-class NeedRegistrationException extends \Exception
+class NeedRegistrationException extends Exception
 {
     protected Profile $profile;
 

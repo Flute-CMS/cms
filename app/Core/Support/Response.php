@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class Response
 {
     protected Template $template;
+
     protected SymfonyResponse $response;
 
     public function __construct(Template $template)
@@ -27,9 +28,6 @@ class Response
      * Returns a successful JSON response.
      *
      * @param array|string $message
-     * @param int $status
-     *
-     * @return JsonResponse
      */
     public function success($message = 'success', int $status = 200): JsonResponse
     {
@@ -40,9 +38,6 @@ class Response
 
     /**
      * Returns an error page or JSON response based on the request type.
-     *
-     * @param int $status
-     * @param string|null $message
      *
      * @return SymfonyResponse
      */
@@ -65,9 +60,6 @@ class Response
     /**
      * Adds a single header to the response.
      *
-     * @param string $key
-     * @param string $value
-     *
      * @return $this
      */
     public function header(string $key, string $value): self
@@ -79,8 +71,6 @@ class Response
 
     /**
      * Adds multiple headers to the response.
-     *
-     * @param array $headers
      *
      * @return $this
      */
@@ -95,12 +85,6 @@ class Response
 
     /**
      * Creates a response with the given content.
-     *
-     * @param string $content
-     * @param int $status
-     * @param array $headers
-     *
-     * @return SymfonyResponse
      */
     public function make(string $content = '', int $status = 200, array $headers = []): SymfonyResponse
     {
@@ -116,13 +100,6 @@ class Response
 
     /**
      * Returns a view response with data.
-     *
-     * @param string $view
-     * @param array $data
-     * @param int $status
-     * @param array $headers
-     *
-     * @return SymfonyResponse
      */
     public function view(string $view, array $data = [], int $status = 200, array $headers = []): SymfonyResponse
     {
@@ -135,11 +112,6 @@ class Response
      * Returns a JSON response.
      *
      * @param mixed $data
-     * @param int $status
-     * @param array $headers
-     * @param bool $json
-     *
-     * @return JsonResponse
      */
     public function json($data, int $status = 200, array $headers = [], bool $json = false): JsonResponse
     {
@@ -148,10 +120,6 @@ class Response
 
     /**
      * Redirects the request to a different URL.
-     *
-     * @param string $url
-     * @param int $status
-     * @param array $headers
      *
      * @return HtmxResponse
      */
@@ -164,12 +132,6 @@ class Response
 
     /**
      * Forces a redirect and immediately halts execution.
-     *
-     * @param string $url
-     * @param int $status
-     * @param array $headers
-     *
-     * @return void
      */
     public function forceRedirect(string $url, int $status = 302, array $headers = []): void
     {
@@ -180,12 +142,6 @@ class Response
 
     /**
      * Sends a file to the client.
-     *
-     * @param string $file
-     * @param int $status
-     * @param array $headers
-     *
-     * @return BinaryFileResponse
      */
     public function file(string $file, int $status = 200, array $headers = []): BinaryFileResponse
     {
@@ -194,12 +150,6 @@ class Response
 
     /**
      * Streams content to the client.
-     *
-     * @param callable $callback
-     * @param int $status
-     * @param array $headers
-     *
-     * @return StreamedResponse
      */
     public function streamable(callable $callback, int $status = 200, array $headers = []): StreamedResponse
     {
@@ -208,11 +158,6 @@ class Response
 
     /**
      * Returns a response with no content.
-     *
-     * @param int $status
-     * @param array $headers
-     *
-     * @return SymfonyResponse
      */
     public function noContent(int $status = 204, array $headers = []): SymfonyResponse
     {

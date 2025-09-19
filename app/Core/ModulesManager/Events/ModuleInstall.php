@@ -10,6 +10,7 @@ class ModuleInstall extends Event
     public const NAME = 'module.install';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

@@ -43,10 +43,6 @@ class ModuleFinder
 
     /**
      * Get module json file
-     *
-     * @param string $jsonPath
-     *
-     * @return string
      */
     public static function getModuleJson(string $jsonPath): string
     {

@@ -2,14 +2,16 @@
 
 namespace Flute\Core\Support;
 
+use Closure;
 use Laravel\SerializableClosure\SerializableClosure;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class FluteEventDispatcher extends EventDispatcher
 {
-    private $deferredListenersKey = 'flute.deferred_listeners';
     public $deferredListeners = [];
+
+    private $deferredListenersKey = 'flute.deferred_listeners';
 
     public function __construct()
     {
@@ -106,7 +108,7 @@ class FluteEventDispatcher extends EventDispatcher
 
     private function getListenerId($listener)
     {
-        if ($listener instanceof \Closure) {
+        if ($listener instanceof Closure) {
             return $this->getClosureId($listener);
         }
 
@@ -123,7 +125,7 @@ class FluteEventDispatcher extends EventDispatcher
         }
 
         if (is_object($listener)) {
-            return get_class($listener);
+            return $listener::class;
         }
 
         return $listener;
@@ -147,7 +149,7 @@ class FluteEventDispatcher extends EventDispatcher
             return true;
         }
 
-        if ($listener1 instanceof \Closure && $listener2 instanceof \Closure) {
+        if ($listener1 instanceof Closure && $listener2 instanceof Closure) {
             return $this->getClosureId($listener1) === $this->getClosureId($listener2);
         }
 

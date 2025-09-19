@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Auth\Controllers;
 
+use Exception;
 use Flute\Core\Exceptions\NeedRegistrationException;
 use Flute\Core\Exceptions\SocialNotFoundException;
 use Flute\Core\Exceptions\UserNotFoundException;
@@ -41,7 +42,7 @@ class SocialAuthController extends BaseController
             return $this->socialError(__('auth.errors.user_not_found'), $request);
         } catch (SocialNotFoundException $e) {
             return $this->socialError(__('auth.errors.social_not_found'), $request);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
 
             if (is_debug()) {
@@ -55,7 +56,7 @@ class SocialAuthController extends BaseController
     /**
      * Returns a successful response for social network authorization in popup flows.
      */
-    protected function socialSuccess(FluteRequest $request = null)
+    protected function socialSuccess(?FluteRequest $request = null)
     {
         $redirectUrl = redirect('/')->getTargetUrl();
 
@@ -65,7 +66,7 @@ class SocialAuthController extends BaseController
     /**
      * Returns an error response for social network authorization in popup flows.
      */
-    protected function socialError(string $error, FluteRequest $request = null)
+    protected function socialError(string $error, ?FluteRequest $request = null)
     {
         $redirectUrl = redirect('/')->getTargetUrl();
 

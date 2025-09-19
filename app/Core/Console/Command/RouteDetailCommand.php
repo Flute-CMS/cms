@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Console\Command;
 
+use Closure;
 use Flute\Core\Router\Router;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class RouteDetailCommand extends Command
 {
     protected static $defaultName = 'route:detail';
+
     protected static $defaultDescription = 'Displays detailed information about a specified route';
 
     protected Router $router;
@@ -52,7 +54,7 @@ class RouteDetailCommand extends Command
             return Command::FAILURE;
         }
 
-        /**
+        /*
          * @var \Symfony\Component\Routing\Route $foundRoute
          */
 
@@ -99,10 +101,11 @@ class RouteDetailCommand extends Command
             }
 
             return $class . '@' . $action[1];
-        } elseif ($action instanceof \Closure) {
+        } elseif ($action instanceof Closure) {
             return 'Closure';
-        } else {
-            return 'Unknown';
         }
+
+        return 'Unknown';
+
     }
 }

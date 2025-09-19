@@ -20,7 +20,7 @@ class CacheServiceProvider extends AbstractServiceProvider
                 'create',
                 \DI\get('cache')
             ),
-            CacheInterface::class => \DI\factory(function (Container $container) {
+            CacheInterface::class => \DI\factory(static function (Container $container) {
                 $cacheManager = $container->get(CacheManager::class);
 
                 return $cacheManager->getAdapter();

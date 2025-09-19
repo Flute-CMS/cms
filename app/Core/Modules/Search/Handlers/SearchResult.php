@@ -10,35 +10,33 @@ use Flute\Core\Modules\Search\Contracts\SearchResultInterface;
 class SearchResult implements SearchResultInterface
 {
     protected $id = null;
+
     protected ?string $title = null;
+
     protected ?string $url = null;
+
     protected ?string $description = null;
+
     protected ?string $image = null;
+
     protected ?string $type = null;
 
     /**
      * Массив для хранения дополнительных параметров
-     *
-     * @var array
      */
     protected array $extraParams = [];
 
     /**
      * SearchResult constructor.
      *
-     * @param string|null $title
-     * @param string|null $url
-     * @param string|null $image
-     * @param string|null $description
-     * @param string|null $type
      * @param array $extraParams Дополнительные параметры
      */
     public function __construct(
-        string $title = null,
-        string $url = null,
-        string $image = null,
-        string $description = null,
-        string $type = null,
+        ?string $title = null,
+        ?string $url = null,
+        ?string $image = null,
+        ?string $description = null,
+        ?string $type = null,
         array $extraParams = []
     ) {
         $this->title = $title;
@@ -126,9 +124,7 @@ class SearchResult implements SearchResultInterface
     /**
      * Установка дополнительного параметра
      *
-     * @param string $key
      * @param mixed $value
-     * @return self
      */
     public function setParam(string $key, $value): self
     {
@@ -140,7 +136,6 @@ class SearchResult implements SearchResultInterface
     /**
      * Получение дополнительного параметра
      *
-     * @param string $key
      * @return mixed|null
      */
     public function getParam(string $key)
@@ -150,9 +145,6 @@ class SearchResult implements SearchResultInterface
 
     /**
      * Удаление дополнительного параметра
-     *
-     * @param string $key
-     * @return self
      */
     public function removeParam(string $key): self
     {
@@ -163,8 +155,6 @@ class SearchResult implements SearchResultInterface
 
     /**
      * Получение всех дополнительных параметров
-     *
-     * @return array
      */
     public function getAllParams(): array
     {

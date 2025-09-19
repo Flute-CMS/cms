@@ -6,6 +6,10 @@ trait SingletonTrait
 {
     private static ?self $instance = null;
 
+    public function __construct()
+    {
+    }
+
     public static function getInstance(): self
     {
         if (static::$instance === null) {
@@ -15,12 +19,10 @@ trait SingletonTrait
         return static::$instance;
     }
 
-    public function __construct()
-    {
-    }
     public function __clone()
     {
     }
+
     public function __wakeup()
     {
     }

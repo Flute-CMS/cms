@@ -9,7 +9,6 @@ interface ThemeLoaderInterface
     /**
      * Register the template service.
      *
-     * @param \Flute\Core\Template\Template $templateService
      * @return void
      */
     public function register(\Flute\Core\Template\Template $templateService);
@@ -17,7 +16,6 @@ interface ThemeLoaderInterface
     /**
      * Set the Blade instance.
      *
-     * @param Blade $bladeOne
      * @return void
      */
     public function blade(Blade $bladeOne);
@@ -52,8 +50,6 @@ interface ThemeLoaderInterface
 
     /**
      * Get the layout arguments for the template.
-     *
-     * @return array
      */
     public function getLayoutArguments(): array;
 
@@ -62,12 +58,11 @@ interface ThemeLoaderInterface
      *
      * @param string $moduleInterfacePath path in the modules directory
      * @param string $replacedInterfacePath path in the current template
-     *
-     * @return void
      */
     public function addCustomPath(string $moduleInterfacePath, string $replacedInterfacePath): void;
 
     public function getReplacement(?string $interfacePath = null);
+
     public function getName(): string;
 
     public function setName(string $name): void;

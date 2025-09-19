@@ -6,18 +6,19 @@ use Flute\Core\Database\Entities\FooterSocial;
 
 class FooterSocialService
 {
-    protected $footerSocial;
-    protected bool $performance;
-    protected const CACHE_TIME = 24 * 60 * 60;
     public const CACHE_KEY = 'flute.footer.social';
+
+    protected const CACHE_TIME = 24 * 60 * 60;
+
+    protected $footerSocial;
+
+    protected bool $performance;
 
     public function __construct()
     {
         $this->performance = (bool) (is_performance());
 
-        $this->footerSocial = $this->performance ? cache()->callback(self::CACHE_KEY, function () {
-            return $this->getFooterSocial();
-        }, self::CACHE_TIME) : $this->getFooterSocial();
+        $this->footerSocial = $this->performance ? cache()->callback(self::CACHE_KEY, fn () => $this->getFooterSocial(), self::CACHE_TIME) : $this->getFooterSocial();
     }
 
     public function add(FooterSocial $footerSocial): self

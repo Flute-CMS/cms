@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Services;
 
+use Exception;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
@@ -10,10 +11,13 @@ use Monolog\Processor\WebProcessor;
 
 class LoggerService
 {
-    protected array $loggers = [];
     protected const MAX_FILES = 31;
+
     protected const CACHE_KEY = 'logger_maintenance';
+
     protected const CACHE_TTL = 86400;
+
+    protected array $loggers = [];
 
     public function __construct(array $loggersConfig)
     {
@@ -55,12 +59,12 @@ class LoggerService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getLogger(string $name)
     {
         if (!isset($this->loggers[$name])) {
-            throw new \Exception("Logger $name is not found");
+            throw new Exception("Logger {$name} is not found");
         }
 
         return $this->loggers[$name];

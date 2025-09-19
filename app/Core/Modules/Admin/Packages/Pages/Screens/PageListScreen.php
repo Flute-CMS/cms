@@ -15,7 +15,9 @@ use Flute\Core\Database\Entities\Page;
 class PageListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.pages';
 
     public $pages;
@@ -39,20 +41,20 @@ class PageListScreen extends Screen
                 TD::selection('id'),
                 TD::make('title')
                     ->title(__('admin-pages.fields.title.label'))
-                    ->render(fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
+                    ->render(static fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('route')
                     ->title(__('admin-pages.fields.route.label'))
-                    ->render(fn (Page $page) => '<code>' . $page->route . '</code>')
+                    ->render(static fn (Page $page) => '<code>' . $page->route . '</code>')
                     ->width('200px')
                     ->sort()
                     ->cantHide(),
 
                 TD::make('blocks_count')
                     ->title(__('admin-pages.title.blocks'))
-                    ->render(fn (Page $page) => count($page->blocks))
+                    ->render(static fn (Page $page) => count($page->blocks))
                     ->width('200px')
                     ->alignCenter(),
 
@@ -69,7 +71,7 @@ class PageListScreen extends Screen
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn (Page $page) => DropDown::make()
+                        static fn (Page $page) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-pages.buttons.edit'))

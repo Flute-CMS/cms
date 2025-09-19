@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Template;
 
+use Exception;
 use Flute\Core\Theme\ThemeManager;
 use MatthiasMullie\Minify;
 use Nette\Utils\Validators;
@@ -10,39 +11,53 @@ use ScssPhp\ScssPhp\Compiler;
 use ScssPhp\ScssPhp\Exception\CompilerException;
 use ScssPhp\ScssPhp\Exception\SassException;
 use ScssPhp\ScssPhp\OutputStyle;
+use Throwable;
 use WebPConvert\WebPConvert;
 
 class TemplateAssets
 {
+    private const CSS_CACHE_DIR = 'assets/css/cache/';
+
+    private const JS_CACHE_DIR = 'assets/js/cache/';
+
+    private const IMG_CACHE_DIR = 'assets/img/cache/';
+
+    private const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+
     protected Compiler $scssCompiler;
+
     protected Template $template;
+
     protected string $context = 'main';
+
     protected bool $minifyAssets;
+
     protected bool $debugMode;
+
     protected string $appUrl;
+
     protected int $remoteAssetTimeout = 5;
+
     protected array $additionalScssFiles = [
         'main' => [],
         'admin' => [],
     ];
+
     protected array $additionalPartials = [
         'app/Core/Template/Resources/sass/_mixins.scss',
         'app/Core/Template/Resources/sass/_helpers.scss',
     ];
 
     protected array $assetPathCache = [];
-    protected array $compilationCache = [];
-    protected array $fallbackAssetPaths = [];
-    protected string $standardTheme = 'standard';
 
-    private const CSS_CACHE_DIR = 'assets/css/cache/';
-    private const JS_CACHE_DIR = 'assets/js/cache/';
-    private const IMG_CACHE_DIR = 'assets/img/cache/';
-    private const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    protected array $compilationCache = [];
+
+    protected array $fallbackAssetPaths = [];
+
+    protected string $standardTheme = 'standard';
 
     /**
      * Accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
-     * @var float
      */
     protected static float $assetsCompileTime = 0.0;
 
@@ -76,15 +91,117 @@ class TemplateAssets
         $this->template = $template;
         $this->context = $context;
 
-        $this->template->addDirective("at", function ($expression) {
+        $this->template->addDirective("at", static function ($expression) {
             if (strpos($expression, ',') !== false) {
-                return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction($expression); ?>";
+                return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction({$expression}); ?>";
             }
 
-            return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction($expression, false); ?>";
+            return "<?php echo app('Flute\\Core\\Template\\TemplateAssets')->assetFunction({$expression}, false); ?>";
         });
 
         $this->loadThemeScssAppends();
+    }
+
+    /**
+     * Generates the appropriate URL or HTML tag for an asset based on its type (CSS, JS, image).
+     *
+     * @param string $expression The path or URL of the asset.
+     * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
+     * @return string The generated HTML tag or asset URL.
+     */
+    public function assetFunction(string $expression, bool $urlOnly = false): string
+    {
+        $expression = $this->applyAssetReplacement($expression);
+
+        $filePath = $this->resolveFilePath($expression);
+        $extension = $this->getFileExtension($expression, $filePath);
+        $pathParts = explode("/", $expression);
+        $firstSegment = $pathParts[0] ?? '';
+
+        if ($firstSegment === "assets") {
+            $url = $this->generateAssetUrl($expression);
+
+            return $urlOnly ? $this->extractUrl($url) : $url;
+        }
+
+        return $this->processAssetBasedOnExtension($extension, $expression, $filePath, $urlOnly);
+    }
+
+    /**
+     * Adds a SCSS file to the list for a specified context if it exists and is valid.
+     *
+     * @param string $path The path to the SCSS file.
+     * @param string $context The context ('main' or 'admin') for which this file should be added.
+     */
+    public function addScssFile(string $path, string $context): void
+    {
+        if (file_exists($path) && pathinfo($path, PATHINFO_EXTENSION) === 'scss') {
+            $this->additionalScssFiles[$context][] = $path;
+        } else {
+            logs()->warning("SCSS file not found or invalid: {$path}");
+        }
+    }
+
+    /**
+     * Retrieves the SCSS compiler instance for compiling SCSS content.
+     *
+     * @return Compiler The SCSS compiler instance.
+     */
+    public function getCompiler(): Compiler
+    {
+        return $this->scssCompiler;
+    }
+
+    /**
+     * Get the accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
+     */
+    public static function getAssetsCompileTime(): float
+    {
+        return self::$assetsCompileTime;
+    }
+
+    /**
+     * Add import path with context support.
+     */
+    public function addImportPath(string $path, string $context = 'main'): void
+    {
+        if ($context === $this->context && is_dir($path)) {
+            $this->scssCompiler->addImportPath($path);
+        }
+    }
+
+    /**
+     * Clear all caches.
+     */
+    public function clearCache(): void
+    {
+        $this->assetPathCache = [];
+        $this->compilationCache = [];
+        $this->fallbackAssetPaths = [];
+    }
+
+    /**
+     * Clear style cache files and internal caches.
+     */
+    public function clearStyleCache(): void
+    {
+        $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
+        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+        $filesystem->remove(glob($cssCachePath));
+        $this->clearCache();
+    }
+
+    /**
+     * Get cache statistics.
+     */
+    public function getCacheStats(): array
+    {
+        return [
+            'asset_path_cache_size' => count($this->assetPathCache),
+            'compilation_cache_size' => count($this->compilationCache),
+            'debug_mode' => $this->debugMode,
+            'context' => $this->context,
+        ];
     }
 
     /**
@@ -116,8 +233,6 @@ class TemplateAssets
 
     /**
      * Get theme fallback order.
-     *
-     * @return array
      */
     protected function getThemeFallbackOrder(): array
     {
@@ -132,28 +247,258 @@ class TemplateAssets
     }
 
     /**
-     * Generates the appropriate URL or HTML tag for an asset based on its type (CSS, JS, image).
+     * Returns the cache directory path for a given asset type (e.g., CSS, JS).
      *
-     * @param string $expression The path or URL of the asset.
-     * @param bool $urlOnly Whether to return only the URL instead of the full HTML tag.
-     * @return string The generated HTML tag or asset URL.
+     * @param string $type The asset type ('css', 'js', etc.).
+     * @return string The cache directory path.
      */
-    public function assetFunction(string $expression, bool $urlOnly = false): string
+    protected function getCacheDir(string $type): string
     {
-        $expression = $this->applyAssetReplacement($expression);
+        return "assets/{$type}/cache/{$this->context}/";
+    }
 
-        $filePath = $this->resolveFilePath($expression);
-        $extension = $this->getFileExtension($expression, $filePath);
-        $pathParts = explode("/", $expression);
-        $firstSegment = $pathParts[0] ?? '';
+    /**
+     * Gather SCSS contents with fallback support.
+     */
+    protected function gatherScssContents(string $mainScssPath): array
+    {
+        $scssContents = [];
 
-        if ($firstSegment === "assets") {
-            $url = $this->generateAssetUrl($expression);
+        // Load shared partials first
+        $partialsContent = $this->loadSharedPartials();
+        $scssContents[] = $partialsContent;
 
-            return $urlOnly ? $this->extractUrl($url) : $url;
+        // Main SCSS content
+        $mainScssContent = file_get_contents($mainScssPath);
+        if ($mainScssContent === false) {
+            logs()->error("Unable to read SCSS file: {$mainScssPath}");
+
+            return [];
+        }
+        $scssContents[] = $mainScssContent;
+
+        // Additional SCSS files for context
+        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+            if (file_exists($additionalFile)) {
+                $additionalContent = file_get_contents($additionalFile);
+                if ($additionalContent !== false) {
+                    $scssContents[] = $additionalContent;
+                } else {
+                    logs()->warning("Unable to read additional SCSS file: {$additionalFile}");
+                }
+            }
         }
 
-        return $this->processAssetBasedOnExtension($extension, $expression, $filePath, $urlOnly);
+        return $scssContents;
+    }
+
+    /**
+     * Processes an external asset URL (CSS, JS, or image), caching it locally if it's not already present.
+     *
+     * @param string $url The URL of the external asset.
+     * @param string $type The asset type ('css', 'js', or 'img').
+     * @return string The generated HTML tag or local asset URL.
+     */
+    protected function processRemoteAsset(string $url, string $type): string
+    {
+        if ($this->isLocalUrl($url)) {
+            return $this->generateTag($url, $type);
+        }
+
+        $localUrl = $this->processCdnAsset($url, $type);
+
+        if ($localUrl === '') {
+            $safeUrl = $this->sanitizeRemoteUrl($url);
+
+            return $safeUrl === '' ? '' : $this->generateTag($safeUrl, $type);
+        }
+
+        return $this->generateTag($localUrl, $type);
+    }
+
+    /**
+     * Checks if a given URL belongs to the same host as the application.
+     *
+     * @param string $url The URL to check.
+     * @return bool True if the URL is local, false otherwise.
+     */
+    protected function isLocalUrl(string $url): bool
+    {
+        $parsedUrl = parse_url($url);
+        $parsedAppUrl = parse_url($this->appUrl);
+
+        if (isset($parsedUrl['host'], $parsedAppUrl['host'])) {
+            return $parsedUrl['host'] === $parsedAppUrl['host'];
+        }
+
+        return true;
+    }
+
+    /**
+     * Generates the appropriate HTML tag (link, script, or img) for an asset.
+     *
+     * @param string $url The URL of the asset.
+     * @param string $type The asset type ('css', 'js', or 'img').
+     * @return string The HTML tag.
+     */
+    protected function generateTag(string $url, string $type): string
+    {
+        switch ($type) {
+            case 'css':
+                return "<link href=\"{$url}\" rel=\"stylesheet\">";
+            case 'js':
+                return "<script src=\"{$url}\" defer></script>";
+            case 'img':
+                return "<img src=\"{$url}\" alt=\"\" loading=\"lazy\">";
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * Downloads and caches an external asset from a CDN, storing it locally.
+     *
+     * @param string $url The URL of the CDN asset.
+     * @param string $type The asset type ('js' by default).
+     * @return string The URL of the cached local asset.
+     */
+    protected function processCdnAsset(string $url, string $type = "js"): string
+    {
+        $normalizedUrl = $this->sanitizeRemoteUrl($url);
+        if ($normalizedUrl === '') {
+            return '';
+        }
+
+        if (!$this->isBasicRemoteUrlSafe($normalizedUrl)) {
+            return '';
+        }
+
+        $allowedExtensions = [
+            'css' => ['css'],
+            'js' => ['js', 'mjs'],
+            'img' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+        ];
+
+        $type = array_key_exists($type, $allowedExtensions) ? $type : 'js';
+        $path = parse_url($normalizedUrl, PHP_URL_PATH) ?: '';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $allowedForType = $allowedExtensions[$type];
+
+        if ($extension === '') {
+            $extension = $allowedForType[0];
+        } elseif (!in_array($extension, $allowedForType, true)) {
+            return $normalizedUrl;
+        }
+
+        $hash = sha1($normalizedUrl);
+        $localPath = "assets/{$type}/cache/{$hash}.{$extension}";
+        $fullLocalPath = BASE_PATH . "public/" . $localPath;
+
+        if (!file_exists($fullLocalPath)) {
+            $context = stream_context_create([
+                'http' => ['timeout' => $this->remoteAssetTimeout],
+                'https' => ['timeout' => $this->remoteAssetTimeout],
+            ]);
+
+            $content = @file_get_contents($normalizedUrl, false, $context);
+            if ($content === false) {
+                logs('templates')->warning('Failed to fetch remote asset: ' . $normalizedUrl);
+
+                return '';
+            }
+            $this->saveAsset($fullLocalPath, $content);
+        }
+
+        $version = filemtime($fullLocalPath);
+
+        return url($localPath) . "?v={$version}";
+    }
+
+    /**
+     * Prepare allowed remote host list from configuration.
+     */
+    // Whitelist intentionally removed by request; keeping only basic checks above.
+
+    /**
+     * Saves asset content to a specified path, with optional minification.
+     *
+     * @param string $path The path where the asset will be saved.
+     * @param string $content The content to save.
+     */
+    protected function saveAsset(string $path, string $content): void
+    {
+        $content = $this->minifyContent($path, $content);
+        $this->ensureDirectoryExists(dirname($path));
+
+        if (file_put_contents($path, $content, LOCK_EX) === false) {
+            logs()->error("Failed to write asset to path: {$path}");
+        }
+    }
+
+    /**
+     * Copies an asset from a source path to a destination path, creating directories if necessary.
+     *
+     * @param string $sourcePath The source file path.
+     * @param string $destinationPath The destination file path.
+     */
+    protected function copyAsset(string $sourcePath, string $destinationPath): void
+    {
+        $this->ensureDirectoryExists(dirname($destinationPath));
+
+        if (!copy($sourcePath, $destinationPath)) {
+            logs()->error("Failed to copy asset from {$sourcePath} to {$destinationPath}");
+        }
+    }
+
+    /**
+     * Minifies asset content if minification is enabled, based on the asset's file type.
+     *
+     * @param string $path The path to the asset file.
+     * @param string $content The content to minify.
+     * @return string The minified content.
+     */
+    protected function minifyContent(string $path, string $content): string
+    {
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if ($extension === 'js' && $this->minifyAssets) {
+            $minifier = new Minify\JS();
+            $minifier->add($content);
+
+            return $minifier->minify();
+        }
+
+        if ($extension === 'css' && $this->minifyAssets) {
+            // Performance issue with autoprefixer in debug mode
+            if (!is_debug()) {
+                $autoprefixer = new Autoprefixer($content);
+
+                try {
+                    $content = $autoprefixer->compile();
+                } catch (Throwable $e) {
+                    logs()->error("Autoprefixer failed: " . $e->getMessage());
+                }
+            }
+
+            $minifier = new Minify\CSS();
+            $minifier->add($content);
+
+            return $minifier->minify();
+        }
+
+        return $content;
+    }
+
+    /**
+     * Ensure that a specified directory exists, creating it if necessary.
+     *
+     * @param string $directory The path of the directory to check or create.
+     */
+    protected function ensureDirectoryExists(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            mkdir($directory, 0o755, true);
+        }
     }
 
     /**
@@ -204,7 +549,7 @@ class TemplateAssets
                     return str_replace('*', $base, (string) $replacement);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Asset replacement failed: ' . $e->getMessage());
         }
 
@@ -249,7 +594,7 @@ class TemplateAssets
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('templates')->error('Failed to load theme SCSS appends: ' . $e->getMessage());
         }
     }
@@ -375,32 +720,6 @@ class TemplateAssets
     }
 
     /**
-     * Adds a SCSS file to the list for a specified context if it exists and is valid.
-     *
-     * @param string $path The path to the SCSS file.
-     * @param string $context The context ('main' or 'admin') for which this file should be added.
-     */
-    public function addScssFile(string $path, string $context): void
-    {
-        if (file_exists($path) && pathinfo($path, PATHINFO_EXTENSION) === 'scss') {
-            $this->additionalScssFiles[$context][] = $path;
-        } else {
-            logs()->warning("SCSS file not found or invalid: {$path}");
-        }
-    }
-
-    /**
-     * Returns the cache directory path for a given asset type (e.g., CSS, JS).
-     *
-     * @param string $type The asset type ('css', 'js', etc.).
-     * @return string The cache directory path.
-     */
-    protected function getCacheDir(string $type): string
-    {
-        return "assets/{$type}/cache/{$this->context}/";
-    }
-
-    /**
      * Optimized SCSS compilation with enhanced caching and fallback.
      */
     private function processScssAsset(string $expression, string $scssPath): string
@@ -479,44 +798,6 @@ class TemplateAssets
     }
 
     /**
-     * Gather SCSS contents with fallback support.
-     *
-     * @param string $mainScssPath
-     * @return array
-     */
-    protected function gatherScssContents(string $mainScssPath): array
-    {
-        $scssContents = [];
-
-        // Load shared partials first
-        $partialsContent = $this->loadSharedPartials();
-        $scssContents[] = $partialsContent;
-
-        // Main SCSS content
-        $mainScssContent = file_get_contents($mainScssPath);
-        if ($mainScssContent === false) {
-            logs()->error("Unable to read SCSS file: {$mainScssPath}");
-
-            return [];
-        }
-        $scssContents[] = $mainScssContent;
-
-        // Additional SCSS files for context
-        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-            if (file_exists($additionalFile)) {
-                $additionalContent = file_get_contents($additionalFile);
-                if ($additionalContent !== false) {
-                    $scssContents[] = $additionalContent;
-                } else {
-                    logs()->warning("Unable to read additional SCSS file: {$additionalFile}");
-                }
-            }
-        }
-
-        return $scssContents;
-    }
-
-    /**
      * Compiles SCSS contents into CSS, catching any compilation errors.
      *
      * @param array $scssContents An array of SCSS content strings.
@@ -539,9 +820,9 @@ class TemplateAssets
 
             if ($this->debugMode) {
                 throw new CompilerException($message, 0, null);
-            } else {
-                logs()->error($message);
             }
+            logs()->error($message);
+
         }
 
         return '';
@@ -692,7 +973,7 @@ class TemplateAssets
             if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
                 try {
                     WebPConvert::convert($imgPathBase, $webpFullPath);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->error($e->getMessage());
 
                     return $this->generateAssetUrl($imgPath);
@@ -708,128 +989,6 @@ class TemplateAssets
         }
 
         return $urlOnly ? url($imgPath) : "<img src=\"" . url($imgPath) . "\" alt=\"\" loading=\"lazy\">";
-    }
-
-    /**
-     * Processes an external asset URL (CSS, JS, or image), caching it locally if it's not already present.
-     *
-     * @param string $url The URL of the external asset.
-     * @param string $type The asset type ('css', 'js', or 'img').
-     * @return string The generated HTML tag or local asset URL.
-     */
-    protected function processRemoteAsset(string $url, string $type): string
-    {
-        if ($this->isLocalUrl($url)) {
-            return $this->generateTag($url, $type);
-        }
-
-        $localUrl = $this->processCdnAsset($url, $type);
-
-        if ($localUrl === '') {
-            $safeUrl = $this->sanitizeRemoteUrl($url);
-
-            return $safeUrl === '' ? '' : $this->generateTag($safeUrl, $type);
-        }
-
-        return $this->generateTag($localUrl, $type);
-    }
-
-    /**
-     * Checks if a given URL belongs to the same host as the application.
-     *
-     * @param string $url The URL to check.
-     * @return bool True if the URL is local, false otherwise.
-     */
-    protected function isLocalUrl(string $url): bool
-    {
-        $parsedUrl = parse_url($url);
-        $parsedAppUrl = parse_url($this->appUrl);
-
-        if (isset($parsedUrl['host'], $parsedAppUrl['host'])) {
-            return $parsedUrl['host'] === $parsedAppUrl['host'];
-        }
-
-        return true;
-    }
-
-    /**
-     * Generates the appropriate HTML tag (link, script, or img) for an asset.
-     *
-     * @param string $url The URL of the asset.
-     * @param string $type The asset type ('css', 'js', or 'img').
-     * @return string The HTML tag.
-     */
-    protected function generateTag(string $url, string $type): string
-    {
-        switch ($type) {
-            case 'css':
-                return "<link href=\"{$url}\" rel=\"stylesheet\">";
-            case 'js':
-                return "<script src=\"{$url}\" defer></script>";
-            case 'img':
-                return "<img src=\"{$url}\" alt=\"\" loading=\"lazy\">";
-            default:
-                return '';
-        }
-    }
-
-    /**
-     * Downloads and caches an external asset from a CDN, storing it locally.
-     *
-     * @param string $url The URL of the CDN asset.
-     * @param string $type The asset type ('js' by default).
-     * @return string The URL of the cached local asset.
-     */
-    protected function processCdnAsset(string $url, string $type = "js"): string
-    {
-        $normalizedUrl = $this->sanitizeRemoteUrl($url);
-        if ($normalizedUrl === '') {
-            return '';
-        }
-
-        if (!$this->isBasicRemoteUrlSafe($normalizedUrl)) {
-            return '';
-        }
-
-        $allowedExtensions = [
-            'css' => ['css'],
-            'js' => ['js', 'mjs'],
-            'img' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
-        ];
-
-        $type = array_key_exists($type, $allowedExtensions) ? $type : 'js';
-        $path = parse_url($normalizedUrl, PHP_URL_PATH) ?: '';
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        $allowedForType = $allowedExtensions[$type];
-
-        if ($extension === '') {
-            $extension = $allowedForType[0];
-        } elseif (!in_array($extension, $allowedForType, true)) {
-            return $normalizedUrl;
-        }
-
-        $hash = sha1($normalizedUrl);
-        $localPath = "assets/{$type}/cache/{$hash}.{$extension}";
-        $fullLocalPath = BASE_PATH . "public/" . $localPath;
-
-        if (!file_exists($fullLocalPath)) {
-            $context = stream_context_create([
-                'http' => ['timeout' => $this->remoteAssetTimeout],
-                'https' => ['timeout' => $this->remoteAssetTimeout],
-            ]);
-
-            $content = @file_get_contents($normalizedUrl, false, $context);
-            if ($content === false) {
-                logs('templates')->warning('Failed to fetch remote asset: ' . $normalizedUrl);
-
-                return '';
-            }
-            $this->saveAsset($fullLocalPath, $content);
-        }
-
-        $version = filemtime($fullLocalPath);
-
-        return url($localPath) . "?v={$version}";
     }
 
     /**
@@ -849,11 +1008,12 @@ class TemplateAssets
         }
 
         $host = strtolower($parsed['host'] ?? '');
-        if ($host === '' || filter_var($host, FILTER_VALIDATE_IP)) {
-            return false;
-        }
 
-        return true;
+        return !($host === '' || filter_var($host, FILTER_VALIDATE_IP))
+
+
+
+        ;
     }
 
     /**
@@ -887,162 +1047,5 @@ class TemplateAssets
         $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
 
         return $scheme . '://' . strtolower($host) . $port . $path . $query . $fragment;
-    }
-
-    /**
-     * Prepare allowed remote host list from configuration.
-     */
-    // Whitelist intentionally removed by request; keeping only basic checks above.
-
-    /**
-     * Saves asset content to a specified path, with optional minification.
-     *
-     * @param string $path The path where the asset will be saved.
-     * @param string $content The content to save.
-     */
-    protected function saveAsset(string $path, string $content): void
-    {
-        $content = $this->minifyContent($path, $content);
-        $this->ensureDirectoryExists(dirname($path));
-
-        if (file_put_contents($path, $content, LOCK_EX) === false) {
-            logs()->error("Failed to write asset to path: {$path}");
-        }
-    }
-
-    /**
-     * Copies an asset from a source path to a destination path, creating directories if necessary.
-     *
-     * @param string $sourcePath The source file path.
-     * @param string $destinationPath The destination file path.
-     */
-    protected function copyAsset(string $sourcePath, string $destinationPath): void
-    {
-        $this->ensureDirectoryExists(dirname($destinationPath));
-
-        if (!copy($sourcePath, $destinationPath)) {
-            logs()->error("Failed to copy asset from {$sourcePath} to {$destinationPath}");
-        }
-    }
-
-    /**
-     * Minifies asset content if minification is enabled, based on the asset's file type.
-     *
-     * @param string $path The path to the asset file.
-     * @param string $content The content to minify.
-     * @return string The minified content.
-     */
-    protected function minifyContent(string $path, string $content): string
-    {
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-
-        if ($extension === 'js' && $this->minifyAssets) {
-            $minifier = new Minify\JS();
-            $minifier->add($content);
-
-            return $minifier->minify();
-        }
-
-        if ($extension === 'css' && $this->minifyAssets) {
-            // Performance issue with autoprefixer in debug mode
-            if (!is_debug()) {
-                $autoprefixer = new Autoprefixer($content);
-
-                try {
-                    $content = $autoprefixer->compile();
-                } catch (\Throwable $e) {
-                    logs()->error("Autoprefixer failed: " . $e->getMessage());
-                }
-            }
-
-            $minifier = new Minify\CSS();
-            $minifier->add($content);
-
-            return $minifier->minify();
-        }
-
-        return $content;
-    }
-
-    /**
-     * Retrieves the SCSS compiler instance for compiling SCSS content.
-     *
-     * @return Compiler The SCSS compiler instance.
-     */
-    public function getCompiler(): Compiler
-    {
-        return $this->scssCompiler;
-    }
-
-    /**
-     * Get the accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
-     *
-     * @return float
-     */
-    public static function getAssetsCompileTime(): float
-    {
-        return self::$assetsCompileTime;
-    }
-
-    /**
-     * Ensure that a specified directory exists, creating it if necessary.
-     *
-     * @param string $directory The path of the directory to check or create.
-     */
-    protected function ensureDirectoryExists(string $directory): void
-    {
-        if (!is_dir($directory)) {
-            mkdir($directory, 0o755, true);
-        }
-    }
-
-    /**
-     * Add import path with context support.
-     */
-    public function addImportPath(string $path, string $context = 'main'): void
-    {
-        if ($context === $this->context && is_dir($path)) {
-            $this->scssCompiler->addImportPath($path);
-        }
-    }
-
-    /**
-     * Clear all caches.
-     *
-     * @return void
-     */
-    public function clearCache(): void
-    {
-        $this->assetPathCache = [];
-        $this->compilationCache = [];
-        $this->fallbackAssetPaths = [];
-    }
-
-    /**
-     * Clear style cache files and internal caches.
-     *
-     * @return void
-     */
-    public function clearStyleCache(): void
-    {
-        $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
-        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
-        $filesystem->remove(glob($cssCachePath));
-        $this->clearCache();
-    }
-
-    /**
-     * Get cache statistics.
-     *
-     * @return array
-     */
-    public function getCacheStats(): array
-    {
-        return [
-            'asset_path_cache_size' => count($this->assetPathCache),
-            'compilation_cache_size' => count($this->compilationCache),
-            'debug_mode' => $this->debugMode,
-            'context' => $this->context,
-        ];
     }
 }

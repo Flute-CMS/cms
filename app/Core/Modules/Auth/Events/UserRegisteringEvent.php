@@ -9,6 +9,7 @@ class UserRegisteringEvent
     public const NAME = 'user.registering';
 
     public User $user;
+
     public array $credentials;
 
     public function __construct(User $user, array $credentials)

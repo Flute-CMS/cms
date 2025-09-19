@@ -5,17 +5,16 @@ namespace Flute\Core\ServiceProviders;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\DatabaseManager;
 use Flute\Core\Support\AbstractServiceProvider;
+use Throwable;
 
 class DatabaseServiceProvider extends AbstractServiceProvider
 {
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            DatabaseManager::class => \DI\factory(function () {
-                return DatabaseManager::getInstance();
-            }),
+            DatabaseManager::class => \DI\factory(static fn () => DatabaseManager::getInstance()),
 
-            DatabaseConnection::class => \DI\factory(function (\DI\Container $c) {
+            DatabaseConnection::class => \DI\factory(static function (\DI\Container $c) {
                 $manager = $c->get(DatabaseManager::class);
 
                 return new DatabaseConnection($manager);
@@ -35,7 +34,7 @@ class DatabaseServiceProvider extends AbstractServiceProvider
             } else {
                 $conn->recompileIfNeeded(true);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('database')->warning('Early ORM init failed: ' . $e->getMessage());
         }
     }

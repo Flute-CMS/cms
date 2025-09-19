@@ -15,10 +15,13 @@ class Modal extends Layout
     use Commander;
 
     public const SIZE_XL = 'xl';
+
     public const SIZE_LG = 'lg';
+
     public const SIZE_SM = 'sm';
 
     public const TYPE_CENTER = '';
+
     public const TYPE_RIGHT = 'right';
 
     /**
@@ -41,6 +44,7 @@ class Modal extends Layout
      * @var string
      */
     protected $template = 'admin::partials.layouts.modal';
+
     protected $repository;
 
     /**

@@ -87,8 +87,20 @@ class Builder
         return $this->form;
     }
 
+    public static function convertDotToArray(string $string): string
+    {
+        $name = '';
+        $binding = explode('.', $string);
+
+        foreach ($binding as $key => $bind) {
+            $name .= $key === 0 ? $bind : '[' . $bind . ']';
+        }
+
+        return $name;
+    }
+
     /**
-     * @throws \Throwable
+     * @throws Throwable
      *
      * @return array|string
      */
@@ -104,7 +116,6 @@ class Builder
 
     /**
      * Render field for forms.
-     *
      *
      * @throws Throwable
      *
@@ -177,17 +188,5 @@ class Builder
         }
 
         return $data;
-    }
-
-    public static function convertDotToArray(string $string): string
-    {
-        $name = '';
-        $binding = explode('.', $string);
-
-        foreach ($binding as $key => $bind) {
-            $name .= $key === 0 ? $bind : '[' . $bind . ']';
-        }
-
-        return $name;
     }
 }

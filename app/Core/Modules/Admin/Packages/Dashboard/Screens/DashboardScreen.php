@@ -10,15 +10,11 @@ class DashboardScreen extends Screen
 {
     /**
      * Screen title
-     *
-     * @var string
      */
     public ?string $name = 'admin-dashboard.labels.home';
 
     /**
      * Screen description
-     *
-     * @var string
      */
     public ?string $description = 'admin-dashboard.descriptions.key_metrics';
 
@@ -28,8 +24,6 @@ class DashboardScreen extends Screen
 
     /**
      * Mount the screen
-     *
-     * @return void
      */
     public function mount(): void
     {
@@ -42,8 +36,6 @@ class DashboardScreen extends Screen
 
     /**
      * Get the layout elements
-     *
-     * @return array
      */
     public function layout(): array
     {

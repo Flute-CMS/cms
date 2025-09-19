@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Modules\Screens;
 
+use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -19,10 +20,13 @@ use Flute\Core\ModulesManager\ModuleManager;
 class ModuleScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.modules';
 
     public $modules;
+
     public $key;
 
     protected ModuleManager $moduleManager;
@@ -41,15 +45,6 @@ class ModuleScreen extends Screen
         $this->loadModules();
     }
 
-    protected function loadModules(bool $refresh = false): void
-    {
-        if ($refresh) {
-            $this->moduleManager->refreshModules();
-        }
-
-        $this->modules = $this->moduleManager->getModules()->sortBy('status', SORT_STRING, true);
-    }
-
     public function layout(): array
     {
         return [
@@ -58,17 +53,15 @@ class ModuleScreen extends Screen
             LayoutFactory::table('modules', [
                 TD::selection('key'),
                 TD::make('name', __('admin-modules.table.name'))
-                    ->render(function (ModuleInformation $module) {
-                        return view('admin-modules::cells.name', compact('module'));
-                    })
+                    ->render(static fn (ModuleInformation $module) => view('admin-modules::cells.name', compact('module')))
                     ->minWidth('200px'),
 
                 TD::make('version', __('admin-modules.table.version'))
-                    ->render(fn (ModuleInformation $module) => view('admin-modules::cells.version', compact('module')))
+                    ->render(static fn (ModuleInformation $module) => view('admin-modules::cells.version', compact('module')))
                     ->minWidth('150px'),
 
                 TD::make('status', __('admin-modules.table.status'))
-                    ->render(function (ModuleInformation $module) {
+                    ->render(static function (ModuleInformation $module) {
                         switch ($module->status) {
                             case ModuleManager::ACTIVE:
                                 return '<span class="badge success">'.__('admin-modules.status.active').'</span>';
@@ -85,7 +78,7 @@ class ModuleScreen extends Screen
                 TD::make('actions', __('admin-modules.table.actions'))
                     ->width('250px')
                     ->alignCenter()
-                    ->render(function (ModuleInformation $module) {
+                    ->render(static function (ModuleInformation $module) {
                         $actions = [];
 
                         if ($module->status !== ModuleManager::NOTINSTALLED && $module->installedVersion !== $module->version) {
@@ -253,7 +246,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->installModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.installed', ['name' => $module->name]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.install_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -275,7 +268,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->activateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.activated', ['name' => $module->name]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.activation_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -297,7 +290,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->disableModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.disabled', ['name' => $module->name]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.disable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -319,7 +312,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->updateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.updated', ['name' => $module->name]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.update_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -341,7 +334,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => $module->name]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.uninstall_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -362,7 +355,7 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->activateModule($module, $this->moduleManager);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
         $this->loadModules(true);
@@ -383,7 +376,7 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->disableModule($module, $this->moduleManager);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
         $this->loadModules(true);
@@ -404,10 +397,19 @@ class ModuleScreen extends Screen
 
             try {
                 app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => '']), 'success');
+    }
+
+    protected function loadModules(bool $refresh = false): void
+    {
+        if ($refresh) {
+            $this->moduleManager->refreshModules();
+        }
+
+        $this->modules = $this->moduleManager->getModules()->sortBy('status', SORT_STRING, true);
     }
 }

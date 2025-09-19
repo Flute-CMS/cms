@@ -10,6 +10,10 @@ use Flute\Admin\Platform\Traits\IsVisible;
 use Flute\Core\Traits\MacroableTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionParameter;
 
 abstract class Cell
 {
@@ -51,7 +55,6 @@ abstract class Cell
     }
 
     /**
-     * @return static
      */
     public static function make(string $name = '', ?string $title = null): static
     {
@@ -77,28 +80,57 @@ abstract class Cell
     }
 
     /**
-     * @throws \ReflectionException
+     * Pass only the cell value to the component
      *
-     * @return string
+     * @throws ReflectionException
+     *
+     * @return $this
+     */
+    public function asComponent(string $component, array $params = []): static
+    {
+        return $this->render(function ($value) use ($component, $params) {
+            if ($value instanceof Repository) {
+                $content = $value->getContent($this->name);
+            } elseif ($value instanceof EntityProxyInterface) {
+                $content = $value->{$this->name};
+            } else {
+                throw new InvalidArgumentException("Unsupported source type for asComponent.");
+            }
+
+            $params['_row'] = $value;
+
+            return $this->renderComponent($component, $content, $params);
+        });
+    }
+
+    public function title(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @throws ReflectionException
      */
     protected function getNameParameterExpected(string $component, array $params = []): ?string
     {
-        $class = new \ReflectionClass($component);
+        $class = new ReflectionClass($component);
         $parameters = optional($class->getConstructor())->getParameters() ?? [];
 
         $paramsKeys = Arr::isAssoc($params) ? array_keys($params) : array_values($params);
 
         return collect($parameters)
-            ->filter(fn (\ReflectionParameter $parameter) => !$parameter->isOptional())
-            ->whenEmpty(fn () => collect($parameters))
-            ->map(fn (\ReflectionParameter $parameter) => $parameter->getName())
+            ->filter(static fn (ReflectionParameter $parameter) => !$parameter->isOptional())
+            ->whenEmpty(static fn () => collect($parameters))
+            ->map(static fn (ReflectionParameter $parameter) => $parameter->getName())
             ->diff($paramsKeys)
             ->last();
     }
 
     /**
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function renderComponent(string $component, $value, array $params = []): ?string
     {
@@ -112,33 +144,9 @@ abstract class Cell
             }
         }
 
-        $params = array_map(fn ($item) => value($item, $value), $params);
+        $params = array_map(static fn ($item) => value($item, $value), $params);
 
         return Blade::renderComponent($component, $params);
-    }
-
-    /**
-     * Pass only the cell value to the component
-     *
-     * @throws \ReflectionException
-     *
-     * @return $this
-     */
-    public function asComponent(string $component, array $params = []): static
-    {
-        return $this->render(function ($value) use ($component, $params) {
-            if ($value instanceof Repository) {
-                $content = $value->getContent($this->name);
-            } elseif ($value instanceof EntityProxyInterface) {
-                $content = $value->{$this->name};
-            } else {
-                throw new \InvalidArgumentException("Unsupported source type for asComponent.");
-            }
-
-            $params['_row'] = $value;
-
-            return $this->renderComponent($component, $content, $params);
-        });
     }
 
     /**
@@ -151,12 +159,5 @@ abstract class Cell
         $callback = $this->render;
 
         return is_null($callback) ? $source : $callback($source, $loop);
-    }
-
-    public function title(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
     }
 }

@@ -39,7 +39,7 @@ class UserSearchListener implements EventSubscriberInterface
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
 
-        $users = User::query()->where(function ($query) use ($searchValueLower) {
+        $users = User::query()->where(static function ($query) use ($searchValueLower) {
             $query->orWhere('name', 'LIKE', "%{$searchValueLower}%")
                 ->orWhere('login', 'LIKE', "%{$searchValueLower}%")
                 ->orWhere('email', 'LIKE', "%{$searchValueLower}%");
@@ -53,10 +53,6 @@ class UserSearchListener implements EventSubscriberInterface
 
     /**
      * Create a search result for a user
-     *
-     * @param User $user
-     * @param int $relevance
-     * @return AdminSearchResult
      */
     protected function createUserSearchResult(User $user, int $relevance): AdminSearchResult
     {
@@ -71,10 +67,6 @@ class UserSearchListener implements EventSubscriberInterface
 
     /**
      * Calculate relevance score for search result
-     *
-     * @param string $searchValue
-     * @param User $user
-     * @return int
      */
     protected static function calculateRelevance(string $searchValue, User $user): int
     {

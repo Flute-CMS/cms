@@ -21,29 +21,53 @@ class FluteChart
     */
 
     public string $id;
+
     protected string $title = '';
+
     protected string $subtitle = '';
+
     protected string $subtitlePosition = 'left';
+
     protected string $type = 'donut';
+
     protected array $labels = [];
+
     protected string $fontFamily = 'Manrope';
+
     protected string $foreColor = '#fff';
+
     protected string $dataset = '';
+
     protected int $height = 500;
+
     protected $width = '100%';
+
     protected string $colors;
+
     protected string $horizontal;
+
     protected string $xAxis;
+
     protected string $grid;
+
     protected string $markers;
+
     protected bool $stacked = false;
+
     protected bool $showLegend = true;
+
     protected string $stroke = '';
+
     protected string $toolbar;
+
     protected string $zoom;
+
     protected string $dataLabels;
+
     protected string $theme = 'dark';
+
     protected string $background = 'transparent';
+
     protected string $sparkline;
 
     protected static $cdnLoaded = false;
@@ -140,7 +164,6 @@ class FluteChart
     */
 
     /**
-     *
      * @deprecated deprecated since version 2.0
      * @param ?string $type
      * @return $this
@@ -364,9 +387,7 @@ class FluteChart
 
     public function transformLabels(array $array)
     {
-        $stringArray = array_filter($array, function ($string) {
-            return "{$string}";
-        });
+        $stringArray = array_filter($array, static fn ($string) => "{$string}");
 
         return json_encode(['"' . implode('","', $stringArray) . '"']);
     }
@@ -396,7 +417,7 @@ class FluteChart
 
         $cdnLink = asset('assets/js/libs/apex-charts.js');
 
-        return "<script src=$cdnLink></script>";
+        return "<script src={$cdnLink}></script>";
     }
 
     // public static function cdn(): string

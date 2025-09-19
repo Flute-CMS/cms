@@ -20,8 +20,6 @@ abstract class BaseController
      *
      * @param string|array $message Error message
      * @param int $status HTTP Status code
-     *
-     * @return Response
      */
     public function error($message, int $status = 403): Response
     {
@@ -38,7 +36,6 @@ abstract class BaseController
     }
 
     /**
-     * @return ErrorHandler
      */
     public function errors(): ErrorHandler
     {
@@ -50,7 +47,6 @@ abstract class BaseController
      *
      * @param string|null $message Error message
      * @param int $status HTTP status code
-     * @return Response
      */
     public function respondWithError(?string $message = null, int $status = 403): Response
     {
@@ -62,8 +58,6 @@ abstract class BaseController
      *
      * @param string|array $message Success message
      * @param int $status HTTP Status code
-     *
-     * @return JsonResponse
      */
     public function success($message = null, int $status = 200): JsonResponse
     {
@@ -76,8 +70,6 @@ abstract class BaseController
      * Return flash message
      *
      * @param string $message Error message
-     * @param string $type
-     * @return void
      */
     public function flash(string $message, string $type = 'error'): void
     {
@@ -94,11 +86,6 @@ abstract class BaseController
 
     /**
      * Return json response
-     *
-     * @param array $data
-     * @param int $status
-     *
-     * @return JsonResponse
      */
     public function json(array $data, int $status = 200): JsonResponse
     {
@@ -107,8 +94,6 @@ abstract class BaseController
 
     /**
      * Check if csrf token is valid
-     *
-     * @return bool
      */
     public function isCsrfValid(): bool
     {
@@ -139,10 +124,8 @@ abstract class BaseController
      *
      * @param array $requestParams Parameters to validate.
      * @param array $requiredParams List of required parameter keys.
-     *
-     * @return FluteValidator|bool|JsonResponse
      */
-    protected function validate(array $requestParams, array $requiredParams, array $messages = [], string $prefix = null): FluteValidator|bool|JsonResponse
+    protected function validate(array $requestParams, array $requiredParams, array $messages = [], ?string $prefix = null): FluteValidator|bool|JsonResponse
     {
         $validator = validator();
 
@@ -164,7 +147,7 @@ abstract class BaseController
         return response()->htmx();
     }
 
-    protected function htmxRender(string $view, array $parameters = [], HtmxResponse $response = null): HtmxResponse
+    protected function htmxRender(string $view, array $parameters = [], ?HtmxResponse $response = null): HtmxResponse
     {
         $content = render($view, $parameters);
 

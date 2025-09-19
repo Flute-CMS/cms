@@ -10,6 +10,7 @@ use Flute\Core\Services\UserService;
 use Flute\Core\Support\FluteRequest;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * PageManager handles page management, widget rendering, and automatic route registration.
@@ -24,23 +25,24 @@ use Psr\Log\LoggerInterface;
  */
 class PageManager
 {
-    private array $permissions = [];
-    private ?Page $currentPage = null;
     protected RouterInterface $router;
+
     protected bool $disabled = false;
+
+    private array $permissions = [];
+
+    private ?Page $currentPage = null;
+
     private FluteRequest $request;
+
     private UserService $userService;
+
     private LoggerInterface $logger;
+
     private WidgetManager $widgetManager;
 
     /**
      * Constructor method.
-     *
-     * @param RouterInterface $router
-     * @param FluteRequest    $request
-     * @param UserService     $userService
-     * @param LoggerInterface $logger
-     * @param WidgetManager   $widgetManager
      */
     public function __construct(
         RouterInterface $router,
@@ -59,79 +61,6 @@ class PageManager
             $this->loadAllPages();
             $this->loadCurrentPage();
         }
-    }
-
-    /**
-     * Loads all pages and registers their routes in the router.
-     */
-    protected function loadAllPages(): void
-    {
-        if (is_admin_path()) {
-            return;
-        }
-
-        $pages = Page::findAll();
-
-        $this->registerPageRoutes($pages);
-    }
-
-    /**
-     * Registers routes for all pages in the router.
-     *
-     * @param array $pages Array of Page entities
-     */
-    protected function registerPageRoutes(array $pages): void
-    {
-        foreach ($pages as $page) {
-            if (!$page->route) {
-                continue;
-            }
-
-            $this->registerSinglePageRoute($page);
-        }
-    }
-
-    /**
-     * Renders content for a specific page.
-     *
-     * @param Page $page
-     * @return mixed
-     */
-    protected function renderPageContent(Page $page)
-    {
-        $this->currentPage = $page;
-        $this->loadPermissions();
-
-        if (!is_cli()) {
-            template()->addGlobal('page', $this->currentPage);
-        }
-
-        return response()->view('flute::pages.home');
-    }
-
-    /**
-     * Renders home page for undefined routes.
-     *
-     * @param string $routePath
-     * @return mixed
-     */
-    protected function renderHomePage(string $routePath)
-    {
-        $tempPage = new Page();
-        $tempPage->setRoute($routePath);
-        $tempPage->setTitle(config('app.name'));
-        $tempPage->setDescription(config('app.description'));
-        $tempPage->setKeywords(config('app.keywords'));
-        $tempPage->setRobots(config('app.robots'));
-        $tempPage->setOgImage(config('app.og_image'));
-
-        $this->currentPage = $tempPage;
-
-        if (!is_cli()) {
-            template()->addGlobal('page', $this->currentPage);
-        }
-
-        return view('flute::pages.home');
     }
 
     /**
@@ -251,20 +180,6 @@ class PageManager
     }
 
     /**
-     * Check if there's actual push content
-     */
-    private function hasPushContent(): bool
-    {
-        try {
-            $pushContent = view()->yieldPushContent('content');
-
-            return !empty(trim(strip_tags($pushContent)));
-        } catch (Exception $e) {
-            return true;
-        }
-    }
-
-    /**
      * Renders a single widget by its ID.
      *
      * @param int $widgetId The widget ID.
@@ -289,24 +204,6 @@ class PageManager
             return $this->hasAccessToEdit()
                 ? view('flute::partials.invalid-widget', [
                     'block' => $widgetDb,
-                    'exception' => $e->getMessage(),
-                ])->render()
-                : null;
-        }
-    }
-
-    protected function safeRenderBlock(PageBlock $block): ?string
-    {
-        try {
-            $settings = json_decode($block->getSettings(), true) ?? [];
-
-            return $this->widgetManager->getWidget($block->getWidget())->render($settings);
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage(), ['exception' => $e]);
-
-            return $this->hasAccessToEdit()
-                ? view('flute::partials.invalid-widget', [
-                    'block' => $block,
                     'exception' => $e->getMessage(),
                 ])->render()
                 : null;
@@ -455,9 +352,6 @@ class PageManager
 
     /**
      * Creates a new page with specified route and parameters.
-     *
-     * @param string $route
-     * @param array  $parameters
      */
     public function createPage(string $route, array $parameters = []): Page
     {
@@ -477,35 +371,7 @@ class PageManager
     }
 
     /**
-     * Registers a route for a single page.
-     *
-     * @param Page $page
-     */
-    protected function registerSinglePageRoute(Page $page): void
-    {
-        if (!$page->route) {
-            return;
-        }
-
-        if ($this->router->hasRoute($page->route, 'GET')) {
-            return;
-        }
-
-        foreach ($page->getPermissions() as $permission) {
-            if (!user()->can($permission)) {
-                return;
-            }
-        }
-
-        $this->router->get($page->route, function () use ($page) {
-            return $this->renderPageContent($page);
-        });
-    }
-
-    /**
      * Updates parameters of the current page.
-     *
-     * @param array $parameters
      */
     public function updatePageParameters(array $parameters): void
     {
@@ -536,7 +402,7 @@ class PageManager
     public function save()
     {
         if (!$this->currentPage) {
-            throw new \RuntimeException('No current page to update.');
+            throw new RuntimeException('No current page to update.');
         }
 
         $isNewPage = !$this->currentPage->getId();
@@ -545,16 +411,6 @@ class PageManager
 
         if ($isNewPage) {
             $this->registerSinglePageRoute($this->currentPage);
-        }
-    }
-
-    /**
-     * Loads permissions of the current page.
-     */
-    protected function loadPermissions(): void
-    {
-        foreach ($this->currentPage->getPermissions() as $permission) {
-            $this->permissions[] = $permission;
         }
     }
 
@@ -610,5 +466,140 @@ class PageManager
         }
 
         return null;
+    }
+
+    /**
+     * Loads all pages and registers their routes in the router.
+     */
+    protected function loadAllPages(): void
+    {
+        if (is_admin_path()) {
+            return;
+        }
+
+        $pages = Page::findAll();
+
+        $this->registerPageRoutes($pages);
+    }
+
+    /**
+     * Registers routes for all pages in the router.
+     *
+     * @param array $pages Array of Page entities
+     */
+    protected function registerPageRoutes(array $pages): void
+    {
+        foreach ($pages as $page) {
+            if (!$page->route) {
+                continue;
+            }
+
+            $this->registerSinglePageRoute($page);
+        }
+    }
+
+    /**
+     * Renders content for a specific page.
+     *
+     * @return mixed
+     */
+    protected function renderPageContent(Page $page)
+    {
+        $this->currentPage = $page;
+        $this->loadPermissions();
+
+        if (!is_cli()) {
+            template()->addGlobal('page', $this->currentPage);
+        }
+
+        return response()->view('flute::pages.home');
+    }
+
+    /**
+     * Renders home page for undefined routes.
+     *
+     * @return mixed
+     */
+    protected function renderHomePage(string $routePath)
+    {
+        $tempPage = new Page();
+        $tempPage->setRoute($routePath);
+        $tempPage->setTitle(config('app.name'));
+        $tempPage->setDescription(config('app.description'));
+        $tempPage->setKeywords(config('app.keywords'));
+        $tempPage->setRobots(config('app.robots'));
+        $tempPage->setOgImage(config('app.og_image'));
+
+        $this->currentPage = $tempPage;
+
+        if (!is_cli()) {
+            template()->addGlobal('page', $this->currentPage);
+        }
+
+        return view('flute::pages.home');
+    }
+
+    protected function safeRenderBlock(PageBlock $block): ?string
+    {
+        try {
+            $settings = json_decode($block->getSettings(), true) ?? [];
+
+            return $this->widgetManager->getWidget($block->getWidget())->render($settings);
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage(), ['exception' => $e]);
+
+            return $this->hasAccessToEdit()
+                ? view('flute::partials.invalid-widget', [
+                    'block' => $block,
+                    'exception' => $e->getMessage(),
+                ])->render()
+                : null;
+        }
+    }
+
+    /**
+     * Registers a route for a single page.
+     */
+    protected function registerSinglePageRoute(Page $page): void
+    {
+        if (!$page->route) {
+            return;
+        }
+
+        if ($this->router->hasRoute($page->route, 'GET')) {
+            return;
+        }
+
+        foreach ($page->getPermissions() as $permission) {
+            if (!user()->can($permission)) {
+                return;
+            }
+        }
+
+        $this->router->get($page->route, fn () => $this->renderPageContent($page));
+    }
+
+    /**
+     * Loads permissions of the current page.
+     */
+    protected function loadPermissions(): void
+    {
+        foreach ($this->currentPage->getPermissions() as $permission) {
+            $this->permissions[] = $permission;
+        }
+    }
+
+    /**
+     * Check if there's actual push content
+     */
+    private function hasPushContent(): bool
+    {
+        try {
+            $pushContent = view()->yieldPushContent('content');
+
+            return !empty(trim(strip_tags($pushContent)));
+        } catch (Exception $e) {
+            return true;
+        }
     }
 }

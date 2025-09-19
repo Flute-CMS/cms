@@ -16,10 +16,6 @@ class EventsServiceProvider extends AbstractServiceProvider
 {
     /**
      * Register the services provided by the service provider.
-     *
-     * @param ContainerBuilder $containerBuilder
-     *
-     * @return void
      */
     public function register(ContainerBuilder $containerBuilder): void
     {
@@ -34,8 +30,6 @@ class EventsServiceProvider extends AbstractServiceProvider
 
     /**
      * Bootstrap the application services.
-     *
-     * @return void
      */
     public function boot(\DI\Container $container): void
     {

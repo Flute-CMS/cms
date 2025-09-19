@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Auth\Controllers;
 
+use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
@@ -19,7 +20,7 @@ class AuthController extends BaseController
             if (sizeof($providers) === 1) {
                 $key = array_key_first($providers);
 
-                return redirect(url("social/$key"));
+                return redirect(url("social/{$key}"));
             }
         }
 
@@ -48,7 +49,7 @@ class AuthController extends BaseController
             flash()->success(__('auth.logout_success'));
 
             return response()->redirect('/');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
             $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
 
@@ -63,7 +64,7 @@ class AuthController extends BaseController
             flash()->add('success', __('auth.confirmation.success'));
 
             return response()->redirect('/');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         } catch (AccountNotVerifiedException $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));

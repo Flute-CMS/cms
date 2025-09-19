@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Payments\Controllers;
 
+use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +21,7 @@ class PaymentsApiController extends BaseController
             payments()->processor()->handlePayment($gateway);
 
             return $this->success('1');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->warning($e);
 
             if (is_debug()) {

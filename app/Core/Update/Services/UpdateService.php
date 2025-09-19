@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Update\Services;
 
+use Exception;
 use Flute\Core\App;
 use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;
@@ -35,17 +36,14 @@ class UpdateService
     private const LOCAL_API_UPDATE_URL = 'https://flute-cms.com/api';
 
     /**
-     * @var ModuleManager
      */
     protected ModuleManager $moduleManager;
 
     /**
-     * @var ThemeManager
      */
     protected ThemeManager $themeManager;
 
     /**
-     * @var bool
      */
     protected bool $useMockData = false;
 
@@ -55,14 +53,13 @@ class UpdateService
     protected string $channel = 'stable';
 
     /**
-     * @var Parser
      */
     protected Parser $markdownParser;
 
     /**
      * UpdateService constructor.
      */
-    public function __construct(ModuleManager $moduleManager, ThemeManager $themeManager, Parser $markdownParser = null)
+    public function __construct(ModuleManager $moduleManager, ThemeManager $themeManager, ?Parser $markdownParser = null)
     {
         $this->moduleManager = $moduleManager;
         $this->themeManager = $themeManager;
@@ -93,7 +90,6 @@ class UpdateService
      * Get available updates for all components
      *
      * @param bool $forceRefresh Принудительно обновить кэш
-     * @return array
      */
     public function getAvailableUpdates(bool $forceRefresh = false): array
     {
@@ -105,9 +101,7 @@ class UpdateService
             return $this->fetchUpdatesFromApi();
         }
 
-        return cache()->callback($cacheKey, function () {
-            return $this->fetchUpdatesFromApi();
-        }, self::CACHE_DURATION);
+        return cache()->callback($cacheKey, fn () => $this->fetchUpdatesFromApi(), self::CACHE_DURATION);
     }
 
     /**
@@ -115,7 +109,6 @@ class UpdateService
      *
      * @param string $type cms|module|theme
      * @param string|null $identifier Component identifier
-     * @return bool
      */
     public function hasUpdate(string $type, ?string $identifier = null): bool
     {
@@ -133,7 +126,6 @@ class UpdateService
      *
      * @param string $type cms|module|theme
      * @param string|null $identifier Component identifier
-     * @return array|null
      */
     public function getUpdateDetails(string $type, ?string $identifier = null): ?array
     {
@@ -147,257 +139,7 @@ class UpdateService
     }
 
     /**
-     * Increment version number for mock data
-     *
-     * @param string $version
-     * @return string
-     */
-    protected function incrementVersion(string $version): string
-    {
-        $parts = explode('.', $version);
-        $parts[count($parts) - 1]++;
-
-        return implode('.', $parts);
-    }
-
-    /**
-     * Fetch updates from external API
-     *
-     * @return array
-     */
-    private function fetchUpdatesFromApi(): array
-    {
-        if ($this->useMockData) {
-            return $this->parseMarkdownChangelogs($this->buildMockData());
-        }
-
-        try {
-            $client = new Client(['timeout' => 10, 'verify' => !config('app.debug')]);
-            $apiKey = config('app.flute_key');
-
-            if (empty($apiKey)) {
-                logs()->warning('Flute API key is empty. Can\'t fetch updates.');
-
-                return [];
-            }
-
-            $url = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL) . '/updates';
-
-            $response = $client->request('GET', $url, [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'User-Agent' => 'Flute-CMS/' . App::VERSION,
-                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                    'Pragma' => 'no-cache',
-                    'Expires' => '0',
-                ],
-                'query' => [
-                    'version' => App::VERSION,
-                    'modules' => json_encode($this->getInstalledModules()),
-                    'themes' => json_encode($this->getInstalledThemes()),
-                    'accessKey' => $apiKey,
-                    'phpVersion' => $this->getPHPVersion(),
-                    'branch' => $this->channel,
-                    'nocache' => time(),
-                ],
-            ]);
-
-
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode($response->getBody(), true);
-
-                if (is_array($data)) {
-                    $data = $this->parseMarkdownChangelogs($data);
-
-                    return $data;
-                }
-            }
-        } catch (GuzzleException $e) {
-            // if (is_debug()) {
-            //     throw $e;
-            // }
-
-            logs()->error('Failed to fetch updates: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            // if (is_debug()) {
-            //     throw $e;
-            // }
-
-            logs()->error('Error processing updates: ' . $e->getMessage());
-        }
-
-        return [];
-    }
-
-    /**
-     * Build mock updates dataset (for UI previews)
-     */
-    private function buildMockData(): array
-    {
-        $today = date(default_date_format(true));
-
-        $cms = [
-            'version' => $this->incrementVersion(App::VERSION),
-            'release_date' => $today,
-            'tags' => [
-                ['type' => 'feature', 'label' => 'Features'],
-                ['type' => 'security', 'label' => 'Security'],
-            ],
-            'changelog' => "# Highlights\n\n- New Dashboard widgets\n- Faster cache engine\n- Security patches\n\n## Details\n- Added support for Early channel\n- Improved UX for updates page",
-            'previous_versions' => [
-                [
-                    'version' => $this->incrementVersion($this->incrementVersion(App::VERSION)),
-                    'release_date' => $today,
-                    'changelog' => "- Fix minor bugs\n- Improve performance",
-                ],
-            ],
-        ];
-
-        $modules = [
-            'shop' => [
-                'name' => 'Shop',
-                'current_version' => '1.4.0',
-                'version' => '1.5.0',
-                'release_date' => $today,
-                'changelog' => "- New coupons\n- Better analytics",
-                'previous_versions' => [
-                    ['version' => '1.4.5', 'release_date' => $today, 'changelog' => '- Hotfixes'],
-                ],
-            ],
-            'rules' => [
-                'name' => 'Rules',
-                'current_version' => '2.0.0',
-                'version' => '2.1.0',
-                'release_date' => $today,
-                'changelog' => "- Rich editor for rules\n- Export to PDF",
-            ],
-        ];
-
-        $themes = [
-            'standard' => [
-                'name' => 'Standard Theme',
-                'current_version' => '3.2.1',
-                'version' => '3.3.0',
-                'release_date' => $today,
-                'changelog' => "- Polish profile card\n- New color tokens",
-            ],
-        ];
-
-        return [
-            'cms' => $cms,
-            'modules' => $modules,
-            'themes' => $themes,
-        ];
-    }
-
-    /**
-     * Parse Markdown changelogs in update data
-     *
-     * @param array $data
-     * @return array
-     */
-    private function parseMarkdownChangelogs(array $data): array
-    {
-        if (!empty($data['cms']) && is_array($data['cms'])) {
-            if (!empty($data['cms']['changelog'])) {
-                $data['cms']['changelog_html'] = $this->markdownParser->parse($data['cms']['changelog'], false, false);
-            }
-
-            if (!empty($data['cms']['previous_versions'])) {
-                foreach ($data['cms']['previous_versions'] as $key => $version) {
-                    if (!empty($version['changelog'])) {
-                        $data['cms']['previous_versions'][$key]['changelog_html'] =
-                            $this->markdownParser->parse($version['changelog'], false, false);
-                    }
-                }
-            }
-        }
-
-        if (!empty($data['modules']) && is_array($data['modules'])) {
-            foreach ($data['modules'] as $moduleId => $module) {
-                if (!empty($module['changelog'])) {
-                    $data['modules'][$moduleId]['changelog_html'] =
-                        $this->markdownParser->parse($module['changelog'], false, false);
-                }
-
-                if (!empty($module['previous_versions'])) {
-                    foreach ($module['previous_versions'] as $vKey => $version) {
-                        if (!empty($version['changelog'])) {
-                            $data['modules'][$moduleId]['previous_versions'][$vKey]['changelog_html'] =
-                                $this->markdownParser->parse($version['changelog'], false, false);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($data['themes']) && is_array($data['themes'])) {
-            foreach ($data['themes'] as $themeId => $theme) {
-                if (!empty($theme['changelog'])) {
-                    $data['themes'][$themeId]['changelog_html'] =
-                        $this->markdownParser->parse($theme['changelog'], false, false);
-                }
-
-                if (!empty($theme['previous_versions'])) {
-                    foreach ($theme['previous_versions'] as $vKey => $version) {
-                        if (!empty($version['changelog'])) {
-                            $data['themes'][$themeId]['previous_versions'][$vKey]['changelog_html'] =
-                                $this->markdownParser->parse($version['changelog'], false, false);
-                        }
-                    }
-                }
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * Get list of installed modules with their versions
-     *
-     * @return array
-     */
-    private function getInstalledModules(): array
-    {
-        $modules = [];
-
-        foreach ($this->moduleManager->getActive() as $module) {
-            $updater = new ModuleUpdater($module);
-            $modules[] = [
-                'key' => $module->key,
-                'version' => $updater->getCurrentVersion(),
-            ];
-        }
-
-        return $modules;
-    }
-
-    /**
-     * Get list of installed themes with their versions
-     *
-     * @return array
-     */
-    private function getInstalledThemes(): array
-    {
-        $themes = [];
-
-        foreach ($this->themeManager->getInstalledThemes() as $theme) {
-            $themeData = $this->themeManager->getThemeData($theme->key);
-            $updater = new ThemeUpdater($theme, $themeData);
-
-            $themes[] = [
-                'key' => $theme->key,
-                'version' => $updater->getCurrentVersion(),
-            ];
-        }
-
-        return $themes;
-    }
-
-    /**
      * Clear update cache
-     *
-     * @return void
      */
     public function clearCache(): void
     {
@@ -414,9 +156,6 @@ class UpdateService
     /**
      * Download update package
      *
-     * @param string $type
-     * @param string|null $identifier
-     * @param string|null $version
      * @return string|null Path to downloaded file or null on failure
      */
     public function downloadUpdate(string $type, ?string $identifier = null, ?string $version = null): ?string
@@ -492,7 +231,7 @@ class UpdateService
             if (is_debug()) {
                 throw $e;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error('Error processing update download: ' . $e->getMessage());
 
             if (is_debug()) {
@@ -504,9 +243,243 @@ class UpdateService
     }
 
     /**
+     * Increment version number for mock data
+     */
+    protected function incrementVersion(string $version): string
+    {
+        $parts = explode('.', $version);
+        $parts[count($parts) - 1]++;
+
+        return implode('.', $parts);
+    }
+
+    /**
+     * Fetch updates from external API
+     */
+    private function fetchUpdatesFromApi(): array
+    {
+        if ($this->useMockData) {
+            return $this->parseMarkdownChangelogs($this->buildMockData());
+        }
+
+        try {
+            $client = new Client(['timeout' => 10, 'verify' => !config('app.debug')]);
+            $apiKey = config('app.flute_key');
+
+            if (empty($apiKey)) {
+                logs()->warning('Flute API key is empty. Can\'t fetch updates.');
+
+                return [];
+            }
+
+            $url = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL) . '/updates';
+
+            $response = $client->request('GET', $url, [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'User-Agent' => 'Flute-CMS/' . App::VERSION,
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache',
+                    'Expires' => '0',
+                ],
+                'query' => [
+                    'version' => App::VERSION,
+                    'modules' => json_encode($this->getInstalledModules()),
+                    'themes' => json_encode($this->getInstalledThemes()),
+                    'accessKey' => $apiKey,
+                    'phpVersion' => $this->getPHPVersion(),
+                    'branch' => $this->channel,
+                    'nocache' => time(),
+                ],
+            ]);
+
+
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody(), true);
+
+                if (is_array($data)) {
+                    $data = $this->parseMarkdownChangelogs($data);
+
+                    return $data;
+                }
+            }
+        } catch (GuzzleException $e) {
+            // if (is_debug()) {
+            //     throw $e;
+            // }
+
+            logs()->error('Failed to fetch updates: ' . $e->getMessage());
+        } catch (Exception $e) {
+            // if (is_debug()) {
+            //     throw $e;
+            // }
+
+            logs()->error('Error processing updates: ' . $e->getMessage());
+        }
+
+        return [];
+    }
+
+    /**
+     * Build mock updates dataset (for UI previews)
+     */
+    private function buildMockData(): array
+    {
+        $today = date(default_date_format(true));
+
+        $cms = [
+            'version' => $this->incrementVersion(App::VERSION),
+            'release_date' => $today,
+            'tags' => [
+                ['type' => 'feature', 'label' => 'Features'],
+                ['type' => 'security', 'label' => 'Security'],
+            ],
+            'changelog' => "# Highlights\n\n- New Dashboard widgets\n- Faster cache engine\n- Security patches\n\n## Details\n- Added support for Early channel\n- Improved UX for updates page",
+            'previous_versions' => [
+                [
+                    'version' => $this->incrementVersion($this->incrementVersion(App::VERSION)),
+                    'release_date' => $today,
+                    'changelog' => "- Fix minor bugs\n- Improve performance",
+                ],
+            ],
+        ];
+
+        $modules = [
+            'shop' => [
+                'name' => 'Shop',
+                'current_version' => '1.4.0',
+                'version' => '1.5.0',
+                'release_date' => $today,
+                'changelog' => "- New coupons\n- Better analytics",
+                'previous_versions' => [
+                    ['version' => '1.4.5', 'release_date' => $today, 'changelog' => '- Hotfixes'],
+                ],
+            ],
+            'rules' => [
+                'name' => 'Rules',
+                'current_version' => '2.0.0',
+                'version' => '2.1.0',
+                'release_date' => $today,
+                'changelog' => "- Rich editor for rules\n- Export to PDF",
+            ],
+        ];
+
+        $themes = [
+            'standard' => [
+                'name' => 'Standard Theme',
+                'current_version' => '3.2.1',
+                'version' => '3.3.0',
+                'release_date' => $today,
+                'changelog' => "- Polish profile card\n- New color tokens",
+            ],
+        ];
+
+        return [
+            'cms' => $cms,
+            'modules' => $modules,
+            'themes' => $themes,
+        ];
+    }
+
+    /**
+     * Parse Markdown changelogs in update data
+     */
+    private function parseMarkdownChangelogs(array $data): array
+    {
+        if (!empty($data['cms']) && is_array($data['cms'])) {
+            if (!empty($data['cms']['changelog'])) {
+                $data['cms']['changelog_html'] = $this->markdownParser->parse($data['cms']['changelog'], false, false);
+            }
+
+            if (!empty($data['cms']['previous_versions'])) {
+                foreach ($data['cms']['previous_versions'] as $key => $version) {
+                    if (!empty($version['changelog'])) {
+                        $data['cms']['previous_versions'][$key]['changelog_html'] =
+                            $this->markdownParser->parse($version['changelog'], false, false);
+                    }
+                }
+            }
+        }
+
+        if (!empty($data['modules']) && is_array($data['modules'])) {
+            foreach ($data['modules'] as $moduleId => $module) {
+                if (!empty($module['changelog'])) {
+                    $data['modules'][$moduleId]['changelog_html'] =
+                        $this->markdownParser->parse($module['changelog'], false, false);
+                }
+
+                if (!empty($module['previous_versions'])) {
+                    foreach ($module['previous_versions'] as $vKey => $version) {
+                        if (!empty($version['changelog'])) {
+                            $data['modules'][$moduleId]['previous_versions'][$vKey]['changelog_html'] =
+                                $this->markdownParser->parse($version['changelog'], false, false);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($data['themes']) && is_array($data['themes'])) {
+            foreach ($data['themes'] as $themeId => $theme) {
+                if (!empty($theme['changelog'])) {
+                    $data['themes'][$themeId]['changelog_html'] =
+                        $this->markdownParser->parse($theme['changelog'], false, false);
+                }
+
+                if (!empty($theme['previous_versions'])) {
+                    foreach ($theme['previous_versions'] as $vKey => $version) {
+                        if (!empty($version['changelog'])) {
+                            $data['themes'][$themeId]['previous_versions'][$vKey]['changelog_html'] =
+                                $this->markdownParser->parse($version['changelog'], false, false);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get list of installed modules with their versions
+     */
+    private function getInstalledModules(): array
+    {
+        $modules = [];
+
+        foreach ($this->moduleManager->getActive() as $module) {
+            $updater = new ModuleUpdater($module);
+            $modules[] = [
+                'key' => $module->key,
+                'version' => $updater->getCurrentVersion(),
+            ];
+        }
+
+        return $modules;
+    }
+
+    /**
+     * Get list of installed themes with their versions
+     */
+    private function getInstalledThemes(): array
+    {
+        $themes = [];
+
+        foreach ($this->themeManager->getInstalledThemes() as $theme) {
+            $themeData = $this->themeManager->getThemeData($theme->key);
+            $updater = new ThemeUpdater($theme, $themeData);
+
+            $themes[] = [
+                'key' => $theme->key,
+                'version' => $updater->getCurrentVersion(),
+            ];
+        }
+
+        return $themes;
+    }
+
+    /**
      * Get PHP version
-     *
-     * @return string
      */
     private function getPHPVersion(): string
     {

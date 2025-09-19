@@ -13,6 +13,7 @@ class ProfileSearchEvent
     public const NAME = 'profile.search';
 
     private ?User $user;
+
     private string $value;
 
     public function __construct(string $value)

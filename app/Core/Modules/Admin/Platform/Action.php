@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform;
 
 use Flute\Admin\Platform\Contracts\Actionable;
 use Flute\Admin\Platform\Support\Color;
+use Throwable;
 
 class Action extends Field implements Actionable
 {
@@ -51,7 +52,7 @@ class Action extends Field implements Actionable
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View|mixed
      */
@@ -61,7 +62,6 @@ class Action extends Field implements Actionable
     }
 
     /**
-     * @return string
      */
     protected function getId(): ?string
     {

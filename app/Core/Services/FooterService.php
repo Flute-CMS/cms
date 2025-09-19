@@ -7,10 +7,13 @@ use Nette\Utils\Validators;
 
 class FooterService
 {
-    protected array $cachedItems;
-    protected bool $performance;
-    protected const CACHE_TIME = 24 * 60 * 60;
     public const CACHE_KEY = 'flute.footer.items';
+
+    protected const CACHE_TIME = 24 * 60 * 60;
+
+    protected array $cachedItems;
+
+    protected bool $performance;
 
     /**
      * Constructor method
@@ -27,8 +30,6 @@ class FooterService
      * Adds a footer item to the cached items, if the user has access to it
      *
      * @param FooterItem $item The item to add
-     *
-     * @return self
      */
     public function add(FooterItem $item): self
     {
@@ -47,12 +48,34 @@ class FooterService
 
     /**
      * Returns all cached footer items
-     *
-     * @return array
      */
     public function all(): array
     {
         return $this->cachedItems;
+    }
+
+    public function format(FooterItem $FooterItem): array
+    {
+        $result = [
+            'id' => $FooterItem->id,
+            'title' => $FooterItem->title,
+            'icon' => $FooterItem->icon,
+            'url' => $FooterItem->url ? $this->formatUrl($FooterItem->url) : null,
+            'new_tab' => $FooterItem->new_tab,
+            'position' => $FooterItem->position,
+            'children' => [],
+            'roles' => [],
+        ];
+
+        foreach ($FooterItem->children as $child) {
+            $result['children'][] = $this->format($child);
+        }
+
+        if ($result['children']) {
+            usort($result['children'], static fn ($a, $b) => $a['position'] <=> $b['position']);
+        }
+
+        return $result;
     }
 
     /**
@@ -68,7 +91,7 @@ class FooterService
             $formattedItems[] = $this->format($item);
         }
 
-        usort($formattedItems, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($formattedItems, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $formattedItems;
     }
@@ -98,35 +121,9 @@ class FooterService
             }
         }
 
-        usort($tree, fn ($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
+        usort($tree, static fn ($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
 
         return $tree;
-    }
-
-    public function format(FooterItem $FooterItem): array
-    {
-        $result = [
-            'id' => $FooterItem->id,
-            'title' => $FooterItem->title,
-            'icon' => $FooterItem->icon,
-            'url' => $FooterItem->url ? $this->formatUrl($FooterItem->url) : null,
-            'new_tab' => $FooterItem->new_tab,
-            'position' => $FooterItem->position,
-            'children' => [],
-            'roles' => [],
-        ];
-
-        foreach ($FooterItem->children as $child) {
-            $result['children'][] = $this->format($child);
-        }
-
-        if ($result['children']) {
-            usort($result['children'], function ($a, $b) {
-                return $a['position'] <=> $b['position'];
-            });
-        }
-
-        return $result;
     }
 
     /**

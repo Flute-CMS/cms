@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Auth\Hybrid\Storage;
 
 use Hybridauth\Storage\StorageInterface;
+use Throwable;
 
 class StorageSession implements StorageInterface
 {
@@ -22,7 +23,7 @@ class StorageSession implements StorageInterface
         if (is_array($value) && isset($value['__lateObject'])) {
             try {
                 return unserialize($value['__lateObject']);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
 
                 return $value;

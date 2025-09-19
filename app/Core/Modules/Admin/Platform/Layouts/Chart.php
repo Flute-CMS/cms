@@ -22,30 +22,22 @@ class Chart extends Layout
 
     /**
      * Заголовок графика.
-     *
-     * @var string|null
      */
     protected ?string $title = null;
 
     /**
      * Краткое описание под графиком.
-     *
-     * @var string|null
      */
     protected ?string $description = null;
 
     /**
      * Целевое поле (ключ), откуда брать данные в репозитории.
-     *
-     * @var string
      */
     protected string $target = '';
 
     /**
      * Тип чарта.
      * donut, bar, line, area, и т.д.
-     *
-     * @var string
      */
     protected string $type = 'line';
 
@@ -53,29 +45,21 @@ class Chart extends Layout
      * Данные для самого чарта.
      * Вы можете вынести логику получения dataset в build(),
      * либо устанавливать массив напрямую.
-     *
-     * @var array
      */
     protected array $dataset = [];
 
     /**
      * Подписи для осей/серий.
-     *
-     * @var array
      */
     protected array $labels = [];
 
     /**
      * Высота чарта (px).
-     *
-     * @var int
      */
     protected int $height = 250;
 
     /**
      * Ширина чарта (по умолчанию 100%).
-     *
-     * @var string|int
      */
     protected string|int $width = '100%';
 
@@ -88,8 +72,6 @@ class Chart extends Layout
 
     /**
      * Фоновый цвет (по умолчанию transparent).
-     *
-     * @var string|null
      */
     protected ?string $background = null;
 
@@ -97,10 +79,6 @@ class Chart extends Layout
 
     /**
      * Создает новый Chart layout.
-     *
-     * @param string $target
-     * @param string|null $title
-     * @return static
      */
     public static function make(string $target, ?string $title = null): static
     {
@@ -117,7 +95,6 @@ class Chart extends Layout
     /**
      * Установить цель (target), откуда берем данные.
      *
-     * @param  string  $target
      * @return $this
      */
     public function target(string $target): static
@@ -137,7 +114,6 @@ class Chart extends Layout
     /**
      * Установить заголовок чарта.
      *
-     * @param  string|null  $title
      * @return $this
      */
     public function title(?string $title): static
@@ -150,7 +126,6 @@ class Chart extends Layout
     /**
      * Установить описание.
      *
-     * @param  string|null  $description
      * @return $this
      */
     public function description(?string $description): static
@@ -163,7 +138,6 @@ class Chart extends Layout
     /**
      * Установить тип чарта (line, bar, donut и т.д.).
      *
-     * @param  string  $type
      * @return $this
      */
     public function type(string $type): static
@@ -176,7 +150,6 @@ class Chart extends Layout
     /**
      * Установить высоту чарта (px).
      *
-     * @param  int  $height
      * @return $this
      */
     public function height(int $height): static
@@ -189,7 +162,6 @@ class Chart extends Layout
     /**
      * Установить ширину (по умолчанию строка "100%", можно задать и в px).
      *
-     * @param  string|int  $width
      * @return $this
      */
     public function width(string|int $width): static
@@ -202,7 +174,6 @@ class Chart extends Layout
     /**
      * Установить цвета графиков.
      *
-     * @param  array  $colors
      * @return $this
      */
     public function colors(array $colors): static
@@ -215,7 +186,6 @@ class Chart extends Layout
     /**
      * Установить фон.
      *
-     * @param  string  $background
      * @return $this
      */
     public function background(string $background): static
@@ -228,7 +198,6 @@ class Chart extends Layout
     /**
      * Установить вручную данные для чарта (dataset).
      *
-     * @param  array  $dataset
      * @return $this
      */
     public function dataset(array $dataset): static
@@ -241,7 +210,6 @@ class Chart extends Layout
     /**
      * Установить подписи (labels).
      *
-     * @param  array  $labels
      * @return $this
      */
     public function labels(array $labels): static
@@ -262,7 +230,6 @@ class Chart extends Layout
      * Основной метод рендера.
      * Здесь формируем FluteChart и передаем его в шаблон.
      *
-     * @param  Repository  $repository
      * @return \Illuminate\Contracts\View\View|void
      */
     public function build(Repository $repository)

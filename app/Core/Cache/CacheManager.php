@@ -8,6 +8,7 @@ use Flute\Core\Cache\Adapters\FileSystemAdapterCacheDriver;
 use Flute\Core\Cache\Adapters\MemcachedAdapterCacheDriver;
 use Flute\Core\Cache\Adapters\RedisAdapterCacheDriver;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Class for creating cache driver instances based on configuration
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 class CacheManager
 {
     protected ?AbstractCacheDriver $adapter = null;
+
     protected LoggerInterface $logger;
 
     protected array $driverMap = [
@@ -27,8 +29,6 @@ class CacheManager
 
     /**
      * Class constructor, initializes logger
-     *
-     * @param LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
@@ -37,9 +37,6 @@ class CacheManager
 
     /**
      * Creates a cache driver instance based on the driver specified in the configuration
-     *
-     * @param array $config
-     * @return AbstractCacheDriver
      */
     public function create(array $config): AbstractCacheDriver
     {
@@ -59,13 +56,12 @@ class CacheManager
     /**
      * Get current cache adapter
      *
-     * @return AbstractCacheDriver
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function getAdapter(): AbstractCacheDriver
     {
         if ($this->adapter === null) {
-            throw new \RuntimeException("Cache adapter has not been created yet.");
+            throw new RuntimeException("Cache adapter has not been created yet.");
         }
 
         return $this->adapter;

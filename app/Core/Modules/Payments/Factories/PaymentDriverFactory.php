@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Payments\Factories;
 
 use Flute\Core\Modules\Payments\Contracts\PaymentDriverInterface;
+use InvalidArgumentException;
 
 class PaymentDriverFactory
 {
@@ -17,13 +18,13 @@ class PaymentDriverFactory
     public function register(string $key, string $driverClass): void
     {
         if (!is_subclass_of($driverClass, PaymentDriverInterface::class)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Driver class must implement PaymentDriverInterface."
             );
         }
 
         if (isset($this->drivers[$key])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Driver [{$key}] already registered."
             );
         }
@@ -37,7 +38,7 @@ class PaymentDriverFactory
     public function make(string $key): PaymentDriverInterface
     {
         if (!isset($this->drivers[$key])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Payment driver [{$key}] not found."
             );
         }

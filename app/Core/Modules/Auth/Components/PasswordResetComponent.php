@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Auth\Components;
 
 use Clickfwd\Yoyo\Component;
+use Exception;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Services\CaptchaService;
@@ -11,6 +12,7 @@ use Nette\Schema\ValidationException;
 class PasswordResetComponent extends Component
 {
     public ?string $loginOrEmail = null;
+
     public bool $success = false;
 
     public function validate()
@@ -39,12 +41,17 @@ class PasswordResetComponent extends Component
                 sleep(rand(3, 7));
             } catch (TooManyRequestsException $e) {
                 toast()->error(__('auth.too_many_requests'))->push();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error($e);
 
                 toast()->error(is_debug() ? $e->getMessage() : __('def.unknown_error'))->push();
             }
         }
+    }
+
+    public function render()
+    {
+        return $this->view('flute::components.reset.reset', ['success' => $this->success]);
     }
 
     protected function validator()
@@ -83,10 +90,5 @@ class PasswordResetComponent extends Component
         }
 
         return true;
-    }
-
-    public function render()
-    {
-        return $this->view('flute::components.reset.reset', ['success' => $this->success]);
     }
 }

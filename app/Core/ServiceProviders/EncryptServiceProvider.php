@@ -13,9 +13,7 @@ class EncryptServiceProvider extends AbstractServiceProvider
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            EncryptService::class => \DI\factory(function (\DI\Container $container) {
-                return new EncryptService(base64_decode($container->get('app.key')));
-            }),
+            EncryptService::class => \DI\factory(static fn (\DI\Container $container) => new EncryptService(base64_decode($container->get('app.key')))),
             "encrypt" => \DI\get(EncryptService::class),
         ]);
     }

@@ -2,22 +2,30 @@
 
 namespace Flute\Core\Listeners;
 
+use function defined;
+
 use Flute\Core\Database\DatabaseTimingLogger;
 use Flute\Core\Events\ResponseEvent;
+
+use const FLUTE_DB_SETUP_END;
+use const FLUTE_DEFERRED_SAVE_END;
+use const FLUTE_DISPATCH_END;
+use const FLUTE_EVENTS_END;
+use const FLUTE_ROUTER_START;
 
 class RequestTimingListener
 {
     public static function onRouteResponse(ResponseEvent $event): void
     {
         $now = microtime(true);
-        $start = \defined('FLUTE_ROUTER_START') ? (float) \FLUTE_ROUTER_START : ($now - 0.0);
+        $start = defined('FLUTE_ROUTER_START') ? (float) FLUTE_ROUTER_START : ($now - 0.0);
         $total = max(0.0, $now - $start);
 
         // Phase timings (may be null if constants are not defined)
-        $dbSetupEnd = \defined('FLUTE_DB_SETUP_END') ? (float) \FLUTE_DB_SETUP_END : null;
-        $dispatchEnd = \defined('FLUTE_DISPATCH_END') ? (float) \FLUTE_DISPATCH_END : null;
-        $eventsEnd = \defined('FLUTE_EVENTS_END') ? (float) \FLUTE_EVENTS_END : null;
-        $deferredEnd = \defined('FLUTE_DEFERRED_SAVE_END') ? (float) \FLUTE_DEFERRED_SAVE_END : null;
+        $dbSetupEnd = defined('FLUTE_DB_SETUP_END') ? (float) FLUTE_DB_SETUP_END : null;
+        $dispatchEnd = defined('FLUTE_DISPATCH_END') ? (float) FLUTE_DISPATCH_END : null;
+        $eventsEnd = defined('FLUTE_EVENTS_END') ? (float) FLUTE_EVENTS_END : null;
+        $deferredEnd = defined('FLUTE_DEFERRED_SAVE_END') ? (float) FLUTE_DEFERRED_SAVE_END : null;
 
         $db = DatabaseTimingLogger::getTotalTime();
         $dbCount = DatabaseTimingLogger::getTotalCount();

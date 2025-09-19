@@ -10,10 +10,13 @@ class OnRouteFoundEvent extends Event
 {
     public const NAME = 'routing.found';
 
-    private FluteRequest $request;
     protected ?RouteInterface $route;
+
     protected $errorCode = 404;
+
     protected $errorMessage = 'Not Found';
+
+    private FluteRequest $request;
 
     public function __construct(FluteRequest $request, ?RouteInterface $route)
     {

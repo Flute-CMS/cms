@@ -2,6 +2,8 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
+use DateTimeImmutable;
+use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -15,16 +17,21 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
+use Throwable;
 
 class PromoCodeScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.payments';
 
-    private PaymentService $paymentService;
     public $promoCodes;
+
     public $metrics;
+
+    private PaymentService $paymentService;
 
     public function mount(): void
     {
@@ -38,100 +45,6 @@ class PromoCodeScreen extends Screen
         breadcrumb()
             ->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-payment.title.promo_codes'));
-    }
-
-    /**
-     * Calculate metrics for the promo codes dashboard
-     */
-    private function calculateMetrics(): array
-    {
-        $now = new \DateTimeImmutable();
-        $today = $now->setTime(0, 0);
-        $yesterday = $today->modify('-1 day');
-        $lastMonth = $today->modify('-30 days');
-
-        $promoCodes = $this->promoCodes;
-
-        $totalCodes = count($promoCodes);
-        $activeCodes = 0;
-        $totalUsages = 0;
-        $totalDiscountAmount = 0;
-        $todayUsages = 0;
-        $todayDiscountAmount = 0;
-
-        $yesterdayUsages = 0;
-        $yesterdayDiscountAmount = 0;
-        $lastMonthCodes = 0;
-
-        foreach ($promoCodes as $code) {
-            $stats = $this->paymentService->getPromoCodeStats($code);
-
-            if (!$stats['is_expired'] && $stats['remaining_usages'] > 0) {
-                $activeCodes++;
-            }
-
-            $totalUsages += $stats['total_usages'];
-            $totalDiscountAmount += $stats['total_amount'];
-
-            foreach ($code->usages as $usage) {
-                if ($usage->invoice->isPaid) {
-                    // Calculate the actual discount amount
-                    $discountAmount = 0;
-                    if ($code->type === 'percentage') {
-                        $discountAmount = $usage->invoice->amount * ($code->value / 100);
-                    } else {
-                        $discountAmount = $code->value;
-                    }
-
-                    if ($usage->used_at > $today) {
-                        $todayUsages++;
-                        $todayDiscountAmount += $discountAmount;
-                    } elseif ($usage->used_at > $yesterday && $usage->used_at <= $today) {
-                        $yesterdayUsages++;
-                        $yesterdayDiscountAmount += $discountAmount;
-                    }
-                }
-            }
-
-            if ($code->createdAt <= $lastMonth) {
-                $lastMonthCodes++;
-            }
-        }
-
-        $codesDiff = $lastMonthCodes > 0
-            ? (($totalCodes - $lastMonthCodes) / $lastMonthCodes) * 100
-            : ($totalCodes > 0 ? 100 : 0);
-
-        $usagesDiff = $yesterdayUsages > 0
-            ? (($todayUsages - $yesterdayUsages) / $yesterdayUsages) * 100
-            : ($todayUsages > 0 ? 100 : 0);
-
-        $amountDiff = $yesterdayDiscountAmount > 0
-            ? (($todayDiscountAmount - $yesterdayDiscountAmount) / $yesterdayDiscountAmount) * 100
-            : ($todayDiscountAmount > 0 ? 100 : 0);
-
-        return [
-            'total_codes' => [
-                'value' => number_format($totalCodes),
-                'diff' => round($codesDiff, 1),
-                'icon' => 'ticket',
-            ],
-            'active_codes' => [
-                'value' => number_format($activeCodes) . ' (' . ($totalCodes > 0 ? round(($activeCodes / $totalCodes) * 100) : 0) . '%)',
-                'diff' => 0,
-                'icon' => 'star',
-            ],
-            'today_usages' => [
-                'value' => number_format($todayUsages) . ' / ' . number_format($totalUsages),
-                'diff' => round($usagesDiff, 1),
-                'icon' => 'chart-line-up',
-            ],
-            'today_amount' => [
-                'value' => number_format($todayDiscountAmount, 2) . ' ' . config('payment.currency'),
-                'diff' => round($amountDiff, 1),
-                'icon' => 'money',
-            ],
-        ];
     }
 
     /**
@@ -168,11 +81,11 @@ class PromoCodeScreen extends Screen
             LayoutFactory::table('promoCodes', [
                 TD::selection('id'),
                 TD::make('code', __('admin-payment.table.code'))
-                    ->render(fn (PromoCode $code) => view('admin-payment::cells.promo-name', ['name' => $code->code]))
+                    ->render(static fn (PromoCode $code) => view('admin-payment::cells.promo-name', ['name' => $code->code]))
                     ->width('200px'),
 
                 TD::make('type', __('admin-payment.table.type'))
-                    ->render(fn (PromoCode $code) => view('admin-payment::cells.promo-type', ['type' => $code->type]))
+                    ->render(static fn (PromoCode $code) => view('admin-payment::cells.promo-type', ['type' => $code->type]))
                     ->width('150px'),
 
                 TD::make('value', __('admin-payment.table.value'))
@@ -180,7 +93,7 @@ class PromoCodeScreen extends Screen
                     ->width('150px'),
 
                 TD::make('expires_at', __('admin-payment.table.expires_at'))
-                    ->render(fn (PromoCode $code) => $code->expires_at ? $code->expires_at->format('d.m.Y H:i') : '-')
+                    ->render(static fn (PromoCode $code) => $code->expires_at ? $code->expires_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
 
                 TD::make('status', __('admin-payment.table.status'))
@@ -204,68 +117,6 @@ class PromoCodeScreen extends Screen
                         ->method('bulkDeletePromoCodes'),
                 ]),
         ];
-    }
-
-    /**
-     * Форматирование значения промо-кода.
-     */
-    private function formatValue(PromoCode $code): string
-    {
-        return $code->type === 'percentage'
-            ? $code->value . '%'
-            : number_format($code->value, 2) . ' ' . config('payment.currency');
-    }
-
-    /**
-     * Получение статуса промо-кода.
-     */
-    private function getPromoCodeStatus(PromoCode $code)
-    {
-        $stats = $this->paymentService->getPromoCodeStats($code);
-
-        return view('admin-payment::cells.promo-status', [
-            'expired' => $stats['is_expired'],
-            'usagesLeft' => $stats['remaining_usages'],
-        ]);
-    }
-
-    /**
-     * Выпадающее меню действий для промо-кода.
-     */
-    private function promoCodeActionsDropdown(PromoCode $code): string
-    {
-        return DropDown::make()
-            ->icon('ph.regular.dots-three-outline-vertical')
-            ->list([
-                DropDownItem::make(__('admin-payment.buttons.edit'))
-                    ->modal('editPromoCodeModal', ['codeId' => $code->id])
-                    ->icon('ph.bold.pencil-bold')
-                    ->type(Color::OUTLINE_PRIMARY)
-                    ->size('small')
-                    ->fullWidth(),
-
-                DropDownItem::make(__('def.details'))
-                    ->modal('additionalInfoModal', ['codeId' => $code->id])
-                    ->icon('ph.bold.info-bold')
-                    ->type(Color::OUTLINE_PRIMARY)
-                    ->size('small')
-                    ->fullWidth(),
-
-                DropDownItem::make(__('def.history'))
-                    ->modal('promoCodeHistoryModal', ['codeId' => $code->id])
-                    ->icon('ph.bold.clock-counter-clockwise-bold')
-                    ->type(Color::OUTLINE_PRIMARY)
-                    ->size('small')
-                    ->fullWidth(),
-
-                DropDownItem::make(__('admin-payment.buttons.delete'))
-                    ->confirm(__('admin-payment.confirms.delete_promo'))
-                    ->method('deletePromoCode', ['codeId' => $code->id])
-                    ->icon('ph.bold.trash-bold')
-                    ->type(Color::OUTLINE_DANGER)
-                    ->size('small')
-                    ->fullWidth(),
-            ]);
     }
 
     public function additionalInfoModal(Repository $parameters)
@@ -354,7 +205,7 @@ class PromoCodeScreen extends Screen
             LayoutFactory::field(
                 Input::make('roles')
                     ->type('text')
-                    ->value(!empty($code->roles) ? implode(', ', array_map(fn ($role) => $role->name, $code->roles)) : __('admin-payment.status.all_users'))
+                    ->value(!empty($code->roles) ? implode(', ', array_map(static fn ($role) => $role->name, $code->roles)) : __('admin-payment.status.all_users'))
                     ->readOnly()
             )
                 ->label(__('admin-payment.fields.promo.allowed_roles.label')),
@@ -494,7 +345,7 @@ class PromoCodeScreen extends Screen
             $this->paymentService->savePromoCode($promoCode, $data);
             $this->flashMessage(__('admin-payment.messages.promo_added'), 'success');
             $this->closeModal();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -644,7 +495,7 @@ class PromoCodeScreen extends Screen
             $this->paymentService->savePromoCode($promoCode, $data);
             $this->flashMessage(__('admin-payment.messages.promo_updated'), 'success');
             $this->closeModal();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -669,16 +520,16 @@ class PromoCodeScreen extends Screen
             LayoutFactory::table('usageHistory', [
                 TD::make('user.name', __('admin-payment.table.user'))
                     ->sort()
-                    ->render(fn (PromoCodeUsage $usage) => view('admin-payment::cells.user-name', ['user' => $usage->user]))
+                    ->render(static fn (PromoCodeUsage $usage) => view('admin-payment::cells.user-name', ['user' => $usage->user]))
                     ->width('200px'),
 
                 TD::make('invoice.amount', __('admin-payment.table.amount'))
-                    ->render(fn (PromoCodeUsage $usage) => number_format($usage->invoice->amount, 2) . ' ' . $usage->invoice->currency?->code)
+                    ->render(static fn (PromoCodeUsage $usage) => number_format($usage->invoice->amount, 2) . ' ' . $usage->invoice->currency?->code)
                     ->width('150px'),
 
                 TD::make('used_at', __('admin-payment.table.created_at'))
                     ->sort()
-                    ->render(fn (PromoCodeUsage $usage) => $usage->used_at ? $usage->used_at->format('d.m.Y H:i') : '-')
+                    ->render(static fn (PromoCodeUsage $usage) => $usage->used_at ? $usage->used_at->format('d.m.Y H:i') : '-')
                     ->width('200px'),
             ])->compact(),
         ])
@@ -705,7 +556,7 @@ class PromoCodeScreen extends Screen
         try {
             $this->paymentService->deletePromoCode($promoCode);
             $this->flashMessage(__('admin-payment.messages.promo_deleted'), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }
@@ -724,7 +575,7 @@ class PromoCodeScreen extends Screen
 
             try {
                 $this->paymentService->deletePromoCode($promoCode);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // ignore
             }
         }
@@ -739,5 +590,161 @@ class PromoCodeScreen extends Screen
         return [
             'promoCodes' => $this->paymentService->getAllPromoCodes(),
         ];
+    }
+
+    /**
+     * Calculate metrics for the promo codes dashboard
+     */
+    private function calculateMetrics(): array
+    {
+        $now = new DateTimeImmutable();
+        $today = $now->setTime(0, 0);
+        $yesterday = $today->modify('-1 day');
+        $lastMonth = $today->modify('-30 days');
+
+        $promoCodes = $this->promoCodes;
+
+        $totalCodes = count($promoCodes);
+        $activeCodes = 0;
+        $totalUsages = 0;
+        $totalDiscountAmount = 0;
+        $todayUsages = 0;
+        $todayDiscountAmount = 0;
+
+        $yesterdayUsages = 0;
+        $yesterdayDiscountAmount = 0;
+        $lastMonthCodes = 0;
+
+        foreach ($promoCodes as $code) {
+            $stats = $this->paymentService->getPromoCodeStats($code);
+
+            if (!$stats['is_expired'] && $stats['remaining_usages'] > 0) {
+                $activeCodes++;
+            }
+
+            $totalUsages += $stats['total_usages'];
+            $totalDiscountAmount += $stats['total_amount'];
+
+            foreach ($code->usages as $usage) {
+                if ($usage->invoice->isPaid) {
+                    // Calculate the actual discount amount
+                    $discountAmount = 0;
+                    if ($code->type === 'percentage') {
+                        $discountAmount = $usage->invoice->amount * ($code->value / 100);
+                    } else {
+                        $discountAmount = $code->value;
+                    }
+
+                    if ($usage->used_at > $today) {
+                        $todayUsages++;
+                        $todayDiscountAmount += $discountAmount;
+                    } elseif ($usage->used_at > $yesterday && $usage->used_at <= $today) {
+                        $yesterdayUsages++;
+                        $yesterdayDiscountAmount += $discountAmount;
+                    }
+                }
+            }
+
+            if ($code->createdAt <= $lastMonth) {
+                $lastMonthCodes++;
+            }
+        }
+
+        $codesDiff = $lastMonthCodes > 0
+            ? (($totalCodes - $lastMonthCodes) / $lastMonthCodes) * 100
+            : ($totalCodes > 0 ? 100 : 0);
+
+        $usagesDiff = $yesterdayUsages > 0
+            ? (($todayUsages - $yesterdayUsages) / $yesterdayUsages) * 100
+            : ($todayUsages > 0 ? 100 : 0);
+
+        $amountDiff = $yesterdayDiscountAmount > 0
+            ? (($todayDiscountAmount - $yesterdayDiscountAmount) / $yesterdayDiscountAmount) * 100
+            : ($todayDiscountAmount > 0 ? 100 : 0);
+
+        return [
+            'total_codes' => [
+                'value' => number_format($totalCodes),
+                'diff' => round($codesDiff, 1),
+                'icon' => 'ticket',
+            ],
+            'active_codes' => [
+                'value' => number_format($activeCodes) . ' (' . ($totalCodes > 0 ? round(($activeCodes / $totalCodes) * 100) : 0) . '%)',
+                'diff' => 0,
+                'icon' => 'star',
+            ],
+            'today_usages' => [
+                'value' => number_format($todayUsages) . ' / ' . number_format($totalUsages),
+                'diff' => round($usagesDiff, 1),
+                'icon' => 'chart-line-up',
+            ],
+            'today_amount' => [
+                'value' => number_format($todayDiscountAmount, 2) . ' ' . config('payment.currency'),
+                'diff' => round($amountDiff, 1),
+                'icon' => 'money',
+            ],
+        ];
+    }
+
+    /**
+     * Форматирование значения промо-кода.
+     */
+    private function formatValue(PromoCode $code): string
+    {
+        return $code->type === 'percentage'
+            ? $code->value . '%'
+            : number_format($code->value, 2) . ' ' . config('payment.currency');
+    }
+
+    /**
+     * Получение статуса промо-кода.
+     */
+    private function getPromoCodeStatus(PromoCode $code)
+    {
+        $stats = $this->paymentService->getPromoCodeStats($code);
+
+        return view('admin-payment::cells.promo-status', [
+            'expired' => $stats['is_expired'],
+            'usagesLeft' => $stats['remaining_usages'],
+        ]);
+    }
+
+    /**
+     * Выпадающее меню действий для промо-кода.
+     */
+    private function promoCodeActionsDropdown(PromoCode $code): string
+    {
+        return DropDown::make()
+            ->icon('ph.regular.dots-three-outline-vertical')
+            ->list([
+                DropDownItem::make(__('admin-payment.buttons.edit'))
+                    ->modal('editPromoCodeModal', ['codeId' => $code->id])
+                    ->icon('ph.bold.pencil-bold')
+                    ->type(Color::OUTLINE_PRIMARY)
+                    ->size('small')
+                    ->fullWidth(),
+
+                DropDownItem::make(__('def.details'))
+                    ->modal('additionalInfoModal', ['codeId' => $code->id])
+                    ->icon('ph.bold.info-bold')
+                    ->type(Color::OUTLINE_PRIMARY)
+                    ->size('small')
+                    ->fullWidth(),
+
+                DropDownItem::make(__('def.history'))
+                    ->modal('promoCodeHistoryModal', ['codeId' => $code->id])
+                    ->icon('ph.bold.clock-counter-clockwise-bold')
+                    ->type(Color::OUTLINE_PRIMARY)
+                    ->size('small')
+                    ->fullWidth(),
+
+                DropDownItem::make(__('admin-payment.buttons.delete'))
+                    ->confirm(__('admin-payment.confirms.delete_promo'))
+                    ->method('deletePromoCode', ['codeId' => $code->id])
+                    ->icon('ph.bold.trash-bold')
+                    ->type(Color::OUTLINE_DANGER)
+                    ->size('small')
+                    ->fullWidth(),
+            ]);
     }
 }

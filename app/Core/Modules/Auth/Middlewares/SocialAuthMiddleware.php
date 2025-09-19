@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Auth\Middlewares;
 
+use Closure;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,11 +16,10 @@ class SocialAuthMiddleware extends BaseMiddleware
      * Handle the request
      *
      * @param FluteRequest $request The request instance
-     * @param \Closure $next The next middleware
+     * @param Closure $next The next middleware
      * @param mixed ...$args Additional arguments
-     * @return Response
      */
-    public function handle(FluteRequest $request, \Closure $next, ...$args): Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): Response
     {
         $isSocialEmpty = social()->isEmpty();
 

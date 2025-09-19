@@ -78,6 +78,7 @@ abstract class Table extends Layout
     protected $perPage = 15;
 
     protected $sortColumn;
+
     protected $sortDirection;
 
     protected $compact = false;
@@ -111,12 +112,10 @@ abstract class Table extends Layout
 
         $allColumns = collect($this->columns());
 
-        $columns = $allColumns->filter(function (TD $column) {
-            return $column->isVisible();
-        });
+        $columns = $allColumns->filter(static fn (TD $column) => $column->isVisible());
 
         // Mark columns that should be hidden by user preference
-        $columns->each(function (TD $column) use ($tableId) {
+        $columns->each(static function (TD $column) use ($tableId) {
             if ($column->isHiddenByUserPreference($tableId)) {
                 $column->setAttribute('hidden', true);
             }
@@ -131,7 +130,7 @@ abstract class Table extends Layout
         $requestSort = request()->input('sort', '');
 
         if (empty($requestSort)) {
-            $defaultSortColumn = $columns->first(fn (TD $column) => $column->getAttribute('defaultSort', false));
+            $defaultSortColumn = $columns->first(static fn (TD $column) => $column->getAttribute('defaultSort', false));
             if ($defaultSortColumn) {
                 $this->sortColumn = $defaultSortColumn->getName();
                 $this->sortDirection = $defaultSortColumn->getAttribute('defaultSortDirection', 'asc');
@@ -180,9 +179,7 @@ abstract class Table extends Layout
         }
 
         if ($this->rowCallback !== null && $rows->isNotEmpty()) {
-            $rows = $rows->map(function ($row) {
-                return call_user_func($this->rowCallback, $row);
-            });
+            $rows = $rows->map(fn ($row) => call_user_func($this->rowCallback, $row));
         }
 
         return view($this->template, [
@@ -213,11 +210,6 @@ abstract class Table extends Layout
             ],
             'tableStorageKey' => 'tableSelection-'.$tableId,
         ]);
-    }
-
-    protected function commandBar(): array
-    {
-        return $this->commandBar;
     }
 
     public function commands($commands): self
@@ -251,29 +243,9 @@ abstract class Table extends Layout
         return $this->searchable;
     }
 
-    protected function buildBulkBar(Repository $repository, string $tableId): array
-    {
-        if (empty($this->bulkActions)) {
-            return [];
-        }
-
-        return collect($this->bulkActions)
-            ->map(function ($action) use ($tableId) {
-                if ($action instanceof Action) {
-                    $selector = '#bulk-actions-' . $tableId . ', table#' . $tableId . ' .row-selector input, table#' . $tableId . ' .row-selector';
-                    $action->set('hx-include', $selector);
-                }
-
-                return $action->build($this->query);
-            })
-            ->filter()
-            ->all();
-    }
-
     /**
      * Setting columns, by which search is allowed.
      *
-     * @param array $columns
      * @return $this
      */
     public function setSearchableColumns(array $columns): self
@@ -283,12 +255,7 @@ abstract class Table extends Layout
         return $this;
     }
 
-    protected function getCurrentPage()
-    {
-        return max(1, (int) request()->input('page', 1));
-    }
-
-    public function perPage(int $perPage = null): self
+    public function perPage(?int $perPage = null): self
     {
         if ($perPage !== null) {
             $this->perPage = $perPage;
@@ -316,6 +283,49 @@ abstract class Table extends Layout
         $this->compact = $compact;
 
         return $this;
+    }
+
+    public function prepareContent(callable $callback): self
+    {
+        $this->rowCallback = $callback;
+
+        return $this;
+    }
+
+    public function dataCallback(callable $callback): self
+    {
+        $this->dataCallback = $callback;
+
+        return $this;
+    }
+
+    protected function commandBar(): array
+    {
+        return $this->commandBar;
+    }
+
+    protected function buildBulkBar(Repository $repository, string $tableId): array
+    {
+        if (empty($this->bulkActions)) {
+            return [];
+        }
+
+        return collect($this->bulkActions)
+            ->map(function ($action) use ($tableId) {
+                if ($action instanceof Action) {
+                    $selector = '#bulk-actions-' . $tableId . ', table#' . $tableId . ' .row-selector input, table#' . $tableId . ' .row-selector';
+                    $action->set('hx-include', $selector);
+                }
+
+                return $action->build($this->query);
+            })
+            ->filter()
+            ->all();
+    }
+
+    protected function getCurrentPage()
+    {
+        return max(1, (int) request()->input('page', 1));
     }
 
     protected function iconNotFound(): string
@@ -366,7 +376,6 @@ abstract class Table extends Layout
     }
 
     /**
-     * @param \Illuminate\Support\Collection $columns
      * @param \Illuminate\Support\Collection|\Spiral\Pagination\Paginator $rows
      */
     protected function hasHeader(Collection $columns, $rows): bool
@@ -422,8 +431,6 @@ abstract class Table extends Layout
 
     /**
      * Gets searchable columns.
-     *
-     * @return array
      */
     protected function getSearchableColumns(): array
     {
@@ -439,16 +446,12 @@ abstract class Table extends Layout
 
     /**
      * Applies search to a Select instance.
-     *
-     * @param Select|SelectQuery $select
-     * @param array $columns
-     * @return Select|SelectQuery
      */
     protected function applySearchToSelect(Select|SelectQuery $select, array $columns): Select|SelectQuery
     {
         $searchQuery = $this->searchQuery;
 
-        $select->andWhere(function ($query) use ($columns, $searchQuery) {
+        $select->andWhere(static function ($query) use ($columns, $searchQuery) {
             foreach ($columns as $column) {
                 $query->orWhere($column, 'LIKE', '%'.$searchQuery.'%');
             }
@@ -459,16 +462,12 @@ abstract class Table extends Layout
 
     /**
      * Applies search to a Collection.
-     *
-     * @param Collection $collection
-     * @param array $columns
-     * @return Collection
      */
     protected function applySearchToCollection(Collection $collection, array $columns): Collection
     {
         $searchQuery = $this->searchQuery;
 
-        return $collection->filter(function ($item) use ($columns, $searchQuery) {
+        return $collection->filter(static function ($item) use ($columns, $searchQuery) {
             foreach ($columns as $column) {
                 $value = data_get($item, $column);
 
@@ -485,7 +484,6 @@ abstract class Table extends Layout
      * Converts content to a Collection.
      *
      * @param mixed $content
-     * @return Collection
      */
     protected function getCollectionFromContent($content): Collection
     {
@@ -527,10 +525,6 @@ abstract class Table extends Layout
 
     /**
      * Applies sorting to a Select query.
-     *
-     * @param Select|SelectQuery $select
-     *
-     * @return Select|SelectQuery
      */
     protected function applySortToSelect(Select|SelectQuery $select): Select|SelectQuery
     {
@@ -541,26 +535,9 @@ abstract class Table extends Layout
 
     /**
      * Applies sorting to a Collection.
-     *
-     * @param Collection $collection
-     * @return Collection
      */
     protected function applySortToCollection(Collection $collection): Collection
     {
         return $collection->sortBy($this->sortColumn, SORT_REGULAR, $this->sortDirection === 'desc');
-    }
-
-    public function prepareContent(callable $callback): self
-    {
-        $this->rowCallback = $callback;
-
-        return $this;
-    }
-
-    public function dataCallback(callable $callback): self
-    {
-        $this->dataCallback = $callback;
-
-        return $this;
     }
 }

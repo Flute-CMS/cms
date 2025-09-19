@@ -7,13 +7,21 @@ use Symfony\Component\HttpFoundation\HeaderBag;
 class HtmxRequest
 {
     public const HX_BOOSTED = 'HX-Boosted';
+
     public const HX_CURRENT_URL = 'HX-Current-URL';
+
     public const HX_HISTORY_RESTORE_REQUEST = 'HX-History-Restore-Request';
+
     public const HX_PROMPT = 'HX-Prompt';
+
     public const HX_REQUEST = 'HX-Request';
+
     public const HX_TARGET = 'HX-Target';
+
     public const HX_TRIGGER = 'HX-Trigger';
+
     public const HX_TRIGGER_NAME = 'HX-Trigger-Name';
+
     protected HeaderBag $headers;
 
     public function __construct(HeaderBag $headers)
@@ -23,8 +31,6 @@ class HtmxRequest
 
     /**
      * The current URL of the browser when the htmx request was made.
-     *
-     * @return string|null
      */
     public function getCurrentUrl(): ?string
     {
@@ -33,8 +39,6 @@ class HtmxRequest
 
     /**
      * The user response to an hx-prompt.
-     *
-     * @return string|null
      */
     public function getPromptResponse(): ?string
     {
@@ -43,8 +47,6 @@ class HtmxRequest
 
     /**
      * The id of the target element if it exists.
-     *
-     * @return string|null
      */
     public function getTarget(): ?string
     {
@@ -53,8 +55,6 @@ class HtmxRequest
 
     /**
      * The id of the triggered element if it exists.
-     *
-     * @return string|null
      */
     public function getTriggerId(): ?string
     {
@@ -63,8 +63,6 @@ class HtmxRequest
 
     /**
      * The name of the triggered element if it exists.
-     *
-     * @return string|null
      */
     public function getTriggerName(): ?string
     {
@@ -73,8 +71,6 @@ class HtmxRequest
 
     /**
      * Whether the request is via an element using hx-boost.
-     *
-     * @return bool
      */
     public function isBoosted(): bool
     {
@@ -83,8 +79,6 @@ class HtmxRequest
 
     /**
      * Whether the request is for history restoration after a miss in the local history cache
-     *
-     * @return bool
      */
     public function isHistoryRestoreRequest(): bool
     {
@@ -93,8 +87,6 @@ class HtmxRequest
 
     /**
      * Whether the request is made via htmx.
-     *
-     * @return bool
      */
     public function isHtmxRequest(): bool
     {

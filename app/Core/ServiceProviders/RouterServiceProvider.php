@@ -31,17 +31,13 @@ class RouterServiceProvider extends AbstractServiceProvider
 
             RequestContext::class => \DI\autowire(),
 
-            UrlMatcher::class => \DI\factory(function (Container $c) {
-                return new UrlMatcher($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)));
-            }),
+            UrlMatcher::class => \DI\factory(static fn (Container $c) => new UrlMatcher($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
 
             ContainerControllerResolver::class => \DI\autowire(),
 
-            UrlGenerator::class => \DI\factory(function (Container $c) {
-                return new UrlGenerator($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)));
-            }),
+            UrlGenerator::class => \DI\factory(static fn (Container $c) => new UrlGenerator($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
 
-            RateLimiterFactory::class => \DI\factory(function (Container $c) {
+            RateLimiterFactory::class => \DI\factory(static function (Container $c) {
                 $storage = new CacheStorage($c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter());
 
                 $cfg = config('rate_limit', [
@@ -59,9 +55,7 @@ class RouterServiceProvider extends AbstractServiceProvider
                 return new RateLimiterFactory($config, $storage);
             }),
 
-            CsrfTokenManagerInterface::class => \DI\factory(function (Container $c) {
-                return new CsrfTokenManager();
-            }),
+            CsrfTokenManagerInterface::class => \DI\factory(static fn (Container $c) => new CsrfTokenManager()),
 
             Router::class => \DI\autowire(),
 

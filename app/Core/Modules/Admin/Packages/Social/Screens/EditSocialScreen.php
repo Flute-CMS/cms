@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Social\Screens;
 
+use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
@@ -13,16 +14,23 @@ use Flute\Core\Database\Entities\SocialNetwork;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Nette\Utils\Json;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class EditSocialScreen extends Screen
 {
     public ?string $name = 'admin-social.title.edit';
+
     public ?string $description = 'admin-social.title.description';
+
     public ?string $permission = 'admin.socials';
 
     public ?SocialNetwork $social = null;
+
     public $driverKey = null;
+
     public bool $isEditMode = false;
+
     protected $id = null;
 
     protected $supportedDrivers = [
@@ -171,96 +179,6 @@ class EditSocialScreen extends Screen
         ];
     }
 
-    /**
-     * Получает поля для режима изменения
-     */
-    private function getEditDriverFields(array $availableDrivers, ?string $driverKey = null)
-    {
-        if (!$availableDrivers) {
-            return LayoutFactory::view('admin-social::edit.no_drivers');
-        }
-
-        $fields = [
-            LayoutFactory::field(
-                Select::make('driverKey')
-                    ->options($availableDrivers)
-                    ->allowEmpty()
-                    ->value($driverKey ?? null)
-                    ->yoyo()
-                    ->placeholder(__('admin-social.fields.driver.placeholder'))
-                    ->required()
-            )->label(__('admin-social.fields.driver.label'))->required(),
-        ];
-
-        if ($driverKey) {
-            if (view()->exists("admin-social::edit.socials.{$driverKey}")) {
-                $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
-            } else {
-                $fields[] = LayoutFactory::blank([
-                    LayoutFactory::view("admin-social::edit.socials.default", ['driverKey' => $driverKey]),
-
-                    LayoutFactory::field(
-                        Input::make('settings__id')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : '')
-                    )->label(__('admin-social.fields.client_id.label')),
-
-                    LayoutFactory::field(
-                        Input::make('settings__secret')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : '')
-                    )->label(__('admin-social.fields.client_secret.label')),
-                ]);
-            }
-        }
-
-        return $fields;
-    }
-
-    /**
-     * Получает список всех драйверов из пространства имён HybridAuth\Provider.
-     *
-     * @return array
-     */
-    protected function getAllAvailableDrivers()
-    {
-        return cache()->callback('available_social_drivers', function () {
-            $namespaceMap = app()->getLoader()->getPrefixesPsr4();
-            $result = [];
-
-            foreach ($namespaceMap as $namespace => $paths) {
-                foreach ($paths as $path) {
-                    $fullPath = realpath($path);
-                    if ($fullPath && is_dir($fullPath)) {
-                        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullPath));
-                        foreach ($files as $file) {
-                            if ($file->isFile() && $file->getExtension() == 'php') {
-                                $class = $namespace . str_replace('/', '\\', substr($file->getPathname(), strlen($fullPath), -4));
-                                $ex = explode('\\', $class);
-                                $driver = $ex[array_key_last($ex)];
-
-                                if (Str::startsWith($class, 'Hybridauth\Provider') && !Str::contains($class, ['\\Discord', 'HttpsSteam', 'StorageSession', $this->supportedDrivers])) {
-                                    $result[$driver] = $driver;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            $namespaces = array_keys(app()->getLoader()->getClassMap());
-            foreach ($namespaces as $item) {
-                if (Str::startsWith($item, "Hybridauth\\Provider")) {
-                    $ex = explode('\\', $item);
-                    $driver = $ex[array_key_last($ex)];
-                    $result[$driver] = $driver;
-                }
-            }
-
-            return $result;
-        }, 3600);
-    }
-
     public function save()
     {
         $data = request()->input();
@@ -324,11 +242,73 @@ class EditSocialScreen extends Screen
             }
 
             $this->flashMessage(__('admin-social.messages.save_success'), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
 
             return;
         }
+    }
+
+    public function delete()
+    {
+        if (!$this->isEditMode || !$this->social) {
+            $this->flashMessage(__('admin-social.messages.not_found'), 'error');
+
+            return;
+        }
+
+        try {
+            SocialNetwork::findByPK($this->social->id)->delete();
+
+            $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
+            $this->redirectTo('/admin/socials', 300);
+        } catch (Exception $e) {
+            $this->flashMessage(__('admin-social.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        }
+    }
+
+    /**
+     * Получает список всех драйверов из пространства имён HybridAuth\Provider.
+     *
+     * @return array
+     */
+    protected function getAllAvailableDrivers()
+    {
+        return cache()->callback('available_social_drivers', function () {
+            $namespaceMap = app()->getLoader()->getPrefixesPsr4();
+            $result = [];
+
+            foreach ($namespaceMap as $namespace => $paths) {
+                foreach ($paths as $path) {
+                    $fullPath = realpath($path);
+                    if ($fullPath && is_dir($fullPath)) {
+                        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath));
+                        foreach ($files as $file) {
+                            if ($file->isFile() && $file->getExtension() == 'php') {
+                                $class = $namespace . str_replace('/', '\\', substr($file->getPathname(), strlen($fullPath), -4));
+                                $ex = explode('\\', $class);
+                                $driver = $ex[array_key_last($ex)];
+
+                                if (Str::startsWith($class, 'Hybridauth\Provider') && !Str::contains($class, ['\\Discord', 'HttpsSteam', 'StorageSession', $this->supportedDrivers])) {
+                                    $result[$driver] = $driver;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $namespaces = array_keys(app()->getLoader()->getClassMap());
+            foreach ($namespaces as $item) {
+                if (Str::startsWith($item, "Hybridauth\\Provider")) {
+                    $ex = explode('\\', $item);
+                    $driver = $ex[array_key_last($ex)];
+                    $result[$driver] = $driver;
+                }
+            }
+
+            return $result;
+        }, 3600);
     }
 
     protected function mergeWithDefaultRules(string $driverKey, array $rules)
@@ -395,21 +375,49 @@ class EditSocialScreen extends Screen
         return $rules;
     }
 
-    public function delete()
+    /**
+     * Получает поля для режима изменения
+     */
+    private function getEditDriverFields(array $availableDrivers, ?string $driverKey = null)
     {
-        if (!$this->isEditMode || !$this->social) {
-            $this->flashMessage(__('admin-social.messages.not_found'), 'error');
-
-            return;
+        if (!$availableDrivers) {
+            return LayoutFactory::view('admin-social::edit.no_drivers');
         }
 
-        try {
-            SocialNetwork::findByPK($this->social->id)->delete();
+        $fields = [
+            LayoutFactory::field(
+                Select::make('driverKey')
+                    ->options($availableDrivers)
+                    ->allowEmpty()
+                    ->value($driverKey ?? null)
+                    ->yoyo()
+                    ->placeholder(__('admin-social.fields.driver.placeholder'))
+                    ->required()
+            )->label(__('admin-social.fields.driver.label'))->required(),
+        ];
 
-            $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
-            $this->redirectTo('/admin/socials', 300);
-        } catch (\Exception $e) {
-            $this->flashMessage(__('admin-social.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        if ($driverKey) {
+            if (view()->exists("admin-social::edit.socials.{$driverKey}")) {
+                $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
+            } else {
+                $fields[] = LayoutFactory::blank([
+                    LayoutFactory::view("admin-social::edit.socials.default", ['driverKey' => $driverKey]),
+
+                    LayoutFactory::field(
+                        Input::make('settings__id')
+                            ->required()
+                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : '')
+                    )->label(__('admin-social.fields.client_id.label')),
+
+                    LayoutFactory::field(
+                        Input::make('settings__secret')
+                            ->required()
+                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : '')
+                    )->label(__('admin-social.fields.client_secret.label')),
+                ]);
+            }
         }
+
+        return $fields;
     }
 }

@@ -9,6 +9,7 @@ class BeforeRenderEvent extends Event
     public const NAME = 'view.before_render';
 
     private $view;
+
     private $data;
 
     public function __construct($view, $data)

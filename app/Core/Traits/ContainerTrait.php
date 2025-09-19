@@ -8,18 +8,15 @@ use DI\ContainerBuilder;
 trait ContainerTrait
 {
     /**
-     * @var ?Container
      */
     protected ?Container $container = null;
 
     /**
      * @return ContainerBuilder
-     *
      */
     protected ContainerBuilder $containerBuilder;
 
     /**
-     * @return ContainerBuilder
      */
     public function getContainerBuilder(): ContainerBuilder
     {
@@ -27,7 +24,6 @@ trait ContainerTrait
     }
 
     /**
-     * @param ContainerBuilder $containerBuilder
      */
     public function setContainerBuilder(ContainerBuilder $containerBuilder): void
     {
@@ -36,9 +32,6 @@ trait ContainerTrait
 
     /**
      * Set container instance
-     *
-     * @param Container $container
-     * @return self
      */
     public function setContainer(Container $container): self
     {
@@ -49,8 +42,6 @@ trait ContainerTrait
 
     /**
      * Get container instance
-     *
-     * @return Container
      */
     public function getContainer(): Container
     {

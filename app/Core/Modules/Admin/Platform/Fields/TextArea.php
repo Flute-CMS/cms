@@ -73,7 +73,6 @@ class TextArea extends Field
     /**
      * Устанавливает текст метки для текстовой области.
      *
-     * @param string $value
      * @return $this
      */
     public function label(string $value)
@@ -86,7 +85,6 @@ class TextArea extends Field
     /**
      * Устанавливает состояние только для чтения.
      *
-     * @param bool $value
      * @return $this
      */
     public function readOnly(bool $value = false)
@@ -99,7 +97,6 @@ class TextArea extends Field
     /**
      * Устанавливает, нужно ли отображать без нижнего отступа.
      *
-     * @param bool $value
      * @return $this
      */
     public function withoutBottom(bool $value = false)
@@ -112,7 +109,6 @@ class TextArea extends Field
     /**
      * Добавляет дополнительные классы к элементу.
      *
-     * @param string $value
      * @return $this
      */
     public function additionalClass(string $value)

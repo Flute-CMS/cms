@@ -26,6 +26,7 @@ abstract class AbstractModuleInstaller
     }
 
     abstract public function install(ModuleInformation &$module): bool;
+
     abstract public function uninstall(ModuleInformation &$module): bool;
 
     protected function importMigrations()

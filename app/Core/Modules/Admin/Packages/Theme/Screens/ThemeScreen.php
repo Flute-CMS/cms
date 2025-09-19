@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Theme\Screens;
 
+use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -19,13 +20,17 @@ use Flute\Core\Theme\ThemeManager;
 class ThemeScreen extends Screen
 {
     public ?string $name = 'admin-theme.title.themes';
+
     public ?string $description = 'admin-theme.title.description';
+
     public ?string $permission = 'admin.themes';
 
     public $themes;
+
     public $key;
 
     protected ThemeManager $themeManager;
+
     protected ThemeActions $themeActions;
 
     public function mount(): void
@@ -40,32 +45,21 @@ class ThemeScreen extends Screen
         $this->loadThemes();
     }
 
-    protected function loadThemes(bool $refresh = false): void
-    {
-        if ($refresh) {
-            $this->themeManager->reInitThemes();
-        }
-
-        $this->themes = $this->themeManager->getAllThemes();
-    }
-
     public function layout(): array
     {
         return [
             LayoutFactory::table('themes', [
                 TD::selection('key'),
                 TD::make('name', __('admin-theme.table.name'))
-                    ->render(function (Theme $theme) {
-                        return view('admin-theme::cells.name', compact('theme'));
-                    })
+                    ->render(static fn (Theme $theme) => view('admin-theme::cells.name', compact('theme')))
                     ->minWidth('200px'),
 
                 TD::make('version', __('admin-theme.table.version'))
-                    ->render(fn (Theme $theme) => view('admin-theme::cells.version', compact('theme')))
+                    ->render(static fn (Theme $theme) => view('admin-theme::cells.version', compact('theme')))
                     ->minWidth('150px'),
 
                 TD::make('status', __('admin-theme.table.status'))
-                    ->render(function (Theme $theme) {
+                    ->render(static function (Theme $theme) {
                         switch ($theme->status) {
                             case ThemeManager::ACTIVE:
                                 return '<span class="badge success">' . __('admin-theme.status.active') . '</span>';
@@ -82,7 +76,7 @@ class ThemeScreen extends Screen
                 TD::make('actions', __('admin-theme.table.actions'))
                     ->width('250px')
                     ->alignCenter()
-                    ->render(function (Theme $theme) {
+                    ->render(static function (Theme $theme) {
                         $actions = [];
 
                         if ($theme->status === ThemeManager::NOTINSTALLED) {
@@ -218,7 +212,7 @@ class ThemeScreen extends Screen
         try {
             $this->themeActions->installTheme($this->key);
             $this->flashMessage(__('admin-theme.messages.install_success', ['name' => $this->key]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.install_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -230,7 +224,7 @@ class ThemeScreen extends Screen
         try {
             $this->themeActions->activateTheme($this->key);
             $this->flashMessage(__('admin-theme.messages.enable_success', ['name' => $this->key]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.enable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -242,7 +236,7 @@ class ThemeScreen extends Screen
         try {
             $this->themeActions->disableTheme($this->key);
             $this->flashMessage(__('admin-theme.messages.disable_success', ['name' => $this->key]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.disable_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -254,7 +248,7 @@ class ThemeScreen extends Screen
         try {
             $this->themeActions->uninstallTheme($this->key);
             $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => $this->key]), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.delete_error', ['message' => $e->getMessage()]), 'error');
         }
 
@@ -272,11 +266,20 @@ class ThemeScreen extends Screen
                 if ($key !== 'standard') {
                     $this->themeActions->uninstallTheme($key);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // ignore
             }
         }
         $this->loadThemes(true);
         $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => '']), 'success');
+    }
+
+    protected function loadThemes(bool $refresh = false): void
+    {
+        if ($refresh) {
+            $this->themeManager->reInitThemes();
+        }
+
+        $this->themes = $this->themeManager->getAllThemes();
     }
 }

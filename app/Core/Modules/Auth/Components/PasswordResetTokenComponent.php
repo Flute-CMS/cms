@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Auth\Components;
 
 use Clickfwd\Yoyo\Component;
+use Exception;
 use Flute\Core\Exceptions\PasswordResetTokenExpiredException;
 use Flute\Core\Exceptions\PasswordResetTokenNotFoundException;
 use Flute\Core\Exceptions\TooManyRequestsException;
@@ -12,7 +13,9 @@ use Nette\Schema\ValidationException;
 class PasswordResetTokenComponent extends Component
 {
     public ?string $password = null;
+
     public ?string $password_confirmation = null;
+
     public ?string $token = null;
 
     public function validate()
@@ -47,12 +50,19 @@ class PasswordResetTokenComponent extends Component
                 $this->redirect('/');
             } catch (TooManyRequestsException $e) {
                 toast()->error(__('auth.too_many_requests'))->push();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error($e);
 
                 toast()->error(is_debug() ? $e->getMessage() : __('def.unknown_error'))->push();
             }
         }
+    }
+
+    public function render()
+    {
+        return $this->view('flute::components.reset.reset-token', [
+            'token' => request()->input('token'),
+        ]);
     }
 
     protected function validator()
@@ -68,13 +78,6 @@ class PasswordResetTokenComponent extends Component
                 'max-str-len:' . config('auth.validation.password.max_length'),
             ],
             'password_confirmation' => 'required',
-        ]);
-    }
-
-    public function render()
-    {
-        return $this->view('flute::components.reset.reset-token', [
-            'token' => request()->input('token'),
         ]);
     }
 }

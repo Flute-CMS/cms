@@ -27,12 +27,12 @@ class Parser
     {
         $markdown = preg_replace_callback(
             '/\{\{\s*__\([\'\"]([^\'\"]+)[\'\"]\)\s*\}\}/',
-            fn ($m) => __($m[1]),
+            static fn ($m) => __($m[1]),
             $markdown
         );
         $markdown = preg_replace_callback(
             '/\[\[trans:([a-zA-Z0-9_.-]+)]]/',
-            fn ($m) => __($m[1]),
+            static fn ($m) => __($m[1]),
             $markdown
         );
 

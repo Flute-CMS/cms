@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class DuplicateEmailException extends \Exception
+use Exception;
+
+class DuplicateEmailException extends Exception
 {
 }

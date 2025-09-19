@@ -2,9 +2,11 @@
 
 namespace Flute\Core\Modules\Payments\Factories;
 
+use Exception;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Omnipay\Omnipay;
+use Throwable;
 
 class GatewayFactory
 {
@@ -13,9 +15,8 @@ class GatewayFactory
      *
      * @param PaymentGatewayEntity $gatewayEntity Payment gateway entity.
      *
-     * @return mixed Gateway instance.
-     *
      * @throws PaymentException
+     * @return mixed Gateway instance.
      */
     public function create(PaymentGatewayEntity $gatewayEntity)
     {
@@ -25,7 +26,7 @@ class GatewayFactory
             $gateway->initialize($config);
 
             return $gateway;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $masked = substr($gatewayEntity->additional, 0, 4) . '***';
             logs()->warning($e->getMessage(), ['adapter' => $gatewayEntity->adapter, 'config' => $masked]);
 
@@ -40,15 +41,14 @@ class GatewayFactory
      *
      * @param string $encryptedConfig Encrypted configuration string.
      *
-     * @return array Decrypted configuration array.
-     *
      * @throws PaymentException
+     * @return array Decrypted configuration array.
      */
     private function decryptConfig(string $encryptedConfig): array
     {
         try {
             $json = encrypt()->decryptString($encryptedConfig);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $json = $encryptedConfig;
         }
 

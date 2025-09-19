@@ -8,22 +8,22 @@ use Flute\Core\Modules\Auth\Middlewares\RegisterMiddleware;
 use Flute\Core\Modules\Auth\Middlewares\StandardAuthMiddleware;
 use Flute\Core\Router\Contracts\RouterInterface;
 
-router()->group(['middleware' => 'guest'], function (RouterInterface $router) {
+router()->group(['middleware' => 'guest'], static function (RouterInterface $router) {
     $router->get('/login', [AuthController::class, 'getLogin'])->middleware(ModalAuthMiddleware::class);
     $router->get('/register', [AuthController::class, 'getRegister'])->middleware([StandardAuthMiddleware::class, RegisterMiddleware::class]);
 
-    $router->group([], function (RouterInterface $router) {
+    $router->group([], static function (RouterInterface $router) {
         $router->get('/social/register', [SocialAuthController::class, 'getSocialRegister']);
     });
 
     if (config('auth.reset_password')) {
-        $router->group([], function (RouterInterface $router) {
+        $router->group([], static function (RouterInterface $router) {
             $router->get('/forgot-password', [PasswordResetController::class, 'getReset']);
             $router->get('/forgot-password/{token}', [PasswordResetController::class, 'getResetWithToken']);
         });
     }
 
-    $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf']], function (RouterInterface $router) {
+    $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf']], static function (RouterInterface $router) {
         $router->post('/register', [AuthController::class, 'postRegister']);
         $router->post('/login', [AuthController::class, 'postLogin']);
 

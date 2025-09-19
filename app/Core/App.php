@@ -41,6 +41,7 @@ final class App
     use SingletonTrait;
 
     public const PERFORMANCE_MODE = "performance";
+
     public const DEFAULT_MODE = "default";
 
     /**
@@ -50,8 +51,6 @@ final class App
 
     /**
      * Set the base path of the application
-     *
-     * @var string
      */
     protected string $basePath = BASE_PATH;
 
@@ -65,16 +64,15 @@ final class App
      */
     protected array $listen = [];
 
-    private ClassLoader $loader;
-
-    private bool $isBooted = false;
-
     /**
-     * @var Application|null
      */
     protected ?Application $consoleApplication = null;
 
     protected array $bootTimes = [];
+
+    private ClassLoader $loader;
+
+    private bool $isBooted = false;
 
     public function __construct(ClassLoader $loader)
     {
@@ -84,40 +82,7 @@ final class App
     }
 
     /**
-     * set the container instance
-     *
-     * @return void
-     */
-    protected function _setContainer(): void
-    {
-        $containerBuilder = new \DI\ContainerBuilder();
-
-        $containerBuilder->addDefinitions([
-            self::class => $this,
-            "app" => \DI\get(self::class),
-        ]);
-
-        // Enable container optimizations outside CLI
-        if (!(php_sapi_name() === "cli" || defined("STDIN"))) {
-            // In performance mode compile container, always write proxies to disk
-            if (function_exists("is_performance") && is_performance()) {
-                $containerBuilder->enableCompilation(
-                    BASE_PATH . "storage/app/cache",
-                );
-            }
-            $containerBuilder->writeProxiesToFile(
-                true,
-                BASE_PATH . "storage/app/proxies",
-            );
-        }
-
-        $this->setContainerBuilder($containerBuilder);
-    }
-
-    /**
      * Get the autoload loader
-     *
-     * @return ClassLoader
      */
     public function getLoader(): ClassLoader
     {
@@ -143,7 +108,6 @@ final class App
     /**
      * Set the shared instance of the container.
      *
-     * @param App|null $app
      * @return App|static
      */
     public static function setInstance(?App $app = null): ?App
@@ -153,8 +117,6 @@ final class App
 
     /**
      * Set the base path of the application
-     *
-     * @param string $basePath
      *
      * @return void
      */
@@ -169,8 +131,6 @@ final class App
 
     /**
      * Get the base path of the application
-     *
-     * @return string
      */
     public function getBasePath(): string
     {
@@ -180,10 +140,7 @@ final class App
     /**
      * Set the value in the container
      *
-     * @param string $key
      * @param DefinitionHelper|mixed $value
-     *
-     * @return self
      */
     public function bind(string $key, $value): App
     {
@@ -194,10 +151,6 @@ final class App
 
     /**
      * Set debug mode
-     *
-     * @param bool $debug
-     *
-     * @return void
      */
     public function debug(bool $debug = true): void
     {
@@ -216,12 +169,8 @@ final class App
      * Make class instance.
      * ALWAYS CREATES A NEW INSTANCE!!!
      *
-     * @param string $abstract
-     * @param array $parameters
-     * @param bool $throwException
-     *
-     * @return mixed|string|void
      * @throws NotFoundException
+     * @return mixed|string|void
      */
     public function make(
         string $abstract,
@@ -246,9 +195,9 @@ final class App
      * Returns an entry of the container by its name.
      *
      * @param mixed $id Identifier of the entry to look for.
-     * @return mixed Returns the entry from the container corresponding to the provided identifier.
      * @throws DependencyException Error while resolving the entry.
      * @throws NotFoundException No entry found for the given name.
+     * @return mixed Returns the entry from the container corresponding to the provided identifier.
      */
     public function get($id)
     {
@@ -275,8 +224,6 @@ final class App
      * Set the service provider
      *
      * @param ServiceProviderInterface|ModuleServiceProviderInterface|string $provider
-     *
-     * @return App
      */
     public function serviceProvider($provider): App
     {
@@ -318,7 +265,7 @@ final class App
             $startTime = microtime(true);
 
             try {
-                $className = get_class($provider);
+                $className = $provider::class;
 
                 $provider->setApp($this);
                 $provider->boot($this->container);
@@ -348,26 +295,7 @@ final class App
     }
 
     /**
-     * Initialize and register event listeners from the $listen array.
-     *
-     * @return void
-     */
-    protected function initializeEventListeners(): void
-    {
-        /** @var FluteEventDispatcher $dispatcher */
-        $dispatcher = $this->container->get(FluteEventDispatcher::class);
-
-        foreach ($this->listen as $event => $listeners) {
-            foreach ($listeners as $listener) {
-                $dispatcher->addListener($event, [new $listener(), "handle"]);
-            }
-        }
-    }
-
-    /**
      * Get app version
-     *
-     * @return string
      */
     public function getVersion(): string
     {
@@ -375,8 +303,7 @@ final class App
     }
 
     /**
-     * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function runCli(): void
     {
@@ -388,7 +315,6 @@ final class App
     /**
      * Run the app
      *
-     * @return void
      * @throws DependencyException
      * @throws NotFoundException
      */
@@ -445,7 +371,6 @@ final class App
     /**
      * Build container and save
      *
-     * @return void
      * @throws Exception
      */
     public function buildContainer(): void
@@ -454,7 +379,6 @@ final class App
     }
 
     /**
-     * @return Application
      */
     public function getConsole(): Application
     {
@@ -472,8 +396,6 @@ final class App
 
     /**
      * Get the boot times
-     *
-     * @return array
      */
     public function getBootTimes(): array
     {
@@ -482,10 +404,6 @@ final class App
 
     /**
      * Get the boot time
-     *
-     * @param string $key
-     *
-     * @return int
      */
     public function getBootTime(string $key): int
     {
@@ -493,11 +411,64 @@ final class App
     }
 
     /**
+     * Get app container values
+     *
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @return mixed
+     */
+    public function __call($name, $args)
+    {
+        return $this->get($name);
+    }
+
+    /**
+     * set the container instance
+     */
+    protected function _setContainer(): void
+    {
+        $containerBuilder = new \DI\ContainerBuilder();
+
+        $containerBuilder->addDefinitions([
+            self::class => $this,
+            "app" => \DI\get(self::class),
+        ]);
+
+        // Enable container optimizations outside CLI
+        if (!(php_sapi_name() === "cli" || defined("STDIN"))) {
+            // In performance mode compile container, always write proxies to disk
+            if (function_exists("is_performance") && is_performance()) {
+                $containerBuilder->enableCompilation(
+                    BASE_PATH . "storage/app/cache",
+                );
+            }
+            $containerBuilder->writeProxiesToFile(
+                true,
+                BASE_PATH . "storage/app/proxies",
+            );
+        }
+
+        $this->setContainerBuilder($containerBuilder);
+    }
+
+    /**
+     * Initialize and register event listeners from the $listen array.
+     */
+    protected function initializeEventListeners(): void
+    {
+        /** @var FluteEventDispatcher $dispatcher */
+        $dispatcher = $this->container->get(FluteEventDispatcher::class);
+
+        foreach ($this->listen as $event => $listeners) {
+            foreach ($listeners as $listener) {
+                $dispatcher->addListener($event, [new $listener(), "handle"]);
+            }
+        }
+    }
+
+    /**
      * Function for handling all cookies
      *
-     * @param Response $response
-     *
-     * @return Response
      * @throws DependencyException
      * @throws NotFoundException
      */
@@ -506,19 +477,5 @@ final class App
         return $this->get(EventDispatcher::class)
             ->dispatch(new ResponseEvent($response), ResponseEvent::NAME)
             ->getResponse();
-    }
-
-    /**
-     * Get app container values
-     *
-     * @param $name
-     * @param $args
-     * @return mixed
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    public function __call($name, $args)
-    {
-        return $this->get($name);
     }
 }

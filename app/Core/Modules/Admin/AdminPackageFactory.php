@@ -19,27 +19,22 @@ class AdminPackageFactory
     protected array $packages = [];
 
     /**
-     * @var EventDispatcher
      */
     protected EventDispatcher $dispatcher;
 
     /**
-     * @var string
      */
     protected string $packagesPath;
 
     /**
-     * @var string
      */
     protected string $baseNamespace;
 
     /**
-     * @var array|null
      */
     protected ?array $menuItemsCache = null;
 
     /**
-     * @var bool
      */
     protected bool $packagesLoaded = false;
 
@@ -66,7 +61,6 @@ class AdminPackageFactory
      * Adds the package to the internal list and registers its namespace if provided.
      *
      * @param AdminPackageInterface $package The admin package to register.
-     * @return void
      */
     public function registerPackage(AdminPackageInterface $package): void
     {
@@ -81,8 +75,6 @@ class AdminPackageFactory
      * Initializes all registered packages.
      *
      * Calls the initialize and boot methods on all registered packages.
-     *
-     * @return void
      */
     public function initializePackages(): void
     {
@@ -90,9 +82,7 @@ class AdminPackageFactory
             return;
         }
 
-        usort($this->packages, function (AdminPackageInterface $a, AdminPackageInterface $b) {
-            return $a->getPriority() <=> $b->getPriority();
-        });
+        usort($this->packages, static fn (AdminPackageInterface $a, AdminPackageInterface $b) => $a->getPriority() <=> $b->getPriority());
 
         foreach ($this->packages as $package) {
             $package->initialize();
@@ -121,8 +111,6 @@ class AdminPackageFactory
      *
      * Scans the packages directory for PHP files, instantiates packages that implement AdminPackageInterface,
      * and registers them if the current user has the necessary permissions.
-     *
-     * @return void
      *
      * @throws InvalidArgumentException If the packages directory does not exist.
      */
@@ -204,8 +192,6 @@ class AdminPackageFactory
      * Get all menu items from registered packages.
      *
      * Aggregates menu items from all registered packages for display in the admin navigation.
-     *
-     * @return array
      */
     public function getAllMenuItems(): array
     {
@@ -247,8 +233,6 @@ class AdminPackageFactory
      * Creates a cache key for permission checks
      *
      * @param string|array $permissions
-     * @param string $mode
-     * @return string
      */
     protected function getPermissionCacheKey($permissions, string $mode): string
     {
@@ -264,7 +248,6 @@ class AdminPackageFactory
      *
      * @param string|array $permissions Permission or an array of permissions.
      * @param string $mode Check mode: 'all' or 'any'.
-     * @return bool
      */
     protected function userHasPermissions($permissions, string $mode = 'all'): bool
     {
@@ -277,17 +260,18 @@ class AdminPackageFactory
                 }
 
                 return false;
-            } else { // 'all'
-                foreach ($permissions as $perm) {
-                    if (!user()->can($perm)) {
-                        return false;
-                    }
+            }   // 'all'
+            foreach ($permissions as $perm) {
+                if (!user()->can($perm)) {
+                    return false;
                 }
-
-                return true;
             }
-        } else {
-            return user()->can($permissions);
+
+            return true;
+
         }
+
+        return user()->can($permissions);
+
     }
 }

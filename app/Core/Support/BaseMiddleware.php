@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Support;
 
+use BadMethodCallException;
 use Flute\Core\Router\Contracts\MiddlewareInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -9,37 +10,12 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 abstract class BaseMiddleware implements MiddlewareInterface
 {
     /**
-     * Returns an instance of ErrorHandler for error handling
-     *
-     * @return ErrorHandler
-     */
-    protected function error(): ErrorHandler
-    {
-        return new ErrorHandler($this);
-    }
-
-    /**
-     * Returns an error for API or a regular response
-     *
-     * Supports the current functionality for calling through $this->error($message, $status)
-     *
-     * @param string|null $message Error message
-     * @param int $status HTTP status code
-     * @return Response
-     */
-    protected function errorResponse(string $message = null, int $status = 403): Response
-    {
-        return $this->respondWithError($message, $status);
-    }
-
-    /**
      * Common method for generating an error response
      *
      * @param string|null $message Error message
      * @param int $status HTTP status code
-     * @return Response
      */
-    public function respondWithError(string $message = null, int $status = 403): Response
+    public function respondWithError(?string $message = null, int $status = 403): Response
     {
         if (request()->expectsJson() || request()->isAjax()) {
             return json([
@@ -58,7 +34,6 @@ abstract class BaseMiddleware implements MiddlewareInterface
     /**
      * Dynamic method for handling errors through $this->error($message, $status)
      *
-     * @param string|mixed ...$args
      * @return Response|ErrorHandler
      */
     public function __call($name, $arguments)
@@ -70,6 +45,27 @@ abstract class BaseMiddleware implements MiddlewareInterface
             return $this->errorResponse($message, $status);
         }
 
-        throw new \BadMethodCallException("Method {$name} does not exist.");
+        throw new BadMethodCallException("Method {$name} does not exist.");
+    }
+
+    /**
+     * Returns an instance of ErrorHandler for error handling
+     */
+    protected function error(): ErrorHandler
+    {
+        return new ErrorHandler($this);
+    }
+
+    /**
+     * Returns an error for API or a regular response
+     *
+     * Supports the current functionality for calling through $this->error($message, $status)
+     *
+     * @param string|null $message Error message
+     * @param int $status HTTP status code
+     */
+    protected function errorResponse(?string $message = null, int $status = 403): Response
+    {
+        return $this->respondWithError($message, $status);
     }
 }

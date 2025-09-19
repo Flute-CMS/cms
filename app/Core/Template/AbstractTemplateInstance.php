@@ -8,29 +8,30 @@ use Jenssegers\Blade\Blade;
 abstract class AbstractTemplateInstance
 {
     /**
-     * @var App
      */
     protected App $app;
 
     /**
-     * @var Blade
      */
     protected Blade $blade;
+
     protected TemplateAssets $templateAssets;
+
     protected string $cachePath;
+
     protected string $theme;
+
     protected string $viewsPath;
 
     // Performance optimization properties
     protected array $renderCache = [];
+
     protected bool $cacheEnabled = true;
+
     protected int $maxCacheSize = 1000;
 
     /**
      * Enable or disable caching.
-     *
-     * @param bool $enabled
-     * @return void
      */
     public function setCacheEnabled(bool $enabled): void
     {
@@ -39,9 +40,6 @@ abstract class AbstractTemplateInstance
 
     /**
      * Set maximum cache size.
-     *
-     * @param int $size
-     * @return void
      */
     public function setMaxCacheSize(int $size): void
     {
@@ -50,8 +48,6 @@ abstract class AbstractTemplateInstance
 
     /**
      * Clear all template caches.
-     *
-     * @return void
      */
     public function clearAllCaches(): void
     {
@@ -64,8 +60,6 @@ abstract class AbstractTemplateInstance
 
     /**
      * Get memory usage statistics.
-     *
-     * @return array
      */
     public function getMemoryStats(): array
     {

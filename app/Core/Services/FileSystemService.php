@@ -10,8 +10,6 @@ class FileSystemService extends Filesystem
 {
     /**
      * Import helpers in the file system, using cache if available.
-     *
-     * @return void
      */
     public function importHelpers(): void
     {
@@ -26,12 +24,29 @@ class FileSystemService extends Filesystem
     }
 
     /**
+     * Update a PHP configuration file.
+     *
+     * @param string $filePath Full path to the configuration file
+     * @param array $newConfig New configuration array to write to the file
+     *
+     * @throws Exception
+     */
+    public function updateConfig(string $filePath, array $newConfig): void
+    {
+        if (!is_writable($filePath)) {
+            throw new Exception(sprintf('Configuration file "%s" is not writable.', $filePath));
+        }
+
+        $configString = "<?php\n\nreturn " . var_export($newConfig, true) . ";";
+        $this->dumpFile($filePath, $configString);
+
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($filePath, /* force */ true);
+        }
+    }
+
+    /**
      * Generate helpers cache file from the specified directory.
-     *
-     * @param string $dir
-     * @param string $cacheFile
-     *
-     * @return void
      */
     private function generateHelpersCache(string $dir, string $cacheFile): void
     {
@@ -69,10 +84,6 @@ class FileSystemService extends Filesystem
 
     /**
      * Remove all comments from the content.
-     *
-     * @param string $content
-     *
-     * @return string
      */
     private function removeComments(string $content): string
     {
@@ -84,10 +95,6 @@ class FileSystemService extends Filesystem
 
     /**
      * Remove empty lines from the content.
-     *
-     * @param string $content
-     *
-     * @return string
      */
     private function removeEmptyLines(string $content): string
     {
@@ -96,10 +103,6 @@ class FileSystemService extends Filesystem
 
     /**
      * Remove PHP opening tags from the content.
-     *
-     * @param string $content
-     *
-     * @return string
      */
     private function removePhpTags(string $content): string
     {
@@ -108,10 +111,6 @@ class FileSystemService extends Filesystem
 
     /**
      * Extract all "use" statements from the content.
-     *
-     * @param string $content
-     *
-     * @return array
      */
     private function extractUseStatements(string $content): array
     {
@@ -122,10 +121,6 @@ class FileSystemService extends Filesystem
 
     /**
      * Remove all "use" statements from the content.
-     *
-     * @param string $content
-     *
-     * @return string
      */
     private function removeUseStatements(string $content): string
     {
@@ -134,36 +129,9 @@ class FileSystemService extends Filesystem
 
     /**
      * Check if the cache file is valid.
-     *
-     * @param string $cacheFile
-     *
-     * @return bool
      */
     private function isCacheValid(string $cacheFile): bool
     {
         return file_exists($cacheFile) && is_readable($cacheFile);
-    }
-
-    /**
-     * Update a PHP configuration file.
-     *
-     * @param string $filePath Full path to the configuration file
-     * @param array $newConfig New configuration array to write to the file
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function updateConfig(string $filePath, array $newConfig): void
-    {
-        if (!is_writable($filePath)) {
-            throw new Exception(sprintf('Configuration file "%s" is not writable.', $filePath));
-        }
-
-        $configString = "<?php\n\nreturn " . var_export($newConfig, true) . ";";
-        $this->dumpFile($filePath, $configString);
-
-        if (function_exists('opcache_invalidate')) {
-            opcache_invalidate($filePath, /* force */ true);
-        }
     }
 }

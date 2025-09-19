@@ -2,21 +2,20 @@
 
 namespace Flute\Core\Traits;
 
+use BadMethodCallException;
+use Closure;
+
 trait MacroableTrait
 {
     /**
      * The registered string macros.
-     *
-     * @var array
      */
     protected static array $macros = [];
 
     /**
      * Register a custom macro.
      *
-     * @param string $name
      * @param object|callable $macro
-     * @return void
      */
     public static function macro(string $name, $macro): void
     {
@@ -25,9 +24,6 @@ trait MacroableTrait
 
     /**
      * Checks if macro is registered.
-     *
-     * @param string $name
-     * @return bool
      */
     public static function hasMacro(string $name): bool
     {
@@ -37,21 +33,18 @@ trait MacroableTrait
     /**
      * Dynamically handle calls to the class.
      *
-     * @param string $method
-     * @param array $parameters
+     * @throws BadMethodCallException
      * @return mixed
-     *
-     * @throws \BadMethodCallException
      */
     public function __call(string $method, array $parameters)
     {
         if (!static::hasMacro($method)) {
-            throw new \BadMethodCallException("Method {$method} does not exist.");
+            throw new BadMethodCallException("Method {$method} does not exist.");
         }
 
         $macro = static::$macros[$method];
 
-        if ($macro instanceof \Closure) {
+        if ($macro instanceof Closure) {
             return $macro->call($this, ...$parameters);
         }
 
@@ -61,21 +54,18 @@ trait MacroableTrait
     /**
      * Dynamically handle static calls to the class.
      *
-     * @param string $method
-     * @param array $parameters
+     * @throws BadMethodCallException
      * @return mixed
-     *
-     * @throws \BadMethodCallException
      */
     public static function __callStatic(string $method, array $parameters)
     {
         if (!static::hasMacro($method)) {
-            throw new \BadMethodCallException("Static method {$method} does not exist.");
+            throw new BadMethodCallException("Static method {$method} does not exist.");
         }
 
         $macro = static::$macros[$method];
 
-        if ($macro instanceof \Closure) {
+        if ($macro instanceof Closure) {
             $macro = $macro->bindTo(null, static::class);
         }
 

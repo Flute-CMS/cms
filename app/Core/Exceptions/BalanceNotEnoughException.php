@@ -2,7 +2,9 @@
 
 namespace Flute\Core\Exceptions;
 
-class BalanceNotEnoughException extends \Exception
+use Exception;
+
+class BalanceNotEnoughException extends Exception
 {
     protected int $need = 0;
 

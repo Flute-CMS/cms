@@ -2,11 +2,14 @@
 
 namespace Flute\Core\Cache;
 
+use Exception;
 use Flute\Core\Cache\Contracts\CacheInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Throwable;
 
 /**
  * Abstract class that describes the basic functionality for cache drivers
@@ -15,30 +18,21 @@ abstract class AbstractCacheDriver implements CacheInterface
 {
     /**
      * Cache configuration array
-     *
-     * @var array
      */
     protected array $config;
 
     /**
      * Cache adapter instance
-     *
-     * @var AdapterInterface
      */
     protected AdapterInterface $cache;
 
     /**
      * Logger instance
-     *
-     * @var LoggerInterface
      */
     protected LoggerInterface $logger;
 
     /**
      * Class constructor, initializes configuration array and logger
-     *
-     * @param array $config
-     * @param LoggerInterface $logger
      */
     public function __construct(array $config, LoggerInterface $logger)
     {
@@ -48,8 +42,6 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     /**
      * Get cache adapter instance
-     *
-     * @return AdapterInterface
      */
     public function getAdapter(): AdapterInterface
     {
@@ -59,10 +51,9 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Get value from cache by key
      *
-     * @param string $key
      * @param mixed $default
-     * @return mixed
      * @throws InvalidArgumentException
+     * @return mixed
      */
     public function get(string $key, $default = null)
     {
@@ -74,10 +65,7 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Set value in cache by key
      *
-     * @param string $key
      * @param mixed $value
-     * @param int $ttl
-     * @return bool
      * @throws InvalidArgumentException
      */
     public function set(string $key, $value, int $ttl = 0): bool
@@ -95,12 +83,12 @@ abstract class AbstractCacheDriver implements CacheInterface
 
         if (!$result) {
             $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
-            $type = is_object($value) ? get_class($value) : gettype($value);
+            $type = is_object($value) ? $value::class : gettype($value);
             $sizeHint = null;
 
             try {
                 $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
             $this->logger->error("Failed to save cache for key: {$key}", [
                 'adapter' => $adapter,
@@ -116,8 +104,6 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Delete value from cache by key
      *
-     * @param string $key
-     * @return bool
      * @throws InvalidArgumentException
      */
     public function delete(string $key): bool
@@ -127,8 +113,6 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     /**
      * Clear all cache
-     *
-     * @return bool
      */
     public function clear(): bool
     {
@@ -137,8 +121,6 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     /**
      * Commit changes in cache
-     *
-     * @return bool
      */
     public function commit(): bool
     {
@@ -148,9 +130,6 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Check if item exists in cache by key
      *
-     * @param string $key
-     *
-     * @return bool
      * @throws InvalidArgumentException
      */
     public function has(string $key): bool
@@ -163,11 +142,8 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Execute callback and save result in cache if key doesn't exist
      *
-     * @param string $key
-     * @param callable $callback
-     * @param int $ttl
-     * @return mixed
      * @throws InvalidArgumentException
+     * @return mixed
      */
     public function callback(string $key, callable $callback, int $ttl = 0)
     {
@@ -183,12 +159,12 @@ abstract class AbstractCacheDriver implements CacheInterface
 
             if (!$saveResult) {
                 $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
-                $type = is_object($value) ? get_class($value) : gettype($value);
+                $type = is_object($value) ? $value::class : gettype($value);
                 $sizeHint = null;
 
                 try {
                     $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                 }
                 $this->logger->error("Failed to save cache for key: {$key}", [
                     'adapter' => $adapter,
@@ -224,7 +200,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             }
 
             return $this->getKeysGeneric($pattern);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Error getting cache keys: " . $e->getMessage());
 
             return [];
@@ -270,7 +246,7 @@ abstract class AbstractCacheDriver implements CacheInterface
     protected function getKeysFromRedis(string $pattern): array
     {
         try {
-            $reflectionClass = new \ReflectionClass($this->cache);
+            $reflectionClass = new ReflectionClass($this->cache);
             $redisProperty = $reflectionClass->getProperty('redis');
             $redisProperty->setAccessible(true);
             $redis = $redisProperty->getValue($this->cache);
@@ -282,10 +258,10 @@ abstract class AbstractCacheDriver implements CacheInterface
                 return $keys;
             }
 
-            $this->logger->warning("Redis instance not found or does not support keys method: " . (is_object($redis) ? get_class($redis) : gettype($redis)));
+            $this->logger->warning("Redis instance not found or does not support keys method: " . (is_object($redis) ? $redis::class : gettype($redis)));
 
             return [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Error accessing Redis instance: " . $e->getMessage());
 
             return [];

@@ -10,6 +10,7 @@ class ModuleActivate extends Event
     public const NAME = 'module.activate';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

@@ -56,13 +56,13 @@ class PagesPackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getPagesCount(): int
-    {
-        return Page::query()->count();
-    }
-
     public function getPriority(): int
     {
         return 12;
+    }
+
+    protected function getPagesCount(): int
+    {
+        return Page::query()->count();
     }
 }

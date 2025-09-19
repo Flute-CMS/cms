@@ -7,6 +7,7 @@ use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Listeners\UserChangeResponseListener;
 use Flute\Core\Services\UserService;
 use Flute\Core\Support\AbstractServiceProvider;
+use Throwable;
 
 class UserServiceProvider extends AbstractServiceProvider
 {
@@ -32,7 +33,7 @@ class UserServiceProvider extends AbstractServiceProvider
                 if ($container->has(\Flute\Core\Database\DatabaseConnection::class)) {
                     $container->get(\Flute\Core\Database\DatabaseConnection::class)->recompileIfNeeded(true);
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 if (function_exists('logs')) {
                     logs('database')->warning('UserServiceProvider: ORM not available during boot: ' . $e->getMessage());
                 }

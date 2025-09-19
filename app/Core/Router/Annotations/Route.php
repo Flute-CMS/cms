@@ -84,7 +84,6 @@ class Route
      * Set a callback to be executed after the route is modified
      *
      * @param Closure $callback Callback function with the route as parameter
-     * @return self
      */
     public function setAfterModifyCallback(Closure $callback): self
     {
@@ -94,22 +93,9 @@ class Route
     }
 
     /**
-     * Execute the after modify callback if set
-     *
-     * @return void
-     */
-    protected function executeAfterModifyCallback(): void
-    {
-        if ($this->afterModifyCallback !== null) {
-            call_user_func($this->afterModifyCallback, $this);
-        }
-    }
-
-    /**
      * Set the route name
      *
      * @param string $name The name for the route
-     * @return self
      */
     public function setName(string $name): self
     {
@@ -123,7 +109,6 @@ class Route
      * Add middleware to the route
      *
      * @param array|string $middleware The middleware to add
-     * @return self
      */
     public function addMiddleware(array|string $middleware): self
     {
@@ -139,7 +124,6 @@ class Route
      *
      * @param string|array $parameter Parameter name or array of parameter-pattern pairs
      * @param string|null $pattern Regex pattern for the parameter
-     * @return self
      */
     public function where(string|array $parameter, ?string $pattern = null): self
     {
@@ -158,7 +142,6 @@ class Route
      *
      * @param string $key Parameter name
      * @param mixed $value Default value
-     * @return self
      */
     public function defaults(string $key, mixed $value): self
     {
@@ -170,8 +153,6 @@ class Route
 
     /**
      * Get the route URI
-     *
-     * @return string
      */
     public function getUri(): string
     {
@@ -180,8 +161,6 @@ class Route
 
     /**
      * Get the HTTP methods
-     *
-     * @return array
      */
     public function getMethods(): array
     {
@@ -190,8 +169,6 @@ class Route
 
     /**
      * Get the route name
-     *
-     * @return string|null
      */
     public function getName(): ?string
     {
@@ -200,8 +177,6 @@ class Route
 
     /**
      * Get the middleware list
-     *
-     * @return array
      */
     public function getMiddleware(): array
     {
@@ -210,8 +185,6 @@ class Route
 
     /**
      * Get the parameter constraints
-     *
-     * @return array
      */
     public function getWhere(): array
     {
@@ -220,8 +193,6 @@ class Route
 
     /**
      * Get the default values
-     *
-     * @return array
      */
     public function getDefaults(): array
     {
@@ -230,8 +201,6 @@ class Route
 
     /**
      * Check if route is inherited
-     *
-     * @return bool
      */
     public function isInherited(): bool
     {
@@ -243,7 +212,6 @@ class Route
      *
      * @param Route $parent Parent route
      * @param Route $child Child route
-     * @return Route
      */
     public static function inherit(Route $parent, Route $child): Route
     {
@@ -272,5 +240,15 @@ class Route
         }
 
         return $route;
+    }
+
+    /**
+     * Execute the after modify callback if set
+     */
+    protected function executeAfterModifyCallback(): void
+    {
+        if ($this->afterModifyCallback !== null) {
+            call_user_func($this->afterModifyCallback, $this);
+        }
     }
 }

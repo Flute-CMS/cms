@@ -68,9 +68,6 @@ class Button extends Action
 
     /**
      * Set the content of the button.
-     *
-     * @param string $content
-     * @return self
      */
     public function slot(string $content): self
     {
@@ -87,9 +84,7 @@ class Button extends Action
     /**
      * Set the attributes.
      *
-     * @param string $key
      * @param mixed $value
-     * @return self
      */
     public function set(string $key, $value = true): self
     {
@@ -104,9 +99,6 @@ class Button extends Action
 
     /**
      * Disable the form validation.
-     *
-     * @param bool $novalidate
-     * @return self
      */
     public function novalidate(bool $novalidate = true): self
     {
@@ -115,10 +107,6 @@ class Button extends Action
 
     /**
      * Set the action method.
-     *
-     * @param string $name
-     * @param array $parameters
-     * @return self
      */
     public function method(string $name, array $parameters = []): self
     {
@@ -160,21 +148,18 @@ class Button extends Action
     public function modal(string $modalFunc, array $parameters = []): self
     {
         $encryptedParams = encrypt()->encrypt($parameters);
-        $this->set('yoyo:post', "openModal('$modalFunc', '$encryptedParams')");
+        $this->set('yoyo:post', "openModal('{$modalFunc}', '{$encryptedParams}')");
 
         return $this;
     }
 
     /**
      * Set the parameters for the action.
-     *
-     * @param array|object $parameters
-     * @return self
      */
     public function parameters(array|object $parameters): self
     {
         $parameters = is_array($parameters)
-            ? array_filter($parameters, fn ($value) => !empty($value))
+            ? array_filter($parameters, static fn ($value) => !empty($value))
             : $parameters;
 
         return $this->set('yoyo:vals', json_encode($parameters));
@@ -182,9 +167,6 @@ class Button extends Action
 
     /**
      * Set the icon for the button.
-     *
-     * @param string $icon
-     * @return self
      */
     public function icon(string $icon): self
     {
@@ -193,9 +175,6 @@ class Button extends Action
 
     /**
      * Set the action (URL) for the button.
-     *
-     * @param string $action
-     * @return self
      */
     public function action(string $action): self
     {
@@ -204,9 +183,6 @@ class Button extends Action
 
     /**
      * Set the confirmation message.
-     *
-     * @param string $message
-     * @return self
      */
     public function confirm(string $message, string $type = 'error'): self
     {
@@ -215,9 +191,6 @@ class Button extends Action
 
     /**
      * Enable or disable the loading state.
-     *
-     * @param bool $withLoading
-     * @return self
      */
     public function withLoading(bool $withLoading = true): self
     {
@@ -228,7 +201,6 @@ class Button extends Action
      * Add CSS classes to the button.
      *
      * @param string|array $classes
-     * @return self
      */
     public function addClass($classes): self
     {
@@ -244,9 +216,6 @@ class Button extends Action
 
     /**
      * Enable or disable the button.
-     *
-     * @param bool $disabled
-     * @return self
      */
     public function disabled(bool $disabled = true): self
     {
@@ -255,9 +224,6 @@ class Button extends Action
 
     /**
      * Set the link for the button, turning it into an <a>.
-     *
-     * @param string $href
-     * @return self
      */
     public function href(string $href): self
     {
@@ -269,9 +235,6 @@ class Button extends Action
 
     /**
      * Set the size of the button.
-     *
-     * @param string $size
-     * @return self
      */
     public function size(string $size): self
     {
@@ -280,9 +243,6 @@ class Button extends Action
 
     /**
      * Set the tooltip for the button.
-     *
-     * @param string $tooltip
-     * @return self
      */
     public function tooltip(string $tooltip): self
     {

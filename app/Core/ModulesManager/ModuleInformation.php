@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager;
 
+use DateTimeImmutable;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 
@@ -13,15 +14,25 @@ use Nette\Utils\JsonException;
 class ModuleInformation
 {
     public string $key;
+
     public string $name;
+
     public string $description;
+
     public ?string $installedVersion = null;
+
     public string $version;
+
     public array $authors;
+
     public string $url;
+
     public array $providers;
+
     public array $dependencies;
-    public ?\DateTimeImmutable $createdAt = null;
+
+    public ?DateTimeImmutable $createdAt = null;
+
     public string $status = ModuleManager::NOTINSTALLED;
 
     /**

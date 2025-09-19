@@ -10,6 +10,7 @@ class ModuleDelete extends Event
     public const NAME = 'module.delete';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

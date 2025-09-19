@@ -14,9 +14,7 @@ class LoggerServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             LoggerService::class => \DI\create(LoggerService::class)->constructor(\DI\get('logging.loggers')),
-            'logger' => \DI\factory(function ($container) {
-                return $container->get(LoggerService::class)->getLogger('flute');
-            }),
+            'logger' => \DI\factory(static fn ($container) => $container->get(LoggerService::class)->getLogger('flute')),
             LoggerInterface::class => \DI\get('logger'),
         ]);
     }

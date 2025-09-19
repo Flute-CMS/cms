@@ -15,7 +15,6 @@ use Throwable;
 class NotificationService
 {
     /**
-     * @var RepositoryInterface|null
      */
     protected ?RepositoryInterface $noteRepository = null;
 
@@ -149,33 +148,6 @@ class NotificationService
         $this->cachedReadItems = $items;
 
         return $byDate ? $this->splitByDate($items) : $items;
-    }
-
-    /**
-     * Split a list of notifications by date.
-     *
-     * @param array $list List of notifications.
-     *
-     * @return array Notifications grouped by date.
-     */
-    protected function splitByDate(array $list): array
-    {
-        $result = [];
-
-        foreach ($list as $item) {
-            // for example: 1 week ago, yesterday and etc.
-            $date = \Carbon\Carbon::parse($item->createdAt)->diffForHumans();
-
-            unset($item->user);
-
-            if (!isset($result[$date])) {
-                $result[$date] = [];
-            }
-
-            $result[$date][] = $item;
-        }
-
-        return $result;
     }
 
     /**
@@ -390,6 +362,33 @@ class NotificationService
             ->count();
 
         return $this->cachedTotalCount;
+    }
+
+    /**
+     * Split a list of notifications by date.
+     *
+     * @param array $list List of notifications.
+     *
+     * @return array Notifications grouped by date.
+     */
+    protected function splitByDate(array $list): array
+    {
+        $result = [];
+
+        foreach ($list as $item) {
+            // for example: 1 week ago, yesterday and etc.
+            $date = \Carbon\Carbon::parse($item->createdAt)->diffForHumans();
+
+            unset($item->user);
+
+            if (!isset($result[$date])) {
+                $result[$date] = [];
+            }
+
+            $result[$date][] = $item;
+        }
+
+        return $result;
     }
 
     /**

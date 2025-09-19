@@ -2,14 +2,18 @@
 
 namespace Flute\Core\Router\Middlewares;
 
+use Closure;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Throwable;
 
 class RateLimiterMiddleware extends BaseMiddleware
 {
     protected RateLimiterFactory $rateLimiterFactory;
+
     protected ?\Symfony\Contracts\Cache\CacheInterface $cache;
 
     public function __construct(RateLimiterFactory $rateLimiterFactory, ?\Symfony\Contracts\Cache\CacheInterface $cache = null)
@@ -18,7 +22,7 @@ class RateLimiterMiddleware extends BaseMiddleware
         $this->cache = $cache;
     }
 
-    public function handle(FluteRequest $request, \Closure $next, ...$args): Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): Response
     {
         $config = config('rate_limit', [
             'enabled' => true,
@@ -78,7 +82,7 @@ class RateLimiterMiddleware extends BaseMiddleware
             $storage = $this->cache
                 ? new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache)
                 :
-                throw new \RuntimeException('RateLimiter: cache storage is required in production');
+                throw new RuntimeException('RateLimiter: cache storage is required in production');
 
             $factory = new \Symfony\Component\RateLimiter\RateLimiterFactory($opts, $storage);
         } else {
@@ -130,7 +134,7 @@ class RateLimiterMiddleware extends BaseMiddleware
             $route = router()->getCurrentRoute();
 
             return $route?->getName() ?: trim(request()->getPathInfo(), '/') ?: 'root';
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return trim(request()->getPathInfo(), '/') ?: 'root';
         }
     }

@@ -28,8 +28,6 @@ abstract class Sortable extends Layout
 
     /**
      * Flag indicating whether block headers are hidden or shown.
-     *
-     * @var bool
      */
     protected bool $showBlockHeaders = false;
 
@@ -123,11 +121,6 @@ abstract class Sortable extends Layout
     }
 
     /**
-     * @return array
-     */
-    abstract protected function columns(): iterable;
-
-    /**
      * @return Rows
      */
     public function title(?string $title = null): self
@@ -150,6 +143,11 @@ abstract class Sortable extends Layout
 
         return $this;
     }
+
+    /**
+     * @return array
+     */
+    abstract protected function columns(): iterable;
 
     protected function iconNotFound(): string
     {

@@ -20,18 +20,26 @@ use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 use Spiral\Tokenizer\ClassLocator;
 use Spiral\Tokenizer\Config\TokenizerConfig;
 use Spiral\Tokenizer\Tokenizer;
+use Throwable;
 
 class DatabaseConnection
 {
+    public const CACHE_KEY = 'database.schema';
+
+    protected const ENTITIES_DIR = BASE_PATH . 'app/Core/Database/Entities';
+
+    protected const SCHEMA_FILE = BASE_PATH . 'storage/app/orm_schema.php';
+
     protected FluteDatabaseManager $databaseManager;
+
     protected ORM $orm;
+
     protected DatabaseManager $dbal;
+
     protected Migrator $migrator;
 
-    public const CACHE_KEY = 'database.schema';
-    protected const ENTITIES_DIR = BASE_PATH . 'app/Core/Database/Entities';
-    protected const SCHEMA_FILE = BASE_PATH . 'storage/app/orm_schema.php';
     protected array $entitiesDirs = [];
+
     protected bool $schemaNeedsUpdate = false;
 
     /**
@@ -46,49 +54,7 @@ class DatabaseConnection
     }
 
     /**
-     * Add ORM instance to application container.
-     */
-    protected function ormIntoContainer(): void
-    {
-        app()->bind(ORM::class, $this->orm);
-        app()->bind(ORMInterface::class, $this->orm);
-    }
-
-    /**
-     * Setting up database connection.
-     */
-    protected function connect(): void
-    {
-        $this->dbal = $this->databaseManager->getDbal();
-
-        if (config('database.debug')) {
-            $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-            $this->dbal->setLogger($timingLogger);
-        }
-
-        $this->recompileOrmSchema(true);
-    }
-
-    /**
-     * Setting up migrations.
-     */
-    protected function setupMigrations(): void
-    {
-        $config = new MigrationConfig([
-            'directory' => path('storage/migrations'),
-            'table' => 'migrations',
-            'safe' => true,
-        ]);
-
-        $fileRepository = new FileRepository($config);
-        $this->migrator = new Migrator($config, $this->dbal, $fileRepository);
-        $this->migrator->configure();
-    }
-
-    /**
      * Rollback migrations.
-     *
-     * @param string $directory
      */
     public function rollbackMigrations(string $directory)
     {
@@ -104,7 +70,6 @@ class DatabaseConnection
     /**
      * Run migrations.
      *
-     * @param string $directory
      * @throws MigrationException
      */
     public function runMigrations(string $directory)
@@ -123,19 +88,6 @@ class DatabaseConnection
                 throw $e;
             }
         }
-    }
-
-    /**
-     * Check if entity is in ORM schema.
-     *
-     * @param string $entityClass Entity class.
-     * @return bool
-     */
-    protected function isEntityInSchema(string $entityClass): bool
-    {
-        $ormSchema = $this->orm->getSchema();
-
-        return $ormSchema->defines(lcfirst($entityClass));
     }
 
     /**
@@ -173,8 +125,6 @@ class DatabaseConnection
 
     /**
      * Get if schema needs update.
-     *
-     * @return bool
      */
     public function getSchemaNeedsUpdate(): bool
     {
@@ -198,25 +148,6 @@ class DatabaseConnection
         if ($this->schemaNeedsUpdate) {
             $this->recompileOrmSchema(false);
         }
-    }
-
-    /**
-     * Getting list of entities from directory.
-     *
-     * @param string $directory Directory for scanning.
-     * @return array
-     */
-    protected function getEntitiesFromDirectory(string $directory): array
-    {
-        $finder = finder();
-        $finder->files()->in($directory)->name('*.php');
-
-        $entities = [];
-        foreach ($finder as $file) {
-            $entities[] = $file->getBasename('.php');
-        }
-
-        return $entities;
     }
 
     /**
@@ -304,9 +235,6 @@ class DatabaseConnection
 
     /**
      * Compiling database schema with generating migrations.
-     *
-     * @param ClassLocator $classLocator
-     * @return array
      */
     public function compileSchema(ClassLocator $classLocator): array
     {
@@ -341,28 +269,14 @@ class DatabaseConnection
     }
 
     /**
-     * Getting ClassLocator.
-     *
-     * @return ClassLocator
-     */
-    protected function getClassLocator(): ClassLocator
-    {
-        return (new Tokenizer(new TokenizerConfig([
-            'directories' => $this->entitiesDirs,
-        ])))->classLocator();
-    }
-
-    /**
      * Getting ORM instance.
-     *
-     * @return ORM
      */
     public function getOrm(): ORM
     {
         if (!isset($this->orm)) {
             try {
                 $this->connect();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 if (function_exists('logs')) {
                     logs('database')->error('Failed to initialize ORM: ' . $e->getMessage());
                 }
@@ -376,8 +290,6 @@ class DatabaseConnection
 
     /**
      * Getting DatabaseManager instance.
-     *
-     * @return DatabaseManager
      */
     public function getDbal(): DatabaseManager
     {
@@ -387,8 +299,6 @@ class DatabaseConnection
     /**
      * Force refreshing ORM schema and reloading all entities.
      * Used when there are problems with entity recognition after cache cleanup.
-     *
-     * @return void
      */
     public function forceRefreshSchema(): void
     {
@@ -417,5 +327,85 @@ class DatabaseConnection
         $this->recompileOrmSchema(false);
 
         logs()->info("ORM schema refreshed successfully");
+    }
+
+    /**
+     * Add ORM instance to application container.
+     */
+    protected function ormIntoContainer(): void
+    {
+        app()->bind(ORM::class, $this->orm);
+        app()->bind(ORMInterface::class, $this->orm);
+    }
+
+    /**
+     * Setting up database connection.
+     */
+    protected function connect(): void
+    {
+        $this->dbal = $this->databaseManager->getDbal();
+
+        if (config('database.debug')) {
+            $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
+            $this->dbal->setLogger($timingLogger);
+        }
+
+        $this->recompileOrmSchema(true);
+    }
+
+    /**
+     * Setting up migrations.
+     */
+    protected function setupMigrations(): void
+    {
+        $config = new MigrationConfig([
+            'directory' => path('storage/migrations'),
+            'table' => 'migrations',
+            'safe' => true,
+        ]);
+
+        $fileRepository = new FileRepository($config);
+        $this->migrator = new Migrator($config, $this->dbal, $fileRepository);
+        $this->migrator->configure();
+    }
+
+    /**
+     * Check if entity is in ORM schema.
+     *
+     * @param string $entityClass Entity class.
+     */
+    protected function isEntityInSchema(string $entityClass): bool
+    {
+        $ormSchema = $this->orm->getSchema();
+
+        return $ormSchema->defines(lcfirst($entityClass));
+    }
+
+    /**
+     * Getting list of entities from directory.
+     *
+     * @param string $directory Directory for scanning.
+     */
+    protected function getEntitiesFromDirectory(string $directory): array
+    {
+        $finder = finder();
+        $finder->files()->in($directory)->name('*.php');
+
+        $entities = [];
+        foreach ($finder as $file) {
+            $entities[] = $file->getBasename('.php');
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Getting ClassLocator.
+     */
+    protected function getClassLocator(): ClassLocator
+    {
+        return (new Tokenizer(new TokenizerConfig([
+            'directories' => $this->entitiesDirs,
+        ])))->classLocator();
     }
 }

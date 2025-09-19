@@ -9,7 +9,9 @@ class SearchEvent
     public const NAME = 'flute.search';
 
     private string $param;
+
     private bool $isAdmin = false;
+
     private array $results = [];
 
     public function __construct(string $param, bool $isAdmin = false)

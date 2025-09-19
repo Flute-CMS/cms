@@ -9,20 +9,32 @@ use Flute\Core\Router\Contracts\RouteInterface;
 use Flute\Core\Support\FluteRequest;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class Route implements RouteInterface
 {
     protected array $methods;
+
     protected string $uri;
+
     protected mixed $action;
+
     protected array $parameters = [];
+
     protected array $middleware = [];
+
     protected array $groupAttributes = [];
+
     protected ?string $name = null;
+
     protected array $requirements = [];
+
     protected array $defaults = [];
+
     protected \Symfony\Component\Routing\Route $symfonyRoute;
-    protected ?\Closure $afterModifyCallback = null;
+
+    protected ?Closure $afterModifyCallback = null;
+
     protected bool $isAdmin = false;
 
     public function __construct(array $methods, string $uri, mixed $action)
@@ -74,7 +86,7 @@ class Route implements RouteInterface
                 if ($response instanceof View) {
                     try {
                         return response()->make($response->render());
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         $root = $e;
                         while ($root->getPrevious() !== null) {
                             $root = $root->getPrevious();
@@ -96,7 +108,7 @@ class Route implements RouteInterface
                 return $response;
             }
 
-            throw new Exception("Method {$method} not found in controller ".get_class($controllerInstance));
+            throw new Exception("Method {$method} not found in controller ".$controllerInstance::class);
         }
 
         if (is_object($action) && method_exists($action, '__invoke')) {
@@ -109,26 +121,13 @@ class Route implements RouteInterface
     /**
      * Set a callback to be executed after the route is modified
      *
-     * @param \Closure $callback Callback function with the route as parameter
-     * @return self
+     * @param Closure $callback Callback function with the route as parameter
      */
-    public function setAfterModifyCallback(\Closure $callback): self
+    public function setAfterModifyCallback(Closure $callback): self
     {
         $this->afterModifyCallback = $callback;
 
         return $this;
-    }
-
-    /**
-     * Execute the after modify callback if set
-     *
-     * @return void
-     */
-    protected function executeAfterModifyCallback(): void
-    {
-        if ($this->afterModifyCallback !== null) {
-            call_user_func($this->afterModifyCallback, $this);
-        }
     }
 
     /**
@@ -228,8 +227,6 @@ class Route implements RouteInterface
 
     /**
      * Get excluded middleware for the route.
-     *
-     * @return array
      */
     public function getExcludedMiddleware(): array
     {
@@ -312,7 +309,6 @@ class Route implements RouteInterface
      * Exclude middleware from the route.
      *
      * @param array|string $middleware Middleware to exclude
-     * @return self
      */
     public function withoutMiddleware(array|string $middleware): self
     {
@@ -336,5 +332,15 @@ class Route implements RouteInterface
     public function getIsAdmin(): bool
     {
         return $this->isAdmin;
+    }
+
+    /**
+     * Execute the after modify callback if set
+     */
+    protected function executeAfterModifyCallback(): void
+    {
+        if ($this->afterModifyCallback !== null) {
+            call_user_func($this->afterModifyCallback, $this);
+        }
     }
 }

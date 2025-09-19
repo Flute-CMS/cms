@@ -2,13 +2,17 @@
 
 namespace Flute\Admin\Packages\Logs\Services;
 
+use Exception;
 use FilesystemIterator;
 use Flute\Core\Services\LoggerService;
+use SplFileObject;
 
 class LogViewerService
 {
     protected LoggerService $loggerService;
+
     protected array $logCache = [];
+
     protected int $cacheLifetime = 60;
 
     public function __construct(LoggerService $loggerService)
@@ -44,41 +48,11 @@ class LogViewerService
         $content = $this->readLastLines($logPath, $lines);
         $parsedEntries = $this->parseLogContent($content);
 
-        usort($parsedEntries, function ($a, $b) {
-            return strtotime($b['datetime']) <=> strtotime($a['datetime']);
-        });
+        usort($parsedEntries, static fn ($a, $b) => strtotime($b['datetime']) <=> strtotime($a['datetime']));
 
         $this->cacheLogData($cacheKey, $parsedEntries);
 
         return $parsedEntries;
-    }
-
-    /**
-     * Read last lines from file
-     */
-    protected function readLastLines(string $filePath, int $lines): string
-    {
-        if (!file_exists($filePath)) {
-            return '';
-        }
-
-        $file = new \SplFileObject($filePath, 'r');
-        $file->seek(PHP_INT_MAX);
-        $totalLines = $file->key();
-
-        if ($totalLines <= $lines) {
-            return file_get_contents($filePath);
-        }
-
-        $startLine = max(0, $totalLines - $lines);
-        $file->seek($startLine);
-
-        $content = '';
-        while (!$file->eof()) {
-            $content .= $file->fgets();
-        }
-
-        return $content;
     }
 
     /**
@@ -115,40 +89,9 @@ class LogViewerService
             }
 
             return $context;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
-    }
-
-    /**
-     * Check if file is allowed to be read
-     */
-    protected function isAllowedFile(string $filePath): bool
-    {
-        $realPath = realpath($filePath);
-        $basePath = realpath(BASE_PATH);
-
-        if (!$realPath || !$basePath || strpos($realPath, $basePath) !== 0) {
-            return false;
-        }
-
-        if (pathinfo($filePath, PATHINFO_EXTENSION) !== 'php') {
-            return false;
-        }
-
-        $excludePatterns = [
-            '/config/',
-            '/.env',
-            '/node_modules/',
-        ];
-
-        foreach ($excludePatterns as $pattern) {
-            if (strpos($realPath, $pattern) !== false) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -184,21 +127,6 @@ class LogViewerService
     }
 
     /**
-     * Get relative path from project root
-     */
-    protected function getRelativePath(string $filePath): string
-    {
-        $basePath = realpath(BASE_PATH);
-        $realPath = realpath($filePath);
-
-        if ($basePath && $realPath && strpos($realPath, $basePath) === 0) {
-            return ltrim(substr($realPath, strlen($basePath)), '/\\');
-        }
-
-        return $filePath;
-    }
-
-    /**
      * Clear log file
      */
     public function clearLog(string $logger): bool
@@ -211,6 +139,164 @@ class LogViewerService
         $this->clearLogCache($logger);
 
         return file_put_contents($logPath, '') !== false;
+    }
+
+    /**
+     * Get list of available log files with enhanced metadata
+     */
+    public function getLogFiles(): array
+    {
+        $result = [];
+        $logsPath = path('storage/logs');
+
+        if (!is_dir($logsPath)) {
+            return $result;
+        }
+
+        $fs = new FilesystemIterator($logsPath);
+
+        foreach ($fs as $file) {
+            if ($file->isFile() && $file->getExtension() === 'log') {
+                $size = $file->getSize();
+                $modified = $file->getMTime();
+                $fileName = $file->getFilename();
+
+                $levelStats = $this->getLogLevelStats($fileName);
+
+                $result[$fileName] = [
+                    'name' => $fileName,
+                    'path' => $file->getPathname(),
+                    'size' => $this->formatBytes($size),
+                    'size_bytes' => $size,
+                    'modified' => date(default_date_format(), $modified),
+                    'modified_timestamp' => $modified,
+                    'level_stats' => $levelStats,
+                    'is_active' => $this->isActiveLogFile($fileName),
+                ];
+            }
+        }
+
+        uasort($result, static fn ($a, $b) => $b['modified_timestamp'] <=> $a['modified_timestamp']);
+
+        return $result;
+    }
+
+    /**
+     * Export logs with system information (for debugging)
+     */
+    public function exportLogs(string $logFile): string
+    {
+        $logPath = path('storage/logs/' . $logFile);
+
+        if (!file_exists($logPath)) {
+            throw new Exception('Log file not found');
+        }
+
+        $content = file_get_contents($logPath);
+        $systemInfo = $this->getSystemInfo();
+
+        $exportContent = "# System Information\n";
+        $exportContent .= "Export Date: " . date('Y-m-d H:i:s') . "\n";
+        $exportContent .= "Log File: " . $logFile . "\n\n";
+
+        foreach ($systemInfo as $section => $data) {
+            $exportContent .= "## " . $section . "\n";
+            foreach ($data as $key => $value) {
+                $exportContent .= $key . ": " . $value . "\n";
+            }
+            $exportContent .= "\n";
+        }
+
+        $exportContent .= "# Log Content\n\n";
+        $exportContent .= $content;
+
+        $tempDir = path('storage/app/temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0o755, true);
+        }
+
+        $exportFileName = 'log_export_' . date('Y-m-d_H-i-s') . '_' . pathinfo($logFile, PATHINFO_FILENAME) . '.txt';
+        $exportFilePath = $tempDir . '/' . $exportFileName;
+
+        if (file_put_contents($exportFilePath, $exportContent) === false) {
+            throw new Exception('Failed to create export file');
+        }
+
+        return $exportFilePath;
+    }
+
+    /**
+     * Read last lines from file
+     */
+    protected function readLastLines(string $filePath, int $lines): string
+    {
+        if (!file_exists($filePath)) {
+            return '';
+        }
+
+        $file = new SplFileObject($filePath, 'r');
+        $file->seek(PHP_INT_MAX);
+        $totalLines = $file->key();
+
+        if ($totalLines <= $lines) {
+            return file_get_contents($filePath);
+        }
+
+        $startLine = max(0, $totalLines - $lines);
+        $file->seek($startLine);
+
+        $content = '';
+        while (!$file->eof()) {
+            $content .= $file->fgets();
+        }
+
+        return $content;
+    }
+
+    /**
+     * Check if file is allowed to be read
+     */
+    protected function isAllowedFile(string $filePath): bool
+    {
+        $realPath = realpath($filePath);
+        $basePath = realpath(BASE_PATH);
+
+        if (!$realPath || !$basePath || strpos($realPath, $basePath) !== 0) {
+            return false;
+        }
+
+        if (pathinfo($filePath, PATHINFO_EXTENSION) !== 'php') {
+            return false;
+        }
+
+        $excludePatterns = [
+            '/config/',
+            '/.env',
+            '/node_modules/',
+        ];
+
+        foreach ($excludePatterns as $pattern) {
+            if (strpos($realPath, $pattern) !== false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get relative path from project root
+     */
+    protected function getRelativePath(string $filePath): string
+    {
+        $basePath = realpath(BASE_PATH);
+        $realPath = realpath($filePath);
+
+        if ($basePath && $realPath && strpos($realPath, $basePath) === 0) {
+            return ltrim(substr($realPath, strlen($basePath)), '/\\');
+        }
+
+        return $filePath;
     }
 
     /**
@@ -336,48 +422,6 @@ class LogViewerService
     }
 
     /**
-     * Get list of available log files with enhanced metadata
-     */
-    public function getLogFiles(): array
-    {
-        $result = [];
-        $logsPath = path('storage/logs');
-
-        if (!is_dir($logsPath)) {
-            return $result;
-        }
-
-        $fs = new FilesystemIterator($logsPath);
-
-        foreach ($fs as $file) {
-            if ($file->isFile() && $file->getExtension() === 'log') {
-                $size = $file->getSize();
-                $modified = $file->getMTime();
-                $fileName = $file->getFilename();
-
-                $levelStats = $this->getLogLevelStats($fileName);
-
-                $result[$fileName] = [
-                    'name' => $fileName,
-                    'path' => $file->getPathname(),
-                    'size' => $this->formatBytes($size),
-                    'size_bytes' => $size,
-                    'modified' => date(default_date_format(), $modified),
-                    'modified_timestamp' => $modified,
-                    'level_stats' => $levelStats,
-                    'is_active' => $this->isActiveLogFile($fileName),
-                ];
-            }
-        }
-
-        uasort($result, function ($a, $b) {
-            return $b['modified_timestamp'] <=> $a['modified_timestamp'];
-        });
-
-        return $result;
-    }
-
-    /**
      * Get log level statistics for a file
      */
     protected function getLogLevelStats(string $logFile): array
@@ -433,50 +477,6 @@ class LogViewerService
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, $precision) . ' ' . $units[$pow];
-    }
-
-    /**
-     * Export logs with system information (for debugging)
-     */
-    public function exportLogs(string $logFile): string
-    {
-        $logPath = path('storage/logs/' . $logFile);
-
-        if (!file_exists($logPath)) {
-            throw new \Exception('Log file not found');
-        }
-
-        $content = file_get_contents($logPath);
-        $systemInfo = $this->getSystemInfo();
-
-        $exportContent = "# System Information\n";
-        $exportContent .= "Export Date: " . date('Y-m-d H:i:s') . "\n";
-        $exportContent .= "Log File: " . $logFile . "\n\n";
-
-        foreach ($systemInfo as $section => $data) {
-            $exportContent .= "## " . $section . "\n";
-            foreach ($data as $key => $value) {
-                $exportContent .= $key . ": " . $value . "\n";
-            }
-            $exportContent .= "\n";
-        }
-
-        $exportContent .= "# Log Content\n\n";
-        $exportContent .= $content;
-
-        $tempDir = path('storage/app/temp');
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0o755, true);
-        }
-
-        $exportFileName = 'log_export_' . date('Y-m-d_H-i-s') . '_' . pathinfo($logFile, PATHINFO_FILENAME) . '.txt';
-        $exportFilePath = $tempDir . '/' . $exportFileName;
-
-        if (file_put_contents($exportFilePath, $exportContent) === false) {
-            throw new \Exception('Failed to create export file');
-        }
-
-        return $exportFilePath;
     }
 
     /**

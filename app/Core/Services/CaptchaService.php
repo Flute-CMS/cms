@@ -2,14 +2,12 @@
 
 namespace Flute\Core\Services;
 
+use Exception;
+
 class CaptchaService
 {
     /**
      * Check captcha depending on type
-     *
-     * @param string $response
-     * @param string $type
-     * @return bool
      */
     public function verify(string $response, string $type): bool
     {
@@ -28,10 +26,57 @@ class CaptchaService
     }
 
     /**
+     * Check if captcha is enabled for a specific action
+     */
+    public function isEnabled(string $action): bool
+    {
+        return config("auth.captcha.enabled.{$action}", false);
+    }
+
+    /**
+     * Get captcha type
+     */
+    public function getType(): string
+    {
+        return config('auth.captcha.type', 'recaptcha_v2');
+    }
+
+    /**
+     * Get site key for current captcha type
+     */
+    public function getSiteKey(): string
+    {
+        $type = $this->getType();
+
+        switch ($type) {
+            case 'recaptcha_v2':
+                return config('auth.captcha.recaptcha.site_key', '');
+            case 'hcaptcha':
+                return config('auth.captcha.hcaptcha.site_key', '');
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * Get script URL for current captcha type
+     */
+    public function getScriptUrl(): string
+    {
+        $type = $this->getType();
+
+        switch ($type) {
+            case 'recaptcha_v2':
+                return 'https://www.google.com/recaptcha/api.js';
+            case 'hcaptcha':
+                return 'https://js.hcaptcha.com/1/api.js';
+            default:
+                return '';
+        }
+    }
+
+    /**
      * Check reCAPTCHA v2
-     *
-     * @param string $response
-     * @return bool
      */
     protected function verifyRecaptcha(string $response): bool
     {
@@ -78,7 +123,7 @@ class CaptchaService
             }
 
             return isset($json['success']) && $json['success'] === true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error('reCAPTCHA verification failed: ' . $e->getMessage());
 
             return false;
@@ -87,9 +132,6 @@ class CaptchaService
 
     /**
      * Check hCaptcha
-     *
-     * @param string $response
-     * @return bool
      */
     protected function verifyHcaptcha(string $response): bool
     {
@@ -136,69 +178,10 @@ class CaptchaService
             }
 
             return isset($json['success']) && $json['success'] === true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error('hCaptcha verification failed: ' . $e->getMessage());
 
             return false;
-        }
-    }
-
-    /**
-     * Check if captcha is enabled for a specific action
-     *
-     * @param string $action
-     * @return bool
-     */
-    public function isEnabled(string $action): bool
-    {
-        return config("auth.captcha.enabled.{$action}", false);
-    }
-
-    /**
-     * Get captcha type
-     *
-     * @return string
-     */
-    public function getType(): string
-    {
-        return config('auth.captcha.type', 'recaptcha_v2');
-    }
-
-    /**
-     * Get site key for current captcha type
-     *
-     * @return string
-     */
-    public function getSiteKey(): string
-    {
-        $type = $this->getType();
-
-        switch ($type) {
-            case 'recaptcha_v2':
-                return config('auth.captcha.recaptcha.site_key', '');
-            case 'hcaptcha':
-                return config('auth.captcha.hcaptcha.site_key', '');
-            default:
-                return '';
-        }
-    }
-
-    /**
-     * Get script URL for current captcha type
-     *
-     * @return string
-     */
-    public function getScriptUrl(): string
-    {
-        $type = $this->getType();
-
-        switch ($type) {
-            case 'recaptcha_v2':
-                return 'https://www.google.com/recaptcha/api.js';
-            case 'hcaptcha':
-                return 'https://js.hcaptcha.com/1/api.js';
-            default:
-                return '';
         }
     }
 }

@@ -12,6 +12,7 @@ use Nette\Utils\Json;
 class ColorController extends BaseController
 {
     protected ThemeActions $themeActions;
+
     protected FluteValidator $validator;
 
     /**

@@ -7,7 +7,6 @@ interface TuneInterface
     /**
      * Parse the given array.
      *
-     * @param mixed $array The array to parse.
      * @param string $compiled the compiled string from block parser
      *
      * @return mixed

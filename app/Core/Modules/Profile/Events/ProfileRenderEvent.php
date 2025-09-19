@@ -9,16 +9,15 @@ class ProfileRenderEvent
     public const NAME = 'flute.profile.render';
 
     protected ?User $user;
+
     protected string $activeTab;
+
     protected array $tabs = [];
+
     protected string $type;
 
     /**
      * ProfileRenderEvent constructor.
-     *
-     * @param User|null $user
-     * @param string $activeTab
-     * @param string $type
      */
     public function __construct(?User $user, string $activeTab, string $type = 'full')
     {
@@ -29,8 +28,6 @@ class ProfileRenderEvent
 
     /**
      * Get the active tab.
-     *
-     * @return ?string
      */
     public function getActiveTab(): ?string
     {
@@ -40,7 +37,6 @@ class ProfileRenderEvent
     /**
      * Set the user.
      *
-     * @param User $user
      * @return $this
      */
     public function setUser(User $user): self
@@ -52,8 +48,6 @@ class ProfileRenderEvent
 
     /**
      * Get the user.
-     *
-     * @return User|null
      */
     public function getUser(): ?User
     {
@@ -62,8 +56,6 @@ class ProfileRenderEvent
 
     /**
      * Get the type. (mini, full)
-     *
-     * @return string
      */
     public function getType(): string
     {
