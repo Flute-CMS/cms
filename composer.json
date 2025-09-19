@@ -84,7 +84,7 @@
 		"xpaw/steamid": "^3.0"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^3.85",
+		"friendsofphp/php-cs-fixer": "^3",
 		"phpstan/phpstan": "^2.1"
 	},
 	"autoload": {
@@ -115,14 +115,14 @@
 	},
 	"scripts": {
 		"test": [
-			"@php vendor/bin/php-cs-fixer check --dry-run"
+			"@php vendor/bin/php-cs-fixer fix --dry-run --diff"
 		],
 		"test-fix": [
 			"@php vendor/bin/php-cs-fixer fix"
 		],
 		"analyse": "@php -r \"echo 'PHPStan is temporarily disabled.\\n'; exit(0);\"",
 		"format": "vendor/bin/php-cs-fixer fix",
-		"format-check": "vendor/bin/php-cs-fixer check --dry-run",
+		"format-check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
 		"optimize": [
 			"php flute cache:clear"
 		],

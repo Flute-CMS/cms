@@ -22,6 +22,8 @@ class ActivePromoCodesWidget extends AbstractWidget
         $currentUser = user()->getCurrentUser();
 
         $promoCodes = PromoCode::query()
+            ->load('roles')
+            ->load('usages')
             ->where('expires_at', '>', $now)
             ->orWhere('expires_at', null)
             ->fetchAll();

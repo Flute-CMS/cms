@@ -94,6 +94,10 @@ class ProfileSocialBindController extends BaseController
             return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
         }
 
+        if ($socialNetwork->socialNetwork === null) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
         if ($countSocialNetworks === 1 && !$socialNetwork->user->password) {
             return redirect()->back()->withErrors(t('profile.errors.social_only_one'));
         }
@@ -131,6 +135,10 @@ class ProfileSocialBindController extends BaseController
 
         $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
 
+        if ($socialNetwork === null) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
         $socialNetwork->hidden = !$socialNetwork->hidden;
 
         transaction($socialNetwork)->run();
@@ -147,8 +155,10 @@ class ProfileSocialBindController extends BaseController
     protected function socialError(string $error): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        $errorJs = json_encode($error, JSON_UNESCAPED_UNICODE);
+        $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
     }
 
     /**
@@ -159,7 +169,8 @@ class ProfileSocialBindController extends BaseController
     protected function socialSuccess(): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
     }
 }

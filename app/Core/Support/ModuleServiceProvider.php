@@ -412,16 +412,23 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
+        $httpControllersPath = $this->getModulePath('Http/Controllers');
         $controllersPath = $this->getModulePath('Controllers');
 
-        if (!is_dir($controllersPath)) {
+        if (!is_dir($httpControllersPath) && !is_dir($controllersPath)) {
             return;
         }
 
-        $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Controllers";
-
         try {
-            router()->registerAttributeRoutes([$controllersPath], $moduleNamespace);
+            if (is_dir($httpControllersPath)) {
+                $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Http\\Controllers";
+                router()->registerAttributeRoutes([$httpControllersPath], $moduleNamespace);
+            }
+
+            if (is_dir($controllersPath)) {
+                $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Controllers";
+                router()->registerAttributeRoutes([$controllersPath], $moduleNamespace);
+            }
 
             $submodulesPath = $this->getModulePath('Submodules');
 

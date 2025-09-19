@@ -20,6 +20,7 @@ class TemplateAssets
     protected bool $minifyAssets;
     protected bool $debugMode;
     protected string $appUrl;
+    protected int $remoteAssetTimeout = 5;
     protected array $additionalScssFiles = [
         'main' => [],
         'admin' => [],
@@ -50,6 +51,8 @@ class TemplateAssets
         $this->minifyAssets = config('assets.minify');
         $this->debugMode = false;
         $this->appUrl = config('app.url');
+        $timeout = (int) (config('assets.remote_asset_timeout') ?? 5);
+        $this->remoteAssetTimeout = $timeout > 0 ? $timeout : 5;
 
         if (is_development()) {
             $this->debugMode = true;
@@ -722,6 +725,12 @@ class TemplateAssets
 
         $localUrl = $this->processCdnAsset($url, $type);
 
+        if ($localUrl === '') {
+            $safeUrl = $this->sanitizeRemoteUrl($url);
+
+            return $safeUrl === '' ? '' : $this->generateTag($safeUrl, $type);
+        }
+
         return $this->generateTag($localUrl, $type);
     }
 
@@ -773,15 +782,47 @@ class TemplateAssets
      */
     protected function processCdnAsset(string $url, string $type = "js"): string
     {
-        $hash = sha1($url);
-        $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION)) ?: $type;
+        $normalizedUrl = $this->sanitizeRemoteUrl($url);
+        if ($normalizedUrl === '') {
+            return '';
+        }
+
+        if (!$this->isBasicRemoteUrlSafe($normalizedUrl)) {
+            return '';
+        }
+
+        $allowedExtensions = [
+            'css' => ['css'],
+            'js' => ['js', 'mjs'],
+            'img' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+        ];
+
+        $type = array_key_exists($type, $allowedExtensions) ? $type : 'js';
+        $path = parse_url($normalizedUrl, PHP_URL_PATH) ?: '';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $allowedForType = $allowedExtensions[$type];
+
+        if ($extension === '') {
+            $extension = $allowedForType[0];
+        } elseif (!in_array($extension, $allowedForType, true)) {
+            return $normalizedUrl;
+        }
+
+        $hash = sha1($normalizedUrl);
         $localPath = "assets/{$type}/cache/{$hash}.{$extension}";
         $fullLocalPath = BASE_PATH . "public/" . $localPath;
 
         if (!file_exists($fullLocalPath)) {
-            $content = @file_get_contents($url);
+            $context = stream_context_create([
+                'http' => ['timeout' => $this->remoteAssetTimeout],
+                'https' => ['timeout' => $this->remoteAssetTimeout],
+            ]);
+
+            $content = @file_get_contents($normalizedUrl, false, $context);
             if ($content === false) {
-                return Validators::isUrl($url) ? $url : '';
+                logs('templates')->warning('Failed to fetch remote asset: ' . $normalizedUrl);
+
+                return '';
             }
             $this->saveAsset($fullLocalPath, $content);
         }
@@ -790,6 +831,68 @@ class TemplateAssets
 
         return url($localPath) . "?v={$version}";
     }
+
+    /**
+     * Determine if the remote asset can be cached server-side.
+     */
+    private function isBasicRemoteUrlSafe(string $url): bool
+    {
+        $parsed = parse_url($url);
+
+        if ($parsed === false) {
+            return false;
+        }
+
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = strtolower($parsed['host'] ?? '');
+        if ($host === '' || filter_var($host, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Extract sanitized remote URL without credentials.
+     */
+    private function sanitizeRemoteUrl(string $url): string
+    {
+        $parsed = parse_url($url);
+
+        if ($parsed === false) {
+            return '';
+        }
+
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return '';
+        }
+
+        $host = $parsed['host'] ?? '';
+        if ($host === '') {
+            return '';
+        }
+
+        if (isset($parsed['user']) || isset($parsed['pass'])) {
+            return '';
+        }
+
+        $port = isset($parsed['port']) ? ':' . (int) $parsed['port'] : '';
+        $path = $parsed['path'] ?? '/';
+        $query = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+        $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+
+        return $scheme . '://' . strtolower($host) . $port . $path . $query . $fragment;
+    }
+
+    /**
+     * Prepare allowed remote host list from configuration.
+     */
+    // Whitelist intentionally removed by request; keeping only basic checks above.
 
     /**
      * Saves asset content to a specified path, with optional minification.

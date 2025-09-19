@@ -22,7 +22,7 @@ class ModulesServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        $container->get(ModuleManager::class)->initialize();
         $container->get(\Flute\Core\Database\DatabaseConnection::class)->recompileIfNeeded();
+        $container->get(ModuleManager::class)->initialize();
     }
 }

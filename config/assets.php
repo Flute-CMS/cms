@@ -1,5 +1,6 @@
 <?php
 
-return array (
-  'minify' => true,
-);
+return [
+    'minify' => true,
+    'remote_asset_timeout' => 5,
+];
