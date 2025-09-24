@@ -3,13 +3,10 @@
 namespace Flute\Core\Composer;
 
 use Composer\Console\Application;
-use Exception;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-
-putenv('COMPOSER_HOME=' . BASE_PATH . '/vendor/bin/composer');
 
 /**
  * Class ComposerManager
@@ -19,15 +16,40 @@ putenv('COMPOSER_HOME=' . BASE_PATH . '/vendor/bin/composer');
 class ComposerManager
 {
     /**
+     * Bootstrap the environment for Composer (once before calls).
+     */
+    private function bootstrapEnv(): void
+    {
+        $base = rtrim(BASE_PATH, " \t\n\r\0\x0B");
+        $real = realpath($base);
+        $base = $real !== false ? $real : $base;
+
+        @chdir($base);
+
+        $composerHome = $base . '/.composer';
+        if (!is_dir($composerHome)) {
+            @mkdir($composerHome, 0775, true);
+        }
+        putenv('COMPOSER_HOME=' . $composerHome);
+
+        putenv('HOME=' . $base);
+
+        putenv('COMPOSER_DISABLE_XDEBUG_WARN=1');
+        putenv('COMPOSER_MEMORY_LIMIT=-1');
+        putenv('COMPOSER_ALLOW_SUPERUSER=1');
+    }
+    
+    /**
      * Installs a Composer package.
      *
      * @param string $package The name of the package to install.
      *
-     * @throws Exception If the installation fails.
      * @return string The output of the Composer command.
+     * @throws \Exception If the installation fails.
      */
     public function installPackage(string $package)
     {
+        $this->bootstrapEnv();
         $app = new Application();
         $app->setAutoExit(false);
 
@@ -35,11 +57,12 @@ class ComposerManager
             [
                 'command' => "require",
                 'packages' => [$package],
-                '--working-dir' => BASE_PATH,
+                '--working-dir' => getcwd(),
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
                 '--ignore-platform-reqs' => true,
+                '--no-scripts' => true,
             ]
         );
 
@@ -49,33 +72,34 @@ class ComposerManager
             $app->run($input, $output);
             $outputContent = $output->fetch();
 
-            // Check for errors in the output
             if (strpos($outputContent, 'Installation failed') !== false) {
-                throw new Exception('Installation failed: ' . $outputContent);
+                throw new \Exception('Installation failed: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during package installation: ' . $e->getMessage());
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during package installation: ' . $e->getMessage());
         }
     }
 
     public function install()
     {
+        $this->bootstrapEnv();
         $app = new Application();
         $app->setAutoExit(false);
 
         $input = new ArrayInput(
             [
                 'command' => "install",
-                '--working-dir' => BASE_PATH,
+                '--working-dir' => getcwd(),
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
                 '--ignore-platform-reqs' => true,
                 '--no-dev' => true,
+                '--no-scripts' => true,
             ]
         );
 
@@ -92,35 +116,37 @@ class ComposerManager
                 strpos($outputContent, 'Removal failed') !== false ||
                 strpos($outputContent, 'error') !== false
             ) {
-                throw new Exception('Install failed: ' . $outputContent);
+                throw new \Exception('Install failed: ' . $outputContent);
             }
 
             if ($exitCode !== 0) {
-                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during install: ' . $e->getMessage());
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during install: ' . $e->getMessage());
         }
     }
 
     public function update()
     {
+        $this->bootstrapEnv();
         $app = new Application();
         $app->setAutoExit(false);
 
         $input = new ArrayInput(
             [
                 'command' => "update",
-                '--working-dir' => BASE_PATH,
+                '--working-dir' => getcwd(),
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
                 '--ignore-platform-reqs' => true,
                 '--no-dev' => true,
+                '--no-scripts' => true,
             ]
         );
 
@@ -137,18 +163,18 @@ class ComposerManager
                 strpos($outputContent, 'Removal failed') !== false ||
                 strpos($outputContent, 'error') !== false
             ) {
-                throw new Exception('Update failed: ' . $outputContent);
+                throw new \Exception('Update failed: ' . $outputContent);
             }
 
             if ($exitCode !== 0) {
-                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
+                throw new \Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during update: ' . $e->getMessage());
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during update: ' . $e->getMessage());
         }
     }
 
@@ -157,11 +183,12 @@ class ComposerManager
      *
      * @param string $package The name of the package to remove.
      *
-     * @throws Exception If the removal fails.
      * @return string The output of the Composer command.
+     * @throws \Exception If the removal fails.
      */
     public function removePackage(string $package)
     {
+        $this->bootstrapEnv();
         $app = new Application();
         $app->setAutoExit(false);
 
@@ -169,11 +196,12 @@ class ComposerManager
             [
                 'command' => "remove",
                 'packages' => [$package],
-                '--working-dir' => BASE_PATH,
+                '--working-dir' => getcwd(),
                 '--no-interaction' => true,
                 '--optimize-autoloader' => true,
                 '-v' => true,
                 '--ignore-platform-reqs' => true,
+                '--no-scripts' => true,
             ]
         );
 
@@ -183,16 +211,15 @@ class ComposerManager
             $app->run($input, $output);
             $outputContent = $output->fetch();
 
-            // Check for errors in the output
             if (strpos($outputContent, 'Removal failed') !== false) {
-                throw new Exception('Removal failed: ' . $outputContent);
+                throw new \Exception('Removal failed: ' . $outputContent);
             }
 
             return $outputContent;
         } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during package removal: ' . $e->getMessage());
+            throw new \Exception('Composer runtime error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error during package removal: ' . $e->getMessage());
         }
     }
 
@@ -203,7 +230,8 @@ class ComposerManager
      */
     public function getPackages()
     {
-        $packages = json_decode(file_get_contents(BASE_PATH . '/composer.json'), true);
+        $this->bootstrapEnv();
+        $packages = json_decode(file_get_contents(getcwd() . '/composer.json'), true);
 
         return $packages['require'];
     }
@@ -223,17 +251,17 @@ class ComposerManager
         $guzzle = new Client();
 
         if (!empty($search)) {
-            $res = $guzzle->get("https://packagist.org/search.json?q={$search}&per_page={$length}&page={$page}");
+            $res = $guzzle->get("https://packagist.org/search.json?q=$search&per_page=$length&page=$page");
 
             return json_decode($res->getBody()->getContents(), true);
+        } else {
+            $res = $guzzle->get("https://packagist.org/explore/popular.json?per_page=$length&page=$page");
+            $content = json_decode($res->getBody()->getContents(), true);
+
+            return [
+                'results' => $content['packages'],
+                'total' => $content['total'],
+            ];
         }
-        $res = $guzzle->get("https://packagist.org/explore/popular.json?per_page={$length}&page={$page}");
-        $content = json_decode($res->getBody()->getContents(), true);
-
-        return [
-            'results' => $content['packages'],
-            'total' => $content['total'],
-        ];
-
     }
 }
