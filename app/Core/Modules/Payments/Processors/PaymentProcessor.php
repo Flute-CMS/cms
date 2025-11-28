@@ -214,7 +214,12 @@ class PaymentProcessor
     {
         switch ($promoData['type']) {
             case 'percentage':
-                return 0;
+                $percentage = (float) ($promoData['value'] ?? 0);
+                if ($percentage <= 0) {
+                    return 0;
+                }
+
+                return (float) $amount * ($percentage / 100.0);
 
             case 'amount':
                 return $promoData['value'];
