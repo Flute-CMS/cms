@@ -63,6 +63,15 @@ class PaymentComponent extends FluteComponent
                     $this->currency
                 );
 
+                // If invoice amount is zero (promo covered full sum) — mark as paid immediately,
+                // credit user's balance and record promo usage without redirecting to gateway.
+                if ($invoice->amount <= 0) {
+                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
+                    toast()->success(__('lk.success'))->push();
+
+                    return $this->redirectTo(url('/lk/success'));
+                }
+
                 toast()->success(__('lk.redirect'))->push();
 
                 return $this->redirectTo(url("/payment/{$invoice->transactionId}"));
