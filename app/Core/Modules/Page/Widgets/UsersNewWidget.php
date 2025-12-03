@@ -2,20 +2,13 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use Cycle\Database\Injection\Parameter;
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
-use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersNewWidget extends AbstractWidget
 {
-    /**
-     * @var UserRepository
-     */
-    protected $userRepository;
-
-    public function __construct()
-    {
-        $this->userRepository = rep(User::class);
-    }
+    protected const CACHE_TIME = 120;
 
     public function getName(): string
     {
@@ -29,10 +22,26 @@ class UsersNewWidget extends AbstractWidget
 
     public function render(array $settings): string|null
     {
-        $maxDisplay = $settings['max_display'] ?? 200;
-        $newUsers = $this->userRepository->getLatestUsers($maxDisplay);
+        $maxDisplay = min($settings['max_display'] ?? 50, 100);
+        $cacheKey = 'flute.widget.users_new.' . $maxDisplay;
 
-        $newUsers = array_filter($newUsers, static fn ($u) => !$u->hidden);
+        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
+            $users = User::query()
+                ->where('createdAt', '>=', (new DateTimeImmutable())->modify('-7 day'))
+                ->where('hidden', false)
+                ->orderBy('createdAt', 'DESC')
+                ->limit($maxDisplay)
+                ->fetchAll();
+
+            return array_map(static fn ($u) => $u->id, $users);
+        }, self::CACHE_TIME);
+
+        $newUsers = !empty($userIds)
+            ? User::query()
+                ->where('id', 'IN', new Parameter($userIds))
+                ->orderBy('createdAt', 'DESC')
+                ->fetchAll()
+            : [];
 
         return view('flute::widgets.users-new', [
             'users' => $newUsers,
@@ -44,7 +53,7 @@ class UsersNewWidget extends AbstractWidget
     {
         return [
             'display_type' => 'text',
-            'max_display' => 200,
+            'max_display' => 50,
         ];
     }
 
@@ -68,14 +77,11 @@ class UsersNewWidget extends AbstractWidget
         return 3;
     }
 
-    /**
-     * Save settings
-     */
     public function saveSettings(array $input): array
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 200),
+            'max_display' => min((int) ($input['max_display'] ?? 50), 100),
         ];
     }
 }

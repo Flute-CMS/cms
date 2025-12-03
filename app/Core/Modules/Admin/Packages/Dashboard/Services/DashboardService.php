@@ -76,6 +76,11 @@ class DashboardService
      */
     protected function calculateUserMetrics(): array
     {
+        return cache()->callback('admin_dashboard_user_metrics', fn () => $this->doCalculateUserMetrics(), 120);
+    }
+
+    protected function doCalculateUserMetrics(): array
+    {
         $now = new DateTimeImmutable();
         $today = $now->setTime(0, 0);
         $yesterday = $today->modify('-1 day');
@@ -202,28 +207,29 @@ class DashboardService
      */
     protected function calculateUserRegistrationData(): array
     {
+        return cache()->callback('admin_dashboard_user_registration', fn () => $this->doCalculateUserRegistrationData(), 300);
+    }
+
+    protected function doCalculateUserRegistrationData(): array
+    {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-8 months');
-        $users = User::query()
-            ->where('isTemporary', false)
-            ->where('createdAt', '>=', $startDate)
-            ->fetchAll();
 
         $monthlyRegistrations = array_fill(0, 9, 0);
         $labels = [];
 
-        // Generate labels for last 9 months
         for ($i = 0; $i < 9; $i++) {
-            $date = $startDate->modify('+' . $i . ' month');
-            $carbonDate = Carbon::parse($date);
-            $labels[] = $carbonDate->translatedFormat('M');
-        }
+            $monthStart = $startDate->modify('+' . $i . ' month');
+            $monthEnd = $startDate->modify('+' . ($i + 1) . ' month');
 
-        foreach ($users as $user) {
-            $monthDiff = $user->createdAt->diff($startDate)->m;
-            if ($monthDiff >= 0 && $monthDiff < 9) {
-                $monthlyRegistrations[$monthDiff]++;
-            }
+            $carbonDate = Carbon::parse($monthStart);
+            $labels[] = $carbonDate->translatedFormat('M');
+
+            $monthlyRegistrations[$i] = User::query()
+                ->where('isTemporary', false)
+                ->where('createdAt', '>=', $monthStart)
+                ->where('createdAt', '<', $monthEnd)
+                ->count();
         }
 
         return [
@@ -242,32 +248,37 @@ class DashboardService
      */
     protected function calculateUserActivityData(): array
     {
+        return cache()->callback('admin_dashboard_user_activity', fn () => $this->doCalculateUserActivityData(), 120);
+    }
+
+    protected function doCalculateUserActivityData(): array
+    {
         $now = new DateTimeImmutable();
-        $startDate = $now->modify('-6 days');
-        $users = User::query()
-            ->where('isTemporary', false)
-            ->where('last_logged', '>=', $startDate)
-            ->fetchAll();
+        $startDate = $now->modify('-6 days')->setTime(0, 0);
 
         $dailyActive = array_fill(0, 7, 0);
         $dailyOnline = array_fill(0, 7, 0);
         $labels = [];
 
         for ($i = 0; $i < 7; $i++) {
-            $date = $startDate->modify('+' . $i . ' day');
-            $carbonDate = Carbon::parse($date);
-            $labels[] = $carbonDate->translatedFormat('D');
-        }
+            $dayStart = $startDate->modify('+' . $i . ' day');
+            $dayEnd = $startDate->modify('+' . ($i + 1) . ' day');
 
-        foreach ($users as $user) {
-            if ($user->last_logged) {
-                $dayDiff = $user->last_logged->diff($startDate)->d;
-                if ($dayDiff >= 0 && $dayDiff < 7) {
-                    $dailyActive[$dayDiff]++;
-                    if ($user->isOnline()) {
-                        $dailyOnline[$dayDiff]++;
-                    }
-                }
+            $carbonDate = Carbon::parse($dayStart);
+            $labels[] = $carbonDate->translatedFormat('D');
+
+            $dailyActive[$i] = User::query()
+                ->where('isTemporary', false)
+                ->where('last_logged', '>=', $dayStart)
+                ->where('last_logged', '<', $dayEnd)
+                ->count();
+
+            if ($i === 6) {
+                $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+                $dailyOnline[$i] = User::query()
+                    ->where('isTemporary', false)
+                    ->where('last_logged', '>=', $onlineThreshold)
+                    ->count();
             }
         }
 
@@ -290,6 +301,11 @@ class DashboardService
      * Calculate payment metrics
      */
     protected function calculatePaymentMetrics(): array
+    {
+        return cache()->callback('admin_dashboard_payment_metrics', fn () => $this->doCalculatePaymentMetrics(), 120);
+    }
+
+    protected function doCalculatePaymentMetrics(): array
     {
         $now = new DateTimeImmutable();
         $today = $now->setTime(0, 0);
@@ -396,6 +412,11 @@ class DashboardService
      */
     protected function calculatePaymentChartData(): array
     {
+        return cache()->callback('admin_dashboard_payment_chart', fn () => $this->doCalculatePaymentChartData(), 120);
+    }
+
+    protected function doCalculatePaymentChartData(): array
+    {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-6 days')->setTime(0, 0);
 
@@ -451,6 +472,11 @@ class DashboardService
      * Calculate payment methods distribution
      */
     protected function calculatePaymentMethodsData(): array
+    {
+        return cache()->callback('admin_dashboard_payment_methods', fn () => $this->doCalculatePaymentMethodsData(), 300);
+    }
+
+    protected function doCalculatePaymentMethodsData(): array
     {
         $gatewayQuery = PaymentInvoice::query()
             ->where('isPaid', true)
@@ -574,10 +600,48 @@ class DashboardService
      */
     protected function registerDefaultTabs(): void
     {
-        $mainTab = $this->getMainTab();
-        $this->addTab($mainTab['tab'], $mainTab['vars']);
+        $currentTab = request()->input('tab-dashboard_tabs');
+        $mainTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.main'));
+        $paymentsTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.payments'));
 
-        $paymentsTab = $this->getPaymentsTab();
+        if ($currentTab === $paymentsTabSlug) {
+            $mainTab = $this->getMainTabPlaceholder();
+            $paymentsTab = $this->getPaymentsTab();
+        } elseif ($currentTab === null || $currentTab === $mainTabSlug) {
+            $mainTab = $this->getMainTab();
+            $paymentsTab = $this->getPaymentsTabPlaceholder();
+        } else {
+            $mainTab = $this->getMainTabPlaceholder();
+            $paymentsTab = $this->getPaymentsTabPlaceholder();
+        }
+
+        $this->addTab($mainTab['tab'], $mainTab['vars']);
         $this->addTab($paymentsTab['tab'], $paymentsTab['vars']);
+    }
+
+    /**
+     * Get main tab placeholder (no data loaded)
+     */
+    protected function getMainTabPlaceholder(): array
+    {
+        return [
+            'tab' => Tab::make(__('admin-dashboard.tabs.main'))
+                ->icon('ph.regular.users')
+                ->layouts([]),
+            'vars' => [],
+        ];
+    }
+
+    /**
+     * Get payments tab placeholder (no data loaded)
+     */
+    protected function getPaymentsTabPlaceholder(): array
+    {
+        return [
+            'tab' => Tab::make(__('admin-dashboard.tabs.payments'))
+                ->icon('ph.regular.currency-circle-dollar')
+                ->layouts([]),
+            'vars' => [],
+        ];
     }
 }

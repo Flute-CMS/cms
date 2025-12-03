@@ -8,6 +8,8 @@ use Flute\Core\Database\Entities\User;
 
 class TopDonorsWidget extends AbstractWidget
 {
+    protected const CACHE_TIME = 300;
+
     public function getName(): string
     {
         return 'widgets.top_donors';
@@ -35,33 +37,40 @@ class TopDonorsWidget extends AbstractWidget
         return 3;
     }
 
-    /**
-     * Get top donors based on their total payment amount
-     *
-     * @param int $limit The maximum number of donors to return
-     * @return array Array of users with their total donation amount
-     */
     private function getTopDonors(int $limit = 5): array
     {
-        $query = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->buildQuery();
+        $cacheKey = 'flute.widget.top_donors.' . $limit;
 
-        $query->columns([
-            'user_id',
-            new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0) AS total'),
-        ]);
-        $query->groupBy('user_id');
-        $query->orderBy(new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0)'), 'DESC');
-        $query->limit($limit);
+        $cachedData = cache()->callback($cacheKey, static function () use ($limit) {
+            $query = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->buildQuery();
 
-        $results = $query->fetchAll();
+            $query->columns([
+                'user_id',
+                new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0) AS total'),
+            ]);
+            $query->groupBy('user_id');
+            $query->orderBy(new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0)'), 'DESC');
+            $query->limit($limit);
 
-        if (empty($results)) {
+            $results = $query->fetchAll();
+
+            if (empty($results)) {
+                return [];
+            }
+
+            return array_map(static fn ($r) => [
+                'user_id' => (int) $r['user_id'],
+                'total' => (float) $r['total'],
+            ], $results);
+        }, self::CACHE_TIME);
+
+        if (empty($cachedData)) {
             return [];
         }
 
-        $userIds = array_values(array_unique(array_map(static fn ($r) => (int) $r['user_id'], $results)));
+        $userIds = array_column($cachedData, 'user_id');
         $userList = User::query()
             ->where('id', 'IN', new Parameter($userIds))
             ->fetchAll();
@@ -72,12 +81,12 @@ class TopDonorsWidget extends AbstractWidget
         }
 
         $users = [];
-        foreach ($results as $result) {
-            $u = $usersById[$result['user_id']] ?? null;
+        foreach ($cachedData as $data) {
+            $u = $usersById[$data['user_id']] ?? null;
             if ($u) {
                 $users[] = [
                     'user' => $u,
-                    'donated' => (float) $result['total'],
+                    'donated' => $data['total'],
                 ];
             }
         }
