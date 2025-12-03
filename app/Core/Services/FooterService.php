@@ -23,7 +23,7 @@ class FooterService
     {
         $this->performance = (bool) (is_performance());
 
-        $this->cachedItems = $this->performance ? cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME) : $this->getDefaultItems();
+        $this->cachedItems = cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME);
     }
 
     /**

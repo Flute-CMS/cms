@@ -386,7 +386,9 @@ class ThemeManager
      */
     protected function getAssocThemes(): array
     {
-        $themes = Theme::query()->load('settings')->fetchAll();
+        $themes = $this->performance
+            ? cache()->callback('flute.themes.assoc', static fn () => Theme::query()->load('settings')->fetchAll(), self::CACHE_TIME)
+            : Theme::query()->load('settings')->fetchAll();
 
         return array_reduce($themes, static function ($carry, Theme $theme) {
             $carry[$theme->key] = $theme;

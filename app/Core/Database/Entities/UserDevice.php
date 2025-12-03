@@ -7,8 +7,16 @@ use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
 use Cycle\Annotated\Annotation\Relation\HasMany;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 
 #[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["ip"]),
+        new Index(columns: ["user_id"])
+    ]
+)]
 class UserDevice extends ActiveRecord
 {
     #[Column(type: "primary")]

@@ -13,7 +13,8 @@ use Cycle\ORM\Entity\Behavior;
 #[Table(
     indexes: [
         new Index(columns: ["name"], unique: true),
-        new Index(columns: ["adapter"], unique: true)
+        new Index(columns: ["adapter"], unique: true),
+        new Index(columns: ["enabled"])
     ]
 )]
 #[Behavior\CreatedAt(

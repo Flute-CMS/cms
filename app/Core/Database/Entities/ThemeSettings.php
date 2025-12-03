@@ -12,7 +12,8 @@ use Cycle\Annotated\Annotation\Table;
 #[Entity]
 #[Table(
     indexes: [
-        new Index(columns: ["key"], unique: true)
+        new Index(columns: ["key"], unique: true),
+        new Index(columns: ["theme_id"])
     ]
 )]
 class ThemeSettings extends ActiveRecord

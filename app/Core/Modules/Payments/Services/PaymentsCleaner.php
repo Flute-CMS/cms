@@ -26,7 +26,7 @@ class PaymentsCleaner
                 $payment->delete();
             }
 
-            cache()->set(self::CACHE_KEY, true);
+            cache()->set(self::CACHE_KEY, true, 43200);
         }
     }
 }

@@ -25,6 +25,12 @@ use RuntimeException;
  */
 class PageManager
 {
+    protected const PAGE_CACHE_TIME = 3600;
+
+    protected const PAGES_CACHE_KEY = 'flute.pages.all';
+
+    protected const PAGES_CACHE_TIME = 3600;
+
     protected RouterInterface $router;
 
     protected bool $disabled = false;
@@ -70,7 +76,11 @@ class PageManager
     {
         if (!is_cli() && !is_admin_path()) {
             $routePath = $this->request->getPathInfo();
-            $this->currentPage = Page::findOne(['route' => $routePath]);
+            $cacheKey = 'flute.page.route.' . md5($routePath);
+
+            $this->currentPage = is_performance()
+                ? cache()->callback($cacheKey, static fn () => Page::findOne(['route' => $routePath]), self::PAGE_CACHE_TIME)
+                : Page::findOne(['route' => $routePath]);
 
             if ($this->currentPage) {
                 $this->loadPermissions();
@@ -477,7 +487,9 @@ class PageManager
             return;
         }
 
-        $pages = Page::findAll();
+        $pages = is_performance()
+            ? cache()->callback(self::PAGES_CACHE_KEY, static fn () => Page::findAll(), self::PAGES_CACHE_TIME)
+            : Page::findAll();
 
         $this->registerPageRoutes($pages);
     }

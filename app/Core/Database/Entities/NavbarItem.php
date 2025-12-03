@@ -14,7 +14,10 @@ use Cycle\ORM\Entity\Behavior;
 
 #[Entity]
 #[Table(
-    indexes: [new Index(columns: ["position"])]
+    indexes: [
+        new Index(columns: ["position"]),
+        new Index(columns: ["parent_id"])
+    ]
 )]
 #[Behavior\CreatedAt(
     field: 'createdAt',

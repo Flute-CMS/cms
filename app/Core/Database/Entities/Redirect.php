@@ -6,8 +6,15 @@ use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\HasMany;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 
 #[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["from_url"])
+    ]
+)]
 class Redirect extends ActiveRecord
 {
     #[Column(type: "primary")]

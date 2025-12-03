@@ -8,6 +8,8 @@ use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersTodayWidget extends AbstractWidget
 {
+    protected const CACHE_TIME = 60;
+
     /**
      * @var UserRepository
      */
@@ -30,18 +32,24 @@ class UsersTodayWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $startOfDay = new DateTimeImmutable('today');
-        $users = User::query()
-            ->where('last_logged', '>=', $startOfDay)
-            ->where('hidden', false)
-            ->orderBy(['last_logged' => 'DESC'])
-            ->limit($settings['max_display'] ?? 10)
-            ->fetchAll();
+        $maxDisplay = $settings['max_display'] ?? 10;
+        $cacheKey = 'flute.widget.users_today.' . $maxDisplay;
+
+        $users = cache()->callback($cacheKey, static function () use ($maxDisplay) {
+            $startOfDay = new DateTimeImmutable('today');
+
+            return User::query()
+                ->where('last_logged', '>=', $startOfDay)
+                ->where('hidden', false)
+                ->orderBy(['last_logged' => 'DESC'])
+                ->limit($maxDisplay)
+                ->fetchAll();
+        }, self::CACHE_TIME);
 
         return view('flute::widgets.users-today', [
             'users' => $users,
             'display_type' => $settings['display_type'] ?? 'text',
-            'max_display' => $settings['max_display'] ?? 10,
+            'max_display' => $maxDisplay,
         ])->render();
     }
 

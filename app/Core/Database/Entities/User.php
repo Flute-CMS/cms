@@ -17,7 +17,9 @@ use Cycle\ORM\Entity\Behavior;
         new Index(columns: ["name"]),
         new Index(columns: ["login"], unique: true),
         new Index(columns: ["uri"], unique: true),
-        new Index(columns: ["email"], unique: true)
+        new Index(columns: ["email"], unique: true),
+        new Index(columns: ["last_logged", "hidden"]),
+        new Index(columns: ["hidden"])
     ]
 )]
 #[Behavior\CreatedAt(

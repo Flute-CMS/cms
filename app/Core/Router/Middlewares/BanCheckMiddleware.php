@@ -9,6 +9,8 @@ use Flute\Core\Support\FluteRequest;
 
 class BanCheckMiddleware extends BaseMiddleware
 {
+    protected const CACHE_TIME = 60;
+
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         if (!is_installed()) {
@@ -42,12 +44,9 @@ class BanCheckMiddleware extends BaseMiddleware
 
         $ipAddress = $request->getClientIp();
         if ($ipAddress) {
-            $users = UserDevice::findAll(['ip' => $ipAddress]);
-
-            foreach ($users as $userDevice) {
-                if ($userDevice->user->isBlocked()) {
-                    return $userDevice->user->getBlockInfo()['reason'];
-                }
+            $blockInfo = $this->getIpBlockInfo($ipAddress);
+            if ($blockInfo) {
+                return $blockInfo['reason'];
             }
         }
 
@@ -56,16 +55,47 @@ class BanCheckMiddleware extends BaseMiddleware
 
     protected function checkIpBlocks(string $ipAddress): bool
     {
-        if ($ipAddress) {
-            $users = UserDevice::findAll(['ip' => $ipAddress]);
+        if (!$ipAddress) {
+            return false;
+        }
+
+        $cacheKey = 'flute.ip_blocked.' . md5($ipAddress);
+
+        return cache()->callback($cacheKey, static function () use ($ipAddress) {
+            $users = UserDevice::query()
+                ->where('ip', $ipAddress)
+                ->load('user')
+                ->load('user.blocksReceived')
+                ->fetchAll();
 
             foreach ($users as $userDevice) {
                 if ($userDevice->user->isBlocked()) {
                     return true;
                 }
             }
-        }
 
-        return false;
+            return false;
+        }, self::CACHE_TIME);
+    }
+
+    protected function getIpBlockInfo(string $ipAddress): ?array
+    {
+        $cacheKey = 'flute.ip_block_info.' . md5($ipAddress);
+
+        return cache()->callback($cacheKey, static function () use ($ipAddress) {
+            $users = UserDevice::query()
+                ->where('ip', $ipAddress)
+                ->load('user')
+                ->load('user.blocksReceived')
+                ->fetchAll();
+
+            foreach ($users as $userDevice) {
+                if ($userDevice->user->isBlocked()) {
+                    return $userDevice->user->getBlockInfo();
+                }
+            }
+
+            return null;
+        }, self::CACHE_TIME);
     }
 }

@@ -35,9 +35,7 @@ class NavbarService
 
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
-        $this->cachedNavbarItems = $this->performance
-            ? cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME)
-            : $this->getDefaultNavbarItems();
+        $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME);
     }
 
     /**

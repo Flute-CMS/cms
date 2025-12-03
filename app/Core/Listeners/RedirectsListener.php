@@ -9,6 +9,8 @@ use Flute\Core\Support\FluteRequest;
 
 class RedirectsListener
 {
+    protected const CACHE_TIME = 3600;
+
     public static function onRoutingFinished(RoutingFinishedEvent $event)
     {
         $request = request();
@@ -17,18 +19,32 @@ class RedirectsListener
             return;
         }
 
-        $redirects = rep(Redirect::class)->select()->where('fromUrl', $request->getRequestUri())->load('conditionGroups')->load('conditionGroups.conditions')->fetchAll();
+        $uri = $request->getRequestUri();
+        $cacheKey = 'flute.redirects.' . md5($uri);
+
+        $redirects = is_performance()
+            ? cache()->callback($cacheKey, static fn () => self::fetchRedirects($uri), self::CACHE_TIME)
+            : self::fetchRedirects($uri);
 
         if ($redirects) {
             foreach ($redirects as $redirect) {
                 if (self::checkConditions($redirect, $request)) {
-                    $newResponse = redirect($redirect->getToUrl())->send();
+                    $newResponse = redirect($redirect->toUrl)->send();
                     $event->setResponse($newResponse);
 
                     return;
                 }
             }
         }
+    }
+
+    protected static function fetchRedirects(string $uri): array
+    {
+        return Redirect::query()
+            ->where('fromUrl', $uri)
+            ->load('conditionGroups')
+            ->load('conditionGroups.conditions')
+            ->fetchAll();
     }
 
     private static function checkConditions(Redirect $redirect, FluteRequest $request)
