@@ -190,12 +190,23 @@ class ThemeManager
      */
     public function loadAllThemesJson(): void
     {
+        $cacheKey = 'flute.themes.json_data';
+        $cached = cache()->get($cacheKey);
+
+        if ($cached !== null && is_array($cached)) {
+            $this->themesData = $cached;
+
+            return;
+        }
+
         $themeDirs = array_filter(glob("{$this->themesPath}/*", GLOB_ONLYDIR), static fn ($dir) => basename($dir) !== '.disabled');
 
         foreach ($themeDirs as $dir) {
             $themeName = basename($dir);
             $this->getThemeData($themeName);
         }
+
+        cache()->set($cacheKey, $this->themesData, self::CACHE_TIME);
     }
 
     /**
@@ -233,9 +244,7 @@ class ThemeManager
             return $this->allThemesKeys[$themeName];
         }
 
-        $theme = $this->performance
-            ? cache()->callback("flute.themes.{$themeName}", static fn () => Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne(), self::CACHE_TIME)
-            : Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
+        $theme = Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
 
         if (!$theme) {
             throw new RuntimeException("The theme '{$themeName}' does not exist.");
@@ -383,12 +392,11 @@ class ThemeManager
 
     /**
      * Get an associative array of themes from the database.
+     * Note: ORM entities cannot be cached due to serialization issues.
      */
     protected function getAssocThemes(): array
     {
-        $themes = $this->performance
-            ? cache()->callback('flute.themes.assoc', static fn () => Theme::query()->load('settings')->fetchAll(), self::CACHE_TIME)
-            : Theme::query()->load('settings')->fetchAll();
+        $themes = Theme::query()->load('settings')->fetchAll();
 
         return array_reduce($themes, static function ($carry, Theme $theme) {
             $carry[$theme->key] = $theme;

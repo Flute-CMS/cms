@@ -330,7 +330,16 @@ class ModuleManager
 
     protected function loadModulesFromDatabase(): void
     {
-        $this->modulesDatabase = cache()->callback('flute.modules.alldb', static fn () => Module::findAll(), self::CACHE_TIME);
+        $this->modulesDatabase = cache()->callback('flute.modules.alldb', static function () {
+            $modules = Module::findAll();
+
+            return array_map(static fn ($m) => [
+                'key' => $m->key,
+                'createdAt' => $m->createdAt,
+                'status' => $m->status,
+                'installedVersion' => $m->installedVersion,
+            ], $modules);
+        }, self::CACHE_TIME);
 
         $this->setCurrentStatusModules();
     }
@@ -343,12 +352,12 @@ class ModuleManager
             $moduleResult = $this->modules->get($module->key);
             $search = array_search($module->key, $columnsDb);
 
-            if ($search === false || $this->modulesDatabase[$search]->key !== $module->key) {
+            if ($search === false || $this->modulesDatabase[$search]['key'] !== $module->key) {
                 $this->createModuleInDatabase($module);
             } else {
-                $moduleResult->createdAt = $this->modulesDatabase[$search]->createdAt;
-                $moduleResult->status = $this->modulesDatabase[$search]->status;
-                $moduleResult->installedVersion = $this->modulesDatabase[$search]->installedVersion;
+                $moduleResult->createdAt = $this->modulesDatabase[$search]['createdAt'];
+                $moduleResult->status = $this->modulesDatabase[$search]['status'];
+                $moduleResult->installedVersion = $this->modulesDatabase[$search]['installedVersion'];
             }
 
             $this->createModuleInCollection($module->key, $moduleResult);

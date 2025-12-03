@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use Cycle\Database\Injection\Parameter;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
@@ -35,7 +36,7 @@ class UsersOnlineWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $cacheKey = 'flute.widget.users_online.' . $maxDisplay;
 
-        $onlineUsers = cache()->callback($cacheKey, static function () use ($maxDisplay) {
+        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
             $users = User::query()
                 ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
                 ->where('hidden', false)
@@ -45,8 +46,12 @@ class UsersOnlineWidget extends AbstractWidget
 
             usort($users, static fn ($a, $b) => ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0));
 
-            return $users;
+            return array_map(static fn ($user) => $user->id, $users);
         }, self::CACHE_TIME);
+
+        $onlineUsers = !empty($userIds)
+            ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll()
+            : [];
 
         return view('flute::widgets.users-online', [
             'users' => $onlineUsers,

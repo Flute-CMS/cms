@@ -787,29 +787,39 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             return;
         }
 
-        $cacheKey = "components:{$this->currentTheme}";
+        $cacheKey = "flute.template.components.{$this->currentTheme}";
 
+        // Check in-memory cache first
         if (isset($this->componentCache[$cacheKey])) {
             $this->registerCachedComponents($this->componentCache[$cacheKey]);
+            $this->setupThemeNamespaces();
 
             return;
         }
 
-        $components = [];
-        $themes = $this->getThemeFallbackOrder();
+        // Check persistent cache
+        $components = cache()->get($cacheKey);
 
-        foreach ($themes as $theme) {
-            $componentsDir = $this->getTemplatePath("Themes/{$theme}/views/components");
+        if ($components === null) {
+            $components = [];
+            $themes = $this->getThemeFallbackOrder();
 
-            if (is_dir($componentsDir)) {
-                $themeComponents = $this->discoverComponents($componentsDir, $theme);
+            foreach ($themes as $theme) {
+                $componentsDir = $this->getTemplatePath("Themes/{$theme}/views/components");
 
-                foreach ($themeComponents as $alias => $componentData) {
-                    if (!isset($components[$alias])) {
-                        $components[$alias] = $componentData;
+                if (is_dir($componentsDir)) {
+                    $themeComponents = $this->discoverComponents($componentsDir, $theme);
+
+                    foreach ($themeComponents as $alias => $componentData) {
+                        if (!isset($components[$alias])) {
+                            $components[$alias] = $componentData;
+                        }
                     }
                 }
             }
+
+            // Store in persistent cache for 1 hour
+            cache()->set($cacheKey, $components, 3600);
         }
 
         $this->addToComponentCache($cacheKey, $components);
@@ -856,6 +866,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function setupThemeNamespaces(): void
     {
+        static $initialized = false;
+
+        if ($initialized) {
+            return;
+        }
+
         $themes = $this->getThemeFallbackOrder();
         $viewPaths = [];
 
@@ -876,6 +892,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
                 $this->templateAssets->addImportPath($sassPath);
             }
         }
+
+        $initialized = true;
     }
 
     /**

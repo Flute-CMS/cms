@@ -780,11 +780,36 @@ class TemplateAssets
         }
 
         if ($needsRecompile) {
-            $scssContents = $this->gatherScssContents($scssPath);
-            $css = $this->compileScss($scssContents);
+            $lockFile = $cssFullPath . '.lock';
+            $lockHandle = @fopen($lockFile, 'w+');
 
-            if ($css !== '') {
-                $this->saveAsset($cssFullPath, $css);
+            if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                try {
+                    if (!file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath)) {
+                        $scssContents = $this->gatherScssContents($scssPath);
+                        $css = $this->compileScss($scssContents);
+
+                        if ($css !== '') {
+                            $this->saveAsset($cssFullPath, $css);
+                        }
+                    }
+                } finally {
+                    flock($lockHandle, LOCK_UN);
+                    fclose($lockHandle);
+                    @unlink($lockFile);
+                }
+            } elseif ($lockHandle) {
+                flock($lockHandle, LOCK_SH); // Wait for shared lock (compile done)
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+            } else {
+                // Fallback: compile without lock
+                $scssContents = $this->gatherScssContents($scssPath);
+                $css = $this->compileScss($scssContents);
+
+                if ($css !== '') {
+                    $this->saveAsset($cssFullPath, $css);
+                }
             }
         }
 
@@ -922,13 +947,30 @@ class TemplateAssets
         $jsFullPath = BASE_PATH . "public/" . $jsPath;
 
         if (!file_exists($jsFullPath) || filemtime($jsPathBase) > filemtime($jsFullPath)) {
-            $content = file_get_contents($jsPathBase);
-            if ($content === false) {
-                logs()->error("Unable to read JS file: {$jsPathBase}");
+            $lockFile = $jsFullPath . '.lock';
+            $lockHandle = @fopen($lockFile, 'w+');
 
-                return '';
+            if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                try {
+                    if (!file_exists($jsFullPath) || filemtime($jsPathBase) > filemtime($jsFullPath)) {
+                        $content = file_get_contents($jsPathBase);
+                        if ($content === false) {
+                            logs()->error("Unable to read JS file: {$jsPathBase}");
+
+                            return '';
+                        }
+                        $this->saveAsset($jsFullPath, $content);
+                    }
+                } finally {
+                    flock($lockHandle, LOCK_UN);
+                    fclose($lockHandle);
+                    @unlink($lockFile);
+                }
+            } elseif ($lockHandle) {
+                flock($lockHandle, LOCK_SH);
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
             }
-            $this->saveAsset($jsFullPath, $content);
         }
 
         $version = filemtime($jsFullPath);
@@ -971,12 +1013,27 @@ class TemplateAssets
             $webpFullPath = BASE_PATH . "public/" . $webpPath;
 
             if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
-                try {
-                    WebPConvert::convert($imgPathBase, $webpFullPath);
-                } catch (Exception $e) {
-                    logs()->error($e->getMessage());
+                $lockFile = $webpFullPath . '.lock';
+                $lockHandle = @fopen($lockFile, 'w+');
 
-                    return $this->generateAssetUrl($imgPath);
+                if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                    try {
+                        if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
+                            WebPConvert::convert($imgPathBase, $webpFullPath);
+                        }
+                    } catch (Exception $e) {
+                        logs()->error($e->getMessage());
+
+                        return $this->generateAssetUrl($imgPath);
+                    } finally {
+                        flock($lockHandle, LOCK_UN);
+                        fclose($lockHandle);
+                        @unlink($lockFile);
+                    }
+                } elseif ($lockHandle) {
+                    flock($lockHandle, LOCK_SH);
+                    flock($lockHandle, LOCK_UN);
+                    fclose($lockHandle);
                 }
             }
 

@@ -136,18 +136,28 @@ class DatabaseConnection
      */
     public function recompileIfNeeded(bool $ignoreInstalled = false): void
     {
+        static $checked = false;
+
+        if ($checked && isset($this->orm)) {
+            return;
+        }
+
         if (!is_installed() && !$ignoreInstalled) {
             return;
         }
 
         if (!isset($this->orm)) {
             $this->connect();
+            $checked = true;
 
             return;
         }
+
         if ($this->schemaNeedsUpdate) {
             $this->recompileOrmSchema(false);
         }
+
+        $checked = true;
     }
 
     /**
@@ -178,58 +188,76 @@ class DatabaseConnection
 
         $lockFile = BASE_PATH . 'storage/app/cache/orm_schema.lock';
         $lockHandle = fopen($lockFile, 'w+');
-        if (flock($lockHandle, LOCK_EX | LOCK_NB)) {
-            try {
-                if (!isset($this->dbal)) {
-                    $this->dbal = $this->databaseManager->getDbal();
-                    if (config('database.debug')) {
-                        $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-                        $this->dbal->setLogger($timingLogger);
-                    }
-                }
 
-                $validDirs = [];
+        // Try non-blocking lock first
+        $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
 
-                foreach ($this->entitiesDirs as $dir) {
-                    if (file_exists($dir) && is_dir($dir)) {
-                        $validDirs[] = $dir;
-                    } else {
-                        logs()->debug("Skipping non-existent entity directory: {$dir}");
-                    }
-                }
-
-                $this->entitiesDirs = $validDirs;
-
-                $classLocator = $this->getClassLocator();
-
-                $schemaArray = $this->compileSchema($classLocator);
-
-                $ormSchema = new \Cycle\ORM\Schema($schemaArray);
-
-                $content = '<?php return ' . var_export($schemaArray, true) . ';';
-                file_put_contents(self::SCHEMA_FILE, $content);
-
-                $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
-
-                $this->orm = new ORM(
-                    factory: new \Cycle\ORM\Factory($this->dbal),
-                    schema: $ormSchema,
-                    commandGenerator: $commandGenerator
-                );
-
-                $this->ormIntoContainer();
-
-                $this->runMigrations(path('storage/migrations'));
-
-                $this->schemaNeedsUpdate = false;
-            } finally {
-                flock($lockHandle, LOCK_UN);
-                fclose($lockHandle);
-                @unlink($lockFile);
+        if (!$gotLock) {
+            // Another process is compiling - wait for it to finish (with timeout)
+            $maxWait = 30; // 30 seconds max wait
+            $waited = 0;
+            while (!file_exists(self::SCHEMA_FILE) && $waited < $maxWait) {
+                usleep(100000); // 100ms
+                $waited += 0.1;
             }
-        } else {
-            // Another process is compiling the schema — this is expected; avoid noisy logs
+
+            fclose($lockHandle);
+
+            // Use cached schema if available
+            if (file_exists(self::SCHEMA_FILE)) {
+                $this->recompileOrmSchema(true);
+            }
+
             return;
+        }
+
+        try {
+            if (!isset($this->dbal)) {
+                $this->dbal = $this->databaseManager->getDbal();
+                if (config('database.debug')) {
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
+                    $this->dbal->setLogger($timingLogger);
+                }
+            }
+
+            $validDirs = [];
+
+            foreach ($this->entitiesDirs as $dir) {
+                if (file_exists($dir) && is_dir($dir)) {
+                    $validDirs[] = $dir;
+                } else {
+                    logs()->debug("Skipping non-existent entity directory: {$dir}");
+                }
+            }
+
+            $this->entitiesDirs = $validDirs;
+
+            $classLocator = $this->getClassLocator();
+
+            $schemaArray = $this->compileSchema($classLocator);
+
+            $ormSchema = new \Cycle\ORM\Schema($schemaArray);
+
+            $content = '<?php return ' . var_export($schemaArray, true) . ';';
+            file_put_contents(self::SCHEMA_FILE, $content);
+
+            $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+
+            $this->orm = new ORM(
+                factory: new \Cycle\ORM\Factory($this->dbal),
+                schema: $ormSchema,
+                commandGenerator: $commandGenerator
+            );
+
+            $this->ormIntoContainer();
+
+            $this->runMigrations(path('storage/migrations'));
+
+            $this->schemaNeedsUpdate = false;
+        } finally {
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+            @unlink($lockFile);
         }
     }
 

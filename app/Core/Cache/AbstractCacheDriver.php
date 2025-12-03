@@ -140,7 +140,8 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Execute callback and save result in cache if key doesn't exist
+     * Execute callback and save result in cache if key doesn't exist.
+     * Uses file locking to prevent cache stampede (thundering herd).
      *
      * @throws InvalidArgumentException
      * @return mixed
@@ -149,35 +150,69 @@ abstract class AbstractCacheDriver implements CacheInterface
     {
         $item = $this->cache->getItem($key);
 
-        if (!$item->isHit()) {
-            $value = $callback();
-
-            $item->set($value);
-            $item->expiresAfter($ttl);
-
-            $saveResult = $this->cache->save($item);
-
-            if (!$saveResult) {
-                $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
-                $type = is_object($value) ? $value::class : gettype($value);
-                $sizeHint = null;
-
-                try {
-                    $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
-                } catch (Throwable) {
-                }
-                $this->logger->error("Failed to save cache for key: {$key}", [
-                    'adapter' => $adapter,
-                    'ttl' => $ttl,
-                    'value_type' => $type,
-                    'value_size_hint' => $sizeHint,
-                ]);
-            }
-        } else {
-            $value = $item->get();
+        if ($item->isHit()) {
+            return $item->get();
         }
 
-        return $value;
+        $lockDir = path('storage/app/cache/locks');
+        if (!is_dir($lockDir)) {
+            @mkdir($lockDir, 0o755, true);
+        }
+
+        $lockFile = $lockDir . '/' . md5($key) . '.lock';
+        $lockHandle = @fopen($lockFile, 'w+');
+
+        if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            try {
+                $item = $this->cache->getItem($key);
+                if ($item->isHit()) {
+                    return $item->get();
+                }
+
+                $value = $callback();
+
+                $item->set($value);
+                $item->expiresAfter($ttl);
+
+                $saveResult = $this->cache->save($item);
+
+                if (!$saveResult) {
+                    $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
+                    $type = is_object($value) ? $value::class : gettype($value);
+                    $sizeHint = null;
+
+                    try {
+                        $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
+                    } catch (Throwable) {
+                    }
+                    $this->logger->error("Failed to save cache for key: {$key}", [
+                        'adapter' => $adapter,
+                        'ttl' => $ttl,
+                        'value_type' => $type,
+                        'value_size_hint' => $sizeHint,
+                    ]);
+                }
+
+                return $value;
+            } finally {
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+                @unlink($lockFile);
+            }
+        } elseif ($lockHandle) {
+            flock($lockHandle, LOCK_SH);
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+
+            $item = $this->cache->getItem($key);
+            if ($item->isHit()) {
+                return $item->get();
+            }
+
+            return $callback();
+        }
+
+        return $callback();
     }
 
     /**

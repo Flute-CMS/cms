@@ -20,11 +20,8 @@ class RedirectsListener
         }
 
         $uri = $request->getRequestUri();
-        $cacheKey = 'flute.redirects.' . md5($uri);
 
-        $redirects = is_performance()
-            ? cache()->callback($cacheKey, static fn () => self::fetchRedirects($uri), self::CACHE_TIME)
-            : self::fetchRedirects($uri);
+        $redirects = self::fetchRedirects($uri);
 
         if ($redirects) {
             foreach ($redirects as $redirect) {

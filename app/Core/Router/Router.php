@@ -362,16 +362,28 @@ class Router implements RouterInterface
         if (!$urlMatcher) {
             $urlMatcher = new UrlMatcher($compilable, $context);
 
-            if (is_debug()) {
-                try {
-                    $dumper = new CompiledUrlMatcherDumper($compilable);
-                    $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
-                    $compiledSource = (string)$compiledSource;
-                    $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
-                    file_put_contents($cacheFile, $php);
-                } catch (Throwable $e) {
-                    logs()->warning($e);
-                    // Failed to dump routes, continue without cache
+            if (!is_debug()) {
+                $lockFile = $cacheFile . '.lock';
+                $lockHandle = @fopen($lockFile, 'w+');
+
+                if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                    try {
+                        if (!file_exists($cacheFile)) {
+                            $dumper = new CompiledUrlMatcherDumper($compilable);
+                            $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                            $compiledSource = (string) $compiledSource;
+                            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+                            file_put_contents($cacheFile, $php);
+                        }
+                    } catch (Throwable $e) {
+                        logs()->warning($e);
+                    } finally {
+                        flock($lockHandle, LOCK_UN);
+                        fclose($lockHandle);
+                        @unlink($lockFile);
+                    }
+                } elseif ($lockHandle) {
+                    fclose($lockHandle);
                 }
             }
         }

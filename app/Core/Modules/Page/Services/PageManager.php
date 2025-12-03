@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Page\Services;
 use Exception;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
+use Flute\Core\Modules\Page\Controllers\PageController;
 use Flute\Core\Router\Contracts\RouterInterface;
 use Flute\Core\Services\UserService;
 use Flute\Core\Support\FluteRequest;
@@ -78,8 +79,16 @@ class PageManager
             $routePath = $this->request->getPathInfo();
             $cacheKey = 'flute.page.route.' . md5($routePath);
 
-            $this->currentPage = is_performance()
-                ? cache()->callback($cacheKey, static fn () => Page::findOne(['route' => $routePath]), self::PAGE_CACHE_TIME)
+            $pageId = is_performance()
+                ? cache()->callback($cacheKey, static function () use ($routePath) {
+                    $page = Page::findOne(['route' => $routePath]);
+
+                    return $page ? $page->id : null;
+                }, self::PAGE_CACHE_TIME)
+                : null;
+
+            $this->currentPage = $pageId
+                ? Page::findByPK($pageId)
                 : Page::findOne(['route' => $routePath]);
 
             if ($this->currentPage) {
@@ -487,11 +496,34 @@ class PageManager
             return;
         }
 
-        $pages = is_performance()
-            ? cache()->callback(self::PAGES_CACHE_KEY, static fn () => Page::findAll(), self::PAGES_CACHE_TIME)
-            : Page::findAll();
+        $pageRoutes = is_performance()
+            ? cache()->callback(self::PAGES_CACHE_KEY, static function () {
+                $pages = Page::findAll();
 
-        $this->registerPageRoutes($pages);
+                return array_map(static fn ($page) => [
+                    'id' => $page->id,
+                    'route' => $page->route,
+                    'permissions' => array_map(static fn ($p) => $p->permission?->name, $page->permissions->toArray()),
+                ], $pages);
+            }, self::PAGES_CACHE_TIME)
+            : null;
+
+        if ($pageRoutes !== null) {
+            $this->registerPageRoutesFromCache($pageRoutes);
+        } else {
+            $this->registerPageRoutes(Page::findAll());
+        }
+    }
+
+    /**
+     * Registers routes from cached page data.
+     */
+    protected function registerPageRoutesFromCache(array $pageRoutes): void
+    {
+        foreach ($pageRoutes as $pageData) {
+            $this->router->get($pageData['route'], [PageController::class, 'index'])
+                ->middleware('page.permissions:' . implode(',', array_filter($pageData['permissions'])));
+        }
     }
 
     /**

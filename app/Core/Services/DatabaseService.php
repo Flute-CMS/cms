@@ -138,17 +138,13 @@ class DatabaseService
     private function fetchModes(string|array $criteria): array
     {
         $mods = is_array($criteria) ? $criteria : [$criteria];
-        sort($mods);
-        $cacheKey = 'flute.database.modes.' . md5(json_encode($mods));
 
-        return cache()->callback($cacheKey, static function () use ($mods) {
-            $query = DatabaseConnection::query()->with('server');
-            if ($mods) {
-                $query->where('mod', 'IN', new Parameter($mods));
-            }
+        $query = DatabaseConnection::query()->with('server');
+        if ($mods) {
+            $query->where('mod', 'IN', new Parameter($mods));
+        }
 
-            return $query->fetchAll();
-        }, 3600);
+        return $query->fetchAll();
     }
 
     /**
