@@ -18,10 +18,10 @@ abstract class BaseController
     /**
      * Return error for API or View
      *
-     * @param string|array $message Error message
+     * @param string|array<string, mixed> $message Error message
      * @param int $status HTTP Status code
      */
-    public function error($message, int $status = 403): Response
+    public function error(string|array $message, int $status = 403): Response
     {
         /** @var FluteRequest $request */
         $request = app(FluteRequest::class);

@@ -15,6 +15,7 @@ use Cycle\ORM\ORM;
 use Cycle\ORM\ORMInterface;
 use Cycle\Schema;
 use Cycle\Schema\Compiler;
+use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 use Spiral\Tokenizer\ClassLocator;
@@ -189,6 +190,10 @@ class DatabaseConnection
         $lockFile = BASE_PATH . 'storage/app/cache/orm_schema.lock';
         $lockHandle = fopen($lockFile, 'w+');
 
+        if (!$lockHandle) {
+            throw new \Exception("Failed to open lock file: {$lockFile}");
+        }
+
         // Try non-blocking lock first
         $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
 
@@ -293,7 +298,18 @@ class DatabaseConnection
 
         $registry = new Registry($this->dbal);
 
-        return (new Compiler())->compile($registry, $schemaGenerators);
+        try {
+            return (new Compiler())->compile($registry, $schemaGenerators);
+        } catch (SyncException $e) {
+            logs('database')->warning('Schema sync failed, retrying without SyncTables: ' . $e->getMessage());
+
+            $fallbackGenerators = array_filter(
+                $schemaGenerators,
+                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
+            );
+
+            return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
+        }
     }
 
     /**

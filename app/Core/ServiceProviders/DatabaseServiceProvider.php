@@ -2,6 +2,8 @@
 
 namespace Flute\Core\ServiceProviders;
 
+use Cycle\ORM\ORM;
+use Cycle\ORM\ORMInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\DatabaseManager;
 use Flute\Core\Support\AbstractServiceProvider;
@@ -19,6 +21,9 @@ class DatabaseServiceProvider extends AbstractServiceProvider
 
                 return new DatabaseConnection($manager);
             }),
+
+            ORM::class => \DI\factory(static fn (\DI\Container $c) => $c->get(DatabaseConnection::class)->getOrm()),
+            ORMInterface::class => \DI\get(ORM::class),
 
             "db.connection" => \DI\get(DatabaseConnection::class),
         ]);

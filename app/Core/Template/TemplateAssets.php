@@ -785,7 +785,9 @@ class TemplateAssets
 
             if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
                 try {
-                    if (!file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath)) {
+                    $shouldCompile = is_development() || !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath);
+
+                    if ($shouldCompile) {
                         $scssContents = $this->gatherScssContents($scssPath);
                         $css = $this->compileScss($scssContents);
 
