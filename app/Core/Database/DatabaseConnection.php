@@ -17,6 +17,7 @@ use Cycle\Schema;
 use Cycle\Schema\Compiler;
 use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
+use Exception;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 use Spiral\Tokenizer\ClassLocator;
 use Spiral\Tokenizer\Config\TokenizerConfig;
@@ -191,7 +192,7 @@ class DatabaseConnection
         $lockHandle = fopen($lockFile, 'w+');
 
         if (!$lockHandle) {
-            throw new \Exception("Failed to open lock file: {$lockFile}");
+            throw new Exception("Failed to open lock file: {$lockFile}");
         }
 
         // Try non-blocking lock first
