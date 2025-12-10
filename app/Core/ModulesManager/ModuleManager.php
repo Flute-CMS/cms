@@ -98,41 +98,6 @@ class ModuleManager
     }
 
     /**
-     * Register PSR-4 autoloading for all modules.
-     */
-    protected function registerModulesAutoload(): void
-    {
-        $loader = app()->getLoader();
-
-        $loader->addPsr4('Flute\\Modules\\', $this->modulesPath . DIRECTORY_SEPARATOR);
-
-        if (!is_dir($this->modulesPath)) {
-            return;
-        }
-
-        $moduleDirs = @scandir($this->modulesPath);
-
-        if ($moduleDirs === false) {
-            return;
-        }
-
-        foreach ($moduleDirs as $dir) {
-            if ($dir === '.' || $dir === '..' || $dir === '.disabled') {
-                continue;
-            }
-
-            $modulePath = $this->modulesPath . DIRECTORY_SEPARATOR . $dir;
-
-            if (!is_dir($modulePath)) {
-                continue;
-            }
-
-            $namespace = 'Flute\\Modules\\' . $dir . '\\';
-            $loader->addPsr4($namespace, $modulePath . DIRECTORY_SEPARATOR);
-        }
-    }
-
-    /**
      * Get the module dependencies.
      */
     public function getModuleDependencies(): ModuleDependencies
@@ -260,6 +225,41 @@ class ModuleManager
         $this->initialize();
 
         ModuleRegister::registerServiceProviders($this->serviceProviders);
+    }
+
+    /**
+     * Register PSR-4 autoloading for all modules.
+     */
+    protected function registerModulesAutoload(): void
+    {
+        $loader = app()->getLoader();
+
+        $loader->addPsr4('Flute\\Modules\\', $this->modulesPath . DIRECTORY_SEPARATOR);
+
+        if (!is_dir($this->modulesPath)) {
+            return;
+        }
+
+        $moduleDirs = @scandir($this->modulesPath);
+
+        if ($moduleDirs === false) {
+            return;
+        }
+
+        foreach ($moduleDirs as $dir) {
+            if ($dir === '.' || $dir === '..' || $dir === '.disabled') {
+                continue;
+            }
+
+            $modulePath = $this->modulesPath . DIRECTORY_SEPARATOR . $dir;
+
+            if (!is_dir($modulePath)) {
+                continue;
+            }
+
+            $namespace = 'Flute\\Modules\\' . $dir . '\\';
+            $loader->addPsr4($namespace, $modulePath . DIRECTORY_SEPARATOR);
+        }
     }
 
     protected function checkModulesDependencies(): void
