@@ -20,11 +20,16 @@ class HeadersListener
             $response->headers->set('Strict-Transport-Security', 'max-age=86400; includeSubDomains');
         }
 
-        $state = user()->isLoggedIn()
-            ? '1:' . (user()->id ?? '0')
-            : '0:guest';
-        $secret = (string) (config('app.key') ?? 'flute');
-        $authToken = hash_hmac('sha256', $state . '|' . session()->getId(), $secret);
+        if (!session()->has('auth_token')) {
+            $state = user()->isLoggedIn()
+                ? '1:' . (user()->id ?? '0')
+                : '0:guest';
+            $secret = (string) (config('app.key') ?? 'flute');
+            $seed = bin2hex(random_bytes(8));
+            $token = hash_hmac('sha256', $state . '|' . session()->getId() . '|' . $seed, $secret);
+            session()->set('auth_token', $token);
+        }
+        $authToken = session()->get('auth_token');
 
         $response->headers->set('Is-Logged-In', user()->isLoggedIn() ? 'true' : 'false');
         $response->headers->set('Auth-Token', $authToken);
