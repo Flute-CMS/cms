@@ -5,6 +5,7 @@ namespace Flute\Core\Services;
 use Exception;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Throwable;
 
 class FileSystemService extends Filesystem
 {
@@ -87,7 +88,7 @@ class FileSystemService extends Filesystem
 
         try {
             require_once $cacheFile;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             @unlink($cacheFile);
 
             return false;
@@ -100,6 +101,7 @@ class FileSystemService extends Filesystem
         foreach ($required as $function) {
             if (!function_exists($function)) {
                 $isHealthy = false;
+
                 break;
             }
         }
