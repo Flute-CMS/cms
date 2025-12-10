@@ -171,37 +171,6 @@ class RedirectResponse extends BaseRedirectResponse
     }
 
     /**
-     * Keep back redirects constrained to the current host.
-     */
-    protected function sanitizeBackUrl(?string $referer): string
-    {
-        $fallback = config('app.url') ?: '/';
-
-        if (!$referer) {
-            return $fallback;
-        }
-
-        if (str_starts_with($referer, '/')) {
-            return $referer;
-        }
-
-        $parsed = parse_url($referer);
-
-        if (!$parsed || empty($parsed['host'])) {
-            return $fallback;
-        }
-
-        $currentHost = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_HOST);
-        $currentPort = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_PORT);
-        $refererPort = $parsed['port'] ?? null;
-
-        $hostMatches = $currentHost && strcasecmp($parsed['host'], $currentHost) === 0;
-        $portMatches = !$refererPort || !$currentPort || (string) $refererPort === (string) $currentPort;
-
-        return $hostMatches && $portMatches ? $referer : $fallback;
-    }
-
-    /**
      * Get the request instance.
      */
     public function getRequest(): ?FluteRequest
@@ -249,6 +218,37 @@ class RedirectResponse extends BaseRedirectResponse
         $this->setTargetUrl($url)->setStatusCode($status)->headers->add($headers);
 
         return $this;
+    }
+
+    /**
+     * Keep back redirects constrained to the current host.
+     */
+    protected function sanitizeBackUrl(?string $referer): string
+    {
+        $fallback = config('app.url') ?: '/';
+
+        if (!$referer) {
+            return $fallback;
+        }
+
+        if (str_starts_with($referer, '/')) {
+            return $referer;
+        }
+
+        $parsed = parse_url($referer);
+
+        if (!$parsed || empty($parsed['host'])) {
+            return $fallback;
+        }
+
+        $currentHost = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_HOST);
+        $currentPort = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_PORT);
+        $refererPort = $parsed['port'] ?? null;
+
+        $hostMatches = $currentHost && strcasecmp($parsed['host'], $currentHost) === 0;
+        $portMatches = !$refererPort || !$currentPort || (string) $refererPort === (string) $currentPort;
+
+        return $hostMatches && $portMatches ? $referer : $fallback;
     }
 
     /**

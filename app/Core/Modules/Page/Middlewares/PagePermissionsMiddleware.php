@@ -30,4 +30,3 @@ class PagePermissionsMiddleware extends BaseMiddleware
         return $this->error()->forbidden(__('def.access_denied'));
     }
 }
-

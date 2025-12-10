@@ -15,6 +15,7 @@ use Flute\Core\Events\RoutingStartedEvent;
 use Flute\Core\Exceptions\ForcedRedirectException;
 use Flute\Core\Modules\Auth\Middlewares\IsAuthenticatedMiddleware;
 use Flute\Core\Modules\Auth\Middlewares\IsGuestMiddleware;
+use Flute\Core\Modules\Page\Middlewares\PagePermissionsMiddleware;
 use Flute\Core\Router\Contracts\MiddlewareInterface;
 use Flute\Core\Router\Contracts\RouteInterface;
 use Flute\Core\Router\Contracts\RouterInterface;
@@ -25,7 +26,6 @@ use Flute\Core\Router\Middlewares\HtmxMiddleware;
 use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Router\Middlewares\RateLimiterMiddleware;
 use Flute\Core\Router\Middlewares\TokenMiddleware;
-use Flute\Core\Modules\Page\Middlewares\PagePermissionsMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
 use Flute\Core\Traits\MacroableTrait;
@@ -453,7 +453,7 @@ class Router implements RouterInterface
             if (is_debug()) {
                 throw $exception;
             }
-            
+
             $response = response()->error(500, __('def.internal_server_error'));
         }
 

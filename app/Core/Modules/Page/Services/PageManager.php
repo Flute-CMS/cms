@@ -490,6 +490,23 @@ class PageManager
     }
 
     /**
+     * Renders content for a specific page.
+     *
+     * @return mixed
+     */
+    public function renderPageContent(Page $page)
+    {
+        $this->currentPage = $page;
+        $this->loadPermissions();
+
+        if (!is_cli()) {
+            template()->addGlobal('page', $this->currentPage);
+        }
+
+        return response()->view('flute::pages.home');
+    }
+
+    /**
      * Loads all pages and registers their routes in the router.
      */
     protected function loadAllPages(): void
@@ -578,23 +595,6 @@ class PageManager
 
             $this->registerSinglePageRoute($page);
         }
-    }
-
-    /**
-     * Renders content for a specific page.
-     *
-     * @return mixed
-     */
-    public function renderPageContent(Page $page)
-    {
-        $this->currentPage = $page;
-        $this->loadPermissions();
-
-        if (!is_cli()) {
-            template()->addGlobal('page', $this->currentPage);
-        }
-
-        return response()->view('flute::pages.home');
     }
 
     /**
