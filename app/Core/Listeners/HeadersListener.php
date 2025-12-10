@@ -13,14 +13,21 @@ class HeadersListener
         // $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: * blob:; object-src 'none'; worker-src 'self' blob:;");
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
-        $response->headers->set('X-Powered-By', 'Flute CMS');
-        $response->headers->set('X-XSS-Protection', '1; mode=block');
-        $response->headers->set('Strict-Transport-Security', 'max-age=86400; includeSubDomains');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
+        if (request()->isSecure()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=86400; includeSubDomains');
+        }
+
+        $state = user()->isLoggedIn()
+            ? '1:' . (user()->id ?? '0')
+            : '0:guest';
+        $secret = (string) (config('app.key') ?? 'flute');
+        $authToken = hash_hmac('sha256', $state . '|' . session()->getId(), $secret);
+
         $response->headers->set('Is-Logged-In', user()->isLoggedIn() ? 'true' : 'false');
-        $response->headers->set('Auth-Token', md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')));
+        $response->headers->set('Auth-Token', $authToken);
 
         if (request()->getMethod() === 'HEAD') {
             $response->headers->set('Cache-Control', 'no-cache');

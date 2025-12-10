@@ -28,6 +28,8 @@ return [
         'copyright' => 'Flute Copyright',
         'discord_link_roles' => 'Discord Role Linking',
         'minify' => 'Minify CSS & JS',
+        'autoprefix' => 'Autoprefix CSS',
+        'autoprefix_description' => 'Add vendor prefixes during CSS build (can be slow on large styles).',
         'logo' => 'Logo',
         'bg_image' => 'Background Image (Dark Theme)',
         'bg_image_light' => 'Background Image (Light Theme)',

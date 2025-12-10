@@ -4,6 +4,7 @@ namespace Flute\Core\Services;
 
 use Flute\Core\Modules\Translation\Events\LangChangedEvent;
 use Flute\Core\Modules\Translation\Services\TranslationService;
+use Flute\Core\Support\FluteRequest;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -15,11 +16,19 @@ class SessionService implements SessionInterface
 {
     private Session $session;
 
+    private array $cookieOptions = [];
+
+    private ?FluteRequest $request;
+
     /**
      * SessionService constructor.
      */
-    public function __construct(EventDispatcher $eventDispatcher)
+    public function __construct(EventDispatcher $eventDispatcher, ?FluteRequest $request = null)
     {
+        $this->request = $request;
+        $this->cookieOptions = $this->buildCookieOptions();
+        $this->applyCookieConfiguration();
+
         $this->session = new Session();
         $this->setSessionLanguage();
 
@@ -59,6 +68,10 @@ class SessionService implements SessionInterface
      */
     public function start(): bool
     {
+        if (!$this->session->isStarted()) {
+            $this->applyCookieConfiguration();
+        }
+
         return $this->session->start();
     }
 
@@ -237,5 +250,55 @@ class SessionService implements SessionInterface
         }
 
         app()->setLang($lang);
+    }
+
+    /**
+     * Configure cookie and session parameters with secure defaults.
+     */
+    private function applyCookieConfiguration(): void
+    {
+        $options = $this->cookieOptions;
+
+        session_set_cookie_params([
+            'lifetime' => $options['lifetime'],
+            'path' => $options['path'],
+            'domain' => $options['domain'],
+            'secure' => $options['secure'],
+            'httponly' => $options['httponly'],
+            'samesite' => $options['samesite'],
+        ]);
+
+        if (!empty($options['name'])) {
+            session_name($options['name']);
+        }
+    }
+
+    /**
+     * Build cookie options from config and request context.
+     */
+    private function buildCookieOptions(): array
+    {
+        $sessionConfig = (array) config('app.session', []);
+        $appUrl = config('app.url');
+        $appScheme = $appUrl ? parse_url($appUrl, PHP_URL_SCHEME) : null;
+
+        $secureFlag = $sessionConfig['secure'] ?? null;
+        $secure = is_bool($secureFlag)
+            ? $secureFlag
+            : (($this->request?->isSecure() ?? false) || $appScheme === 'https');
+
+        $sameSite = $sessionConfig['same_site'] ?? 'Lax';
+        $allowedSameSite = ['Lax', 'Strict', 'None'];
+        $sameSite = in_array($sameSite, $allowedSameSite, true) ? $sameSite : 'Lax';
+
+        return [
+            'name' => $sessionConfig['name'] ?? 'flute_session',
+            'lifetime' => $sessionConfig['lifetime'] ?? 0,
+            'path' => $sessionConfig['path'] ?? '/',
+            'domain' => $sessionConfig['domain'] ?? null,
+            'secure' => $secure,
+            'httponly' => $sessionConfig['http_only'] ?? true,
+            'samesite' => $sameSite,
+        ];
     }
 }

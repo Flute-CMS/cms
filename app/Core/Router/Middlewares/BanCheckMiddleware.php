@@ -30,10 +30,22 @@ class BanCheckMiddleware extends BaseMiddleware
 
     protected function shouldBlockUser(FluteRequest $request): bool
     {
-        return !user()->can('admin.boss') && (
-            (user()->isLoggedIn() && user()->isBlocked()) ||
-            $this->checkIpBlocks($request->getClientIp())
-        );
+        if (user()->can('admin.boss')) {
+            return false;
+        }
+
+        if (user()->isLoggedIn() && user()->isBlocked()) {
+            return true;
+        }
+
+        $ipAddress = $request->getClientIp();
+        if (!$ipAddress) {
+            return false;
+        }
+
+        $blockInfo = $this->resolveIpBlock($ipAddress);
+
+        return $blockInfo['blocked'];
     }
 
     protected function getBlockReason(FluteRequest $request): string
@@ -44,41 +56,19 @@ class BanCheckMiddleware extends BaseMiddleware
 
         $ipAddress = $request->getClientIp();
         if ($ipAddress) {
-            $blockInfo = $this->getIpBlockInfo($ipAddress);
-            if ($blockInfo) {
-                return $blockInfo['reason'];
+            $blockInfo = $this->resolveIpBlock($ipAddress);
+            if ($blockInfo['blocked']) {
+                return $blockInfo['reason'] ?? __('def.unknown_reason');
             }
         }
 
         return __('def.unknown_reason');
     }
 
-    protected function checkIpBlocks(string $ipAddress): bool
-    {
-        if (!$ipAddress) {
-            return false;
-        }
-
-        $cacheKey = 'flute.ip_blocked.' . md5($ipAddress);
-
-        return cache()->callback($cacheKey, static function () use ($ipAddress) {
-            $users = UserDevice::query()
-                ->where('ip', $ipAddress)
-                ->load('user')
-                ->load('user.blocksReceived')
-                ->fetchAll();
-
-            foreach ($users as $userDevice) {
-                if ($userDevice->user->isBlocked()) {
-                    return true;
-                }
-            }
-
-            return false;
-        }, self::CACHE_TIME);
-    }
-
-    protected function getIpBlockInfo(string $ipAddress): ?array
+    /**
+     * Single cached lookup for IP ban status and reason.
+     */
+    protected function resolveIpBlock(string $ipAddress): array
     {
         $cacheKey = 'flute.ip_block_info.' . md5($ipAddress);
 
@@ -91,11 +81,19 @@ class BanCheckMiddleware extends BaseMiddleware
 
             foreach ($users as $userDevice) {
                 if ($userDevice->user->isBlocked()) {
-                    return $userDevice->user->getBlockInfo();
+                    $info = $userDevice->user->getBlockInfo();
+
+                    return [
+                        'blocked' => true,
+                        'reason' => $info['reason'] ?? null,
+                    ];
                 }
             }
 
-            return null;
+            return [
+                'blocked' => false,
+                'reason' => null,
+            ];
         }, self::CACHE_TIME);
     }
 }

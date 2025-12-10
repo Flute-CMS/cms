@@ -1,6 +1,7 @@
 <?php
 
 return [
-    'minify' => true,
+    'minify' => false,
+    'autoprefix' => false,
     'remote_asset_timeout' => 5,
 ];

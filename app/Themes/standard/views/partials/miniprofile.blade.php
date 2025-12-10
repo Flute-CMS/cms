@@ -59,9 +59,12 @@
         </div>
     </div>
     <div class="right_sidebar__footer w-100">
-        <x-button type="error" class="w-100" href="{{ url('logout') }}" isLink="true">
-            @t('def.logout')
-        </x-button>
+        <form action="{{ url('logout') }}" method="POST" class="w-100" hx-boost="false">
+            @csrf
+            <x-button type="error" class="w-100" submit="true">
+                @t('def.logout')
+            </x-button>
+        </form>
     </div>
     @stack('right-sidebar')
 </div>

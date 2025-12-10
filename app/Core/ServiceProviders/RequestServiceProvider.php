@@ -31,15 +31,41 @@ class RequestServiceProvider extends AbstractServiceProvider
 
     public function boot(Container $container): void
     {
-        if (!is_cli()) {
+        if (is_cli()) {
+            return;
+        }
+
+        $trustedProxies = array_filter((array) config('app.trusted_proxies', []));
+
+        if (!empty($trustedProxies)) {
             FluteRequest::setTrustedProxies(
-                ['REMOTE_ADDR'],
-                Request::HEADER_X_FORWARDED_FOR
+                $trustedProxies,
+                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
             );
             Request::setTrustedProxies(
-                ['REMOTE_ADDR'],
-                Request::HEADER_X_FORWARDED_FOR
+                $trustedProxies,
+                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
             );
+        } else {
+            FluteRequest::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
+            Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
+        }
+
+        $trustedHosts = array_filter((array) config('app.trusted_hosts', []));
+        $appUrl = config('app.url');
+
+        if ($appUrl) {
+            $appHost = parse_url($appUrl, PHP_URL_HOST);
+            if ($appHost) {
+                $trustedHosts[] = '^' . preg_quote($appHost, '#') . '$';
+            }
+        }
+
+        $trustedHosts = array_values(array_unique($trustedHosts));
+
+        if (!empty($trustedHosts)) {
+            FluteRequest::setTrustedHosts($trustedHosts);
+            Request::setTrustedHosts($trustedHosts);
         }
     }
 }

@@ -25,6 +25,7 @@ use Flute\Core\Router\Middlewares\HtmxMiddleware;
 use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Router\Middlewares\RateLimiterMiddleware;
 use Flute\Core\Router\Middlewares\TokenMiddleware;
+use Flute\Core\Modules\Page\Middlewares\PagePermissionsMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
 use Flute\Core\Traits\MacroableTrait;
@@ -79,6 +80,7 @@ class Router implements RouterInterface
         'token' => TokenMiddleware::class,
         'ban.check' => BanCheckMiddleware::class,
         'maintenance' => MaintenanceMiddleware::class,
+        'page.permissions' => PagePermissionsMiddleware::class,
     ];
 
     protected ?RouteInterface $currentRoute = null;
@@ -451,7 +453,7 @@ class Router implements RouterInterface
             if (is_debug()) {
                 throw $exception;
             }
-
+            
             $response = response()->error(500, __('def.internal_server_error'));
         }
 

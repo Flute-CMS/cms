@@ -37,5 +37,5 @@ router()->group(['middleware' => 'guest'], static function (RouterInterface $rou
 });
 
 $router->get('/social/{provider}', [SocialAuthController::class, 'redirectToProvider']);
-$router->get('/logout', [AuthController::class, 'getLogout'])->middleware('auth');
+$router->post('/logout', [AuthController::class, 'getLogout'])->middleware(['auth', 'csrf']);
 $router->get('/confirm/{token}', [AuthController::class, 'getConfirmation']);

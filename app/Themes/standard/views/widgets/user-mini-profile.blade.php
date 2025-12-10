@@ -120,10 +120,13 @@
                     </x-button>
                 @endif
 
-                <x-button href="{{ url('logout') }}" class="user-mini-profile-action" type="outline-error" hx-boost="false">
-                    <x-icon path="ph.regular.sign-out" />
-                    <span>{{ __('def.logout') }}</span>
-                </x-button>
+                <form method="POST" action="{{ url('logout') }}" class="user-mini-profile-action" hx-boost="false">
+                    @csrf
+                    <x-button class="w-100" type="outline-error" submit="true">
+                        <x-icon path="ph.regular.sign-out" />
+                        <span>{{ __('def.logout') }}</span>
+                    </x-button>
+                </form>
             </div>
         </div>
     </div>

@@ -32,11 +32,18 @@ class TemplateAssets
 
     protected bool $minifyAssets;
 
+    protected bool $autoprefixAssets;
+
     protected bool $debugMode;
 
     protected string $appUrl;
 
     protected int $remoteAssetTimeout = 5;
+
+    /**
+     * Safety threshold to skip autoprefixing very large stylesheets (bytes).
+     */
+    protected int $autoprefixMaxBytes = 400000; // ~400 KB; configurable via assets.autoprefix_max_bytes
 
     protected array $additionalScssFiles = [
         'main' => [],
@@ -64,10 +71,15 @@ class TemplateAssets
     public function __construct()
     {
         $this->minifyAssets = config('assets.minify');
+        $this->autoprefixAssets = (bool) config('assets.autoprefix', false);
         $this->debugMode = false;
         $this->appUrl = config('app.url');
         $timeout = (int) (config('assets.remote_asset_timeout') ?? 5);
         $this->remoteAssetTimeout = $timeout > 0 ? $timeout : 5;
+        $limit = (int) (config('assets.autoprefix_max_bytes') ?? 0);
+        if ($limit > 0) {
+            $this->autoprefixMaxBytes = $limit;
+        }
 
         if (is_development()) {
             $this->debugMode = true;
@@ -469,15 +481,26 @@ class TemplateAssets
         }
 
         if ($extension === 'css' && $this->minifyAssets) {
-            // Performance issue with autoprefixer in debug mode
-            if (!is_debug()) {
-                $autoprefixer = new Autoprefixer($content);
+            if ($this->autoprefixAssets) {
+                // Skip autoprefixing if stylesheet is too large to avoid timeouts
+                if ($this->autoprefixMaxBytes > 0 && strlen($content) > $this->autoprefixMaxBytes) {
+                    logs()->warning(sprintf('Autoprefix skipped: CSS size %d bytes exceeds limit %d', strlen($content), $this->autoprefixMaxBytes));
+                } else {
+                    // Performance issue with autoprefixer in debug mode
+                    if (!is_debug()) {
+                        $autoprefixer = new Autoprefixer($content);
 
-                try {
-                    $content = $autoprefixer->compile();
-                } catch (Throwable $e) {
-                    logs()->error("Autoprefixer failed: " . $e->getMessage());
+                        try {
+                            $content = $autoprefixer->compile();
+                        } catch (Throwable $e) {
+                            logs()->error("Autoprefixer failed: " . $e->getMessage());
+                        }
+                    }
                 }
+            }
+
+            if ($content === '') {
+                return '';
             }
 
             $minifier = new Minify\CSS();

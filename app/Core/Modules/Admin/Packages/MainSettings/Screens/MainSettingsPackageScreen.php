@@ -1280,6 +1280,10 @@ class MainSettingsPackageScreen extends Screen
                         Toggle::make('minify')
                             ->checked(config('assets.minify'))
                     )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
+                    LayoutFactory::field(
+                        Toggle::make('autoprefix')
+                            ->checked(config('assets.autoprefix', false))
+                    )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
                 ]),
             ])->addClass('mb-3'),
 

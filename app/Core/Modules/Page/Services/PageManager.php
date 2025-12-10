@@ -36,6 +36,8 @@ class PageManager
 
     protected bool $disabled = false;
 
+    private static bool $pagesLoaded = false;
+
     private array $permissions = [];
 
     private ?Page $currentPage = null;
@@ -492,6 +494,10 @@ class PageManager
      */
     protected function loadAllPages(): void
     {
+        if (self::$pagesLoaded) {
+            return;
+        }
+
         if (is_admin_path()) {
             return;
         }
@@ -500,11 +506,33 @@ class PageManager
             ? cache()->callback(self::PAGES_CACHE_KEY, static function () {
                 $pages = Page::findAll();
 
-                return array_map(static fn ($page) => [
-                    'id' => $page->id,
-                    'route' => $page->route,
-                    'permissions' => array_map(static fn ($p) => $p->permission?->name, $page->permissions->toArray()),
-                ], $pages);
+                return array_map(static function ($page) {
+                    $perms = $page->permissions ?? [];
+
+                    if (is_object($perms) && method_exists($perms, 'toArray')) {
+                        $perms = $perms->toArray();
+                    } elseif (!is_array($perms)) {
+                        $perms = [];
+                    }
+
+                    $permissions = array_map(static function ($p) {
+                        if (is_object($p)) {
+                            return $p->permission?->name ?? $p->name ?? null;
+                        }
+
+                        if (is_array($p)) {
+                            return $p['permission']['name'] ?? $p['name'] ?? null;
+                        }
+
+                        return null;
+                    }, $perms);
+
+                    return [
+                        'id' => $page->id,
+                        'route' => $page->route,
+                        'permissions' => array_filter($permissions),
+                    ];
+                }, $pages);
             }, self::PAGES_CACHE_TIME)
             : null;
 
@@ -513,6 +541,8 @@ class PageManager
         } else {
             $this->registerPageRoutes(Page::findAll());
         }
+
+        self::$pagesLoaded = true;
     }
 
     /**
@@ -521,8 +551,16 @@ class PageManager
     protected function registerPageRoutesFromCache(array $pageRoutes): void
     {
         foreach ($pageRoutes as $pageData) {
-            $this->router->get($pageData['route'], [PageController::class, 'index'])
-                ->middleware('page.permissions:' . implode(',', array_filter($pageData['permissions'])));
+            $route = $pageData['route'];
+            $permissions = array_filter($pageData['permissions']);
+
+            if ($this->router->hasRoute($route, 'GET')) {
+                continue;
+            }
+
+            $this->router
+                ->get($route, [PageController::class, 'index'])
+                ->middleware('page.permissions:' . implode(',', $permissions));
         }
     }
 
@@ -547,7 +585,7 @@ class PageManager
      *
      * @return mixed
      */
-    protected function renderPageContent(Page $page)
+    public function renderPageContent(Page $page)
     {
         $this->currentPage = $page;
         $this->loadPermissions();
@@ -614,13 +652,11 @@ class PageManager
             return;
         }
 
-        foreach ($page->getPermissions() as $permission) {
-            if (!user()->can($permission)) {
-                return;
-            }
-        }
+        $permissions = array_filter($page->getPermissions() ?? []);
 
-        $this->router->get($page->route, fn () => $this->renderPageContent($page));
+        $this->router
+            ->get($page->route, [PageController::class, 'index'])
+            ->middleware('page.permissions:' . implode(',', $permissions));
     }
 
     /**

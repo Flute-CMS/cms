@@ -3,7 +3,7 @@
     yoyo:ignore="yoyo:ignore" hx-params="not yoyo-id" target="_self" hx-include="none">
     <div class="avatar me-2">
         <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}"
-            class="rounded-circle" width="40" height="40">
+            class="rounded-circle" width="40" height="40" style="object-fit: cover; width: 40px; height: 40px;">
     </div>
     <div class="d-flex flex-column gap-1">
         <span>
