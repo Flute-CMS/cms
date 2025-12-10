@@ -354,14 +354,14 @@ class ModuleManager
             }
         }
 
-        usort($providers, static fn($a, $b) => $a['order'] <=> $b['order']);
+        usort($providers, static fn ($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
     }
 
     protected function loadModulesJson(): void
     {
-        $this->modulesJson = cache()->callback('flute.modules.json', fn() => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
+        $this->modulesJson = cache()->callback('flute.modules.json', fn () => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
     }
 
     protected function loadModulesFromDatabase(): void
@@ -369,7 +369,7 @@ class ModuleManager
         $this->modulesDatabase = cache()->callback('flute.modules.alldb', static function () {
             $modules = Module::findAll();
 
-            return array_map(static fn($m) => [
+            return array_map(static fn ($m) => [
                 'key' => $m->key,
                 'createdAt' => $m->createdAt,
                 'status' => $m->status,
@@ -476,6 +476,6 @@ class ModuleManager
 
     protected function filterModules(string $status, bool $notEqual = false): Collection
     {
-        return $this->modules->filter(static fn(ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
+        return $this->modules->filter(static fn (ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
     }
 }
