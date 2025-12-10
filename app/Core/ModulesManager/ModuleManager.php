@@ -354,14 +354,14 @@ class ModuleManager
             }
         }
 
-        usort($providers, static fn ($a, $b) => $a['order'] <=> $b['order']);
+        usort($providers, static fn($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
     }
 
     protected function loadModulesJson(): void
     {
-        $this->modulesJson = cache()->callback('flute.modules.json', fn () => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
+        $this->modulesJson = cache()->callback('flute.modules.json', fn() => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
     }
 
     protected function loadModulesFromDatabase(): void
@@ -369,7 +369,7 @@ class ModuleManager
         $this->modulesDatabase = cache()->callback('flute.modules.alldb', static function () {
             $modules = Module::findAll();
 
-            return array_map(static fn ($m) => [
+            return array_map(static fn($m) => [
                 'key' => $m->key,
                 'createdAt' => $m->createdAt,
                 'status' => $m->status,
@@ -402,6 +402,18 @@ class ModuleManager
 
     protected function createModuleInDatabase(ModuleInformation $moduleInformation): void
     {
+        $existing = Module::findOne(['key' => $moduleInformation->key]);
+        if ($existing) {
+            $this->modulesDatabase[] = [
+                'key' => $existing->key,
+                'createdAt' => $existing->createdAt,
+                'status' => $existing->status,
+                'installedVersion' => $existing->installedVersion,
+            ];
+
+            return;
+        }
+
         $module = new Module();
         $module->key = $moduleInformation->key;
         $module->name = $moduleInformation->name;
@@ -412,8 +424,29 @@ class ModuleManager
             transaction($module)->run();
             logs('modules')->info("Module {$module->key} was initialized in database");
 
-            $this->modulesDatabase[] = $module;
+            $this->modulesDatabase[] = [
+                'key' => $module->key,
+                'createdAt' => $module->createdAt,
+                'status' => $module->status,
+                'installedVersion' => $module->installedVersion,
+            ];
         } catch (Exception $e) {
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                logs('modules')->warning("Module {$moduleInformation->key} already exists in database, skipping create");
+
+                $existing = Module::findOne(['key' => $moduleInformation->key]);
+                if ($existing) {
+                    $this->modulesDatabase[] = [
+                        'key' => $existing->key,
+                        'createdAt' => $existing->createdAt,
+                        'status' => $existing->status,
+                        'installedVersion' => $existing->installedVersion,
+                    ];
+                }
+
+                return;
+            }
+
             logs('modules')->error("Ошибка при создании модуля в базе данных: " . $e->getMessage());
         }
     }
@@ -443,6 +476,6 @@ class ModuleManager
 
     protected function filterModules(string $status, bool $notEqual = false): Collection
     {
-        return $this->modules->filter(static fn (ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
+        return $this->modules->filter(static fn(ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
     }
 }
