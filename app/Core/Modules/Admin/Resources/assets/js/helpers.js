@@ -38,6 +38,7 @@ function initializeFilePondElement(element) {
     if (element.classList.contains('filepond') && !element.filepond) {
         const defaultFile = element.dataset.defaultFile || null;
         const wrapper = element.closest('.input-wrapper');
+        const fieldName = element.name;
 
         let filePondOptions = {
             storeAsFile: true,
@@ -52,6 +53,26 @@ function initializeFilePondElement(element) {
                 const errorElement = wrapper.querySelector('.has-error');
                 if (errorElement) {
                     errorElement.style.display = 'block';
+                }
+            },
+            onremovefile: (error, file) => {
+                if (!error && fieldName) {
+                    let clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
+                    if (!clearInput) {
+                        clearInput = document.createElement('input');
+                        clearInput.type = 'hidden';
+                        clearInput.name = `${fieldName}_clear`;
+                        wrapper.appendChild(clearInput);
+                    }
+                    clearInput.value = '1';
+                }
+            },
+            onaddfile: (error, file) => {
+                if (!error && fieldName) {
+                    const clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
+                    if (clearInput) {
+                        clearInput.value = '';
+                    }
                 }
             }
         };

@@ -172,19 +172,31 @@ class MainSettingsPackageScreen extends Screen
         }
 
         if (!isset($this->logo)) {
-            config()->set('app.logo', 'assets/img/logo.svg');
+            $logoClear = request()->input('logo_clear');
+            if ($logoClear === '1') {
+                config()->set('app.logo', 'assets/img/logo.svg');
+            }
         }
 
         if (!isset($this->logo_light)) {
-            config()->set('app.logo_light', 'assets/img/logo-light.svg');
+            $logoLightClear = request()->input('logo_light_clear');
+            if ($logoLightClear === '1') {
+                config()->set('app.logo_light', 'assets/img/logo-light.svg');
+            }
         }
 
         if (!isset($this->bg_image)) {
-            config()->set('app.bg_image', '');
+            $bgImageClear = request()->input('bg_image_clear');
+            if ($bgImageClear === '1') {
+                config()->set('app.bg_image', '');
+            }
         }
 
         if (!isset($this->bg_image_light)) {
-            config()->set('app.bg_image_light', '');
+            $bgImageLightClear = request()->input('bg_image_light_clear');
+            if ($bgImageLightClear === '1') {
+                config()->set('app.bg_image_light', '');
+            }
         }
 
         try {
@@ -724,10 +736,13 @@ class MainSettingsPackageScreen extends Screen
 
     /**
      * Replace a target file in public path with the uploaded file, using a fixed filename.
+     * Also handles file deletion when the clear flag is set.
      */
     protected function processFixedFileReplace(string $field, string $absoluteTargetPath): ?string
     {
         $file = $this->$field;
+        $clearFlag = request()->input($field . '_clear');
+
         if ($file instanceof UploadedFile && $file->isValid()) {
             try {
                 $dir = dirname($absoluteTargetPath);
@@ -743,6 +758,14 @@ class MainSettingsPackageScreen extends Screen
                 $file->move($dir, basename($absoluteTargetPath));
 
                 return null;
+            } catch (Exception $e) {
+                return $e->getMessage();
+            }
+        }
+
+        if ($clearFlag === '1' && file_exists($absoluteTargetPath)) {
+            try {
+                fs()->remove($absoluteTargetPath);
             } catch (Exception $e) {
                 return $e->getMessage();
             }
