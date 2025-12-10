@@ -162,7 +162,7 @@ class ModulesController extends BaseController
 
             return response()->json([
                 'success' => true,
-                'message' => __('admin-modules.messages.installed', ['name' => $moduleName]),
+                'message' => __('admin-modules.messages.installed', ['name' => __($moduleName)]),
             ]);
 
         } catch (Exception $e) {

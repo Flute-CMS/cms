@@ -15,12 +15,12 @@ class FileSystemService extends Filesystem
     {
         $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.php';
 
-        if ($this->isCacheValid($cacheFile)) {
-            require_once $cacheFile;
-        } else {
-            $helpersPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Helpers';
-            $this->generateHelpersCache($helpersPath, $cacheFile);
+        if ($this->tryLoadCache($cacheFile)) {
+            return;
         }
+
+        $helpersPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Helpers';
+        $this->generateHelpersCache($helpersPath, $cacheFile);
     }
 
     /**
@@ -56,6 +56,8 @@ class FileSystemService extends Filesystem
         $cacheContent = "<?php\n\n";
         $useStatements = [];
 
+        $this->mkdir(dirname($cacheFile));
+
         foreach ($finder as $file) {
             $fileContent = file_get_contents($file->getRealPath());
             $useStatements = array_merge($useStatements, $this->extractUseStatements($fileContent));
@@ -68,10 +70,47 @@ class FileSystemService extends Filesystem
         }
 
         $uniqueUseStatements = array_unique($useStatements);
-        $cacheContent = "<?php " . implode("", $uniqueUseStatements) . "" . str_replace('<?php', '', $cacheContent);
+        $cacheContent = "<?php if(!defined('FLUTE_HELPERS_OK')){define('FLUTE_HELPERS_OK','1');}" . implode("", $uniqueUseStatements) . "" . str_replace('<?php', '', $cacheContent);
 
         $this->dumpFile($cacheFile, $cacheContent);
         require_once $cacheFile;
+    }
+
+    /**
+     * Attempt to load helpers cache; rebuild trigger if it looks broken.
+     */
+    private function tryLoadCache(string $cacheFile): bool
+    {
+        if (!$this->isCacheValid($cacheFile)) {
+            return false;
+        }
+
+        try {
+            require_once $cacheFile;
+        } catch (\Throwable $e) {
+            @unlink($cacheFile);
+
+            return false;
+        }
+
+        $required = ['is_cli', 'app', 'config'];
+
+        $isHealthy = defined('FLUTE_HELPERS_OK');
+
+        foreach ($required as $function) {
+            if (!function_exists($function)) {
+                $isHealthy = false;
+                break;
+            }
+        }
+
+        if ($isHealthy) {
+            return true;
+        }
+
+        @unlink($cacheFile);
+
+        return false;
     }
 
     private function minifyWhitespace(string $content): string
