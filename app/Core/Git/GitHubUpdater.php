@@ -29,14 +29,19 @@ class GitHubUpdater
 
         if ($downloadDir) {
             $this->downloadDir = rtrim($downloadDir, '/') . '/';
+        } else {
+            $this->downloadDir = storage_path('app/temp/github/');
         }
 
-        // Initialize Guzzle HTTP Client
+        if (!is_dir($this->downloadDir)) {
+            @mkdir($this->downloadDir, 0o755, true);
+        }
+
         $this->httpClient = new Client([
             'base_uri' => 'https://api.github.com/',
-            'timeout' => 60.0,
+            'timeout' => 120.0,
             'headers' => [
-                'User-Agent' => 'PHP',
+                'User-Agent' => 'Flute-CMS',
             ],
         ]);
     }
@@ -99,7 +104,15 @@ class GitHubUpdater
 
     protected function downloadFile($url, $path)
     {
-        set_time_limit(0);
+        @set_time_limit(0);
+        if (function_exists('ini_set')) {
+            @ini_set('memory_limit', '-1');
+        }
+
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0o755, true);
+        }
 
         try {
             $response = $this->httpClient->get($url, ['sink' => $path]);

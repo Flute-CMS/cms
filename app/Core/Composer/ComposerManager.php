@@ -247,22 +247,48 @@ class ComposerManager
      */
     private function bootstrapEnv(): void
     {
+        static $initialized = false;
+        if ($initialized) {
+            return;
+        }
+        $initialized = true;
+
         $base = rtrim(BASE_PATH, " \t\n\r\0\x0B");
         $real = realpath($base);
         $base = $real !== false ? $real : $base;
 
         @chdir($base);
 
-        $composerHome = $base . '/.composer';
-        if (!is_dir($composerHome)) {
-            @mkdir($composerHome, 0o775, true);
+        @set_time_limit(0);
+        if (function_exists('ini_set')) {
+            @ini_set('memory_limit', '-1');
         }
-        putenv('COMPOSER_HOME=' . $composerHome);
 
+        $composerDir = storage_path('composer');
+        $composerHome = $composerDir . '/home';
+        $composerCache = $composerDir . '/cache';
+        $tempDir = $composerDir . '/tmp';
+
+        foreach ([$composerHome, $composerCache, $tempDir] as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0o775, true);
+            }
+        }
+
+        putenv('COMPOSER_HOME=' . $composerHome);
+        putenv('COMPOSER_CACHE_DIR=' . $composerCache);
+        putenv('COMPOSER_TMP_DIR=' . $tempDir);
+        putenv('TMPDIR=' . $tempDir);
         putenv('HOME=' . $base);
+
+        if (function_exists('ini_set') && is_writable($tempDir)) {
+            @ini_set('sys_temp_dir', $tempDir);
+        }
 
         putenv('COMPOSER_DISABLE_XDEBUG_WARN=1');
         putenv('COMPOSER_MEMORY_LIMIT=-1');
         putenv('COMPOSER_ALLOW_SUPERUSER=1');
+        putenv('COMPOSER_NO_INTERACTION=1');
+        putenv('COMPOSER_PROCESS_TIMEOUT=600');
     }
 }

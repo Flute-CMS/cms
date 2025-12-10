@@ -166,6 +166,9 @@ class UpdateService
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
+        if (function_exists('ini_set')) {
+            @ini_set('memory_limit', '-1');
+        }
 
         try {
             $updates = $this->getAvailableUpdates();

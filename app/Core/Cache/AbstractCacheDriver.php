@@ -251,7 +251,7 @@ abstract class AbstractCacheDriver implements CacheInterface
     protected function getKeysFromFilesystem(string $pattern): array
     {
         $keys = [];
-        $cacheDir = $this->config['directory'] ?? sys_get_temp_dir() . '/symfony-cache';
+        $cacheDir = $this->config['directory'] ?? storage_path('cache/symfony');
 
         if (!is_dir($cacheDir)) {
             return [];
