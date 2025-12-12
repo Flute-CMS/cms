@@ -4,6 +4,16 @@
             {{ __('admin-marketplace.labels.no_modules_found') }}
         </x-admin::alert>
     @else
+        @if (!ioncube_loaded())
+            <x-admin::alert type="warning" withClose="false">
+                <strong>{{ __('admin-marketplace.ioncube.missing_title') }}</strong>
+                <div class="mt-1">{{ __('admin-marketplace.ioncube.missing_desc') }}</div>
+                <div class="mt-1 text-sm">
+                    <a href="https://www.ioncube.com/loaders.php" target="_blank" rel="noreferrer">https://www.ioncube.com/loaders.php</a>
+                </div>
+            </x-admin::alert>
+        @endif
+
         @if ($isLoading)
             <div class="loading">Loading...</div>
         @endif

@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader is not installed',
+        'missing_desc' => 'Some marketplace modules may be encoded and will require ionCube Loader. Please install/enable it on the server.',
+    ],
     'labels' => [
         'marketplace' => 'Marketplace',
         'modules' => 'Modules',

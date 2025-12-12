@@ -333,6 +333,34 @@ if (! function_exists('is_cli')) {
     }
 }
 
+if (! function_exists('ioncube_loaded')) {
+    function ioncube_loaded(): bool
+    {
+        if (defined('FLUTE_IONCUBE_AVAILABLE')) {
+            return (bool) FLUTE_IONCUBE_AVAILABLE;
+        }
+
+        return extension_loaded('ionCube Loader');
+    }
+}
+
+if (! function_exists('ioncube_version')) {
+    function ioncube_version(): ?string
+    {
+        if (!ioncube_loaded()) {
+            return null;
+        }
+
+        if (function_exists('ioncube_loader_version')) {
+            $v = ioncube_loader_version();
+
+            return is_string($v) ? $v : null;
+        }
+
+        return null;
+    }
+}
+
 if (PHP_VERSION_ID < 80400 && ! function_exists('mb_ucfirst')) {
     function mb_ucfirst(string $str, ?string $encoding = null): string
     {

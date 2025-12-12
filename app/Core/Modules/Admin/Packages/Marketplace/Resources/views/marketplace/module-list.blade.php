@@ -82,6 +82,16 @@
         </div>
     </form>
 
+    @if (!ioncube_loaded())
+        <x-admin::alert type="warning" withClose="false">
+            <strong>{{ __('admin-marketplace.ioncube.missing_title') }}</strong>
+            <div class="mt-1">{{ __('admin-marketplace.ioncube.missing_desc') }}</div>
+            <div class="mt-1 text-sm">
+                <a href="https://www.ioncube.com/loaders.php" target="_blank" rel="noreferrer">https://www.ioncube.com/loaders.php</a>
+            </div>
+        </x-admin::alert>
+    @endif
+
     @if (empty(config('app.flute_key')))
         <x-admin::alert type="danger" withClose="false">
             {{ __('admin-marketplace.messages.flute_key_not_set') }}

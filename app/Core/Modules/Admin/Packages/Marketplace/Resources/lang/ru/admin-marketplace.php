@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader не установлен',
+        'missing_desc' => 'Некоторые модули в маркетплейсе могут быть зашифрованы и потребуют ionCube Loader. Установите/включите его на сервере.',
+    ],
     'labels' => [
         'marketplace' => 'Маркетплейс',
         'modules' => 'Модули',
