@@ -63,6 +63,12 @@
                             <ul class="navbar__actions login" aria-label="Authentication actions">
                                 <x-header.language-selector />
 
+                                @stack('navbar-actions-guest')
+
+                                @if (isset($sections['navbar-actions-guest']))
+                                    {!! $sections['navbar-actions-guest'] !!}
+                                @endif
+
                                 @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
                                     @if (config('auth.only_modal'))
                                         <li>
