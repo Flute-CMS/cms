@@ -22,10 +22,11 @@ class DashboardScreen extends Screen
 
     public $vars;
 
-    protected $dashboardService;
-
     public ?array $ioncubeDownload = null;
+
     public ?string $ioncubeDownloadError = null;
+
+    protected $dashboardService;
 
     /**
      * Mount the screen

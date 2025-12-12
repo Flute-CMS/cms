@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Flute\Core\Services;
 
+use PharData;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
+use Throwable;
+use ZipArchive;
 
 class IoncubeService
 {
@@ -126,6 +129,7 @@ class IoncubeService
             $ch = curl_init($url);
             if ($ch === false) {
                 fclose($fp);
+
                 throw new RuntimeException('Cannot init curl.');
             }
 
@@ -143,6 +147,7 @@ class IoncubeService
 
             if ($ok !== true || $code >= 400) {
                 @unlink($destPath);
+
                 throw new RuntimeException('Failed to download ionCube loaders. HTTP: ' . $code . ($err ? (', error: ' . $err) : ''));
             }
 
@@ -167,8 +172,8 @@ class IoncubeService
         $fs = new Filesystem();
         $fs->mkdir($outDir);
 
-        if (str_ends_with($lower, '.zip') && class_exists(\ZipArchive::class)) {
-            $zip = new \ZipArchive();
+        if (str_ends_with($lower, '.zip') && class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive();
             if ($zip->open($archivePath) === true) {
                 $zip->extractTo($outDir);
                 $zip->close();
@@ -178,7 +183,7 @@ class IoncubeService
         }
 
         if (str_ends_with($lower, '.tar.gz') || str_ends_with($lower, '.tgz')) {
-            if (class_exists(\PharData::class)) {
+            if (class_exists(PharData::class)) {
                 try {
                     // Decompress to .tar first
                     $tarPath = preg_replace('/\.(tar\.gz|tgz)$/i', '.tar', $archivePath);
@@ -187,15 +192,15 @@ class IoncubeService
                     }
 
                     if (!file_exists($tarPath)) {
-                        $pharGz = new \PharData($archivePath);
+                        $pharGz = new PharData($archivePath);
                         $pharGz->decompress();
                     }
 
-                    $phar = new \PharData($tarPath);
+                    $phar = new PharData($tarPath);
                     $phar->extractTo($outDir, null, true);
 
                     return $outDir;
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     return null;
                 }
             }
@@ -204,5 +209,3 @@ class IoncubeService
         return null;
     }
 }
-
-
