@@ -334,6 +334,7 @@ final class App
         GlobalProfiler::start();
 
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
+
         if (!defined("FLUTE_DB_SETUP_END")) {
             define("FLUTE_DB_SETUP_END", microtime(true));
         }
@@ -344,11 +345,13 @@ final class App
         // Split routing and event phases to measure them separately
         $request = $this->get(FluteRequest::class);
         $dispatchResult = $router->dispatch($request);
+
         if (!defined("FLUTE_DISPATCH_END")) {
             define("FLUTE_DISPATCH_END", microtime(true));
         }
 
         $res = $this->responseEvent($dispatchResult);
+
         if (!defined("FLUTE_EVENTS_END")) {
             define("FLUTE_EVENTS_END", microtime(true));
         }
@@ -358,6 +361,7 @@ final class App
         }
 
         $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
+
         if (!defined("FLUTE_DEFERRED_SAVE_END")) {
             define("FLUTE_DEFERRED_SAVE_END", microtime(true));
         }

@@ -2,9 +2,8 @@
     position: relative;
 
     .tabs-nav {
-        @extend .flex-row;
-
-        flex-wrap: wrap;
+        display: flex;
+        flex-wrap: nowrap;
         z-index: 10;
         width: 100%;
         list-style: none;
@@ -13,42 +12,88 @@
         scrollbar-width: none;
         overflow-x: auto;
         overflow-y: visible;
-        border-bottom: 1px solid var(--transp-1);
+        gap: 0;
+        position: relative;
+
+        &.tabs-nav--sticky {
+            background: color-mix(in srgb, var(--background) 85%, transparent);
+            backdrop-filter: blur(14px) saturate(1.15);
+            -webkit-backdrop-filter: blur(14px) saturate(1.15);
+            border-bottom: 1px solid var(--transp-1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--transp-1);
+        }
 
         .tab-item {
-            @extend .blur-bg;
             position: relative;
+            flex-shrink: 0;
 
             a {
                 cursor: pointer;
-                padding: 10px 25px;
+                padding: 0.875rem 1.25rem;
                 text-decoration: none;
-                color: var(--text-400);
+                color: var(--text-500);
                 display: flex;
                 align-items: center;
-                font-size: var(--p);
-                gap: 8px;
-                @include transition(all);
-                will-change: color;
+                font-size: 0.875rem;
+                font-weight: 500;
+                gap: 0.5rem;
+                transition: color 0.2s ease;
+                position: relative;
+                white-space: nowrap;
 
                 svg {
-                    font-size: var(--h5);
+                    font-size: 1.125rem;
+                    opacity: 0.7;
+                    transition: opacity 0.2s ease;
                 }
 
                 .tab-badge {
-                    display: inline-block;
-                    background-color: var(--transp-3);
-                    color: var(--text);
-                    border-radius: 4px;
-                    padding: 6px 8px;
-                    font-size: var(--small);
-                    line-height: 1;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 20px;
+                    height: 20px;
+                    background-color: var(--transp-2);
+                    color: var(--text-400);
+                    border-radius: 10px;
+                    padding: 0 6px;
+                    font-size: 0.6875rem;
                     font-weight: 600;
-                    @include transition(all);
+                    transition: all 0.2s ease;
+                }
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: transparent;
+                    transition: background 0.2s ease;
+                    border-radius: 2px 2px 0 0;
                 }
 
                 &:hover {
-                    color: var(--text-200);
+                    color: var(--text);
+
+                    svg {
+                        opacity: 1;
+                    }
                 }
 
                 &:focus {
@@ -57,7 +102,7 @@
 
                 &:focus-visible {
                     outline: 2px solid var(--primary);
-                    outline-offset: 2px;
+                    outline-offset: -2px;
                     border-radius: 4px;
                 }
             }
@@ -65,76 +110,270 @@
             &.active a {
                 color: var(--text);
 
+                svg {
+                    opacity: 1;
+                }
+
+                &::after {
+                    background: var(--primary);
+                }
+
                 .tab-badge {
-                    color: var(--text-950);
-                    background-color: var(--accent);
+                    background-color: var(--primary);
+                    color: var(--primary-900, #fff);
                 }
             }
         }
     }
 
     .underline {
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        height: 2px;
-        background-color: var(--primary);
-        transition: all 0.3s ease;
+        display: none;
     }
 
     &.pills {
         .tabs-nav {
-            border-bottom: none;
-            gap: 8px;
+            display: inline-flex;
+            background: var(--transp-05);
+            padding: 4px;
+            border-radius: 50px;
+            width: auto;
+            border: 1px solid var(--transp-1);
+            gap: 2px;
+            overflow: auto;
+            width: 100%;
+            scrollbar-width: 2px;
 
-            &::before {
-                content: '';
-                opacity: 0;
+            &.tabs-nav--sticky {
+                background: color-mix(in srgb, var(--background) 75%, transparent);
+                backdrop-filter: blur(16px) saturate(1.2);
+                -webkit-backdrop-filter: blur(16px) saturate(1.2);
             }
-        }
 
-        .tab-item {
-            @extend .blur-bg;
-
-            border-radius: var(--border05);
-
-            &:before {
-                border-radius: inherit;
+            &::after {
+                display: none;
             }
 
             @include media(mobile) {
                 width: 100%;
             }
+        }
+
+        .tab-item {
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 1;
+            margin: 0;
+
+            @include media(mobile) {
+                flex: 1;
+            }
 
             a {
-                padding: 0.7rem 1.2rem;
-                border-radius: var(--border05);
-                color: var(--text-300);
-                @include transition(all);
-
-                &:hover {
-                    background-color: var(--transp-3);
-                    color: var(--text);
-                }
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                color: var(--text-500);
+                font-size: 0.8125rem;
+                font-weight: 500;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                background: transparent;
+                position: relative;
 
                 @include media(mobile) {
-                    width: 100%;
+                    justify-content: center;
+                    padding: 0.5rem 0.75rem;
+                }
+
+                svg {
+                    font-size: 1rem;
+                }
+
+                &::after {
+                    display: none;
+                }
+
+                &:hover {
+                    color: var(--text);
+                    background: var(--transp-05);
+                }
+
+                .tab-badge {
+                    background-color: var(--transp-2);
+                    color: var(--text-400);
                 }
             }
 
             &.active a {
-                background-color: var(--primary);
-                color: var(--primary-900);
+                background: var(--transp-1);
+                color: var(--text);
+                box-shadow: 
+                    0 1px 3px rgba(0, 0, 0, 0.06),
+                    0 1px 2px rgba(0, 0, 0, 0.04),
+                    inset 0 0 0 1px var(--transp-05);
 
                 .tab-badge {
-                    background-color: var(--primary-950);
-                    color: var(--primary);
+                    background-color: var(--primary);
+                    color: var(--primary-900, #fff);
+                }
+            }
+        }
+    }
+
+    // Bordered style - clean card-like tabs
+    &.bordered {
+        .tabs-nav {
+            gap: 0.5rem;
+            border-bottom: none;
+            padding-bottom: 0.75rem;
+
+            &::after {
+                display: none;
+            }
+        }
+
+        .tab-item {
+            a {
+                padding: 0.625rem 1rem;
+                border: 1px solid var(--transp-1);
+                border-radius: 8px;
+                background: transparent;
+                color: var(--text-400);
+                font-size: 0.8125rem;
+
+                &::after {
+                    display: none;
+                }
+
+                &:hover {
+                    border-color: var(--transp-2);
+                    color: var(--text);
+                    background: var(--transp-05);
+                }
+            }
+
+            &.active a {
+                border-color: var(--primary);
+                background: var(--primary);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
+                color: var(--primary-900, #fff);
+
+                svg {
+                    opacity: 1;
+                }
+
+                .tab-badge {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: var(--primary-900, #fff);
+                }
+            }
+        }
+    }
+
+    // Minimal style - ultra clean
+    &.minimal {
+        .tabs-nav {
+            gap: 1.5rem;
+            border-bottom: none;
+
+            &::after {
+                display: none;
+            }
+        }
+
+        .tab-item {
+            a {
+                padding: 0.5rem 0;
+                color: var(--text-500);
+                font-size: 0.875rem;
+                position: relative;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 0;
+                    height: 2px;
+                    background: var(--primary);
+                    transition: width 0.2s ease;
+                    border-radius: 1px;
+                }
+
+                &:hover {
+                    color: var(--text);
+
+                    &::after {
+                        width: 100%;
+                        background: var(--transp-2);
+                    }
+                }
+            }
+
+            &.active a {
+                color: var(--text);
+
+                &::after {
+                    width: 100%;
+                    background: var(--primary);
+                }
+            }
+        }
+    }
+
+    // Vertical tabs
+    &.vertical {
+        display: flex;
+        gap: 1.5rem;
+
+        .tabs-nav {
+            flex-direction: column;
+            width: auto;
+            min-width: 180px;
+            gap: 0.25rem;
+            border-bottom: none;
+            border-right: 1px solid var(--transp-1);
+            padding-right: 1rem;
+
+            &::after {
+                display: none;
+            }
+        }
+
+        .tab-item {
+            a {
+                padding: 0.625rem 1rem;
+                border-radius: 8px;
+                justify-content: flex-start;
+
+                &::after {
+                    display: none;
+                }
+
+                &:hover {
+                    background: var(--transp-1);
+                }
+            }
+
+            &.active a {
+                background: var(--transp-2);
+                color: var(--text);
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    left: -1rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 3px;
+                    height: 20px;
+                    background: var(--primary);
+                    border-radius: 0 3px 3px 0;
                 }
             }
         }
 
-        .underline {
-            display: none;
+        .tabs-content {
+            flex: 1;
+            min-width: 0;
         }
     }
 }
@@ -145,6 +384,18 @@
 
         &.active {
             display: block;
+            animation: tabFadeIn 0.2s ease;
         }
+    }
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

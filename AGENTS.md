@@ -15,7 +15,6 @@
 - `composer format-check`: dry-run style check.
 - `composer analyse`: prints a notice; PHPStan is temporarily disabled.
 - `php flute cache:clear` | `php flute template:cache:clear` | `php flute logs:clear`: project CLI utilities.
-- Run locally: via Docker (`docker-compose up -d`) or your PHP/Nginx pointing to `public/`.
 
 ## Coding Style & Naming Conventions
 - PHP 8.2, PSR-12; 4-space indentation, short arrays, ordered and unused import rules enforced by php-cs-fixer (`.php-cs-fixer.php`).

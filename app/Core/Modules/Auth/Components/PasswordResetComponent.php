@@ -75,7 +75,9 @@ class PasswordResetComponent extends Component
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response');
+        $captchaResponse = request()->input('g-recaptcha-response')
+            ?? request()->input('h-captcha-response')
+            ?? request()->input('cf-turnstile-response');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();
@@ -83,7 +85,7 @@ class PasswordResetComponent extends Component
             return false;
         }
 
-        if (!$captchaService->verify($captchaResponse, $captchaService->getType())) {
+        if (!$captchaService->verify($captchaResponse, $captchaService->getType() . ':password_reset')) {
             toast()->error(__('auth.captcha_invalid'))->push();
 
             return false;

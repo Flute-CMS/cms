@@ -68,6 +68,7 @@ class MainSettingsPackageService
                 'flute_copyright' => 'app.flute_copyright',
                 'discord_link_roles' => 'app.discord_link_roles',
                 'minify' => 'assets.minify',
+                'autoprefix' => 'assets.autoprefix',
                 'logo' => 'app.logo',
                 'bg_image' => 'app.bg_image',
                 'bg_image_light' => 'app.bg_image_light',
@@ -90,8 +91,13 @@ class MainSettingsPackageService
                 'captcha_type' => 'auth.captcha.type',
                 'recaptcha_site_key' => 'auth.captcha.recaptcha.site_key',
                 'recaptcha_secret_key' => 'auth.captcha.recaptcha.secret_key',
+                'recaptcha_v3_site_key' => 'auth.captcha.recaptcha_v3.site_key',
+                'recaptcha_v3_secret_key' => 'auth.captcha.recaptcha_v3.secret_key',
+                'recaptcha_v3_score_threshold' => 'auth.captcha.recaptcha_v3.score_threshold',
                 'hcaptcha_site_key' => 'auth.captcha.hcaptcha.site_key',
                 'hcaptcha_secret_key' => 'auth.captcha.hcaptcha.secret_key',
+                'turnstile_site_key' => 'auth.captcha.turnstile.site_key',
+                'turnstile_secret_key' => 'auth.captcha.turnstile.secret_key',
                 'default_role' => 'auth.default_role',
             ],
             $this->tabSlugs['mail'] => [
@@ -193,6 +199,7 @@ class MainSettingsPackageService
                 'flute_copyright',
                 'discord_link_roles',
                 'minify',
+                'autoprefix',
                 'logo',
                 'bg_image',
                 'bg_image_light',
@@ -215,8 +222,13 @@ class MainSettingsPackageService
                 'captcha_type',
                 'recaptcha_site_key',
                 'recaptcha_secret_key',
+                'recaptcha_v3_site_key',
+                'recaptcha_v3_secret_key',
+                'recaptcha_v3_score_threshold',
                 'hcaptcha_site_key',
                 'hcaptcha_secret_key',
+                'turnstile_site_key',
+                'turnstile_secret_key',
                 'default_role',
             ],
             $this->tabSlugs['mail'] => [
@@ -276,6 +288,7 @@ class MainSettingsPackageService
                 'flute_copyright' => 'boolean',
                 'discord_link_roles' => 'boolean',
                 'minify' => 'boolean',
+                'autoprefix' => 'boolean',
                 'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp,svg',
                 'bg_image' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
                 'bg_image_light' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
@@ -295,11 +308,16 @@ class MainSettingsPackageService
                 'captcha_enabled_login' => 'boolean',
                 'captcha_enabled_register' => 'boolean',
                 'captcha_enabled_password_reset' => 'boolean',
-                'captcha_type' => 'required|string|in:recaptcha_v2,hcaptcha',
+                'captcha_type' => 'required|string|in:recaptcha_v2,recaptcha_v3,hcaptcha,turnstile',
                 'recaptcha_site_key' => 'nullable|string',
                 'recaptcha_secret_key' => 'nullable|string',
+                'recaptcha_v3_site_key' => 'nullable|string',
+                'recaptcha_v3_secret_key' => 'nullable|string',
+                'recaptcha_v3_score_threshold' => 'nullable|numeric|min:0|max:1',
                 'hcaptcha_site_key' => 'nullable|string',
                 'hcaptcha_secret_key' => 'nullable|string',
+                'turnstile_site_key' => 'nullable|string',
+                'turnstile_secret_key' => 'nullable|string',
                 'default_role' => 'nullable',
             ],
             $this->tabSlugs['mail'] => [
@@ -339,18 +357,28 @@ class MainSettingsPackageService
     public function updateConfig(array $inputs, string $currentTab): void
     {
         if ($currentTab === $this->tabSlugs['localization']) {
-            config()->set('lang.locale', $inputs['locale']);
+            $allLanguages = config('lang.all', []);
+            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : ($allLanguages[0] ?? 'en');
 
             $availableNormal = [];
-
-            foreach ($inputs['available'] as $lang => $val) {
+            foreach (($inputs['available'] ?? []) as $lang => $val) {
                 if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true) {
                     $availableNormal[] = $lang;
                 }
             }
 
-            config()->set('lang.available', $availableNormal);
+            // Never allow zero active languages. If user disabled everything, force fallback locale.
+            if (empty($availableNormal)) {
+                $availableNormal = [$fallbackLocale];
+            }
 
+            $locale = $inputs['locale'] ?? $fallbackLocale;
+            if (!in_array($locale, $availableNormal, true)) {
+                $locale = $availableNormal[0] ?? $fallbackLocale;
+            }
+
+            config()->set('lang.locale', $locale);
+            config()->set('lang.available', array_values(array_unique($availableNormal)));
             config()->save();
 
             return;

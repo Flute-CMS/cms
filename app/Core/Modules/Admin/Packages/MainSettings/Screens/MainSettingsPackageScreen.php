@@ -851,341 +851,459 @@ class MainSettingsPackageScreen extends Screen
 
     private function mainSettingsLayout()
     {
-        return LayoutFactory::split([
-            LayoutFactory::blank([
-                LayoutFactory::block([
+        return LayoutFactory::tabs([
+            Tab::make(__('admin-main-settings.blocks.main_settings'))
+                ->layouts([
                     LayoutFactory::split([
-                        LayoutFactory::field(
-                            Input::make('name')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.site_name'))
-                                ->value(config('app.name'))
-                        )->label(__('admin-main-settings.labels.site_name'))->required(),
-                        LayoutFactory::field(
-                            Input::make('url')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.site_url'))
-                                ->value(config('app.url'))
-                        )->label(__('admin-main-settings.labels.site_url'))->required(),
-                    ]),
-                    LayoutFactory::field(
-                        Input::make('timezone')
-                            ->placeholder(__('admin-main-settings.placeholders.timezone'))
-                            ->value(config('app.timezone'))
-                    )->label(__('admin-main-settings.labels.timezone'))->required()->small(__('admin-main-settings.examples.timezone')),
+                        $this->mainSettingsMainBlock(),
+                        $this->mainSettingsMaintenanceBlock(),
+                    ])->ratio('60/40'),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.seo'))
+                ->layouts([
+                    $this->mainSettingsSeoBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.optimization_security'))
+                ->layouts([
+                    $this->mainSettingsOptimizationSecurityBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.debug_settings'))
+                ->layouts([
                     LayoutFactory::split([
-                        LayoutFactory::field(
-                            Toggle::make('change_theme')
-                                ->checked(config('app.change_theme'))
-                        )->addClass('mt-2')->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
-                        LayoutFactory::field(
-                            Select::make('default_theme')
-                                ->options([
-                                    'dark' => __('admin-main-settings.options.theme.dark'),
-                                    'light' => __('admin-main-settings.options.theme.light'),
-                                ])
-                                ->value(config('app.default_theme', 'dark'))
-                        )->label(__('admin-main-settings.labels.default_theme'))->popover(__('admin-main-settings.popovers.default_theme')),
-                    ])->ratio('50/50'),
-                    LayoutFactory::field(
-                        Input::make('flute_key')
-                            ->type('password')
-                            ->placeholder(__('admin-main-settings.placeholders.flute_key'))
-                            ->value(config('app.flute_key'))
-                    )->label(__('admin-main-settings.labels.flute_key'))->popover(__('admin-main-settings.popovers.flute_key')),
-                    LayoutFactory::field(
-                        Input::make('steam_api')
-                            ->type('password')
-                            ->placeholder(__('admin-main-settings.placeholders.steam_api'))
-                            ->value(config('app.steam_api'))
-                    )->label(__('admin-main-settings.labels.steam_api'))->popover(__('admin-main-settings.popovers.steam_api')),
-                    LayoutFactory::field(
-                        Input::make('steam_cache_duration')
-                            ->type('number')
-                            ->placeholder(__('admin-main-settings.placeholders.steam_cache_duration'))
-                            ->value(config('app.steam_cache_duration', 3600))
-                    )->label(__('admin-main-settings.labels.steam_cache_duration'))->popover(__('admin-main-settings.popovers.steam_cache_duration'))->small(__('admin-main-settings.examples.steam_cache_duration')),
-                    LayoutFactory::field(
-                        TextArea::make('footer_description')
-                            ->placeholder(__('admin-main-settings.placeholders.footer_description'))
-                            ->value(config('app.footer_description'))
-                    )->label(__('admin-main-settings.labels.footer_description')),
-                    LayoutFactory::field(
-                        RichText::make('footer_additional')
-                            ->toolbarPreset('minimal')
-                            ->height(100)
-                            ->placeholder(__('admin-main-settings.placeholders.footer_additional'))
-                            ->value(config('app.footer_additional'))
-                    )->label(__('admin-main-settings.labels.footer_additional')),
-                ])->title(__('admin-main-settings.blocks.main_settings'))->addClass('mb-2'),
+                        $this->mainSettingsDebugBlock(),
+                        $this->mainSettingsDevelopmentBlock(),
+                    ])->ratio('60/40'),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.personal_cabinet_settings'))
+                ->layouts([
+                    $this->mainSettingsPersonalCabinetBlock(),
+                ]),
+        ])
+            ->slug('main_settings_sections')
+            ->pills()
+            ->sticky(false)
+            ->lazyload(false);
+    }
 
-                LayoutFactory::block([
-                    LayoutFactory::field(
-                        Toggle::make('maintenance_mode')
-                            ->checked(config('app.maintenance_mode'))
-                    )->label(__('admin-main-settings.labels.maintenance_mode'))->popover(__('admin-main-settings.popovers.maintenance_mode')),
-                    LayoutFactory::field(
-                        TextArea::make('maintenance_message')
-                            ->placeholder(__('admin-main-settings.placeholders.maintenance_message'))
-                            ->value(config('app.maintenance_message'))
-                    )->label(__('admin-main-settings.labels.maintenance_message')),
-                ])->title(__('admin-main-settings.blocks.tech_work_settings'))->addClass('mb-2'),
+    private function mainSettingsMainBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('name')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.site_name'))
+                        ->value(config('app.name'))
+                )->label(__('admin-main-settings.labels.site_name'))->required(),
+                LayoutFactory::field(
+                    Input::make('url')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.site_url'))
+                        ->value(config('app.url'))
+                )->label(__('admin-main-settings.labels.site_url'))->required(),
             ]),
+            LayoutFactory::field(
+                Input::make('timezone')
+                    ->placeholder(__('admin-main-settings.placeholders.timezone'))
+                    ->value(config('app.timezone'))
+            )->label(__('admin-main-settings.labels.timezone'))->required()->small(__('admin-main-settings.examples.timezone')),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Toggle::make('change_theme')
+                        ->checked(config('app.change_theme'))
+                )->addClass('mt-2')->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
+                LayoutFactory::field(
+                    Select::make('default_theme')
+                        ->options([
+                            'dark' => __('admin-main-settings.options.theme.dark'),
+                            'light' => __('admin-main-settings.options.theme.light'),
+                        ])
+                        ->value(config('app.default_theme', 'dark'))
+                )->label(__('admin-main-settings.labels.default_theme'))->popover(__('admin-main-settings.popovers.default_theme')),
+            ])->ratio('50/50'),
+            LayoutFactory::field(
+                Input::make('flute_key')
+                    ->type('password')
+                    ->placeholder(__('admin-main-settings.placeholders.flute_key'))
+                    ->value(config('app.flute_key'))
+            )->label(__('admin-main-settings.labels.flute_key'))->popover(__('admin-main-settings.popovers.flute_key')),
+            LayoutFactory::field(
+                Input::make('steam_api')
+                    ->type('password')
+                    ->placeholder(__('admin-main-settings.placeholders.steam_api'))
+                    ->value(config('app.steam_api'))
+            )->label(__('admin-main-settings.labels.steam_api'))->popover(__('admin-main-settings.popovers.steam_api')),
+            LayoutFactory::field(
+                Input::make('steam_cache_duration')
+                    ->type('number')
+                    ->placeholder(__('admin-main-settings.placeholders.steam_cache_duration'))
+                    ->value(config('app.steam_cache_duration', 3600))
+            )->label(__('admin-main-settings.labels.steam_cache_duration'))->popover(__('admin-main-settings.popovers.steam_cache_duration'))->small(__('admin-main-settings.examples.steam_cache_duration')),
+            LayoutFactory::field(
+                TextArea::make('footer_description')
+                    ->placeholder(__('admin-main-settings.placeholders.footer_description'))
+                    ->value(config('app.footer_description'))
+            )->label(__('admin-main-settings.labels.footer_description')),
+            LayoutFactory::field(
+                RichText::make('footer_additional')
+                    ->toolbarPreset('minimal')
+                    ->height(100)
+                    ->placeholder(__('admin-main-settings.placeholders.footer_additional'))
+                    ->value(config('app.footer_additional'))
+            )->label(__('admin-main-settings.labels.footer_additional')),
+        ])->title(__('admin-main-settings.blocks.main_settings'))->addClass('mb-2');
+    }
 
-            LayoutFactory::blank([
-                LayoutFactory::block([
-                    LayoutFactory::field(
-                        Input::make('keywords')
-                            ->placeholder(__('admin-main-settings.placeholders.keywords'))
-                            ->value(config('app.keywords'))
-                    )->label(__('admin-main-settings.labels.keywords'))->required()->small(__('admin-main-settings.examples.keywords')),
+    private function mainSettingsMaintenanceBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Toggle::make('maintenance_mode')
+                    ->checked(config('app.maintenance_mode'))
+            )->label(__('admin-main-settings.labels.maintenance_mode'))->popover(__('admin-main-settings.popovers.maintenance_mode')),
+            LayoutFactory::field(
+                TextArea::make('maintenance_message')
+                    ->placeholder(__('admin-main-settings.placeholders.maintenance_message'))
+                    ->value(config('app.maintenance_message'))
+            )->label(__('admin-main-settings.labels.maintenance_message')),
+        ])->title(__('admin-main-settings.blocks.tech_work_settings'))->addClass('mb-2');
+    }
 
-                    LayoutFactory::field(
-                        Select::make('robots')
-                            ->value(config('app.robots', 'index, follow'))
-                            ->options([
-                                'index, follow' => __('admin-main-settings.options.robots.index_follow'),
-                                'index, nofollow' => __('admin-main-settings.options.robots.index_nofollow'),
-                                'noindex, nofollow' => __('admin-main-settings.options.robots.noindex_nofollow'),
-                                'noindex, follow' => __('admin-main-settings.options.robots.noindex_follow'),
-                            ])
-                    )->label(__('admin-main-settings.labels.robots'))->required()->small(__('admin-main-settings.examples.robots')),
+    private function mainSettingsSeoBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Input::make('keywords')
+                    ->placeholder(__('admin-main-settings.placeholders.keywords'))
+                    ->value(config('app.keywords'))
+            )->label(__('admin-main-settings.labels.keywords'))->required()->small(__('admin-main-settings.examples.keywords')),
 
-                    // description
-                    LayoutFactory::field(
-                        Input::make('description')
-                            ->placeholder(__('admin-main-settings.placeholders.description'))
-                            ->value(config('app.description'))
-                    )->label(__('admin-main-settings.labels.description')),
+            LayoutFactory::field(
+                Select::make('robots')
+                    ->value(config('app.robots', 'index, follow'))
+                    ->options([
+                        'index, follow' => __('admin-main-settings.options.robots.index_follow'),
+                        'index, nofollow' => __('admin-main-settings.options.robots.index_nofollow'),
+                        'noindex, nofollow' => __('admin-main-settings.options.robots.noindex_nofollow'),
+                        'noindex, follow' => __('admin-main-settings.options.robots.noindex_follow'),
+                    ])
+            )->label(__('admin-main-settings.labels.robots'))->required()->small(__('admin-main-settings.examples.robots')),
 
-                ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo')),
+            LayoutFactory::field(
+                Input::make('description')
+                    ->placeholder(__('admin-main-settings.placeholders.description'))
+                    ->value(config('app.description'))
+            )->label(__('admin-main-settings.labels.description')),
+        ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo'));
+    }
 
-                LayoutFactory::block([
-                    LayoutFactory::field(
-                        Toggle::make('development_mode')
-                            ->checked((bool) config('app.development_mode'))
-                    )->label(__('admin-main-settings.labels.development_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
-                ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2'),
+    private function mainSettingsDevelopmentBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Toggle::make('development_mode')
+                    ->checked((bool) config('app.development_mode'))
+            )->label(__('admin-main-settings.labels.development_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
+        ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2');
+    }
 
-                LayoutFactory::block([
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('is_performance')
-                                ->checked(config('app.is_performance'))
-                        )->label(__('admin-main-settings.labels.is_performance'))->popover(__('admin-main-settings.popovers.is_performance')),
-                        LayoutFactory::field(
-                            Toggle::make('cron_mode')
-                                ->checked(config('app.cron_mode'))
-                        )->label(__('admin-main-settings.labels.cron_mode'))->popover(__('admin-main-settings.popovers.cron_mode')),
-                    ]),
-                    LayoutFactory::view('admin-main-settings::cron')->setVisible(boolval(config('app.cron_mode'))),
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('csrf_enabled')
-                                ->checked(config('app.csrf_enabled'))
-                        )->label(__('admin-main-settings.labels.csrf_enabled')),
-                        LayoutFactory::field(
-                            Toggle::make('convert_to_webp')
-                                ->checked(config('app.convert_to_webp'))
-                        )->label(__('admin-main-settings.labels.convert_to_webp'))->popover(__('admin-main-settings.popovers.convert_to_webp')),
-                    ]),
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('create_backup')
-                                ->checked(config('app.create_backup', false))
-                        )->label(__('admin-main-settings.labels.create_backup'))->popover(__('admin-main-settings.popovers.create_backup')),
-                        LayoutFactory::field(
-                            Toggle::make('auto_update')
-                                ->checked(config('app.auto_update', false))
-                        )->label(__('admin-main-settings.labels.auto_update'))
-                            ->setVisible(config('app.cron_mode'))
-                            ->popover(__('admin-main-settings.popovers.auto_update')),
-                    ]),
-                ])->title(__('admin-main-settings.blocks.optimization_security'))->addClass('mb-2')->description(__('admin-main-settings.blocks.optimization_security_description')),
-
-                LayoutFactory::block([
-                    LayoutFactory::split([
-                        LayoutFactory::field(
-                            Toggle::make('debug')
-                                ->checked(is_development() ? true : config('app.debug'))
-                                ->disabled(is_development())
-                        )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
-                    ])->ratio('50/50'),
-                    LayoutFactory::field(
-                        Input::make('debug_ips')
-                            ->type('text')
-                            ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
-                            ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
-                    )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
-                ])->title(__('admin-main-settings.blocks.debug_settings'))->addClass('mb-2'),
-
-                LayoutFactory::block([
-                    LayoutFactory::field(
-                        Input::make('currency_view')
-                            ->type('text')
-                            ->placeholder(__('admin-main-settings.placeholders.currency_view'))
-                            ->value(config('lk.currency_view'))
-                    )->label(__('admin-main-settings.labels.currency_view'))->popover(__('admin-main-settings.popovers.currency_view')),
-                    LayoutFactory::field(
-                        Toggle::make('oferta_view')
-                            ->checked(config('lk.oferta_view'))
-                    )->label(__('admin-main-settings.labels.oferta_view')),
-                    // only modal
-                    LayoutFactory::field(
-                        Toggle::make('only_modal')
-                            ->checked(config('lk.only_modal'))
-                    )->label(__('admin-main-settings.labels.lk_only_modal'))->popover(__('admin-main-settings.popovers.lk_only_modal')),
-                    LayoutFactory::field(
-                        Input::make('oferta_url')
-                            ->type('text')
-                            ->placeholder(__('admin-main-settings.placeholders.oferta_url'))
-                            ->value(config('lk.oferta_url'))
-                    )->label(__('admin-main-settings.labels.oferta_url'))->popover(__('admin-main-settings.popovers.oferta_url'))->small(__('admin-main-settings.examples.oferta_url')),
-                ])->title(__('admin-main-settings.blocks.personal_cabinet_settings'))->addClass('mb-2'),
+    private function mainSettingsOptimizationSecurityBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('is_performance')
+                        ->checked(config('app.is_performance'))
+                )->label(__('admin-main-settings.labels.is_performance'))->popover(__('admin-main-settings.popovers.is_performance')),
+                LayoutFactory::field(
+                    Toggle::make('cron_mode')
+                        ->checked(config('app.cron_mode'))
+                )->label(__('admin-main-settings.labels.cron_mode'))->popover(__('admin-main-settings.popovers.cron_mode')),
             ]),
-        ])->ratio('50/50');
+            LayoutFactory::view('admin-main-settings::cron')->setVisible(boolval(config('app.cron_mode'))),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('csrf_enabled')
+                        ->checked(config('app.csrf_enabled'))
+                )->label(__('admin-main-settings.labels.csrf_enabled')),
+                LayoutFactory::field(
+                    Toggle::make('convert_to_webp')
+                        ->checked(config('app.convert_to_webp'))
+                )->label(__('admin-main-settings.labels.convert_to_webp'))->popover(__('admin-main-settings.popovers.convert_to_webp')),
+            ]),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('create_backup')
+                        ->checked(config('app.create_backup', false))
+                )->label(__('admin-main-settings.labels.create_backup'))->popover(__('admin-main-settings.popovers.create_backup')),
+                LayoutFactory::field(
+                    Toggle::make('auto_update')
+                        ->checked(config('app.auto_update', false))
+                )->label(__('admin-main-settings.labels.auto_update'))
+                    ->setVisible(config('app.cron_mode'))
+                    ->popover(__('admin-main-settings.popovers.auto_update')),
+            ]),
+        ])->title(__('admin-main-settings.blocks.optimization_security'))->addClass('mb-2')->description(__('admin-main-settings.blocks.optimization_security_description'));
+    }
+
+    private function mainSettingsDebugBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Toggle::make('debug')
+                        ->checked(is_development() ? true : config('app.debug'))
+                        ->disabled(is_development())
+                )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
+            ])->ratio('50/50'),
+            LayoutFactory::field(
+                Input::make('debug_ips')
+                    ->type('text')
+                    ->placeholder(__('admin-main-settings.placeholders.debug_ips'))
+                    ->value(is_array(config('app.debug_ips')) ? implode(', ', config('app.debug_ips')) : '')
+            )->label(__('admin-main-settings.labels.debug_ips'))->popover(__('admin-main-settings.popovers.debug_ips'))->small(__('admin-main-settings.examples.debug_ips')),
+        ])->title(__('admin-main-settings.blocks.debug_settings'))->addClass('mb-2');
+    }
+
+    private function mainSettingsPersonalCabinetBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Input::make('currency_view')
+                    ->type('text')
+                    ->placeholder(__('admin-main-settings.placeholders.currency_view'))
+                    ->value(config('lk.currency_view'))
+            )->label(__('admin-main-settings.labels.currency_view'))->popover(__('admin-main-settings.popovers.currency_view')),
+            LayoutFactory::field(
+                Toggle::make('oferta_view')
+                    ->checked(config('lk.oferta_view'))
+            )->label(__('admin-main-settings.labels.oferta_view')),
+            LayoutFactory::field(
+                Toggle::make('only_modal')
+                    ->checked(config('lk.only_modal'))
+            )->label(__('admin-main-settings.labels.lk_only_modal'))->popover(__('admin-main-settings.popovers.lk_only_modal')),
+            LayoutFactory::field(
+                Input::make('oferta_url')
+                    ->type('text')
+                    ->placeholder(__('admin-main-settings.placeholders.oferta_url'))
+                    ->value(config('lk.oferta_url'))
+            )->label(__('admin-main-settings.labels.oferta_url'))->popover(__('admin-main-settings.popovers.oferta_url'))->small(__('admin-main-settings.examples.oferta_url')),
+        ])->title(__('admin-main-settings.blocks.personal_cabinet_settings'))->addClass('mb-2');
     }
 
     private function usersSettingsLayout()
     {
-        return LayoutFactory::split([
-            LayoutFactory::blank([
-                LayoutFactory::block([
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('reset_password')
-                                ->checked(config('auth.reset_password'))
-                        )->label(__('admin-main-settings.labels.reset_password'))->popover(__('admin-main-settings.popovers.reset_password')),
-                        LayoutFactory::field(
-                            Toggle::make('only_social')
-                                ->checked(config('auth.only_social'))
-                        )->label(__('admin-main-settings.labels.only_social'))->popover(__('admin-main-settings.popovers.only_social')),
-                    ]),
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('only_modal')
-                                ->checked(config('auth.only_modal'))
-                        )->label(__('admin-main-settings.labels.only_modal'))->popover(__('admin-main-settings.popovers.only_modal')),
-                        LayoutFactory::field(
-                            Toggle::make('confirm_email')
-                                ->checked(config('auth.registration.confirm_email'))
-                        )->label(__('admin-main-settings.labels.confirm_email'))->popover(__('admin-main-settings.popovers.confirm_email')),
-                    ]),
-                    LayoutFactory::split([
-                        LayoutFactory::field(
-                            Toggle::make('remember_me')
-                                ->checked(config('auth.remember_me'))
-                        )->label(__('admin-main-settings.labels.remember_me'))->popover(__('admin-main-settings.popovers.remember_me')),
-                        LayoutFactory::field(
-                            Input::make('remember_me_duration')
-                                ->type('number')
-                                ->placeholder(__('admin-main-settings.placeholders.remember_me_duration'))
-                                ->value(config('auth.remember_me_duration'))
-                        )->label(__('admin-main-settings.labels.remember_me_duration'))->small(__('admin-main-settings.examples.remember_me_duration')),
-                    ]),
-                    LayoutFactory::field(
-                        Select::make('default_role')
-                            ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
-                            ->placeholder(__('admin-main-settings.placeholders.default_role_placeholder'))
-                            ->value(config('auth.default_role', 0))
-                    )->label(__('admin-main-settings.labels.default_role'))->popover(__('admin-main-settings.popovers.default_role')),
-                ])->title(__('admin-main-settings.blocks.auth_settings'))->addClass('mb-3'),
+        return LayoutFactory::tabs([
+            Tab::make(__('admin-main-settings.blocks.auth_settings'))
+                ->layouts([
+                    $this->usersAuthBlock(),
+                    $this->usersSessionBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.captcha_settings'))
+                ->layouts([
+                    $this->usersCaptchaBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.profile_settings'))
+                ->layouts([
+                    $this->usersProfileBlock(),
+                ]),
+        ])
+            ->slug('users_settings_sections')
+            ->pills()
+            ->sticky(false)
+            ->lazyload(false);
+    }
 
-                LayoutFactory::block([
-                    LayoutFactory::split([
-                        LayoutFactory::field(
-                            Toggle::make('check_ip')
-                                ->checked(config('auth.check_ip'))
-                        )->label(__('admin-main-settings.labels.check_ip'))->popover(__('admin-main-settings.popovers.check_ip')),
-                        LayoutFactory::field(
-                            Toggle::make('security_token')
-                                ->checked(config('auth.security_token'))
-                        )->label(__('admin-main-settings.labels.security_token'))->popover(__('admin-main-settings.popovers.security_token')),
-                    ]),
-                ])->title(__('admin-main-settings.blocks.session_settings'))->description(__('admin-main-settings.blocks.session_description')),
-
-                LayoutFactory::block([
-                    LayoutFactory::columns([
-                        LayoutFactory::field(
-                            Toggle::make('captcha_enabled_login')
-                                ->checked(boolval(config('auth.captcha.enabled.login')))
-                        )->label(__('admin-main-settings.labels.captcha_enabled_login'))->popover(__('admin-main-settings.popovers.captcha_enabled_login')),
-                        LayoutFactory::field(
-                            Toggle::make('captcha_enabled_register')
-                                ->checked(boolval(config('auth.captcha.enabled.register')))
-                        )->label(__('admin-main-settings.labels.captcha_enabled_register'))->popover(__('admin-main-settings.popovers.captcha_enabled_register')),
-                    ]),
-                    LayoutFactory::field(
-                        Toggle::make('captcha_enabled_password_reset')
-                            ->checked(boolval(config('auth.captcha.enabled.password_reset')))
-                    )->label(__('admin-main-settings.labels.captcha_enabled_password_reset'))->popover(__('admin-main-settings.popovers.captcha_enabled_password_reset')),
-                    LayoutFactory::field(
-                        Select::make('captcha_type')
-                            ->options([
-                                'recaptcha_v2' => 'reCAPTCHA v2',
-                                'hcaptcha' => 'hCaptcha',
-                            ])
-                            ->value(config('auth.captcha.type'))
-                    )->label(__('admin-main-settings.labels.captcha_type'))->required(),
-                    LayoutFactory::split([
-                        LayoutFactory::field(
-                            Input::make('recaptcha_site_key')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.recaptcha_site_key'))
-                                ->value(config('auth.captcha.recaptcha.site_key'))
-                        )->label(__('admin-main-settings.labels.recaptcha_site_key'))->popover(__('admin-main-settings.popovers.recaptcha_site_key')),
-                        LayoutFactory::field(
-                            Input::make('recaptcha_secret_key')
-                                ->type('password')
-                                ->placeholder(__('admin-main-settings.placeholders.recaptcha_secret_key'))
-                                ->value(config('auth.captcha.recaptcha.secret_key'))
-                        )->label(__('admin-main-settings.labels.recaptcha_secret_key'))->popover(__('admin-main-settings.popovers.recaptcha_secret_key')),
-                    ]),
-                    LayoutFactory::split([
-                        LayoutFactory::field(
-                            Input::make('hcaptcha_site_key')
-                                ->type('text')
-                                ->placeholder(__('admin-main-settings.placeholders.hcaptcha_site_key'))
-                                ->value(config('auth.captcha.hcaptcha.site_key'))
-                        )->label(__('admin-main-settings.labels.hcaptcha_site_key'))->popover(__('admin-main-settings.popovers.hcaptcha_site_key')),
-                        LayoutFactory::field(
-                            Input::make('hcaptcha_secret_key')
-                                ->type('password')
-                                ->placeholder(__('admin-main-settings.placeholders.hcaptcha_secret_key'))
-                                ->value(config('auth.captcha.hcaptcha.secret_key'))
-                        )->label(__('admin-main-settings.labels.hcaptcha_secret_key'))->popover(__('admin-main-settings.popovers.hcaptcha_secret_key')),
-                    ]),
-                ])->title(__('admin-main-settings.blocks.captcha_settings')),
-            ]),
-            LayoutFactory::block([
+    private function usersAuthBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('change_uri')
-                        ->checked(config('profile.change_uri'))
-                )->label(__('admin-main-settings.labels.change_uri')),
-                LayoutFactory::split([
-                    LayoutFactory::field(
-                        Input::make('default_avatar')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp')
-                            ->defaultFile(asset(config('profile.default_avatar')))
-                    )->label(__('admin-main-settings.labels.default_avatar')),
-                    LayoutFactory::field(
-                        Input::make('default_banner')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp')
-                            ->defaultFile(asset(config('profile.default_banner')))
-                    )->label(__('admin-main-settings.labels.default_banner')),
-                ]),
-                LayoutFactory::rows([
-                    Button::make(__('admin-main-settings.buttons.save_profile_images'))
-                        ->size('small')
-                        ->type(Color::ACCENT)
-                        ->method('saveProfileImages'),
-                ]),
-            ])->title(__('admin-main-settings.blocks.profile_settings')),
-        ])->ratio('50/50');
+                    Toggle::make('reset_password')
+                        ->checked(config('auth.reset_password'))
+                )->label(__('admin-main-settings.labels.reset_password'))->popover(__('admin-main-settings.popovers.reset_password')),
+                LayoutFactory::field(
+                    Toggle::make('only_social')
+                        ->checked(config('auth.only_social'))
+                )->label(__('admin-main-settings.labels.only_social'))->popover(__('admin-main-settings.popovers.only_social')),
+            ]),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('only_modal')
+                        ->checked(config('auth.only_modal'))
+                )->label(__('admin-main-settings.labels.only_modal'))->popover(__('admin-main-settings.popovers.only_modal')),
+                LayoutFactory::field(
+                    Toggle::make('confirm_email')
+                        ->checked(config('auth.registration.confirm_email'))
+                )->label(__('admin-main-settings.labels.confirm_email'))->popover(__('admin-main-settings.popovers.confirm_email')),
+            ]),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Toggle::make('remember_me')
+                        ->checked(config('auth.remember_me'))
+                )->label(__('admin-main-settings.labels.remember_me'))->popover(__('admin-main-settings.popovers.remember_me')),
+                LayoutFactory::field(
+                    Input::make('remember_me_duration')
+                        ->type('number')
+                        ->placeholder(__('admin-main-settings.placeholders.remember_me_duration'))
+                        ->value(config('auth.remember_me_duration'))
+                )->label(__('admin-main-settings.labels.remember_me_duration'))->small(__('admin-main-settings.examples.remember_me_duration')),
+            ]),
+            LayoutFactory::field(
+                Select::make('default_role')
+                    ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
+                    ->placeholder(__('admin-main-settings.placeholders.default_role_placeholder'))
+                    ->value(config('auth.default_role', 0))
+            )->label(__('admin-main-settings.labels.default_role'))->popover(__('admin-main-settings.popovers.default_role')),
+        ])->title(__('admin-main-settings.blocks.auth_settings'))->addClass('mb-3');
+    }
+
+    private function usersSessionBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Toggle::make('check_ip')
+                        ->checked(config('auth.check_ip'))
+                )->label(__('admin-main-settings.labels.check_ip'))->popover(__('admin-main-settings.popovers.check_ip')),
+                LayoutFactory::field(
+                    Toggle::make('security_token')
+                        ->checked(config('auth.security_token'))
+                )->label(__('admin-main-settings.labels.security_token'))->popover(__('admin-main-settings.popovers.security_token')),
+            ]),
+        ])->title(__('admin-main-settings.blocks.session_settings'))->description(__('admin-main-settings.blocks.session_description'));
+    }
+
+    private function usersCaptchaBlock()
+    {
+        $captchaType = request()->input('captcha_type', config('auth.captcha.type'));
+
+        return LayoutFactory::block([
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('captcha_enabled_login')
+                        ->checked(boolval(config('auth.captcha.enabled.login')))
+                )->label(__('admin-main-settings.labels.captcha_enabled_login'))->popover(__('admin-main-settings.popovers.captcha_enabled_login')),
+                LayoutFactory::field(
+                    Toggle::make('captcha_enabled_register')
+                        ->checked(boolval(config('auth.captcha.enabled.register')))
+                )->label(__('admin-main-settings.labels.captcha_enabled_register'))->popover(__('admin-main-settings.popovers.captcha_enabled_register')),
+            ]),
+            LayoutFactory::field(
+                Toggle::make('captcha_enabled_password_reset')
+                    ->checked(boolval(config('auth.captcha.enabled.password_reset')))
+            )->label(__('admin-main-settings.labels.captcha_enabled_password_reset'))->popover(__('admin-main-settings.popovers.captcha_enabled_password_reset')),
+            LayoutFactory::field(
+                Select::make('captcha_type')
+                    ->yoyo()
+                    ->options([
+                        'recaptcha_v2' => 'reCAPTCHA v2',
+                        'recaptcha_v3' => 'reCAPTCHA v3',
+                        'hcaptcha' => 'hCaptcha',
+                        'turnstile' => 'Cloudflare Turnstile',
+                    ])
+                    ->value(config('auth.captcha.type'))
+            )->label(__('admin-main-settings.labels.captcha_type'))->required(),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('recaptcha_site_key')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.recaptcha_site_key'))
+                        ->value(config('auth.captcha.recaptcha.site_key'))
+                )->label(__('admin-main-settings.labels.recaptcha_site_key'))->popover(__('admin-main-settings.popovers.recaptcha_site_key')),
+                LayoutFactory::field(
+                    Input::make('recaptcha_secret_key')
+                        ->type('password')
+                        ->placeholder(__('admin-main-settings.placeholders.recaptcha_secret_key'))
+                        ->value(config('auth.captcha.recaptcha.secret_key'))
+                )->label(__('admin-main-settings.labels.recaptcha_secret_key'))->popover(__('admin-main-settings.popovers.recaptcha_secret_key')),
+            ])->setVisible($captchaType === 'recaptcha_v2'),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('recaptcha_v3_site_key')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.recaptcha_v3_site_key'))
+                        ->value(config('auth.captcha.recaptcha_v3.site_key'))
+                )->label(__('admin-main-settings.labels.recaptcha_v3_site_key'))->popover(__('admin-main-settings.popovers.recaptcha_v3_site_key')),
+                LayoutFactory::field(
+                    Input::make('recaptcha_v3_secret_key')
+                        ->type('password')
+                        ->placeholder(__('admin-main-settings.placeholders.recaptcha_v3_secret_key'))
+                        ->value(config('auth.captcha.recaptcha_v3.secret_key'))
+                )->label(__('admin-main-settings.labels.recaptcha_v3_secret_key'))->popover(__('admin-main-settings.popovers.recaptcha_v3_secret_key')),
+            ])->setVisible($captchaType === 'recaptcha_v3'),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('recaptcha_v3_score_threshold')
+                        ->type('number')
+                        ->step('0.05')
+                        ->min(0)
+                        ->max(1)
+                        ->placeholder(__('admin-main-settings.placeholders.recaptcha_v3_score_threshold'))
+                        ->value(config('auth.captcha.recaptcha_v3.score_threshold', 0.5))
+                )->label(__('admin-main-settings.labels.recaptcha_v3_score_threshold'))->popover(__('admin-main-settings.popovers.recaptcha_v3_score_threshold')),
+            ])->ratio('50/50')->setVisible($captchaType === 'recaptcha_v3'),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('hcaptcha_site_key')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.hcaptcha_site_key'))
+                        ->value(config('auth.captcha.hcaptcha.site_key'))
+                )->label(__('admin-main-settings.labels.hcaptcha_site_key'))->popover(__('admin-main-settings.popovers.hcaptcha_site_key')),
+                LayoutFactory::field(
+                    Input::make('hcaptcha_secret_key')
+                        ->type('password')
+                        ->placeholder(__('admin-main-settings.placeholders.hcaptcha_secret_key'))
+                        ->value(config('auth.captcha.hcaptcha.secret_key'))
+                )->label(__('admin-main-settings.labels.hcaptcha_secret_key'))->popover(__('admin-main-settings.popovers.hcaptcha_secret_key')),
+            ])->setVisible($captchaType === 'hcaptcha'),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('turnstile_site_key')
+                        ->type('text')
+                        ->placeholder(__('admin-main-settings.placeholders.turnstile_site_key'))
+                        ->value(config('auth.captcha.turnstile.site_key'))
+                )->label(__('admin-main-settings.labels.turnstile_site_key'))->popover(__('admin-main-settings.popovers.turnstile_site_key')),
+                LayoutFactory::field(
+                    Input::make('turnstile_secret_key')
+                        ->type('password')
+                        ->placeholder(__('admin-main-settings.placeholders.turnstile_secret_key'))
+                        ->value(config('auth.captcha.turnstile.secret_key'))
+                )->label(__('admin-main-settings.labels.turnstile_secret_key'))->popover(__('admin-main-settings.popovers.turnstile_secret_key')),
+            ])->setVisible($captchaType === 'turnstile'),
+        ])->title(__('admin-main-settings.blocks.captcha_settings'));
+    }
+
+    private function usersProfileBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Toggle::make('change_uri')
+                    ->checked(config('profile.change_uri'))
+            )->label(__('admin-main-settings.labels.change_uri')),
+            LayoutFactory::split([
+                LayoutFactory::field(
+                    Input::make('default_avatar')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp')
+                        ->defaultFile(asset(config('profile.default_avatar')))
+                )->label(__('admin-main-settings.labels.default_avatar')),
+                LayoutFactory::field(
+                    Input::make('default_banner')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp')
+                        ->defaultFile(asset(config('profile.default_banner')))
+                )->label(__('admin-main-settings.labels.default_banner')),
+            ]),
+            LayoutFactory::rows([
+                Button::make(__('admin-main-settings.buttons.save_profile_images'))
+                    ->size('small')
+                    ->type(Color::ACCENT)
+                    ->method('saveProfileImages'),
+            ]),
+        ])->title(__('admin-main-settings.blocks.profile_settings'));
     }
 
     private function mailSettingsLayout()
@@ -1260,7 +1378,7 @@ class MainSettingsPackageScreen extends Screen
                         ->options(array_combine(
                             config('lang.available'),
                             array_map(
-                                static fn ($key) => __('langs.' . $key),
+                                static fn($key) => __('langs.' . $key),
                                 config('lang.available')
                             )
                         ))
@@ -1269,7 +1387,7 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::block([
                 LayoutFactory::split(
                     array_map(
-                        static fn ($lang) => LayoutFactory::field(
+                        static fn($lang) => LayoutFactory::field(
                             Toggle::make("available[{$lang}]")
                                 ->checked(in_array($lang, config('lang.available')))
                         )->label(__('langs.' . $lang)),
@@ -1282,89 +1400,107 @@ class MainSettingsPackageScreen extends Screen
 
     private function additionalSettingsLayout()
     {
-        return [
-            LayoutFactory::block([
-                LayoutFactory::columns([
-                    LayoutFactory::field(
-                        Toggle::make('share')
-                            ->checked(config('app.share'))
-                    )->label(__('admin-main-settings.labels.share'))->small(__('admin-main-settings.labels.share_description')),
-                    LayoutFactory::field(
-                        Toggle::make('flute_copyright')
-                            ->checked(config('app.flute_copyright'))
-                    )->label(__('admin-main-settings.labels.copyright'))->small(__('admin-main-settings.labels.copyright_description')),
+        return LayoutFactory::tabs([
+            Tab::make(__('admin-main-settings.tabs.additional_settings'))
+                ->layouts([
+                    $this->additionalSettingsGeneralBlock(),
                 ]),
-                LayoutFactory::columns([
-                    LayoutFactory::field(
-                        Toggle::make('discord_link_roles')
-                            ->checked(config('app.discord_link_roles'))
-                    )->label(__('admin-main-settings.labels.discord_link_roles'))->small(__('admin-main-settings.labels.discord_link_roles_description')),
-                    LayoutFactory::field(
-                        Toggle::make('minify')
-                            ->checked(config('assets.minify'))
-                    )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
-                    LayoutFactory::field(
-                        Toggle::make('autoprefix')
-                            ->checked(config('assets.autoprefix', false))
-                    )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
+            Tab::make(__('admin-main-settings.blocks.image_settings'))
+                ->layouts([
+                    $this->additionalSettingsImagesBlock(),
                 ]),
-            ])->addClass('mb-3'),
+        ])
+            ->slug('additional_settings_sections')
+            ->pills()
+            ->sticky(false)
+            ->lazyload(false);
+    }
 
-            LayoutFactory::block([
-                LayoutFactory::columns([
-                    LayoutFactory::field(
-                        Input::make('logo')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
-                            ->defaultFile(!str_ends_with(config('app.logo'), '.svg') ? asset(config('app.logo')) : null)
-                    )->label(__('admin-main-settings.labels.logo')),
-                    LayoutFactory::field(
-                        Input::make('logo_light')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
-                            ->defaultFile(!str_ends_with(config('app.logo_light', ''), '.svg') ? asset(config('app.logo_light', '')) : null)
-                    )->label(__('admin-main-settings.labels.logo_light')),
-                    LayoutFactory::field(
-                        Input::make('bg_image')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp')
-                            ->defaultFile(asset(config('app.bg_image')))
-                    )->label(__('admin-main-settings.labels.bg_image'))->small(__('admin-main-settings.examples.bg_image')),
-                    LayoutFactory::field(
-                        Input::make('bg_image_light')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png, image/jpeg, image/gif, image/webp')
-                            ->defaultFile(asset(config('app.bg_image_light', '')))
-                    )->label(__('admin-main-settings.labels.bg_image_light'))->small(__('admin-main-settings.examples.bg_image_light')),
-                ]),
-                LayoutFactory::columns([
-                    LayoutFactory::field(
-                        Input::make('favicon')
-                            ->type('file')
-                            ->filePond()
-                            // Accept common ico MIME types and extension for better browser compatibility
-                            ->accept('image/x-icon, image/vnd.microsoft.icon, .ico')
-                            ->defaultFile(asset('favicon.ico'))
-                    )->label(__('admin-main-settings.labels.favicon')),
-                    LayoutFactory::field(
-                        Input::make('social_image')
-                            ->type('file')
-                            ->filePond()
-                            ->accept('image/png')
-                            ->defaultFile(asset('assets/img/social-image.png'))
-                    )->label(__('admin-main-settings.labels.social_image')),
-                ]),
-                LayoutFactory::rows([
-                    Button::make(__('admin-main-settings.buttons.save_flute_images'))
-                        ->size('small')
-                        ->type(Color::ACCENT)
-                        ->method('saveFluteImages'),
-                ]),
-            ])->title(__('admin-main-settings.blocks.image_settings')),
-        ];
+    private function additionalSettingsGeneralBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('share')
+                        ->checked(config('app.share'))
+                )->label(__('admin-main-settings.labels.share'))->small(__('admin-main-settings.labels.share_description')),
+                LayoutFactory::field(
+                    Toggle::make('flute_copyright')
+                        ->checked(config('app.flute_copyright'))
+                )->label(__('admin-main-settings.labels.copyright'))->small(__('admin-main-settings.labels.copyright_description')),
+            ]),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Toggle::make('discord_link_roles')
+                        ->checked(config('app.discord_link_roles'))
+                )->label(__('admin-main-settings.labels.discord_link_roles'))->small(__('admin-main-settings.labels.discord_link_roles_description')),
+                LayoutFactory::field(
+                    Toggle::make('minify')
+                        ->checked(config('assets.minify'))
+                )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
+                LayoutFactory::field(
+                    Toggle::make('autoprefix')
+                        ->checked(config('assets.autoprefix', false))
+                )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
+            ]),
+        ])->title(__('admin-main-settings.tabs.additional_settings'))->addClass('mb-3');
+    }
+
+    private function additionalSettingsImagesBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Input::make('logo')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
+                        ->defaultFile(!str_ends_with(config('app.logo'), '.svg') ? asset(config('app.logo')) : null)
+                )->label(__('admin-main-settings.labels.logo')),
+                LayoutFactory::field(
+                    Input::make('logo_light')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp, image/svg+xml')
+                        ->defaultFile(!str_ends_with(config('app.logo_light', ''), '.svg') ? asset(config('app.logo_light', '')) : null)
+                )->label(__('admin-main-settings.labels.logo_light')),
+                LayoutFactory::field(
+                    Input::make('bg_image')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp')
+                        ->defaultFile(asset(config('app.bg_image')))
+                )->label(__('admin-main-settings.labels.bg_image'))->small(__('admin-main-settings.examples.bg_image')),
+                LayoutFactory::field(
+                    Input::make('bg_image_light')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png, image/jpeg, image/gif, image/webp')
+                        ->defaultFile(asset(config('app.bg_image_light', '')))
+                )->label(__('admin-main-settings.labels.bg_image_light'))->small(__('admin-main-settings.examples.bg_image_light')),
+            ]),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    Input::make('favicon')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/x-icon, image/vnd.microsoft.icon, .ico')
+                        ->defaultFile(asset('favicon.ico'))
+                )->label(__('admin-main-settings.labels.favicon')),
+                LayoutFactory::field(
+                    Input::make('social_image')
+                        ->type('file')
+                        ->filePond()
+                        ->accept('image/png')
+                        ->defaultFile(asset('assets/img/social-image.png'))
+                )->label(__('admin-main-settings.labels.social_image')),
+            ]),
+            LayoutFactory::rows([
+                Button::make(__('admin-main-settings.buttons.save_flute_images'))
+                    ->size('small')
+                    ->type(Color::ACCENT)
+                    ->method('saveFluteImages'),
+            ]),
+        ])->title(__('admin-main-settings.blocks.image_settings'));
     }
 }

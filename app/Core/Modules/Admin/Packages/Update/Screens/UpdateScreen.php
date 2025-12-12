@@ -153,6 +153,7 @@ class UpdateScreen extends Screen
                 $this->updateService->getAvailableUpdates(true);
 
                 $this->flashMessage(__('admin-update.update_complete'));
+                $this->triggerSidebarRefresh();
             } else {
                 throw new RuntimeException(__('admin-update.update_failed'));
             }
@@ -277,6 +278,8 @@ class UpdateScreen extends Screen
                 $this->flashMessage(__('admin-update.update_complete') . " ({$successfulUpdates}/{$totalUpdates})");
             }
 
+            $this->triggerSidebarRefresh();
+
         } catch (Exception $e) {
             if (is_debug()) {
                 throw $e;
@@ -314,5 +317,10 @@ class UpdateScreen extends Screen
         $theme = Theme::findOne(['key' => $themeId]);
 
         return (new ThemeUpdater($theme, $themeData))->update($data);
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
     }
 }

@@ -22,3 +22,4 @@ storage/app/orm_schema.php
 php-cs-fixer
 /.php-cs-fixer.cache
 docs/
+.cursor

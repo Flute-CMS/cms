@@ -8,6 +8,7 @@
     --primary: #1d1d1f;
     --secondary: #f5f5f7;
     --accent: #34c759;
+    --accent-transp: rgba(52, 199, 89, 0.12);
 
     --success: #30d158;
     --success-light: rgba(48, 209, 88, 0.12);
@@ -93,12 +94,12 @@
 }
 
 :root[data-theme=dark] {
-    // Dark mode tuned to be calmer
     --text: #f2f2f7;
     --background: #1c1c1e;
     --primary: #f2f2f7;
     --secondary: #2c2c2e;
     --accent: #32d74b;
+    --accent-transp: rgba(50, 215, 75, 0.12);
 
     --success: #30d158;
     --success-light: rgba(48, 209, 88, 0.15);

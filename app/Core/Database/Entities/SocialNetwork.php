@@ -54,6 +54,17 @@ class SocialNetwork extends ActiveRecord
 
     public function getSettings() : array
     {
-        return empty($this->settings) ? [] : (json_decode($this->settings, true)['keys'] ?? []);
+        if (empty($this->settings)) {
+            return [];
+        }
+
+        $decoded = json_decode($this->settings, true) ?? [];
+        $keys = $decoded['keys'] ?? [];
+
+        if (isset($decoded['keys'])) {
+            unset($decoded['keys']);
+        }
+
+        return array_merge($keys, $decoded);
     }
 }

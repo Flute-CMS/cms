@@ -97,4 +97,5 @@ class PageController extends BaseController
             ], 500);
         }
     }
+
 }

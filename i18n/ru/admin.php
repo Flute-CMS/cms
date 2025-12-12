@@ -1,6 +1,8 @@
 <?php return [
     "scroll_to_top" => "Наверх",
     "customization" => "Настройка интерфейса",
+    "recent_pages" => "Недавние",
+    "back_to_site" => "На сайт",
     "theme_mode" => "Режим темы",
     "light" => "Светлая",
     "dark" => "Тёмная",

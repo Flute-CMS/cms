@@ -7,10 +7,10 @@ use Flute\Core\Theme\ThemeManager;
 use MatthiasMullie\Minify;
 use Nette\Utils\Validators;
 use Padaliyajay\PHPAutoprefixer\Autoprefixer;
-use ScssPhp\ScssPhp\Compiler;
 use ScssPhp\ScssPhp\Exception\CompilerException;
 use ScssPhp\ScssPhp\Exception\SassException;
 use ScssPhp\ScssPhp\OutputStyle;
+use Symfony\Component\Filesystem\Filesystem;
 use Throwable;
 use WebPConvert\WebPConvert;
 
@@ -24,7 +24,7 @@ class TemplateAssets
 
     private const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
-    protected Compiler $scssCompiler;
+    protected TemplateScssCompiler $scssCompiler;
 
     protected Template $template;
 
@@ -68,6 +68,22 @@ class TemplateAssets
      */
     protected static float $assetsCompileTime = 0.0;
 
+    /**
+     * Cache mapping for extension to asset type tag generation.
+     */
+    private const EXTENSION_TO_TYPE = [
+        'css' => 'css',
+        'scss' => 'css',
+        'js' => 'js',
+        'mjs' => 'js',
+        'jpg' => 'img',
+        'jpeg' => 'img',
+        'png' => 'img',
+        'gif' => 'img',
+        'webp' => 'img',
+        'svg' => 'img',
+    ];
+
     public function __construct()
     {
         $this->minifyAssets = config('assets.minify');
@@ -77,6 +93,7 @@ class TemplateAssets
         $timeout = (int) (config('assets.remote_asset_timeout') ?? 5);
         $this->remoteAssetTimeout = $timeout > 0 ? $timeout : 5;
         $limit = (int) (config('assets.autoprefix_max_bytes') ?? 0);
+
         if ($limit > 0) {
             $this->autoprefixMaxBytes = $limit;
         }
@@ -85,7 +102,7 @@ class TemplateAssets
             $this->debugMode = true;
         }
 
-        $this->scssCompiler = new Compiler();
+        $this->scssCompiler = new TemplateScssCompiler();
         $this->scssCompiler->setOutputStyle($this->minifyAssets ? OutputStyle::COMPRESSED : OutputStyle::EXPANDED);
 
         $this->scssCompiler->addImportPath(path('app'));
@@ -157,9 +174,9 @@ class TemplateAssets
     /**
      * Retrieves the SCSS compiler instance for compiling SCSS content.
      *
-     * @return Compiler The SCSS compiler instance.
+     * @return TemplateScssCompiler The SCSS compiler instance.
      */
-    public function getCompiler(): Compiler
+    public function getCompiler(): TemplateScssCompiler
     {
         return $this->scssCompiler;
     }
@@ -198,7 +215,7 @@ class TemplateAssets
     public function clearStyleCache(): void
     {
         $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
-        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+        $filesystem = new Filesystem();
         $filesystem->remove(glob($cssCachePath));
         $this->clearCache();
     }
@@ -368,6 +385,32 @@ class TemplateAssets
     }
 
     /**
+     * Determine tag "type" for generateTag() from a file extension.
+     */
+    private function getTagTypeFromExtension(string $extension): string
+    {
+        $extension = strtolower($extension);
+
+        return self::EXTENSION_TO_TYPE[$extension] ?? '';
+    }
+
+    /**
+     * Cache-busted URL for a relative public path.
+     */
+    private function buildPublicAssetUrl(string $relativePublicPath): string
+    {
+        $relativePublicPath = ltrim(str_replace('\\', '/', $relativePublicPath), '/');
+        $fullPath = BASE_PATH . "public/{$relativePublicPath}";
+        if (!file_exists($fullPath)) {
+            return '';
+        }
+
+        $version = filemtime($fullPath);
+
+        return url($relativePublicPath) . "?v={$version}";
+    }
+
+    /**
      * Downloads and caches an external asset from a CDN, storing it locally.
      *
      * @param string $url The URL of the CDN asset.
@@ -522,6 +565,40 @@ class TemplateAssets
         if (!is_dir($directory)) {
             mkdir($directory, 0o755, true);
         }
+    }
+
+    /**
+     * Execute a callback under an exclusive lock file (best-effort).
+     * If lock can't be acquired, waits for the lock holder to finish by taking a shared lock.
+     *
+     * @param string   $lockFile
+     * @param callable $callback
+     */
+    private function withFileLock(string $lockFile, callable $callback): void
+    {
+        $handle = @fopen($lockFile, 'w+');
+        if ($handle === false) {
+            $callback();
+
+            return;
+        }
+
+        if (flock($handle, LOCK_EX | LOCK_NB)) {
+            try {
+                $callback();
+            } finally {
+                flock($handle, LOCK_UN);
+                fclose($handle);
+                @unlink($lockFile);
+            }
+
+            return;
+        }
+
+        // Wait for the lock holder (compile/write) to finish.
+        flock($handle, LOCK_SH);
+        flock($handle, LOCK_UN);
+        fclose($handle);
     }
 
     /**
@@ -695,21 +772,22 @@ class TemplateAssets
      */
     private function generateAssetUrl(string $path, bool $urlOnly = false): string
     {
-        $fullPath = BASE_PATH . "public/" . $path;
-        if (!file_exists($fullPath)) {
+        $url = $this->buildPublicAssetUrl($path);
+        if ($url === '') {
             return '';
         }
-
-        $version = filemtime($fullPath);
-        $url = url($path) . "?v={$version}";
 
         if ($urlOnly) {
             return $url;
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $type = $this->getTagTypeFromExtension($extension);
+        if ($type === '') {
+            return '';
+        }
 
-        return $this->generateTag($url, $extension);
+        return $this->generateTag($url, $type);
     }
 
     /**
@@ -765,70 +843,73 @@ class TemplateAssets
 
         $cacheKey = sha1($scssPath . implode(',', $this->additionalScssFiles[$this->context]) . implode(',', $this->additionalPartials) . $this->context);
 
-        // Check compilation cache first
-        if (isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
-            return $this->compilationCache[$cacheKey];
-        }
-
         $cssCacheDir = $this->getCacheDir('css');
         $cssPath = $cssCacheDir . "{$cacheKey}.css";
         $cssFullPath = BASE_PATH . "public/" . $cssPath;
 
         $this->ensureDirectoryExists(dirname($cssFullPath));
 
-        $needsRecompile = true;
-        if (!is_development()) {
-            $needsRecompile = !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath) || $this->debugMode;
-        }
+        $cssMtime = file_exists($cssFullPath) ? filemtime($cssFullPath) : 0;
+        $scssMtime = filemtime($scssPath) ?: 0;
 
-        if (!$needsRecompile) {
-            foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-                if (file_exists($additionalFile) && filemtime($additionalFile) > filemtime($cssFullPath)) {
-                    $needsRecompile = true;
+        $latestSourceMtime = max($scssMtime, $this->getScssDependenciesMaxMtime($scssPath));
 
-                    break;
-                }
+        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+            if (file_exists($additionalFile)) {
+                $latestSourceMtime = max($latestSourceMtime, filemtime($additionalFile) ?: 0);
             }
         }
 
-        if (!$needsRecompile) {
-            foreach ($this->additionalPartials as $partial) {
-                $partialPath = path($partial);
-                if (file_exists($partialPath) && filemtime($partialPath) > filemtime($cssFullPath)) {
-                    $needsRecompile = true;
-
-                    break;
-                }
+        foreach ($this->additionalPartials as $partial) {
+            $partialPath = path($partial);
+            if (file_exists($partialPath)) {
+                $latestSourceMtime = max($latestSourceMtime, filemtime($partialPath) ?: 0);
             }
         }
+
+        $needsRecompile = $cssMtime === 0
+            || $latestSourceMtime >= $cssMtime
+            || $this->debugMode;
 
         if ($needsRecompile) {
             $lockFile = $cssFullPath . '.lock';
-            $lockHandle = @fopen($lockFile, 'w+');
-
-            if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
-                try {
-                    $shouldCompile = is_development() || !file_exists($cssFullPath) || filemtime($scssPath) > filemtime($cssFullPath);
-
-                    if ($shouldCompile) {
-                        $scssContents = $this->gatherScssContents($scssPath);
-                        $css = $this->compileScss($scssContents);
-
-                        if ($css !== '') {
-                            $this->saveAsset($cssFullPath, $css);
-                        }
-                    }
-                } finally {
-                    flock($lockHandle, LOCK_UN);
-                    fclose($lockHandle);
-                    @unlink($lockFile);
+            $this->withFileLock($lockFile, function () use ($needsRecompile, $scssPath, $cssFullPath) {
+                if (!$needsRecompile) {
+                    return;
                 }
-            } elseif ($lockHandle) {
-                flock($lockHandle, LOCK_SH); // Wait for shared lock (compile done)
-                flock($lockHandle, LOCK_UN);
-                fclose($lockHandle);
-            } else {
-                // Fallback: compile without lock
+
+                $importPaths = [dirname($scssPath)];
+                foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+                    if (file_exists($additionalFile)) {
+                        $importPaths[] = dirname($additionalFile);
+                    }
+                }
+                foreach ($this->additionalPartials as $partial) {
+                    $partialPath = path($partial);
+                    if (file_exists($partialPath)) {
+                        $importPaths[] = dirname($partialPath);
+                    }
+                }
+                $importPaths[] = rtrim(str_replace('\\', '/', BASE_PATH . 'app'), '/');
+
+                $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
+                $this->scssCompiler->setImportPaths($baseImportPaths);
+                $importPaths = array_map(static fn($p) => str_replace('\\', '/', $p), $importPaths);
+                foreach (array_unique($importPaths) as $importPath) {
+                    if (is_dir($importPath)) {
+                        $this->scssCompiler->addImportPath($importPath);
+                    }
+                }
+
+                $scssContents = $this->gatherScssContents($scssPath);
+                $css = $this->compileScss($scssContents);
+
+                if ($css !== '') {
+                    $this->saveAsset($cssFullPath, $css);
+                }
+            });
+
+            if (!file_exists($cssFullPath)) {
                 $scssContents = $this->gatherScssContents($scssPath);
                 $css = $this->compileScss($scssContents);
 
@@ -838,13 +919,138 @@ class TemplateAssets
             }
         }
 
+        if (!$needsRecompile && isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
+            return $this->compilationCache[$cacheKey];
+        }
+
         $version = filemtime($cssFullPath);
         $url = url($cssPath) . "?v={$version}";
         $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
 
-        $this->compilationCache[$cacheKey] = $result;
+        if (!$this->debugMode) {
+            $this->compilationCache[$cacheKey] = $result;
+        }
 
         return $result;
+    }
+
+    /**
+     * Return max mtime among an SCSS file and its imports.
+     */
+    private function getScssDependenciesMaxMtime(string $scssPath): int
+    {
+        $visited = [];
+        $maxMtime = 0;
+
+        $paths = $this->collectScssDependencies($scssPath, $visited);
+
+        if (is_development()) {
+            logs('templates')->debug('SCSS dependencies for ' . $scssPath . ': ' . json_encode($paths));
+        }
+
+        foreach ($paths as $path) {
+            $mtime = @filemtime($path) ?: 0;
+            if ($mtime > $maxMtime) {
+                $maxMtime = $mtime;
+            }
+        }
+
+        return $maxMtime;
+    }
+
+    /**
+     * Collect SCSS dependency paths via simple @import/@use/@forward parsing (recursive).
+     */
+    private function collectScssDependencies(string $scssPath, array &$visited): array
+    {
+        $real = realpath($scssPath) ?: $scssPath;
+        $real = str_replace('\\', '/', $real);
+
+        if (isset($visited[$real])) {
+            return [];
+        }
+
+        $visited[$real] = true;
+        $dependencies = [$real];
+
+        $content = @file_get_contents($real);
+        if ($content === false) {
+            return $dependencies;
+        }
+
+        if (preg_match_all('/@(import|use|forward)\s+([^;]+);/i', $content, $matches)) {
+            foreach ($matches[2] as $rawImports) {
+                foreach (explode(',', $rawImports) as $importExpr) {
+                    $importExpr = str_replace('\\', '/', trim($importExpr));
+                    $importExpr = trim($importExpr, '\'"');
+
+                    if ($importExpr === '') {
+                        continue;
+                    }
+
+                    if (str_starts_with($importExpr, 'http')
+                        || str_contains($importExpr, 'url(')
+                        || str_ends_with($importExpr, '.css')) {
+                        continue;
+                    }
+
+                    $candidates = $this->resolveScssImportCandidates($importExpr, dirname($real));
+
+                    $found = false;
+                    foreach ($candidates as $candidate) {
+                        if (file_exists($candidate)) {
+                            $dependencies = array_merge(
+                                $dependencies,
+                                $this->collectScssDependencies($candidate, $visited)
+                            );
+                            $found = true;
+                            break;
+                        }
+                    }
+
+                    if (!$found && is_development()) {
+                        logs('templates')->warning("SCSS import '{$importExpr}' not found. Tried: " . json_encode($candidates));
+                    }
+                }
+            }
+        }
+
+        return $dependencies;
+    }
+
+    /**
+     * Build candidate file paths for a SCSS import relative to base dir and app root.
+     */
+    private function resolveScssImportCandidates(string $importExpr, string $baseDir): array
+    {
+        $clean = str_replace(['"', '\''], '', $importExpr);
+        $clean = str_replace('\\', '/', $clean);
+
+        $dirs = [
+            rtrim(str_replace('\\', '/', $baseDir), '/'),
+            rtrim(str_replace('\\', '/', BASE_PATH . 'app'), '/'),
+        ];
+
+        $candidates = [];
+
+        foreach ($dirs as $dir) {
+            $path = $dir . '/' . $clean;
+
+            foreach ([$path, "{$path}.scss", "{$path}.sass"] as $candidate) {
+                $candidates[] = str_replace('\\', '/', $candidate);
+            }
+
+            $parts = explode('/', $clean);
+            $file = array_pop($parts);
+            $prefix = implode('/', $parts);
+            $partialBase = $prefix === '' ? "{$dir}/_{$file}" : "{$dir}/{$prefix}/_{$file}";
+
+            foreach ([$partialBase, "{$partialBase}.scss", "{$partialBase}.sass"] as $candidate) {
+                $candidates[] = str_replace('\\', '/', $candidate);
+            }
+        }
+
+        return array_values(array_unique($candidates));
     }
 
     /**
@@ -973,29 +1179,19 @@ class TemplateAssets
 
         if (!file_exists($jsFullPath) || filemtime($jsPathBase) > filemtime($jsFullPath)) {
             $lockFile = $jsFullPath . '.lock';
-            $lockHandle = @fopen($lockFile, 'w+');
-
-            if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
-                try {
-                    if (!file_exists($jsFullPath) || filemtime($jsPathBase) > filemtime($jsFullPath)) {
-                        $content = file_get_contents($jsPathBase);
-                        if ($content === false) {
-                            logs()->error("Unable to read JS file: {$jsPathBase}");
-
-                            return '';
-                        }
-                        $this->saveAsset($jsFullPath, $content);
-                    }
-                } finally {
-                    flock($lockHandle, LOCK_UN);
-                    fclose($lockHandle);
-                    @unlink($lockFile);
+            $this->withFileLock($lockFile, function () use ($jsPathBase, $jsFullPath) {
+                if (file_exists($jsFullPath) && filemtime($jsPathBase) <= filemtime($jsFullPath)) {
+                    return;
                 }
-            } elseif ($lockHandle) {
-                flock($lockHandle, LOCK_SH);
-                flock($lockHandle, LOCK_UN);
-                fclose($lockHandle);
-            }
+
+                $content = file_get_contents($jsPathBase);
+                if ($content === false) {
+                    logs()->error("Unable to read JS file: {$jsPathBase}");
+
+                    return;
+                }
+                $this->saveAsset($jsFullPath, $content);
+            });
         }
 
         $version = filemtime($jsFullPath);
@@ -1022,10 +1218,10 @@ class TemplateAssets
                 if ($fallbackPath && in_array($extension, self::SUPPORTED_IMAGE_EXTENSIONS)) {
                     $imgPathBase = $fallbackPath;
                 } else {
-                    return 'not found';
+                    return '';
                 }
             } else {
-                return 'not found';
+                return '';
             }
         }
 
@@ -1039,26 +1235,18 @@ class TemplateAssets
 
             if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
                 $lockFile = $webpFullPath . '.lock';
-                $lockHandle = @fopen($lockFile, 'w+');
-
-                if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
-                    try {
-                        if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
-                            WebPConvert::convert($imgPathBase, $webpFullPath);
+                try {
+                    $this->withFileLock($lockFile, function () use ($imgPathBase, $webpFullPath) {
+                        if (file_exists($webpFullPath) && filemtime($imgPathBase) <= filemtime($webpFullPath)) {
+                            return;
                         }
-                    } catch (Exception $e) {
-                        logs()->error($e->getMessage());
 
-                        return $this->generateAssetUrl($imgPath);
-                    } finally {
-                        flock($lockHandle, LOCK_UN);
-                        fclose($lockHandle);
-                        @unlink($lockFile);
-                    }
-                } elseif ($lockHandle) {
-                    flock($lockHandle, LOCK_SH);
-                    flock($lockHandle, LOCK_UN);
-                    fclose($lockHandle);
+                        WebPConvert::convert($imgPathBase, $webpFullPath);
+                    });
+                } catch (Exception $e) {
+                    logs()->error($e->getMessage());
+
+                    return $this->generateAssetUrl($imgPath);
                 }
             }
 

@@ -27,6 +27,11 @@ class SocialService implements SocialServiceInterface
     private array $registeredProviders = [];
 
     /**
+     * Settings that should be stored on provider root level, not inside "keys".
+     */
+    private array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
+
+    /**
      * Class constructor.
      */
     public function __construct()
@@ -46,7 +51,7 @@ class SocialService implements SocialServiceInterface
     {
         $socialNetwork = new SocialNetwork();
         $socialNetwork->key = $config['key'];
-        $socialNetwork->settings = json_encode($config['settings'] ?? []);
+        $socialNetwork->settings = json_encode($this->prepareSettingsPayload($config['key'], $config['settings'] ?? []));
         $socialNetwork->icon = $config['icon'] ?? '';
         $socialNetwork->enabled = $config['enabled'] ?? true;
         $socialNetwork->allowToRegister = $config['allowToRegister'] ?? true;
@@ -79,6 +84,7 @@ class SocialService implements SocialServiceInterface
         $providerName = $this->normalizeProviderName($socialNetwork->key);
         $settings = json_decode($socialNetwork->settings, true) ?? [];
 
+        $settings = $this->normalizeSettingsStructure($socialNetwork->key, $settings);
         $settings = $this->mapProviderSettings($socialNetwork->key, $settings);
 
         $this->registeredProviders[$providerName] = array_merge([
@@ -566,7 +572,8 @@ class SocialService implements SocialServiceInterface
      */
     private function initializeHybridAuth(?string $providerName = null, bool $bind = false): void
     {
-        $callbackUrl = url("social/{$providerName}")->get();
+        $callbackPath = $bind ? "profile/social/bind/{$providerName}" : "social/{$providerName}";
+        $callbackUrl = url($callbackPath)->get();
 
         $this->hybridauth = new Hybridauth([
             'callback' => $callbackUrl,
@@ -631,11 +638,12 @@ class SocialService implements SocialServiceInterface
      */
     private function mapProviderSettings(string $providerKey, array $settings): array
     {
-        if ($providerKey === 'Twitter' && isset($settings['keys'])) {
-            if (isset($settings['keys']['id'])) {
-                $settings['keys']['key'] = $settings['keys']['id'];
-                $settings['keys']['id'] = null;
-            }
+        $settings['keys'] = $this->mapProviderKeys($providerKey, $settings['keys'] ?? []);
+
+        if ($providerKey === 'Vkontakte') {
+            $settings['scope'] = $settings['scope'] ?? 'email';
+            $settings['fields'] = $settings['fields'] ?? 'photo_max,screen_name';
+            $settings['version'] = $settings['version'] ?? '5.131';
         }
 
         return $settings;
@@ -650,7 +658,7 @@ class SocialService implements SocialServiceInterface
     private function normalizeProviderName(string $providerName): string
     {
         $lower = strtolower($providerName);
-        if ($lower === 'Steam') {
+        if ($lower === 'steam') {
             return 'HttpsSteam';
         }
 
@@ -665,6 +673,61 @@ class SocialService implements SocialServiceInterface
         }
 
         return $providerName;
+    }
+
+    /**
+     * Prepare settings to be stored in database.
+     */
+    private function prepareSettingsPayload(string $providerKey, array $settings): array
+    {
+        return $this->normalizeSettingsStructure($providerKey, $settings);
+    }
+
+    /**
+     * Ensure provider settings have correct shape (keys + top-level options).
+     */
+    private function normalizeSettingsStructure(string $providerKey, array $settings): array
+    {
+        $keys = $settings['keys'] ?? [];
+
+        foreach ($this->nonKeySettingFields as $field) {
+            if (isset($keys[$field]) && !isset($settings[$field])) {
+                $settings[$field] = $keys[$field];
+                unset($keys[$field]);
+            }
+        }
+
+        foreach (['id', 'key', 'client_id', 'clientId'] as $idField) {
+            if (isset($settings[$idField]) && !isset($keys['id'])) {
+                $keys['id'] = $settings[$idField];
+            }
+        }
+
+        foreach (['secret', 'client_secret', 'clientSecret'] as $secretField) {
+            if (isset($settings[$secretField]) && !isset($keys['secret'])) {
+                $keys['secret'] = $settings[$secretField];
+            }
+        }
+
+        $settings['keys'] = $keys;
+
+        return $settings;
+    }
+
+    /**
+     * Normalize provider keys where Hybridauth expects different names.
+     */
+    private function mapProviderKeys(string $providerKey, array $keys): array
+    {
+        if ($providerKey === 'Twitter' && isset($keys['id'])) {
+            $keys['key'] = $keys['id'];
+        }
+
+        if (!isset($keys['id']) && isset($keys['key'])) {
+            $keys['id'] = $keys['key'];
+        }
+
+        return $keys;
     }
 
     /**

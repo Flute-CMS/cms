@@ -33,6 +33,8 @@ class EditSocialScreen extends Screen
 
     protected $id = null;
 
+    protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
+
     protected $supportedDrivers = [
         'Steam' => 'Steam',
         'Discord' => 'Discord',
@@ -191,14 +193,7 @@ class EditSocialScreen extends Screen
             'cooldown_time' => 'required|integer|min:0',
         ];
 
-        $settings = [];
-        foreach ($data as $key => $value) {
-            if (Str::startsWith($key, 'settings__')) {
-                $settingKey = Str::after($key, 'settings__');
-                $settings[$settingKey] = $value;
-            }
-        }
-
+        $settings = $this->extractSettingsFromRequest($data);
         $data['settings'] = $settings;
 
         if ($this->isEditMode || ($this->isEditMode === false && Arr::has($data, 'driverKey'))) {
@@ -225,15 +220,15 @@ class EditSocialScreen extends Screen
         try {
             if ($this->isEditMode) {
                 $this->social->icon = $data['icon'];
-                $this->social->allowToRegister = filter_var($data['allow_to_register'], FILTER_VALIDATE_BOOLEAN);
+                $this->social->allowToRegister = filter_var($data['allow_to_register'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 $this->social->cooldownTime = (int) $data['cooldown_time'];
 
-                $this->social->settings = Json::encode(["keys" => $settings]);
+                $this->social->settings = Json::encode($settings);
 
                 $this->social->saveOrFail();
             } else {
-                $data['settings'] = Json::encode(["keys" => $settings]);
-                $data['allowToRegister'] = filter_var($data['allow_to_register'], FILTER_VALIDATE_BOOLEAN);
+                $data['settings'] = Json::encode($settings);
+                $data['allowToRegister'] = filter_var($data['allow_to_register'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 $data['enabled'] = true;
 
                 SocialNetwork::make($data)->saveOrFail();
@@ -309,6 +304,27 @@ class EditSocialScreen extends Screen
 
             return $result;
         }, 3600);
+    }
+
+    protected function extractSettingsFromRequest(array $data): array
+    {
+        $settings = ['keys' => []];
+
+        foreach ($data as $key => $value) {
+            if (!Str::startsWith($key, 'settings__')) {
+                continue;
+            }
+
+            $settingKey = Str::after($key, 'settings__');
+
+            if (in_array($settingKey, $this->nonKeySettingFields, true)) {
+                $settings[$settingKey] = $value;
+            } else {
+                $settings['keys'][$settingKey] = $value;
+            }
+        }
+
+        return $settings;
     }
 
     protected function mergeWithDefaultRules(string $driverKey, array $rules)

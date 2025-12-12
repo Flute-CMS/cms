@@ -170,6 +170,33 @@ document.body.addEventListener('htmx:load', function (evt) {
     newSelectElements.forEach((select) => initializeChoicesElement(select));
 });
 
+// Prevent disabling all languages in Localization settings.
+// If user turns off everything, we automatically enable English (or the first available language).
+let _enforcingLanguages = false;
+document.addEventListener('change', function (event) {
+    const checkbox = event.target;
+    if (!_enforcingLanguages && checkbox && checkbox.matches && checkbox.matches('input[type="checkbox"][name^="available["]')) {
+        const boxes = Array.from(document.querySelectorAll('input[type="checkbox"][name^="available["]'));
+        if (!boxes.length) return;
+
+        const anyChecked = boxes.some((el) => el.checked);
+        if (anyChecked) return;
+
+        _enforcingLanguages = true;
+        try {
+            const en = document.querySelector('input[type="checkbox"][name="available[en]"]');
+            const fallback = en || boxes[0];
+            if (fallback) {
+                fallback.checked = true;
+            }
+        } finally {
+            setTimeout(() => {
+                _enforcingLanguages = false;
+            }, 0);
+        }
+    }
+});
+
 $(document).on('click', '[hx-flute-confirm]', function (event) {
     event.preventDefault();
 

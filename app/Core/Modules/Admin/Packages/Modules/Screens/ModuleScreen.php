@@ -246,6 +246,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->installModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.installed', ['name' => __($module->name)]), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.install_error', ['message' => $e->getMessage()]), 'error');
         }
@@ -268,6 +269,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->activateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.activated', ['name' => __($module->name)]), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.activation_error', ['message' => $e->getMessage()]), 'error');
         }
@@ -290,6 +292,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->disableModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.disabled', ['name' => __($module->name)]), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.disable_error', ['message' => $e->getMessage()]), 'error');
         }
@@ -312,6 +315,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->updateModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.updated', ['name' => __($module->name)]), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.update_error', ['message' => $e->getMessage()]), 'error');
         }
@@ -334,6 +338,7 @@ class ModuleScreen extends Screen
         try {
             app(ModuleActions::class)->uninstallModule($module, $this->moduleManager);
             $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => __($module->name)]), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             $this->flashMessage(__('admin-modules.messages.uninstall_error', ['message' => $e->getMessage()]), 'error');
         }
@@ -360,6 +365,7 @@ class ModuleScreen extends Screen
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.activated', ['name' => '']), 'success');
+        $this->triggerSidebarRefresh();
     }
 
     public function bulkDisableModules(): void
@@ -381,6 +387,7 @@ class ModuleScreen extends Screen
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.disabled', ['name' => '']), 'success');
+        $this->triggerSidebarRefresh();
     }
 
     public function bulkUninstallModules(): void
@@ -402,6 +409,12 @@ class ModuleScreen extends Screen
         }
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => '']), 'success');
+        $this->triggerSidebarRefresh();
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
     }
 
     protected function loadModules(bool $refresh = false): void

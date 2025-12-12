@@ -2,6 +2,16 @@ function isMobile() {
     return window.innerWidth < 768;
 }
 
+const activeTabRequests = new Map();
+
+function abortPreviousTabRequest(containerId) {
+    if (activeTabRequests.has(containerId)) {
+        const controller = activeTabRequests.get(containerId);
+        controller.abort();
+        activeTabRequests.delete(containerId);
+    }
+}
+
 function handleTabsFix() {
     const stickyThreshold = 0;
     const stickyThresholdPills = 10;
@@ -15,6 +25,7 @@ function handleTabsFix() {
         if (container.dataset.sticky === 'false') {
             const existingPlaceholder = container.querySelector('.tabs-placeholder');
             if (existingPlaceholder) {
+                nav.classList.remove('tabs-nav--sticky');
                 nav.style.position = '';
                 nav.style.top = '';
                 nav.style.left = '';
@@ -40,6 +51,7 @@ function handleTabsFix() {
             newPlaceholder.style.height = nav.offsetHeight + 'px';
             container.insertBefore(newPlaceholder, nav);
 
+            nav.classList.add('tabs-nav--sticky');
             nav.style.position = 'fixed';
             nav.style.top = (isPills ? stickyThresholdPills : stickyThreshold) + 'px';
             nav.style.left = navRect.left + 'px';
@@ -48,6 +60,7 @@ function handleTabsFix() {
             container._stickyActive = true;
 
         } else if (!shouldBeSticky && isCurrentlySticky) {
+            nav.classList.remove('tabs-nav--sticky');
             nav.style.position = '';
             nav.style.top = '';
             nav.style.left = '';
@@ -83,8 +96,155 @@ function updateUnderline(container) {
     }, 100);
 }
 
-function initializeTabContents(container) {
+function getTabSlugFromTabId(tabId) {
+    if (!tabId) return null;
+
+    const raw = tabId.startsWith('tab__') ? tabId.slice('tab__'.length) : tabId;
+    const separatorIndex = raw.indexOf('__');
+
+    // New scheme: "<tabsSlug>__<tabSlug>" (tabsSlug itself may contain underscores)
+    if (separatorIndex !== -1) {
+        return raw.slice(separatorIndex + 2);
+    }
+
+    // Old scheme: "<tabSlug>"
+    return raw;
+}
+
+function getQueryParamKeyForContainer(container) {
+    if (!container) return null;
+    const tabsId = container.dataset.tabsId; // e.g. "tab__settings"
+    if (!tabsId || !tabsId.startsWith('tab__')) return null;
+    return 'tab-' + tabsId.slice('tab__'.length);
+}
+
+function updateUrlQueryParam(key, value) {
+    if (!key) return;
+
+    try {
+        const url = new URL(window.location.href);
+        if (value === null || value === undefined || value === '') {
+            url.searchParams.delete(key);
+        } else {
+            url.searchParams.set(key, value);
+        }
+        url.searchParams.delete('yoyo-id');
+        window.history.replaceState(window.history.state, '', url.toString());
+    } catch (e) {
+        // ignore
+    }
+}
+
+function onTabActivated(tabContentEl) {
+    if (!tabContentEl) return;
+
+    // Re-init/refresh RichText editor (EasyMDE/CodeMirror) when tab becomes visible.
+    if (!window.fluteRichTextEditor) {
+        const tries = parseInt(tabContentEl.dataset.richtextInitTries || '0', 10);
+        if (tries < 10) {
+            tabContentEl.dataset.richtextInitTries = String(tries + 1);
+            setTimeout(() => onTabActivated(tabContentEl), 120);
+        }
+    } else {
+        try {
+            const textareas = tabContentEl.querySelectorAll(
+                '[data-editor="markdown"]',
+            );
+            if (textareas.length) {
+                window.fluteRichTextEditor.initialize(textareas);
+
+                textareas.forEach((textarea) => {
+                    if (!textarea.id) return;
+                    const instance =
+                        window.fluteRichTextEditor.instances &&
+                        window.fluteRichTextEditor.instances[textarea.id];
+                    if (instance && instance.codemirror) {
+                        try {
+                            instance.codemirror.refresh();
+                        } catch (e) {
+                            // ignore
+                        }
+                        // Refresh again after layout settles / transitions end
+                        try {
+                            requestAnimationFrame(() => {
+                                try {
+                                    instance.codemirror.refresh();
+                                } catch (e) {
+                                    // ignore
+                                }
+                            });
+                        } catch (e) {
+                            // ignore
+                        }
+                        setTimeout(() => {
+                            try {
+                                instance.codemirror.refresh();
+                            } catch (e) {
+                                // ignore
+                            }
+                        }, 80);
+                    }
+                });
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    // Optional UI inits used across admin.
+    if (window.initColorPickers) {
+        try {
+            window.initColorPickers(tabContentEl);
+        } catch (e) {
+            // ignore
+        }
+    }
+    if (window.initIconPickers) {
+        try {
+            window.initIconPickers(tabContentEl);
+        } catch (e) {
+            // ignore
+        }
+    }
+}
+
+function getTabsContentContainer(container) {
+    if (!container) return null;
+
+    const tabsId = container.dataset.tabsId;
+    if (!tabsId) return null;
+
+    // tabs-content is rendered as a sibling of tabs-container, within the same parent node.
+    const parent = container.parentElement;
+    if (!parent) return null;
+
+    return (
+        parent.querySelector(`[data-name="${tabsId}"]`) ||
+        (parent.parentElement
+            ? parent.parentElement.querySelector(`[data-name="${tabsId}"]`)
+            : null)
+    );
+}
+
+function findTabContent(wrapper, tabId) {
+    if (!wrapper || !tabId) return null;
+
+    try {
+        return (
+            wrapper.querySelector(`:scope > #${CSS.escape(tabId)}`) ||
+            wrapper.querySelector(`#${CSS.escape(tabId)}`)
+        );
+    } catch (e) {
+        return wrapper.querySelector('#' + tabId);
+    }
+}
+
+function initializeTabContents(container, guard) {
     if (!container) return;
+
+    guard = guard || new WeakSet();
+    if (guard.has(container)) return;
+    guard.add(container);
 
     const activeTabItem = container.querySelector('.tab-item.active');
     if (!activeTabItem) return;
@@ -98,9 +258,7 @@ function initializeTabContents(container) {
     const tabsId = container.dataset.tabsId;
     if (!tabsId) return;
 
-    const tabsContentContainer = container.parentElement.querySelector(
-        `[data-name="${tabsId}"]`,
-    );
+    const tabsContentContainer = getTabsContentContainer(container);
 
     if (tabsContentContainer) {
         const tabContents =
@@ -110,37 +268,35 @@ function initializeTabContents(container) {
             tabContent.style.display = 'none';
         });
 
-        const targetTab = document.getElementById(tabId);
+        const targetTab =
+            findTabContent(tabsContentContainer, tabId) ||
+            document.getElementById(tabId);
         if (targetTab) {
             targetTab.classList.add('active');
             targetTab.style.display = '';
 
-            // Recursively initialize all nested tabs
-            initializeNestedTabs(targetTab);
+            const paramKey = getQueryParamKeyForContainer(container);
+            const tabSlug = getTabSlugFromTabId(tabId);
+            if (paramKey && tabSlug) {
+                updateUrlQueryParam(paramKey, tabSlug);
+            }
+
+            initializeNestedTabs(targetTab, guard);
+            onTabActivated(targetTab);
         }
     }
 }
 
-function initializeNestedTabs(element) {
+function initializeNestedTabs(element, guard) {
     if (!element) return;
 
-    // Find all nested tab containers
     const nestedContainers = element.querySelectorAll('.tabs-container');
 
     nestedContainers.forEach((nestedContainer) => {
         updateUnderline(nestedContainer);
-        initializeTabContents(nestedContainer);
+        initializeTabContents(nestedContainer, guard);
 
-        // Handle lazy-loaded nested tabs
         initializeLazyNestedTabs(nestedContainer);
-
-        // Also check for deeply nested containers
-        const deepNested = nestedContainer.querySelectorAll('.tabs-container');
-        deepNested.forEach(deepContainer => {
-            updateUnderline(deepContainer);
-            initializeTabContents(deepContainer);
-            initializeLazyNestedTabs(deepContainer);
-        });
     });
 }
 
@@ -154,7 +310,10 @@ function initializeLazyNestedTabs(container) {
     if (!activeTabLink) return;
 
     const tabId = activeTabLink.dataset.tabId;
-    const targetElement = document.getElementById(tabId);
+    const wrapper = getTabsContentContainer(container);
+    const targetElement =
+        (wrapper ? findTabContent(wrapper, tabId) : null) ||
+        document.getElementById(tabId);
 
     if (targetElement && targetElement.classList.contains('lazy-content')) {
         const targetSelector = activeTabLink.getAttribute('hx-target');
@@ -250,12 +409,41 @@ if (typeof htmx !== 'undefined') {
 
     htmx.on('htmx:beforeRequest', function (event) {
         const target = event.detail.target;
+        const elt = event.detail.elt;
+        
+        if (elt && elt.closest('.tabs-nav')) {
+            const container = elt.closest('.tabs-container');
+            if (container) {
+                const containerId = container.dataset.tabsId || container.id || 'default';
+                abortPreviousTabRequest(containerId);
+                
+                const controller = new AbortController();
+                activeTabRequests.set(containerId, controller);
+                
+                event.detail.xhr.onreadystatechange = function() {
+                    if (event.detail.xhr.readyState === 4) {
+                        activeTabRequests.delete(containerId);
+                    }
+                };
+            }
+        }
+        
         if (target && target.classList.contains('tab-content')) {
             target.innerHTML = '<div class="row gx-3 gy-3 tab-skeleton-content">' +
                 '<div class="col-md-8"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
                 '<div class="col-md-4"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
                 '<div class="col-md-12"><div class="skeleton tabs-skeleton w-100" style="height: 200px"></div></div>' +
                 '</div>';
+        }
+    });
+    
+    htmx.on('htmx:abort', function(event) {
+        const elt = event.detail.elt;
+        if (elt && elt.closest('.tabs-nav')) {
+            const target = document.querySelector(elt.getAttribute('hx-target'));
+            if (target && target.querySelector('.tab-skeleton-content')) {
+                target.innerHTML = '';
+            }
         }
     });
 }
@@ -287,9 +475,7 @@ htmx.on('htmx:afterSwap', function (event) {
         if (!headingLink) return;
 
         const tabsContainer = headingLink.closest('.tabs-container');
-        const wrapper = tabsContainer.parentElement.querySelector(
-            `[data-name="${tabsContainer.dataset.tabsId}"]`,
-        );
+        const wrapper = getTabsContentContainer(tabsContainer);
 
         if (wrapper) {
             tabsContainer
@@ -306,9 +492,10 @@ htmx.on('htmx:afterSwap', function (event) {
 
             updateUnderline(tabsContainer);
 
-            initializeNestedTabs(contentEl);
+            initializeNestedTabs(contentEl, new WeakSet());
 
             contentEl.classList.remove('lazy-content');
+            onTabActivated(contentEl);
         }
     }
 
@@ -324,7 +511,6 @@ htmx.on('htmx:afterSwap', function (event) {
                 const target = link.getAttribute('hx-target') || '#' + tabId;
                 const swap = link.getAttribute('hx-swap') || 'innerHTML';
 
-                // Verify target exists
                 if (document.querySelector(target)) {
                     htmx.ajax('GET', url, {
                         target: target,
@@ -342,18 +528,25 @@ document.addEventListener('click', function (e) {
     const link = e.target.closest('.tabs-nav a');
     if (!link) return;
 
+    const container = link.closest('.tabs-container');
+    if (!container) return;
+    
+    const containerId = container.dataset.tabsId || container.id || 'default';
+    abortPreviousTabRequest(containerId);
+
     if (!link.hasAttribute('hx-get')) {
         e.preventDefault();
     }
 
-    const container = link.closest('.tabs-container');
-    if (!container) return;
-
-    const tabsId = container.dataset.tabsId;
-    const tabsContentContainer = container.parentElement.querySelector(
-        `[data-name="${tabsId}"]`,
-    );
+    const tabsContentContainer = getTabsContentContainer(container);
     const tabId = link.dataset.tabId;
+    const tabSlug = getTabSlugFromTabId(tabId);
+    const paramKey = getQueryParamKeyForContainer(container);
+
+    // Persist active tab in the URL so Yoyo requests keep correct active tab after swap.
+    if (paramKey && tabSlug) {
+        updateUrlQueryParam(paramKey, tabSlug);
+    }
 
     if (tabsContentContainer) {
         const tabContents =
@@ -363,19 +556,23 @@ document.addEventListener('click', function (e) {
             tabContent.style.display = 'none';
         });
 
-        const targetTab = document.getElementById(tabId);
+        const targetTab =
+            findTabContent(tabsContentContainer, tabId) ||
+            document.getElementById(tabId);
         if (targetTab) {
             targetTab.classList.add('active');
             targetTab.style.display = '';
 
-            initializeNestedTabs(targetTab);
+            initializeNestedTabs(targetTab, new WeakSet());
+            onTabActivated(targetTab);
 
             if (targetTab.classList.contains('lazy-content') && link.hasAttribute('hx-get')) {
                 if (typeof htmx !== 'undefined') {
                     htmx.on('htmx:afterSwap', function handler(evt) {
                         if (evt.detail.target === targetTab) {
                             setTimeout(() => {
-                                initializeNestedTabs(targetTab);
+                                initializeNestedTabs(targetTab, new WeakSet());
+                                onTabActivated(targetTab);
                             }, 100);
                             htmx.off('htmx:afterSwap', handler);
                         }

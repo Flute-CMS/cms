@@ -160,6 +160,7 @@ class MarketplaceProductScreen extends Screen
             }
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
+            $this->triggerSidebarRefresh();
 
         } catch (Exception $e) {
             logs()->error($e);
@@ -190,6 +191,7 @@ class MarketplaceProductScreen extends Screen
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_uninstalled'), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
@@ -213,6 +215,7 @@ class MarketplaceProductScreen extends Screen
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_activated'), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
@@ -236,12 +239,18 @@ class MarketplaceProductScreen extends Screen
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_deactivated'), 'success');
+            $this->triggerSidebarRefresh();
         } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
             $this->loadModule();
         }
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
     }
 
     public function commandBar(): array

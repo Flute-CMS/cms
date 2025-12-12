@@ -1,6 +1,8 @@
 <?php return [
     "scroll_to_top" => "Scroll to top",
     "customization" => "Interface customization",
+    "recent_pages" => "Recent",
+    "back_to_site" => "Back to site",
     "theme_mode" => "Theme mode",
     "light" => "Light",
     "dark" => "Dark",

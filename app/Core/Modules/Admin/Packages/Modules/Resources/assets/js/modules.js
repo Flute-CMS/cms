@@ -180,7 +180,12 @@ function uploadFile(file) {
                         translate('admin-modules.messages.installed'),
                 );
 
-                setTimeout(refreshModulesList, 1000);
+                setTimeout(() => {
+                    refreshModulesList();
+                    if (typeof window.refreshAdminSidebar === 'function') {
+                        window.refreshAdminSidebar();
+                    }
+                }, 1000);
             } else {
                 showNotyfError(
                     response.error ||

@@ -10,13 +10,13 @@
         @foreach ($tabs as $name => $tab)
             @php
                 $slugName = $tab['slug'] ?? \Illuminate\Support\Str::slug($name);
-                $uniqueSlugName = $parentSlug ? $parentSlug . '_' . $slugName : $slugName;
+                $uniqueSlugName = $uniqueSlug . '__' . $slugName;
                 $isActive = $activeTab === $slugName || ($tab['active'] ?? false);
             @endphp
 
             @if ($useLazyLoad)
                 <x-tab-heading name="{{ $uniqueSlugName }}" :badge="$tab['badge'] ?? null" :active="$isActive"
-                    url="{{ url($templateSlug)->setParams(['tab-'.$slug => $slugName])->get() }}" hx-include="none"
+                    url="{{ url($templateSlug)->withGet()->addParams(['tab-'.$slug => $slugName])->get() }}" hx-include="none"
                     :shouldTrigger="false" hx-boost="true" 
                     hx-target="#tab__{{ $uniqueSlugName }}"
                     hx-select="#tab__{{ $uniqueSlugName }}" hx-push-url="true"
@@ -45,7 +45,7 @@
     @foreach ($tabs as $name => $tab)
         @php
             $slugName = $tab['slug'] ?? \Illuminate\Support\Str::slug($name);
-            $uniqueSlugName = $parentSlug ? $parentSlug . '_' . $slugName : $slugName;
+            $uniqueSlugName = $uniqueSlug . '__' . $slugName;
             $isActive = $activeTab === $slugName || ($tab['active'] ?? false);
         @endphp
 
