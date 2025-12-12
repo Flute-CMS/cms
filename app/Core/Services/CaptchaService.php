@@ -210,11 +210,11 @@ class CaptchaService
                 return false;
             }
 
-            if (!empty($expectedAction) && isset($json['action']) && (string) $json['action'] !== $expectedAction) {
-                return false;
-            }
+            return !(!empty($expectedAction) && isset($json['action']) && (string) $json['action'] !== $expectedAction)
 
-            return true;
+
+
+            ;
         } catch (Exception $e) {
             logs()->error('reCAPTCHA v3 verification failed: ' . $e->getMessage());
 

@@ -24,6 +24,22 @@ class TemplateAssets
 
     private const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
+    /**
+     * Cache mapping for extension to asset type tag generation.
+     */
+    private const EXTENSION_TO_TYPE = [
+        'css' => 'css',
+        'scss' => 'css',
+        'js' => 'js',
+        'mjs' => 'js',
+        'jpg' => 'img',
+        'jpeg' => 'img',
+        'png' => 'img',
+        'gif' => 'img',
+        'webp' => 'img',
+        'svg' => 'img',
+    ];
+
     protected TemplateScssCompiler $scssCompiler;
 
     protected Template $template;
@@ -67,22 +83,6 @@ class TemplateAssets
      * Accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
      */
     protected static float $assetsCompileTime = 0.0;
-
-    /**
-     * Cache mapping for extension to asset type tag generation.
-     */
-    private const EXTENSION_TO_TYPE = [
-        'css' => 'css',
-        'scss' => 'css',
-        'js' => 'js',
-        'mjs' => 'js',
-        'jpg' => 'img',
-        'jpeg' => 'img',
-        'png' => 'img',
-        'gif' => 'img',
-        'webp' => 'img',
-        'svg' => 'img',
-    ];
 
     public function __construct()
     {
@@ -385,32 +385,6 @@ class TemplateAssets
     }
 
     /**
-     * Determine tag "type" for generateTag() from a file extension.
-     */
-    private function getTagTypeFromExtension(string $extension): string
-    {
-        $extension = strtolower($extension);
-
-        return self::EXTENSION_TO_TYPE[$extension] ?? '';
-    }
-
-    /**
-     * Cache-busted URL for a relative public path.
-     */
-    private function buildPublicAssetUrl(string $relativePublicPath): string
-    {
-        $relativePublicPath = ltrim(str_replace('\\', '/', $relativePublicPath), '/');
-        $fullPath = BASE_PATH . "public/{$relativePublicPath}";
-        if (!file_exists($fullPath)) {
-            return '';
-        }
-
-        $version = filemtime($fullPath);
-
-        return url($relativePublicPath) . "?v={$version}";
-    }
-
-    /**
      * Downloads and caches an external asset from a CDN, storing it locally.
      *
      * @param string $url The URL of the CDN asset.
@@ -568,11 +542,34 @@ class TemplateAssets
     }
 
     /**
+     * Determine tag "type" for generateTag() from a file extension.
+     */
+    private function getTagTypeFromExtension(string $extension): string
+    {
+        $extension = strtolower($extension);
+
+        return self::EXTENSION_TO_TYPE[$extension] ?? '';
+    }
+
+    /**
+     * Cache-busted URL for a relative public path.
+     */
+    private function buildPublicAssetUrl(string $relativePublicPath): string
+    {
+        $relativePublicPath = ltrim(str_replace('\\', '/', $relativePublicPath), '/');
+        $fullPath = BASE_PATH . "public/{$relativePublicPath}";
+        if (!file_exists($fullPath)) {
+            return '';
+        }
+
+        $version = filemtime($fullPath);
+
+        return url($relativePublicPath) . "?v={$version}";
+    }
+
+    /**
      * Execute a callback under an exclusive lock file (best-effort).
      * If lock can't be acquired, waits for the lock holder to finish by taking a shared lock.
-     *
-     * @param string   $lockFile
-     * @param callable $callback
      */
     private function withFileLock(string $lockFile, callable $callback): void
     {
@@ -894,7 +891,7 @@ class TemplateAssets
 
                 $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
                 $this->scssCompiler->setImportPaths($baseImportPaths);
-                $importPaths = array_map(static fn($p) => str_replace('\\', '/', $p), $importPaths);
+                $importPaths = array_map(static fn ($p) => str_replace('\\', '/', $p), $importPaths);
                 foreach (array_unique($importPaths) as $importPath) {
                     if (is_dir($importPath)) {
                         $this->scssCompiler->addImportPath($importPath);
@@ -1004,6 +1001,7 @@ class TemplateAssets
                                 $this->collectScssDependencies($candidate, $visited)
                             );
                             $found = true;
+
                             break;
                         }
                     }
@@ -1235,8 +1233,9 @@ class TemplateAssets
 
             if (!file_exists($webpFullPath) || filemtime($imgPathBase) > filemtime($webpFullPath)) {
                 $lockFile = $webpFullPath . '.lock';
+
                 try {
-                    $this->withFileLock($lockFile, function () use ($imgPathBase, $webpFullPath) {
+                    $this->withFileLock($lockFile, static function () use ($imgPathBase, $webpFullPath) {
                         if (file_exists($webpFullPath) && filemtime($imgPathBase) <= filemtime($webpFullPath)) {
                             return;
                         }

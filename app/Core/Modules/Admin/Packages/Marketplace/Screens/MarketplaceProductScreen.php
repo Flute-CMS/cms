@@ -248,11 +248,6 @@ class MarketplaceProductScreen extends Screen
         }
     }
 
-    protected function triggerSidebarRefresh(): void
-    {
-        $this->dispatchBrowserEvent('sidebar-refresh');
-    }
-
     public function commandBar(): array
     {
         return [
@@ -274,6 +269,11 @@ class MarketplaceProductScreen extends Screen
                 'isLoading' => $this->isLoading,
             ]),
         ];
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
     }
 
     protected function loadModule(): void

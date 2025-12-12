@@ -23,11 +23,6 @@ class AdminPackageFactory
 
     protected bool $packagesLoaded = false;
 
-    public function clearMenuCache(): void
-    {
-        $this->menuItemsCache = null;
-    }
-
     public function __construct(
         EventDispatcher $dispatcher,
         string $packagesPath = 'app/Core/Modules/Admin/Packages',
@@ -36,6 +31,11 @@ class AdminPackageFactory
         $this->dispatcher = $dispatcher;
         $this->packagesPath = rtrim(BASE_PATH . DIRECTORY_SEPARATOR . $packagesPath, DIRECTORY_SEPARATOR);
         $this->baseNamespace = rtrim($baseNamespace, '\\');
+    }
+
+    public function clearMenuCache(): void
+    {
+        $this->menuItemsCache = null;
     }
 
     public function registerPackage(AdminPackageInterface $package): void
@@ -173,7 +173,7 @@ class AdminPackageFactory
                 if (isset($item['type']) && $item['type'] === 'header') {
                     $sectionKey = $item['title'];
                     $packageSectionKey = $sectionKey;
-                    
+
                     if (!isset($sections[$sectionKey])) {
                         $sections[$sectionKey] = [
                             'type' => 'header',
@@ -185,7 +185,7 @@ class AdminPackageFactory
                         // Keep earliest priority for stable ordering.
                         $sections[$sectionKey]['priority'] = min($sections[$sectionKey]['priority'], $package->getPriority());
                     }
-                    
+
                     if (!$isModulePackage) {
                         $lastCoreSectionKey = $sectionKey;
                     }
@@ -202,7 +202,7 @@ class AdminPackageFactory
                     if ($targetSection === null && !$isModulePackage) {
                         $targetSection = $lastCoreSectionKey;
                     }
-                    
+
                     if ($targetSection === null) {
                         $targetSection = '__ungrouped__';
                         if (!isset($sections[$targetSection])) {
@@ -241,7 +241,7 @@ class AdminPackageFactory
             }
         }
 
-        uasort($sections, fn ($a, $b) => $a['priority'] <=> $b['priority']);
+        uasort($sections, static fn ($a, $b) => $a['priority'] <=> $b['priority']);
 
         $result = [];
         foreach ($sections as $section) {
@@ -258,7 +258,7 @@ class AdminPackageFactory
     protected function getModuleNameFromPackage(AdminPackageInterface $package): ?string
     {
         $basePath = $package->getBasePath();
-        
+
         if (strpos($basePath, 'app' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR) !== false) {
             preg_match('/app[\/\\\\]Modules[\/\\\\]([^\/\\\\]+)/', $basePath, $matches);
             if (!empty($matches[1])) {
@@ -304,14 +304,16 @@ class AdminPackageFactory
                         return true;
                     }
                 }
+
                 return false;
             }
-            
+
             foreach ($permissions as $perm) {
                 if (!user()->can($perm)) {
                     return false;
                 }
             }
+
             return true;
         }
 

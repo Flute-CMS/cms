@@ -52,5 +52,3 @@ class TemplateScssCompiler extends Compiler
         return $this->baseImportPaths;
     }
 }
-
-

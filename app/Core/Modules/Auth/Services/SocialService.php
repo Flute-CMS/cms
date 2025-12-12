@@ -641,9 +641,9 @@ class SocialService implements SocialServiceInterface
         $settings['keys'] = $this->mapProviderKeys($providerKey, $settings['keys'] ?? []);
 
         if ($providerKey === 'Vkontakte') {
-            $settings['scope'] = $settings['scope'] ?? 'email';
-            $settings['fields'] = $settings['fields'] ?? 'photo_max,screen_name';
-            $settings['version'] = $settings['version'] ?? '5.131';
+            $settings['scope'] ??= 'email';
+            $settings['fields'] ??= 'photo_max,screen_name';
+            $settings['version'] ??= '5.131';
         }
 
         return $settings;

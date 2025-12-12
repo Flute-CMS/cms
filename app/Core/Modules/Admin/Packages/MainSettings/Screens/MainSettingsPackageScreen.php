@@ -1378,7 +1378,7 @@ class MainSettingsPackageScreen extends Screen
                         ->options(array_combine(
                             config('lang.available'),
                             array_map(
-                                static fn($key) => __('langs.' . $key),
+                                static fn ($key) => __('langs.' . $key),
                                 config('lang.available')
                             )
                         ))
@@ -1387,7 +1387,7 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::block([
                 LayoutFactory::split(
                     array_map(
-                        static fn($lang) => LayoutFactory::field(
+                        static fn ($lang) => LayoutFactory::field(
                             Toggle::make("available[{$lang}]")
                                 ->checked(in_array($lang, config('lang.available')))
                         )->label(__('langs.' . $lang)),
