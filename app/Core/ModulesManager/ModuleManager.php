@@ -10,6 +10,7 @@ use Flute\Core\ModulesManager\Exceptions\ModuleDependencyException;
 use Flute\Core\Theme\ThemeManager;
 use Illuminate\Support\Collection;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 /**
  * Class ModuleManager
@@ -370,8 +371,8 @@ class ModuleManager
         }
 
         try {
-            fs()->mkdir($this->modulesPath, 0755);
-        } catch (\Throwable $e) {
+            fs()->mkdir($this->modulesPath, 0o755);
+        } catch (Throwable $e) {
             logs('modules')->warning('Unable to create modules directory: ' . $e->getMessage());
         }
     }
