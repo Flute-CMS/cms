@@ -434,22 +434,11 @@ class ModuleUpdater extends AbstractUpdater
      */
     protected function clearCache(): void
     {
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $files = scandir($viewsCachePath);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
-                }
-
-                $path = $viewsCachePath . '/' . $file;
-                if (is_file($path) && strpos($file, $this->module->key) !== false) {
-                    unlink($path);
-                }
-            }
-        }
-
         cache()->clear();
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
+        }
     }
 
     /**

@@ -41,7 +41,7 @@ class ModuleActivate implements ModuleActionInterface
 
         $this->activate($moduleGet);
 
-        app(DatabaseConnection::class)->forceRefreshSchema();
+        app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
 
         return true;
     }

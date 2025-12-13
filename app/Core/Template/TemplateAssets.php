@@ -3,6 +3,7 @@
 namespace Flute\Core\Template;
 
 use Exception;
+use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Theme\ThemeManager;
 use MatthiasMullie\Minify;
 use Nette\Utils\Validators;
@@ -284,6 +285,11 @@ class TemplateAssets
     protected function getCacheDir(string $type): string
     {
         return "assets/{$type}/cache/{$this->context}/";
+    }
+
+    protected function getStaleCacheDir(string $type): string
+    {
+        return "assets/{$type}/cache_stale/{$this->context}/";
     }
 
     /**
@@ -844,9 +850,14 @@ class TemplateAssets
         $cssPath = $cssCacheDir . "{$cacheKey}.css";
         $cssFullPath = BASE_PATH . "public/" . $cssPath;
 
+        $cssStaleCacheDir = $this->getStaleCacheDir('css');
+        $cssStalePath = $cssStaleCacheDir . "{$cacheKey}.css";
+        $cssStaleFullPath = BASE_PATH . "public/" . $cssStalePath;
+
         $this->ensureDirectoryExists(dirname($cssFullPath));
 
         $cssMtime = file_exists($cssFullPath) ? filemtime($cssFullPath) : 0;
+        $cssStaleMtime = file_exists($cssStaleFullPath) ? filemtime($cssStaleFullPath) : 0;
         $scssMtime = filemtime($scssPath) ?: 0;
 
         $latestSourceMtime = max($scssMtime, $this->getScssDependenciesMaxMtime($scssPath));
@@ -870,49 +881,28 @@ class TemplateAssets
 
         if ($needsRecompile) {
             $lockFile = $cssFullPath . '.lock';
-            $this->withFileLock($lockFile, function () use ($needsRecompile, $scssPath, $cssFullPath) {
-                if (!$needsRecompile) {
-                    return;
-                }
 
-                $importPaths = [dirname($scssPath)];
-                foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-                    if (file_exists($additionalFile)) {
-                        $importPaths[] = dirname($additionalFile);
-                    }
-                }
-                foreach ($this->additionalPartials as $partial) {
-                    $partialPath = path($partial);
-                    if (file_exists($partialPath)) {
-                        $importPaths[] = dirname($partialPath);
-                    }
-                }
-                $importPaths[] = rtrim(str_replace('\\', '/', BASE_PATH . 'app'), '/');
+            // In debug mode we want immediate recompilation for accurate feedback.
+            if ($this->debugMode) {
+                $this->withFileLock($lockFile, function () use ($scssPath, $cssFullPath): void {
+                    $this->compileScssToCacheFile($scssPath, $cssFullPath);
+                });
 
-                $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
-                $this->scssCompiler->setImportPaths($baseImportPaths);
-                $importPaths = array_map(static fn ($p) => str_replace('\\', '/', $p), $importPaths);
-                foreach (array_unique($importPaths) as $importPath) {
-                    if (is_dir($importPath)) {
-                        $this->scssCompiler->addImportPath($importPath);
-                    }
+                if (!file_exists($cssFullPath)) {
+                    $this->compileScssToCacheFile($scssPath, $cssFullPath);
                 }
+            } else {
+                // SWR: serve existing (or stale) CSS and revalidate after response.
+                SWRQueue::queue('assets.scss.' . $cacheKey, function () use ($lockFile, $scssPath, $cssFullPath, $latestSourceMtime): void {
+                    $this->withFileLock($lockFile, function () use ($scssPath, $cssFullPath, $latestSourceMtime): void {
+                        $cssMtime = file_exists($cssFullPath) ? filemtime($cssFullPath) : 0;
+                        if ($cssMtime !== 0 && $latestSourceMtime < $cssMtime) {
+                            return;
+                        }
 
-                $scssContents = $this->gatherScssContents($scssPath);
-                $css = $this->compileScss($scssContents);
-
-                if ($css !== '') {
-                    $this->saveAsset($cssFullPath, $css);
-                }
-            });
-
-            if (!file_exists($cssFullPath)) {
-                $scssContents = $this->gatherScssContents($scssPath);
-                $css = $this->compileScss($scssContents);
-
-                if ($css !== '') {
-                    $this->saveAsset($cssFullPath, $css);
-                }
+                        $this->compileScssToCacheFile($scssPath, $cssFullPath);
+                    });
+                });
             }
         }
 
@@ -920,15 +910,64 @@ class TemplateAssets
             return $this->compilationCache[$cacheKey];
         }
 
-        $version = filemtime($cssFullPath);
-        $url = url($cssPath) . "?v={$version}";
+        $servedPath = $cssPath;
+        $servedVersion = $cssMtime;
+
+        // If the fresh cache file doesn't exist yet, try serving the stale cache while it revalidates.
+        if ($cssMtime === 0 && $cssStaleMtime > 0 && !$this->debugMode) {
+            $servedPath = $cssStalePath;
+            $servedVersion = $cssStaleMtime;
+        }
+
+        // If nothing exists to serve, compile synchronously as a last resort.
+        if ($servedVersion === 0) {
+            $this->compileScssToCacheFile($scssPath, $cssFullPath);
+            $cssMtime = file_exists($cssFullPath) ? filemtime($cssFullPath) : 0;
+            $servedPath = $cssPath;
+            $servedVersion = $cssMtime ?: time();
+        }
+
+        $url = url($servedPath) . "?v={$servedVersion}";
         $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
 
-        if (!$this->debugMode) {
+        if (!$this->debugMode && !$needsRecompile && $servedPath === $cssPath) {
             $this->compilationCache[$cacheKey] = $result;
         }
 
         return $result;
+    }
+
+    private function compileScssToCacheFile(string $scssPath, string $cssFullPath): void
+    {
+        $importPaths = [dirname($scssPath)];
+        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+            if (file_exists($additionalFile)) {
+                $importPaths[] = dirname($additionalFile);
+            }
+        }
+        foreach ($this->additionalPartials as $partial) {
+            $partialPath = path($partial);
+            if (file_exists($partialPath)) {
+                $importPaths[] = dirname($partialPath);
+            }
+        }
+        $importPaths[] = rtrim(str_replace('\\', '/', BASE_PATH . 'app'), '/');
+
+        $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
+        $this->scssCompiler->setImportPaths($baseImportPaths);
+        $importPaths = array_map(static fn ($p) => str_replace('\\', '/', $p), $importPaths);
+        foreach (array_unique($importPaths) as $importPath) {
+            if (is_dir($importPath)) {
+                $this->scssCompiler->addImportPath($importPath);
+            }
+        }
+
+        $scssContents = $this->gatherScssContents($scssPath);
+        $css = $this->compileScss($scssContents);
+
+        if ($css !== '') {
+            $this->saveAsset($cssFullPath, $css);
+        }
     }
 
     /**

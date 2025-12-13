@@ -9,6 +9,7 @@ namespace Flute\Core\Router;
 use Clickfwd\Yoyo\Exceptions\HttpException;
 use DI\Container;
 use Exception;
+use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Events\OnRouteFoundEvent;
 use Flute\Core\Events\RoutingFinishedEvent;
 use Flute\Core\Events\RoutingStartedEvent;
@@ -353,41 +354,87 @@ class Router implements RouterInterface
         $urlMatcher = null;
 
         $cacheFile = path('storage/app/cache/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php');
-        if (!is_debug() && file_exists($cacheFile)) {
-            $compiledRoutes = require $cacheFile;
-            if ($compiledRoutes instanceof \Symfony\Component\Routing\Matcher\CompiledUrlMatcher) {
-                $urlMatcher = $compiledRoutes;
-                $urlMatcher->setContext($context);
+        $staleCacheDir = (string) (config('cache.stale_directory') ?? '');
+        $staleCacheFile = '';
+        if ($staleCacheDir !== '') {
+            $staleCacheFile = rtrim(str_replace('\\', '/', $staleCacheDir), '/') . '/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php';
+        }
+
+        if (!is_debug()) {
+            $sourceFile = null;
+            if (file_exists($cacheFile)) {
+                $sourceFile = $cacheFile;
+            } elseif ($staleCacheFile !== '' && file_exists($staleCacheFile)) {
+                $sourceFile = $staleCacheFile;
+            }
+
+            if ($sourceFile) {
+                $compiledRoutes = require $sourceFile;
+                if ($compiledRoutes instanceof \Symfony\Component\Routing\Matcher\CompiledUrlMatcher) {
+                    $urlMatcher = $compiledRoutes;
+                    $urlMatcher->setContext($context);
+                }
             }
         }
 
         if (!$urlMatcher) {
             $urlMatcher = new UrlMatcher($compilable, $context);
+        }
 
-            if (!is_debug()) {
+        if (!is_debug() && !file_exists($cacheFile)) {
+            SWRQueue::queue('router.routes_compiled.' . ($isAdmin ? 'admin' : 'front'), static function () use ($cacheFile, $staleCacheFile, $compilable): void {
+                if (file_exists($cacheFile)) {
+                    return;
+                }
+
+                // Fast path: restore previous compiled file from stale cache dir.
+                if ($staleCacheFile !== '' && file_exists($staleCacheFile)) {
+                    $content = @file_get_contents($staleCacheFile);
+                    if (is_string($content) && $content !== '') {
+                        @mkdir(dirname($cacheFile), 0o755, true);
+                        $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+                        if (@file_put_contents($tmp, $content, LOCK_EX) !== false) {
+                            @rename($tmp, $cacheFile);
+
+                            return;
+                        }
+                    }
+                }
+
                 $lockFile = $cacheFile . '.lock';
                 $lockHandle = @fopen($lockFile, 'w+');
+                if (!$lockHandle) {
+                    return;
+                }
 
-                if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                if (@flock($lockHandle, LOCK_EX | LOCK_NB)) {
                     try {
-                        if (!file_exists($cacheFile)) {
-                            $dumper = new CompiledUrlMatcherDumper($compilable);
-                            $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
-                            $compiledSource = (string) $compiledSource;
-                            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
-                            file_put_contents($cacheFile, $php);
+                        if (file_exists($cacheFile)) {
+                            return;
+                        }
+
+                        $dumper = new CompiledUrlMatcherDumper($compilable);
+                        $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                        $compiledSource = (string) $compiledSource;
+                        $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+
+                        $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+                        if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
+                            @rename($tmp, $cacheFile);
                         }
                     } catch (Throwable $e) {
-                        logs()->warning($e);
+                        if (function_exists('logs')) {
+                            logs()->warning($e);
+                        }
                     } finally {
-                        flock($lockHandle, LOCK_UN);
-                        fclose($lockHandle);
+                        @flock($lockHandle, LOCK_UN);
+                        @fclose($lockHandle);
                         @unlink($lockFile);
                     }
-                } elseif ($lockHandle) {
-                    fclose($lockHandle);
+                } else {
+                    @fclose($lockHandle);
                 }
-            }
+            });
         }
 
         $t0 = microtime(true);
@@ -465,6 +512,65 @@ class Router implements RouterInterface
         }
 
         return $response;
+    }
+
+    /**
+     * Ensures compiled routes cache file exists (front/admin).
+     * Intended for cron warmup and should not execute controllers.
+     */
+    public function warmupCompiledRoutes(bool $admin = false): void
+    {
+        if (is_debug()) {
+            return;
+        }
+
+        $compilable = new RouteCollection();
+        if ($admin) {
+            $compilable->addCollection($this->frontCompilableRoutes);
+            $compilable->addCollection($this->adminCompilableRoutes);
+        } else {
+            $compilable->addCollection($this->frontCompilableRoutes);
+        }
+
+        $cacheFile = path('storage/app/cache/routes_compiled' . ($admin ? '_admin' : '_front') . '.php');
+        if (file_exists($cacheFile)) {
+            return;
+        }
+
+        $lockFile = $cacheFile . '.lock';
+        $lockHandle = @fopen($lockFile, 'w+');
+        if (!$lockHandle) {
+            return;
+        }
+
+        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            @fclose($lockHandle);
+
+            return;
+        }
+
+        try {
+            if (file_exists($cacheFile)) {
+                return;
+            }
+
+            $dumper = new CompiledUrlMatcherDumper($compilable);
+            $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+            $compiledSource = (string) $compiledSource;
+            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+
+            @mkdir(dirname($cacheFile), 0o755, true);
+            $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+            if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
+                @rename($tmp, $cacheFile);
+            }
+        } catch (Throwable $e) {
+            logs()->warning($e);
+        } finally {
+            @flock($lockHandle, LOCK_UN);
+            @fclose($lockHandle);
+            @unlink($lockFile);
+        }
     }
 
     /**

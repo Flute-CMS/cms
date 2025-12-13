@@ -13,6 +13,7 @@ use DI\Definition\Helper\DefinitionHelper;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Exception;
+use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
@@ -370,6 +371,12 @@ final class App
         GlobalProfiler::stop();
 
         $res->send();
+
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+
+        SWRQueue::run();
     }
 
     /**

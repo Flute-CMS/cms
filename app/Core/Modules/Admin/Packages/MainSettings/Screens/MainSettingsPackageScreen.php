@@ -265,18 +265,65 @@ class MainSettingsPackageScreen extends Screen
 
     public function clearCache()
     {
-        $cachePaths = [
-            BASE_PATH . '/storage/app/cache/*',
-            BASE_PATH . '/storage/app/views/*',
-            BASE_PATH . '/storage/logs/*',
-            BASE_PATH . '/storage/app/proxies/*',
-            BASE_PATH . '/storage/app/translations/*',
-            BASE_PATH . '/public/assets/css/cache/*',
-            BASE_PATH . '/public/assets/js/cache/*',
-        ];
+        $cacheDir = storage_path('app/cache');
+        $cacheStaleDir = storage_path('app/cache_stale');
+        $cssCacheDir = public_path('assets/css/cache');
+        $cssCacheStaleDir = public_path('assets/css/cache_stale');
+        $jsCacheDir = public_path('assets/js/cache');
+        $jsCacheStaleDir = public_path('assets/js/cache_stale');
+
+        $full = (bool) request()->input('full', false);
+        $cachePaths = [];
+        if (!is_performance() || $full) {
+            $cachePaths = [
+                storage_path('app/views/*'),
+                storage_path('logs/*'),
+                storage_path('app/proxies/*'),
+                storage_path('app/translations/*'),
+            ];
+        }
 
         try {
             $filesystem = fs();
+
+            // Rotate cache directory for SWR: keep previous values in cache_stale.
+            if (is_dir($cacheStaleDir)) {
+                $filesystem->remove($cacheStaleDir);
+            }
+            if (is_dir($cacheDir)) {
+                $filesystem->rename($cacheDir, $cacheStaleDir, true);
+            }
+            if (!is_dir($cacheDir)) {
+                @mkdir($cacheDir, 0o755, true);
+            }
+
+            if (function_exists('cache_bump_epoch')) {
+                cache_bump_epoch();
+            }
+            if (function_exists('cache_warmup_mark')) {
+                cache_warmup_mark();
+            }
+
+            // Rotate assets cache for SWR (TemplateAssets can serve stale while recompiling).
+            if (is_dir($cssCacheStaleDir)) {
+                $filesystem->remove($cssCacheStaleDir);
+            }
+            if (is_dir($cssCacheDir)) {
+                $filesystem->rename($cssCacheDir, $cssCacheStaleDir, true);
+            }
+            if (!is_dir($cssCacheDir)) {
+                @mkdir($cssCacheDir, 0o755, true);
+            }
+
+            if (is_dir($jsCacheStaleDir)) {
+                $filesystem->remove($jsCacheStaleDir);
+            }
+            if (is_dir($jsCacheDir)) {
+                $filesystem->rename($jsCacheDir, $jsCacheStaleDir, true);
+            }
+            if (!is_dir($jsCacheDir)) {
+                @mkdir($jsCacheDir, 0o755, true);
+            }
 
             foreach ($cachePaths as $path) {
                 $files = glob($path);
@@ -287,7 +334,6 @@ class MainSettingsPackageScreen extends Screen
 
             $this->clearOpcache();
 
-            app(\Flute\Core\Database\DatabaseConnection::class)->forceRefreshSchema();
 
             // if (!$withoutMessage) {
             $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully'));

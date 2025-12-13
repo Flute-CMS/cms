@@ -350,19 +350,8 @@ class ModuleInstallerService
 
         app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
 
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $files = scandir($viewsCachePath);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
-                }
-
-                $path = $viewsCachePath . '/' . $file;
-                if (is_file($path)) {
-                    unlink($path);
-                }
-            }
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
         }
 
         return [

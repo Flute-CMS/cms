@@ -45,6 +45,7 @@ use Flute\Core\Modules\Search\Providers\SearchServiceProvider;
 use Flute\Core\Modules\Tips\Providers\TipsServiceProvider;
 use Flute\Core\Modules\Translation\Providers\TranslationServiceProvider;
 use Flute\Core\ServiceProviders\BreadcrumbServiceProvider;
+use Flute\Core\ServiceProviders\CacheWarmupServiceProvider;
 use Flute\Core\ServiceProviders\CacheServiceProvider;
 use Flute\Core\ServiceProviders\ConfigurationServiceProvider;
 use Flute\Core\ServiceProviders\CookieServiceProvider;
@@ -104,6 +105,7 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(EventsServiceProvider::class)
     ->serviceProvider(LoggerServiceProvider::class)
     ->serviceProvider(CacheServiceProvider::class)
+    ->serviceProvider(CacheWarmupServiceProvider::class)
     ->serviceProvider(SessionServiceProvider::class)
     ->serviceProvider(CronServiceProvider::class)
     ->serviceProvider(TracyBarServiceProvider::class)

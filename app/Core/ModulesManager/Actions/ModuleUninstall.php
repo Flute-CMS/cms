@@ -53,7 +53,7 @@ class ModuleUninstall implements ModuleActionInterface
             $this->moduleManager->runComposerInstall(null, true);
         }
 
-        app(DatabaseConnection::class)->forceRefreshSchema();
+        app(DatabaseConnection::class)->forceRefreshSchemaDeferred();
 
         return true;
     }

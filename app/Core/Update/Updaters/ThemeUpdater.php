@@ -232,22 +232,6 @@ class ThemeUpdater extends AbstractUpdater
      */
     protected function clearCache(): void
     {
-        // Очищаем кэш views
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $files = scandir($viewsCachePath);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
-                }
-
-                $path = $viewsCachePath . '/' . $file;
-                if (is_file($path)) {
-                    unlink($path);
-                }
-            }
-        }
-
         // Очищаем кэш CSS и JS
         $assetsCachePath = public_path('assets/cache');
         if (is_dir($assetsCachePath)) {
@@ -258,6 +242,10 @@ class ThemeUpdater extends AbstractUpdater
         // Очищаем кэш приложения
         cache()->forget('themes_list');
         cache()->forget('active_theme');
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
+        }
     }
 
     /**

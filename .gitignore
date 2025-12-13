@@ -12,6 +12,9 @@
 /public/assets/img/cache/*
 /public/assets/css/cache/*
 /public/assets/js/cache/*
+/public/assets/js/cache_stale/*
+/public/assets/css/cache_stale/*
+/public/assets/img/cache_stale/*
 .DS_Store
 .env
 .phpunit.result.cache
@@ -19,6 +22,10 @@
 colors.json
 .kiro
 storage/app/orm_schema.php
+storage/app/cache_epoch
+storage/app/cache_stale/
+storage/app/*.lock
+storage/app/cache_warmup_needed
 php-cs-fixer
 /.php-cs-fixer.cache
 docs/

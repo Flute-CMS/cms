@@ -304,16 +304,14 @@ class CmsUpdater extends AbstractUpdater
      */
     protected function clearCache(): void
     {
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $this->removeDirectory($viewsCachePath);
-            mkdir($viewsCachePath, 0o755, true);
-        }
-
         cache()->clear();
 
         if (function_exists('app') && app()->has('Flute\Core\Update\Services\UpdateService')) {
             app('Flute\Core\Update\Services\UpdateService')->clearCache();
+        }
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
         }
 
         if (function_exists('opcache_reset')) {

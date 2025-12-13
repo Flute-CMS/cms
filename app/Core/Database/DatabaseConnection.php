@@ -18,7 +18,9 @@ use Cycle\Schema\Compiler;
 use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
 use Exception;
+use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
+use Flute\Core\Database\Entities\Module;
 use Spiral\Tokenizer\ClassLocator;
 use Spiral\Tokenizer\Config\TokenizerConfig;
 use Spiral\Tokenizer\Tokenizer;
@@ -43,6 +45,11 @@ class DatabaseConnection
     protected array $entitiesDirs = [];
 
     protected bool $schemaNeedsUpdate = false;
+
+    private static bool $schemaRefreshQueued = false;
+
+    /** @var array<string,bool> */
+    private static array $schemaRefreshExtraModules = [];
 
     /**
      * Constructor DatabaseConnection.
@@ -345,33 +352,100 @@ class DatabaseConnection
      * Force refreshing ORM schema and reloading all entities.
      * Used when there are problems with entity recognition after cache cleanup.
      */
-    public function forceRefreshSchema(): void
+    public function forceRefreshSchema(array $extraModules = []): void
     {
         logs()->info("Force refreshing ORM schema");
 
         if (file_exists(self::SCHEMA_FILE)) {
-            unlink(self::SCHEMA_FILE);
+            $stale = self::SCHEMA_FILE . '.stale';
+            @unlink($stale);
+            if (!@rename(self::SCHEMA_FILE, $stale)) {
+                @unlink(self::SCHEMA_FILE);
+            }
         }
 
         $this->entitiesDirs = [self::ENTITIES_DIR];
 
-        $modulesDir = path('app/Modules');
-        if (is_dir($modulesDir)) {
-            $finder = finder();
-            $finder->directories()->in($modulesDir)->depth('== 0');
+        $moduleKeys = [];
 
-            foreach ($finder as $moduleDir) {
-                $entitiesDir = $moduleDir->getPathname() . '/database/Entities';
-                if (is_dir($entitiesDir)) {
-                    logs()->info("Adding entities directory: {$entitiesDir}");
-                    $this->entitiesDirs[] = $entitiesDir;
+        // Prefer cached modules DB snapshot (supports SWR) to avoid heavy scans/queries.
+        try {
+            $cached = cache()->get('flute.modules.alldb', []);
+            if (is_array($cached)) {
+                foreach ($cached as $row) {
+                    $key = $row['key'] ?? null;
+                    $status = $row['status'] ?? null;
+                    if (is_string($key) && $key !== '' && $status !== 'notinstalled') {
+                        $moduleKeys[$key] = true;
+                    }
                 }
+            }
+        } catch (Throwable) {
+        }
+
+        // Fallback to database if cache is unavailable.
+        if (empty($moduleKeys)) {
+            try {
+                $modules = Module::findAll();
+                foreach ($modules as $module) {
+                    if ($module->status !== 'notinstalled') {
+                        $moduleKeys[$module->key] = true;
+                    }
+                }
+            } catch (Throwable) {
+            }
+        }
+
+        foreach ($extraModules as $k) {
+            if (is_string($k) && $k !== '') {
+                $moduleKeys[$k] = true;
+            }
+        }
+
+        foreach (array_keys($moduleKeys) as $moduleKey) {
+            $entitiesDir = path("app/Modules/{$moduleKey}/database/Entities");
+            if (is_dir($entitiesDir)) {
+                $this->entitiesDirs[] = $entitiesDir;
             }
         }
 
         $this->recompileOrmSchema(false);
 
         logs()->info("ORM schema refreshed successfully");
+    }
+
+    public function forceRefreshSchemaDeferred(array $extraModules = []): void
+    {
+        if (function_exists('is_cli') && is_cli()) {
+            $this->forceRefreshSchema($extraModules);
+
+            return;
+        }
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
+        }
+
+        foreach ($extraModules as $k) {
+            if (is_string($k) && $k !== '') {
+                self::$schemaRefreshExtraModules[$k] = true;
+            }
+        }
+
+        if (self::$schemaRefreshQueued) {
+            return;
+        }
+
+        self::$schemaRefreshQueued = true;
+
+        SWRQueue::queue('database.force_refresh_schema', function (): void {
+            $modules = array_keys(self::$schemaRefreshExtraModules);
+
+            self::$schemaRefreshExtraModules = [];
+            self::$schemaRefreshQueued = false;
+
+            $this->forceRefreshSchema($modules);
+        });
     }
 
     /**
