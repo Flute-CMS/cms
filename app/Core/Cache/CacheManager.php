@@ -55,6 +55,20 @@ class CacheManager
         return $this->adapter;
     }
 
+    /**
+     * Get current cache adapter
+     *
+     * @throws RuntimeException
+     */
+    public function getAdapter(): AbstractCacheDriver
+    {
+        if ($this->adapter === null) {
+            throw new RuntimeException("Cache adapter has not been created yet.");
+        }
+
+        return $this->adapter;
+    }
+
     private function applyEpochNamespace(array $config): array
     {
         $epoch = $this->readEpoch();
@@ -80,19 +94,5 @@ class CacheManager
         }
 
         return (int) trim($content);
-    }
-
-    /**
-     * Get current cache adapter
-     *
-     * @throws RuntimeException
-     */
-    public function getAdapter(): AbstractCacheDriver
-    {
-        if ($this->adapter === null) {
-            throw new RuntimeException("Cache adapter has not been created yet.");
-        }
-
-        return $this->adapter;
     }
 }

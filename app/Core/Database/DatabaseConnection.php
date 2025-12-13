@@ -427,6 +427,7 @@ class DatabaseConnection
             foreach ($candidates as $entitiesDir) {
                 if (is_dir($entitiesDir)) {
                     $this->entitiesDirs[] = $entitiesDir;
+
                     break;
                 }
             }
@@ -661,6 +662,7 @@ class DatabaseConnection
             foreach ($candidates as $entitiesDir) {
                 if (is_dir($entitiesDir)) {
                     $dirs[] = $entitiesDir;
+
                     break;
                 }
             }
