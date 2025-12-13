@@ -22,6 +22,8 @@
 colors.json
 .kiro
 storage/app/orm_schema.php
+storage/app/orm_schema.php.stale
+storage/app/orm_schema.meta.php*
 storage/app/cache_epoch
 storage/app/cache_stale/
 storage/app/*.lock

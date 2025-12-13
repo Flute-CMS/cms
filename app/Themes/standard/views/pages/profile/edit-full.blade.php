@@ -99,6 +99,33 @@
                                 </div>
                             </div>
                         </div>
+                        @if (config('auth.two_factor.enabled'))
+                            <div class="profile-edit__main-block">
+                                <div class="profile-edit__main-block-header">
+                                    <h4>{{ __('auth.two_factor.title') }}</h4>
+                                    <p>{{ __('auth.two_factor.description') }}</p>
+                                </div>
+                                <div class="profile-edit__main-block-body">
+                                    <div class="profile-edit__field">
+                                        <div class="profile-edit__field-value">
+                                            @if ($user->hasTwoFactorEnabled())
+                                                <x-badge type="success" icon="ph.regular.shield-check">
+                                                    {{ __('profile.two_factor.status_enabled') }}
+                                                </x-badge>
+                                            @else
+                                                <x-badge type="error" icon="ph.regular.shield">
+                                                    {{ __('profile.two_factor.status_disabled') }}
+                                                </x-badge>
+                                            @endif
+                                        </div>
+                                        <a href="{{ url('profile/settings?tab=main#two-factor-settings') }}"
+                                            class="profile-edit__field-icon">
+                                            <x-icon path="ph.regular.pencil" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <h4 class="mt-5">{{ __('profile.edit.settings.title') }}</h4>
                     <div class="profile-edit__blocks" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">

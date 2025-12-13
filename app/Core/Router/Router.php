@@ -36,6 +36,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
@@ -352,6 +353,7 @@ class Router implements RouterInterface
         }
 
         $urlMatcher = null;
+        $usedCompiledMatcher = false;
 
         $cacheFile = path('storage/app/cache/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php');
         $staleCacheDir = (string) (config('cache.stale_directory') ?? '');
@@ -370,9 +372,10 @@ class Router implements RouterInterface
 
             if ($sourceFile) {
                 $compiledRoutes = require $sourceFile;
-                if ($compiledRoutes instanceof \Symfony\Component\Routing\Matcher\CompiledUrlMatcher) {
+                if ($compiledRoutes instanceof CompiledUrlMatcher) {
                     $urlMatcher = $compiledRoutes;
                     $urlMatcher->setContext($context);
+                    $usedCompiledMatcher = true;
                 }
             }
         }
@@ -439,8 +442,7 @@ class Router implements RouterInterface
 
         $t0 = microtime(true);
 
-        try {
-            $parameters = $urlMatcher->match($request->getPathInfo());
+        $runMatched = function (array $parameters) use ($request, $t0): Response {
             \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
 
             $this->container->get(FluteRequest::class)->attributes->add($parameters);
@@ -459,36 +461,78 @@ class Router implements RouterInterface
             $tPipe = microtime(true);
             $response = $pipeline->run();
             \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
+
+            return $response;
+        };
+
+        try {
+            $parameters = $urlMatcher->match($request->getPathInfo());
+            $response = $runMatched($parameters);
         } catch (ResourceNotFoundException | MethodNotAllowedException $e) {
-            $dynamicMatcher = new UrlMatcher($dynamicCollection, $context);
+            $handled = false;
 
-            try {
-                $parameters = $dynamicMatcher->match($request->getPathInfo());
-                \Flute\Core\Router\RoutingTiming::add('Route Matching', microtime(true) - $t0);
+            // If we used compiled routes and they are stale/out-of-date, retry with in-memory routes.
+            if ($usedCompiledMatcher) {
+                try {
+                    $fallbackMatcher = new UrlMatcher($compilable, $context);
+                    $parameters = $fallbackMatcher->match($request->getPathInfo());
 
-                $this->container->get(FluteRequest::class)->attributes->add($parameters);
+                    // Heal compiled routes cache asynchronously.
+                    SWRQueue::queue('router.routes_compiled.rebuild.' . ($isAdmin ? 'admin' : 'front'), static function () use ($cacheFile, $compilable): void {
+                        $lockFile = $cacheFile . '.lock';
+                        $lockHandle = @fopen($lockFile, 'w+');
+                        if (!$lockHandle) {
+                            return;
+                        }
 
-                $this->currentRoute = $this->resolveRoute($parameters);
+                        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                            @fclose($lockHandle);
 
-                $onRouteEvent = events()->dispatch(new OnRouteFoundEvent($request, $this->currentRoute), OnRouteFoundEvent::NAME);
+                            return;
+                        }
 
-                if ($onRouteEvent->isPropagationStopped()) {
-                    throw new HttpException($onRouteEvent->getErrorCode(), $onRouteEvent->getErrorMessage());
+                        try {
+                            $dumper = new CompiledUrlMatcherDumper($compilable);
+                            $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                            $compiledSource = (string) $compiledSource;
+                            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+
+                            @mkdir(dirname($cacheFile), 0o755, true);
+                            $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+                            if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
+                                @rename($tmp, $cacheFile);
+                            }
+                        } catch (Throwable $e) {
+                            if (function_exists('logs')) {
+                                logs()->warning($e);
+                            }
+                        } finally {
+                            @flock($lockHandle, LOCK_UN);
+                            @fclose($lockHandle);
+                            @unlink($lockFile);
+                        }
+                    });
+
+                    $response = $runMatched($parameters);
+                    $handled = true;
+                } catch (Throwable) {
                 }
+            }
 
-                $middleware = $this->gatherMiddleware();
-                $pipeline = new MiddlewareRunner($middleware, $request, fn ($request) => $this->runRoute($request, $parameters));
+            if (!$handled) {
+                $dynamicMatcher = new UrlMatcher($dynamicCollection, $context);
 
-                $tPipe = microtime(true);
-                $response = $pipeline->run();
-                \Flute\Core\Router\RoutingTiming::add('Middleware+Controller', microtime(true) - $tPipe);
-            } catch (Exception $dynamicE) {
-                if (is_debug()) {
-                    throw $dynamicE;
+                try {
+                    $parameters = $dynamicMatcher->match($request->getPathInfo());
+                    $response = $runMatched($parameters);
+                } catch (Exception $dynamicE) {
+                    if (is_debug()) {
+                        throw $dynamicE;
+                    }
+
+                    $response = response()->error(404, __('def.page_not_found'));
+                    $response->setStatusCode(404);
                 }
-
-                $response = response()->error(404, __('def.page_not_found'));
-                $response->setStatusCode(404);
             }
         } catch (ForcedRedirectException $exception) {
             $response = response()->redirect($exception->getUrl(), $exception->getStatusCode());

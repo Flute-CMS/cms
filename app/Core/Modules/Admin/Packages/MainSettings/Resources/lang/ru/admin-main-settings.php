@@ -91,6 +91,9 @@ return [
         'default_theme' => 'Тема по умолчанию',
         'default_role' => 'Роль по умолчанию при регистрации',
         'no_role' => 'Без роли',
+        'two_factor_enabled' => 'Включить двухфакторную аутентификацию',
+        'two_factor_force' => 'Обязательная 2FA для всех пользователей',
+        'two_factor_issuer' => 'Название издателя 2FA',
     ],
     'options' => [
         'robots' => [
@@ -148,6 +151,7 @@ return [
         'turnstile_site_key' => 'Введите ключ сайта Turnstile',
         'turnstile_secret_key' => 'Введите секретный ключ Turnstile',
         'default_role_placeholder' => 'Без роли',
+        'two_factor_issuer' => 'напр. Мой сайт',
     ],
     'buttons' => [
         'clear_cache' => 'Очистить кеш',
@@ -213,6 +217,7 @@ return [
         'captcha_settings' => 'Настройки капчи',
         'mail_settings' => 'Настройки почты',
         'profile_settings' => 'Настройки профиля',
+        'two_factor_settings' => 'Двухфакторная аутентификация',
         'localization_settings' => 'Настройки локализации',
         'active_languages' => 'Активные языки',
         'active_languages_description' => 'Эти языки будут доступны для выбора пользователям.',
@@ -262,6 +267,9 @@ return [
         'turnstile_site_key' => 'Получите ключ сайта Turnstile в <a target="_blank" href="https://dash.cloudflare.com/">Cloudflare Dashboard</a>.',
         'turnstile_secret_key' => 'Получите секретный ключ Turnstile в <a target="_blank" href="https://dash.cloudflare.com/">Cloudflare Dashboard</a>.',
         'default_role' => 'Эта роль будет назначена всем новым зарегистрированным пользователям.',
+        'two_factor_enabled' => 'Разрешить пользователям включать двухфакторную аутентификацию для своих аккаунтов.',
+        'two_factor_force' => 'При включении все пользователи будут обязаны настроить 2FA.',
+        'two_factor_issuer' => 'Название, которое будет отображаться в приложениях-аутентификаторах. Оставьте пустым для использования названия сайта.',
     ],
     'examples' => [
         'timezone' => 'Пример: Europe/Moscow',

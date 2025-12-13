@@ -60,8 +60,8 @@ class FluteApp {
 	}
 
 	checkAuthStatus() {
-		fetch(u(), {
-			method: "HEAD",
+		fetch(u("api/notifications/count-unread"), {
+			method: "GET",
 			headers: {
 				"X-Requested-With": "XMLHttpRequest",
 			},
@@ -92,8 +92,8 @@ class FluteApp {
 			this.authToken = newAuthToken;
 
 			const verify = () =>
-				fetch(u(), {
-					method: "HEAD",
+				fetch(u("api/notifications/count-unread"), {
+					method: "GET",
 					headers: { "X-Requested-With": "XMLHttpRequest" },
 				})
 					.then((r) => r.headers.get("Is-Logged-In"))

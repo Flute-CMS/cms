@@ -260,4 +260,5 @@
     "not_online"              => "Not online",
     "pay"                     => "Pay",
     "offline"                 => "Offline",
+    "done"                    => "Done",
 ];

@@ -4,6 +4,8 @@ namespace Flute\Admin\Packages\Pages\Services;
 
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
+use Flute\Core\Database\Entities\PagePermission;
+use Throwable;
 
 class AdminPagesService
 {
@@ -12,6 +14,8 @@ class AdminPagesService
      */
     public function savePage(?Page $page, array $data): Page
     {
+        $previousRoute = $page?->route ?? null;
+
         if (!$page) {
             $page = new Page();
         }
@@ -25,6 +29,8 @@ class AdminPagesService
 
         $page->save();
 
+        $this->invalidatePageCaches($previousRoute, $page->route);
+
         return $page;
     }
 
@@ -33,9 +39,16 @@ class AdminPagesService
      */
     public function deletePage(Page $page): void
     {
-        $entities = $page->blocks;
+        $route = $page->route ?? null;
+        $blocks = PageBlock::findAll(['page_id' => $page->id]);
+        $pagePermissions = PagePermission::findAll(['page_id' => $page->id]);
+
+        $entities = array_merge($blocks, $pagePermissions);
         $entities[] = $page;
+
         transaction($entities, 'delete')->run();
+
+        $this->invalidatePageCaches($route);
     }
 
     /**
@@ -147,6 +160,33 @@ class AdminPagesService
             $newBlock->save();
         }
 
+        $this->invalidatePageCaches($newPage->route);
+
         return $newPage;
+    }
+
+    private function invalidatePageCaches(?string ...$routes): void
+    {
+        if (function_exists('cache')) {
+            try {
+                cache()->delete('flute.pages.all');
+            } catch (Throwable) {
+            }
+
+            foreach (array_filter(array_unique($routes)) as $route) {
+                try {
+                    cache()->delete('flute.page.route.' . md5($route));
+                } catch (Throwable) {
+                }
+            }
+        }
+
+        if (function_exists('cache_bump_epoch')) {
+            cache_bump_epoch();
+        }
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
+        }
     }
 }

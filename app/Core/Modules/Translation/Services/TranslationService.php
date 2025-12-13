@@ -276,10 +276,10 @@ class TranslationService
             return;
         }
         $cacheDir = path('storage/app/translations');
-        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
+        foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
             @unlink($cachedFile);
         }
-        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
+        foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
             @unlink($cachedMeta);
         }
         unset($this->loadedDomains[$locale]);
@@ -290,6 +290,8 @@ class TranslationService
      */
     public function loadTranslationsFromDirectory(string $directory, int $cacheDuration = self::CACHE_TIME): void
     {
+        $directory = rtrim(str_replace('\\', '/', $directory), '/');
+
         if (isset($this->loadedDirectories[$directory]) || !is_dir($directory)) {
             return;
         }
@@ -390,27 +392,56 @@ class TranslationService
      */
     protected function registerKnownTranslationDirectories(): void
     {
-        $dirs = cache()->callback('translation.known_dirs', static function () {
+        $dirs = cache()->callback('translation.known_dirs.v2', function () {
             $result = [];
-            // Modules: app/Modules/*/Resources/lang
+            $seen = [];
+
+            $glob = fn (string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
+
+            // Modules
             $modulesRoot = path('app/Modules');
             if (is_dir($modulesRoot)) {
-                foreach (glob($modulesRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (is_dir($dir)) {
-                        $result[] = $dir;
+                $patterns = [
+                    $modulesRoot . '/*/Resources/lang',
+                    $modulesRoot . '/*/Admin/Resources/lang',
+                    $modulesRoot . '/*/Admin/Package/Resources/lang',
+                ];
+
+                foreach ($patterns as $pattern) {
+                    foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                        if (!is_dir($dir)) {
+                            continue;
+                        }
+
+                        $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                        if (isset($seen[$normalized])) {
+                            continue;
+                        }
+
+                        $seen[$normalized] = true;
+                        $result[] = $normalized;
                     }
                 }
             }
-            // Admin packages: app/Core/Modules/Admin/Packages/*/Resources/lang
+
+            // Core admin packages
             $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
             if (is_dir($adminPkgsRoot)) {
-                foreach (glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (is_dir($dir)) {
-                        $result[] = $dir;
+                foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
+                    if (!is_dir($dir)) {
+                        continue;
                     }
+
+                    $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                    if (isset($seen[$normalized])) {
+                        continue;
+                    }
+
+                    $seen[$normalized] = true;
+                    $result[] = $normalized;
                 }
             }
-            // Ensure deterministic order so lazy resolution is stable
+
             sort($result);
 
             return $result;
@@ -453,6 +484,15 @@ class TranslationService
                 }
             }
         }
+    }
+
+    protected function globSafe(string $pattern, int $flags = 0): array
+    {
+        $pattern = str_replace('\\', '/', $pattern);
+
+        $matches = glob($pattern, $flags);
+
+        return $matches === false ? [] : $matches;
     }
 
     protected function _importTranslationsForLocale(Translator $translator, string $locale)

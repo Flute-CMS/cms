@@ -450,12 +450,12 @@ final class App
             // In performance mode compile container, always write proxies to disk
             if (function_exists("is_performance") && is_performance()) {
                 $containerBuilder->enableCompilation(
-                    BASE_PATH . "storage/app/cache",
+                    BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
                 );
             }
             $containerBuilder->writeProxiesToFile(
                 true,
-                BASE_PATH . "storage/app/proxies",
+                BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'proxies',
             );
         }
 

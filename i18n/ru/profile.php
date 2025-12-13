@@ -178,6 +178,14 @@ return [
         'upload_failed' => 'Не удалось загрузить :field.',
     ],
 
+    'two_factor' => [
+        'title' => 'Двухфакторная аутентификация',
+        'description' => 'Защитите свой аккаунт дополнительным уровнем безопасности.',
+        'status_enabled' => 'Включена',
+        'status_disabled' => 'Отключена',
+        'last_enabled' => 'Включена :date',
+    ],
+
     'protection_warning' => 'Установите пароль для защиты своего аккаунта. <a href=":link">Установить</a>',
     'no_profile_modules_info' => 'Во Flute не установлено ни одного модуля для профиля. <a href=":link">Посмотреть на площадке</a>',
     'was_online' => 'Был в сети :date',

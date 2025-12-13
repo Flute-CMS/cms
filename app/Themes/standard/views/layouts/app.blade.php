@@ -382,6 +382,7 @@
         @at(tt('assets/scripts/user-card.js'))
         @at(tt('assets/scripts/tabs.js'))
         @at(tt('assets/scripts/richtext.js'))
+        @at(tt('assets/scripts/otp-input.js'))
 
         @can('admin.pages')
             @at(tt('assets/scripts/page-edit.js'))

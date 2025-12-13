@@ -20,6 +20,7 @@ use Flute\Core\Exceptions\PasswordResetTokenExpiredException;
 use Flute\Core\Exceptions\PasswordResetTokenNotFoundException;
 use Flute\Core\Exceptions\TemporaryUserException;
 use Flute\Core\Exceptions\TooManyRequestsException;
+use Flute\Core\Exceptions\TwoFactorRequiredException;
 use Flute\Core\Exceptions\UserNotFoundException;
 use Flute\Core\Modules\Auth\Events\PasswordResetRequestedEvent;
 use Flute\Core\Modules\Auth\Events\UserAuthenticatingEvent;
@@ -113,6 +114,7 @@ class AuthenticationService
      * @throws IncorrectPasswordException
      * @throws AccountNotVerifiedException
      * @throws TooManyRequestsException
+     * @throws TwoFactorRequiredException
      * @return User The authenticated user.
      */
     public function authenticate(array $credentials, bool $fromSocial = false): User
@@ -139,6 +141,10 @@ class AuthenticationService
 
         if ($user->isTemporary()) {
             throw new TemporaryUserException();
+        }
+
+        if ($user->hasTwoFactorEnabled() && $this->config->get('auth.two_factor.enabled', false)) {
+            throw new TwoFactorRequiredException($user);
         }
 
         $this->setCurrentUser($user);

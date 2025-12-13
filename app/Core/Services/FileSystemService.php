@@ -14,14 +14,56 @@ class FileSystemService extends Filesystem
      */
     public function importHelpers(): void
     {
-        $cacheFile = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'helpers.cache.php';
+        $cacheDir = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache';
+        $cacheFile = $cacheDir . DIRECTORY_SEPARATOR . 'helpers.cache.php';
+        $metaFile = $cacheDir . DIRECTORY_SEPARATOR . 'helpers.cache.meta.php';
+        $lockFile = $cacheDir . DIRECTORY_SEPARATOR . 'helpers.cache.lock';
+        $helpersPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Helpers';
 
-        if ($this->tryLoadCache($cacheFile)) {
+        if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
             return;
         }
 
-        $helpersPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Helpers';
-        $this->generateHelpersCache($helpersPath, $cacheFile);
+        $this->mkdir($cacheDir);
+
+        $handle = @fopen($lockFile, 'c+');
+        if ($handle === false) {
+            $this->generateHelpersCache($helpersPath, $cacheFile);
+            $this->writeHelpersCacheMeta($helpersPath, $metaFile);
+
+            return;
+        }
+
+        $gotLock = @flock($handle, LOCK_EX | LOCK_NB);
+        if (!$gotLock) {
+            $maxWait = 2.0;
+            $waited = 0.0;
+
+            while ($waited < $maxWait) {
+                if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
+                    @fclose($handle);
+
+                    return;
+                }
+
+                usleep(100000);
+                $waited += 0.1;
+            }
+
+            $gotLock = @flock($handle, LOCK_EX);
+        }
+
+        try {
+            if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
+                return;
+            }
+
+            $this->generateHelpersCache($helpersPath, $cacheFile);
+            $this->writeHelpersCacheMeta($helpersPath, $metaFile);
+        } finally {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
     }
 
     /**
@@ -80,9 +122,9 @@ class FileSystemService extends Filesystem
     /**
      * Attempt to load helpers cache; rebuild trigger if it looks broken.
      */
-    private function tryLoadCache(string $cacheFile): bool
+    private function tryLoadCache(string $cacheFile, string $metaFile, string $helpersDir): bool
     {
-        if (!$this->isCacheValid($cacheFile)) {
+        if (!$this->isCacheValid($cacheFile) || !$this->isHelpersMetaValid($metaFile, $helpersDir)) {
             return false;
         }
 
@@ -90,6 +132,7 @@ class FileSystemService extends Filesystem
             require_once $cacheFile;
         } catch (Throwable $e) {
             @unlink($cacheFile);
+            @unlink($metaFile);
 
             return false;
         }
@@ -111,6 +154,7 @@ class FileSystemService extends Filesystem
         }
 
         @unlink($cacheFile);
+        @unlink($metaFile);
 
         return false;
     }
@@ -174,5 +218,71 @@ class FileSystemService extends Filesystem
     private function isCacheValid(string $cacheFile): bool
     {
         return file_exists($cacheFile) && is_readable($cacheFile);
+    }
+
+    private function isHelpersMetaValid(string $metaFile, string $helpersDir): bool
+    {
+        if (!is_file($metaFile) || !is_readable($metaFile)) {
+            return false;
+        }
+
+        try {
+            $meta = include $metaFile;
+        } catch (Throwable) {
+            return false;
+        }
+
+        if (!is_array($meta)) {
+            return false;
+        }
+
+        $expectedFingerprint = $meta['fingerprint'] ?? null;
+        if (!is_string($expectedFingerprint) || $expectedFingerprint === '') {
+            return false;
+        }
+
+        try {
+            $currentFingerprint = $this->computeHelpersFingerprint($helpersDir);
+        } catch (Throwable) {
+            return false;
+        }
+
+        return hash_equals($expectedFingerprint, $currentFingerprint);
+    }
+
+    private function writeHelpersCacheMeta(string $helpersDir, string $metaFile): void
+    {
+        try {
+            $fingerprint = $this->computeHelpersFingerprint($helpersDir);
+        } catch (Throwable) {
+            return;
+        }
+
+        $meta = [
+            'fingerprint' => $fingerprint,
+            'written_at' => time(),
+        ];
+
+        $this->mkdir(dirname($metaFile));
+        $content = '<?php return ' . var_export($meta, true) . ';';
+        $tmp = $metaFile . '.tmp';
+
+        @file_put_contents($tmp, $content, LOCK_EX);
+        @rename($tmp, $metaFile);
+    }
+
+    private function computeHelpersFingerprint(string $helpersDir): string
+    {
+        $finder = new Finder();
+        $finder->files()->ignoreDotFiles(true)->in($helpersDir)->name('*.php')->sortByName();
+
+        $parts = [];
+
+        foreach ($finder as $file) {
+            $real = $file->getRealPath() ?: $file->getPathname();
+            $parts[] = $real . '|' . $file->getMTime() . '|' . $file->getSize();
+        }
+
+        return hash('sha256', implode("\n", $parts));
     }
 }

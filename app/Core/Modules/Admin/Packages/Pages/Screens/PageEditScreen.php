@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\Pages\Screens;
 
 use Exception;
+use Flute\Admin\Packages\Pages\Services\AdminPagesService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -18,6 +19,7 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Database\Entities\Permission;
+use Throwable;
 
 class PageEditScreen extends Screen
 {
@@ -230,6 +232,8 @@ class PageEditScreen extends Screen
         }
 
         try {
+            $previousRoute = $this->page?->route ?? null;
+
             if (!$this->page) {
                 $this->page = new Page();
             }
@@ -255,6 +259,28 @@ class PageEditScreen extends Screen
                     }
                 }
                 $this->page->save();
+            }
+
+            if (function_exists('cache')) {
+                try {
+                    cache()->delete('flute.pages.all');
+                } catch (Throwable) {
+                }
+
+                foreach (array_filter(array_unique([$previousRoute, $this->page->route])) as $route) {
+                    try {
+                        cache()->delete('flute.page.route.' . md5($route));
+                    } catch (Throwable) {
+                    }
+                }
+            }
+
+            if (function_exists('cache_bump_epoch')) {
+                cache_bump_epoch();
+            }
+
+            if (function_exists('cache_warmup_mark')) {
+                cache_warmup_mark();
             }
 
             if (!$this->pageId) {
@@ -414,17 +440,17 @@ class PageEditScreen extends Screen
             return;
         }
 
-        try {
-            // Удаляем все блоки страницы
-            foreach ($this->page->blocks as $block) {
-                $block->delete();
-            }
+        if (!$this->page) {
+            $this->flashMessage(__('admin-pages.messages.page_not_found'), 'error');
 
-            // Удаляем саму страницу
-            $this->page->delete();
+            return;
+        }
+
+        try {
+            app(AdminPagesService::class)->deletePage($this->page);
             $this->flashMessage(__('admin-pages.messages.delete_success'), 'success');
             $this->redirectTo('/admin/pages');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
     }

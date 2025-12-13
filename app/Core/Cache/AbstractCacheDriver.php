@@ -73,7 +73,9 @@ abstract class AbstractCacheDriver implements CacheInterface
         $item = $this->cache->getItem($key);
 
         $item->set($value);
-        $item->expiresAfter($ttl);
+        if ($ttl > 0) {
+            $item->expiresAfter($ttl);
+        }
 
         if (!$item instanceof CacheItemInterface) {
             return false;
@@ -172,7 +174,9 @@ abstract class AbstractCacheDriver implements CacheInterface
                 $value = $callback();
 
                 $item->set($value);
-                $item->expiresAfter($ttl);
+                if ($ttl > 0) {
+                    $item->expiresAfter($ttl);
+                }
 
                 $saveResult = $this->cache->save($item);
 

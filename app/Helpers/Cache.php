@@ -10,29 +10,39 @@ if (!function_exists("cache")) {
     /**
      * Get the cache instance
      *
-     * @param string|null $key
-     * @return AbstractCacheDriver|mixed
      * @throws DependencyException
      * @throws NotFoundException
+     * @return AbstractCacheDriver|mixed
      */
-    function cache(string $key = null)
+    function cache(?string $key = null)
     {
         /** @var AbstractCacheDriver $instance */
         static $instance = null;
         static $epoch = null;
 
-        $epochFile = function_exists('storage_path')
-            ? storage_path('app/cache_epoch')
-            : (defined('BASE_PATH') ? BASE_PATH . 'storage/app/cache_epoch' : 'cache_epoch');
+        $currentEpoch = $GLOBALS['flute_cache_epoch'] ?? null;
+        if (!is_int($currentEpoch)) {
+            $epochFile = function_exists('storage_path')
+                ? storage_path('app/cache_epoch')
+                : (defined('BASE_PATH') ? BASE_PATH . 'storage/app/cache_epoch' : 'cache_epoch');
 
-        $currentEpoch = 0;
-        $epochContent = @file_get_contents($epochFile);
-        if (is_string($epochContent) && $epochContent !== '') {
-            $currentEpoch = (int) trim($epochContent);
+            $currentEpoch = 0;
+            $epochContent = @file_get_contents($epochFile);
+            if (is_string($epochContent) && $epochContent !== '') {
+                $currentEpoch = (int) trim($epochContent);
+            }
+
+            $GLOBALS['flute_cache_epoch'] = $currentEpoch;
         }
 
         if ($instance === null || $epoch !== $currentEpoch) {
-            $instance = app(CacheManager::class)->getAdapter();
+            $cacheManager = app(CacheManager::class);
+            try {
+                $cacheManager->create((array) config('cache'));
+            } catch (Throwable) {
+            }
+
+            $instance = $cacheManager->getAdapter();
             $epoch = $currentEpoch;
         }
 
@@ -57,6 +67,7 @@ if (!function_exists('cache_bump_epoch')) {
 
         $next = $currentEpoch + 1;
         @file_put_contents($epochFile, (string) $next, LOCK_EX);
+        $GLOBALS['flute_cache_epoch'] = $next;
 
         return $next;
     }

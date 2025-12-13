@@ -52,4 +52,11 @@ return array(
             'secret_key' => '',
         ),
     ),
+    'two_factor' =>
+    array(
+        'enabled' => false,
+        'force' => false,
+        'issuer' => '',
+        'window' => 1,
+    ),
 );

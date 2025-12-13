@@ -90,6 +90,9 @@ return [
         'turnstile_secret_key' => 'Turnstile Secret Key',
         'default_theme' => 'Default Theme',
         'default_role' => 'Default Registration Role',
+        'two_factor_enabled' => 'Enable Two-Factor Authentication',
+        'two_factor_force' => 'Force 2FA for All Users',
+        'two_factor_issuer' => '2FA Issuer Name',
     ],
 
     'options' => [
@@ -149,6 +152,7 @@ return [
         'turnstile_site_key' => 'Enter Turnstile site key',
         'turnstile_secret_key' => 'Enter Turnstile secret key',
         'default_role_placeholder' => 'No role',
+        'two_factor_issuer' => 'e.g. My Website',
     ],
 
     'buttons' => [
@@ -219,6 +223,7 @@ return [
         'captcha_settings' => 'Captcha Settings',
         'mail_settings' => 'Mail Settings',
         'profile_settings' => 'Profile Settings',
+        'two_factor_settings' => 'Two-Factor Authentication',
         'localization_settings' => 'Localization Settings',
         'active_languages' => 'Active Languages',
         'active_languages_description' => 'These languages will be available for user selection.',
@@ -269,6 +274,9 @@ return [
         'turnstile_site_key' => 'Get your Turnstile site key from <a target="_blank" href="https://dash.cloudflare.com/">Cloudflare Dashboard</a>.',
         'turnstile_secret_key' => 'Get your Turnstile secret key from <a target="_blank" href="https://dash.cloudflare.com/">Cloudflare Dashboard</a>.',
         'default_role' => 'This role will be assigned to all new registered users.',
+        'two_factor_enabled' => 'Allow users to enable two-factor authentication for their accounts.',
+        'two_factor_force' => 'When enabled, all users will be required to set up 2FA.',
+        'two_factor_issuer' => 'Name that will appear in authenticator apps. Leave empty to use site name.',
     ],
 
     'examples' => [

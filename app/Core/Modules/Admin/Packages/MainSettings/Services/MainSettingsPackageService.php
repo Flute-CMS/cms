@@ -99,6 +99,9 @@ class MainSettingsPackageService
                 'turnstile_site_key' => 'auth.captcha.turnstile.site_key',
                 'turnstile_secret_key' => 'auth.captcha.turnstile.secret_key',
                 'default_role' => 'auth.default_role',
+                'two_factor_enabled' => 'auth.two_factor.enabled',
+                'two_factor_force' => 'auth.two_factor.force',
+                'two_factor_issuer' => 'auth.two_factor.issuer',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'mail.smtp',
@@ -230,6 +233,9 @@ class MainSettingsPackageService
                 'turnstile_site_key',
                 'turnstile_secret_key',
                 'default_role',
+                'two_factor_enabled',
+                'two_factor_force',
+                'two_factor_issuer',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp',
@@ -319,6 +325,9 @@ class MainSettingsPackageService
                 'turnstile_site_key' => 'nullable|string',
                 'turnstile_secret_key' => 'nullable|string',
                 'default_role' => 'nullable',
+                'two_factor_enabled' => 'boolean',
+                'two_factor_force' => 'boolean',
+                'two_factor_issuer' => 'nullable|string',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'boolean',

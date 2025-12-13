@@ -40,6 +40,8 @@ class CacheManager
      */
     public function create(array $config): AbstractCacheDriver
     {
+        $config = $this->applyEpochNamespace($config);
+
         $driver = $config['driver'] ?? 'array';
 
         if (!isset($this->driverMap[$driver])) {
@@ -51,6 +53,33 @@ class CacheManager
         $this->adapter = new $adapterClass($config, $this->logger);
 
         return $this->adapter;
+    }
+
+    private function applyEpochNamespace(array $config): array
+    {
+        $epoch = $this->readEpoch();
+
+        $base = (string) ($config['namespace'] ?? '');
+        $base = preg_replace('/\\.e\\d+$/', '', $base) ?: '';
+        $base = trim((string) $base, '.');
+
+        $config['namespace'] = ($base === '' ? 'e' . $epoch : $base . '.e' . $epoch);
+
+        return $config;
+    }
+
+    private function readEpoch(): int
+    {
+        $epochFile = defined('BASE_PATH')
+            ? BASE_PATH . 'storage/app/cache_epoch'
+            : 'cache_epoch';
+
+        $content = @file_get_contents($epochFile);
+        if (!is_string($content) || $content === '') {
+            return 0;
+        }
+
+        return (int) trim($content);
     }
 
     /**

@@ -65,14 +65,19 @@ final class SWRQueue
             @ignore_user_abort(true);
             @set_time_limit(0);
 
+            $startedAt = microtime(true);
+            $timings = [];
+
             $count = 0;
-            foreach (self::$tasks as $task) {
+            foreach (self::$tasks as $id => $task) {
                 if ($count >= $limit) {
                     break;
                 }
 
                 try {
+                    $t0 = microtime(true);
                     $task();
+                    $timings[$id] = microtime(true) - $t0;
                 } catch (Throwable $e) {
                     if (function_exists('logs')) {
                         logs()->warning($e);
@@ -80,6 +85,16 @@ final class SWRQueue
                 }
 
                 $count++;
+            }
+
+            $total = microtime(true) - $startedAt;
+            if ($total >= 0.2 && function_exists('logs')) {
+                arsort($timings);
+                logs()->info('SWR queue executed', [
+                    'total_sec' => $total,
+                    'tasks' => $count,
+                    'slowest' => array_slice($timings, 0, 10, true),
+                ]);
             }
         } finally {
             @flock($handle, LOCK_UN);

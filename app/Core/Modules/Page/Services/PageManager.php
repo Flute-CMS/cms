@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Page\Services;
 
 use Exception;
+use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Modules\Page\Controllers\PageController;
@@ -12,6 +13,7 @@ use Flute\Core\Support\FluteRequest;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 
 /**
  * PageManager handles page management, widget rendering, and automatic route registration.
@@ -628,6 +630,17 @@ class PageManager
 
             return $this->widgetManager->getWidget($block->getWidget())->render($settings);
         } catch (Exception $e) {
+            if (str_contains($e->getMessage(), 'Undefined schema')) {
+                try {
+                    $extraModules = [];
+                    if (preg_match('/Flute\\\\Modules\\\\([^\\\\`]+)\\\\/i', $e->getMessage(), $m)) {
+                        $extraModules[] = $m[1];
+                    }
+                    app(DatabaseConnection::class)->forceRefreshSchemaDeferred($extraModules);
+                } catch (Throwable) {
+                }
+            }
+
             $this->logger->error($e->getMessage(), ['exception' => $e]);
 
             return $this->hasAccessToEdit()

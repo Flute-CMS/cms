@@ -181,6 +181,14 @@ return [
         "upload_failed"          => "Failed to upload :field.",
     ],
 
+    "two_factor" => [
+        "title" => "Two-Factor Authentication",
+        "description" => "Protect your account with an additional layer of security.",
+        "status_enabled" => "Enabled",
+        "status_disabled" => "Disabled",
+        "last_enabled" => "Enabled on :date",
+    ],
+
     "protection_warning"        => "Set a password to protect your account. <a href=\":link\">Set it</a>",
     "no_profile_modules_info"   => "No profile modules are installed in Flute. <a href=\":link\">View on marketplace</a>",
     "was_online"                => "Was online :date",

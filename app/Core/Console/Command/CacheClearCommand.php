@@ -39,6 +39,13 @@ class CacheClearCommand extends Command
         try {
             $filesystem = new Filesystem();
 
+            if (function_exists('cache_bump_epoch')) {
+                cache_bump_epoch();
+            }
+            if (function_exists('cache_warmup_mark')) {
+                cache_warmup_mark();
+            }
+
             // Rotate cache directory for SWR: keep previous values in cache_stale.
             if (is_dir($cacheStaleDir)) {
                 $filesystem->remove($cacheStaleDir);
@@ -50,13 +57,6 @@ class CacheClearCommand extends Command
 
             if (!is_dir($cacheDir)) {
                 @mkdir($cacheDir, 0o755, true);
-            }
-
-            if (function_exists('cache_bump_epoch')) {
-                cache_bump_epoch();
-            }
-            if (function_exists('cache_warmup_mark')) {
-                cache_warmup_mark();
             }
 
             // Rotate assets cache for SWR: TemplateAssets can serve stale while recompiling.

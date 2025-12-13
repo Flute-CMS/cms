@@ -105,9 +105,23 @@
             }
         }
     }
+}
 
-    &__skeleton {
-        height: 70px;
-        width: 100%;
+.two-factor-verify {
+    &__actions {
+        display: flex;
+        flex-direction: row;
+        gap: var(--space-sm);
+        margin-top: var(--space-lg);
+
+        .btn {
+            width: 100%;
+        }
+    }
+
+    &__input {
+        .otp-input {
+            justify-content: center;
+        }
     }
 }

@@ -57,7 +57,13 @@ class AuthService
      */
     public function authenticate(array $credentials, bool $remember = false, bool $fromSocial = false): User
     {
+        $authToken = session()->get('auth_token');
+
         $this->logout();
+
+        if ($authToken) {
+            session()->set('auth_token', $authToken);
+        }
 
         $authResult = $this->auth->authenticate($credentials, $fromSocial);
 

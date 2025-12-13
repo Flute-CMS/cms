@@ -9,7 +9,7 @@ $button-types: (
         color: var(--accent-900),
         background: var(--accent),
         hover-background: var(--accent-400),
-        hover-color: #fff
+        hover-color: var(--accent-900)
     ),
     secondary: (
         color: var(--text),

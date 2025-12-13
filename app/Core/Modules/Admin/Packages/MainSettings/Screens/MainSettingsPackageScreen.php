@@ -120,6 +120,7 @@ class MainSettingsPackageScreen extends Screen
             $to = user()->email;
             $mail = config('mail');
 
+            $mail['smtp'] = (bool) (request()->input('smtp') ?? ($mail['smtp'] ?? false));
             $mail['from'] = request()->input('from') ?? $to;
             $mail['host'] = request()->input('host') ?? $mail['host'];
             $mail['port'] = request()->input('port') ?? $mail['port'];
@@ -248,6 +249,10 @@ class MainSettingsPackageScreen extends Screen
     {
         $currentTab = request()->input('tab-settings', FluteStr::slug(__('admin-main-settings.tabs.main_settings')));
 
+        $debugBefore = (bool) config('app.debug');
+        $devBefore = (bool) config('app.development_mode');
+        $performanceBefore = (bool) config('app.is_performance');
+
         try {
             $save = $this->configService->saveSettings($currentTab, request()->input());
 
@@ -257,6 +262,18 @@ class MainSettingsPackageScreen extends Screen
                 // }
 
                 $this->flashMessage(__('admin-main-settings.messages.settings_saved_successfully'));
+
+                $debugAfter = (bool) config('app.debug');
+                $devAfter = (bool) config('app.development_mode');
+                $performanceAfter = (bool) config('app.is_performance');
+
+                if (
+                    $debugBefore !== $debugAfter
+                    || $devBefore !== $devAfter
+                    || $performanceBefore !== $performanceAfter
+                ) {
+                    $this->clearCache();
+                }
             }
         } catch (Exception $e) {
             $this->flashMessage(__('admin-main-settings.messages.settings_save_error') . $e->getMessage(), 'error');
@@ -286,6 +303,13 @@ class MainSettingsPackageScreen extends Screen
         try {
             $filesystem = fs();
 
+            if (function_exists('cache_bump_epoch')) {
+                cache_bump_epoch();
+            }
+            if (function_exists('cache_warmup_mark')) {
+                cache_warmup_mark();
+            }
+
             // Rotate cache directory for SWR: keep previous values in cache_stale.
             if (is_dir($cacheStaleDir)) {
                 $filesystem->remove($cacheStaleDir);
@@ -295,13 +319,6 @@ class MainSettingsPackageScreen extends Screen
             }
             if (!is_dir($cacheDir)) {
                 @mkdir($cacheDir, 0o755, true);
-            }
-
-            if (function_exists('cache_bump_epoch')) {
-                cache_bump_epoch();
-            }
-            if (function_exists('cache_warmup_mark')) {
-                cache_warmup_mark();
             }
 
             // Rotate assets cache for SWR (TemplateAssets can serve stale while recompiling).
@@ -339,7 +356,8 @@ class MainSettingsPackageScreen extends Screen
             $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully'));
             // }
         } catch (IOException $e) {
-            $this->flashMessage($e->getMessage(), 'error');
+            logs()->warning($e);
+            $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully') . ' (' . $e->getMessage() . ')', 'warning');
         }
     }
 
@@ -1149,6 +1167,10 @@ class MainSettingsPackageScreen extends Screen
                 ->layouts([
                     $this->usersCaptchaBlock(),
                 ]),
+            Tab::make(__('admin-main-settings.blocks.two_factor_settings'))
+                ->layouts([
+                    $this->usersTwoFactorBlock(),
+                ]),
             Tab::make(__('admin-main-settings.blocks.profile_settings'))
                 ->layouts([
                     $this->usersProfileBlock(),
@@ -1318,6 +1340,26 @@ class MainSettingsPackageScreen extends Screen
                 )->label(__('admin-main-settings.labels.turnstile_secret_key'))->popover(__('admin-main-settings.popovers.turnstile_secret_key')),
             ])->setVisible($captchaType === 'turnstile'),
         ])->title(__('admin-main-settings.blocks.captcha_settings'));
+    }
+
+    private function usersTwoFactorBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::field(
+                Toggle::make('two_factor_enabled')
+                    ->checked((bool) config('auth.two_factor.enabled'))
+            )->label(__('admin-main-settings.labels.two_factor_enabled'))->popover(__('admin-main-settings.popovers.two_factor_enabled')),
+            LayoutFactory::field(
+                Toggle::make('two_factor_force')
+                    ->checked((bool) config('auth.two_factor.force'))
+            )->label(__('admin-main-settings.labels.two_factor_force'))->popover(__('admin-main-settings.popovers.two_factor_force')),
+            LayoutFactory::field(
+                Input::make('two_factor_issuer')
+                    ->type('text')
+                    ->placeholder(__('admin-main-settings.placeholders.two_factor_issuer'))
+                    ->value(config('auth.two_factor.issuer', ''))
+            )->label(__('admin-main-settings.labels.two_factor_issuer'))->popover(__('admin-main-settings.popovers.two_factor_issuer')),
+        ])->title(__('admin-main-settings.blocks.two_factor_settings'));
     }
 
     private function usersProfileBlock()

@@ -109,6 +109,15 @@ class User extends ActiveRecord
     #[Column(type: 'datetime', nullable: true)]
     public ?\DateTimeImmutable $deletedAt = null;
 
+    #[Column(type: "string", nullable: true)]
+    public ?string $two_factor_secret = null;
+
+    #[Column(type: "text", nullable: true)]
+    public ?string $two_factor_recovery_codes = null;
+
+    #[Column(type: "datetime", nullable: true)]
+    public ?\DateTimeImmutable $two_factor_confirmed_at = null;
+
     public function __construct()
     {
         $this->last_logged = new \DateTimeImmutable();
@@ -291,5 +300,10 @@ class User extends ActiveRecord
         }
 
         return $lastLogged->diffForHumans();
+    }
+
+    public function hasTwoFactorEnabled() : bool
+    {
+        return !empty($this->two_factor_secret) && $this->two_factor_confirmed_at !== null;
     }
 }

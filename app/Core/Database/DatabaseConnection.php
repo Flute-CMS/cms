@@ -18,9 +18,12 @@ use Cycle\Schema\Compiler;
 use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
 use Exception;
+use FilesystemIterator;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
 use Flute\Core\Database\Entities\Module;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Spiral\Tokenizer\ClassLocator;
 use Spiral\Tokenizer\Config\TokenizerConfig;
 use Spiral\Tokenizer\Tokenizer;
@@ -30,9 +33,11 @@ class DatabaseConnection
 {
     public const CACHE_KEY = 'database.schema';
 
-    protected const ENTITIES_DIR = BASE_PATH . 'app/Core/Database/Entities';
+    protected const ENTITIES_DIR = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Database' . DIRECTORY_SEPARATOR . 'Entities';
 
-    protected const SCHEMA_FILE = BASE_PATH . 'storage/app/orm_schema.php';
+    protected const SCHEMA_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php';
+
+    protected const SCHEMA_META_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php';
 
     protected FluteDatabaseManager $databaseManager;
 
@@ -185,17 +190,14 @@ class DatabaseConnection
                 }
             }
 
-            $schemaArray = include self::SCHEMA_FILE;
-            $ormSchema = new \Cycle\ORM\Schema($schemaArray);
-            $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+            if ($this->isSchemaCacheValid()) {
+                $this->loadCachedSchemaIntoOrm();
 
-            $this->orm = new ORM(factory: new \Cycle\ORM\Factory($this->dbal), schema: $ormSchema, commandGenerator: $commandGenerator);
-            $this->ormIntoContainer();
-
-            return;
+                return;
+            }
         }
 
-        $lockFile = BASE_PATH . 'storage/app/cache/orm_schema.lock';
+        $lockFile = storage_path('app/cache/orm_schema.lock');
         $lockHandle = fopen($lockFile, 'w+');
 
         if (!$lockHandle) {
@@ -206,22 +208,25 @@ class DatabaseConnection
         $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
 
         if (!$gotLock) {
-            // Another process is compiling - wait for it to finish (with timeout)
-            $maxWait = 30; // 30 seconds max wait
-            $waited = 0;
-            while (!file_exists(self::SCHEMA_FILE) && $waited < $maxWait) {
+            // Another process is compiling - wait for lock release (with timeout), then fallback to cache.
+            $maxWait = 30.0; // seconds
+            $waited = 0.0;
+
+            while (!$gotLock && $waited < $maxWait) {
                 usleep(100000); // 100ms
                 $waited += 0.1;
+                $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
             }
 
-            fclose($lockHandle);
+            if (!$gotLock) {
+                fclose($lockHandle);
 
-            // Use cached schema if available
-            if (file_exists(self::SCHEMA_FILE)) {
-                $this->recompileOrmSchema(true);
+                if (file_exists(self::SCHEMA_FILE)) {
+                    $this->recompileOrmSchema(true);
+                }
+
+                return;
             }
-
-            return;
         }
 
         try {
@@ -245,6 +250,8 @@ class DatabaseConnection
 
             $this->entitiesDirs = $validDirs;
 
+            $this->ensureInstalledModuleEntityDirs();
+
             $classLocator = $this->getClassLocator();
 
             $schemaArray = $this->compileSchema($classLocator);
@@ -253,6 +260,7 @@ class DatabaseConnection
 
             $content = '<?php return ' . var_export($schemaArray, true) . ';';
             file_put_contents(self::SCHEMA_FILE, $content);
+            $this->writeSchemaMeta($this->entitiesDirs);
 
             $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
 
@@ -364,6 +372,14 @@ class DatabaseConnection
             }
         }
 
+        if (file_exists(self::SCHEMA_META_FILE)) {
+            $stale = self::SCHEMA_META_FILE . '.stale';
+            @unlink($stale);
+            if (!@rename(self::SCHEMA_META_FILE, $stale)) {
+                @unlink(self::SCHEMA_META_FILE);
+            }
+        }
+
         $this->entitiesDirs = [self::ENTITIES_DIR];
 
         $moduleKeys = [];
@@ -403,9 +419,16 @@ class DatabaseConnection
         }
 
         foreach (array_keys($moduleKeys) as $moduleKey) {
-            $entitiesDir = path("app/Modules/{$moduleKey}/database/Entities");
-            if (is_dir($entitiesDir)) {
-                $this->entitiesDirs[] = $entitiesDir;
+            $candidates = [
+                path("app/Modules/{$moduleKey}/database/Entities"),
+                path("app/Modules/{$moduleKey}/Database/Entities"),
+            ];
+
+            foreach ($candidates as $entitiesDir) {
+                if (is_dir($entitiesDir)) {
+                    $this->entitiesDirs[] = $entitiesDir;
+                    break;
+                }
             }
         }
 
@@ -526,5 +549,226 @@ class DatabaseConnection
         return (new Tokenizer(new TokenizerConfig([
             'directories' => $this->entitiesDirs,
         ])))->classLocator();
+    }
+
+    private function loadCachedSchemaIntoOrm(): void
+    {
+        $schemaArray = include self::SCHEMA_FILE;
+        $ormSchema = new \Cycle\ORM\Schema($schemaArray);
+        $commandGenerator = new EventDrivenCommandGenerator($ormSchema, app()->getContainer());
+
+        $this->orm = new ORM(
+            factory: new \Cycle\ORM\Factory($this->dbal),
+            schema: $ormSchema,
+            commandGenerator: $commandGenerator
+        );
+
+        $this->ormIntoContainer();
+    }
+
+    private function isSchemaCacheValid(): bool
+    {
+        if (!is_file(self::SCHEMA_META_FILE)) {
+            return false;
+        }
+
+        $meta = include self::SCHEMA_META_FILE;
+        if (!is_array($meta)) {
+            return false;
+        }
+
+        $dirs = $meta['dirs'] ?? null;
+        $expectedFingerprint = $meta['fingerprint'] ?? null;
+
+        if (!is_array($dirs) || !is_string($expectedFingerprint) || $expectedFingerprint === '') {
+            return false;
+        }
+
+        $expectedDirs = $this->getExpectedSchemaEntityDirs();
+        if (!$this->dirsEqual($dirs, $expectedDirs)) {
+            return false;
+        }
+
+        try {
+            $current = $this->computeEntitiesFingerprint($expectedDirs);
+        } catch (Throwable) {
+            return false;
+        }
+
+        return hash_equals($expectedFingerprint, $current);
+    }
+
+    /**
+     * @param array<int,string> $dirs
+     */
+    private function computeEntitiesFingerprint(array $dirs): string
+    {
+        $parts = [];
+
+        foreach ($dirs as $dir) {
+            if ($dir === '' || !is_string($dir)) {
+                continue;
+            }
+
+            if (!is_dir($dir)) {
+                $parts[] = "missing:{$dir}";
+
+                continue;
+            }
+
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $fileInfo) {
+                if (!$fileInfo->isFile() || $fileInfo->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $parts[] = $fileInfo->getPathname() . '|' . $fileInfo->getMTime() . '|' . $fileInfo->getSize();
+            }
+        }
+
+        sort($parts, SORT_STRING);
+
+        return hash('sha256', implode("\n", $parts));
+    }
+
+    /**
+     * Ensure schema compilation includes installed modules Entities directories.
+     */
+    private function ensureInstalledModuleEntityDirs(): void
+    {
+        $expectedDirs = $this->getExpectedSchemaEntityDirs();
+        $this->entitiesDirs = $this->normalizeDirs(array_merge($this->entitiesDirs, $expectedDirs));
+    }
+
+    /**
+     * Get the canonical list of entity directories that must participate in ORM schema.
+     *
+     * @return array<int,string>
+     */
+    private function getExpectedSchemaEntityDirs(): array
+    {
+        $dirs = array_merge([self::ENTITIES_DIR], $this->entitiesDirs);
+
+        foreach ($this->getInstalledModuleKeys() as $moduleKey) {
+            $candidates = [
+                path("app/Modules/{$moduleKey}/database/Entities"),
+                path("app/Modules/{$moduleKey}/Database/Entities"),
+            ];
+
+            foreach ($candidates as $entitiesDir) {
+                if (is_dir($entitiesDir)) {
+                    $dirs[] = $entitiesDir;
+                    break;
+                }
+            }
+        }
+
+        return $this->normalizeDirs($dirs);
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    private function getInstalledModuleKeys(): array
+    {
+        $keys = [];
+
+        // Prefer cached modules DB snapshot (supports SWR) to avoid extra queries during boot.
+        try {
+            $cached = cache()->get('flute.modules.alldb', []);
+            if (is_array($cached)) {
+                foreach ($cached as $row) {
+                    $key = $row['key'] ?? null;
+                    $status = $row['status'] ?? null;
+                    if (is_string($key) && $key !== '' && $status !== 'notinstalled') {
+                        $keys[$key] = true;
+                    }
+                }
+            }
+        } catch (Throwable) {
+        }
+
+        if (!empty($keys)) {
+            return array_keys($keys);
+        }
+
+        // Fallback to DBAL (does not require ORM schema to include modules entities).
+        try {
+            if (!isset($this->dbal)) {
+                $this->dbal = $this->databaseManager->getDbal();
+            }
+
+            $rows = $this->dbal->database()->select()->from('modules')->columns('key', 'status')->fetchAll();
+            foreach ($rows as $row) {
+                $key = $row['key'] ?? null;
+                $status = $row['status'] ?? null;
+                if (is_string($key) && $key !== '' && $status !== 'notinstalled') {
+                    $keys[$key] = true;
+                }
+            }
+        } catch (Throwable) {
+        }
+
+        return array_keys($keys);
+    }
+
+    /**
+     * @param array<int,string> $dirs
+     * @return array<int,string>
+     */
+    private function normalizeDirs(array $dirs): array
+    {
+        $unique = [];
+
+        foreach ($dirs as $dir) {
+            if (!is_string($dir) || $dir === '') {
+                continue;
+            }
+
+            if (!is_dir($dir)) {
+                continue;
+            }
+
+            $unique[$dir] = true;
+        }
+
+        $out = array_keys($unique);
+        sort($out, SORT_STRING);
+
+        return $out;
+    }
+
+    /**
+     * @param array<int,mixed> $a
+     * @param array<int,mixed> $b
+     */
+    private function dirsEqual(array $a, array $b): bool
+    {
+        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
+
+        return $na === $nb;
+    }
+
+    /**
+     * @param array<int,string> $dirs
+     */
+    private function writeSchemaMeta(array $dirs): void
+    {
+        $dirs = $this->normalizeDirs($dirs);
+
+        $meta = [
+            'fingerprint' => $this->computeEntitiesFingerprint($dirs),
+            'dirs' => $dirs,
+            'written_at' => time(),
+        ];
+
+        $tmp = self::SCHEMA_META_FILE . '.tmp';
+        $content = '<?php return ' . var_export($meta, true) . ';';
+        @file_put_contents($tmp, $content, LOCK_EX);
+        @rename($tmp, self::SCHEMA_META_FILE);
     }
 }

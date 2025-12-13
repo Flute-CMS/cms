@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Pages\Screens;
 
+use Flute\Admin\Packages\Pages\Services\AdminPagesService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -11,6 +12,7 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Page;
+use Throwable;
 
 class PageListScreen extends Screen
 {
@@ -116,17 +118,21 @@ class PageListScreen extends Screen
 
     public function delete(): void
     {
-        $page = Page::findByPK(request()->get('delete-id'));
+        $page = Page::findByPK((int) request()->get('delete-id'));
 
         if ($page) {
-            foreach ($page->blocks as $block) {
-                $block->delete();
+            try {
+                app(AdminPagesService::class)->deletePage($page);
+                $this->flashMessage(__('admin-pages.messages.page_deleted'));
+            } catch (Throwable $e) {
+                logs()->error($e);
+                $this->flashMessage($e->getMessage(), 'error');
             }
-
-            $page->delete();
+        } else {
+            $this->flashMessage(__('admin-pages.messages.page_not_found'), 'error');
         }
 
-        $this->flashMessage(__('admin-pages.messages.page_deleted'));
+        $this->pages = rep(Page::class)->select()->load('blocks');
     }
 
     public function bulkDeletePages(): void
@@ -135,16 +141,23 @@ class PageListScreen extends Screen
         if (!$ids) {
             return;
         }
+
+        $service = app(AdminPagesService::class);
+
         foreach ($ids as $id) {
             $page = Page::findByPK((int) $id);
             if (!$page) {
                 continue;
             }
-            foreach ($page->blocks as $block) {
-                $block->delete();
+
+            try {
+                $service->deletePage($page);
+            } catch (Throwable $e) {
+                logs()->error($e);
             }
-            $page->delete();
         }
+
+        $this->pages = rep(Page::class)->select()->load('blocks');
         $this->flashMessage(__('admin-pages.messages.page_deleted'));
     }
 }

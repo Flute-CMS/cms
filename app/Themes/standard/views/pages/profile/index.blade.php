@@ -197,9 +197,7 @@
                                         <x-tab-body name="profile-tabs">
                                             @foreach ($tabs as $key => $tab)
                                                 <x-tab-content name="{{ $tab['path'] }}"
-                                                    active="{{ $tab['path'] === $activePath }}" role="tabpanel"
-                                                    aria-labelledby="tab-{{ $tab['path'] }}"
-                                                    id="tabpanel-{{ $tab['path'] }}">
+                                                    active="{{ $tab['path'] === $activePath }}">
                                                     @if (isset($sections['profile_tab_content_' . $tab['path']]))
                                                         {!! $sections['profile_tab_content_' . $tab['path']] !!}
                                                     @endif

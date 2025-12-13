@@ -46,6 +46,12 @@ trait MacroableTrait
         $macro = static::$macros[$method];
 
         if ($macro instanceof Closure) {
+            $reflection = new ReflectionFunction($macro);
+
+            if ($reflection->isStatic()) {
+                return $macro(...$parameters);
+            }
+
             return $macro->call($this, ...$parameters);
         }
 
@@ -67,17 +73,11 @@ trait MacroableTrait
         $macro = static::$macros[$method];
 
         if ($macro instanceof Closure) {
-            // Avoid binding closures that are already static; binding a static
-            // closure to an object will raise a warning in newer PHP versions.
-            // If closure is static (no bound $this), keep as-is; otherwise
-            // bind to the class so it can access protected/private members.
             $reflection = new ReflectionFunction($macro);
-            if ($reflection->getClosureScopeClass() === null && $reflection->isClosure()) {
-                // no scope class -> closure is static/unbound, call directly
-                return $macro(...$parameters);
-            }
 
-            $macro = $macro->bindTo(null, static::class);
+            if (!$reflection->isStatic()) {
+                $macro = $macro->bindTo(null, static::class);
+            }
         }
 
         return $macro(...$parameters);

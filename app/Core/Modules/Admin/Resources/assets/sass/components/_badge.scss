@@ -14,7 +14,7 @@
 
     &.accent {
         background-color: var(--accent);
-        color: #fff;
+        color: var(--accent-900);
     }
 
     &.primary {
@@ -49,7 +49,7 @@
         &[href]:hover,
         &[type="button"]:hover {
             background-color: var(--accent);
-            color: #fff;
+            color: var(--accent-900);
         }
     }
 
