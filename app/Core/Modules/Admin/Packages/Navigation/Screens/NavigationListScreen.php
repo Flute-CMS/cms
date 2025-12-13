@@ -219,15 +219,7 @@ class NavigationListScreen extends Screen
             return;
         }
 
-        $roles = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'roles_') === 0 && $value === 'on') {
-                $roleId = str_replace('roles_', '', $key);
-                if (is_numeric($roleId)) {
-                    $roles[] = (int) $roleId;
-                }
-            }
-        }
+        $roles = $this->extractRoleIds($data);
 
         $lastItem = NavbarItem::query()
             ->where('parent_id', $data['parent_id'] ?? null)
@@ -422,15 +414,7 @@ class NavigationListScreen extends Screen
             return;
         }
 
-        $roles = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'roles_') === 0 && $value === 'on') {
-                $roleId = str_replace('roles_', '', $key);
-                if (is_numeric($roleId)) {
-                    $roles[] = (int) $roleId;
-                }
-            }
-        }
+        $roles = $this->extractRoleIds($data);
 
         $navbarItem->title = $data['title'];
         $navbarItem->description = $data['description'] ?? null;
@@ -460,8 +444,9 @@ class NavigationListScreen extends Screen
                     $navbarItem->addRole($role);
                 }
             }
-            $navbarItem->save();
         }
+
+        $navbarItem->save();
 
         $this->flashMessage(__('admin-navigation.messages.item_updated'), 'success');
         $this->closeModal();
@@ -550,5 +535,31 @@ class NavigationListScreen extends Screen
         } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails
         }
+    }
+
+    private function extractRoleIds(array $data): array
+    {
+        $roles = [];
+
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            foreach ($data['roles'] as $roleId => $value) {
+                if (($value === 'on' || $value === true || $value === 1 || $value === '1') && is_numeric($roleId)) {
+                    $roles[] = (int) $roleId;
+                }
+            }
+
+            return array_values(array_unique($roles));
+        }
+
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'roles_') === 0 && ($value === 'on' || $value === true || $value === 1 || $value === '1')) {
+                $roleId = str_replace('roles_', '', $key);
+                if (is_numeric($roleId)) {
+                    $roles[] = (int) $roleId;
+                }
+            }
+        }
+
+        return array_values(array_unique($roles));
     }
 }

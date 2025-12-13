@@ -195,8 +195,9 @@ class RoleListScreen extends Screen
                     $role->addPermission($permission);
                 }
             }
-            $role->save();
         }
+
+        $role->save();
 
         $this->flashMessage(__('admin-roles.messages.created'), 'success');
         $this->closeModal();
@@ -324,8 +325,10 @@ class RoleListScreen extends Screen
                     $role->addPermission($permission);
                 }
             }
-            $role->save();
         }
+
+        // Persist clearing permissions even when none are selected
+        $role->save();
 
         $this->flashMessage(__('admin-roles.messages.updated'), 'success');
         $this->closeModal();
