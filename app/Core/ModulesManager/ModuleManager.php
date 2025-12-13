@@ -62,6 +62,7 @@ class ModuleManager
 
         $this->eventDispatcher = $eventDispatcher;
         $this->modulesPath = path('app/Modules');
+        $this->ensureModulesDirectoryExists();
         $this->performance = (bool) (is_performance());
         $this->dependencyChecker = $dependencyChecker;
 
@@ -357,6 +358,22 @@ class ModuleManager
         usort($providers, static fn ($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
+    }
+
+    /**
+     * Ensure modules directory exists to avoid runtime Finder errors.
+     */
+    protected function ensureModulesDirectoryExists(): void
+    {
+        if (is_dir($this->modulesPath)) {
+            return;
+        }
+
+        try {
+            fs()->mkdir($this->modulesPath, 0755);
+        } catch (\Throwable $e) {
+            logs('modules')->warning('Unable to create modules directory: ' . $e->getMessage());
+        }
     }
 
     protected function loadModulesJson(): void
