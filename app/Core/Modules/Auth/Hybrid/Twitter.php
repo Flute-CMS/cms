@@ -46,52 +46,6 @@ class Twitter extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function initialize()
-    {
-        parent::initialize();
-
-        $this->AuthorizeUrlParameters += [
-            'code_challenge' => $this->generateCodeChallenge(),
-            'code_challenge_method' => 'S256',
-        ];
-
-        if ($this->isRefreshTokenAvailable()) {
-            $this->tokenRefreshParameters += [
-                'client_id' => $this->clientId,
-            ];
-        }
-    }
-
-    /**
-     * Generate PKCE code challenge
-     */
-    protected function generateCodeChallenge()
-    {
-        $codeVerifier = base64url_encode(random_bytes(32));
-        session(['twitter_code_verifier' => $codeVerifier]);
-        
-        return base64url_encode(hash('sha256', $codeVerifier, true));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function exchangeCodeForAccessToken($code)
-    {
-        $codeVerifier = session('twitter_code_verifier');
-        
-        $this->tokenExchangeParameters += [
-            'code_verifier' => $codeVerifier,
-        ];
-
-        session()->forget('twitter_code_verifier');
-
-        return parent::exchangeCodeForAccessToken($code);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getUserProfile()
     {
         $headers = [
@@ -99,7 +53,7 @@ class Twitter extends OAuth2
         ];
 
         $params = [
-            'user.fields' => 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type'
+            'user.fields' => 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type',
         ];
 
         $response = $this->apiRequest('users/me?' . http_build_query($params), 'GET', [], $headers);
@@ -133,13 +87,60 @@ class Twitter extends OAuth2
 
         // Twitter API v2 doesn't provide email in basic scope
         // Would need additional approval for email scope
-        
+
         return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->AuthorizeUrlParameters += [
+            'code_challenge' => $this->generateCodeChallenge(),
+            'code_challenge_method' => 'S256',
+        ];
+
+        if ($this->isRefreshTokenAvailable()) {
+            $this->tokenRefreshParameters += [
+                'client_id' => $this->clientId,
+            ];
+        }
+    }
+
+    /**
+     * Generate PKCE code challenge
+     */
+    protected function generateCodeChallenge()
+    {
+        $codeVerifier = base64url_encode(random_bytes(32));
+        session(['twitter_code_verifier' => $codeVerifier]);
+
+        return base64url_encode(hash('sha256', $codeVerifier, true));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function exchangeCodeForAccessToken($code)
+    {
+        $codeVerifier = session('twitter_code_verifier');
+
+        $this->tokenExchangeParameters += [
+            'code_verifier' => $codeVerifier,
+        ];
+
+        session()->forget('twitter_code_verifier');
+
+        return parent::exchangeCodeForAccessToken($code);
     }
 }
 
 if (!function_exists('base64url_encode')) {
-    function base64url_encode($data) {
+    function base64url_encode($data)
+    {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

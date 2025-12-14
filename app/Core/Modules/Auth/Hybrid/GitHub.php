@@ -8,6 +8,7 @@
 
 namespace Hybridauth\Provider;
 
+use Exception;
 use Hybridauth\Adapter\OAuth2;
 use Hybridauth\Data;
 use Hybridauth\Exception\UnexpectedApiResponseException;
@@ -46,27 +47,12 @@ class GitHub extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function initialize()
-    {
-        parent::initialize();
-
-        if ($this->isRefreshTokenAvailable()) {
-            $this->tokenRefreshParameters += [
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-            ];
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getUserProfile()
     {
         $headers = [
             'Authorization' => 'Bearer ' . $this->getAccessToken(),
             'Accept' => 'application/vnd.github.v3+json',
-            'User-Agent' => 'Flute-CMS'
+            'User-Agent' => 'Flute-CMS',
         ];
 
         $response = $this->apiRequest('user', 'GET', [], $headers);
@@ -102,14 +88,30 @@ class GitHub extends OAuth2
                         if ($emailData->get('verified')) {
                             $userProfile->emailVerified = $emailData->get('email');
                         }
+
                         break;
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If we can't get email, continue without it
         }
 
         return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function initialize()
+    {
+        parent::initialize();
+
+        if ($this->isRefreshTokenAvailable()) {
+            $this->tokenRefreshParameters += [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ];
+        }
     }
 }
