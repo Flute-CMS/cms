@@ -17,6 +17,8 @@ class LoggerService
 
     protected const CACHE_TTL = 86400;
 
+    protected const DEFAULT_DYNAMIC_LEVEL = Logger::INFO;
+
     protected array $loggers = [];
 
     public function __construct(array $loggersConfig)
@@ -63,8 +65,10 @@ class LoggerService
      */
     public function getLogger(string $name)
     {
+        $name = $this->normalizeLoggerName($name);
+
         if (!isset($this->loggers[$name])) {
-            throw new Exception("Logger {$name} is not found");
+            $this->createDynamicLogger($name);
         }
 
         return $this->loggers[$name];
@@ -106,5 +110,28 @@ class LoggerService
                 $this->cleanupOldLogs();
             }, self::CACHE_TTL);
         }
+    }
+
+    protected function normalizeLoggerName(string $name): string
+    {
+        $name = strtolower(trim($name));
+
+        return $name !== '' ? $name : 'flute';
+    }
+
+    protected function createDynamicLogger(string $name): void
+    {
+        $safeName = preg_replace('/[^a-z0-9._-]+/i', '_', $name) ?: 'flute';
+        $safeName = substr($safeName, 0, 64);
+
+        $logsDir = rtrim((string) path('storage/logs'), '/\\');
+        if (!is_dir($logsDir) && !@mkdir($logsDir, 0o755, true) && !is_dir($logsDir)) {
+            throw new Exception('Unable to create logs directory: ' . $logsDir);
+        }
+
+        $logFile = $logsDir . '/' . $safeName . '.log';
+        $logLevel = (int) (config('logging.dynamic_level') ?? self::DEFAULT_DYNAMIC_LEVEL);
+
+        $this->addLogger($name, $logFile, $logLevel);
     }
 }
