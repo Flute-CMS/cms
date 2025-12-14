@@ -313,7 +313,13 @@
         {!! $sections['content-after'] !!}
     @endif
 
-    @include('flute::partials.confirmation')
+    @php
+        try {
+            echo view('flute::partials.confirmation')->render();
+        } catch (\Throwable $e) {
+            logs()->error('Layout partial error (confirmation): ' . $e->getMessage(), ['exception' => $e]);
+        }
+    @endphp
 
     @if (!$isPartialRequest)
         <div id="alerts-container">
@@ -324,11 +330,29 @@
             @endif
         </div>
 
-        <x-right-sidebar />
-        <x-tab-bar />
+        @php
+            try {
+                echo view('flute::components.right-sidebar')->render();
+            } catch (\Throwable $e) {
+                logs()->error('Layout component error (right-sidebar): ' . $e->getMessage(), ['exception' => $e]);
+            }
+        @endphp
+        @php
+            try {
+                echo view('flute::components.tab-bar')->render();
+            } catch (\Throwable $e) {
+                logs()->error('Layout component error (tab-bar): ' . $e->getMessage(), ['exception' => $e]);
+            }
+        @endphp
 
         @can('admin.pages')
-            <x-page-edit />
+            @php
+                try {
+                    echo view('flute::components.page-edit')->render();
+                } catch (\Throwable $e) {
+                    logs()->error('Layout component error (page-edit): ' . $e->getMessage(), ['exception' => $e]);
+                }
+            @endphp
             @include('flute::partials.page-edit-dialog')
             @include('flute::partials.page-seo-dialog')
         @endcan
@@ -341,7 +365,13 @@
             @endif
         </div>
 
-        <x-user-card />
+        @php
+            try {
+                echo view('flute::components.user-card')->render();
+            } catch (\Throwable $e) {
+                logs()->error('Layout component error (user-card): ' . $e->getMessage(), ['exception' => $e]);
+            }
+        @endphp
     @endif
 
     @includeWhen(!$isPartialRequest, 'flute::components.richtext-icons')

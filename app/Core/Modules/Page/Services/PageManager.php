@@ -120,8 +120,12 @@ class PageManager
                 $content .= $this->widgetManager
                     ->getWidget($widget->getWidget())
                     ->render(json_decode($widget->getSettings(), true));
-            } catch (Exception $e) {
-                $this->logger->error($e->getMessage(), ['exception' => $e]);
+            } catch (Throwable $e) {
+                $this->logger->error('Widget render error: ' . $e->getMessage(), [
+                    'widget' => $widget->getWidget(),
+                    'block_id' => $widget->getId(),
+                    'exception' => $e,
+                ]);
                 $content .= $this->hasAccessToEdit()
                     ? view('flute::partials.invalid-widget', [
                         'block' => $widget,
@@ -209,6 +213,8 @@ class PageManager
      */
     public function renderWidget(int $widgetId)
     {
+        $widgetDb = null;
+
         try {
             $widgetDb = PageBlock::findByPK($widgetId);
 
@@ -221,10 +227,14 @@ class PageManager
                 ->render(json_decode($widgetDb->getSettings(), true));
 
             return $content !== "" ? $content : null;
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage(), ['exception' => $e]);
+        } catch (Throwable $e) {
+            $this->logger->error('Widget render error: ' . $e->getMessage(), [
+                'widget_id' => $widgetId,
+                'widget' => $widgetDb?->getWidget(),
+                'exception' => $e,
+            ]);
 
-            return $this->hasAccessToEdit()
+            return $this->hasAccessToEdit() && $widgetDb
                 ? view('flute::partials.invalid-widget', [
                     'block' => $widgetDb,
                     'exception' => $e->getMessage(),
@@ -629,7 +639,7 @@ class PageManager
             $settings = json_decode($block->getSettings(), true) ?? [];
 
             return $this->widgetManager->getWidget($block->getWidget())->render($settings);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (str_contains($e->getMessage(), 'Undefined schema')) {
                 try {
                     $extraModules = [];
@@ -641,7 +651,11 @@ class PageManager
                 }
             }
 
-            $this->logger->error($e->getMessage(), ['exception' => $e]);
+            $this->logger->error('Widget render error: ' . $e->getMessage(), [
+                'widget' => $block->getWidget(),
+                'block_id' => $block->getId(),
+                'exception' => $e,
+            ]);
 
             return $this->hasAccessToEdit()
                 ? view('flute::partials.invalid-widget', [

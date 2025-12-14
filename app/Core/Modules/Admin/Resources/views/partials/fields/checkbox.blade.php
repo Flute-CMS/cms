@@ -1,7 +1,7 @@
 @if (is_callable($typeForm))
     {!! $typeForm(get_defined_vars()) !!}
 @else
-@component($typeForm, get_defined_vars())
+@component($typeForm, get_defined_vars() ?? [])
     <x-fields.checkbox name="{{ $attributes['name'] }}" id="{{ $id }}"
         popover="{{ isset($popover) ? $popover : null }}"
         checked="{{ isset($attributes['value']) && $attributes['value'] && (!isset($attributes['checked']) || $attributes['checked'] !== false) }}">
