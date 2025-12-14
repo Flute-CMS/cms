@@ -28,7 +28,6 @@
     100% { background-position: -200% 0; }
 }
 
-// ApexCharts Core Overrides
 .apexcharts-canvas {
     background: transparent !important;
 }
@@ -37,7 +36,6 @@
     background: transparent !important;
 }
 
-// Tooltip - Premium glassmorphism style
 .apexcharts-tooltip {
     background: color-mix(in srgb, var(--background) 80%, transparent) !important;
     backdrop-filter: blur(16px) saturate(1.2) !important;

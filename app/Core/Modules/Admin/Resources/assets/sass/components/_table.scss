@@ -169,7 +169,7 @@ tr {
                 }
 
                 &.active {
-                    color: #fff;
+                    color: var(--accent-900);
                     background-color: var(--accent);
                 }
             }

@@ -629,6 +629,7 @@ class MainSettingsPackageScreen extends Screen
 
         try {
             config()->save();
+            $this->invalidateConfig('database');
             $this->flashMessage(__('admin-main-settings.messages.add_database_success'));
             $this->databaseConnections = $this->configService->initDatabases();
 
@@ -719,6 +720,7 @@ class MainSettingsPackageScreen extends Screen
 
         try {
             config()->save();
+            $this->invalidateConfig('database');
             $this->flashMessage(__('admin-main-settings.messages.edit_database_success'));
             $this->closeModal();
             $this->databaseConnections = $this->configService->initDatabases();
@@ -758,6 +760,7 @@ class MainSettingsPackageScreen extends Screen
 
         try {
             config()->save();
+            $this->invalidateConfig('database');
             $this->flashMessage(__('admin-main-settings.messages.remove_database_success'));
             $this->databaseConnections = $this->configService->initDatabases();
         } catch (Exception $e) {
@@ -796,6 +799,13 @@ class MainSettingsPackageScreen extends Screen
         ];
 
         return $this->validate($rules);
+    }
+
+    protected function invalidateConfig(string $configName): void
+    {
+        if(function_exists('opcache_invalidate')) {
+            opcache_invalidate(path('config/' . $configName . '.php'), true);
+        }
     }
 
     protected function processImageUpload(string $field, FileUploader $uploader, string $uploadsDir): ?string

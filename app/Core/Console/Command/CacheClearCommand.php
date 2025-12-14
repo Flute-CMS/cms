@@ -39,6 +39,42 @@ class CacheClearCommand extends Command
         try {
             $filesystem = new Filesystem();
 
+            $rotateDir = static function (Filesystem $filesystem, string $src, string $dst): void {
+                if (is_dir($dst)) {
+                    $filesystem->remove($dst);
+                }
+
+                if (!is_dir($src)) {
+                    return;
+                }
+
+                try {
+                    $filesystem->rename($src, $dst, true);
+                } catch (IOException) {
+                    if (!is_dir($dst)) {
+                        @mkdir($dst, 0o755, true);
+                    }
+
+                    $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
+                    foreach ($entries as $entry) {
+                        if (is_string($entry) && str_ends_with(strtolower($entry), '.lock')) {
+                            continue;
+                        }
+
+                        try {
+                            $filesystem->rename($entry, rtrim($dst, '/\\') . '/' . basename($entry), true);
+                        } catch (IOException) {
+                            try {
+                                $filesystem->remove($entry);
+                            } catch (IOException) {
+                            }
+                        }
+                    }
+
+                    // Keep src dir itself; it will be recreated below anyway.
+                }
+            };
+
             if (function_exists('cache_bump_epoch')) {
                 cache_bump_epoch();
             }
@@ -47,35 +83,18 @@ class CacheClearCommand extends Command
             }
 
             // Rotate cache directory for SWR: keep previous values in cache_stale.
-            if (is_dir($cacheStaleDir)) {
-                $filesystem->remove($cacheStaleDir);
-            }
-
-            if (is_dir($cacheDir)) {
-                $filesystem->rename($cacheDir, $cacheStaleDir, true);
-            }
-
+            $rotateDir($filesystem, $cacheDir, $cacheStaleDir);
             if (!is_dir($cacheDir)) {
                 @mkdir($cacheDir, 0o755, true);
             }
 
             // Rotate assets cache for SWR: TemplateAssets can serve stale while recompiling.
-            if (is_dir($cssCacheStaleDir)) {
-                $filesystem->remove($cssCacheStaleDir);
-            }
-            if (is_dir($cssCacheDir)) {
-                $filesystem->rename($cssCacheDir, $cssCacheStaleDir, true);
-            }
+            $rotateDir($filesystem, $cssCacheDir, $cssCacheStaleDir);
             if (!is_dir($cssCacheDir)) {
                 @mkdir($cssCacheDir, 0o755, true);
             }
 
-            if (is_dir($jsCacheStaleDir)) {
-                $filesystem->remove($jsCacheStaleDir);
-            }
-            if (is_dir($jsCacheDir)) {
-                $filesystem->rename($jsCacheDir, $jsCacheStaleDir, true);
-            }
+            $rotateDir($filesystem, $jsCacheDir, $jsCacheStaleDir);
             if (!is_dir($jsCacheDir)) {
                 @mkdir($jsCacheDir, 0o755, true);
             }
@@ -91,8 +110,6 @@ class CacheClearCommand extends Command
                 $filesystem->remove(glob($viewsPath));
                 $filesystem->remove(glob($logsPath));
             }
-
-            // Avoid blocking cache clear; schema refresh is handled lazily on demand.
 
             $io->success('Flute cache has been deleted successfully.');
 
