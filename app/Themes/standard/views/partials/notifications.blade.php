@@ -18,15 +18,29 @@
 
             <x-tab-body>
                 <x-tab-content name="unread" active="true">
-                    <div class="skeleton notifications__skeleton mt-3"></div>
-                    <div class="skeleton notifications__skeleton"></div>
-                    <div class="skeleton notifications__skeleton"></div>
+                    @for ($i = 0; $i < 3; $i++)
+                        <div class="notifications__skeleton">
+                            <div class="skeleton notifications__skeleton-icon"></div>
+                            <div class="notifications__skeleton-content">
+                                <div class="skeleton notifications__skeleton-title"></div>
+                                <div class="skeleton notifications__skeleton-text"></div>
+                                <div class="skeleton notifications__skeleton-date"></div>
+                            </div>
+                        </div>
+                    @endfor
                 </x-tab-content>
 
                 <x-tab-content name="all">
-                    <div class="skeleton notifications__skeleton mt-3"></div>
-                    <div class="skeleton notifications__skeleton"></div>
-                    <div class="skeleton notifications__skeleton"></div>
+                    @for ($i = 0; $i < 3; $i++)
+                        <div class="notifications__skeleton">
+                            <div class="skeleton notifications__skeleton-icon"></div>
+                            <div class="notifications__skeleton-content">
+                                <div class="skeleton notifications__skeleton-title"></div>
+                                <div class="skeleton notifications__skeleton-text"></div>
+                                <div class="skeleton notifications__skeleton-date"></div>
+                            </div>
+                        </div>
+                    @endfor
                 </x-tab-content>
             </x-tab-body>
         </x-tabs>

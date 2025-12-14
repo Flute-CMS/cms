@@ -22,8 +22,6 @@ class ProfileEditTabService
 
     /**
      * Registers a new tab.
-     *
-     * @param ProfileTab $tab
      */
     public function register(ProfileTab $tab)
     {
@@ -38,13 +36,9 @@ class ProfileEditTabService
     public function getTabs(): Collection
     {
         return $this->tabs
-            ->sortByDesc(function (ProfileTab $tab) {
-                return $tab->getOrder();
-            })
-            ->groupBy(function (ProfileTab $tab) {
-                return $tab->getPath();
-            })
-            ->map(function (Collection $group) {
+            ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
+            ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
+            ->map(static function (Collection $group) {
                 $highestPriorityTab = $group->first();
 
                 return [
@@ -59,16 +53,10 @@ class ProfileEditTabService
 
     /**
      * Renders all tabs under a given path for a user.
-     *
-     * @param string $path
-     * @param User $user
-     * @return string
      */
     public function renderTabsByPath(string $path, User $user): string
     {
-        $tabs = $this->getTabsByPath($path)->filter(function (ProfileTab $tab) use ($user) {
-            return $tab->canView($user);
-        });
+        $tabs = $this->getTabsByPath($path)->filter(static fn (ProfileTab $tab) => $tab->canView($user));
 
         $content = '';
 
@@ -82,15 +70,10 @@ class ProfileEditTabService
     /**
      * Returns all tabs under a specific path, sorted by order.
      *
-     * @param string $path
      * @return Collection|ProfileTab[]
      */
     public function getTabsByPath(string $path): Collection
     {
-        return $this->tabs->filter(function (ProfileTab $tab) use ($path) {
-            return $tab->getPath() === $path;
-        })->sortBy(function (ProfileTab $tab) {
-            return $tab->getOrder();
-        });
+        return $this->tabs->filter(static fn (ProfileTab $tab) => $tab->getPath() === $path)->sortBy(static fn (ProfileTab $tab) => $tab->getOrder());
     }
 }

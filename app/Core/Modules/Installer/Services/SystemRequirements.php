@@ -48,8 +48,6 @@ class SystemRequirements
 
     /**
      * Check PHP version requirements
-     *
-     * @return array
      */
     public function checkPhpRequirements(): array
     {
@@ -68,8 +66,6 @@ class SystemRequirements
 
     /**
      * Check PHP extension requirements
-     *
-     * @return array
      */
     public function checkExtensionRequirements(): array
     {
@@ -89,8 +85,6 @@ class SystemRequirements
 
     /**
      * Check directory permission requirements
-     *
-     * @return array
      */
     public function checkDirectoryRequirements(): array
     {
@@ -120,8 +114,6 @@ class SystemRequirements
 
     /**
      * Check if all requirements are met
-     *
-     * @return bool
      */
     public function allRequirementsMet(): bool
     {

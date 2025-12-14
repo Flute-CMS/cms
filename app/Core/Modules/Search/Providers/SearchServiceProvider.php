@@ -10,6 +10,7 @@ use Flute\Core\Modules\Search\Handlers\SearchResult;
 use Flute\Core\Router\Router;
 use Flute\Core\Support\AbstractServiceProvider;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 class SearchServiceProvider extends AbstractServiceProvider
 {
@@ -40,7 +41,7 @@ class SearchServiceProvider extends AbstractServiceProvider
             $steamId = $value;
         }
 
-        $foundUsers = User::query()->where('name', 'like', "%$value%")
+        $foundUsers = User::query()->where('name', 'like', "%{$value}%")
             ->limit(20)
             ->fetchAll();
 
@@ -73,7 +74,7 @@ class SearchServiceProvider extends AbstractServiceProvider
                 $searchResult->setTitle($steamId);
                 $searchResult->setDescription(__('def.profile'));
                 $searchEvent->add($searchResult);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // ignore
             }
         }

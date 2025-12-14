@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager\Actions;
 
+use Exception;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Contracts\ModuleActionInterface;
@@ -10,10 +11,12 @@ use Flute\Core\ModulesManager\ModuleDependencies;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Theme\ThemeManager;
+use RuntimeException;
 
 class ModuleUpdate implements ModuleActionInterface
 {
     protected ModuleManager $moduleManager;
+
     protected ModuleDependencies $moduleDependencies;
 
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
@@ -26,11 +29,11 @@ class ModuleUpdate implements ModuleActionInterface
         $updaterClassDir = sprintf('\Flute\\Modules\\%s\\Updater', $module->key);
 
         if (!$moduleGet) {
-            throw new \Exception("Module {$module->key} wasn't found in the system");
+            throw new Exception("Module {$module->key} wasn't found in the system");
         }
 
         if ($moduleGet->status === 'notinstalled') {
-            throw new \RuntimeException('Module is not installed');
+            throw new RuntimeException('Module is not installed');
         }
 
         $this->checkModuleDependencies($moduleGet);
@@ -53,7 +56,7 @@ class ModuleUpdate implements ModuleActionInterface
 
         $this->moduleManager->runComposerInstall($module);
 
-        app(DatabaseConnection::class)->forceRefreshSchema();
+        app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
 
         return true;
     }
@@ -108,7 +111,7 @@ class ModuleUpdate implements ModuleActionInterface
 
         $module->save();
 
-        logs('modules')->info("Module {$module->key} was updated to version $newVersion in the Flute!");
+        logs('modules')->info("Module {$module->key} was updated to version {$newVersion} in the Flute!");
     }
 
     protected function dispatchUpdateEvent(ModuleInformation $moduleInformation)

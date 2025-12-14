@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Modules\Profile\Controllers;
 
+use DateTime;
+use DateTimeInterface;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Profile\Events\ProfileRenderEvent;
 use Flute\Core\Modules\Profile\Events\ProfileSearchEvent;
@@ -12,6 +14,7 @@ use Flute\Core\Support\FluteRequest;
 class ProfileIndexController extends BaseController
 {
     protected ?string $path;
+
     protected ?ProfileRenderEvent $event = null;
 
     /**
@@ -25,9 +28,7 @@ class ProfileIndexController extends BaseController
     /**
      * Displays the profile page with the necessary data.
      *
-     * @param FluteRequest $request
      * @param string|int $id
-     * @param ProfileTabService $profileTabService
      */
     public function index(FluteRequest $request, $id, ProfileTabService $profileTabService)
     {
@@ -115,18 +116,37 @@ class ProfileIndexController extends BaseController
     }
 
     /**
+     * Retrieves a User based on the provided ID.
+     *
+     * @param string|int $id
+     */
+    protected function getUser($id): ?User
+    {
+        return is_numeric($id) ? user()->get($id) : user()->getByRoute($id);
+    }
+
+    /**
+     * Dispatches the ProfileRenderEvent.
+     */
+    protected function dispatchEvent(User $user, string $type = 'full'): void
+    {
+        $event = new ProfileRenderEvent($user, $this->path, $type);
+
+        $this->event = events()->dispatch($event, ProfileRenderEvent::NAME);
+    }
+
+    /**
      * Formats the last logged-in phrase.
      *
-     * @param \DateTimeInterface $lastLoggedDateTime
-     * @return string
+     * @param DateTimeInterface $lastLoggedDateTime
      */
     private function getLastLoggedPhrase($lastLoggedDateTime): string
     {
-        if (!$lastLoggedDateTime instanceof \DateTimeInterface) {
+        if (!$lastLoggedDateTime instanceof DateTimeInterface) {
             return __('def.not_online');
         }
 
-        $now = new \DateTime();
+        $now = new DateTime();
         $interval = $now->getTimestamp() - $lastLoggedDateTime->getTimestamp();
 
         if ($interval <= 600) {
@@ -138,28 +158,5 @@ class ProfileIndexController extends BaseController
         }
 
         return __('def.not_online');
-    }
-
-    /**
-     * Retrieves a User based on the provided ID.
-     *
-     * @param string|int $id
-     * @return User|null
-     */
-    protected function getUser($id): ?User
-    {
-        return is_numeric($id) ? user()->get($id) : user()->getByRoute($id);
-    }
-
-    /**
-     * Dispatches the ProfileRenderEvent.
-     *
-     * @param User $user
-     */
-    protected function dispatchEvent(User $user, string $type = 'full'): void
-    {
-        $event = new ProfileRenderEvent($user, $this->path, $type);
-
-        $this->event = events()->dispatch($event, ProfileRenderEvent::NAME);
     }
 }

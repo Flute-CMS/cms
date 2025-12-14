@@ -4,6 +4,7 @@ namespace Flute\Admin\Support;
 
 use Flute\Admin\Contracts\AdminPackageInterface;
 use InvalidArgumentException;
+use ReflectionClass;
 
 /**
  * Class AbstractAdminPackage
@@ -12,14 +13,15 @@ use InvalidArgumentException;
  */
 abstract class AbstractAdminPackage implements AdminPackageInterface
 {
-    protected int $defaultCacheDuration = 36000;
-    private array $loaded = [];
-
     /**
      * Already flushed locales in current request to avoid repeated cache deletion.
      * @var array<string,bool>
      */
     public static array $flushedLocales = [];
+
+    protected int $defaultCacheDuration = 36000;
+
+    private array $loaded = [];
 
     /**
      * {@inheritdoc}
@@ -64,8 +66,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * The priority defines the order in which the admin packages are loaded and
      * executed. Lower numbers indicate a higher priority.
-     *
-     * @return int
      */
     public function getPriority(): int
     {
@@ -78,7 +78,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      * This method allows the package to load its routes from a given PHP file.
      *
      * @param string $file The path to the routes file relative to the package's base path.
-     * @return void
      *
      * @throws InvalidArgumentException If the file does not exist.
      */
@@ -101,7 +100,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      * This method allows the package to define its routes programmatically.
      *
      * @param array $routes An array of routes to be loaded.
-     * @return void
      */
     public function loadRoutes(array $routes): void
     {
@@ -117,7 +115,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      *
      * @param string $viewDirectory The directory where the package's views are located relative to the base path.
      * @param string $namespace The namespace to assign to the views.
-     * @return void
      *
      * @throws InvalidArgumentException If the view directory does not exist.
      */
@@ -138,7 +135,6 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      * This method registers the package's translation files with the localization system.
      *
      * @param string $langDirectory The directory where the package's language files are located relative to the base path.
-     * @return void
      *
      * @throws InvalidArgumentException If the language directory does not exist.
      */
@@ -177,7 +173,7 @@ abstract class AbstractAdminPackage implements AdminPackageInterface
      */
     public function getBasePath(): string
     {
-        $reflection = new \ReflectionClass($this);
+        $reflection = new ReflectionClass($this);
 
         return dirname($reflection->getFileName());
     }

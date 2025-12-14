@@ -10,11 +10,6 @@ use Flute\Admin\Platform\Screen;
 class LogsScreen extends Screen
 {
     /**
-     * @var LogViewerService
-     */
-    protected LogViewerService $logService;
-
-    /**
      * Screen name
      *
      * @var string
@@ -71,9 +66,11 @@ class LogsScreen extends Screen
     public $autoRefresh = false;
 
     /**
+     */
+    protected LogViewerService $logService;
+
+    /**
      * Screen initialization
-     *
-     * @return void
      */
     public function mount(): void
     {
@@ -86,8 +83,6 @@ class LogsScreen extends Screen
 
     /**
      * Get screen data
-     *
-     * @return array
      */
     public function query(): array
     {
@@ -106,15 +101,13 @@ class LogsScreen extends Screen
 
             // Apply level filter
             if (!empty($this->level)) {
-                $rawLogContent = array_filter($rawLogContent, function ($entry) {
-                    return $entry['level'] === $this->level;
-                });
+                $rawLogContent = array_filter($rawLogContent, fn ($entry) => $entry['level'] === $this->level);
             }
 
             // Apply search filter
             if (!empty($this->search)) {
                 $searchTerm = strtolower($this->search);
-                $rawLogContent = array_filter($rawLogContent, function ($entry) use ($searchTerm) {
+                $rawLogContent = array_filter($rawLogContent, static function ($entry) use ($searchTerm) {
                     $searchableText = strtolower(
                         $entry['message'] . ' ' .
                         $entry['channel'] . ' ' .
@@ -172,8 +165,6 @@ class LogsScreen extends Screen
 
     /**
      * Get screen layouts
-     *
-     * @return array
      */
     public function layout(): array
     {
@@ -184,8 +175,6 @@ class LogsScreen extends Screen
 
     /**
      * Get screen commands
-     *
-     * @return array
      */
     public function commandBar(): array
     {
@@ -200,9 +189,6 @@ class LogsScreen extends Screen
 
     /**
      * Filter logs by level
-     *
-     * @param string $level
-     * @return void
      */
     public function filterByLevel(string $level): void
     {
@@ -212,9 +198,6 @@ class LogsScreen extends Screen
 
     /**
      * Search logs by query
-     *
-     * @param string $query
-     * @return void
      */
     public function searchLogs(string $query): void
     {
@@ -224,8 +207,6 @@ class LogsScreen extends Screen
 
     /**
      * Load more entries (pagination)
-     *
-     * @return void
      */
     public function loadMore(): void
     {
@@ -234,8 +215,6 @@ class LogsScreen extends Screen
 
     /**
      * Reset pagination to first page
-     *
-     * @return void
      */
     public function resetPagination(): void
     {
@@ -244,8 +223,6 @@ class LogsScreen extends Screen
 
     /**
      * Go to next page
-     *
-     * @return void
      */
     public function nextPage(): void
     {
@@ -254,8 +231,6 @@ class LogsScreen extends Screen
 
     /**
      * Go to previous page
-     *
-     * @return void
      */
     public function previousPage(): void
     {
@@ -266,8 +241,6 @@ class LogsScreen extends Screen
 
     /**
      * Toggle auto-refresh
-     *
-     * @return void
      */
     public function toggleAutoRefresh(): void
     {
@@ -282,8 +255,6 @@ class LogsScreen extends Screen
 
     /**
      * Handle log clearing
-     *
-     * @return void
      */
     public function handleClearLog(): void
     {
@@ -303,8 +274,6 @@ class LogsScreen extends Screen
 
     /**
      * Get log statistics
-     *
-     * @return array
      */
     public function getLogStats(): array
     {

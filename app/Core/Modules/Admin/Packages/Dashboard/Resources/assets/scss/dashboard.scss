@@ -1,14 +1,31 @@
-// Dashboard-specific polish
-.chart-wrapper.skeleton {
-  border-radius: 12px;
+.chart-wrapper {
+    &.skeleton {
+        border-radius: 12px;
+        background: var(--transp-05);
+    }
 }
 
-.apexcharts-tooltip {
-  border-radius: 8px !important;
-  backdrop-filter: blur(10px);
+// Area chart gradient enhancement for dashboard
+.apexcharts-area-series {
+    .apexcharts-area {
+        fill-opacity: 0.12 !important;
+    }
 }
 
-.apexcharts-legend {
-  gap: 6px;
+// Donut chart center styling
+.apexcharts-pie {
+    .apexcharts-datalabels-group {
+        text {
+            &.apexcharts-datalabel-label {
+                font-size: 11px !important;
+                fill: var(--text-500) !important;
+            }
+            
+            &.apexcharts-datalabel-value {
+                font-size: 20px !important;
+                font-weight: 700 !important;
+                fill: var(--text) !important;
+            }
+        }
+    }
 }
-

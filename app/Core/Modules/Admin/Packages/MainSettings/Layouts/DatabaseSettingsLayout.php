@@ -13,6 +13,7 @@ use Flute\Admin\Platform\Support\Color;
 class DatabaseSettingsLayout extends Table
 {
     protected $target = 'databaseConnections';
+
     protected $perPage = 10;
 
     public function columns(): array
@@ -21,9 +22,7 @@ class DatabaseSettingsLayout extends Table
 
         return [
             TD::make('databaseName', __('admin-main-settings.databaseName'))
-                ->width('200px')->render(function (Repository $item) {
-                    return $item->get('databaseName') . '<small class="d-flex text-muted">' . $item->get('driver') . '</small>';
-                })
+                ->width('200px')->render(static fn (Repository $item) => $item->get('databaseName') . '<small class="d-flex text-muted">' . $item->get('driver') . '</small>')
                 ->cantHide(),
 
             TD::make('host', __('admin-main-settings.host'))
@@ -43,30 +42,28 @@ class DatabaseSettingsLayout extends Table
                 ->disableSearch()
                 ->width('100px')
                 ->cantHide()
-                ->render(function (Repository $item) {
-                    return DropDown::make()
-                        ->icon('ph.regular.dots-three-outline-vertical')
-                        ->list([
-                            DropDownItem::make(__('admin-main-settings.edit'))
-                                ->modal('editDatabaseModal', [
-                                    'databaseId' => $item->get('databaseName'),
-                                ])
-                                ->type(Color::OUTLINE_PRIMARY)
-                                ->icon('ph.regular.pencil')
-                                ->size('small')
-                                ->fullWidth(),
+                ->render(static fn (Repository $item) => DropDown::make()
+                    ->icon('ph.regular.dots-three-outline-vertical')
+                    ->list([
+                        DropDownItem::make(__('admin-main-settings.edit'))
+                            ->modal('editDatabaseModal', [
+                                'databaseId' => $item->get('databaseName'),
+                            ])
+                            ->type(Color::OUTLINE_PRIMARY)
+                            ->icon('ph.regular.pencil')
+                            ->size('small')
+                            ->fullWidth(),
 
-                            DropDownItem::make(__('admin-main-settings.delete'))
-                                ->fullWidth()
-                                ->confirm(__('admin-main-settings.confirm_delete_database'))
-                                ->method('removeDatabase', [
-                                    'databaseId' => $item->get('databaseName'),
-                                ])
-                                ->type(Color::OUTLINE_DANGER)
-                                ->icon('ph.regular.trash')
-                                ->size('small'),
-                        ]);
-                }),
+                        DropDownItem::make(__('admin-main-settings.delete'))
+                            ->fullWidth()
+                            ->confirm(__('admin-main-settings.confirm_delete_database'))
+                            ->method('removeDatabase', [
+                                'databaseId' => $item->get('databaseName'),
+                            ])
+                            ->type(Color::OUTLINE_DANGER)
+                            ->icon('ph.regular.trash')
+                            ->size('small'),
+                    ])),
         ];
     }
 

@@ -4,8 +4,13 @@
 
     .tabs-nav-wrapper {
         position: relative;
-        overflow: hidden;
-        width: 100%;
+        display: inline-flex;
+        width: auto;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
         
         &::after {
             content: '';
@@ -16,28 +21,25 @@
             background-color: var(--transp-1);
             z-index: 0;
         }
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 
     .tabs-nav {
-        @extend .flex-row;
+        display: inline-flex;
 
         flex-wrap: nowrap;
         position: relative;
         list-style: none;
         padding: 0;
         margin: 0;
-        scrollbar-width: none;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
+        width: max-content;
         z-index: 1;
         scroll-behavior: smooth;
         
-        &::-webkit-scrollbar {
-            height: 0;
-            width: 0;
-            display: none;
-        }
+        // scrollbar lives on wrapper now
 
         .tab-item {
             position: relative;
@@ -197,6 +199,18 @@
         &.active {
             display: block;
             opacity: 1;
+            animation: tabFadeIn 0.2s ease;
         }
+    }
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

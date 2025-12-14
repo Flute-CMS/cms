@@ -6,7 +6,7 @@ class BreadcrumbService
 {
     protected array $breadcrumbs = [];
 
-    public function add(string $title, string $url = null): self
+    public function add(string $title, ?string $url = null): self
     {
         $this->breadcrumbs[] = [
             'title' => $title,

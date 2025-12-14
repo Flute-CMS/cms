@@ -1,3 +1,5 @@
+* text=auto eol=lf
+
 # Git export attributes for release optimization
 # Files and directories to exclude from release archives
 
@@ -25,5 +27,9 @@ RELEASE_SETUP.md export-ignore
 # OS files
 .DS_Store export-ignore
 Thumbs.db export-ignore
-
-# Development dependencies will be excluded by composer install --no-dev
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Server\Factories;
 
 use Flute\Admin\Packages\Server\Contracts\ModDriverInterface;
 use Flute\Admin\Packages\Server\Drivers\CustomModDriver;
+use InvalidArgumentException;
 
 class ModDriverFactory
 {
@@ -20,13 +21,13 @@ class ModDriverFactory
     public function register(string $key, string $driverClass): void
     {
         if (!is_subclass_of($driverClass, ModDriverInterface::class)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Driver class must implement ModDriverInterface."
             );
         }
 
         if (isset($this->drivers[$key])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Driver [{$key}] already registered."
             );
         }
@@ -40,7 +41,7 @@ class ModDriverFactory
     public function make(string $key): ModDriverInterface
     {
         if (!isset($this->drivers[$key])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Mod driver [{$key}] not found."
             );
         }

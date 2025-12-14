@@ -50,13 +50,13 @@ class ModulePackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getModulesCount(): int
-    {
-        return app(ModuleManager::class)->getModules()->count();
-    }
-
     public function getPriority(): int
     {
         return 13;
+    }
+
+    protected function getModulesCount(): int
+    {
+        return app(ModuleManager::class)->getModules()->count();
     }
 }

@@ -4,6 +4,7 @@ namespace Flute\Core\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -17,40 +18,98 @@ class CacheClearCommand extends Command
     {
         $this
             ->setName('cache:clear')
-            ->setDescription('Clears the cache in storage/app/cache and deletes styles cache.')
-            ->setHelp('This command allows you to clear the all Flute cache.');
+            ->setDescription('Clears application cache (with SWR rotation) and asset caches.')
+            ->addOption('full', null, InputOption::VALUE_NONE, 'Also clears templates, translations, logs and proxies caches (may be expensive under load).')
+            ->setHelp('Clears Flute cache. Use --full to additionally purge templates/translations/logs/proxies caches.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $cachePath = BASE_PATH . '/storage/app/cache/*';
-        $viewsPath = BASE_PATH . '/storage/app/views/*';
-        $logsPath = BASE_PATH . '/storage/logs/*';
-        $proxiesPath = BASE_PATH . '/storage/app/proxies/*';
-        $translationsPath = BASE_PATH . '/storage/app/translations/*';
-        $cssCachePath = BASE_PATH . '/public/assets/css/cache/*';
-        $jsCachePath = BASE_PATH . '/public/assets/js/cache/*';
+        $cacheDir = storage_path('app/cache');
+        $cacheStaleDir = storage_path('app/cache_stale');
+        $full = (bool) $input->getOption('full');
+
+        $cssCacheDir = public_path('assets/css/cache');
+        $cssCacheStaleDir = public_path('assets/css/cache_stale');
+        $jsCacheDir = public_path('assets/js/cache');
+        $jsCacheStaleDir = public_path('assets/js/cache_stale');
 
         try {
             $filesystem = new Filesystem();
 
-            $filesystem->remove(files: glob($cachePath));
+            $rotateDir = static function (Filesystem $filesystem, string $src, string $dst): void {
+                if (is_dir($dst)) {
+                    $filesystem->remove($dst);
+                }
 
-            $filesystem->remove(glob($proxiesPath));
+                if (!is_dir($src)) {
+                    return;
+                }
 
-            $filesystem->remove(glob($cssCachePath));
+                try {
+                    $filesystem->rename($src, $dst, true);
+                } catch (IOException) {
+                    if (!is_dir($dst)) {
+                        @mkdir($dst, 0o755, true);
+                    }
 
-            $filesystem->remove(glob($jsCachePath));
+                    $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
+                    foreach ($entries as $entry) {
+                        if (is_string($entry) && str_ends_with(strtolower($entry), '.lock')) {
+                            continue;
+                        }
 
-            $filesystem->remove(glob($translationsPath));
+                        try {
+                            $filesystem->rename($entry, rtrim($dst, '/\\') . '/' . basename($entry), true);
+                        } catch (IOException) {
+                            try {
+                                $filesystem->remove($entry);
+                            } catch (IOException) {
+                            }
+                        }
+                    }
 
-            $filesystem->remove(glob($viewsPath));
+                    // Keep src dir itself; it will be recreated below anyway.
+                }
+            };
 
-            $filesystem->remove(glob($logsPath));
+            if (function_exists('cache_bump_epoch')) {
+                cache_bump_epoch();
+            }
+            if (function_exists('cache_warmup_mark')) {
+                cache_warmup_mark();
+            }
 
-            app(\Flute\Core\Database\DatabaseConnection::class)->forceRefreshSchema();
+            // Rotate cache directory for SWR: keep previous values in cache_stale.
+            $rotateDir($filesystem, $cacheDir, $cacheStaleDir);
+            if (!is_dir($cacheDir)) {
+                @mkdir($cacheDir, 0o755, true);
+            }
+
+            // Rotate assets cache for SWR: TemplateAssets can serve stale while recompiling.
+            $rotateDir($filesystem, $cssCacheDir, $cssCacheStaleDir);
+            if (!is_dir($cssCacheDir)) {
+                @mkdir($cssCacheDir, 0o755, true);
+            }
+
+            $rotateDir($filesystem, $jsCacheDir, $jsCacheStaleDir);
+            if (!is_dir($jsCacheDir)) {
+                @mkdir($jsCacheDir, 0o755, true);
+            }
+
+            if ($full) {
+                $proxiesPath = storage_path('app/proxies/*');
+                $translationsPath = storage_path('app/translations/*');
+                $viewsPath = storage_path('app/views/*');
+                $logsPath = storage_path('logs/*');
+
+                $filesystem->remove(glob($proxiesPath));
+                $filesystem->remove(glob($translationsPath));
+                $filesystem->remove(glob($viewsPath));
+                $filesystem->remove(glob($logsPath));
+            }
 
             $io->success('Flute cache has been deleted successfully.');
 

@@ -21,7 +21,7 @@
 	width: 320px;
 	color: var(--text);
 	border-radius: var(--border1);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+	box-shadow: var(--shadow-small);
 	pointer-events: none;
 	opacity: 0;
 	z-index: 1000;
@@ -130,7 +130,7 @@
 		border-radius: 14px;
 		overflow: hidden;
 		border: 1px solid var(--dynamic-border, var(--transp-2));
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: var(--shadow-small);
 		background: var(--background);
 		z-index: 2;
 		pointer-events: auto;
@@ -147,7 +147,7 @@
 
 		&:hover {
 			transform: translateY(-1px);
-			box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+			box-shadow: var(--shadow-medium);
 		}
 
 		.uc-status-dot {
@@ -157,7 +157,7 @@
 			width: 10px;
 			height: 10px;
 			border-radius: 50%;
-			box-shadow: 0 0 0 2px var(--background);
+			box-shadow: var(--shadow-small);
 			background-color: var(--muted);
 		}
 		.uc-status-dot.online {

@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Git\Exceptions;
 
-class FailedToExtractException extends \Exception
+use Exception;
+
+class FailedToExtractException extends Exception
 {
 }

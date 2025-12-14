@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Modules\Icons;
 
+use DOMDocument;
+use DOMElement;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Stringable;
@@ -19,9 +21,7 @@ class Icon extends HtmlString implements Stringable
     }
 
     /**
-     * @param string|null $icon
      *
-     * @return string
      */
     public function setAttributes(iterable $attributes): string
     {
@@ -29,10 +29,10 @@ class Icon extends HtmlString implements Stringable
             return $this;
         }
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($this->html);
 
-        /** @var \DOMElement $item */
+        /** @var DOMElement $item */
         $item = Arr::first($dom->getElementsByTagName('svg'));
 
         collect($attributes)
@@ -44,7 +44,6 @@ class Icon extends HtmlString implements Stringable
     }
 
     /**
-     * @return string
      */
     public function __toString(): string
     {

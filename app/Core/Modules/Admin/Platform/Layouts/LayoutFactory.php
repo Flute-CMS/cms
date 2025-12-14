@@ -191,10 +191,7 @@ class LayoutFactory
     }
 
     /**
-     * @param string $target
-     * @param array  $columns
      *
-     * @return \Flute\Admin\Platform\Layouts\Sortable
      */
     public static function sortable(string $target, array $columns): Sortable
     {

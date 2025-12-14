@@ -16,6 +16,7 @@ use Flute\Core\Modules\Installer\Services\SystemConfiguration;
 use Flute\Core\Modules\Installer\Services\SystemRequirements;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Template;
+use Throwable;
 
 class InstallerServiceProvider extends AbstractServiceProvider
 {
@@ -40,7 +41,7 @@ class InstallerServiceProvider extends AbstractServiceProvider
 
             try {
                 $container->get(\Flute\Core\ServiceProviders\DatabaseServiceProvider::class);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 logs('installer')->warning('Installer boot: database not ready yet: ' . $e->getMessage());
             }
 

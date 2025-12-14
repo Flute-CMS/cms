@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
+use Exception;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
@@ -87,7 +88,7 @@ class AdminUserComponent extends FluteComponent
             ]);
 
             return $this->redirectTo(route('installer.step', ['id' => 6]), 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->errorMessage = $e->getMessage();
         }
     }

@@ -101,9 +101,6 @@ class Input extends Field
 
     /**
      * Sets the input type.
-     *
-     * @param string $type
-     * @return self
      */
     public function type(string $type): self
     {
@@ -112,9 +109,6 @@ class Input extends Field
 
     /**
      * Sets the input name.
-     *
-     * @param string $name
-     * @return self
      */
     public function name(string $name): self
     {
@@ -130,7 +124,6 @@ class Input extends Field
      * Sets the input value.
      *
      * @param mixed $value
-     * @return self
      */
     public function value($value): self
     {
@@ -139,9 +132,6 @@ class Input extends Field
 
     /**
      * Sets the prefix text.
-     *
-     * @param string $prefix
-     * @return self
      */
     public function prefix(string $prefix): self
     {
@@ -152,7 +142,6 @@ class Input extends Field
      * Sets the input mask.
      *
      * @param mixed $mask
-     * @return self
      */
     public function mask($mask): self
     {
@@ -161,9 +150,6 @@ class Input extends Field
 
     /**
      * Sets the read-only attribute.
-     *
-     * @param bool $readOnly
-     * @return self
      */
     public function readOnly(bool $readOnly = true): self
     {
@@ -174,7 +160,6 @@ class Input extends Field
      * Sets the post-prefix content.
      *
      * @param string $postPrefix
-     * @return self
      */
     public function postPrefix($postPrefix): self
     {
@@ -183,9 +168,6 @@ class Input extends Field
 
     /**
      * Enables or disables the toggle functionality (for password fields).
-     *
-     * @param bool $toggle
-     * @return self
      */
     public function toggle(bool $toggle = true): self
     {
@@ -194,9 +176,6 @@ class Input extends Field
 
     /**
      * Removes the bottom border or margin.
-     *
-     * @param bool $withoutBottom
-     * @return self
      */
     public function withoutBottom(bool $withoutBottom = true): self
     {
@@ -205,9 +184,6 @@ class Input extends Field
 
     /**
      * Enables or disables FilePond integration for file inputs.
-     *
-     * @param bool $filePond
-     * @return self
      */
     public function filePond(bool $filePond = true): self
     {
@@ -216,9 +192,6 @@ class Input extends Field
 
     /**
      * Sets options for FilePond.
-     *
-     * @param array $options
-     * @return self
      */
     public function filePondOptions(array $options): self
     {
@@ -227,9 +200,6 @@ class Input extends Field
 
     /**
      * Sets the datalist options.
-     *
-     * @param array $datalist
-     * @return self
      */
     public function datalist(array $datalist): self
     {
@@ -245,7 +215,6 @@ class Input extends Field
      * Sets the default file for file inputs.
      *
      * @param mixed $defaultFile
-     * @return self
      */
     public function defaultFile($defaultFile): self
     {
@@ -256,7 +225,6 @@ class Input extends Field
      * Sets default files for FilePond file inputs.
      *
      * @param array $files Массив URL файлов
-     * @return self
      */
     public function defaultFiles(array $files): self
     {
@@ -273,9 +241,7 @@ class Input extends Field
     /**
      * Sets a custom attribute.
      *
-     * @param string $key
      * @param mixed $value
-     * @return self
      */
     public function set(string $key, $value = true): self
     {
@@ -292,7 +258,6 @@ class Input extends Field
      * Adds CSS classes to the input.
      *
      * @param string|array $classes
-     * @return self
      */
     public function addClass($classes): self
     {
@@ -308,9 +273,6 @@ class Input extends Field
 
     /**
      * Enables or disables the input.
-     *
-     * @param bool $disabled
-     * @return self
      */
     public function disabled(bool $disabled = true): self
     {
@@ -319,9 +281,6 @@ class Input extends Field
 
     /**
      * Sets the placeholder text.
-     *
-     * @param string $placeholder
-     * @return self
      */
     public function placeholder(string $placeholder): self
     {
@@ -330,9 +289,6 @@ class Input extends Field
 
     /**
      * Sets the input size.
-     *
-     * @param string $size
-     * @return self
      */
     public function size(string $size): self
     {
@@ -341,9 +297,6 @@ class Input extends Field
 
     /**
      * Sets a tooltip for the input.
-     *
-     * @param string $tooltip
-     * @return self
      */
     public function tooltip(string $tooltip): self
     {
@@ -352,9 +305,6 @@ class Input extends Field
 
     /**
      * Enables multiple file uploads.
-     *
-     * @param bool $multiple
-     * @return self
      */
     public function multiple(bool $multiple = true): self
     {
@@ -363,9 +313,6 @@ class Input extends Field
 
     /**
      * Устанавливает доступные пакеты иконок для выбора.
-     *
-     * @param array $packs
-     * @return self
      */
     public function iconPacks(array $packs): self
     {

@@ -4,11 +4,11 @@ function togglePassword(event) {
     const type = passwordInput.getAttribute('type');
 
     passwordInput.setAttribute('type', type === 'password' ? 'text' : 'password');
-    
+
     const isVisible = passwordInput.getAttribute('type') === 'text';
     button.setAttribute('aria-pressed', isVisible.toString());
     button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
-    
+
     var iconEye = button.querySelector('.icon-eye');
     var iconEyeSlash = button.querySelector('.icon-eye-slash');
     if (iconEye) {
@@ -78,6 +78,42 @@ function initializeFilePondElement(element) {
 
         if (acceptedFileTypes.length > 0) {
             filePondOptions.acceptedFileTypes = acceptedFileTypes;
+
+            filePondOptions.fileValidateTypeDetectType = (source, type) => {
+                return new Promise((resolve, reject) => {
+                    if (type && acceptedFileTypes.includes(type)) {
+                        resolve(type);
+                        return;
+                    }
+
+                    const url = typeof source === 'string' ? source : (source.name || '');
+                    const extensionMatch = url.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+
+                    if (extensionMatch) {
+                        const extension = extensionMatch[1].toLowerCase();
+                        const extensionToMime = {
+                            'jpg': 'image/jpeg',
+                            'jpeg': 'image/jpeg',
+                            'png': 'image/png',
+                            'gif': 'image/gif',
+                            'webp': 'image/webp',
+                            'svg': 'image/svg+xml',
+                            'bmp': 'image/bmp'
+                        };
+
+                        if (extensionToMime[extension]) {
+                            resolve(extensionToMime[extension]);
+                            return;
+                        }
+                    }
+
+                    if (type) {
+                        resolve(type);
+                    } else {
+                        reject();
+                    }
+                });
+            };
         }
 
         if (element.name) {
@@ -100,7 +136,7 @@ function initializeFilePondElement(element) {
                 root.setAttribute('tabindex', '0');
                 root.setAttribute('role', 'button');
                 root.setAttribute('aria-label', 'File input, press Enter to browse for files');
-                
+
                 root.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter') {
                         event.preventDefault();
@@ -185,7 +221,7 @@ function initializeChoicesElement(element) {
 
         const choices = new Choices(element, choicesOptions);
         element.choicesInstance = choices;
-        
+
         // Enhanced accessibility attributes
         if (!element.hasAttribute('aria-label') && !element.hasAttribute('aria-labelledby')) {
             const labelElement = document.querySelector(`label[for="${element.id}"]`);
@@ -201,7 +237,7 @@ function initializeChoicesElement(element) {
                 }
             }
         }
-        
+
         const helpText = element.parentElement.querySelector('.form-text, .help-text');
         if (helpText && !element.hasAttribute('aria-describedby')) {
             const helpId = helpText.id || `${element.id}-help`;
@@ -210,18 +246,18 @@ function initializeChoicesElement(element) {
             }
             element.setAttribute('aria-describedby', helpId);
         }
-        
+
         const container = choices.containerOuter.element;
         if (container) {
             container.setAttribute('role', 'combobox');
             container.setAttribute('aria-haspopup', 'listbox');
             container.setAttribute('aria-expanded', 'false');
-            
-            choices.containerOuter.element.addEventListener('choices:showDropdown', function() {
+
+            choices.containerOuter.element.addEventListener('choices:showDropdown', function () {
                 container.setAttribute('aria-expanded', 'true');
             });
-            
-            choices.containerOuter.element.addEventListener('choices:hideDropdown', function() {
+
+            choices.containerOuter.element.addEventListener('choices:hideDropdown', function () {
                 container.setAttribute('aria-expanded', 'false');
             });
         }

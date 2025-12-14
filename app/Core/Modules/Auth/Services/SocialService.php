@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Auth\Services;
 
+use DateTimeImmutable;
 use Exception;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
@@ -15,14 +16,20 @@ use Flute\Core\Modules\Auth\Hybrid\Storage\StorageSession;
 use Flute\Core\Services\DiscordService;
 use Hybridauth\Hybridauth;
 use Hybridauth\User\Profile;
+use Throwable;
 
 class SocialService implements SocialServiceInterface
 {
     /** @var Hybridauth */
     private $hybridauth;
 
-    /** @var array */
+    /**  */
     private array $registeredProviders = [];
+
+    /**
+     * Settings that should be stored on provider root level, not inside "keys".
+     */
+    private array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
 
     /**
      * Class constructor.
@@ -31,54 +38,6 @@ class SocialService implements SocialServiceInterface
     {
         $this->initializeProviders();
         $this->overrideDefaultProviders();
-    }
-
-    // ===== Initialization =====
-
-    /**
-     * Initializes registered social providers.
-     */
-    private function initializeProviders(): void
-    {
-        $providers = SocialNetwork::findAll(['enabled' => true]);
-
-        foreach ($providers as $socialNetwork) {
-            $this->registerSocial($socialNetwork);
-        }
-    }
-
-    /**
-     * Overrides default social providers.
-     */
-    private function overrideDefaultProviders(): void
-    {
-        $this->replaceDiscordProvider();
-        $this->initializePSR();
-    }
-
-    /**
-     * Initializes PSR-4 autoloading for custom providers.
-     */
-    private function initializePSR()
-    {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\');
-        app()->getLoader()->addPsr4('Hybridauth\\Provider\\', BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid');
-    }
-
-    /**
-     * Replaces the standard Discord provider with a custom one.
-     */
-    private function replaceDiscordProvider()
-    {
-        $loader = app()->getLoader();
-
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\Discord');
-
-        $loader->addClassMap([
-            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php',
-        ]);
-
-        $loader->register();
     }
 
     // ===== Registering Providers =====
@@ -92,7 +51,7 @@ class SocialService implements SocialServiceInterface
     {
         $socialNetwork = new SocialNetwork();
         $socialNetwork->key = $config['key'];
-        $socialNetwork->settings = json_encode($config['settings'] ?? []);
+        $socialNetwork->settings = json_encode($this->prepareSettingsPayload($config['key'], $config['settings'] ?? []));
         $socialNetwork->icon = $config['icon'] ?? '';
         $socialNetwork->enabled = $config['enabled'] ?? true;
         $socialNetwork->allowToRegister = $config['allowToRegister'] ?? true;
@@ -125,6 +84,7 @@ class SocialService implements SocialServiceInterface
         $providerName = $this->normalizeProviderName($socialNetwork->key);
         $settings = json_decode($socialNetwork->settings, true) ?? [];
 
+        $settings = $this->normalizeSettingsStructure($socialNetwork->key, $settings);
         $settings = $this->mapProviderSettings($socialNetwork->key, $settings);
 
         $this->registeredProviders[$providerName] = array_merge([
@@ -184,24 +144,6 @@ class SocialService implements SocialServiceInterface
     }
 
     /**
-     * Retrieves allowed providers for registration.
-     *
-     * @return array List of allowed providers.
-     */
-    protected function getAllowedProviders(): array
-    {
-        $result = [];
-
-        foreach ($this->registeredProviders as $key => $provider) {
-            if ($provider['entity']->allowToRegister === true) {
-                $result[$key] = $provider;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * Checks if there are any registered providers.
      *
      * @return bool True if no providers are registered, false otherwise.
@@ -236,8 +178,8 @@ class SocialService implements SocialServiceInterface
      * Retrieves a provider by name.
      *
      * @param string $socialNetworkName The name of the social network.
-     * @return array The provider's configuration.
      * @throws SocialNotFoundException If the provider is not found.
+     * @return array The provider's configuration.
      */
     public function retrieveSocialNetwork(string $socialNetworkName): array
     {
@@ -260,8 +202,8 @@ class SocialService implements SocialServiceInterface
      * Authenticates a user via a social network with possible registration.
      *
      * @param string $providerName The name of the social provider.
-     * @return User The authenticated user.
      * @throws Exception If registration is not allowed or other errors occur.
+     * @return User The authenticated user.
      */
     public function authenticateWithRegister(string $providerName): User
     {
@@ -275,7 +217,7 @@ class SocialService implements SocialServiceInterface
 
         try {
             $authData['adapter']->getStorage()->clear();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs()->warning($e);
         }
 
@@ -300,8 +242,8 @@ class SocialService implements SocialServiceInterface
      *
      * @param string $providerName The name of the social provider.
      * @param bool $bind Whether to bind the social account to an existing user.
-     * @return array Authentication data including user profile and adapter.
      * @throws Exception If user profile cannot be loaded.
+     * @return array Authentication data including user profile and adapter.
      */
     public function authenticate(string $providerName, bool $bind = false): array
     {
@@ -315,7 +257,7 @@ class SocialService implements SocialServiceInterface
                 if (isset($adapter) && method_exists($adapter, 'getStorage')) {
                     $adapter->getStorage()->clear();
                 }
-            } catch (\Throwable $inner) {
+            } catch (Throwable $inner) {
                 logs()->warning($inner);
             }
 
@@ -323,7 +265,7 @@ class SocialService implements SocialServiceInterface
                 if (isset($adapter) && method_exists($adapter, 'disconnect')) {
                     $adapter->disconnect();
                 }
-            } catch (\Throwable $inner) {
+            } catch (Throwable $inner) {
                 logs()->warning($inner);
             }
 
@@ -342,39 +284,6 @@ class SocialService implements SocialServiceInterface
             'profile' => $userProfile,
             'adapter' => $adapter,
         ];
-    }
-
-    /**
-     * Initializes Hybridauth with the given provider.
-     *
-     * @param string|null $providerName The name of the social provider.
-     * @param bool $bind Whether to bind the social account to an existing user.
-     */
-    private function initializeHybridAuth(string $providerName = null, bool $bind = false): void
-    {
-        $callbackUrl = url("social/$providerName")->get();
-
-        $this->hybridauth = new Hybridauth([
-            'callback' => $callbackUrl,
-            'providers' => $this->registeredProviders,
-        ], null, new StorageSession());
-    }
-
-    /**
-     * Finds a user by their social profile.
-     *
-     * @param Profile $profile The user's social profile.
-     * @return User|null The user if found, null otherwise.
-     */
-    private function findUserBySocialProfile(Profile $profile): ?User
-    {
-        $userSocial = UserSocialNetwork::query()
-            ->load(['user', 'user.roles'])
-            ->where('user.isTemporary', false)
-            ->where(['value' => $profile->identifier])
-            ->fetchOne();
-
-        return $userSocial ? $userSocial->user : null;
     }
 
     /**
@@ -416,7 +325,7 @@ class SocialService implements SocialServiceInterface
         $userSocialNetwork->name = $userProfile->displayName;
         $userSocialNetwork->user = $user;
         $userSocialNetwork->socialNetwork = $socialNetwork;
-        $userSocialNetwork->linkedAt = new \DateTimeImmutable();
+        $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
         try {
             transaction([$user, $userSocialNetwork])->run();
@@ -440,36 +349,6 @@ class SocialService implements SocialServiceInterface
         $this->updateBannerFromProfileIfNeeded($user, $userProfile);
 
         return $user;
-    }
-
-    /**
-     * Finds and deletes a temporary user by social network key and identifier.
-     *
-     * @param string $key The social network key.
-     * @param string $identifier The user identifier.
-     * @return void
-     */
-    private function findAndDeleteTemporaryUser(string $key, string $identifier): void
-    {
-        try {
-            $userSocialNetwork = UserSocialNetwork::query()
-                ->where(['socialNetwork.key' => $key, 'value' => $identifier, 'user.isTemporary' => true])
-                ->load(['user'])
-                ->fetchOne();
-
-            if ($userSocialNetwork) {
-                $userId = $userSocialNetwork->user->id;
-
-                transaction($userSocialNetwork, 'delete')->run();
-
-                $user = User::findByPK($userId);
-                if ($user) {
-                    transaction($user, 'delete')->run();
-                }
-            }
-        } catch (\Exception $e) {
-            logs()->error("Error deleting temporary user: " . $e->getMessage());
-        }
     }
 
     /**
@@ -511,16 +390,16 @@ class SocialService implements SocialServiceInterface
                     if ($tempUser) {
                         transaction($tempUser, 'delete')->run();
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->error("Error deleting temporary user during bind: " . $e->getMessage());
 
-                    throw new \Exception('Failed to reassign social account. Please try again.');
+                    throw new Exception('Failed to reassign social account. Please try again.');
                 }
             } else {
-                throw new \Exception('This social account is already linked to another user.');
+                throw new Exception('This social account is already linked to another user.');
             }
         }
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         if ($userSocialNetwork) {
             $lastLinked = $userSocialNetwork->linkedAt;
@@ -532,7 +411,7 @@ class SocialService implements SocialServiceInterface
             $userSocialNetwork->value = $profile->identifier;
             $userSocialNetwork->url = $profile->profileURL;
             $userSocialNetwork->name = $profile->displayName;
-            $userSocialNetwork->linkedAt = new \DateTimeImmutable();
+            $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
             if ($token) {
                 $userSocialNetwork->additional = json_encode($token);
@@ -543,7 +422,7 @@ class SocialService implements SocialServiceInterface
             } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
                 logs()->warning($e);
 
-                throw new \Exception('This social account is already linked to another user.');
+                throw new Exception('This social account is already linked to another user.');
             }
         } else {
             $userSocialNetwork = new UserSocialNetwork();
@@ -552,7 +431,7 @@ class SocialService implements SocialServiceInterface
             $userSocialNetwork->name = $profile->displayName;
             $userSocialNetwork->user = $user;
             $userSocialNetwork->socialNetwork = $social['entity'];
-            $userSocialNetwork->linkedAt = new \DateTimeImmutable();
+            $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
             if ($token) {
                 $userSocialNetwork->additional = json_encode($token);
@@ -563,7 +442,7 @@ class SocialService implements SocialServiceInterface
             } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
                 logs()->warning($e);
 
-                throw new \Exception('This social account is already linked to another user.');
+                throw new Exception('This social account is already linked to another user.');
             }
         }
 
@@ -581,8 +460,170 @@ class SocialService implements SocialServiceInterface
 
         try {
             $authData['adapter']->getStorage()->clear();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs()->warning($e);
+        }
+    }
+
+    /**
+     * Clears authentication data.
+     */
+    public function clearAuthData(): void
+    {
+        try {
+            if ($this->hybridauth) {
+                foreach ($this->hybridauth->getConnectedAdapters() as $adapter) {
+                    $adapter->disconnect();
+
+                    try {
+                        $adapter->getStorage()->clear();
+                    } catch (Throwable $e) {
+                        logs()->warning($e);
+                    }
+                }
+            }
+        } catch (\Hybridauth\Exception\InvalidArgumentException $e) {
+            logs()->warning($e);
+        }
+    }
+
+    /**
+     * Retrieves allowed providers for registration.
+     *
+     * @return array List of allowed providers.
+     */
+    protected function getAllowedProviders(): array
+    {
+        $result = [];
+
+        foreach ($this->registeredProviders as $key => $provider) {
+            if ($provider['entity']->allowToRegister === true) {
+                $result[$key] = $provider;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Replaces the name of the social network.
+     *
+     * @param string $socialName The original social network name.
+     * @return string The replaced social network name.
+     */
+    protected function replaceName(string $socialName)
+    {
+        return $this->normalizeProviderName($socialName);
+    }
+
+    // ===== Initialization =====
+
+    /**
+     * Initializes registered social providers.
+     */
+    private function initializeProviders(): void
+    {
+        $providers = SocialNetwork::findAll(['enabled' => true]);
+
+        foreach ($providers as $socialNetwork) {
+            $this->registerSocial($socialNetwork);
+        }
+    }
+
+    /**
+     * Overrides default social providers.
+     */
+    private function overrideDefaultProviders(): void
+    {
+        $this->replaceDiscordProvider();
+        $this->initializePSR();
+    }
+
+    /**
+     * Initializes PSR-4 autoloading for custom providers.
+     */
+    private function initializePSR()
+    {
+        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\');
+        app()->getLoader()->addPsr4('Hybridauth\\Provider\\', BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid');
+    }
+
+    /**
+     * Replaces the standard Discord provider with a custom one.
+     */
+    private function replaceDiscordProvider()
+    {
+        $loader = app()->getLoader();
+
+        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\Discord');
+
+        $loader->addClassMap([
+            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php',
+        ]);
+
+        $loader->register();
+    }
+
+    /**
+     * Initializes Hybridauth with the given provider.
+     *
+     * @param string|null $providerName The name of the social provider.
+     * @param bool $bind Whether to bind the social account to an existing user.
+     */
+    private function initializeHybridAuth(?string $providerName = null, bool $bind = false): void
+    {
+        $callbackPath = $bind ? "profile/social/bind/{$providerName}" : "social/{$providerName}";
+        $callbackUrl = url($callbackPath)->get();
+
+        $this->hybridauth = new Hybridauth([
+            'callback' => $callbackUrl,
+            'providers' => $this->registeredProviders,
+        ], null, new StorageSession());
+    }
+
+    /**
+     * Finds a user by their social profile.
+     *
+     * @param Profile $profile The user's social profile.
+     * @return User|null The user if found, null otherwise.
+     */
+    private function findUserBySocialProfile(Profile $profile): ?User
+    {
+        $userSocial = UserSocialNetwork::query()
+            ->load(['user', 'user.roles'])
+            ->where('user.isTemporary', false)
+            ->where(['value' => $profile->identifier])
+            ->fetchOne();
+
+        return $userSocial ? $userSocial->user : null;
+    }
+
+    /**
+     * Finds and deletes a temporary user by social network key and identifier.
+     *
+     * @param string $key The social network key.
+     * @param string $identifier The user identifier.
+     */
+    private function findAndDeleteTemporaryUser(string $key, string $identifier): void
+    {
+        try {
+            $userSocialNetwork = UserSocialNetwork::query()
+                ->where(['socialNetwork.key' => $key, 'value' => $identifier, 'user.isTemporary' => true])
+                ->load(['user'])
+                ->fetchOne();
+
+            if ($userSocialNetwork) {
+                $userId = $userSocialNetwork->user->id;
+
+                transaction($userSocialNetwork, 'delete')->run();
+
+                $user = User::findByPK($userId);
+                if ($user) {
+                    transaction($user, 'delete')->run();
+                }
+            }
+        } catch (Exception $e) {
+            logs()->error("Error deleting temporary user: " . $e->getMessage());
         }
     }
 
@@ -597,11 +638,12 @@ class SocialService implements SocialServiceInterface
      */
     private function mapProviderSettings(string $providerKey, array $settings): array
     {
-        if ($providerKey === 'Twitter' && isset($settings['keys'])) {
-            if (isset($settings['keys']['id'])) {
-                $settings['keys']['key'] = $settings['keys']['id'];
-                $settings['keys']['id'] = null;
-            }
+        $settings['keys'] = $this->mapProviderKeys($providerKey, $settings['keys'] ?? []);
+
+        if ($providerKey === 'Vkontakte') {
+            $settings['scope'] ??= 'email';
+            $settings['fields'] ??= 'photo_max,screen_name';
+            $settings['version'] ??= '5.131';
         }
 
         return $settings;
@@ -616,7 +658,7 @@ class SocialService implements SocialServiceInterface
     private function normalizeProviderName(string $providerName): string
     {
         $lower = strtolower($providerName);
-        if ($lower === 'Steam') {
+        if ($lower === 'steam') {
             return 'HttpsSteam';
         }
 
@@ -631,6 +673,61 @@ class SocialService implements SocialServiceInterface
         }
 
         return $providerName;
+    }
+
+    /**
+     * Prepare settings to be stored in database.
+     */
+    private function prepareSettingsPayload(string $providerKey, array $settings): array
+    {
+        return $this->normalizeSettingsStructure($providerKey, $settings);
+    }
+
+    /**
+     * Ensure provider settings have correct shape (keys + top-level options).
+     */
+    private function normalizeSettingsStructure(string $providerKey, array $settings): array
+    {
+        $keys = $settings['keys'] ?? [];
+
+        foreach ($this->nonKeySettingFields as $field) {
+            if (isset($keys[$field]) && !isset($settings[$field])) {
+                $settings[$field] = $keys[$field];
+                unset($keys[$field]);
+            }
+        }
+
+        foreach (['id', 'key', 'client_id', 'clientId'] as $idField) {
+            if (isset($settings[$idField]) && !isset($keys['id'])) {
+                $keys['id'] = $settings[$idField];
+            }
+        }
+
+        foreach (['secret', 'client_secret', 'clientSecret'] as $secretField) {
+            if (isset($settings[$secretField]) && !isset($keys['secret'])) {
+                $keys['secret'] = $settings[$secretField];
+            }
+        }
+
+        $settings['keys'] = $keys;
+
+        return $settings;
+    }
+
+    /**
+     * Normalize provider keys where Hybridauth expects different names.
+     */
+    private function mapProviderKeys(string $providerKey, array $keys): array
+    {
+        if ($providerKey === 'Twitter' && isset($keys['id'])) {
+            $keys['key'] = $keys['id'];
+        }
+
+        if (!isset($keys['id']) && isset($keys['key'])) {
+            $keys['id'] = $keys['key'];
+        }
+
+        return $keys;
     }
 
     /**
@@ -657,44 +754,7 @@ class SocialService implements SocialServiceInterface
     }
 
     /**
-     * Replaces the name of the social network.
-     *
-     * @param string $socialName The original social network name.
-     * @return string The replaced social network name.
-     */
-    protected function replaceName(string $socialName)
-    {
-        return $this->normalizeProviderName($socialName);
-    }
-
-    /**
-     * Clears authentication data.
-     */
-    public function clearAuthData(): void
-    {
-        try {
-            if ($this->hybridauth) {
-                foreach ($this->hybridauth->getConnectedAdapters() as $adapter) {
-                    $adapter->disconnect();
-
-                    try {
-                        $adapter->getStorage()->clear();
-                    } catch (\Throwable $e) {
-                        logs()->warning($e);
-                    }
-                }
-            }
-        } catch (\Hybridauth\Exception\InvalidArgumentException $e) {
-            logs()->warning($e);
-        }
-    }
-
-    /**
      * Update user's avatar from social profile if current avatar is default or empty.
-     *
-     * @param User $user
-     * @param Profile $profile
-     * @return void
      */
     private function updateAvatarFromProfileIfNeeded(User $user, Profile $profile): void
     {
@@ -711,11 +771,11 @@ class SocialService implements SocialServiceInterface
 
                 try {
                     transaction($user)->run();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->warning('Failed to update user avatar from social profile: ' . $e->getMessage());
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs()->warning('Error while updating avatar from social profile: ' . $e->getMessage());
         }
     }
@@ -738,11 +798,11 @@ class SocialService implements SocialServiceInterface
 
                 try {
                     $user->saveOrFail();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->warning('Failed to update user banner from social profile: ' . $e->getMessage());
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs()->warning('Error while updating banner from social profile: ' . $e->getMessage());
         }
     }

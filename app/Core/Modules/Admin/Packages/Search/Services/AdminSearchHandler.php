@@ -20,9 +20,7 @@ class AdminSearchHandler
 
         $results = $event->getResults();
 
-        usort($results, function (AdminSearchResult $a, AdminSearchResult $b) {
-            return $b->getRelevance() <=> $a->getRelevance();
-        });
+        usort($results, static fn (AdminSearchResult $a, AdminSearchResult $b) => $b->getRelevance() <=> $a->getRelevance());
 
         return $results;
     }

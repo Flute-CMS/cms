@@ -19,8 +19,6 @@ class ToastService
 
     /**
      * Возвращает экземпляр ToastBuilder для создания тоста.
-     *
-     * @return ToastBuilder
      */
     public function toast(): ToastBuilder
     {
@@ -29,9 +27,6 @@ class ToastService
 
     /**
      * Добавляет тост в сессию.
-     *
-     * @param Toast $toast
-     * @return void
      */
     public function addToast(Toast $toast): void
     {

@@ -5,6 +5,7 @@ namespace Flute\Core\ServiceProviders;
 use DI\Container;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Update\Services\UpdateService;
+use Throwable;
 
 class UpdateServiceProvider extends AbstractServiceProvider
 {
@@ -23,7 +24,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
             return;
         }
 
-        scheduler()->call(function () use ($container) {
+        scheduler()->call(static function () use ($container) {
             try {
                 /** @var UpdateService $updateService */
                 $updateService = $container->get(UpdateService::class);
@@ -53,7 +54,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         logs('cron')->error('Auto-update CMS failed: ' . $e->getMessage());
                     }
                 }
@@ -77,7 +78,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                                     @unlink($packageFile);
                                 }
                             }
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             logs('cron')->error("Auto-update module {$moduleId} failed: " . $e->getMessage());
                         }
                     }
@@ -102,7 +103,7 @@ class UpdateServiceProvider extends AbstractServiceProvider
                                     @unlink($packageFile);
                                 }
                             }
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             logs('cron')->error("Auto-update theme {$themeId} failed: " . $e->getMessage());
                         }
                     }
@@ -115,12 +116,12 @@ class UpdateServiceProvider extends AbstractServiceProvider
                     if (function_exists('opcache_reset')) {
                         @opcache_reset();
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     logs('cron')->error('Auto-update post-clean failed: ' . $e->getMessage());
                 }
 
                 logs('cron')->info("Auto-update finished: {$successful}/{$total}");
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 logs('cron')->error('Auto-update job failed: ' . $e->getMessage());
             }
         })->daily();

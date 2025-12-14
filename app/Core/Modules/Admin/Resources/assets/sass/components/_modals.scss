@@ -12,21 +12,21 @@
         display: flex;
 
         .modal__overlay {
-            animation: mmfadeIn 0.3s cubic-bezier(0.0, 0.0, 0.2, 1);
+            animation: mmfadeIn 0.2s ease;
         }
 
         .modal__container {
-            animation: mmslideIn 0.3s cubic-bezier(0, 0, 0.2, 1);
+            animation: mmslideIn 0.2s ease;
         }
     }
 
     &[aria-hidden="true"] {
         .modal__overlay {
-            animation: mmfadeOut 0.3s cubic-bezier(0.0, 0.0, 0.2, 1);
+            animation: mmfadeOut 0.2s ease;
         }
 
         .modal__container {
-            animation: mmslideOut 0.3s cubic-bezier(0, 0, 0.2, 1), mmfadeOut 0.25s cubic-bezier(0.0, 0.0, 0.2, 1);
+            animation: mmslideOut 0.2s ease;
         }
     }
 
@@ -35,13 +35,15 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.65);
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         z-index: 1000;
         position: fixed;
         inset: 0;
 
         @include media(pc) {
-            padding: 10px 0;
+            padding: 1rem 0;
         }
     }
 
@@ -50,25 +52,25 @@
     }
 
     &__container {
-        @extend .flex-between;
-
-        background-color: var(--background-900);
-        border-radius: var(--border1);
+        display: flex;
+        justify-content: space-between;
+        background-color: var(--background);
+        border-radius: 0.875rem;
         flex-direction: column;
         border: 1px solid var(--transp-1);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
         z-index: 1001;
         max-width: 90%;
         max-height: 90vh;
-        width: 600px;
+        width: 560px;
         pointer-events: auto;
         margin: auto;
 
         @include media(pc) {
-            max-height: calc(100vh - 20px);
+            max-height: calc(100vh - 2rem);
         }
     }
 
-    // Modal sizes
     &--sm {
         .modal__container {
             width: 400px;
@@ -77,22 +79,22 @@
 
     &--lg {
         .modal__container {
-            width: 800px;
+            width: 720px;
         }
     }
 
     &--xl {
         .modal__container {
-            width: 1200px;
+            width: 1024px;
         }
     }
 
     &__header {
-        @extend .flex-between;
-
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         width: 100%;
-        padding: 20px 20px 15px 20px;
-        margin-bottom: 10px;
+        padding: 1rem 1.25rem;
         border-bottom: 1px solid var(--transp-1);
 
         &-withoutHeading {
@@ -101,15 +103,16 @@
     }
 
     &__close {
-        @extend .flex-center;
-
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: transparent;
         border: 0;
-        width: 40px;
-        height: 40px;
-        color: var(--text-400);
-        @include transition(all);
-        border-radius: 30px;
+        width: 32px;
+        height: 32px;
+        color: var(--text-500);
+        transition: all 0.15s ease;
+        border-radius: 0.5rem;
         cursor: pointer;
         line-height: 1;
         margin-left: auto;
@@ -122,38 +125,40 @@
 
         &::before {
             content: "\2715";
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
 
         &:focus-visible {
-            outline: 2px solid var(--primary);
+            outline: 2px solid var(--accent);
             outline-offset: 2px;
         }
     }
 
     &__title {
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1rem;
         font-weight: 600;
         color: var(--text);
     }
 
     &__content {
-        @extend .d-flex, .flex-column, .gap-3;
-        padding: 10px 20px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem;
         width: 100%;
 
         &-loading {
-            @extend .d-flex;
-
-            margin-top: 2rem;
+            display: flex;
+            margin-top: 1.5rem;
             flex-direction: column;
-            gap: 10px;
+            gap: 0.625rem;
 
             &-box {
-                background-color: var(--background-900);
-                min-width: 300px;
+                background-color: var(--transp-1);
+                min-width: 280px;
                 min-height: 40px;
+                border-radius: 0.5rem;
 
                 &-large {
                     min-height: 80px;
@@ -164,13 +169,18 @@
 
     &__footer {
         width: 100%;
-        padding: 20px;
+        padding: 1rem 1.25rem;
         border-top: 1px solid var(--transp-1);
+        background-color: var(--transp-05);
+        border-radius: 0 0 0.875rem 0.875rem;
 
         .modal-admin-footer {
-            @extend .flex-between, .d-flex;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
 
-            >* {
+            > * {
                 flex: 1;
             }
         }
@@ -188,14 +198,14 @@
                 height: 20vh;
                 overflow: hidden;
                 transform: translateY(100%);
-                transition: transform var(--transition) ease, height var(--transition) ease;
+                transition: transform 0.2s ease, height 0.2s ease;
                 animation: none !important;
                 position: absolute;
                 bottom: 0;
             }
 
             .modal__header {
-                padding-top: 15px;
+                padding-top: 0.75rem;
             }
 
             &.is-open .modal__container {
@@ -211,15 +221,15 @@
                 user-select: none;
                 display: flex;
                 justify-content: center;
-                padding-top: 25px;
+                padding-top: 1.25rem;
                 width: 100%;
 
                 span {
                     display: block;
-                    width: 40px;
+                    width: 36px;
                     height: 4px;
-                    background: var(--background-800);
-                    border-radius: 50px;
+                    background: var(--transp-2);
+                    border-radius: 2px;
                 }
             }
 
@@ -250,7 +260,6 @@
     from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
@@ -260,7 +269,6 @@
     from {
         opacity: 1;
     }
-
     to {
         opacity: 0;
     }
@@ -268,20 +276,22 @@
 
 @keyframes mmslideIn {
     from {
-        transform: scale(1.03);
+        opacity: 0;
+        transform: scale(0.98) translateY(8px);
     }
-
     to {
-        transform: scale(1);
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
 @keyframes mmslideOut {
     from {
-        transform: scale(1);
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
-
     to {
-        transform: scale(1.03);
+        opacity: 0;
+        transform: scale(0.98) translateY(8px);
     }
 }

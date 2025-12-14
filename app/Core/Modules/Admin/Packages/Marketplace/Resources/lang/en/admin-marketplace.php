@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader is not installed',
+        'missing_desc' => 'Some marketplace modules may be encoded and will require ionCube Loader. Please install/enable it on the server.',
+    ],
     'labels' => [
         'marketplace' => 'Marketplace',
         'modules' => 'Modules',
@@ -57,6 +61,10 @@ return [
         'installed' => 'Installed',
         'read_more' => 'Read more',
         'collapse' => 'Collapse',
+        'activate' => 'Activate',
+        'deactivate' => 'Deactivate',
+        'uninstall' => 'Uninstall',
+        'view_on_marketplace' => 'View on Marketplace',
     ],
     'steps' => [
         'download' => 'Downloading Module',
@@ -90,10 +98,22 @@ return [
         'finishing' => 'Finishing installation',
         'install_confirm' => 'Are you sure you want to install module :module?',
         'install_confirm_title' => 'Install Module',
+        'update_confirm' => 'Are you sure you want to update module :module?',
+        'update_confirm_title' => 'Update Module',
+        'activate_confirm' => 'Are you sure you want to activate module :module?',
+        'activate_confirm_title' => 'Activate Module',
+        'deactivate_confirm' => 'Are you sure you want to deactivate module :module?',
+        'deactivate_confirm_title' => 'Deactivate Module',
+        'uninstall_confirm' => 'Are you sure you want to uninstall module :module? All module data will be lost!',
+        'uninstall_confirm_title' => 'Uninstall Module',
         'requires_php' => 'Requires PHP :version',
         'requires_flute' => 'Requires Flute :version',
         'requires_modules' => 'Requires modules: :modules',
         'module_installed' => 'Module installed successfully!',
+        'module_activated' => 'Module activated successfully!',
+        'module_deactivated' => 'Module deactivated successfully!',
+        'module_uninstalled' => 'Module uninstalled successfully!',
+        'module_not_found' => 'Module not found',
         'flute_key_not_set' => 'Flute API key is not set. Please set it in the main settings.',
         'refresh_success' => 'Modules refreshed successfully',
     ],

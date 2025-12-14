@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Template\Controllers;
 
+use Exception;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Template\Template;
 
@@ -11,7 +12,7 @@ class YoyoController extends BaseController
     {
         try {
             return response()->make($template->getYoyo()->update());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (is_debug()) {
                 throw $e;
             }

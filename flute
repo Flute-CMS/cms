@@ -3,6 +3,7 @@
 
 use Flute\Core\App;
 use Flute\Core\Console\Command\CacheClearCommand;
+use Flute\Core\Console\Command\CacheWarmupCommand;
 use Flute\Core\Console\Command\GenerateMigrationCommand;
 use Flute\Core\Console\Command\GenerateModuleCommand;
 use Flute\Core\Console\Command\ListRoutesCommand;
@@ -29,6 +30,7 @@ $console->add($app->get(TemplateCacheClearCommand::class));
 $console->add($app->get(LogsClearCommand::class));
 $console->add($app->get(LogsCleanupCommand::class));
 $console->add($app->get(CacheClearCommand::class));
+$console->add($app->get(CacheWarmupCommand::class));
 $console->add($app->get(GenerateMigrationCommand::class));
 $console->add($app->get(GenerateModuleCommand::class));
 $console->add($app->get(ListRoutesCommand::class));

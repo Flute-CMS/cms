@@ -13,7 +13,6 @@ interface ViewServiceInterface
      *
      * @param string $name The name of the variable.
      * @param mixed $value The value of the variable.
-     * @return void
      */
     public function addGlobal(string $name, $value): void;
 }

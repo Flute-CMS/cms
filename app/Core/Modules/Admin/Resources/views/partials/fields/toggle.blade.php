@@ -1,7 +1,7 @@
 @if (is_callable($typeForm))
     {!! $typeForm(get_defined_vars()) !!}
 @else
-@component($typeForm, get_defined_vars())
+@component($typeForm, get_defined_vars() ?? [])
     <x-fields.toggle
         name="{{ $attributes->get('name') }}"
         label="{{ $label ?? '' }}"

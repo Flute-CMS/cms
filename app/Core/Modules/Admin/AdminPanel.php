@@ -2,6 +2,7 @@
 
 namespace Flute\Admin;
 
+use Exception;
 use Flute\Admin\Contracts\AdminPackageInterface;
 use Flute\Core\Router\Router;
 use Flute\Core\Traits\MacroableTrait;
@@ -16,17 +17,14 @@ class AdminPanel
     use MacroableTrait;
 
     /**
-     * @var AdminPackageFactory
      */
     protected AdminPackageFactory $packageFactory;
 
     /**
-     * @var bool
      */
     protected bool $initialized = false;
 
     /**
-     * @var array|null
      */
     protected ?array $componentsCache = null;
 
@@ -46,7 +44,6 @@ class AdminPanel
      * Delegates the registration to the AdminPackageFactory.
      *
      * @param AdminPackageInterface $package The admin package to register.
-     * @return void
      */
     public function registerPackage(AdminPackageInterface $package): void
     {
@@ -57,8 +54,6 @@ class AdminPanel
      * Initialize the admin panel.
      *
      * Loads and initializes all admin packages from the specified directory.
-     *
-     * @return void
      */
     public function initialize(): void
     {
@@ -84,34 +79,21 @@ class AdminPanel
         }
     }
 
-    private function recompileTranslations()
-    {
-        $flushed = Support\AbstractAdminPackage::$flushedLocales;
-        if (empty($flushed)) {
-            return;
-        }
-
-        $translationService = translation();
-        foreach (array_keys($flushed) as $locale) {
-            $translationService->getTranslator()->getCatalogue($locale);
-        }
-    }
-
     public function addRouterMacro()
     {
         if (!Router::hasMacro('screen')) {
-            Router::macro('screen', function ($url, $screen) {
+            Router::macro('screen', static function ($url, $screen) {
                 $screenString = sha1($screen);
 
                 template()->registerComponent($screenString, $screen);
 
-                router()->any($url, function () use ($screenString, $url) {
+                router()->any($url, static function () use ($screenString, $url) {
                     $url = request()->getPathInfo();
 
                     if (request()->htmx()->isHtmxRequest() && !request()->htmx()->isBoosted() && request()->input('yoyo-id')) {
                         try {
                             return response()->make(template()->getYoyo()->update());
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             if (is_debug()) {
                                 throw $e;
                             }
@@ -170,11 +152,22 @@ class AdminPanel
      * Get all menu items from all registered packages.
      *
      * Aggregates menu items to be displayed in the admin panel's navigation menu.
-     *
-     * @return array
      */
     public function getAllMenuItems(): array
     {
         return $this->packageFactory->getAllMenuItems();
+    }
+
+    private function recompileTranslations()
+    {
+        $flushed = Support\AbstractAdminPackage::$flushedLocales;
+        if (empty($flushed)) {
+            return;
+        }
+
+        $translationService = translation();
+        foreach (array_keys($flushed) as $locale) {
+            $translationService->getTranslator()->getCatalogue($locale);
+        }
     }
 }

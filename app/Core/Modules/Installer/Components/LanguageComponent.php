@@ -39,16 +39,6 @@ class LanguageComponent extends FluteComponent
     }
 
     /**
-     * Get available languages
-     *
-     * @return array
-     */
-    protected function getAvailableLanguages()
-    {
-        return config('lang.available');
-    }
-
-    /**
      * Set the selected language
      *
      * @param string $language
@@ -78,5 +68,15 @@ class LanguageComponent extends FluteComponent
             'selectedLanguage' => $this->selectedLanguage,
             'preferredLanguage' => $this->preferredLanguage,
         ]);
+    }
+
+    /**
+     * Get available languages
+     *
+     * @return array
+     */
+    protected function getAvailableLanguages()
+    {
+        return config('lang.available');
     }
 }

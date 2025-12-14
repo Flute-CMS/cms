@@ -15,7 +15,6 @@ class LoggingServiceProvider extends AbstractServiceProvider
         ]);
     }
 
-
     public function boot(\DI\Container $container): void
     {
     }

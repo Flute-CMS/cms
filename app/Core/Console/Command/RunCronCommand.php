@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Console\Command;
 
+use Exception;
 use GO\Scheduler;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,6 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class RunCronCommand extends Command
 {
     protected static $defaultName = 'cron:run';
+
     protected static $defaultDescription = 'Runs all registered cron tasks';
 
     /**
@@ -42,7 +44,7 @@ class RunCronCommand extends Command
             logs('cron')->info('All cron tasks completed successfully.');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $output->writeln('<error>Error running cron tasks: ' . $e->getMessage() . '</error>');
             logs('cron')->error($e);
 

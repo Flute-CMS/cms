@@ -81,7 +81,6 @@ class Toggle extends Field
     /**
      * Устанавливает текст метки для переключателя.
      *
-     * @param string $value
      * @return $this
      */
     public function label(string $value)
@@ -94,7 +93,6 @@ class Toggle extends Field
     /**
      * Устанавливает состояние переключателя.
      *
-     * @param bool $value
      * @return $this
      */
     public function checked(bool $value = false)
@@ -107,7 +105,6 @@ class Toggle extends Field
     /**
      * Устанавливает, нужно ли отправлять true/false значения.
      *
-     * @param bool $value
      * @return $this
      */
     public function sendTrueOrFalse(bool $value = false)
@@ -120,7 +117,6 @@ class Toggle extends Field
     /**
      * Добавляет дополнительные классы к элементу.
      *
-     * @param string $value
      * @return $this
      */
     public function additionalClass(string $value)

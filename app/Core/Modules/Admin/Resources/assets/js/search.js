@@ -140,10 +140,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        htmx.ajax('GET', `/admin/search/commands?query=${encodeURIComponent(query)}`, {
-            target: '#command-suggestions',
-            swap: 'innerHTML'
-        });
+        if (searchInput.commandsTimer) {
+            clearTimeout(searchInput.commandsTimer);
+        }
+
+        searchInput.commandsTimer = setTimeout(() => {
+            htmx.ajax('GET', `/admin/search/commands?query=${encodeURIComponent(query)}`, {
+                target: '#command-suggestions',
+                swap: 'innerHTML',
+            });
+        }, 150);
     };
 
     const selectCommand = (command) => {

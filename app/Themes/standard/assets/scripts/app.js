@@ -23,6 +23,7 @@ class FluteApp {
 
 		this.nprogressTimeout = null;
 		this.authToken = null;
+		this.authTokenInitialized = false;
 		this.authCheckInterval = null;
 
 		this.initEvents();
@@ -59,8 +60,8 @@ class FluteApp {
 	}
 
 	checkAuthStatus() {
-		fetch(u(), {
-			method: "HEAD",
+		fetch(u("api/notifications/count-unread"), {
+			method: "GET",
 			headers: {
 				"X-Requested-With": "XMLHttpRequest",
 			},
@@ -79,12 +80,20 @@ class FluteApp {
 		const newAuthToken = response.headers.get("Auth-Token");
 		const isLoggedIn = response.headers.get("Is-Logged-In");
 
-		if (newAuthToken && this.authToken !== newAuthToken) {
+		if (!newAuthToken) return;
+
+		if (!this.authTokenInitialized) {
+			this.authToken = newAuthToken;
+			this.authTokenInitialized = true;
+			return;
+		}
+
+		if (this.authToken !== newAuthToken) {
 			this.authToken = newAuthToken;
 
 			const verify = () =>
-				fetch(u(), {
-					method: "HEAD",
+				fetch(u("api/notifications/count-unread"), {
+					method: "GET",
 					headers: { "X-Requested-With": "XMLHttpRequest" },
 				})
 					.then((r) => r.headers.get("Is-Logged-In"))

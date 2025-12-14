@@ -2,6 +2,7 @@
 
 namespace Flute\Core\ModulesManager;
 
+use Exception;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Events\ModuleRegistered;
@@ -9,6 +10,7 @@ use Flute\Core\ModulesManager\Exceptions\ModuleDependencyException;
 use Flute\Core\Theme\ThemeManager;
 use Illuminate\Support\Collection;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 /**
  * Class ModuleManager
@@ -17,25 +19,40 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class ModuleManager
 {
-    public Collection $installedModules;
-    public Collection $notInstalledModules;
-    public Collection $disabledModules;
-    public Collection $activeModules;
-
     public const ACTIVE = 'active';
+
     public const DISABLED = 'disabled';
+
     public const NOTINSTALLED = 'notinstalled';
+
     public const INSTALLED = 'installed';
 
     protected const CACHE_TIME = 60 * 60; // 1 hour
+
+    public Collection $installedModules;
+
+    public Collection $notInstalledModules;
+
+    public Collection $disabledModules;
+
+    public Collection $activeModules;
+
     protected Collection $modules;
+
     protected string $modulesPath;
+
     protected array $modulesJson;
+
     protected array $modulesDatabase;
+
     protected array $serviceProviders;
+
     protected bool $performance;
+
     protected ?ModuleDependencies $dependencyChecker;
+
     protected ?EventDispatcher $eventDispatcher;
+
     protected bool $initialized = false;
 
     public function __construct(ModuleDependencies $dependencyChecker, EventDispatcher $eventDispatcher)
@@ -46,6 +63,7 @@ class ModuleManager
 
         $this->eventDispatcher = $eventDispatcher;
         $this->modulesPath = path('app/Modules');
+        $this->ensureModulesDirectoryExists();
         $this->performance = (bool) (is_performance());
         $this->dependencyChecker = $dependencyChecker;
 
@@ -58,8 +76,6 @@ class ModuleManager
 
     /**
      * Initialize the module manager.
-     *
-     * @return void
      */
     public function initialize(): void
     {
@@ -67,6 +83,7 @@ class ModuleManager
             return;
         }
 
+        $this->registerModulesAutoload();
         $this->loadModulesJson();
         $this->loadModulesCollections();
         $this->loadModulesFromDatabase();
@@ -84,8 +101,6 @@ class ModuleManager
 
     /**
      * Get the module dependencies.
-     *
-     * @return ModuleDependencies
      */
     public function getModuleDependencies(): ModuleDependencies
     {
@@ -96,8 +111,6 @@ class ModuleManager
 
     /**
      * Get the active modules.
-     *
-     * @return Collection
      */
     public function getActive(): Collection
     {
@@ -108,9 +121,6 @@ class ModuleManager
 
     /**
      * Get the module json.
-     *
-     * @param string $key
-     * @return string
      */
     public function getModuleJson(string $key): string
     {
@@ -121,16 +131,13 @@ class ModuleManager
 
     /**
      * Get the module.
-     *
-     * @param string $key
-     * @return ModuleInformation
      */
     public function getModule(string $key): ModuleInformation
     {
         $this->initialize();
 
         if (!$this->issetModule($key)) {
-            throw new \Exception("Module {$key} wasn't found");
+            throw new Exception("Module {$key} wasn't found");
         }
 
         return $this->modules->get($key);
@@ -138,9 +145,6 @@ class ModuleManager
 
     /**
      * Check if the module exists.
-     *
-     * @param string $key
-     * @return bool
      */
     public function issetModule(string $key): bool
     {
@@ -151,8 +155,6 @@ class ModuleManager
 
     /**
      * Refresh the modules.
-     *
-     * @return void
      */
     public function refreshModules(): void
     {
@@ -200,8 +202,6 @@ class ModuleManager
 
     /**
      * Get the modules.
-     *
-     * @return Collection
      */
     public function getModules(): Collection
     {
@@ -220,6 +220,48 @@ class ModuleManager
         cache()->delete('flute.modules.collection');
         cache()->delete('flute.modules.alldb');
         cache()->delete('flute.modules.json');
+    }
+
+    public function registerModules(): void
+    {
+        $this->initialize();
+
+        ModuleRegister::registerServiceProviders($this->serviceProviders);
+    }
+
+    /**
+     * Register PSR-4 autoloading for all modules.
+     */
+    protected function registerModulesAutoload(): void
+    {
+        $loader = app()->getLoader();
+
+        $loader->addPsr4('Flute\\Modules\\', $this->modulesPath . DIRECTORY_SEPARATOR);
+
+        if (!is_dir($this->modulesPath)) {
+            return;
+        }
+
+        $moduleDirs = @scandir($this->modulesPath);
+
+        if ($moduleDirs === false) {
+            return;
+        }
+
+        foreach ($moduleDirs as $dir) {
+            if ($dir === '.' || $dir === '..' || $dir === '.disabled') {
+                continue;
+            }
+
+            $modulePath = $this->modulesPath . DIRECTORY_SEPARATOR . $dir;
+
+            if (!is_dir($modulePath)) {
+                continue;
+            }
+
+            $namespace = 'Flute\\Modules\\' . $dir . '\\';
+            $loader->addPsr4($namespace, $modulePath . DIRECTORY_SEPARATOR);
+        }
     }
 
     protected function checkModulesDependencies(): void
@@ -275,13 +317,6 @@ class ModuleManager
         }
     }
 
-    public function registerModules(): void
-    {
-        $this->initialize();
-
-        ModuleRegister::registerServiceProviders($this->serviceProviders);
-    }
-
     protected function setInstalledModules(): void
     {
         $this->installedModules = $this->filterModules(self::NOTINSTALLED, true);
@@ -321,22 +356,43 @@ class ModuleManager
             }
         }
 
-        usort($providers, fn ($a, $b) => $a['order'] <=> $b['order']);
+        usort($providers, static fn ($a, $b) => $a['order'] <=> $b['order']);
 
         $this->serviceProviders = $providers;
     }
 
+    /**
+     * Ensure modules directory exists to avoid runtime Finder errors.
+     */
+    protected function ensureModulesDirectoryExists(): void
+    {
+        if (is_dir($this->modulesPath)) {
+            return;
+        }
+
+        try {
+            fs()->mkdir($this->modulesPath, 0o755);
+        } catch (Throwable $e) {
+            logs('modules')->warning('Unable to create modules directory: ' . $e->getMessage());
+        }
+    }
+
     protected function loadModulesJson(): void
     {
-        $this->modulesJson = cache()->callback('flute.modules.json', function () {
-            return ModuleFinder::getAllJson($this->modulesPath);
-        }, self::CACHE_TIME);
+        $this->modulesJson = cache()->callback('flute.modules.json', fn () => ModuleFinder::getAllJson($this->modulesPath), self::CACHE_TIME);
     }
 
     protected function loadModulesFromDatabase(): void
     {
-        $this->modulesDatabase = cache()->callback('flute.modules.alldb', function () {
-            return Module::findAll();
+        $this->modulesDatabase = cache()->callback('flute.modules.alldb', static function () {
+            $modules = Module::findAll();
+
+            return array_map(static fn ($m) => [
+                'key' => $m->key,
+                'createdAt' => $m->createdAt,
+                'status' => $m->status,
+                'installedVersion' => $m->installedVersion,
+            ], $modules);
         }, self::CACHE_TIME);
 
         $this->setCurrentStatusModules();
@@ -350,12 +406,12 @@ class ModuleManager
             $moduleResult = $this->modules->get($module->key);
             $search = array_search($module->key, $columnsDb);
 
-            if ($search === false || $this->modulesDatabase[$search]->key !== $module->key) {
+            if ($search === false || $this->modulesDatabase[$search]['key'] !== $module->key) {
                 $this->createModuleInDatabase($module);
             } else {
-                $moduleResult->createdAt = $this->modulesDatabase[$search]->createdAt;
-                $moduleResult->status = $this->modulesDatabase[$search]->status;
-                $moduleResult->installedVersion = $this->modulesDatabase[$search]->installedVersion;
+                $moduleResult->createdAt = $this->modulesDatabase[$search]['createdAt'];
+                $moduleResult->status = $this->modulesDatabase[$search]['status'];
+                $moduleResult->installedVersion = $this->modulesDatabase[$search]['installedVersion'];
             }
 
             $this->createModuleInCollection($module->key, $moduleResult);
@@ -364,6 +420,18 @@ class ModuleManager
 
     protected function createModuleInDatabase(ModuleInformation $moduleInformation): void
     {
+        $existing = Module::findOne(['key' => $moduleInformation->key]);
+        if ($existing) {
+            $this->modulesDatabase[] = [
+                'key' => $existing->key,
+                'createdAt' => $existing->createdAt,
+                'status' => $existing->status,
+                'installedVersion' => $existing->installedVersion,
+            ];
+
+            return;
+        }
+
         $module = new Module();
         $module->key = $moduleInformation->key;
         $module->name = $moduleInformation->name;
@@ -374,8 +442,29 @@ class ModuleManager
             transaction($module)->run();
             logs('modules')->info("Module {$module->key} was initialized in database");
 
-            $this->modulesDatabase[] = $module;
-        } catch (\Exception $e) {
+            $this->modulesDatabase[] = [
+                'key' => $module->key,
+                'createdAt' => $module->createdAt,
+                'status' => $module->status,
+                'installedVersion' => $module->installedVersion,
+            ];
+        } catch (Exception $e) {
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                logs('modules')->warning("Module {$moduleInformation->key} already exists in database, skipping create");
+
+                $existing = Module::findOne(['key' => $moduleInformation->key]);
+                if ($existing) {
+                    $this->modulesDatabase[] = [
+                        'key' => $existing->key,
+                        'createdAt' => $existing->createdAt,
+                        'status' => $existing->status,
+                        'installedVersion' => $existing->installedVersion,
+                    ];
+                }
+
+                return;
+            }
+
             logs('modules')->error("Ошибка при создании модуля в базе данных: " . $e->getMessage());
         }
     }
@@ -405,8 +494,6 @@ class ModuleManager
 
     protected function filterModules(string $status, bool $notEqual = false): Collection
     {
-        return $this->modules->filter(function (ModuleInformation $module) use ($status, $notEqual) {
-            return $notEqual ? ($module->status !== $status) : ($module->status === $status);
-        });
+        return $this->modules->filter(static fn (ModuleInformation $module) => $notEqual ? ($module->status !== $status) : ($module->status === $status));
     }
 }

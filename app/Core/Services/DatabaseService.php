@@ -40,9 +40,6 @@ class DatabaseService
     /**
      * Retrieves a specific server mode by mode and server ID.
      *
-     * @param string $mod
-     * @param int $serverId
-     * @return DatabaseConnection
      * @throws Exception
      */
     public function getServerMode(string $mod, int $serverId): DatabaseConnection
@@ -63,8 +60,8 @@ class DatabaseService
      * Retrieves the primary database connection based on modes.
      *
      * @param string|array<string> $mods
-     * @return array<string, mixed>
      * @throws Exception
+     * @return array<string, mixed>
      */
     public function getPrimaryConnection(string|array $mods = []): array
     {
@@ -94,6 +91,45 @@ class DatabaseService
     }
 
     /**
+     * Retrieves connection information for the specified server ID within the given mods.
+     *
+     * @param string|array<string> $mods
+     * @throws Exception
+     * @return array<string, mixed>|null
+     */
+    public function getConnectionInfoByServerId(int $serverId, string|array $mods): ?array
+    {
+        $mods = is_array($mods) ? $mods : [$mods];
+
+        $connection = DatabaseConnection::query()
+            ->with('server', ['where' => ['id' => $serverId]])
+            ->where('mod', 'IN', new Parameter($mods))
+            ->fetchOne();
+
+        if ($connection && $this->isValidMode($connection)) {
+            return [
+                'server' => $connection->server,
+                'connection' => $connection,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds the first server by mode.
+     */
+    public function findFirstServerByMode(string $mod): ?Server
+    {
+        $databaseConnection = DatabaseConnection::query()
+            ->where('mod', $mod)
+            ->with('server')
+            ->fetchOne();
+
+        return $databaseConnection->server ?? null;
+    }
+
+    /**
      * Fetches modes based on provided criteria.
      *
      * @param string|array<string> $criteria
@@ -115,7 +151,6 @@ class DatabaseService
      * Formats modes into a structured array.
      *
      * @param array<int, DatabaseConnection> $modes
-     * @param bool $includeAdditionalInfo
      * @return array<int, array<string, mixed>>
      */
     private function formatModes(array $modes, bool $includeAdditionalInfo = true): array
@@ -145,56 +180,10 @@ class DatabaseService
 
     /**
      * Validates a mode entry.
-     *
-     * @param DatabaseConnection|null $mode
-     * @return bool
      */
     private function isValidMode(?DatabaseConnection $mode): bool
     {
         return $mode !== null && config("database.databases.{$mode->dbname}") && $mode->server;
-    }
-
-    /**
-     * Retrieves connection information for the specified server ID within the given mods.
-     *
-     * @param int $serverId
-     * @param string|array<string> $mods
-     * @return array<string, mixed>|null
-     * @throws Exception
-     */
-    public function getConnectionInfoByServerId(int $serverId, string|array $mods): ?array
-    {
-        $mods = is_array($mods) ? $mods : [$mods];
-
-        $connection = DatabaseConnection::query()
-            ->with('server', ['where' => ['id' => $serverId]])
-            ->where('mod', 'IN', new Parameter($mods))
-            ->fetchOne();
-
-        if ($connection && $this->isValidMode($connection)) {
-            return [
-                'server' => $connection->server,
-                'connection' => $connection,
-            ];
-        }
-
-        return null;
-    }
-
-    /**
-     * Finds the first server by mode.
-     *
-     * @param string $mod
-     * @return Server|null
-     */
-    public function findFirstServerByMode(string $mod): ?Server
-    {
-        $databaseConnection = DatabaseConnection::query()
-            ->where('mod', $mod)
-            ->with('server')
-            ->fetchOne();
-
-        return $databaseConnection->server ?? null;
     }
 
     private function getAllConnections(): array

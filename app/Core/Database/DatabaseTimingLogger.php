@@ -16,13 +16,11 @@ class DatabaseTimingLogger implements LoggerInterface
 
     /**
      * Total time spent on SQL queries during current request (seconds)
-     * @var float
      */
     private static float $totalTime = 0.0;
 
     /**
      * Total number of SQL statements executed during current request
-     * @var int
      */
     private static int $totalCount = 0;
 

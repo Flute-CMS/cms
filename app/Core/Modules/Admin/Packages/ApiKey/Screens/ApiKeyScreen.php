@@ -20,7 +20,9 @@ use Illuminate\Support\Str;
 class ApiKeyScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.boss';
 
     public $apiKeys;
@@ -46,60 +48,48 @@ class ApiKeyScreen extends Screen
                     ->minWidth('50px'),
 
                 TD::make('name', __('admin-apikey.fields.name.label'))
-                    ->render(function (ApiKey $apiKey) {
-                        return $apiKey->name;
-                    })
+                    ->render(static fn (ApiKey $apiKey) => $apiKey->name)
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('key', __('admin-apikey.fields.key.label'))
-                    ->render(function (ApiKey $apiKey) {
-                        return view('admin-api::cells.key', compact('apiKey'));
-                    })
+                    ->render(static fn (ApiKey $apiKey) => view('admin-api::cells.key', compact('apiKey')))
                     ->minWidth('250px'),
 
                 TD::make('permissions', __('admin-apikey.fields.permissions.label'))
                     ->alignCenter()
-                    ->render(function (ApiKey $apiKey) {
-                        return sizeof($apiKey->permissions);
-                    })
+                    ->render(static fn (ApiKey $apiKey) => sizeof($apiKey->permissions))
                     ->minWidth('100px'),
 
                 TD::make('lastUsedAt', __('admin-apikey.fields.last_used_at'))
-                    ->render(function (ApiKey $apiKey) {
-                        return $apiKey->lastUsedAt ? $apiKey->lastUsedAt->format(default_date_format()) : __('admin-apikey.fields.never');
-                    })
+                    ->render(static fn (ApiKey $apiKey) => $apiKey->lastUsedAt ? $apiKey->lastUsedAt->format(default_date_format()) : __('admin-apikey.fields.never'))
                     ->minWidth('150px'),
 
                 TD::make('createdAt', __('admin-apikey.fields.created_at'))
-                    ->render(function (ApiKey $apiKey) {
-                        return $apiKey->createdAt->format(default_date_format());
-                    })
+                    ->render(static fn (ApiKey $apiKey) => $apiKey->createdAt->format(default_date_format()))
                     ->minWidth('150px'),
 
                 TD::make('actions', __('admin-apikey.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
-                    ->render(function (ApiKey $apiKey) {
-                        return DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-apikey.buttons.edit'))
-                                    ->modal('editApiKeyModal', ['id' => $apiKey->id])
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
+                    ->render(static fn (ApiKey $apiKey) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list([
+                            DropDownItem::make(__('admin-apikey.buttons.edit'))
+                                ->modal('editApiKeyModal', ['id' => $apiKey->id])
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
 
-                                DropDownItem::make(__('admin-apikey.buttons.delete'))
-                                    ->confirm(__('admin-apikey.confirms.delete_key'))
-                                    ->method('deleteApiKey', ['id' => $apiKey->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ]);
-                    }),
+                            DropDownItem::make(__('admin-apikey.buttons.delete'))
+                                ->confirm(__('admin-apikey.confirms.delete_key'))
+                                ->method('deleteApiKey', ['id' => $apiKey->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ])),
             ])
                 ->searchable(['key', 'id'])
                 ->bulkActions([
@@ -124,14 +114,14 @@ class ApiKeyScreen extends Screen
     public function addApiKeyModal(Repository $parameters)
     {
         $permissions = collect(Permission::findAll())
-            ->filter(fn ($permission) => user()->can($permission->name))
+            ->filter(static fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
         $permissionsCheckboxes = [];
         foreach ($permissions as $id => $name) {
             $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.$name")
+                CheckBox::make("permissions.{$name}")
                     ->label($name)
                     ->popover(__('permissions.'.$name))
             );
@@ -224,14 +214,14 @@ class ApiKeyScreen extends Screen
         }
 
         $permissions = collect(Permission::findAll())
-            ->filter(fn ($permission) => user()->can($permission->name))
+            ->filter(static fn ($permission) => user()->can($permission->name))
             ->pluck('name', 'id')
             ->toArray();
 
         $permissionsCheckboxes = [];
         foreach ($permissions as $id => $name) {
             $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.$name")
+                CheckBox::make("permissions.{$name}")
                     ->label($name)
                     ->popover(__('permissions.'.$name))
                     ->checked($apiKey->hasPermissionByName($name))

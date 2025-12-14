@@ -2,24 +2,23 @@
 
 namespace Flute\Admin\Packages\MainSettings\Services;
 
+use Exception;
 use Flute\Admin\Platform\Repository;
 use Flute\Core\Support\FluteStr;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use PDO;
+use PDOException;
 
 class MainSettingsPackageService
 {
     /**
      * Slaги вкладок для использования в разных методах.
-     *
-     * @var array
      */
     protected array $tabSlugs;
 
     /**
      * Маппинг входных ключей к ключам конфигурации.
-     *
-     * @var array
      */
     protected array $configMappings;
 
@@ -50,7 +49,7 @@ class MainSettingsPackageService
                 'auto_update' => 'app.auto_update',
                 'csrf_enabled' => 'app.csrf_enabled',
                 'convert_to_webp' => 'app.convert_to_webp',
-                    'development_mode' => 'app.development_mode',
+                'development_mode' => 'app.development_mode',
                 'debug' => 'app.debug',
                 'debug_ips' => 'app.debug_ips',
                 'currency_view' => 'lk.currency_view',
@@ -69,6 +68,7 @@ class MainSettingsPackageService
                 'flute_copyright' => 'app.flute_copyright',
                 'discord_link_roles' => 'app.discord_link_roles',
                 'minify' => 'assets.minify',
+                'autoprefix' => 'assets.autoprefix',
                 'logo' => 'app.logo',
                 'bg_image' => 'app.bg_image',
                 'bg_image_light' => 'app.bg_image_light',
@@ -91,9 +91,17 @@ class MainSettingsPackageService
                 'captcha_type' => 'auth.captcha.type',
                 'recaptcha_site_key' => 'auth.captcha.recaptcha.site_key',
                 'recaptcha_secret_key' => 'auth.captcha.recaptcha.secret_key',
+                'recaptcha_v3_site_key' => 'auth.captcha.recaptcha_v3.site_key',
+                'recaptcha_v3_secret_key' => 'auth.captcha.recaptcha_v3.secret_key',
+                'recaptcha_v3_score_threshold' => 'auth.captcha.recaptcha_v3.score_threshold',
                 'hcaptcha_site_key' => 'auth.captcha.hcaptcha.site_key',
                 'hcaptcha_secret_key' => 'auth.captcha.hcaptcha.secret_key',
+                'turnstile_site_key' => 'auth.captcha.turnstile.site_key',
+                'turnstile_secret_key' => 'auth.captcha.turnstile.secret_key',
                 'default_role' => 'auth.default_role',
+                'two_factor_enabled' => 'auth.two_factor.enabled',
+                'two_factor_force' => 'auth.two_factor.force',
+                'two_factor_issuer' => 'auth.two_factor.issuer',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'mail.smtp',
@@ -113,8 +121,6 @@ class MainSettingsPackageService
 
     /**
      * Инициализирует базы данных из конфигурации.
-     *
-     * @return Collection
      */
     public function initDatabases(): Collection
     {
@@ -157,8 +163,6 @@ class MainSettingsPackageService
 
     /**
      * Возвращает настройки вкладок.
-     *
-     * @return array
      */
     public function getTabSettings(): array
     {
@@ -198,6 +202,7 @@ class MainSettingsPackageService
                 'flute_copyright',
                 'discord_link_roles',
                 'minify',
+                'autoprefix',
                 'logo',
                 'bg_image',
                 'bg_image_light',
@@ -220,9 +225,17 @@ class MainSettingsPackageService
                 'captcha_type',
                 'recaptcha_site_key',
                 'recaptcha_secret_key',
+                'recaptcha_v3_site_key',
+                'recaptcha_v3_secret_key',
+                'recaptcha_v3_score_threshold',
                 'hcaptcha_site_key',
                 'hcaptcha_secret_key',
+                'turnstile_site_key',
+                'turnstile_secret_key',
                 'default_role',
+                'two_factor_enabled',
+                'two_factor_force',
+                'two_factor_issuer',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp',
@@ -242,8 +255,6 @@ class MainSettingsPackageService
 
     /**
      * Возвращает правила валидации для каждой вкладки.
-     *
-     * @return array
      */
     public function getValidationRules(): array
     {
@@ -283,6 +294,7 @@ class MainSettingsPackageService
                 'flute_copyright' => 'boolean',
                 'discord_link_roles' => 'boolean',
                 'minify' => 'boolean',
+                'autoprefix' => 'boolean',
                 'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp,svg',
                 'bg_image' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
                 'bg_image_light' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
@@ -302,12 +314,20 @@ class MainSettingsPackageService
                 'captcha_enabled_login' => 'boolean',
                 'captcha_enabled_register' => 'boolean',
                 'captcha_enabled_password_reset' => 'boolean',
-                'captcha_type' => 'required|string|in:recaptcha_v2,hcaptcha',
+                'captcha_type' => 'required|string|in:recaptcha_v2,recaptcha_v3,hcaptcha,turnstile',
                 'recaptcha_site_key' => 'nullable|string',
                 'recaptcha_secret_key' => 'nullable|string',
+                'recaptcha_v3_site_key' => 'nullable|string',
+                'recaptcha_v3_secret_key' => 'nullable|string',
+                'recaptcha_v3_score_threshold' => 'nullable|numeric|min:0|max:1',
                 'hcaptcha_site_key' => 'nullable|string',
                 'hcaptcha_secret_key' => 'nullable|string',
+                'turnstile_site_key' => 'nullable|string',
+                'turnstile_secret_key' => 'nullable|string',
                 'default_role' => 'nullable',
+                'two_factor_enabled' => 'boolean',
+                'two_factor_force' => 'boolean',
+                'two_factor_issuer' => 'nullable|string',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'boolean',
@@ -327,10 +347,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает булевые входные данные.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processBooleanInputs(array $rules, array $inputs): array
     {
@@ -346,26 +362,32 @@ class MainSettingsPackageService
 
     /**
      * Обновляет конфигурацию на основе входных данных и текущей вкладки.
-     *
-     * @param array $inputs
-     * @param string $currentTab
-     * @return void
      */
     public function updateConfig(array $inputs, string $currentTab): void
     {
         if ($currentTab === $this->tabSlugs['localization']) {
-            config()->set('lang.locale', $inputs['locale']);
+            $allLanguages = config('lang.all', []);
+            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : ($allLanguages[0] ?? 'en');
 
             $availableNormal = [];
-
-            foreach ($inputs['available'] as $lang => $val) {
+            foreach (($inputs['available'] ?? []) as $lang => $val) {
                 if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true) {
                     $availableNormal[] = $lang;
                 }
             }
 
-            config()->set('lang.available', $availableNormal);
+            // Never allow zero active languages. If user disabled everything, force fallback locale.
+            if (empty($availableNormal)) {
+                $availableNormal = [$fallbackLocale];
+            }
 
+            $locale = $inputs['locale'] ?? $fallbackLocale;
+            if (!in_array($locale, $availableNormal, true)) {
+                $locale = $availableNormal[0] ?? $fallbackLocale;
+            }
+
+            config()->set('lang.locale', $locale);
+            config()->set('lang.available', array_values(array_unique($availableNormal)));
             config()->save();
 
             return;
@@ -404,10 +426,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает входные данные как массив из строки, разделенной запятыми.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processArrayInputs(array $rules, array $inputs): array
     {
@@ -423,10 +441,6 @@ class MainSettingsPackageService
 
     /**
      * Обрабатывает булевые и массивные входные данные.
-     *
-     * @param array $rules
-     * @param array $inputs
-     * @return array
      */
     public function processInputs(array $rules, array $inputs): array
     {
@@ -439,21 +453,31 @@ class MainSettingsPackageService
     /**
      * Сохраняет настройки на основе текущей вкладки и входных данных.
      *
-     * @param string $currentTab
-     * @param array $data
-     * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function saveSettings(string $currentTab, array $data): bool
     {
         $tabSettings = $this->getTabSettings();
 
         if (!array_key_exists($currentTab, $tabSettings)) {
-            throw new \Exception(__('admin-main-settings.messages.unknown_tab'));
+            throw new Exception(__('admin-main-settings.messages.unknown_tab'));
         }
 
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
         $rules = $this->getValidationRules()[$currentTab] ?? [];
+
+        if ($currentTab === ($this->tabSlugs['mail'] ?? '')) {
+            $smtpEnabled = filter_var($filteredData['smtp'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            if (!$smtpEnabled) {
+                $rules['host'] = 'nullable|string';
+                $rules['port'] = 'nullable|integer|min:1|max:65535';
+                $rules['username'] = 'nullable|string';
+                $rules['password'] = 'nullable|string';
+                $rules['secure'] = 'nullable|string|in:tls,ssl';
+                $rules['from'] = 'nullable|email';
+            }
+        }
 
         if (!validator()->validate($filteredData, $rules)) {
             return false;
@@ -473,8 +497,8 @@ class MainSettingsPackageService
                 case 'mysql':
                     $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
                     $options = [
-                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_TIMEOUT => 5,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_TIMEOUT => 5,
                     ];
 
                     break;
@@ -482,8 +506,8 @@ class MainSettingsPackageService
                 case 'postgres':
                     $dsn = "pgsql:host={$host};port={$port};dbname={$database};";
                     $options = [
-                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_TIMEOUT => 5,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_TIMEOUT => 5,
                     ];
 
                     break;
@@ -492,11 +516,11 @@ class MainSettingsPackageService
                     return __('admin-main-settings.messages.unsupported_driver');
             }
 
-            $pdo = new \PDO($dsn, $user, $password, $options);
+            $pdo = new PDO($dsn, $user, $password, $options);
             $pdo = null;
 
             return true;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return $e->getMessage();
         }
     }

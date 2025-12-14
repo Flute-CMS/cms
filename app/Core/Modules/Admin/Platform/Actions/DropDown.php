@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform\Actions;
 
 use Flute\Admin\Platform\Action;
 use Flute\Admin\Platform\Repository;
+use Throwable;
 
 /**
  * Class DropDown.
@@ -41,7 +42,7 @@ class DropDown extends Action
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View|mixed
      */

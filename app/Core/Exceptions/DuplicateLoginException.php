@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class DuplicateLoginException extends \Exception
+use Exception;
+
+class DuplicateLoginException extends Exception
 {
 }

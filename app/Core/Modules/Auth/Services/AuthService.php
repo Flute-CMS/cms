@@ -19,6 +19,7 @@ use Throwable;
 class AuthService
 {
     protected AuthenticationService $auth;
+
     protected RouterInterface $dispatcher;
 
     /**
@@ -34,8 +35,6 @@ class AuthService
 
     /**
      * Logout the current user.
-     *
-     * @return void
      */
     public function logout(): void
     {
@@ -58,7 +57,13 @@ class AuthService
      */
     public function authenticate(array $credentials, bool $remember = false, bool $fromSocial = false): User
     {
+        $authToken = session()->get('auth_token');
+
         $this->logout();
+
+        if ($authToken) {
+            session()->set('auth_token', $authToken);
+        }
 
         $authResult = $this->auth->authenticate($credentials, $fromSocial);
 
@@ -75,11 +80,8 @@ class AuthService
     /**
      * Authenticate user by userId.
      *
-     * @param int $userId
-     * @param bool $remember
      * @param bool $fromSocial Flag indicating if authentication is from social network.
      *
-     * @return User
      * @throws UserNotFoundException If the user is not found.
      */
     public function authenticateById(int $userId, bool $remember = false, bool $fromSocial = false): User
@@ -106,8 +108,8 @@ class AuthService
      * @param array $credentials User credentials.
      * @param bool $remember Flag indicating if remember token should be created.
      *
-     * @return User Registration result.
      * @throws TooManyRequestsException
+     * @return User Registration result.
      */
     public function register(array $credentials, bool $remember = false): User
     {
@@ -131,8 +133,8 @@ class AuthService
      *
      * @param string $loginOrEmail User's login or email.
      *
-     * @return PasswordResetToken The result of creating password reset token.
      * @throws UserNotFoundException
+     * @return PasswordResetToken The result of creating password reset token.
      */
     public function resetPassword(string $loginOrEmail): PasswordResetToken
     {
@@ -144,7 +146,6 @@ class AuthService
      *
      * @param string $token Password reset token.
      *
-     * @return object
      * @throws PasswordResetTokenNotFoundException If the token is not found.
      */
     public function checkPasswordResetToken(string $token): object
@@ -167,8 +168,6 @@ class AuthService
 
     /**
      * Get user information from token.
-     * @param $token
-     * @return RememberToken
      * @throws Exception
      */
     public function getInfoFromToken($token): RememberToken
@@ -187,10 +186,8 @@ class AuthService
     /**
      * Delete the remember token from the database.
      *
-     * @param string $token
-     *
-     * @return void
      * @throws Throwable
+     * @return void
      */
     public function deleteAuthToken(string $token)
     {
@@ -204,8 +201,6 @@ class AuthService
      *
      * @param string $token The verification token.
      * @throws AccountNotVerifiedException If the token does not match or is expired.
-     *
-     * @return bool
      */
     public function verify(string $token): bool
     {

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Console\Command;
 
+use Closure;
 use Flute\Core\Router\Router;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -11,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ListRoutesCommand extends Command
 {
     protected static $defaultName = 'route:list';
+
     protected static $defaultDescription = 'Displays a list of all registered routes';
 
     protected Router $router;
@@ -70,10 +72,11 @@ class ListRoutesCommand extends Command
             }
 
             return $class . '@' . $action[1];
-        } elseif ($action instanceof \Closure) {
+        } elseif ($action instanceof Closure) {
             return 'Closure';
-        } else {
-            return 'Unknown';
         }
+
+        return 'Unknown';
+
     }
 }

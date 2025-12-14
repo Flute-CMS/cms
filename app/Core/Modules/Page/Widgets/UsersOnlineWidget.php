@@ -2,11 +2,15 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
+use Cycle\Database\Injection\Parameter;
+use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersOnlineWidget extends AbstractWidget
 {
+    protected const CACHE_TIME = 30;
+
     /**
      * @var UserRepository
      */
@@ -29,21 +33,30 @@ class UsersOnlineWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $onlineUsers = User::query()
-                ->where('last_logged', '>=', (new \DateTimeImmutable())->modify('-10 minutes'))
+        $maxDisplay = $settings['max_display'] ?? 10;
+        $cacheKey = 'flute.widget.users_online.' . $maxDisplay;
+
+        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
+            $users = User::query()
+                ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
                 ->where('hidden', false)
                 ->orderBy(['last_logged' => 'DESC'])
-                ->limit($settings['max_display'] ?? 10)
+                ->limit($maxDisplay)
                 ->fetchAll();
 
-        usort($onlineUsers, static function ($a, $b) {
-            return ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0);
-        });
+            usort($users, static fn ($a, $b) => ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0));
+
+            return array_map(static fn ($user) => $user->id, $users);
+        }, self::CACHE_TIME);
+
+        $onlineUsers = !empty($userIds)
+            ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll()
+            : [];
 
         return view('flute::widgets.users-online', [
             'users' => $onlineUsers,
             'display_type' => $settings['display_type'] ?? 'text',
-            'max_display' => $settings['max_display'] ?? 10,
+            'max_display' => $maxDisplay,
         ])->render();
     }
 

@@ -12,11 +12,17 @@ use Nette\Schema\ValidationException;
 class RegisterComponent extends FluteComponent
 {
     public ?string $name = null;
+
     public ?string $email = null;
+
     public ?string $login = null;
+
     public ?string $password = null;
+
     public ?string $password_confirmation = null;
+
     public ?string $token = null;
+
     public $rememberMe;
 
     public function register()
@@ -52,6 +58,13 @@ class RegisterComponent extends FluteComponent
                 toast()->error(__('auth.duplicate_email'))->push();
             }
         }
+    }
+
+    public function render()
+    {
+        return $this->view('flute::components.auth.register', [
+            'token' => request()->input('token'),
+        ]);
     }
 
     protected function validator()
@@ -98,7 +111,9 @@ class RegisterComponent extends FluteComponent
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response');
+        $captchaResponse = request()->input('g-recaptcha-response')
+            ?? request()->input('h-captcha-response')
+            ?? request()->input('cf-turnstile-response');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();
@@ -106,19 +121,12 @@ class RegisterComponent extends FluteComponent
             return false;
         }
 
-        if (!$captchaService->verify($captchaResponse, $captchaService->getType())) {
+        if (!$captchaService->verify($captchaResponse, $captchaService->getType() . ':register')) {
             toast()->error(__('auth.captcha_invalid'))->push();
 
             return false;
         }
 
         return true;
-    }
-
-    public function render()
-    {
-        return $this->view('flute::components.auth.register', [
-            'token' => request()->input('token'),
-        ]);
     }
 }

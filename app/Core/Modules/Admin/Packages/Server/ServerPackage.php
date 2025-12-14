@@ -56,13 +56,13 @@ class ServerPackage extends AbstractAdminPackage
         ];
     }
 
-    protected function getServersCount(): int
-    {
-        return Server::query()->count();
-    }
-
     public function getPriority(): int
     {
         return 11;
+    }
+
+    protected function getServersCount(): int
+    {
+        return Server::query()->count();
     }
 }

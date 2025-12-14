@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Social\Screens;
 
+use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
@@ -13,17 +14,26 @@ use Flute\Core\Database\Entities\SocialNetwork;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Nette\Utils\Json;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class EditSocialScreen extends Screen
 {
     public ?string $name = 'admin-social.title.edit';
+
     public ?string $description = 'admin-social.title.description';
+
     public ?string $permission = 'admin.socials';
 
     public ?SocialNetwork $social = null;
+
     public $driverKey = null;
+
     public bool $isEditMode = false;
+
     protected $id = null;
+
+    protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
 
     protected $supportedDrivers = [
         'Steam' => 'Steam',
@@ -171,50 +181,85 @@ class EditSocialScreen extends Screen
         ];
     }
 
-    /**
-     * Получает поля для режима изменения
-     */
-    private function getEditDriverFields(array $availableDrivers, ?string $driverKey = null)
+    public function save()
     {
-        if (!$availableDrivers) {
-            return LayoutFactory::view('admin-social::edit.no_drivers');
-        }
+        $data = request()->input();
 
-        $fields = [
-            LayoutFactory::field(
-                Select::make('driverKey')
-                    ->options($availableDrivers)
-                    ->allowEmpty()
-                    ->value($driverKey ?? null)
-                    ->yoyo()
-                    ->placeholder(__('admin-social.fields.driver.placeholder'))
-                    ->required()
-            )->label(__('admin-social.fields.driver.label'))->required(),
+        unset($data['id']);
+
+        $rules = [
+            'icon' => 'required|string|max-str-len:255',
+            'allow_to_register' => 'sometimes|boolean',
+            'cooldown_time' => 'required|integer|min:0',
         ];
 
-        if ($driverKey) {
-            if (view()->exists("admin-social::edit.socials.{$driverKey}")) {
-                $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
-            } else {
-                $fields[] = LayoutFactory::blank([
-                    LayoutFactory::view("admin-social::edit.socials.default", ['driverKey' => $driverKey]),
+        $settings = $this->extractSettingsFromRequest($data);
+        $data['settings'] = $settings;
 
-                    LayoutFactory::field(
-                        Input::make('settings__id')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : '')
-                    )->label(__('admin-social.fields.client_id.label')),
+        if ($this->isEditMode || ($this->isEditMode === false && Arr::has($data, 'driverKey'))) {
+            $rules = array_merge($rules, [
+                'driverKey' => 'required|string',
+            ]);
 
-                    LayoutFactory::field(
-                        Input::make('settings__secret')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : '')
-                    )->label(__('admin-social.fields.client_secret.label')),
+            if (!isset($this->supportedDrivers[$data['driverKey']])) {
+                $rules = array_merge($rules, [
+                    'settings__id' => 'required|string|max-str-len:255',
+                    'settings__secret' => 'required|string|max-str-len:255',
                 ]);
             }
+
+            $rules = $this->mergeWithDefaultRules($data['driverKey'], $rules);
         }
 
-        return $fields;
+        if (!$this->validate($rules, $data)) {
+            return;
+        }
+
+        $data['key'] = $data['driverKey'];
+
+        try {
+            if ($this->isEditMode) {
+                $this->social->icon = $data['icon'];
+                $this->social->allowToRegister = filter_var($data['allow_to_register'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $this->social->cooldownTime = (int) $data['cooldown_time'];
+
+                $this->social->settings = Json::encode($settings);
+
+                $this->social->saveOrFail();
+            } else {
+                $data['settings'] = Json::encode($settings);
+                $data['allowToRegister'] = filter_var($data['allow_to_register'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $data['enabled'] = true;
+
+                SocialNetwork::make($data)->saveOrFail();
+
+                $this->redirectTo('/admin/socials', 300);
+            }
+
+            $this->flashMessage(__('admin-social.messages.save_success'), 'success');
+        } catch (Exception $e) {
+            $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
+
+            return;
+        }
+    }
+
+    public function delete()
+    {
+        if (!$this->isEditMode || !$this->social) {
+            $this->flashMessage(__('admin-social.messages.not_found'), 'error');
+
+            return;
+        }
+
+        try {
+            SocialNetwork::findByPK($this->social->id)->delete();
+
+            $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
+            $this->redirectTo('/admin/socials', 300);
+        } catch (Exception $e) {
+            $this->flashMessage(__('admin-social.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        }
     }
 
     /**
@@ -232,7 +277,7 @@ class EditSocialScreen extends Screen
                 foreach ($paths as $path) {
                     $fullPath = realpath($path);
                     if ($fullPath && is_dir($fullPath)) {
-                        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fullPath));
+                        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath));
                         foreach ($files as $file) {
                             if ($file->isFile() && $file->getExtension() == 'php') {
                                 $class = $namespace . str_replace('/', '\\', substr($file->getPathname(), strlen($fullPath), -4));
@@ -261,74 +306,25 @@ class EditSocialScreen extends Screen
         }, 3600);
     }
 
-    public function save()
+    protected function extractSettingsFromRequest(array $data): array
     {
-        $data = request()->input();
+        $settings = ['keys' => []];
 
-        unset($data['id']);
-
-        $rules = [
-            'icon' => 'required|string|max-str-len:255',
-            'allow_to_register' => 'sometimes|boolean',
-            'cooldown_time' => 'required|integer|min:0',
-        ];
-
-        $settings = [];
         foreach ($data as $key => $value) {
-            if (Str::startsWith($key, 'settings__')) {
-                $settingKey = Str::after($key, 'settings__');
+            if (!Str::startsWith($key, 'settings__')) {
+                continue;
+            }
+
+            $settingKey = Str::after($key, 'settings__');
+
+            if (in_array($settingKey, $this->nonKeySettingFields, true)) {
                 $settings[$settingKey] = $value;
-            }
-        }
-
-        $data['settings'] = $settings;
-
-        if ($this->isEditMode || ($this->isEditMode === false && Arr::has($data, 'driverKey'))) {
-            $rules = array_merge($rules, [
-                'driverKey' => 'required|string',
-            ]);
-
-            if (!isset($this->supportedDrivers[$data['driverKey']])) {
-                $rules = array_merge($rules, [
-                    'settings__id' => 'required|string|max-str-len:255',
-                    'settings__secret' => 'required|string|max-str-len:255',
-                ]);
-            }
-
-            $rules = $this->mergeWithDefaultRules($data['driverKey'], $rules);
-        }
-
-        if (!$this->validate($rules, $data)) {
-            return;
-        }
-
-        $data['key'] = $data['driverKey'];
-
-        try {
-            if ($this->isEditMode) {
-                $this->social->icon = $data['icon'];
-                $this->social->allowToRegister = filter_var($data['allow_to_register'], FILTER_VALIDATE_BOOLEAN);
-                $this->social->cooldownTime = (int) $data['cooldown_time'];
-
-                $this->social->settings = Json::encode(["keys" => $settings]);
-
-                $this->social->saveOrFail();
             } else {
-                $data['settings'] = Json::encode(["keys" => $settings]);
-                $data['allowToRegister'] = filter_var($data['allow_to_register'], FILTER_VALIDATE_BOOLEAN);
-                $data['enabled'] = true;
-
-                SocialNetwork::make($data)->saveOrFail();
-
-                $this->redirectTo('/admin/socials', 300);
+                $settings['keys'][$settingKey] = $value;
             }
-
-            $this->flashMessage(__('admin-social.messages.save_success'), 'success');
-        } catch (\Exception $e) {
-            $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
-
-            return;
         }
+
+        return $settings;
     }
 
     protected function mergeWithDefaultRules(string $driverKey, array $rules)
@@ -395,21 +391,49 @@ class EditSocialScreen extends Screen
         return $rules;
     }
 
-    public function delete()
+    /**
+     * Получает поля для режима изменения
+     */
+    private function getEditDriverFields(array $availableDrivers, ?string $driverKey = null)
     {
-        if (!$this->isEditMode || !$this->social) {
-            $this->flashMessage(__('admin-social.messages.not_found'), 'error');
-
-            return;
+        if (!$availableDrivers) {
+            return LayoutFactory::view('admin-social::edit.no_drivers');
         }
 
-        try {
-            SocialNetwork::findByPK($this->social->id)->delete();
+        $fields = [
+            LayoutFactory::field(
+                Select::make('driverKey')
+                    ->options($availableDrivers)
+                    ->allowEmpty()
+                    ->value($driverKey ?? null)
+                    ->yoyo()
+                    ->placeholder(__('admin-social.fields.driver.placeholder'))
+                    ->required()
+            )->label(__('admin-social.fields.driver.label'))->required(),
+        ];
 
-            $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
-            $this->redirectTo('/admin/socials', 300);
-        } catch (\Exception $e) {
-            $this->flashMessage(__('admin-social.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        if ($driverKey) {
+            if (view()->exists("admin-social::edit.socials.{$driverKey}")) {
+                $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
+            } else {
+                $fields[] = LayoutFactory::blank([
+                    LayoutFactory::view("admin-social::edit.socials.default", ['driverKey' => $driverKey]),
+
+                    LayoutFactory::field(
+                        Input::make('settings__id')
+                            ->required()
+                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : '')
+                    )->label(__('admin-social.fields.client_id.label')),
+
+                    LayoutFactory::field(
+                        Input::make('settings__secret')
+                            ->required()
+                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : '')
+                    )->label(__('admin-social.fields.client_secret.label')),
+                ]);
+            }
         }
+
+        return $fields;
     }
 }

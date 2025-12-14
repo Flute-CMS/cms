@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Router\Middlewares;
 
+use Closure;
 use Flute\Core\Database\Entities\ApiKey;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
@@ -10,7 +11,7 @@ use Flute\Core\Support\FluteRequest;
 
 class TokenMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         $token = $request->getAuthorizationBearerToken();
 

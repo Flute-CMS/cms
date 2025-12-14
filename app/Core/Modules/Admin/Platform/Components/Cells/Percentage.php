@@ -2,17 +2,13 @@
 
 namespace Flute\Admin\Platform\Components\Cells;
 
+use Closure;
 use Illuminate\View\Component;
 
 class Percentage extends Component
 {
     /**
      * Create a new component instance.
-     *
-     * @param float       $value
-     * @param int         $decimals
-     * @param string|null $decimal_separator
-     * @param string|null $thousands_separator
      */
     public function __construct(
         protected float $value,
@@ -25,7 +21,7 @@ class Percentage extends Component
     /**
      * Get the view/contents that represent the component.
      *
-     * @return \Illuminate\Contracts\View\View|\Closure|string
+     * @return \Illuminate\Contracts\View\View|Closure|string
      */
     public function render()
     {

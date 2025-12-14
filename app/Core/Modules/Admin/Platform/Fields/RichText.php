@@ -118,7 +118,6 @@ class RichText extends Field
     /**
      * Sets the text label for the rich text editor.
      *
-     * @param string $value
      * @return $this
      */
     public function label(string $value)
@@ -131,7 +130,6 @@ class RichText extends Field
     /**
      * Sets the height of the rich text editor.
      *
-     * @param int $value
      * @return $this
      */
     public function height(int $value)
@@ -145,7 +143,6 @@ class RichText extends Field
     /**
      * Sets custom toolbar configuration for the editor.
      *
-     * @param array $value
      * @return $this
      */
     public function toolbar(array $value)
@@ -158,7 +155,6 @@ class RichText extends Field
     /**
      * Enables or disables spellcheck in the editor.
      *
-     * @param bool $value
      * @return $this
      */
     public function spellcheck(bool $value = true)
@@ -171,7 +167,6 @@ class RichText extends Field
     /**
      * Enables image upload functionality.
      *
-     * @param bool $value
      * @return $this
      */
     public function enableImageUpload(bool $value = true)
@@ -184,7 +179,6 @@ class RichText extends Field
     /**
      * Sets the image upload endpoint URL.
      *
-     * @param string $value
      * @return $this
      */
     public function imageUploadEndpoint(string $value)
@@ -254,8 +248,6 @@ class RichText extends Field
 
     /**
      * Get the field's attributes
-     *
-     * @return array
      */
     public function getAttributes(): array
     {

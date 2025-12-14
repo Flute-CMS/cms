@@ -2,13 +2,14 @@
 
 namespace Flute\Core\Modules\Installer\Middlewares;
 
+use Closure;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 
 class InstallerMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         $id = (int) $request->input('id');
 

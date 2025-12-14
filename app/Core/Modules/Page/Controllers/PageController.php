@@ -11,6 +11,17 @@ use Flute\Core\Validator\FluteValidator;
 
 class PageController extends BaseController
 {
+    /**
+     * Render a dynamic page by current path.
+     */
+    public function index(FluteRequest $request, PageManager $pageManager)
+    {
+        $path = $request->getPathInfo();
+        $page = $pageManager->getPage($path);
+
+        return $pageManager->renderPageContent($page);
+    }
+
     public function offline()
     {
         return view('flute::pages.offline');

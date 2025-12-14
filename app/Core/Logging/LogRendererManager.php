@@ -23,8 +23,6 @@ class LogRendererManager
 
     /**
      * Add a formatter to the manager
-     *
-     * @param LogFormatterInterface $formatter
      */
     public function addFormatter(LogFormatterInterface $formatter): void
     {
@@ -33,10 +31,6 @@ class LogRendererManager
 
     /**
      * Returns the rendered log
-     *
-     * @param UserActionLog $log
-     *
-     * @return string
      */
     public function render(UserActionLog $log): string
     {

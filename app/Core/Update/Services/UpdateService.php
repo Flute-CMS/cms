@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Update\Services;
 
+use Exception;
 use Flute\Core\App;
 use Flute\Core\Markdown\Parser;
 use Flute\Core\ModulesManager\ModuleManager;
@@ -35,17 +36,14 @@ class UpdateService
     private const LOCAL_API_UPDATE_URL = 'https://flute-cms.com/api';
 
     /**
-     * @var ModuleManager
      */
     protected ModuleManager $moduleManager;
 
     /**
-     * @var ThemeManager
      */
     protected ThemeManager $themeManager;
 
     /**
-     * @var bool
      */
     protected bool $useMockData = false;
 
@@ -55,14 +53,13 @@ class UpdateService
     protected string $channel = 'stable';
 
     /**
-     * @var Parser
      */
     protected Parser $markdownParser;
 
     /**
      * UpdateService constructor.
      */
-    public function __construct(ModuleManager $moduleManager, ThemeManager $themeManager, Parser $markdownParser = null)
+    public function __construct(ModuleManager $moduleManager, ThemeManager $themeManager, ?Parser $markdownParser = null)
     {
         $this->moduleManager = $moduleManager;
         $this->themeManager = $themeManager;
@@ -93,7 +90,6 @@ class UpdateService
      * Get available updates for all components
      *
      * @param bool $forceRefresh Принудительно обновить кэш
-     * @return array
      */
     public function getAvailableUpdates(bool $forceRefresh = false): array
     {
@@ -105,9 +101,7 @@ class UpdateService
             return $this->fetchUpdatesFromApi();
         }
 
-        return cache()->callback($cacheKey, function () {
-            return $this->fetchUpdatesFromApi();
-        }, self::CACHE_DURATION);
+        return cache()->callback($cacheKey, fn () => $this->fetchUpdatesFromApi(), self::CACHE_DURATION);
     }
 
     /**
@@ -115,7 +109,6 @@ class UpdateService
      *
      * @param string $type cms|module|theme
      * @param string|null $identifier Component identifier
-     * @return bool
      */
     public function hasUpdate(string $type, ?string $identifier = null): bool
     {
@@ -133,7 +126,6 @@ class UpdateService
      *
      * @param string $type cms|module|theme
      * @param string|null $identifier Component identifier
-     * @return array|null
      */
     public function getUpdateDetails(string $type, ?string $identifier = null): ?array
     {
@@ -147,10 +139,114 @@ class UpdateService
     }
 
     /**
-     * Increment version number for mock data
+     * Clear update cache
+     */
+    public function clearCache(): void
+    {
+        cache()->delete(self::CACHE_KEY . '_' . $this->channel);
+        cache()->delete(self::CACHE_KEY . '_' . $this->channel . '_mock');
+
+        $this->getAvailableUpdates(true);
+
+        // if (function_exists('opcache_reset')) {
+        //     opcache_reset();
+        // }
+    }
+
+    /**
+     * Download update package
      *
-     * @param string $version
-     * @return string
+     * @return string|null Path to downloaded file or null on failure
+     */
+    public function downloadUpdate(string $type, ?string $identifier = null, ?string $version = null): ?string
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
+        if (function_exists('ini_set')) {
+            @ini_set('memory_limit', '-1');
+        }
+
+        try {
+            $updates = $this->getAvailableUpdates();
+
+            $downloadUrl = null;
+            $latestVersion = null;
+
+            if ($type === 'cms') {
+                $downloadUrl = $updates['cms']['download_url'] ?? null;
+                $latestVersion = $updates['cms']['version'] ?? null;
+            } elseif (!empty($identifier)) {
+                $downloadUrl = $updates[$type . 's'][$identifier]['download_url'] ?? null;
+                $latestVersion = $updates[$type . 's'][$identifier]['version'] ?? null;
+            }
+
+            if (empty($downloadUrl)) {
+                logs()->error("Download URL not found for {$type} " . ($identifier ?? ''));
+
+                return null;
+            }
+
+            $tempDir = storage_path('app/temp/updates');
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0o755, true);
+            }
+
+            $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
+
+            $client = new Client(['timeout' => 120, 'verify' => !config('app.debug')]);
+
+            $baseUrl = '';
+            if (!preg_match('/^https?:\/\//', $downloadUrl)) {
+                $baseUrl = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
+            }
+
+            // parse ?token
+            $token = explode('?', $downloadUrl)[1];
+            $token = explode('=', $token)[1];
+
+            $client->request('GET', $baseUrl . str_replace('api/', '', $downloadUrl), [
+                'headers' => [
+                    'User-Agent' => 'Flute-CMS/' . App::VERSION,
+                ],
+                'sink' => $fileName,
+                'query' => [
+                    'accessKey' => config('app.flute_key'),
+                    'versionId' => $version ?? $latestVersion,
+                    'token' => $token,
+                ],
+            ]);
+
+            if (!file_exists($fileName) || mime_content_type($fileName) !== 'application/zip') {
+                logs()->error("Downloaded file is not a valid ZIP archive: {$fileName}");
+                @unlink($fileName);
+
+                return null;
+            }
+
+            return $fileName;
+        } catch (GuzzleException $e) {
+            logs()->error('Failed to download update: ' . $e->getMessage());
+
+            if (is_debug()) {
+                throw $e;
+            }
+        } catch (Exception $e) {
+            logs()->error('Error processing update download: ' . $e->getMessage());
+
+            if (is_debug()) {
+                throw $e;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Increment version number for mock data
      */
     protected function incrementVersion(string $version): string
     {
@@ -162,8 +258,6 @@ class UpdateService
 
     /**
      * Fetch updates from external API
-     *
-     * @return array
      */
     private function fetchUpdatesFromApi(): array
     {
@@ -218,7 +312,7 @@ class UpdateService
             // }
 
             logs()->error('Failed to fetch updates: ' . $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // if (is_debug()) {
             //     throw $e;
             // }
@@ -292,9 +386,6 @@ class UpdateService
 
     /**
      * Parse Markdown changelogs in update data
-     *
-     * @param array $data
-     * @return array
      */
     private function parseMarkdownChangelogs(array $data): array
     {
@@ -354,8 +445,6 @@ class UpdateService
 
     /**
      * Get list of installed modules with their versions
-     *
-     * @return array
      */
     private function getInstalledModules(): array
     {
@@ -374,8 +463,6 @@ class UpdateService
 
     /**
      * Get list of installed themes with their versions
-     *
-     * @return array
      */
     private function getInstalledThemes(): array
     {
@@ -395,118 +482,7 @@ class UpdateService
     }
 
     /**
-     * Clear update cache
-     *
-     * @return void
-     */
-    public function clearCache(): void
-    {
-        cache()->delete(self::CACHE_KEY . '_' . $this->channel);
-        cache()->delete(self::CACHE_KEY . '_' . $this->channel . '_mock');
-
-        $this->getAvailableUpdates(true);
-
-        // if (function_exists('opcache_reset')) {
-        //     opcache_reset();
-        // }
-    }
-
-    /**
-     * Download update package
-     *
-     * @param string $type
-     * @param string|null $identifier
-     * @param string|null $version
-     * @return string|null Path to downloaded file or null on failure
-     */
-    public function downloadUpdate(string $type, ?string $identifier = null, ?string $version = null): ?string
-    {
-        if (function_exists('set_time_limit')) {
-            @set_time_limit(0);
-        }
-        if (function_exists('ignore_user_abort')) {
-            @ignore_user_abort(true);
-        }
-
-        try {
-            $updates = $this->getAvailableUpdates();
-
-            $downloadUrl = null;
-            $latestVersion = null;
-
-            if ($type === 'cms') {
-                $downloadUrl = $updates['cms']['download_url'] ?? null;
-                $latestVersion = $updates['cms']['version'] ?? null;
-            } elseif (!empty($identifier)) {
-                $downloadUrl = $updates[$type . 's'][$identifier]['download_url'] ?? null;
-                $latestVersion = $updates[$type . 's'][$identifier]['version'] ?? null;
-            }
-
-            if (empty($downloadUrl)) {
-                logs()->error("Download URL not found for {$type} " . ($identifier ?? ''));
-
-                return null;
-            }
-
-            $tempDir = storage_path('app/temp/updates');
-            if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0o755, true);
-            }
-
-            $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
-
-            $client = new Client(['timeout' => 120, 'verify' => !config('app.debug')]);
-
-            $baseUrl = '';
-            if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $baseUrl = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
-            }
-
-            // parse ?token
-            $token = explode('?', $downloadUrl)[1];
-            $token = explode('=', $token)[1];
-
-            $client->request('GET', $baseUrl . str_replace('api/', '', $downloadUrl), [
-                'headers' => [
-                    'User-Agent' => 'Flute-CMS/' . App::VERSION,
-                ],
-                'sink' => $fileName,
-                'query' => [
-                    'accessKey' => config('app.flute_key'),
-                    'versionId' => $version ?? $latestVersion,
-                    'token' => $token,
-                ],
-            ]);
-
-            if (!file_exists($fileName) || mime_content_type($fileName) !== 'application/zip') {
-                logs()->error("Downloaded file is not a valid ZIP archive: {$fileName}");
-                @unlink($fileName);
-
-                return null;
-            }
-
-            return $fileName;
-        } catch (GuzzleException $e) {
-            logs()->error('Failed to download update: ' . $e->getMessage());
-
-            if (is_debug()) {
-                throw $e;
-            }
-        } catch (\Exception $e) {
-            logs()->error('Error processing update download: ' . $e->getMessage());
-
-            if (is_debug()) {
-                throw $e;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Get PHP version
-     *
-     * @return string
      */
     private function getPHPVersion(): string
     {

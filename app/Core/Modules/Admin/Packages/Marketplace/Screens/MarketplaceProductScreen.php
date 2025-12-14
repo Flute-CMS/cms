@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Marketplace\Screens;
 
+use Exception;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
@@ -12,15 +13,21 @@ use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceProductScreen extends Screen
 {
+    public string $slugParam = '';
+
+    public array $module = [];
+
+    public array $versions = [];
+
+    public bool $isLoading = false;
+
     protected ?string $name = 'admin-marketplace.labels.module_details';
+
     protected ?string $description = 'admin-marketplace.labels.module_details';
 
-    public string $slugParam = '';
-    public array $module = [];
-    public array $versions = [];
     protected MarketplaceService $marketplaceService;
+
     protected ModuleManager $moduleManager;
-    public bool $isLoading = false;
 
     public function mount(): void
     {
@@ -40,52 +47,10 @@ class MarketplaceProductScreen extends Screen
         $this->loadModule();
     }
 
-    protected function loadModule(): void
-    {
-        try {
-            if (!$this->slugParam) {
-                return;
-            }
-
-            $modules = $this->marketplaceService->getModules('', '');
-            foreach ($modules as $item) {
-                if (!empty($item['slug']) && $item['slug'] === $this->slugParam) {
-                    $this->module = $item;
-
-                    break;
-                }
-            }
-
-            if (empty($this->module) || !isset($this->module['name'])) {
-                return;
-            }
-
-            $this->module['isInstalled'] = $this->moduleManager->issetModule($this->module['name']) &&
-                $this->moduleManager->getModule($this->module['name'])->status !== 'notinstalled';
-
-            if ($this->module['isInstalled'] && isset($this->module['currentVersion'])) {
-                $installedModule = $this->moduleManager->getModule($this->module['name']);
-                $this->module['installedVersion'] = $installedModule->installedVersion ?? '0.0.0';
-                $this->module['needsUpdate'] = version_compare(
-                    $this->module['currentVersion'],
-                    $this->module['installedVersion'],
-                    '>'
-                );
-                $this->module['status'] = $installedModule->status ?? 'disabled';
-            }
-
-            if (!empty($this->module['name'])) {
-                $this->name = $this->module['name'];
-            }
-            $this->versions = $this->module['changelog'] ?? [];
-        } catch (\Exception $e) {
-            logs()->error($e);
-            $this->flashMessage($e->getMessage(), 'error');
-        }
-    }
-
     public function installModule(string $slug)
     {
+        $this->ensureServicesInitialized();
+
         if (function_exists('set_time_limit')) {
             @set_time_limit(0);
         }
@@ -108,14 +73,14 @@ class MarketplaceProductScreen extends Screen
             }
             $downloadUrl = $moduleData['downloadUrl'] ?? null;
             if (empty($downloadUrl)) {
-                throw new \Exception(__('admin-marketplace.messages.download_failed'));
+                throw new Exception(__('admin-marketplace.messages.download_failed'));
             }
             $module = ['downloadUrl' => $downloadUrl, 'slug' => $slug];
 
             // Step 1: Download module, handle expired token
             try {
                 $download = $moduleInstaller->downloadModule($module);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 if ($e->getMessage() === 'MARKETPLACE_BAD_REQUEST') {
                     $this->marketplaceService->clearCache();
                     $allModules = $this->marketplaceService->getModules('', '', true);
@@ -129,13 +94,13 @@ class MarketplaceProductScreen extends Screen
                     }
                     $downloadUrl = $moduleData['downloadUrl'] ?? null;
                     if (empty($downloadUrl)) {
-                        throw new \Exception(__('admin-marketplace.messages.download_failed'));
+                        throw new Exception(__('admin-marketplace.messages.download_failed'));
                     }
                     $module['downloadUrl'] = $downloadUrl;
 
                     try {
                         $download = $moduleInstaller->downloadModule($module);
-                    } catch (\Exception $e2) {
+                    } catch (Exception $e2) {
                         logs()->error($e2);
                         $this->flashMessage($e2->getMessage(), 'error');
                         $this->isLoading = false;
@@ -164,7 +129,7 @@ class MarketplaceProductScreen extends Screen
             // Step 5: Update composer dependencies
             try {
                 $moduleInstaller->updateComposerDependencies();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
 
                 throw $e;
@@ -193,12 +158,13 @@ class MarketplaceProductScreen extends Screen
                     $moduleActions->activateModule($moduleInfo, $moduleManager);
                 }
             } else {
-                throw new \Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
+                throw new Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
             }
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
+            $this->triggerSidebarRefresh();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
@@ -214,12 +180,14 @@ class MarketplaceProductScreen extends Screen
 
     public function uninstallModule(string $key)
     {
+        $this->ensureServicesInitialized();
+
         try {
             $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
             $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
 
             if (!$moduleManager->issetModule($key)) {
-                throw new \Exception(__('admin-marketplace.messages.module_not_found'));
+                throw new Exception(__('admin-marketplace.messages.module_not_found'));
             }
 
             $moduleInfo = $moduleManager->getModule($key);
@@ -227,22 +195,26 @@ class MarketplaceProductScreen extends Screen
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_uninstalled'), 'success');
-        } catch (\Exception $e) {
+            $this->triggerSidebarRefresh();
+        } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
+            $this->marketplaceService->clearCache();
             $this->loadModule();
         }
     }
 
     public function activateModule(string $key)
     {
+        $this->ensureServicesInitialized();
+
         try {
             $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
             $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
 
             if (!$moduleManager->issetModule($key)) {
-                throw new \Exception(__('admin-marketplace.messages.module_not_found'));
+                throw new Exception(__('admin-marketplace.messages.module_not_found'));
             }
 
             $moduleInfo = $moduleManager->getModule($key);
@@ -250,33 +222,39 @@ class MarketplaceProductScreen extends Screen
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_activated'), 'success');
-        } catch (\Exception $e) {
+            $this->triggerSidebarRefresh();
+        } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
+            $this->marketplaceService->clearCache();
             $this->loadModule();
         }
     }
 
     public function deactivateModule(string $key)
     {
+        $this->ensureServicesInitialized();
+
         try {
             $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
             $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
 
             if (!$moduleManager->issetModule($key)) {
-                throw new \Exception(__('admin-marketplace.messages.module_not_found'));
+                throw new Exception(__('admin-marketplace.messages.module_not_found'));
             }
 
             $moduleInfo = $moduleManager->getModule($key);
-            $moduleActions->deactivateModule($moduleInfo, $moduleManager);
+            $moduleActions->disableModule($moduleInfo, $moduleManager);
 
             $moduleManager->refreshModules();
             $this->flashMessage(__('admin-marketplace.messages.module_deactivated'), 'success');
-        } catch (\Exception $e) {
+            $this->triggerSidebarRefresh();
+        } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
+            $this->marketplaceService->clearCache();
             $this->loadModule();
         }
     }
@@ -302,5 +280,77 @@ class MarketplaceProductScreen extends Screen
                 'isLoading' => $this->isLoading,
             ]),
         ];
+    }
+
+    protected function ensureServicesInitialized(): void
+    {
+        if (!isset($this->marketplaceService)) {
+            $this->marketplaceService = app(MarketplaceService::class);
+        }
+        if (!isset($this->moduleManager)) {
+            $this->moduleManager = app(ModuleManager::class);
+        }
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
+    }
+
+    protected function loadModule(): void
+    {
+        $this->ensureServicesInitialized();
+
+        try {
+            if (!$this->slugParam) {
+                return;
+            }
+
+            $this->moduleManager->refreshModules();
+
+            try {
+                $this->module = $this->marketplaceService->getModuleBySlug($this->slugParam);
+            } catch (Exception $e) {
+                $modules = $this->marketplaceService->getModules('', '', true);
+                foreach ($modules as $item) {
+                    if (!empty($item['slug']) && $item['slug'] === $this->slugParam) {
+                        $this->module = $item;
+
+                        break;
+                    }
+                }
+            }
+
+            if (empty($this->module) || !isset($this->module['name'])) {
+                return;
+            }
+
+            $moduleName = $this->module['name'];
+            $this->module['isInstalled'] = $this->moduleManager->issetModule($moduleName) &&
+                $this->moduleManager->getModule($moduleName)->status !== 'notinstalled';
+
+            if ($this->module['isInstalled'] && isset($this->module['currentVersion'])) {
+                $installedModule = $this->moduleManager->getModule($moduleName);
+                $this->module['installedVersion'] = $installedModule->installedVersion ?? '0.0.0';
+                $this->module['needsUpdate'] = version_compare(
+                    $this->module['currentVersion'],
+                    $this->module['installedVersion'],
+                    '>'
+                );
+                $this->module['status'] = $installedModule->status ?? 'disabled';
+            } else {
+                $this->module['isInstalled'] = false;
+                $this->module['status'] = '';
+            }
+
+            if (!empty($moduleName)) {
+                $this->name = $moduleName;
+                breadcrumb()->add($moduleName);
+            }
+            $this->versions = $this->module['changelog'] ?? [];
+        } catch (Exception $e) {
+            logs()->error($e);
+            $this->flashMessage($e->getMessage(), 'error');
+        }
     }
 }

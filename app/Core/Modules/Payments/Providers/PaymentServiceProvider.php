@@ -8,6 +8,7 @@ use Flute\Core\Modules\Payments\Listeners\TemplateListener;
 use Flute\Core\Modules\Payments\Services\PaymentsCleaner;
 use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Template\Events\TemplateInitialized;
+use Throwable;
 
 class PaymentServiceProvider extends AbstractServiceProvider
 {
@@ -31,7 +32,7 @@ class PaymentServiceProvider extends AbstractServiceProvider
         try {
             /** @var \Flute\Core\Database\DatabaseConnection $db */
             $db = $container->get(\Flute\Core\Database\DatabaseConnection::class);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('modules')->warning('Payments boot: database not ready yet: ' . $e->getMessage());
         }
 

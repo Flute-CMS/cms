@@ -63,11 +63,6 @@ abstract class Legend extends Layout
     }
 
     /**
-     * @return array
-     */
-    abstract protected function columns(): iterable;
-
-    /**
      * @return Rows
      */
     public function title(?string $title = null): self
@@ -76,4 +71,9 @@ abstract class Legend extends Layout
 
         return $this;
     }
+
+    /**
+     * @return array
+     */
+    abstract protected function columns(): iterable;
 }

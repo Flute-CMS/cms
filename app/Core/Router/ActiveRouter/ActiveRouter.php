@@ -26,9 +26,6 @@ class ActiveRouter
 
     /**
      * Constructor of the class.
-     *
-     * @param FluteRequest         $request
-     * @param \Flute\Core\Router\Contracts\RouterInterface $router
      */
     public function __construct(FluteRequest $request, RouterInterface $router)
     {
@@ -49,11 +46,11 @@ class ActiveRouter
         [$routes, $ignoredRoutes] = $this->parseIgnoredRoutes($routes);
 
         if ($this->isPath($routes) || $this->isFullPath($routes) || $this->isRoute($routes)) {
-            if (count($ignoredRoutes) && ($this->isPath($ignoredRoutes) || $this->isFullPath($ignoredRoutes) || $this->isRoute($ignoredRoutes))) {
-                return false;
-            }
+            return !(count($ignoredRoutes) && ($this->isPath($ignoredRoutes) || $this->isFullPath($ignoredRoutes) || $this->isRoute($ignoredRoutes)))
 
-            return true;
+
+
+            ;
         }
 
         return false;

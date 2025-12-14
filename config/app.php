@@ -36,4 +36,20 @@ return array (
   'flute_key' => '',
   'robots' => 'index, follow',
   'logo_light' => 'assets/img/logo-light.svg',
+  'trusted_proxies' => 
+  array (
+  ),
+  'trusted_hosts' => 
+  array (
+  ),
+  'session' => 
+  array (
+    'name' => 'flute_session',
+    'secure' => NULL,
+    'http_only' => true,
+    'same_site' => 'Lax',
+    'domain' => NULL,
+    'path' => '/',
+    'lifetime' => 0,
+  ),
 );

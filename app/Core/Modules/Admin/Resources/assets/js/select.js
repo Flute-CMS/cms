@@ -5,6 +5,7 @@
 class Select {
     constructor() {
         this.instances = new Map();
+        this.dropdownRepositionHandlers = new Map();
         this.init();
     }
 
@@ -54,7 +55,75 @@ class Select {
                     instance.load('');
                 }
             });
+
+            // Make dropdown escape overflow containers (native-like)
+            instance.on('dropdown_open', () => {
+                const dropdown = instance.dropdown;
+                if (!dropdown) return;
+
+                dropdown.style.position = 'fixed';
+                this.positionDropdown(instance);
+
+                let rafId = 0;
+                let lastLeft = null;
+                let lastTop = null;
+                let lastWidth = null;
+
+                const reposition = () => {
+                    if (!instance.isOpen) return;
+                    if (rafId) return;
+                    rafId = window.requestAnimationFrame(() => {
+                        rafId = 0;
+                        const control = instance.control;
+                        const dd = instance.dropdown;
+                        if (!control || !dd) return;
+
+                        const rect = control.getBoundingClientRect();
+                        const left = rect.left;
+                        const top = rect.bottom + 4;
+                        const width = rect.width;
+
+                        if (left === lastLeft && top === lastTop && width === lastWidth) return;
+                        lastLeft = left;
+                        lastTop = top;
+                        lastWidth = width;
+
+                        dd.style.left = left + 'px';
+                        dd.style.top = top + 'px';
+                        dd.style.width = width + 'px';
+                        dd.style.minWidth = width + 'px';
+                    });
+                };
+
+                window.addEventListener('scroll', reposition, { capture: true, passive: true });
+                window.addEventListener('resize', reposition, { passive: true });
+                this.dropdownRepositionHandlers.set(select, reposition);
+            });
+
+            instance.on('dropdown_close', () => {
+                const dropdown = instance.dropdown;
+                if (dropdown) dropdown.style.position = '';
+
+                const reposition = this.dropdownRepositionHandlers.get(select);
+                if (reposition) {
+                    window.removeEventListener('scroll', reposition, true);
+                    window.removeEventListener('resize', reposition);
+                    this.dropdownRepositionHandlers.delete(select);
+                }
+            });
         });
+    }
+
+    positionDropdown(instance) {
+        const control = instance.control;
+        const dropdown = instance.dropdown;
+        if (!control || !dropdown) return;
+
+        const rect = control.getBoundingClientRect();
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.top = rect.bottom + 4 + 'px';
+        dropdown.style.width = rect.width + 'px';
+        dropdown.style.minWidth = rect.width + 'px';
     }
 
     /**
@@ -62,13 +131,17 @@ class Select {
      */
     getConfig(select) {
         const isMultiple = select.multiple;
+        const enableSearch = this.getEnableSearch(select);
         
         const config = {
             allowEmptyOption: !isMultiple,
             maxItems: parseInt(select.dataset.maxItems || (isMultiple ? null : 1)),
-            plugins: this.getPlugins(select),
+            plugins: this.getPlugins(select, enableSearch),
             render: this.getRenderFunctions(select),
             placeholder: select.getAttribute('placeholder') || null,
+            dropdownParent: 'body',
+            // Hide the control input for single selects when search is disabled
+            controlInput: (!isMultiple && !enableSearch) ? null : undefined,
             onItemAdd: (value) => {
                 if (isMultiple && value === '') {
                     setTimeout(() => this.instances.get(select)?.removeItem(''), 0);
@@ -96,13 +169,42 @@ class Select {
         return config;
     }
 
+    getEnableSearch(select) {
+        const mode = select.dataset.mode || 'static';
+        const raw = (select.dataset.searchable || 'auto').toLowerCase();
+        const threshold = parseInt(select.dataset.searchThreshold || '6', 10);
+
+        if (raw === 'true') return true;
+        if (raw === 'false') return false;
+
+        // Auto mode:
+        // - for async/database modes: enable search
+        if (mode !== 'static') return true;
+
+        // - for static: enable when options count > threshold
+        const optionCount = select.querySelectorAll('option').length;
+        return optionCount > threshold;
+    }
+
     /**
      * Get configured plugins
      */
-    getPlugins(select) {
+    getPlugins(select, enableSearch) {
+        const isMultiple = select.multiple;
         try {
             const plugins = JSON.parse(select.dataset.plugins || '[]');
-            return [...new Set(['clear_button', ...plugins])];
+            const normalized = [...new Set(['clear_button', ...plugins])];
+
+            // Enable/disable dropdown search input for single select only
+            const hasDropdownInput = normalized.includes('dropdown_input');
+            if (!isMultiple && enableSearch && !hasDropdownInput) {
+                normalized.push('dropdown_input');
+            }
+            if (!isMultiple && !enableSearch && hasDropdownInput) {
+                return normalized.filter((p) => p !== 'dropdown_input');
+            }
+
+            return normalized;
         } catch (e) {
             console.warn('Invalid plugins configuration:', e);
             return ['clear_button'];
@@ -263,7 +365,16 @@ class Select {
                 console.warn('Error destroying select instance:', e);
             }
         });
+        this.dropdownRepositionHandlers.forEach((reposition) => {
+            try {
+                window.removeEventListener('scroll', reposition, true);
+                window.removeEventListener('resize', reposition);
+            } catch (e) {
+                // ignore
+            }
+        });
         this.instances.clear();
+        this.dropdownRepositionHandlers.clear();
     }
 }
 

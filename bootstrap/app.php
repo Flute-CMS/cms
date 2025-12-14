@@ -12,9 +12,8 @@ if (!defined('BASE_PATH')) {
     define('BASE_PATH', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
 }
 
-if (!extension_loaded('ionCube Loader') && isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') === false && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
-    http_response_code(500);
-    exit('Flute requires ioncube_loader extension to be enabled.');
+if (!defined('FLUTE_IONCUBE_AVAILABLE')) {
+    define('FLUTE_IONCUBE_AVAILABLE', extension_loaded('ionCube Loader'));
 }
 
 if (version_compare(PHP_VERSION, '8.2', '<')) {
@@ -46,6 +45,7 @@ use Flute\Core\Modules\Search\Providers\SearchServiceProvider;
 use Flute\Core\Modules\Tips\Providers\TipsServiceProvider;
 use Flute\Core\Modules\Translation\Providers\TranslationServiceProvider;
 use Flute\Core\ServiceProviders\BreadcrumbServiceProvider;
+use Flute\Core\ServiceProviders\CacheWarmupServiceProvider;
 use Flute\Core\ServiceProviders\CacheServiceProvider;
 use Flute\Core\ServiceProviders\ConfigurationServiceProvider;
 use Flute\Core\ServiceProviders\CookieServiceProvider;
@@ -105,6 +105,7 @@ $app->serviceProvider(FileSystemServiceProvider::class)
     ->serviceProvider(EventsServiceProvider::class)
     ->serviceProvider(LoggerServiceProvider::class)
     ->serviceProvider(CacheServiceProvider::class)
+    ->serviceProvider(CacheWarmupServiceProvider::class)
     ->serviceProvider(SessionServiceProvider::class)
     ->serviceProvider(CronServiceProvider::class)
     ->serviceProvider(TracyBarServiceProvider::class)

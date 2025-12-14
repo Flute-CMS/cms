@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class TemporaryUserException extends \Exception
+use Exception;
+
+class TemporaryUserException extends Exception
 {
 }

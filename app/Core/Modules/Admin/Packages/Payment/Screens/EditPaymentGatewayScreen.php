@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Payment\Screens;
 
+use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\CheckBox;
@@ -15,21 +16,30 @@ use Flute\Core\Database\Entities\Currency;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Modules\Payments\Factories\PaymentDriverFactory;
 use Flute\Core\Support\FileUploader;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class EditPaymentGatewayScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.payments';
 
-    private PaymentService $paymentService;
-    private PaymentDriverFactory $driverFactory;
     public ?PaymentGateway $gateway = null;
+
     public $driverKey = null;
+
     public bool $isEditMode = false;
+
     protected $id = null;
+
     protected ?array $availableDrivers = null;
+
+    private PaymentService $paymentService;
+
+    private PaymentDriverFactory $driverFactory;
 
     public function mount(): void
     {
@@ -175,90 +185,6 @@ class EditPaymentGatewayScreen extends Screen
         ];
     }
 
-    private function getDriverFields(array $availableDrivers, ?string $driverKey = null)
-    {
-        if (empty($availableDrivers)) {
-            return LayoutFactory::view('admin-payment::edit.no_drivers');
-        }
-
-        $fields = [
-            LayoutFactory::field(
-                Select::make('driverKey')
-                    ->options($availableDrivers)
-                    ->allowEmpty()
-                    ->value($driverKey ?? null)
-                    ->disabled($this->isEditMode)
-                    ->yoyo()
-                    ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
-                    ->required()
-            )->label(__('admin-payment.fields.payment_system.label'))->required(),
-        ];
-
-        if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {
-            $driver = $this->driverFactory->make($driverKey);
-            $settingsView = $driver->getSettingsView();
-
-            if (view()->exists($settingsView)) {
-                $fields[] = LayoutFactory::view($settingsView, [
-                    'gateway' => $this->gateway,
-                    'settings' => $this->gateway ? json_decode($this->gateway->additional, true) : [],
-                ]);
-            }
-        }
-
-        return $fields;
-    }
-
-    private function getAvailableDrivers(): array
-    {
-        if ($this->availableDrivers !== null) {
-            return $this->availableDrivers;
-        }
-
-        $registeredDrivers = $this->driverFactory->getDrivers();
-        $result = [];
-
-        foreach ($registeredDrivers as $key => $driverClass) {
-            if ($this->isEditMode && $this->gateway && $key !== $this->gateway->adapter) {
-                continue;
-            }
-
-            $gateway = PaymentGateway::findOne(['adapter' => $key]);
-
-            if (!$this->isEditMode && $gateway) {
-                continue;
-            }
-
-            $driver = $this->driverFactory->make($key);
-            $result[$key] = $driver->getName();
-        }
-
-        $this->availableDrivers = $result;
-
-        return $result;
-    }
-
-    private function processImageUpload(UploadedFile $file): ?string
-    {
-        if ($file->isValid()) {
-            try {
-                /** @var FileUploader $uploader */
-                $uploader = app(FileUploader::class);
-                $newFile = $uploader->uploadImage($file, 10);
-
-                if ($newFile === null) {
-                    throw new \RuntimeException(__('admin-payment.messages.image_upload_error'));
-                }
-
-                return $newFile;
-            } catch (\Exception $e) {
-                return null;
-            }
-        }
-
-        return null;
-    }
-
     public function save()
     {
         $data = request()->input();
@@ -379,9 +305,110 @@ class EditPaymentGatewayScreen extends Screen
                 $this->flashMessage(__('admin-payment.messages.gateway_added'), 'success');
                 $this->redirectTo('/admin/payment/gateways', 300);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->flashMessage(__('admin-payment.messages.save_error', ['message' => $e->getMessage()]), 'error');
         }
+    }
+
+    public function delete()
+    {
+        if (!$this->isEditMode || !$this->gateway) {
+            $this->flashMessage(__('admin-payment.messages.gateway_not_found'), 'error');
+
+            return;
+        }
+
+        try {
+            $this->paymentService->deleteGateway($this->gateway);
+            $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
+            $this->redirectTo('/admin/payment/gateways', 300);
+        } catch (Exception $e) {
+            $this->flashMessage(__('admin-payment.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        }
+    }
+
+    private function getDriverFields(array $availableDrivers, ?string $driverKey = null)
+    {
+        if (empty($availableDrivers)) {
+            return LayoutFactory::view('admin-payment::edit.no_drivers');
+        }
+
+        $fields = [
+            LayoutFactory::field(
+                Select::make('driverKey')
+                    ->options($availableDrivers)
+                    ->allowEmpty()
+                    ->value($driverKey ?? null)
+                    ->disabled($this->isEditMode)
+                    ->yoyo()
+                    ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
+                    ->required()
+            )->label(__('admin-payment.fields.payment_system.label'))->required(),
+        ];
+
+        if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {
+            $driver = $this->driverFactory->make($driverKey);
+            $settingsView = $driver->getSettingsView();
+
+            if (view()->exists($settingsView)) {
+                $fields[] = LayoutFactory::view($settingsView, [
+                    'gateway' => $this->gateway,
+                    'settings' => $this->gateway ? json_decode($this->gateway->additional, true) : [],
+                ]);
+            }
+        }
+
+        return $fields;
+    }
+
+    private function getAvailableDrivers(): array
+    {
+        if ($this->availableDrivers !== null) {
+            return $this->availableDrivers;
+        }
+
+        $registeredDrivers = $this->driverFactory->getDrivers();
+        $result = [];
+
+        foreach ($registeredDrivers as $key => $driverClass) {
+            if ($this->isEditMode && $this->gateway && $key !== $this->gateway->adapter) {
+                continue;
+            }
+
+            $gateway = PaymentGateway::findOne(['adapter' => $key]);
+
+            if (!$this->isEditMode && $gateway) {
+                continue;
+            }
+
+            $driver = $this->driverFactory->make($key);
+            $result[$key] = $driver->getName();
+        }
+
+        $this->availableDrivers = $result;
+
+        return $result;
+    }
+
+    private function processImageUpload(UploadedFile $file): ?string
+    {
+        if ($file->isValid()) {
+            try {
+                /** @var FileUploader $uploader */
+                $uploader = app(FileUploader::class);
+                $newFile = $uploader->uploadImage($file, 10);
+
+                if ($newFile === null) {
+                    throw new RuntimeException(__('admin-payment.messages.image_upload_error'));
+                }
+
+                return $newFile;
+            } catch (Exception $e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private function getValidationRules(array $data): array
@@ -421,22 +448,5 @@ class EditPaymentGatewayScreen extends Screen
         }
 
         return $settings;
-    }
-
-    public function delete()
-    {
-        if (!$this->isEditMode || !$this->gateway) {
-            $this->flashMessage(__('admin-payment.messages.gateway_not_found'), 'error');
-
-            return;
-        }
-
-        try {
-            $this->paymentService->deleteGateway($this->gateway);
-            $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
-            $this->redirectTo('/admin/payment/gateways', 300);
-        } catch (\Exception $e) {
-            $this->flashMessage(__('admin-payment.messages.delete_error', ['message' => $e->getMessage()]), 'error');
-        }
     }
 }

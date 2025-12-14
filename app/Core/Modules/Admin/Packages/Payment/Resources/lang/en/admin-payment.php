@@ -14,6 +14,7 @@ return [
         'promo_codes_description' => 'Manage promo codes and discounts',
         'promo_edit' => 'Edit Promo Code: :name',
         'promo_add' => 'Add Promo Code',
+        'promo_details' => 'Promo Code Details: :name',
         'promo_history' => 'Promo Code Usage History: :name',
     ],
     'metrics' => [

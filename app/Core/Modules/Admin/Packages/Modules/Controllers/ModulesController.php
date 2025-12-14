@@ -43,8 +43,6 @@ class ModulesController extends BaseController
 
     /**
      * Handler for module installation via file upload
-     *
-     * @param FluteRequest $request
      */
     public function installModule(FluteRequest $request)
     {
@@ -164,7 +162,7 @@ class ModulesController extends BaseController
 
             return response()->json([
                 'success' => true,
-                'message' => __('admin-modules.messages.installed', ['name' => $moduleName]),
+                'message' => __('admin-modules.messages.installed', ['name' => __($moduleName)]),
             ]);
 
         } catch (Exception $e) {

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Profile\Controllers;
 
+use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 
@@ -26,7 +27,7 @@ class ProfileVerificationController extends BaseController
             return response()->json(['success' => true]);
         } catch (AccountNotVerifiedException $e) {
             toast()->error(__('auth.verification_token_already_exists'))->push();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             toast()->error($e->getMessage())->push();
         }
 

@@ -49,7 +49,7 @@
                                 loading="lazy" data-profile-banner="{{ $user->banner }}"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                             <div class="profile__banner-fallback"
-                                style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; width: 100%;">
+                                style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 100%;">
                             </div>
                         </div>
 
@@ -197,27 +197,14 @@
                                         <x-tab-body name="profile-tabs">
                                             @foreach ($tabs as $key => $tab)
                                                 <x-tab-content name="{{ $tab['path'] }}"
-                                                    active="{{ $tab['path'] === $activePath }}" role="tabpanel"
-                                                    aria-labelledby="tab-{{ $tab['path'] }}"
-                                                    id="tabpanel-{{ $tab['path'] }}">
+                                                    active="{{ $tab['path'] === $activePath }}">
                                                     @if (isset($sections['profile_tab_content_' . $tab['path']]))
                                                         {!! $sections['profile_tab_content_' . $tab['path']] !!}
                                                     @endif
                                                     @if ($tab['path'] === $activePath)
                                                         {!! $initialTabHtml ?? '' !!}
                                                     @else
-                                                        <div class="row gx-3 gy-3" role="region"
-                                                            aria-label="{{ __('profile.loading_content') }}">
-                                                            @foreach ([8, 4, 12] as $colSize)
-                                                                <div class="col-md-{{ $colSize }}">
-                                                                    <div class="skeleton tabs-skeleton w-100"
-                                                                        style="height: 200px"
-                                                                        aria-label="{{ __('profile.loading') }}"
-                                                                        role="status">
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
+                                                        @include('flute::partials.tab-skeleton')
                                                     @endif
                                                 </x-tab-content>
                                             @endforeach

@@ -148,13 +148,11 @@
 
     <div class="main-animation @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container" id="main"
         hx-history-elt>
-        <div id="screen-container">
-            @stack('content')
+        @stack('content')
 
-            @if (isset($sections['content']))
-                {!! $sections['content'] !!}
-            @endif
-        </div>
+        @if (isset($sections['content']))
+            {!! $sections['content'] !!}
+        @endif
 
         <footer class="d-flex flex-center flex-column text-muted mb-4 mt-4" hx-swap="none">
             <p>
@@ -259,10 +257,12 @@
         @at('Core/Modules/Admin/Resources/assets/js/secret.js')
         @at('Core/Modules/Admin/Resources/assets/js/scrollup.js')
         @at('Core/Modules/Admin/Resources/assets/js/select.js')
+        @at('Core/Modules/Admin/Resources/assets/js/table-search.js')
         @at('Core/Modules/Admin/Resources/assets/js/richtext.js')
         @at('Core/Modules/Admin/Resources/assets/js/customization.js')
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
+        @at('Core/Modules/Admin/Resources/assets/js/dirty.js')
 
         @include('admin::partials.toasts')
 

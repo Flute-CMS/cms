@@ -13,13 +13,11 @@ use Symfony\Component\HttpFoundation\Response;
 class IconController extends BaseController
 {
     /**
-     * @var IconFinder
      */
     protected IconFinder $iconFinder;
 
     /**
      * IconController constructor.
-     *
      */
     public function __construct(
         IconFinder $iconFinder,
@@ -50,9 +48,7 @@ class IconController extends BaseController
             ];
         }
 
-        usort($result, function ($a, $b) {
-            return strcmp($a['category'], $b['category']);
-        });
+        usort($result, static fn ($a, $b) => strcmp($a['category'], $b['category']));
 
         return $this->json($result);
     }
@@ -61,7 +57,6 @@ class IconController extends BaseController
      * Get list of all icons in the specified package.
      *
      * @Get("packages/{prefix}")
-     * @param string $prefix
      */
     #[Get("packages/{prefix}")]
     public function getIcons(string $prefix, FluteRequest $request)
@@ -196,9 +191,7 @@ class IconController extends BaseController
             'icons' => [],
         ];
 
-        $paths = array_map(function ($icon) use ($prefix) {
-            return "$prefix.$icon";
-        }, $matchingIcons);
+        $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $matchingIcons);
 
         $paths = array_slice($paths, 0, min(count($paths), 500));
 
@@ -239,9 +232,7 @@ class IconController extends BaseController
             $total = count($icons);
             $icons = array_slice($icons, ($page - 1) * $limit, $limit);
 
-            $paths = array_map(function ($icon) use ($prefix) {
-                return "$prefix.$icon";
-            }, $icons);
+            $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $icons);
 
             $result = [
                 'prefix' => $prefix,
@@ -285,9 +276,6 @@ class IconController extends BaseController
 
     /**
      * Определить категорию по префиксу.
-     *
-     * @param string $prefix
-     * @return string
      */
     protected function getCategoryForPrefix(string $prefix): string
     {
@@ -303,9 +291,6 @@ class IconController extends BaseController
 
     /**
      * Получить отображаемое имя из пути иконки.
-     *
-     * @param string $path
-     * @return string
      */
     protected function getDisplayNameFromPath(string $path): string
     {
@@ -326,8 +311,9 @@ class IconController extends BaseController
             $name = $parts[2] ?? '';
 
             return ucfirst(str_replace('-', ' ', $name));
-        } else {
-            return ucfirst(str_replace('-', ' ', end($parts)));
         }
+
+        return ucfirst(str_replace('-', ' ', end($parts)));
+
     }
 }

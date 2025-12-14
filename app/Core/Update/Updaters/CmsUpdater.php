@@ -2,16 +2,16 @@
 
 namespace Flute\Core\Update\Updaters;
 
+use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
+use Throwable;
 use ZipArchive;
 
 class CmsUpdater extends AbstractUpdater
 {
     /**
      * Папки, которые нужно обновлять
-     *
-     * @var array
      */
     protected array $allowedFolders = [
         'app',
@@ -23,8 +23,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Root-level files to copy from the update package
-     *
-     * @var array
      */
     protected array $allowedFiles = [
         'composer.json',
@@ -33,8 +31,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Файлы, которые нужно исключить из обновления
-     *
-     * @var array
      */
     protected array $excludedFiles = [
         'favicon.ico',
@@ -121,7 +117,7 @@ class CmsUpdater extends AbstractUpdater
             if (is_file($this->getBasePath() . '/composer.json')) {
                 try {
                     (new ComposerManager())->install();
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
                 }
             }
@@ -131,7 +127,7 @@ class CmsUpdater extends AbstractUpdater
             $this->removeDirectory($extractDir);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error('Error during CMS update: ' . $e->getMessage());
             $this->removeDirectory($extractDir);
 
@@ -141,8 +137,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Получить корневой путь к проекту
-     *
-     * @return string
      */
     protected function getBasePath(): string
     {
@@ -151,8 +145,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Создать бэкап перед обновлением
-     *
-     * @return bool
      */
     protected function createBackup(): bool
     {
@@ -187,10 +179,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Копировать директорию рекурсивно
-     *
-     * @param string $source
-     * @param string $destination
-     * @return bool
      */
     protected function copyDirectory(string $source, string $destination): bool
     {
@@ -277,9 +265,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Проверить, нужно ли исключить файл из обновления
-     *
-     * @param string $filename
-     * @return bool
      */
     protected function shouldExcludeFile(string $filename): bool
     {
@@ -288,9 +273,6 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Удалить директорию рекурсивно
-     *
-     * @param string $directory
-     * @return bool
      */
     protected function removeDirectory(string $directory): bool
     {
@@ -319,21 +301,17 @@ class CmsUpdater extends AbstractUpdater
 
     /**
      * Очистить кэш
-     *
-     * @return void
      */
     protected function clearCache(): void
     {
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $this->removeDirectory($viewsCachePath);
-            mkdir($viewsCachePath, 0o755, true);
-        }
-
         cache()->clear();
 
         if (function_exists('app') && app()->has('Flute\Core\Update\Services\UpdateService')) {
             app('Flute\Core\Update\Services\UpdateService')->clearCache();
+        }
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
         }
 
         if (function_exists('opcache_reset')) {

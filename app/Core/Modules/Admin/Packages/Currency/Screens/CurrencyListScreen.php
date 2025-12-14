@@ -19,10 +19,13 @@ use Flute\Core\Database\Entities\PaymentGateway;
 class CurrencyListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.currencies';
 
     public $currencies;
+
     public $paymentGateways;
 
     public function mount(): void
@@ -44,7 +47,7 @@ class CurrencyListScreen extends Screen
             LayoutFactory::table('currencies', [
                 TD::selection('id'),
                 TD::make('code', __('admin-currency.fields.code.label'))
-                    ->render(fn (Currency $currency) => $currency->code . '<small class="text-muted d-flex">#' . $currency->id . '</small>')
+                    ->render(static fn (Currency $currency) => $currency->code . '<small class="text-muted d-flex">#' . $currency->id . '</small>')
                     ->cantHide()
                     ->width('100px'),
 
@@ -60,7 +63,7 @@ class CurrencyListScreen extends Screen
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn (Currency $currency) => DropDown::make()
+                        static fn (Currency $currency) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-currency.buttons.edit'))
@@ -342,7 +345,6 @@ class CurrencyListScreen extends Screen
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
         $this->closeModal();
     }
-
 
     /**
      * Удаление валюты

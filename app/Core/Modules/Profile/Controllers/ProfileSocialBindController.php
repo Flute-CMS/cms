@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Modules\Profile\Controllers;
 
+use DateTime;
+use Exception;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\UserSocialNetwork;
 use Flute\Core\Exceptions\SocialNotFoundException;
@@ -15,10 +17,6 @@ class ProfileSocialBindController extends BaseController
 {
     /**
      * Shows the social network binding page.
-     *
-     * @param FluteRequest $fluteRequest
-     * @param string $provider
-     * @return Response
      */
     public function bindSocial(FluteRequest $fluteRequest, string $provider): Response
     {
@@ -66,7 +64,7 @@ class ProfileSocialBindController extends BaseController
             return $this->socialError(__('auth.errors.user_not_found'));
         } catch (SocialNotFoundException $e) {
             return $this->socialError(__('auth.errors.social_not_found'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
 
             if (is_debug()) {
@@ -79,10 +77,6 @@ class ProfileSocialBindController extends BaseController
 
     /**
      * Unbinds the social network from the user's profile.
-     *
-     * @param FluteRequest $fluteRequest
-     * @param string $provider
-     * @return Response
      */
     public function unbindSocial(FluteRequest $fluteRequest, string $provider): Response
     {
@@ -94,12 +88,16 @@ class ProfileSocialBindController extends BaseController
             return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
         }
 
+        if ($socialNetwork->socialNetwork === null) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
         if ($countSocialNetworks === 1 && !$socialNetwork->user->password) {
             return redirect()->back()->withErrors(t('profile.errors.social_only_one'));
         }
 
         $lastLinked = $socialNetwork->linkedAt;
-        $now = new \DateTime();
+        $now = new DateTime();
 
         if ($socialNetwork->socialNetwork->cooldownTime > 0 && ($lastLinked && $now->getTimestamp() - $lastLinked->getTimestamp() < $socialNetwork->socialNetwork->cooldownTime)) {
             return redirect()->back()->withErrors(t('profile.errors.social_delay'));
@@ -116,20 +114,20 @@ class ProfileSocialBindController extends BaseController
 
     /**
      * Hides the social network in the user's profile.
-     *
-     * @param FluteRequest $fluteRequest
-     * @param string $provider
-     * @return Response
      */
     public function hideSocial(FluteRequest $fluteRequest, string $provider): Response
     {
         try {
             $this->throttle("profile_change_hide_social");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(__('auth.too_many_requests'));
         }
 
         $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
+
+        if ($socialNetwork === null) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
 
         $socialNetwork->hidden = !$socialNetwork->hidden;
 
@@ -140,26 +138,24 @@ class ProfileSocialBindController extends BaseController
 
     /**
      * Returns an error response for social network authorization.
-     *
-     * @param string $error
-     * @return Response
      */
     protected function socialError(string $error): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        $errorJs = json_encode($error, JSON_UNESCAPED_UNICODE);
+        $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + '" . addslashes($error) . "', '*'); window.close(); } else { alert('" . addslashes($error) . "'); window.location = '" . $redirectUrl . "'; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
     }
 
     /**
      * Returns a successful response for social network authorization.
-     *
-     * @return Response
      */
     protected function socialSuccess(): Response
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
+        $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
     }
 }

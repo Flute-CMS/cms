@@ -7,6 +7,7 @@ use Exception;
 class ForcedRedirectException extends Exception
 {
     protected $url;
+
     protected $statusCode;
 
     public function __construct($url, $statusCode = 302)

@@ -13,15 +13,11 @@ class ModuleUpdater extends AbstractUpdater
 {
     /**
      * Information about the module
-     *
-     * @var ModuleInformation
      */
     protected ModuleInformation $module;
 
     /**
      * Directories that should not be updated
-     *
-     * @var array
      */
     protected array $excludedPaths = [
         'Resources/config',
@@ -32,8 +28,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * ModuleUpdater constructor.
-     *
-     * @param ModuleInformation $module
      */
     public function __construct(ModuleInformation $module)
     {
@@ -42,8 +36,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the current version
-     *
-     * @return string
      */
     public function getCurrentVersion(): string
     {
@@ -52,8 +44,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the identifier
-     *
-     * @return string|null
      */
     public function getIdentifier(): ?string
     {
@@ -62,8 +52,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the type
-     *
-     * @return string
      */
     public function getType(): string
     {
@@ -72,8 +60,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the name
-     *
-     * @return string
      */
     public function getName(): string
     {
@@ -82,8 +68,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the description
-     *
-     * @return string
      */
     public function getDescription(): string
     {
@@ -92,9 +76,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Update the module
-     *
-     * @param array $data
-     * @return bool
      */
     public function update(array $data): bool
     {
@@ -134,7 +115,7 @@ class ModuleUpdater extends AbstractUpdater
 
             try {
                 $composerManager->install();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Rollback
                 $this->removeDirectory($moduleDir);
                 if ($this->backupDir && is_dir($this->backupDir)) {
@@ -169,8 +150,6 @@ class ModuleUpdater extends AbstractUpdater
     /**
      * Extract the module archive
      *
-     * @param string $packageFile
-     * @param string $extractDir
      * @return string|false
      */
     protected function extractModuleArchive(string $packageFile, string $extractDir)
@@ -209,9 +188,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Check compatibility of the module
-     *
-     * @param string $modulePath
-     * @return bool
      */
     protected function validateModule(string $modulePath): bool
     {
@@ -263,8 +239,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Update the module information
-     *
-     * @return bool
      */
     protected function updateModuleInformation(): bool
     {
@@ -293,8 +267,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Get the path to the module directory
-     *
-     * @return string
      */
     protected function getModuleDirectory(): string
     {
@@ -305,8 +277,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Create a backup before updating
-     *
-     * @return bool
      */
     protected function createBackup(): bool
     {
@@ -330,10 +300,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Copy module files, excluding specified directories
-     *
-     * @param string $source
-     * @param string $destination
-     * @return bool
      */
     protected function copyModuleFiles(string $source, string $destination): bool
     {
@@ -391,10 +357,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Copy directory recursively
-     *
-     * @param string $source
-     * @param string $destination
-     * @return bool
      */
     protected function copyDirectory(string $source, string $destination): bool
     {
@@ -441,9 +403,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Remove directory recursively
-     *
-     * @param string $directory
-     * @return bool
      */
     protected function removeDirectory(string $directory): bool
     {
@@ -472,34 +431,18 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Clear the cache
-     *
-     * @return void
      */
     protected function clearCache(): void
     {
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $files = scandir($viewsCachePath);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
-                }
-
-                $path = $viewsCachePath . '/' . $file;
-                if (is_file($path) && strpos($file, $this->module->key) !== false) {
-                    unlink($path);
-                }
-            }
-        }
-
         cache()->clear();
+
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
+        }
     }
 
     /**
      * Check the PHP version
-     *
-     * @param string $requiredVersion
-     * @return bool
      */
     protected function checkPhpVersion(string $requiredVersion): bool
     {
@@ -508,9 +451,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Check the Flute version
-     *
-     * @param string $requiredVersion
-     * @return bool
      */
     protected function checkFluteVersion(string $requiredVersion): bool
     {
@@ -521,9 +461,6 @@ class ModuleUpdater extends AbstractUpdater
 
     /**
      * Check the dependencies of other modules
-     *
-     * @param array $requiredModules
-     * @return array
      */
     protected function checkModuleDependencies(array $requiredModules): array
     {

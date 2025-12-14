@@ -10,7 +10,7 @@
     padding: 15px 0;
     border-bottom: 1px solid var(--transp-1);
     margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 1px 2px #00000030, 0 2px 4px #00000015;
     
     &__content {
         display: flex;

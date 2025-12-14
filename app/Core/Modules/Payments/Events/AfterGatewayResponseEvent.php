@@ -11,6 +11,7 @@ class AfterGatewayResponseEvent extends Event
     public const NAME = 'gateway.after_response';
 
     protected $invoice;
+
     protected $response;
 
     public function __construct(PaymentInvoice $invoice, ResponseInterface $response)

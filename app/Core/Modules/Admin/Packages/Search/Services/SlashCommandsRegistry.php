@@ -12,7 +12,6 @@ class SlashCommandsRegistry
      * @param string $command Command without the leading slash (e.g. 'user')
      * @param string $description Description of the command
      * @param string $icon Icon path
-     * @return void
      */
     public static function register(string $command, string $description, string $icon = ''): void
     {
@@ -25,8 +24,6 @@ class SlashCommandsRegistry
 
     /**
      * Get all registered commands
-     *
-     * @return array
      */
     public static function all(): array
     {
@@ -37,7 +34,6 @@ class SlashCommandsRegistry
      * Get a specific command
      *
      * @param string $command Command without the leading slash
-     * @return array|null
      */
     public static function get(string $command): ?array
     {

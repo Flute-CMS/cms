@@ -48,6 +48,14 @@ class AdminUpdatePackage extends AbstractAdminPackage
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getPriority(): int
+    {
+        return 14;
+    }
+
     protected function getBadge(): array
     {
         $updateService = app(\Flute\Core\Update\Services\UpdateService::class);
@@ -68,13 +76,5 @@ class AdminUpdatePackage extends AbstractAdminPackage
             'text' => $count,
             'class' => 'accent',
         ] : [];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getPriority(): int
-    {
-        return 14;
     }
 }

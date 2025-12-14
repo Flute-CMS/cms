@@ -7,14 +7,15 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 class FlashService implements FlashBagInterface
 {
-    private FlashBagInterface $flashBag;
-    private ToastService $toastService;
-
     public const
         SUCCESS_TYPE = "success",
         ERROR_TYPE = "error",
         WARNING_TYPE = "warning",
         INFO_TYPE = "info";
+
+    private FlashBagInterface $flashBag;
+
+    private ToastService $toastService;
 
     /**
      * FlashService constructor.

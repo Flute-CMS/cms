@@ -15,7 +15,9 @@ use InvalidArgumentException;
 class WidgetController extends BaseController
 {
     protected FluteValidator $validator;
+
     protected PageManager $pageManager;
+
     protected WidgetManager $widgetManager;
 
     /**
@@ -276,44 +278,6 @@ class WidgetController extends BaseController
         return $this->json($results);
     }
 
-    private function handleValidationError()
-    {
-        $errors = collect($this->validator->getErrors()->getMessages());
-        $firstError = $errors->first()[0] ?? 'Invalid input.';
-
-        return $this->json([
-            'error' => $firstError,
-            'errors' => $errors->toArray(),
-        ], 422);
-    }
-
-    private function resolveWidgetSettings(WidgetInterface $widget, $requestSettings): array
-    {
-        if (!$widget->hasSettings()) {
-            return [];
-        }
-
-        // If settings is null or empty string, return default settings
-        if ($requestSettings === null || $requestSettings === '') {
-            return $widget->getSettings();
-        }
-
-        // If settings is a string (JSON), decode it
-        if (is_string($requestSettings)) {
-            $decoded = json_decode($requestSettings, true);
-
-            return $decoded ?: $widget->getSettings();
-        }
-
-        // If settings is already an array, use it
-        if (is_array($requestSettings)) {
-            return $requestSettings;
-        }
-
-        // Fallback to default settings
-        return $widget->getSettings();
-    }
-
     /**
      * Get available buttons for a widget.
      *
@@ -492,26 +456,6 @@ class WidgetController extends BaseController
     }
 
     /**
-     * Handle errors in a consistent way.
-     *
-     * @param Exception $e              The exception instance.
-     * @param string    $defaultMessage The default message to display if not in debug mode.
-     */
-    protected function handleError(Exception $e, string $defaultMessage = 'An error occurred')
-    {
-        $message = is_debug() ? $e->getMessage() : $defaultMessage.'. Please try again later.';
-        $this->toast($message, 'error');
-
-        return $this->json([
-            'error' => $message,
-            'debug' => is_debug() ? [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ] : null,
-        ], 500);
-    }
-
-    /**
      * Get available buttons for multiple widgets.
      *
      * @param FluteRequest $request The incoming request.
@@ -544,5 +488,63 @@ class WidgetController extends BaseController
         }
 
         return $this->json($results);
+    }
+
+    /**
+     * Handle errors in a consistent way.
+     *
+     * @param Exception $e              The exception instance.
+     * @param string    $defaultMessage The default message to display if not in debug mode.
+     */
+    protected function handleError(Exception $e, string $defaultMessage = 'An error occurred')
+    {
+        $message = is_debug() ? $e->getMessage() : $defaultMessage.'. Please try again later.';
+        $this->toast($message, 'error');
+
+        return $this->json([
+            'error' => $message,
+            'debug' => is_debug() ? [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ] : null,
+        ], 500);
+    }
+
+    private function handleValidationError()
+    {
+        $errors = collect($this->validator->getErrors()->getMessages());
+        $firstError = $errors->first()[0] ?? 'Invalid input.';
+
+        return $this->json([
+            'error' => $firstError,
+            'errors' => $errors->toArray(),
+        ], 422);
+    }
+
+    private function resolveWidgetSettings(WidgetInterface $widget, $requestSettings): array
+    {
+        if (!$widget->hasSettings()) {
+            return [];
+        }
+
+        // If settings is null or empty string, return default settings
+        if ($requestSettings === null || $requestSettings === '') {
+            return $widget->getSettings();
+        }
+
+        // If settings is a string (JSON), decode it
+        if (is_string($requestSettings)) {
+            $decoded = json_decode($requestSettings, true);
+
+            return $decoded ?: $widget->getSettings();
+        }
+
+        // If settings is already an array, use it
+        if (is_array($requestSettings)) {
+            return $requestSettings;
+        }
+
+        // Fallback to default settings
+        return $widget->getSettings();
     }
 }

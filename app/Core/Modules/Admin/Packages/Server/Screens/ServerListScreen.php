@@ -16,7 +16,9 @@ use Flute\Core\Database\Entities\Server;
 class ServerListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.servers';
 
     public $servers;
@@ -40,20 +42,20 @@ class ServerListScreen extends Screen
                 TD::selection('id'),
                 TD::make('mod')
                     ->title(__('admin-server.fields.mod.label'))
-                    ->render(fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
+                    ->render(static fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
                     ->width('200px')
                     ->sort()
                     ->cantHide(),
 
                 TD::make('name')
                     ->title(__('admin-server.fields.name.label'))
-                    ->render(fn (Server $server) => view('admin-server::cells.server', compact('server')))
+                    ->render(static fn (Server $server) => view('admin-server::cells.server', compact('server')))
                     ->minWidth('200px')
                     ->cantHide(),
 
                 TD::make('enabled')
                     ->title(__('admin-server.fields.enabled.label'))
-                    ->render(fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
+                    ->render(static fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
                     ->popover(__('admin-server.fields.enabled.help')),
 
                 TD::make('createdAt')
@@ -69,7 +71,7 @@ class ServerListScreen extends Screen
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn (Server $server) => DropDown::make()
+                        static fn (Server $server) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-server.buttons.edit'))

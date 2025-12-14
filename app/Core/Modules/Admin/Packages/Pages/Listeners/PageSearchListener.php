@@ -5,7 +5,15 @@ namespace Flute\Admin\Packages\Pages\Listeners;
 use Flute\Admin\Packages\Search\Events\AdminSearchEvent;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
 use Flute\Core\Database\Entities\Page;
+
+use function mb_strpos;
+use function mb_strtolower;
+use function str_starts_with;
+use function substr;
+
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+use function trim;
 
 /**
  * Subscriber for the search event to find pages by the query "/page ..."
@@ -27,23 +35,23 @@ class PageSearchListener implements EventSubscriberInterface
      */
     public function onAdminSearch(AdminSearchEvent $event): void
     {
-        $searchValue = \trim($event->getValue());
+        $searchValue = trim($event->getValue());
 
-        if (!\str_starts_with($searchValue, '/page')) {
+        if (!str_starts_with($searchValue, '/page')) {
             return;
         }
 
-        $searchValue = \substr($searchValue, 5);
-        $searchValue = \trim($searchValue);
+        $searchValue = substr($searchValue, 5);
+        $searchValue = trim($searchValue);
 
         if ($searchValue === '') {
             return;
         }
 
-        $searchValueLower = \mb_strtolower($searchValue, 'UTF-8');
+        $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
 
         $pages = Page::query()
-            ->where(function ($query) use ($searchValueLower) {
+            ->where(static function ($query) use ($searchValueLower) {
                 $query
                     ->orWhere('title', 'LIKE', "%{$searchValueLower}%")
                     ->orWhere('route', 'LIKE', "%{$searchValueLower}%")
@@ -74,26 +82,26 @@ class PageSearchListener implements EventSubscriberInterface
     {
         $relevance = 1;
 
-        $titleLower = \mb_strtolower($page->title, 'UTF-8');
-        $routeLower = \mb_strtolower($page->route, 'UTF-8');
-        $descriptionLower = \mb_strtolower($page->description ?? '', 'UTF-8');
+        $titleLower = mb_strtolower($page->title, 'UTF-8');
+        $routeLower = mb_strtolower($page->route, 'UTF-8');
+        $descriptionLower = mb_strtolower($page->description ?? '', 'UTF-8');
 
         // The title matches completely => +3, or at the beginning => +2
         if ($titleLower === $searchValue) {
             $relevance += 3;
-        } elseif (\mb_strpos($titleLower, $searchValue) === 0) {
+        } elseif (mb_strpos($titleLower, $searchValue) === 0) {
             $relevance += 2;
         }
 
         // Route
         if ($routeLower === $searchValue) {
             $relevance += 3;
-        } elseif (\mb_strpos($routeLower, $searchValue) === 0) {
+        } elseif (mb_strpos($routeLower, $searchValue) === 0) {
             $relevance += 2;
         }
 
         // Description
-        if (\mb_strpos($descriptionLower, $searchValue) !== false) {
+        if (mb_strpos($descriptionLower, $searchValue) !== false) {
             $relevance += 1;
         }
 

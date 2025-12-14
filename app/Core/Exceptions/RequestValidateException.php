@@ -2,7 +2,9 @@
 
 namespace Flute\Core\Exceptions;
 
-class RequestValidateException extends \Exception
+use Exception;
+
+class RequestValidateException extends Exception
 {
     protected array $errors = [];
 

@@ -18,7 +18,6 @@ class Repository extends \Illuminate\Config\Repository implements Countable
     /**
      * Create a new configuration repository.
      *
-     *
      * @return void
      */
     public function __construct(iterable $items = [])
@@ -47,9 +46,6 @@ class Repository extends \Illuminate\Config\Repository implements Countable
     }
 
     /**
-     * @param $key
-     * @param $value
-     *
      * @return $this|void
      */
     public function set($key, $value = null)
@@ -60,7 +56,6 @@ class Repository extends \Illuminate\Config\Repository implements Countable
     }
 
     /**
-     * @return bool
      */
     public function isEmpty(): bool
     {

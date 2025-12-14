@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader oʻrnatilmagan',
+        'missing_desc' => 'Bazi market modullari kodlangan boʻlishi mumkin va ionCube Loader talab qiladi. Iltimos, uni serverda oʻrnating/faollashtiring.',
+    ],
     'labels' => [
         'marketplace' => 'Market',
         'modules' => 'Modullar',
@@ -35,6 +39,7 @@ return [
         'not_installed' => 'Oʻrnatilmagan',
         'updates_available' => 'Yangilanishlar mavjud',
         'clear_filters' => 'Filtrlarni tozalash',
+        'overview' => 'Umumiy koʻrinish',
     ],
     'descriptions' => [
         'marketplace' => 'Saytingiz uchun modullar toping va oʻrnating',
@@ -56,6 +61,10 @@ return [
         'installed' => 'Oʻrnatilgan',
         'read_more' => 'Batafsil Oʻqish',
         'collapse' => 'Yigʻish',
+        'activate' => 'Faollashtirish',
+        'deactivate' => 'Oʻchirish',
+        'uninstall' => 'Oʻchirish',
+        'view_on_marketplace' => 'Marketda Koʻrish',
     ],
     'steps' => [
         'download' => 'Modulni Yuklab Olish',
@@ -89,10 +98,22 @@ return [
         'finishing' => 'Oʻrnatish tugallanmoqda',
         'install_confirm' => ':module modulini oʻrnatishga ishonchingiz komilmi?',
         'install_confirm_title' => 'Modulni Oʻrnatish',
+        'update_confirm' => ':module modulini yangilashga ishonchingiz komilmi?',
+        'update_confirm_title' => 'Modulni Yangilash',
+        'activate_confirm' => ':module modulini faollashtirishga ishonchingiz komilmi?',
+        'activate_confirm_title' => 'Modulni Faollashtirish',
+        'deactivate_confirm' => ':module modulini oʻchirishga ishonchingiz komilmi?',
+        'deactivate_confirm_title' => 'Modulni Oʻchirish',
+        'uninstall_confirm' => ':module modulini oʻchirishga ishonchingiz komilmi? Barcha maʻlumotlar yoʻqoladi!',
+        'uninstall_confirm_title' => 'Modulni Oʻchirish',
         'requires_php' => 'PHP :version talab qiladi',
         'requires_flute' => 'Flute :version talab qiladi',
         'requires_modules' => 'Quyidagi modullarni talab qiladi: :modules',
         'module_installed' => 'Modul muvaffaqiyatli oʻrnatildi!',
+        'module_activated' => 'Modul muvaffaqiyatli faollashtirildi!',
+        'module_deactivated' => 'Modul muvaffaqiyatli oʻchirildi!',
+        'module_uninstalled' => 'Modul muvaffaqiyatli oʻchirildi!',
+        'module_not_found' => 'Modul topilmadi',
         'flute_key_not_set' => 'Flute API kaliti oʻrnatilmagan. Iltimos, uni asosiy sozlamalarda oʻrnating.',
         'refresh_success' => 'Modullar muvaffaqiyatli yangilandi',
     ],

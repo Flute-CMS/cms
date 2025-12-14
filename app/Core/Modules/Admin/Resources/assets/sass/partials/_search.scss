@@ -1,13 +1,14 @@
 #search-dialog {
     .modal__container {
-        height: 400px;
+        height: auto;
+        max-height: 480px;
         background-color: transparent;
         border: 0;
         border-radius: 0;
 
         @include media(mobile) {
-            height: 70vh;
-            padding: 0 20px;
+            max-height: 70vh;
+            padding: 0 1rem;
         }
 
         &::before {
@@ -21,11 +22,12 @@
 
     .search-dialog__content {
         border: 1px solid var(--transp-1);
-        background-color: var(--background-900);
+        background-color: var(--background);
         padding: 0;
-        border-radius: var(--border05);
+        border-radius: 0.75rem;
         margin-bottom: auto;
         overflow: hidden;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
     }
 
     .search-dialog__container {
@@ -37,12 +39,16 @@
         width: 100%;
         background-color: transparent;
         font-weight: 500;
-        font-size: var(--p);
+        font-size: 0.9375rem;
         line-height: 1.5;
-        color: var(--color-text);
+        color: var(--text);
         border: 0;
-        padding: 15px 20px;
-        transition: background-color 0.2s ease;
+        padding: 1rem 1.25rem;
+        transition: background-color 0.15s ease;
+
+        &::placeholder {
+            color: var(--text-500);
+        }
 
         &:focus {
             background-color: var(--transp-05);
@@ -51,7 +57,7 @@
     }
 
     #search-results {
-        padding: 15px;
+        padding: 0.75rem;
         border-top: 1px solid var(--transp-1);
 
         &.search-results--hidden {
@@ -59,12 +65,12 @@
         }
         
         &.fade-in {
-            animation: fade-in-search 0.2s ease-out forwards;
+            animation: fade-in-search 0.15s ease forwards;
         }
     }
     
     #command-suggestions {
-        padding: var(--space-md) var(--space-md);
+        padding: 0.75rem;
         order: 2;
         border-top: 1px solid var(--transp-1);
 
@@ -73,17 +79,18 @@
         }
         
         &.fade-in {
-            animation: fade-in-search 0.2s ease-out forwards;
+            animation: fade-in-search 0.15s ease forwards;
         }
     }
 
     .search-results-count {
         font-weight: 500;
-        font-size: var(--p-small);
-        line-height: 1.5;
-        color: var(--text-500);
-        margin-bottom: 5px;
-        margin-left: 5px;
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-600);
+        margin-bottom: 0.5rem;
+        padding: 0 0.5rem;
     }
 }
 
@@ -91,16 +98,28 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 260px;
+    max-height: 300px;
     overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--transp-2);
+        border-radius: 2px;
+    }
 }
 
 .search-result-item {
     &.search-result-item--focused {
         a {
-            opacity: 1;
             background-color: var(--transp-1);
-            box-shadow: inset 0 0 0 1px var(--transp-2);
+            color: var(--text);
 
             .search-go-icon {
                 opacity: 1;
@@ -112,20 +131,19 @@
     a {
         display: flex;
         align-items: center;
-        padding: 10px;
+        padding: 0.625rem 0.75rem;
         text-decoration: none;
-        color: var(--text);
-        font-size: var(--p-small);
-        line-height: 1.5;
-        border-radius: var(--border05);
-        transition: all 0.2s ease;
-        gap: 10px;
-        opacity: .7;
+        color: var(--text-400);
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.15s ease;
+        gap: 0.75rem;
 
         &:focus {
-            opacity: 1;
             background-color: var(--transp-1);
-            box-shadow: inset 0 0 0 1px var(--transp-2);
+            color: var(--text);
+            outline: none;
 
             .search-go-icon {
                 opacity: 1;
@@ -134,27 +152,34 @@
         }
 
         svg {
-            font-size: var(--h5);
+            font-size: 1rem;
+            opacity: 0.7;
+            flex-shrink: 0;
         }
 
         .search-image {
             width: 24px;
             height: 24px;
             border-radius: 50%;
+            object-fit: cover;
         }
 
         .search-go-icon {
             margin-left: auto;
-            font-size: var(--h5);
-            color: var(--text-200);
+            font-size: 0.875rem;
+            color: var(--text-500);
             opacity: 0;
-            transform: translateX(-5px);
-            transition: all 0.2s ease;
+            transform: translateX(-4px);
+            transition: all 0.15s ease;
         }
 
         &:hover {
             background-color: var(--transp-1);
-            opacity: 1;
+            color: var(--text);
+
+            svg {
+                opacity: 1;
+            }
 
             .search-go-icon {
                 opacity: 1;
@@ -170,27 +195,27 @@
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .command-suggestion-item {
     background-color: var(--transp-1);
-    border-radius: var(--border05);
+    border-radius: 0.375rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    opacity: 0.7;
-    font-size: var(--p-small);
+    transition: all 0.15s ease;
+    font-size: 0.8125rem;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    color: var(--text-400);
 
     &.command-suggestion-item--focused,
     &:hover,
     &:focus {
-        opacity: 1;
         background-color: var(--transp-2);
-        transform: translateY(-1px);
+        color: var(--text);
 
         .command-icon {
             color: var(--text);
@@ -198,34 +223,23 @@
     }
 
     .command-icon {
-        font-size: var(--p-small);
-        color: var(--text-300);
-        transition: color 0.2s ease;
+        font-size: 0.875rem;
+        color: var(--text-500);
+        transition: color 0.15s ease;
     }
 
     .command-name {
-        font-weight: 500;
-        color: var(--text);
+        color: inherit;
     }
 }
 
 @keyframes fade-in-search {
-    0% {
+    from {
         opacity: 0;
         transform: translateY(2px);
     }
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-@keyframes search-results-swap {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
     }
 }

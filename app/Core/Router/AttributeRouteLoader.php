@@ -6,7 +6,9 @@ use Flute\Core\Router\Annotations\Middleware as MiddlewareAttribute;
 use Flute\Core\Router\Annotations\Route as RouteAttribute;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 
 class AttributeRouteLoader
@@ -38,8 +40,6 @@ class AttributeRouteLoader
 
     /**
      * Constructor
-     *
-     * @param Router $router
      */
     public function __construct(Router $router)
     {
@@ -57,16 +57,14 @@ class AttributeRouteLoader
     {
         $routeCount = 0;
         $cacheKey = 'route_loader_' . md5(implode('|', $directories) . '_' . $namespace);
-        $cachedData = !is_debug() ? cache()->get($cacheKey) : null;
-
-        if ($cachedData !== null) {
-            $classNames = $cachedData;
+        if (!is_debug()) {
+            $classNames = cache()->callback(
+                $cacheKey,
+                fn () => $this->scanDirectoriesForControllers($directories, $namespace),
+                86400
+            );
         } else {
             $classNames = $this->scanDirectoriesForControllers($directories, $namespace);
-
-            if (!empty($classNames) && !is_debug()) {
-                cache()->set($cacheKey, $classNames, 86400); // Cache for 1 day
-            }
         }
 
         foreach ($classNames as $className) {
@@ -74,37 +72,6 @@ class AttributeRouteLoader
         }
 
         return $routeCount;
-    }
-
-    /**
-     * Scan directories for controller classes
-     *
-     * @param array $directories
-     * @param string $namespace
-     * @return array
-     */
-    private function scanDirectoriesForControllers(array $directories, string $namespace): array
-    {
-        $cacheKey = 'route_loader_dirs_' . md5(implode('|', $directories));
-
-        if (isset($this->loadedClassNamesCache[$cacheKey])) {
-            return $this->loadedClassNamesCache[$cacheKey];
-        }
-
-        $classNames = [];
-        $finder = new Finder();
-        $finder->files()->name('*.php')->in($directories);
-
-        foreach ($finder as $file) {
-            $className = $this->getClassNameFromFile($file, $directories, $namespace);
-            if ($className && class_exists($className)) {
-                $classNames[] = $className;
-            }
-        }
-
-        $this->loadedClassNamesCache[$cacheKey] = $classNames;
-
-        return $classNames;
     }
 
     /**
@@ -161,7 +128,7 @@ class AttributeRouteLoader
                         $action
                     );
 
-                    $annotationRoute->setAfterModifyCallback(function ($annotationRoute) use ($routeInstance) {
+                    $annotationRoute->setAfterModifyCallback(static function ($annotationRoute) use ($routeInstance) {
                         if ($annotationRoute->getName()) {
                             $routeInstance->name($annotationRoute->getName());
                         }
@@ -205,9 +172,36 @@ class AttributeRouteLoader
 
             return $routeCount;
 
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             return 0;
         }
+    }
+
+    /**
+     * Scan directories for controller classes
+     */
+    private function scanDirectoriesForControllers(array $directories, string $namespace): array
+    {
+        $cacheKey = 'route_loader_dirs_' . md5(implode('|', $directories));
+
+        if (isset($this->loadedClassNamesCache[$cacheKey])) {
+            return $this->loadedClassNamesCache[$cacheKey];
+        }
+
+        $classNames = [];
+        $finder = new Finder();
+        $finder->files()->name('*.php')->in($directories);
+
+        foreach ($finder as $file) {
+            $className = $this->getClassNameFromFile($file, $directories, $namespace);
+            if ($className && class_exists($className)) {
+                $classNames[] = $className;
+            }
+        }
+
+        $this->loadedClassNamesCache[$cacheKey] = $classNames;
+
+        return $classNames;
     }
 
     private function getInheritedClassMiddleware(ReflectionClass $class): array
@@ -242,9 +236,6 @@ class AttributeRouteLoader
 
     /**
      * Get middleware defined at the method level
-     *
-     * @param ReflectionMethod $method
-     * @return array
      */
     private function getMethodMiddleware(ReflectionMethod $method): array
     {
@@ -272,13 +263,8 @@ class AttributeRouteLoader
 
     /**
      * Get fully qualified class name from file
-     *
-     * @param \SplFileInfo $file
-     * @param array $directories
-     * @param string $namespace
-     * @return string|null
      */
-    private function getClassNameFromFile(\SplFileInfo $file, array $directories, string $namespace): ?string
+    private function getClassNameFromFile(SplFileInfo $file, array $directories, string $namespace): ?string
     {
         $path = $file->getRealPath();
         $cacheKey = 'class_from_file_' . md5($path);
@@ -316,9 +302,6 @@ class AttributeRouteLoader
     /**
      * Recursively builds the final Route (prefix + name, etc.) for the class,
      * starting with the highest parent and descending to the current class.
-     *
-     * @param ReflectionClass $class
-     * @return \Flute\Core\Router\Annotations\Route|null
      */
     private function buildClassRouteChain(ReflectionClass $class): ?\Flute\Core\Router\Annotations\Route
     {

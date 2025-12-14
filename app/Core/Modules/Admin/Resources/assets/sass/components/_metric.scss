@@ -30,6 +30,7 @@
     background-color: var(--transp-1);
     border: 1px solid var(--transp-1);
     border-radius: var(--border05);
+    box-shadow: var(--shadow-small);
     transition: transform var(--transition),
         background-color var(--transition);
     overflow: hidden;
@@ -44,8 +45,6 @@
     }
 
     &:hover {
-        transform: translateY(-2px);
-
         &::before {
             opacity: 1;
         }

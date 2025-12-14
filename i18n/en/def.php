@@ -68,6 +68,9 @@
     "not_authorized"          => "Not authorized",
     "restricted_area"         => "Restricted area",
     "save_changes"            => "Save changes",
+    "reset"                   => "Reset",
+    "unsaved_changes"         => "Unsaved changes",
+    "unsaved_changes_text"    => "You have unsaved changes. Save before leaving?",
     "changes_saved"           => "Changes saved",
     "details"                 => "Details",
     "preview"                 => "Preview",
@@ -260,4 +263,5 @@
     "not_online"              => "Not online",
     "pay"                     => "Pay",
     "offline"                 => "Offline",
+    "done"                    => "Done",
 ];

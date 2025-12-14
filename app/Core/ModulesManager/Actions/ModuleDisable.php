@@ -6,6 +6,7 @@ use Flute\Core\Database\Entities\Module;
 use Flute\Core\ModulesManager\Contracts\ModuleActionInterface;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
+use RuntimeException;
 
 class ModuleDisable implements ModuleActionInterface
 {
@@ -16,15 +17,15 @@ class ModuleDisable implements ModuleActionInterface
         $moduleGet = $mm->getModule($module->key);
 
         if (!$moduleGet) {
-            throw new \RuntimeException("Module wasn't found in the system");
+            throw new RuntimeException("Module wasn't found in the system");
         }
 
         if ($moduleGet->status === 'notinstalled') {
-            throw new \RuntimeException("Module is not installed in the system");
+            throw new RuntimeException("Module is not installed in the system");
         }
 
         if ($moduleGet->status === 'disabled') {
-            throw new \RuntimeException("Module already disabled");
+            throw new RuntimeException("Module already disabled");
         }
 
         $this->disable($moduleGet);

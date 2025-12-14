@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Payments\Initializers;
 
+use Exception;
 use Flute\Core\Database\Entities\PaymentGateway as PaymentGatewayEntity;
 use Flute\Core\Modules\Payments\Events\RegisterPaymentFactoriesEvent;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;
@@ -13,8 +14,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class GatewayInitializer
 {
     private ?GatewayFactory $gatewayFactory;
+
     private ?PaymentProcessor $paymentProcessor;
+
     private ?PaymentPromo $promoValidator;
+
     private array $initializedGateways = [];
 
     /**
@@ -99,18 +103,18 @@ class GatewayInitializer
 
     /**
      * Initializes all enabled gateways.
-     *
-     * @return void
      */
     protected function initializeGateways(): void
     {
         events()->dispatch(new RegisterPaymentFactoriesEvent(), RegisterPaymentFactoriesEvent::NAME);
 
-        $gatewayEntities = is_performance() ? cache()->callback('payment_gateways_enabled', function () {
-            return PaymentGatewayEntity::findAll(['enabled' => true]);
-        }, 3600) : PaymentGatewayEntity::findAll(['enabled' => true]);
+        $gatewayEntities = PaymentGatewayEntity::findAll(['enabled' => true]);
 
         foreach ($gatewayEntities as $gatewayEntity) {
+            if (!$this->gatewayExists($gatewayEntity->adapter)) {
+                continue;
+            }
+
             try {
                 $gateway = $this->gatewayFactory->create($gatewayEntity);
                 if ($gateway !== null) {
@@ -118,7 +122,7 @@ class GatewayInitializer
                 } else {
                     logs()->error("Failed to initialize gateway: {$gatewayEntity->adapter}");
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error("Failed to initialize gateway: {$gatewayEntity->adapter}");
             }
         }

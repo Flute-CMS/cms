@@ -31,10 +31,6 @@ class InstallerController extends BaseController
 
     /**
      * InstallerController constructor.
-     *
-     * @param InstallerView $installerView
-     * @param InstallerConfig $installerConfig
-     * @param ConfigurationService $configService
      */
     public function __construct(
         InstallerView $installerView,
@@ -67,8 +63,6 @@ class InstallerController extends BaseController
     /**
      * Display the installer step
      *
-     * @param FluteRequest $request
-     * @param int $id
      * @return string
      */
     #[Route('/install/{id}', name: 'installer.step', methods: ['GET', 'POST'])]

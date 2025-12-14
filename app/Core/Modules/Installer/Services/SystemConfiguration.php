@@ -26,8 +26,6 @@ class SystemConfiguration
 
     /**
      * Generate a random application key
-     *
-     * @return string
      */
     protected function generateAppKey(): string
     {
@@ -36,8 +34,6 @@ class SystemConfiguration
 
     /**
      * Detect the site URL
-     *
-     * @return string
      */
     protected function detectSiteUrl(): string
     {
@@ -49,8 +45,6 @@ class SystemConfiguration
 
     /**
      * Detect the server timezone
-     *
-     * @return string
      */
     protected function detectTimezone(): string
     {
@@ -69,11 +63,6 @@ class SystemConfiguration
 
     /**
      * Save the system settings
-     *
-     * @param string $appKey
-     * @param string $siteUrl
-     * @param string $timezone
-     * @return void
      */
     protected function saveSettings(string $appKey, string $siteUrl, string $timezone): void
     {

@@ -12,10 +12,11 @@ use Symfony\Component\Translation\Translator;
 
 class TranslationService
 {
-    protected Translator $translator;
-    protected bool $performance;
     protected const CACHE_TIME = 24 * 60 * 60; // 24 hours
 
+    protected Translator $translator;
+
+    protected bool $performance;
 
     /**
      * Track loaded domains per locale to avoid duplicate merges.
@@ -145,155 +146,13 @@ class TranslationService
         CarbonInterval::setLocale($this->translator->getLocale());
     }
 
-    /**
-     * Discover and register translation directories from modules and admin packages early.
-     */
-    protected function registerKnownTranslationDirectories(): void
-    {
-        $dirs = cache()->callback('translation.known_dirs', function () {
-            $result = [];
-            // Modules: app/Modules/*/Resources/lang
-            $modulesRoot = path('app/Modules');
-            if (is_dir($modulesRoot)) {
-                foreach (glob($modulesRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (is_dir($dir)) {
-                        $result[] = $dir;
-                    }
-                }
-            }
-            // Admin packages: app/Core/Modules/Admin/Packages/*/Resources/lang
-            $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
-            if (is_dir($adminPkgsRoot)) {
-                foreach (glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (is_dir($dir)) {
-                        $result[] = $dir;
-                    }
-                }
-            }
-            // Ensure deterministic order so lazy resolution is stable
-            sort($result);
-
-            return $result;
-        }, self::CACHE_TIME);
-
-        $this->bulkLoad = true;
-        foreach ($dirs as $dir) {
-            $this->translationDirectories[$dir] = true;
-            $this->loadTranslationsFromDirectory($dir, self::CACHE_TIME);
-        }
-        $this->bulkLoad = false;
-
-        if (is_performance()) {
-            $localesNeedingFlush = [];
-            foreach ($this->latestDiscoveredFilesByLocale as $locale => $pathsWithMtime) {
-                $cacheKeyCompiled = 'translation.compiled.sources.' . $locale;
-                $previous = (array) cache()->get($cacheKeyCompiled, []);
-                foreach ($pathsWithMtime as $path => $mtime) {
-                    $prevMtime = $previous[$path] ?? 0;
-                    if ($prevMtime < $mtime) {
-                        $localesNeedingFlush[$locale] = true;
-
-                        break;
-                    }
-                }
-                if (!isset($localesNeedingFlush[$locale])) {
-                    foreach (array_keys($pathsWithMtime) as $path) {
-                        if (!array_key_exists($path, $previous)) {
-                            $localesNeedingFlush[$locale] = true;
-
-                            break;
-                        }
-                    }
-                }
-            }
-            foreach (array_keys($localesNeedingFlush) as $locale) {
-                if (!isset($this->recompiledLocales[$locale])) {
-                    $this->flushLocaleCache($locale);
-                    $this->recompiledLocales[$locale] = true;
-                }
-            }
-        }
-    }
-
     public function getLocale(): string
     {
         return $this->translator->getLocale();
     }
 
-    protected function _importTranslationsForLocale(Translator $translator, string $locale)
-    {
-        $langDir = path('i18n/' . $locale);
-        if (!is_dir($langDir)) {
-            return;
-        }
-
-        $cacheKey = 'translation.core.files.' . $locale;
-
-        $domains = cache()->callback($cacheKey, function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
-
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
-
-            return $result;
-        }, self::CACHE_TIME);
-
-        foreach ($domains as $domainInfo) {
-            $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
-            $this->loadedDomains[$locale][$domainInfo['domain']] = true;
-            $this->domainFileIndex[$locale][$domainInfo['domain']] = $domainInfo['path'];
-        }
-    }
-
-    protected function _importTranslations(Translator $translator)
-    {
-        $langDir = path('i18n');
-
-        $cacheKey = 'translation.core.files';
-
-        $files = cache()->callback($cacheKey, function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
-
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
-
-            return $result;
-        }, self::CACHE_TIME);
-
-        foreach ($files as $file) {
-            $translator->addResource('file', $file['path'], $file['locale'], $file['domain']);
-            $this->loadedDomains[$file['locale']][$file['domain']] = true;
-        }
-    }
-
-    /**
-     * Listen to the lang changed event.
-     *
-     * @return void
-     */
-    protected function listenEvents(EventDispatcher $eventDispatcher)
-    {
-        $eventDispatcher->addListener(RoutingStartedEvent::NAME, [$this, 'onRoutingStarted']);
-        $eventDispatcher->addListener(LangChangedEvent::NAME, [$this, 'onLangChanged']);
-    }
-
     /**
      * Get the translator instance.
-     *
-     * @return Translator
      */
     public function getTranslator(): Translator
     {
@@ -302,8 +161,6 @@ class TranslationService
 
     /**
      * Get the user's preferred language.
-     *
-     * @return string
      */
     public function getPreferredLanguage(): string
     {
@@ -312,8 +169,6 @@ class TranslationService
 
     /**
      * Handle the LangChangedEvent.
-     *
-     * @param LangChangedEvent $event
      */
     public function onLangChanged(LangChangedEvent $event): void
     {
@@ -332,21 +187,6 @@ class TranslationService
     }
 
     /**
-     * Register the lang parameter and change language.
-     *
-     * @return void
-     */
-    protected function registerLangGet()
-    {
-        if ($lang = request()->input('lang')) {
-            if (in_array($lang, (array) app('lang.available'))) {
-                app()->setLang($lang);
-                cookie()->set('current_lang', $lang);
-            }
-        }
-    }
-
-    /**
      * Set the translation route if the application is installed.
      */
     public function onRoutingStarted(RoutingStartedEvent $routingStartedEvent): void
@@ -362,11 +202,6 @@ class TranslationService
      * Translate keys using Symfony's translation system.
      *
      * Supports arguments in Laravel format (e.g., :name) and Symfony format (e.g., %name%).
-     *
-     * @param string $key
-     * @param array $replacements
-     * @param string|null $locale
-     * @return string
      */
     public function trans(string $key, array $replacements = [], ?string $locale = null): string
     {
@@ -414,10 +249,6 @@ class TranslationService
 
     /**
      * Load a specific domain for a locale.
-     *
-     * @param string $domain
-     * @param string $locale
-     * @return void
      */
     public function registerResource(string $file, string $locale, string $domain): void
     {
@@ -445,82 +276,13 @@ class TranslationService
             return;
         }
         $cacheDir = path('storage/app/translations');
-        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
+        foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
             @unlink($cachedFile);
         }
-        foreach (glob($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
+        foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php.meta') as $cachedMeta) {
             @unlink($cachedMeta);
         }
         unset($this->loadedDomains[$locale]);
-    }
-
-    protected function loadDomain(string $domain, string $locale): void
-    {
-        $file = $this->resolveDomainFile($locale, $domain);
-        if ($file === null) {
-            return;
-        }
-
-        $this->translator->addResource('file', $file, $locale, $domain);
-
-        $this->loadedDomains[$locale][$domain] = true;
-    }
-
-    /**
-     * Ensure domain is loaded for a specific locale.
-     */
-    protected function ensureDomainLoaded(string $domain, string $locale): void
-    {
-        $file = $this->resolveDomainFile($locale, $domain);
-        if ($file === null) {
-            return;
-        }
-        if (!isset($this->loadedFiles[$file])) {
-            $this->registerResource($file, $locale, $domain);
-        }
-    }
-
-    /**
-     * Find a domain file for a given locale from core i18n or registered directories.
-     */
-    protected function resolveDomainFile(string $locale, string $domain): ?string
-    {
-        if (isset($this->domainFileIndex[$locale][$domain])) {
-            $cached = $this->domainFileIndex[$locale][$domain];
-
-            return $cached !== '' ? $cached : null;
-        }
-
-        $corePath = path('i18n/' . $locale . '/' . $domain . '.php');
-        if (file_exists($corePath)) {
-            return $this->domainFileIndex[$locale][$domain] = $corePath;
-        }
-
-        foreach (array_keys($this->translationDirectories) as $dir) {
-            $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $domain . '.php';
-            if (file_exists($candidate)) {
-                return $this->domainFileIndex[$locale][$domain] = $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Determine a reasonable single fallback locale.
-     */
-    protected function determinePrimaryFallback(array $availableLangs, string $current): ?string
-    {
-        if (in_array('en', $availableLangs, true) && $current !== 'en') {
-            return 'en';
-        }
-        foreach ($availableLangs as $lang) {
-            if ($lang !== $current) {
-                return $lang;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -528,12 +290,14 @@ class TranslationService
      */
     public function loadTranslationsFromDirectory(string $directory, int $cacheDuration = self::CACHE_TIME): void
     {
+        $directory = rtrim(str_replace('\\', '/', $directory), '/');
+
         if (isset($this->loadedDirectories[$directory]) || !is_dir($directory)) {
             return;
         }
 
         $cacheKey = 'translation.dir.' . md5($directory);
-        $translationFiles = cache()->callback($cacheKey, function () use ($directory) {
+        $translationFiles = cache()->callback($cacheKey, static function () use ($directory) {
             $finder = finder();
             $finder->files()->in($directory)->name('*.php');
 
@@ -621,5 +385,267 @@ class TranslationService
 
         $this->loadedDirectories[$directory] = true;
         $this->translationDirectories[$directory] = true;
+    }
+
+    /**
+     * Discover and register translation directories from modules and admin packages early.
+     */
+    protected function registerKnownTranslationDirectories(): void
+    {
+        $dirs = cache()->callback('translation.known_dirs.v2', function () {
+            $result = [];
+            $seen = [];
+
+            $glob = fn (string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
+
+            // Modules
+            $modulesRoot = path('app/Modules');
+            if (is_dir($modulesRoot)) {
+                $patterns = [
+                    $modulesRoot . '/*/Resources/lang',
+                    $modulesRoot . '/*/Admin/Resources/lang',
+                    $modulesRoot . '/*/Admin/Package/Resources/lang',
+                ];
+
+                foreach ($patterns as $pattern) {
+                    foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                        if (!is_dir($dir)) {
+                            continue;
+                        }
+
+                        $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                        if (isset($seen[$normalized])) {
+                            continue;
+                        }
+
+                        $seen[$normalized] = true;
+                        $result[] = $normalized;
+                    }
+                }
+            }
+
+            // Core admin packages
+            $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
+            if (is_dir($adminPkgsRoot)) {
+                foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
+                    if (!is_dir($dir)) {
+                        continue;
+                    }
+
+                    $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                    if (isset($seen[$normalized])) {
+                        continue;
+                    }
+
+                    $seen[$normalized] = true;
+                    $result[] = $normalized;
+                }
+            }
+
+            sort($result);
+
+            return $result;
+        }, self::CACHE_TIME);
+
+        $this->bulkLoad = true;
+        foreach ($dirs as $dir) {
+            $this->translationDirectories[$dir] = true;
+            $this->loadTranslationsFromDirectory($dir, self::CACHE_TIME);
+        }
+        $this->bulkLoad = false;
+
+        if (is_performance()) {
+            $localesNeedingFlush = [];
+            foreach ($this->latestDiscoveredFilesByLocale as $locale => $pathsWithMtime) {
+                $cacheKeyCompiled = 'translation.compiled.sources.' . $locale;
+                $previous = (array) cache()->get($cacheKeyCompiled, []);
+                foreach ($pathsWithMtime as $path => $mtime) {
+                    $prevMtime = $previous[$path] ?? 0;
+                    if ($prevMtime < $mtime) {
+                        $localesNeedingFlush[$locale] = true;
+
+                        break;
+                    }
+                }
+                if (!isset($localesNeedingFlush[$locale])) {
+                    foreach (array_keys($pathsWithMtime) as $path) {
+                        if (!array_key_exists($path, $previous)) {
+                            $localesNeedingFlush[$locale] = true;
+
+                            break;
+                        }
+                    }
+                }
+            }
+            foreach (array_keys($localesNeedingFlush) as $locale) {
+                if (!isset($this->recompiledLocales[$locale])) {
+                    $this->flushLocaleCache($locale);
+                    $this->recompiledLocales[$locale] = true;
+                }
+            }
+        }
+    }
+
+    protected function globSafe(string $pattern, int $flags = 0): array
+    {
+        $pattern = str_replace('\\', '/', $pattern);
+
+        $matches = glob($pattern, $flags);
+
+        return $matches === false ? [] : $matches;
+    }
+
+    protected function _importTranslationsForLocale(Translator $translator, string $locale)
+    {
+        $langDir = path('i18n/' . $locale);
+        if (!is_dir($langDir)) {
+            return;
+        }
+
+        $cacheKey = 'translation.core.files.' . $locale;
+
+        $domains = cache()->callback($cacheKey, static function () use ($langDir) {
+            $finder = finder();
+            $finder->files()->in($langDir)->name('*.php');
+
+            $result = [];
+            foreach ($finder as $file) {
+                $result[] = [
+                    'domain' => basename($file->getFilename(), '.php'),
+                    'path' => $file->getPathname(),
+                ];
+            }
+
+            return $result;
+        }, self::CACHE_TIME);
+
+        foreach ($domains as $domainInfo) {
+            $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
+            $this->loadedDomains[$locale][$domainInfo['domain']] = true;
+            $this->domainFileIndex[$locale][$domainInfo['domain']] = $domainInfo['path'];
+        }
+    }
+
+    protected function _importTranslations(Translator $translator)
+    {
+        $langDir = path('i18n');
+
+        $cacheKey = 'translation.core.files';
+
+        $files = cache()->callback($cacheKey, static function () use ($langDir) {
+            $finder = finder();
+            $finder->files()->in($langDir)->name('*.php');
+
+            $result = [];
+            foreach ($finder as $file) {
+                $result[] = [
+                    'locale' => $file->getRelativePath(),
+                    'domain' => basename($file->getFilename(), '.php'),
+                    'path' => $file->getPathname(),
+                ];
+            }
+
+            return $result;
+        }, self::CACHE_TIME);
+
+        foreach ($files as $file) {
+            $translator->addResource('file', $file['path'], $file['locale'], $file['domain']);
+            $this->loadedDomains[$file['locale']][$file['domain']] = true;
+        }
+    }
+
+    /**
+     * Listen to the lang changed event.
+     *
+     * @return void
+     */
+    protected function listenEvents(EventDispatcher $eventDispatcher)
+    {
+        $eventDispatcher->addListener(RoutingStartedEvent::NAME, [$this, 'onRoutingStarted']);
+        $eventDispatcher->addListener(LangChangedEvent::NAME, [$this, 'onLangChanged']);
+    }
+
+    /**
+     * Register the lang parameter and change language.
+     *
+     * @return void
+     */
+    protected function registerLangGet()
+    {
+        if ($lang = request()->input('lang')) {
+            if (in_array($lang, (array) app('lang.available'))) {
+                app()->setLang($lang);
+                cookie()->set('current_lang', $lang);
+            }
+        }
+    }
+
+    protected function loadDomain(string $domain, string $locale): void
+    {
+        $file = $this->resolveDomainFile($locale, $domain);
+        if ($file === null) {
+            return;
+        }
+
+        $this->translator->addResource('file', $file, $locale, $domain);
+
+        $this->loadedDomains[$locale][$domain] = true;
+    }
+
+    /**
+     * Ensure domain is loaded for a specific locale.
+     */
+    protected function ensureDomainLoaded(string $domain, string $locale): void
+    {
+        $file = $this->resolveDomainFile($locale, $domain);
+        if ($file === null) {
+            return;
+        }
+        if (!isset($this->loadedFiles[$file])) {
+            $this->registerResource($file, $locale, $domain);
+        }
+    }
+
+    /**
+     * Find a domain file for a given locale from core i18n or registered directories.
+     */
+    protected function resolveDomainFile(string $locale, string $domain): ?string
+    {
+        if (isset($this->domainFileIndex[$locale][$domain])) {
+            $cached = $this->domainFileIndex[$locale][$domain];
+
+            return $cached !== '' ? $cached : null;
+        }
+
+        $corePath = path('i18n/' . $locale . '/' . $domain . '.php');
+        if (file_exists($corePath)) {
+            return $this->domainFileIndex[$locale][$domain] = $corePath;
+        }
+
+        foreach (array_keys($this->translationDirectories) as $dir) {
+            $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $domain . '.php';
+            if (file_exists($candidate)) {
+                return $this->domainFileIndex[$locale][$domain] = $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine a reasonable single fallback locale.
+     */
+    protected function determinePrimaryFallback(array $availableLangs, string $current): ?string
+    {
+        if (in_array('en', $availableLangs, true) && $current !== 'en') {
+            return 'en';
+        }
+        foreach ($availableLangs as $lang) {
+            if ($lang !== $current) {
+                return $lang;
+            }
+        }
+
+        return null;
     }
 }

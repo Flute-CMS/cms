@@ -13,15 +13,11 @@ class RedirectResponse extends BaseRedirectResponse
 {
     /**
      * The request instance.
-     *
-     * @var FluteRequest
      */
     protected FluteRequest $request;
 
     /**
      * The session store instance.
-     *
-     * @var SessionService
      */
     protected SessionService $session;
 
@@ -70,7 +66,6 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Add multiple cookies to the response.
      *
-     * @param  array  $cookies
      * @return $this
      */
     public function withCookies(array $cookies): RedirectResponse
@@ -85,39 +80,17 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Flash an array of input to the session.
      *
-     * @param  array|null  $input
      * @return $this
      */
-    public function withInput(array $input = null): RedirectResponse
+    public function withInput(?array $input = null): RedirectResponse
     {
         $inputs = !is_null($input) ? $input : $this->request->input();
 
         foreach ($inputs as $key => $value) {
-            $this->session->set("__input_$key", $value);
+            $this->session->set("__input_{$key}", $value);
         }
 
         return $this;
-    }
-
-    /**
-     * Remove all uploaded files form the given input array.
-     *
-     * @param  array  $input
-     * @return array
-     */
-    protected function removeFilesFromInput(array $input): array
-    {
-        foreach ($input as $key => $value) {
-            if (is_array($value)) {
-                $input[$key] = $this->removeFilesFromInput($value);
-            }
-
-            if ($value instanceof SymfonyUploadedFile) {
-                unset($input[$key]);
-            }
-        }
-
-        return $input;
     }
 
     /**
@@ -165,7 +138,6 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Add a fragment identifier to the URL.
      *
-     * @param string $fragment
      * @return $this
      */
     public function withFragment(string $fragment): RedirectResponse
@@ -187,23 +159,19 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Redirect the user back to their previous location.
      *
-     * @param  int  $status
-     * @param  array  $headers
      * @return $this
      */
     public function back(int $status = 302, array $headers = []): RedirectResponse
     {
-        $referrer = $this->request->headers->get('referer');
+        $targetUrl = $this->sanitizeBackUrl($this->request->headers->get('referer'));
 
-        $this->setTargetUrl($referrer ?? config('app.url'))->setStatusCode($status)->headers->add($headers);
+        $this->setTargetUrl($targetUrl)->setStatusCode($status)->headers->add($headers);
 
         return $this;
     }
 
     /**
      * Get the request instance.
-     *
-     * @return FluteRequest|null
      */
     public function getRequest(): ?FluteRequest
     {
@@ -213,7 +181,6 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Set the request instance.
      *
-     * @param  FluteRequest  $request
      * @return void
      */
     public function setRequest(FluteRequest $request)
@@ -223,8 +190,6 @@ class RedirectResponse extends BaseRedirectResponse
 
     /**
      * Get the session store instance.
-     *
-     * @return SessionService|null
      */
     public function getSession(): ?SessionService
     {
@@ -234,7 +199,6 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Set the session store instance.
      *
-     * @param  SessionService  $session
      * @return void
      */
     public function setSession(SessionService $session)
@@ -245,11 +209,6 @@ class RedirectResponse extends BaseRedirectResponse
     /**
      * Redirect to a named route.
      *
-     * @param string $name
-     * @param array $parameters
-     * @param int $status
-     * @param array $headers
-     *
      * @return $this
      */
     public function route(string $name, array $parameters = [], int $status = 302, array $headers = []): RedirectResponse
@@ -259,5 +218,54 @@ class RedirectResponse extends BaseRedirectResponse
         $this->setTargetUrl($url)->setStatusCode($status)->headers->add($headers);
 
         return $this;
+    }
+
+    /**
+     * Keep back redirects constrained to the current host.
+     */
+    protected function sanitizeBackUrl(?string $referer): string
+    {
+        $fallback = config('app.url') ?: '/';
+
+        if (!$referer) {
+            return $fallback;
+        }
+
+        if (str_starts_with($referer, '/')) {
+            return $referer;
+        }
+
+        $parsed = parse_url($referer);
+
+        if (!$parsed || empty($parsed['host'])) {
+            return $fallback;
+        }
+
+        $currentHost = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_HOST);
+        $currentPort = parse_url($this->request->getSchemeAndHttpHost(), PHP_URL_PORT);
+        $refererPort = $parsed['port'] ?? null;
+
+        $hostMatches = $currentHost && strcasecmp($parsed['host'], $currentHost) === 0;
+        $portMatches = !$refererPort || !$currentPort || (string) $refererPort === (string) $currentPort;
+
+        return $hostMatches && $portMatches ? $referer : $fallback;
+    }
+
+    /**
+     * Remove all uploaded files form the given input array.
+     */
+    protected function removeFilesFromInput(array $input): array
+    {
+        foreach ($input as $key => $value) {
+            if (is_array($value)) {
+                $input[$key] = $this->removeFilesFromInput($value);
+            }
+
+            if ($value instanceof SymfonyUploadedFile) {
+                unset($input[$key]);
+            }
+        }
+
+        return $input;
     }
 }

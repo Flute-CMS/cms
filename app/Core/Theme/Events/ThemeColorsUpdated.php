@@ -9,14 +9,11 @@ class ThemeColorsUpdated extends Event
     public const NAME = 'theme.colors.updated';
 
     public string $themeName;
-    public array $updatedColors;
 
+    public array $updatedColors;
 
     /**
      * Constructor for ThemeColorsUpdated event.
-     *
-     * @param string $themeName
-     * @param array  $updatedColors
      */
     public function __construct(string $themeName, array $updatedColors)
     {

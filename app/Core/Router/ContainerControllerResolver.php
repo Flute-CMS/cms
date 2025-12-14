@@ -7,19 +7,22 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Flute\Core\Support\FluteRequest;
+use InvalidArgumentException;
 use ReflectionException;
+use ReflectionMethod;
+use ReflectionNamedType;
 use Symfony\Component\HttpKernel\Controller\ContainerControllerResolver as SController;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Throwable;
 
 class ContainerControllerResolver
 {
     protected Container $container;
+
     protected SController $resolver;
 
     /**
      * Class constructor.
-     *
-     * @param Container $container
      */
     public function __construct(Container $container)
     {
@@ -30,7 +33,6 @@ class ContainerControllerResolver
     /**
      * Retrieves the controller for handling the request.
      *
-     * @param FluteRequest $request
      * @return callable|array|null
      */
     public function getController(FluteRequest $request)
@@ -41,22 +43,20 @@ class ContainerControllerResolver
     /**
      * Retrieves the arguments for invoking the controller.
      *
-     * @param FluteRequest $request
      * @param mixed $controller
-     * @return array
      * @throws DependencyException
      * @throws NotFoundException
      * @throws ReflectionException
      */
     public function getArguments(FluteRequest $request, $controller): array
     {
-        $reflectionMethod = new \ReflectionMethod($controller[0], $controller[1]);
+        $reflectionMethod = new ReflectionMethod($controller[0], $controller[1]);
         $params = $reflectionMethod->getParameters();
         $args = [];
 
         foreach ($params as $param) {
             $type = $param->getType();
-            if ($type && !$type instanceof \ReflectionNamedType || ($type && method_exists($type, 'isBuiltin') && !$type->isBuiltin())) {
+            if ($type && !$type instanceof ReflectionNamedType || ($type && method_exists($type, 'isBuiltin') && !$type->isBuiltin())) {
                 $paramClass = method_exists($type, 'getName') ? $type->getName() : (string) $type;
 
                 try {
@@ -67,7 +67,7 @@ class ContainerControllerResolver
                         try {
                             $dbConn = app(\Flute\Core\Database\DatabaseConnection::class);
                             $args[] = $dbConn->getOrm();
-                        } catch (\Throwable $ex) {
+                        } catch (Throwable $ex) {
                             throw new \DI\NotFoundException('ORM is not available: ' . $ex->getMessage());
                         }
                     } else {
@@ -79,7 +79,7 @@ class ContainerControllerResolver
             } elseif ($param->isOptional()) {
                 $args[] = $param->getDefaultValue();
             } else {
-                throw new \InvalidArgumentException("Missing argument: " . $param->getName());
+                throw new InvalidArgumentException("Missing argument: " . $param->getName());
             }
         }
 
@@ -89,15 +89,13 @@ class ContainerControllerResolver
     /**
      * Fetch model based on class name and ID.
      *
-     * @param string $className
      * @param mixed $id
-     * @return object
      * @throws ResourceNotFoundException
      */
     private function fetchModel(string $className, $id): object
     {
         // Кэширование моделей для оптимизации
-        $key = str_replace(['/', '\\'], ['_', '_'], "model_binding_$className");
+        $key = str_replace(['/', '\\'], ['_', '_'], "model_binding_{$className}");
         $has = cache()->has($key);
 
         if ($has && cache($key) !== true) {
@@ -114,13 +112,13 @@ class ContainerControllerResolver
         }
 
         if ((int) $id === 0) {
-            throw new ResourceNotFoundException("Invalid ID: $id");
+            throw new ResourceNotFoundException("Invalid ID: {$id}");
         }
 
         $result = $rep->findByPK($id);
 
         if (!$result) {
-            throw new ResourceNotFoundException("Model not found for ID: $id");
+            throw new ResourceNotFoundException("Model not found for ID: {$id}");
         }
 
         return $result;

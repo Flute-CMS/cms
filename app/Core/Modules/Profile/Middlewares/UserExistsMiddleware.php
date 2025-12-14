@@ -2,13 +2,14 @@
 
 namespace Flute\Core\Modules\Profile\Middlewares;
 
+use Closure;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 
 class UserExistsMiddleware extends BaseMiddleware
 {
-    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         $profileId = $request->input('id');
 

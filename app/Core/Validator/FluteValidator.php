@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Validator;
 
+use Generator;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use MadeSimple\Arrays\Arr;
@@ -49,7 +50,6 @@ class FluteValidator
      *
      * @param string   $name     The name of the rule
      * @param callable $callable The handler function for the rule
-     * @return self
      */
     public function addRule(string $name, callable $callable): self
     {
@@ -60,8 +60,6 @@ class FluteValidator
 
     /**
      * Resets the validator to its initial state.
-     *
-     * @return self
      */
     public function reset(): self
     {
@@ -75,8 +73,6 @@ class FluteValidator
 
     /**
      * Clears all errors from the validator.
-     *
-     * @return self
      */
     public function clearErrors(): self
     {
@@ -87,8 +83,6 @@ class FluteValidator
 
     /**
      * Checks if there are any validation errors.
-     *
-     * @return bool
      */
     public function hasErrors(): bool
     {
@@ -97,8 +91,6 @@ class FluteValidator
 
     /**
      * Retrieves the MessageBag containing errors.
-     *
-     * @return MessageBag
      */
     public function getErrors(): MessageBag
     {
@@ -112,7 +104,6 @@ class FluteValidator
      * @param array             $ruleSet   The set of validation rules
      * @param array             $messages  Custom messages for validation
      * @param string|null       $prefix    Optional prefix for attribute names
-     * @return bool
      */
     public function validate($values, array $ruleSet, array $messages = [], ?string $prefix = null): bool
     {
@@ -154,7 +145,6 @@ class FluteValidator
      * @param string $attribute    The attribute name
      * @param string $rule         The validation rule that failed
      * @param array  $replacements Replacement values for the message
-     * @return void
      */
     public function addError(string $attribute, string $rule, array $replacements = []): void
     {
@@ -173,7 +163,7 @@ class FluteValidator
             } elseif (strpos($search, '!') === 0 && $replace) {
                 $pattern = substr($search, 1);
                 $replacement = (substr($replace, -1) !== self::WILD) ? '$1' : '$2';
-                $message = preg_replace("/$pattern/", $replacement, $message);
+                $message = preg_replace("/{$pattern}/", $replacement, $message);
             } else {
                 $message = str_replace($search, $replace, $message);
             }
@@ -183,46 +173,11 @@ class FluteValidator
     }
 
     /**
-     * Retrieves a custom message for a specific attribute and rule.
-     *
-     * @param string $attribute The attribute name
-     * @param string $rule      The validation rule
-     * @return string|null
-     */
-    protected function getCustomMessage(string $attribute, string $rule): ?string
-    {
-        $keys = [
-            "{$attribute}.{$rule}",
-            $attribute,
-            $rule,
-        ];
-
-        foreach ($keys as $key) {
-            if (isset($this->customMessages[$key])) {
-                return $this->customMessages[$key];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Formats the attribute name to a more readable form.
-     *
-     * @param string $attribute The attribute name
-     * @return string
-     */
-    protected function prettyAttribute(string $attribute): string
-    {
-        return ucwords(str_replace(['_', '-'], ' ', $attribute));
-    }
-
-    /**
      * Retrieves values from the array based on the given pattern.
      *
      * @param array  $array   The data array
      * @param string $pattern The pattern to match
-     * @return \Generator
+     * @return Generator
      */
     public static function getValues(&$array, $pattern)
     {
@@ -255,8 +210,6 @@ class FluteValidator
     /**
      * Optionally flashes errors to a view or session.
      * This method can be customized or removed based on usage requirements.
-     *
-     * @return void
      */
     public function flashErrors(): void
     {
@@ -264,5 +217,38 @@ class FluteValidator
         $viewErrorBag->put('default', $this->errors);
 
         template()->addGlobal('errors', $viewErrorBag);
+    }
+
+    /**
+     * Retrieves a custom message for a specific attribute and rule.
+     *
+     * @param string $attribute The attribute name
+     * @param string $rule      The validation rule
+     */
+    protected function getCustomMessage(string $attribute, string $rule): ?string
+    {
+        $keys = [
+            "{$attribute}.{$rule}",
+            $attribute,
+            $rule,
+        ];
+
+        foreach ($keys as $key) {
+            if (isset($this->customMessages[$key])) {
+                return $this->customMessages[$key];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Formats the attribute name to a more readable form.
+     *
+     * @param string $attribute The attribute name
+     */
+    protected function prettyAttribute(string $attribute): string
+    {
+        return ucwords(str_replace(['_', '-'], ' ', $attribute));
     }
 }

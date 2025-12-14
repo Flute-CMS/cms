@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Router\Middlewares;
 
+use Closure;
 use Flute\Core\Services\CsrfTokenService;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
@@ -16,7 +17,7 @@ class CsrfMiddleware extends BaseMiddleware
         $this->csrfTokenService = $csrfTokenService;
     }
 
-    public function handle(FluteRequest $request, \Closure $next, ...$args): Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): Response
     {
         if (!$this->isInstalled()) {
             return $next($request);
@@ -27,6 +28,14 @@ class CsrfMiddleware extends BaseMiddleware
         }
 
         return $next($request);
+    }
+
+    protected function getRequestToken(FluteRequest $request): ?string
+    {
+        return $request->input('_csrf_token')
+            ?? $request->headers->get('X-CSRF-Token')
+            ?? $request->input('x-csrf-token')
+            ?? $request->headers->get('x-csrf-token');
     }
 
     private function isInstalled(): bool
@@ -52,13 +61,5 @@ class CsrfMiddleware extends BaseMiddleware
         }
 
         return $this->csrfTokenService->validateToken($token);
-    }
-
-    protected function getRequestToken(FluteRequest $request): ?string
-    {
-        return $request->input('_csrf_token')
-            ?? $request->headers->get('X-CSRF-Token')
-            ?? $request->input('x-csrf-token')
-            ?? $request->headers->get('x-csrf-token');
     }
 }

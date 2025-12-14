@@ -13,8 +13,6 @@ interface ModuleExtensionInterface
      *
      * This method should be implemented to register any additional functionality or services provided by the module.
      * It will be called by the Module Service Provider during the registration phase of the module.
-     *
-     * @return void
      */
     public function register(): void;
 }

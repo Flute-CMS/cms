@@ -2,20 +2,25 @@
 
 namespace Flute\Core\Support;
 
+use Closure;
 use Laravel\SerializableClosure\SerializableClosure;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class FluteEventDispatcher extends EventDispatcher
 {
-    private $deferredListenersKey = 'flute.deferred_listeners';
     public $deferredListeners = [];
+
+    private $deferredListenersKey = 'flute.deferred_listeners';
+
+    private bool $isDirty = false;
+
+    private static array $closureIdCache = [];
 
     public function __construct()
     {
         parent::__construct();
         $this->initializeDeferredListeners();
-        $this->cleanDuplicates();
     }
 
     public function addDeferredSubscriber($subscriber)
@@ -35,24 +40,16 @@ class FluteEventDispatcher extends EventDispatcher
             $this->deferredListeners[$eventName] = [];
         }
 
-        foreach ($this->deferredListeners[$eventName] as $existingListenerId => $existingListenerData) {
-            if ($existingListenerId !== $listenerId && $this->compareListeners($listener, $existingListenerData['listener'])) {
-                return;
-            }
-        }
-
         if (isset($this->deferredListeners[$eventName][$listenerId])) {
             return;
         }
 
         $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
+        $this->isDirty = true;
 
         if (is_callable($listener)) {
             $this->addListener($eventName, $listener, $priority);
-            $this->saveDeferredListenersToCache();
         }
-
-        $this->cleanDuplicates();
     }
 
     public function removeDeferredListener($eventName, $listener)
@@ -66,16 +63,20 @@ class FluteEventDispatcher extends EventDispatcher
                 unset($this->deferredListeners[$eventName]);
             }
 
-            $this->saveDeferredListenersToCache();
+            $this->isDirty = true;
         }
 
         $this->removeListener($eventName, $listener);
-        $this->cleanDuplicates();
     }
 
     public function saveDeferredListenersToCache()
     {
+        if (!$this->isDirty) {
+            return;
+        }
+
         cache()->set($this->deferredListenersKey, $this->deferredListeners, 3600);
+        $this->isDirty = false;
     }
 
     private function initializeDeferredListeners()
@@ -99,14 +100,12 @@ class FluteEventDispatcher extends EventDispatcher
             }
         }
 
-
         $this->deferredListeners = $deferredListeners;
-        $this->cleanDuplicates();
     }
 
     private function getListenerId($listener)
     {
-        if ($listener instanceof \Closure) {
+        if ($listener instanceof Closure) {
             return $this->getClosureId($listener);
         }
 
@@ -116,14 +115,14 @@ class FluteEventDispatcher extends EventDispatcher
 
         if (is_array($listener)) {
             if (is_object($listener[0])) {
-                return get_class($listener[0]).'::'.$listener[1];
+                return get_class($listener[0]) . '::' . $listener[1];
             }
 
-            return $listener[0].'::'.$listener[1];
+            return $listener[0] . '::' . $listener[1];
         }
 
         if (is_object($listener)) {
-            return get_class($listener);
+            return $listener::class;
         }
 
         return $listener;
@@ -131,46 +130,18 @@ class FluteEventDispatcher extends EventDispatcher
 
     private function getClosureId($closure)
     {
+        $objectId = spl_object_id($closure);
+
+        if (isset(self::$closureIdCache[$objectId])) {
+            return self::$closureIdCache[$objectId];
+        }
+
         $reflection = new ReflectionClosure($closure);
         $code = $reflection->getCode();
+        $id = md5($code);
 
-        return md5($code);
-    }
+        self::$closureIdCache[$objectId] = $id;
 
-    private function compareListeners($listener1, $listener2)
-    {
-        if (is_array($listener1) && is_array($listener2) && is_object($listener1[0]) && is_object($listener2[0])) {
-            return get_class($listener1[0]) === get_class($listener2[0]);
-        }
-
-        if ($listener1 === $listener2) {
-            return true;
-        }
-
-        if ($listener1 instanceof \Closure && $listener2 instanceof \Closure) {
-            return $this->getClosureId($listener1) === $this->getClosureId($listener2);
-        }
-
-        return false;
-    }
-
-    private function cleanDuplicates()
-    {
-        foreach ($this->deferredListeners as $eventName => $listeners) {
-            $uniqueListeners = [];
-
-            foreach ($listeners as $listenerId => $listenerData) {
-                foreach ($uniqueListeners as $uniqueListenerData) {
-                    if ($this->compareListeners($listenerData['listener'], $uniqueListenerData['listener'])) {
-                        unset($this->deferredListeners[$eventName][$listenerId]);
-
-                        break;
-                    }
-                }
-                $uniqueListeners[$listenerId] = $listenerData;
-            }
-        }
-
-        $this->saveDeferredListenersToCache();
+        return $id;
     }
 }

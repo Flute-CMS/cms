@@ -22,6 +22,7 @@
     role="presentation" data-tab-heading="{{ $name }}">
     <a role="tab" id="tab-{{ $name }}" aria-selected="{{ $active ? 'true' : 'false' }}"
         aria-controls="tab__{{ $name }}" data-tab-id="tab__{{ $name }}"
+        data-reloadable="{{ $reloadable ? 'true' : 'false' }}"
         @if ($withoutHtmx && $url) href="{{ $url }}" @endif
         @if (!empty($url) && !$withoutHtmx) 
             hx-get="{{ $url }}"

@@ -11,6 +11,7 @@ class PaymentSuccessEvent extends Event
     public const NAME = 'payment.success';
 
     protected $invoice;
+
     protected $user;
 
     public function __construct(PaymentInvoice $invoice, User $user)

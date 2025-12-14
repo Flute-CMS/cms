@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Marketplace\Screens;
 
+use Exception;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
@@ -11,30 +12,6 @@ use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceScreen extends Screen
 {
-    /**
-     * Screen title
-     *
-     * @var string
-     */
-    protected ?string $name = 'admin-marketplace.labels.marketplace';
-
-    /**
-     * Screen description
-     *
-     * @var string
-     */
-    protected ?string $description = 'admin-marketplace.descriptions.marketplace';
-
-    /**
-     * @var MarketplaceService
-     */
-    protected $marketplaceService;
-
-    /**
-     * @var ModuleManager
-     */
-    protected $moduleManager;
-
     /**
      * @var array
      */
@@ -86,9 +63,27 @@ class MarketplaceScreen extends Screen
     public $moduleKey = '';
 
     /**
+     * Screen title
+     */
+    protected ?string $name = 'admin-marketplace.labels.marketplace';
+
+    /**
+     * Screen description
+     */
+    protected ?string $description = 'admin-marketplace.descriptions.marketplace';
+
+    /**
+     * @var MarketplaceService
+     */
+    protected $marketplaceService;
+
+    /**
+     * @var ModuleManager
+     */
+    protected $moduleManager;
+
+    /**
      * Mount the screen
-     *
-     * @return void
      */
     public function mount(): void
     {
@@ -189,12 +184,186 @@ class MarketplaceScreen extends Screen
             }
 
             $this->applyLocalFilters();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         }
 
         $this->isLoading = false;
+    }
+
+    /**
+     * Install module
+     *
+     * @return void
+     */
+    public function installModule(string $slug)
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        if (function_exists('ignore_user_abort')) {
+            @ignore_user_abort(true);
+        }
+        $this->isLoading = true;
+
+        try {
+            $moduleInstaller = app(ModuleInstallerService::class);
+
+            $allModules = $this->marketplaceService->getModules('', '', true);
+            $moduleData = null;
+            foreach ($allModules as $m) {
+                if (($m['slug'] ?? '') === $slug) {
+                    $moduleData = $m;
+
+                    break;
+                }
+            }
+            $downloadUrl = $moduleData['downloadUrl'] ?? null;
+            if (empty($downloadUrl)) {
+                throw new Exception(__('admin-marketplace.messages.download_failed'));
+            }
+            $module = ['downloadUrl' => $downloadUrl, 'slug' => $slug];
+
+            // Step 1: Download module, handle expired token
+            try {
+                $download = $moduleInstaller->downloadModule($module);
+            } catch (Exception $e) {
+                if ($e->getMessage() === 'MARKETPLACE_BAD_REQUEST') {
+                    $this->marketplaceService->clearCache();
+                    $allModules = $this->marketplaceService->getModules('', '', true);
+                    $moduleData = null;
+                    foreach ($allModules as $m) {
+                        if (($m['slug'] ?? '') === $slug) {
+                            $moduleData = $m;
+
+                            break;
+                        }
+                    }
+                    $downloadUrl = $moduleData['downloadUrl'] ?? null;
+                    if (empty($downloadUrl)) {
+                        throw new Exception(__('admin-marketplace.messages.download_failed'));
+                    }
+                    $module['downloadUrl'] = $downloadUrl;
+
+                    try {
+                        $download = $moduleInstaller->downloadModule($module);
+                    } catch (Exception $e2) {
+                        logs()->error($e2);
+                        $this->flashMessage($e2->getMessage(), 'error');
+                        $this->isLoading = false;
+
+                        return;
+                    }
+                } else {
+                    throw $e;
+                }
+            }
+            $this->moduleArchivePath = $download['path'];
+
+            // Шаг 2: Распаковка модуля
+            $extract = $moduleInstaller->extractModule($module);
+            $this->moduleExtractPath = $extract['path'];
+            $this->moduleKey = $extract['key'] ?? null;
+
+            // Шаг 3: Проверка совместимости
+            $validate = $moduleInstaller->validateModule($module);
+            $moduleInfo = $validate['moduleInfo'] ?? [];
+
+            if (!empty($moduleInfo) && !empty($moduleInfo['name'])) {
+                $module['name'] = $moduleInfo['name'];
+            }
+
+            // Шаг 4: Копирование файлов модуля
+            $installResult = $moduleInstaller->installModule($module);
+
+            // Шаг 5: Обновление зависимостей Composer
+            try {
+                $moduleInstaller->updateComposerDependencies();
+            } catch (Exception $e) {
+                $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+
+                throw $e;
+            }
+
+            // Шаг 6: Установка/обновление модуля в системе
+            $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
+            $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
+
+            $moduleManager->refreshModules();
+
+            $moduleKey = $installResult['moduleFolder'];
+
+            if ($moduleManager->issetModule($moduleKey)) {
+                $moduleInfo = $moduleManager->getModule($moduleKey);
+
+                if ($moduleInfo->status === \Flute\Core\ModulesManager\ModuleManager::NOTINSTALLED) {
+                    $moduleActions->installModule($moduleInfo, $moduleManager);
+                } else {
+                    $moduleActions->updateModule($moduleInfo, $moduleManager);
+                }
+
+                $moduleManager->refreshModules();
+
+                if ($moduleInfo->status !== \Flute\Core\ModulesManager\ModuleManager::ACTIVE) {
+                    $moduleActions->activateModule($moduleInfo, $moduleManager);
+                }
+            } else {
+                throw new Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
+            }
+
+            $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
+
+            $this->loadModules();
+
+        } catch (Exception $e) {
+            logs()->error($e);
+            $this->flashMessage($e->getMessage(), 'error');
+        } finally {
+            $moduleInstaller->finishInstallation();
+            $this->moduleManager->clearCache();
+            $this->moduleManager->refreshModules();
+            $this->loadModules();
+        }
+
+        $this->isLoading = false;
+    }
+
+    /**
+     * Get the layout elements
+     */
+    public function layout(): array
+    {
+        return [
+            LayoutFactory::columns([
+                LayoutFactory::view('admin-marketplace::marketplace.module-list', [
+                    'modules' => $this->modules,
+                    'isLoading' => $this->isLoading,
+                    'moduleManager' => $this->moduleManager,
+                    'searchQuery' => $this->searchQuery,
+                    'selectedCategory' => $this->selectedCategory,
+                    'priceFilter' => $this->priceFilter,
+                    'statusFilter' => $this->statusFilter,
+                    'categories' => $this->categories,
+                ]),
+            ]),
+        ];
+    }
+
+    /**
+     * Get module categories for filtering
+     *
+     * @return array
+     */
+    public function getCategories()
+    {
+        try {
+            return $this->marketplaceService->getCategories();
+        } catch (Exception $e) {
+            logs()->error($e);
+
+            return [];
+        }
     }
 
     /**
@@ -234,12 +403,10 @@ class MarketplaceScreen extends Screen
         }
 
         if (!empty($this->searchQuery)) {
-            $filteredModules = array_filter($filteredModules, function ($module) {
-                return str_contains(strtolower((string)($module['name'] ?? '')), strtolower((string)$this->searchQuery));
-            });
+            $filteredModules = array_filter($filteredModules, fn ($module) => str_contains(strtolower((string)($module['name'] ?? '')), strtolower((string)$this->searchQuery)));
         }
 
-        usort($filteredModules, function ($a, $b) {
+        usort($filteredModules, static function ($a, $b) {
             $ap = !empty($a['isPaid']);
             $bp = !empty($b['isPaid']);
             if ($ap === $bp) {
@@ -250,182 +417,5 @@ class MarketplaceScreen extends Screen
         });
 
         $this->modules = array_values($filteredModules);
-    }
-
-    /**
-     * Install module
-     *
-     * @param string $slug
-     * @return void
-     */
-    public function installModule(string $slug)
-    {
-        if (function_exists('set_time_limit')) {
-            @set_time_limit(0);
-        }
-        if (function_exists('ignore_user_abort')) {
-            @ignore_user_abort(true);
-        }
-        $this->isLoading = true;
-
-        try {
-            $moduleInstaller = app(ModuleInstallerService::class);
-
-            $allModules = $this->marketplaceService->getModules('', '', true);
-            $moduleData = null;
-            foreach ($allModules as $m) {
-                if (($m['slug'] ?? '') === $slug) {
-                    $moduleData = $m;
-
-                    break;
-                }
-            }
-            $downloadUrl = $moduleData['downloadUrl'] ?? null;
-            if (empty($downloadUrl)) {
-                throw new \Exception(__('admin-marketplace.messages.download_failed'));
-            }
-            $module = ['downloadUrl' => $downloadUrl, 'slug' => $slug];
-
-            // Step 1: Download module, handle expired token
-            try {
-                $download = $moduleInstaller->downloadModule($module);
-            } catch (\Exception $e) {
-                if ($e->getMessage() === 'MARKETPLACE_BAD_REQUEST') {
-                    $this->marketplaceService->clearCache();
-                    $allModules = $this->marketplaceService->getModules('', '', true);
-                    $moduleData = null;
-                    foreach ($allModules as $m) {
-                        if (($m['slug'] ?? '') === $slug) {
-                            $moduleData = $m;
-
-                            break;
-                        }
-                    }
-                    $downloadUrl = $moduleData['downloadUrl'] ?? null;
-                    if (empty($downloadUrl)) {
-                        throw new \Exception(__('admin-marketplace.messages.download_failed'));
-                    }
-                    $module['downloadUrl'] = $downloadUrl;
-
-                    try {
-                        $download = $moduleInstaller->downloadModule($module);
-                    } catch (\Exception $e2) {
-                        logs()->error($e2);
-                        $this->flashMessage($e2->getMessage(), 'error');
-                        $this->isLoading = false;
-
-                        return;
-                    }
-                } else {
-                    throw $e;
-                }
-            }
-            $this->moduleArchivePath = $download['path'];
-
-            // Шаг 2: Распаковка модуля
-            $extract = $moduleInstaller->extractModule($module);
-            $this->moduleExtractPath = $extract['path'];
-            $this->moduleKey = $extract['key'] ?? null;
-
-            // Шаг 3: Проверка совместимости
-            $validate = $moduleInstaller->validateModule($module);
-            $moduleInfo = $validate['moduleInfo'] ?? [];
-
-            if (!empty($moduleInfo) && !empty($moduleInfo['name'])) {
-                $module['name'] = $moduleInfo['name'];
-            }
-
-            // Шаг 4: Копирование файлов модуля
-            $installResult = $moduleInstaller->installModule($module);
-
-            // Шаг 5: Обновление зависимостей Composer
-            try {
-                $moduleInstaller->updateComposerDependencies();
-            } catch (\Exception $e) {
-                $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
-
-                throw $e;
-            }
-
-            // Шаг 6: Установка/обновление модуля в системе
-            $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
-            $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
-
-            $moduleManager->refreshModules();
-
-            $moduleKey = $installResult['moduleFolder'];
-
-            if ($moduleManager->issetModule($moduleKey)) {
-                $moduleInfo = $moduleManager->getModule($moduleKey);
-
-                if ($moduleInfo->status === \Flute\Core\ModulesManager\ModuleManager::NOTINSTALLED) {
-                    $moduleActions->installModule($moduleInfo, $moduleManager);
-                } else {
-                    $moduleActions->updateModule($moduleInfo, $moduleManager);
-                }
-
-                $moduleManager->refreshModules();
-
-                if ($moduleInfo->status !== \Flute\Core\ModulesManager\ModuleManager::ACTIVE) {
-                    $moduleActions->activateModule($moduleInfo, $moduleManager);
-                }
-            } else {
-                throw new \Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
-            }
-
-            $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
-
-            $this->loadModules();
-
-        } catch (\Exception $e) {
-            logs()->error($e);
-            $this->flashMessage($e->getMessage(), 'error');
-        } finally {
-            $moduleInstaller->finishInstallation();
-            $this->moduleManager->clearCache();
-            $this->moduleManager->refreshModules();
-            $this->loadModules();
-        }
-
-        $this->isLoading = false;
-    }
-
-    /**
-     * Get the layout elements
-     *
-     * @return array
-     */
-    public function layout(): array
-    {
-        return [
-            LayoutFactory::columns([
-                LayoutFactory::view('admin-marketplace::marketplace.module-list', [
-                    'modules' => $this->modules,
-                    'isLoading' => $this->isLoading,
-                    'moduleManager' => $this->moduleManager,
-                    'searchQuery' => $this->searchQuery,
-                    'selectedCategory' => $this->selectedCategory,
-                    'priceFilter' => $this->priceFilter,
-                    'statusFilter' => $this->statusFilter,
-                    'categories' => $this->categories,
-                ]),
-            ]),
-        ];
-    }
-
-    /**
-     * Get module categories for filtering
-     *
-     * @return array
-     */
-    public function getCategories()
-    {
-        try {
-            return $this->marketplaceService->getCategories();
-        } catch (\Exception $e) {
-            logs()->error($e);
-
-            return [];
-        }
     }
 }

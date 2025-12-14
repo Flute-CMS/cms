@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Server\Services;
 
+use Exception;
 use Flute\Admin\Packages\Server\Contracts\ModDriverInterface;
 use Flute\Admin\Packages\Server\Factories\ModDriverFactory;
 use Flute\Core\Database\Entities\DatabaseConnection;
@@ -41,6 +42,7 @@ class AdminServersService
 
         return $ranks;
     }
+
     /**
      * Get game name by mod identifier
      */
@@ -120,7 +122,7 @@ class AdminServersService
         $connection = rep(DatabaseConnection::class)->findByPK($connectionId);
 
         if (!$connection) {
-            throw new \Exception('Подключение не найдено.');
+            throw new Exception('Подключение не найдено.');
         }
 
         $connection->delete();

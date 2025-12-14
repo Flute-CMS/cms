@@ -2,6 +2,8 @@
 
 namespace Flute\Admin\Packages\Payment\Services;
 
+use DateTimeImmutable;
+use Exception;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\Role;
@@ -62,10 +64,62 @@ class PaymentService
         $promoCode->max_usages = $data['max_usages'] ? (int) $data['max_usages'] : null;
         $promoCode->type = $data['type'];
         $promoCode->value = (float) $data['value'];
-        $promoCode->expires_at = $data['expires_at'] ? new \DateTimeImmutable($data['expires_at']) : null;
+        $promoCode->expires_at = $data['expires_at'] ? new DateTimeImmutable($data['expires_at']) : null;
         $promoCode->max_uses_per_user = $data['max_uses_per_user'] ? (int) $data['max_uses_per_user'] : null;
         $promoCode->minimum_amount = $data['minimum_amount'] ? (float) $data['minimum_amount'] : null;
         $promoCode->save();
+    }
+
+    /**
+     * Удаление промо-кода.
+     */
+    public function deletePromoCode(PromoCode $promoCode): void
+    {
+        if ($this->hasActiveUsages($promoCode)) {
+            throw new Exception('Невозможно удалить промо-код, так как он уже использовался.');
+        }
+        $promoCode->delete();
+    }
+
+    /**
+     * Получение общей статистики по всем промо-кодам.
+     */
+    public function getPromoCodeStats(?PromoCode $promoCode = null): array
+    {
+        if ($promoCode !== null) {
+            return $this->getPromoCodeStatsForSingle($promoCode);
+        }
+
+        $allCodes = PromoCode::findAll();
+        $now = new DateTimeImmutable();
+        $totalAmount = 0;
+        $totalUsages = 0;
+        $activeCodes = 0;
+
+        foreach ($allCodes as $code) {
+            $stats = $this->getPromoCodeStatsForSingle($code);
+            $totalAmount += $stats['total_amount'];
+            $totalUsages += $stats['total_usages'];
+
+            if (($code->expires_at > $now || $code->expires_at === null) && $stats['remaining_usages'] > 0) {
+                $activeCodes++;
+            }
+        }
+
+        return [
+            'total_codes' => count($allCodes),
+            'active_codes' => $activeCodes,
+            'total_usages' => $totalUsages,
+            'total_amount' => $totalAmount,
+        ];
+    }
+
+    /**
+     * Получение истории использования промо-кода.
+     */
+    public function getPromoCodeUsageHistory(PromoCode $promoCode): array
+    {
+        return array_reverse($promoCode->usages);
     }
 
     /**
@@ -90,55 +144,11 @@ class PaymentService
     }
 
     /**
-     * Удаление промо-кода.
-     */
-    public function deletePromoCode(PromoCode $promoCode): void
-    {
-        if ($this->hasActiveUsages($promoCode)) {
-            throw new \Exception('Невозможно удалить промо-код, так как он уже использовался.');
-        }
-        $promoCode->delete();
-    }
-
-    /**
      * Проверка наличия использований промо-кода.
      */
     private function hasActiveUsages(PromoCode $promoCode): bool
     {
         return !empty($promoCode->usages);
-    }
-
-    /**
-     * Получение общей статистики по всем промо-кодам.
-     */
-    public function getPromoCodeStats(?PromoCode $promoCode = null): array
-    {
-        if ($promoCode !== null) {
-            return $this->getPromoCodeStatsForSingle($promoCode);
-        }
-
-        $allCodes = PromoCode::findAll();
-        $now = new \DateTimeImmutable();
-        $totalAmount = 0;
-        $totalUsages = 0;
-        $activeCodes = 0;
-
-        foreach ($allCodes as $code) {
-            $stats = $this->getPromoCodeStatsForSingle($code);
-            $totalAmount += $stats['total_amount'];
-            $totalUsages += $stats['total_usages'];
-
-            if (($code->expires_at > $now || $code->expires_at === null) && $stats['remaining_usages'] > 0) {
-                $activeCodes++;
-            }
-        }
-
-        return [
-            'total_codes' => count($allCodes),
-            'active_codes' => $activeCodes,
-            'total_usages' => $totalUsages,
-            'total_amount' => $totalAmount,
-        ];
     }
 
     /**
@@ -160,15 +170,7 @@ class PaymentService
             'total_usages' => $totalUsages,
             'remaining_usages' => $promoCode->max_usages !== null ? $promoCode->max_usages - $totalUsages : null,
             'total_amount' => $totalAmount,
-            'is_expired' => $promoCode->expires_at !== null && $promoCode->expires_at < new \DateTimeImmutable(),
+            'is_expired' => $promoCode->expires_at !== null && $promoCode->expires_at < new DateTimeImmutable(),
         ];
-    }
-
-    /**
-     * Получение истории использования промо-кода.
-     */
-    public function getPromoCodeUsageHistory(PromoCode $promoCode): array
-    {
-        return array_reverse($promoCode->usages);
     }
 }

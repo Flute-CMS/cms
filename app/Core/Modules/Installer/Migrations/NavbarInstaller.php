@@ -24,8 +24,6 @@ class NavbarInstaller
 
     /**
      * Clear all navbar items
-     *
-     * @return void
      */
     protected function clearItems(): void
     {
@@ -42,7 +40,7 @@ class NavbarInstaller
         bool $newTab = false,
         bool $visibleForGuests = false,
         bool $visibleForLoggedIn = false,
-        Role $role = null
+        ?Role $role = null
     ): NavbarItem {
         $navbarItem = new NavbarItem();
         $navbarItem->title = $title;

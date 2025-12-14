@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Update\Screens;
 
+use Exception;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Core\App;
@@ -12,17 +13,18 @@ use Flute\Core\Update\Services\UpdateService;
 use Flute\Core\Update\Updaters\CmsUpdater;
 use Flute\Core\Update\Updaters\ModuleUpdater;
 use Flute\Core\Update\Updaters\ThemeUpdater;
+use InvalidArgumentException;
+use RuntimeException;
 
 class UpdateScreen extends Screen
 {
-    /**
-     * @var UpdateService
-     */
-    protected UpdateService $updateService;
-
     public $name = 'admin-update.title';
 
     public $description = 'admin-update.description';
+
+    /**
+     */
+    protected UpdateService $updateService;
 
     public function mount(): void
     {
@@ -120,14 +122,14 @@ class UpdateScreen extends Screen
                 ($type === 'module' && (empty($id) || empty($updates['modules'][$id]))) ||
                 ($type === 'theme' && (empty($id) || empty($updates['themes'][$id])))
             ) {
-                throw new \InvalidArgumentException(__('admin-update.no_updates'));
+                throw new InvalidArgumentException(__('admin-update.no_updates'));
             }
 
             $this->flashMessage(__('admin-update.update_downloading'));
             $packageFile = $this->updateService->downloadUpdate($type, $id, $version);
 
             if (empty($packageFile) || !file_exists($packageFile)) {
-                throw new \RuntimeException(__('admin-update.update_failed'));
+                throw new RuntimeException(__('admin-update.update_failed'));
             }
 
             $this->flashMessage(__('admin-update.update_extracting'));
@@ -136,7 +138,7 @@ class UpdateScreen extends Screen
                 'cms' => (new CmsUpdater())->update(['package_file' => $packageFile]),
                 'module' => $this->updateModule($id, ['package_file' => $packageFile]),
                 'theme' => $this->updateTheme($id, ['package_file' => $packageFile]),
-                default => throw new \InvalidArgumentException(__('admin-update.unknown_type')),
+                default => throw new InvalidArgumentException(__('admin-update.unknown_type')),
             };
 
             if ($success) {
@@ -151,46 +153,17 @@ class UpdateScreen extends Screen
                 $this->updateService->getAvailableUpdates(true);
 
                 $this->flashMessage(__('admin-update.update_complete'));
+                $this->triggerSidebarRefresh();
             } else {
-                throw new \RuntimeException(__('admin-update.update_failed'));
+                throw new RuntimeException(__('admin-update.update_failed'));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (is_debug()) {
                 throw $e;
             }
             logs()->error('Update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
         }
-    }
-
-    /**
-     * Update module
-     */
-    protected function updateModule(string $moduleId, array $data): bool
-    {
-        $module = app(ModuleManager::class)->getModule($moduleId);
-        if (!$module) {
-            throw new \InvalidArgumentException("Module {$moduleId} not found");
-        }
-
-        return (new ModuleUpdater($module))->update($data);
-    }
-
-    /**
-     * Update theme
-     */
-    protected function updateTheme(string $themeId, array $data): bool
-    {
-        $theme = app(ThemeManager::class)->getTheme($themeId);
-        if (!$theme) {
-            throw new \InvalidArgumentException("Theme {$themeId} not found");
-        }
-
-        $themeData = app(ThemeManager::class)->getThemeData($themeId);
-
-        $theme = Theme::findOne(['key' => $themeId]);
-
-        return (new ThemeUpdater($theme, $themeData))->update($data);
     }
 
     /**
@@ -233,7 +206,7 @@ class UpdateScreen extends Screen
                             @unlink($packageFile);
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->error('CMS update error: ' . $e->getMessage());
                 }
             }
@@ -258,7 +231,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         logs()->error("Module {$moduleId} update error: " . $e->getMessage());
                     }
                 }
@@ -284,7 +257,7 @@ class UpdateScreen extends Screen
                                 @unlink($packageFile);
                             }
                         }
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         logs()->error("Theme {$themeId} update error: " . $e->getMessage());
                     }
                 }
@@ -305,12 +278,49 @@ class UpdateScreen extends Screen
                 $this->flashMessage(__('admin-update.update_complete') . " ({$successfulUpdates}/{$totalUpdates})");
             }
 
-        } catch (\Exception $e) {
+            $this->triggerSidebarRefresh();
+
+        } catch (Exception $e) {
             if (is_debug()) {
                 throw $e;
             }
             logs()->error('Bulk update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
         }
+    }
+
+    /**
+     * Update module
+     */
+    protected function updateModule(string $moduleId, array $data): bool
+    {
+        $module = app(ModuleManager::class)->getModule($moduleId);
+        if (!$module) {
+            throw new InvalidArgumentException("Module {$moduleId} not found");
+        }
+
+        return (new ModuleUpdater($module))->update($data);
+    }
+
+    /**
+     * Update theme
+     */
+    protected function updateTheme(string $themeId, array $data): bool
+    {
+        $theme = app(ThemeManager::class)->getTheme($themeId);
+        if (!$theme) {
+            throw new InvalidArgumentException("Theme {$themeId} not found");
+        }
+
+        $themeData = app(ThemeManager::class)->getThemeData($themeId);
+
+        $theme = Theme::findOne(['key' => $themeId]);
+
+        return (new ThemeUpdater($theme, $themeData))->update($data);
+    }
+
+    protected function triggerSidebarRefresh(): void
+    {
+        $this->dispatchBrowserEvent('sidebar-refresh');
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class SocialNotFoundException extends \Exception
+use Exception;
+
+class SocialNotFoundException extends Exception
 {
 }

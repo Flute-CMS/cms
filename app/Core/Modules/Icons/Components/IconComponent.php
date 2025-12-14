@@ -46,27 +46,18 @@ class IconComponent extends Component
     public $path;
 
     /**
-     * @var IconFinder
      */
     protected IconFinder $finder;
 
     /**
      * Create a new component instance.
-     *
-     * @param string      $path
-     * @param string|null $id
-     * @param string|null $class
-     * @param string|null $width
-     * @param string|null $height
-     * @param string      $role
-     * @param string      $fill
      */
     public function __construct(
         string $path,
-        string $id = null,
-        string $class = null,
-        string $width = null,
-        string $height = null,
+        ?string $id = null,
+        ?string $class = null,
+        ?string $width = null,
+        ?string $height = null,
         string $role = 'img',
         string $fill = 'currentColor',
     ) {
@@ -84,23 +75,17 @@ class IconComponent extends Component
 
     /**
      * Get the view / contents that represent the component.
-     *
-     * @return callable
      */
     public function render(): callable
     {
-        return function (array $data = []) {
-            return render('flute-icons::icon', [
-                'html' => $this->finder->loadFile($this->path),
-                'data' => collect($this->extractPublicProperties())->merge($data['attributes'] ?? [])->filter(fn ($value) => is_string($value)),
-            ])->render();
-        };
+        return fn (array $data = []) => render('flute-icons::icon', [
+            'html' => $this->finder->loadFile($this->path),
+            'data' => collect($this->extractPublicProperties())->merge($data['attributes'] ?? [])->filter(static fn ($value) => is_string($value)),
+        ])->render();
     }
 
     /**
-     * @param ...$params
      *
-     * @return \Illuminate\View\View
      */
     public static function make(...$params): View
     {

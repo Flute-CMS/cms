@@ -17,23 +17,46 @@ class ModuleFinder
     {
         $allModules = [];
 
-        $finder = finder();
+        if (!is_dir($modulesPath)) {
+            return $allModules;
+        }
 
-        $finder->directories()->in($modulesPath);
+        $items = @scandir($modulesPath);
+        if ($items === false) {
+            return $allModules;
+        }
 
-        foreach ($finder as $dir) {
-            if ($dir->getBasename() === '.disabled') {
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..' || $item === '.disabled') {
                 continue;
             }
 
-            $jsonFinder = finder();
+            $moduleDir = rtrim($modulesPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $item;
+            if (!is_dir($moduleDir)) {
+                continue;
+            }
 
-            $jsonFinder->files()->name('module.json')->in($dir->getRealPath());
+            // Fast path: module.json is expected in module root.
+            $jsonPath = $moduleDir . DIRECTORY_SEPARATOR . 'module.json';
+            if (is_file($jsonPath)) {
+                $real = realpath($jsonPath);
+                $allModules[$item] = $real !== false ? $real : $jsonPath;
+
+                continue;
+            }
+
+            // Fallback: handle rare cases where archive/unpack adds an extra wrapper directory.
+            // Keep it shallow to avoid expensive recursive scans on every subdirectory.
+            $jsonFinder = finder();
+            $jsonFinder
+                ->files()
+                ->name('module.json')
+                ->in($moduleDir)
+                ->depth('== 1');
 
             foreach ($jsonFinder as $jsonFile) {
-                $allModules[$dir->getBasename()] = $jsonFile->getRealPath();
+                $allModules[$item] = $jsonFile->getRealPath();
 
-                // На всякий случай.
                 break;
             }
         }
@@ -43,10 +66,6 @@ class ModuleFinder
 
     /**
      * Get module json file
-     *
-     * @param string $jsonPath
-     *
-     * @return string
      */
     public static function getModuleJson(string $jsonPath): string
     {

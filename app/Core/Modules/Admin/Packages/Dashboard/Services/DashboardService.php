@@ -19,8 +19,6 @@ class DashboardService
 {
     /**
      * Collection of dashboard tabs
-     *
-     * @var Collection
      */
     protected Collection $tabs;
 
@@ -37,11 +35,51 @@ class DashboardService
     }
 
     /**
+     * Add a new tab to the dashboard
+     */
+    public function addTab(Tab $tab, array $vars = []): self
+    {
+        $this->tabs->push($tab);
+        $this->vars = $this->vars->merge($vars);
+
+        return $this;
+    }
+
+    /**
+     * Get all registered tabs
+     */
+    public function getTabs(): Collection
+    {
+        return $this->tabs;
+    }
+
+    /**
+     * Get all registered vars
+     */
+    public function getVars(): Collection
+    {
+        return $this->vars;
+    }
+
+    /**
+     * Get the main dashboard layout with tabs
+     */
+    public function getLayout(): array
+    {
+        return [
+            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
+        ];
+    }
+
+    /**
      * Calculate user metrics
-     *
-     * @return array
      */
     protected function calculateUserMetrics(): array
+    {
+        return cache()->callback('admin_dashboard_user_metrics', fn () => $this->doCalculateUserMetrics(), 120);
+    }
+
+    protected function doCalculateUserMetrics(): array
     {
         $now = new DateTimeImmutable();
         $today = $now->setTime(0, 0);
@@ -134,8 +172,6 @@ class DashboardService
 
     /**
      * Calculate notification metrics
-     *
-     * @return array
      */
     protected function calculateNotificationMetrics(): array
     {
@@ -168,33 +204,32 @@ class DashboardService
 
     /**
      * Calculate user registration chart data
-     *
-     * @return array
      */
     protected function calculateUserRegistrationData(): array
     {
+        return cache()->callback('admin_dashboard_user_registration', fn () => $this->doCalculateUserRegistrationData(), 300);
+    }
+
+    protected function doCalculateUserRegistrationData(): array
+    {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-8 months');
-        $users = User::query()
-            ->where('isTemporary', false)
-            ->where('createdAt', '>=', $startDate)
-            ->fetchAll();
 
         $monthlyRegistrations = array_fill(0, 9, 0);
         $labels = [];
 
-        // Generate labels for last 9 months
         for ($i = 0; $i < 9; $i++) {
-            $date = $startDate->modify('+' . $i . ' month');
-            $carbonDate = Carbon::parse($date);
-            $labels[] = $carbonDate->translatedFormat('M');
-        }
+            $monthStart = $startDate->modify('+' . $i . ' month');
+            $monthEnd = $startDate->modify('+' . ($i + 1) . ' month');
 
-        foreach ($users as $user) {
-            $monthDiff = $user->createdAt->diff($startDate)->m;
-            if ($monthDiff >= 0 && $monthDiff < 9) {
-                $monthlyRegistrations[$monthDiff]++;
-            }
+            $carbonDate = Carbon::parse($monthStart);
+            $labels[] = $carbonDate->translatedFormat('M');
+
+            $monthlyRegistrations[$i] = User::query()
+                ->where('isTemporary', false)
+                ->where('createdAt', '>=', $monthStart)
+                ->where('createdAt', '<', $monthEnd)
+                ->count();
         }
 
         return [
@@ -210,37 +245,40 @@ class DashboardService
 
     /**
      * Calculate user activity chart data
-     *
-     * @return array
      */
     protected function calculateUserActivityData(): array
     {
+        return cache()->callback('admin_dashboard_user_activity', fn () => $this->doCalculateUserActivityData(), 120);
+    }
+
+    protected function doCalculateUserActivityData(): array
+    {
         $now = new DateTimeImmutable();
-        $startDate = $now->modify('-6 days');
-        $users = User::query()
-            ->where('isTemporary', false)
-            ->where('last_logged', '>=', $startDate)
-            ->fetchAll();
+        $startDate = $now->modify('-6 days')->setTime(0, 0);
 
         $dailyActive = array_fill(0, 7, 0);
         $dailyOnline = array_fill(0, 7, 0);
         $labels = [];
 
         for ($i = 0; $i < 7; $i++) {
-            $date = $startDate->modify('+' . $i . ' day');
-            $carbonDate = Carbon::parse($date);
-            $labels[] = $carbonDate->translatedFormat('D');
-        }
+            $dayStart = $startDate->modify('+' . $i . ' day');
+            $dayEnd = $startDate->modify('+' . ($i + 1) . ' day');
 
-        foreach ($users as $user) {
-            if ($user->last_logged) {
-                $dayDiff = $user->last_logged->diff($startDate)->d;
-                if ($dayDiff >= 0 && $dayDiff < 7) {
-                    $dailyActive[$dayDiff]++;
-                    if ($user->isOnline()) {
-                        $dailyOnline[$dayDiff]++;
-                    }
-                }
+            $carbonDate = Carbon::parse($dayStart);
+            $labels[] = $carbonDate->translatedFormat('D');
+
+            $dailyActive[$i] = User::query()
+                ->where('isTemporary', false)
+                ->where('last_logged', '>=', $dayStart)
+                ->where('last_logged', '<', $dayEnd)
+                ->count();
+
+            if ($i === 6) {
+                $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+                $dailyOnline[$i] = User::query()
+                    ->where('isTemporary', false)
+                    ->where('last_logged', '>=', $onlineThreshold)
+                    ->count();
             }
         }
 
@@ -261,10 +299,13 @@ class DashboardService
 
     /**
      * Calculate payment metrics
-     *
-     * @return array
      */
     protected function calculatePaymentMetrics(): array
+    {
+        return cache()->callback('admin_dashboard_payment_metrics', fn () => $this->doCalculatePaymentMetrics(), 120);
+    }
+
+    protected function doCalculatePaymentMetrics(): array
     {
         $now = new DateTimeImmutable();
         $today = $now->setTime(0, 0);
@@ -368,10 +409,13 @@ class DashboardService
 
     /**
      * Calculate payment statistics for charts
-     *
-     * @return array
      */
     protected function calculatePaymentChartData(): array
+    {
+        return cache()->callback('admin_dashboard_payment_chart', fn () => $this->doCalculatePaymentChartData(), 120);
+    }
+
+    protected function doCalculatePaymentChartData(): array
     {
         $now = new DateTimeImmutable();
         $startDate = $now->modify('-6 days')->setTime(0, 0);
@@ -426,10 +470,13 @@ class DashboardService
 
     /**
      * Calculate payment methods distribution
-     *
-     * @return array
      */
     protected function calculatePaymentMethodsData(): array
+    {
+        return cache()->callback('admin_dashboard_payment_methods', fn () => $this->doCalculatePaymentMethodsData(), 300);
+    }
+
+    protected function doCalculatePaymentMethodsData(): array
     {
         $gatewayQuery = PaymentInvoice::query()
             ->where('isPaid', true)
@@ -456,8 +503,6 @@ class DashboardService
 
     /**
      * Get the main information tab
-     *
-     * @return array
      */
     protected function getMainTab(): array
     {
@@ -485,15 +530,15 @@ class DashboardService
                     LayoutFactory::split([
                         Chart::make('user_registrations', __('admin-dashboard.charts.user_registrations'))
                             ->type('area')
-                            ->height(300)
-                            ->colors(['var(--accent)', 'var(--accent-400)'])
+                            ->height(340)
+                            ->colors(['#3b82f6', '#60a5fa'])
                             ->description(__('admin-dashboard.descriptions.user_registrations'))
                             ->dataset($userRegistrationData['series'])
                             ->labels($userRegistrationData['labels']),
                         Chart::make('user_activity', __('admin-dashboard.charts.user_activity'))
                             ->type('area')
-                            ->height(300)
-                            ->colors(['var(--success)', 'var(--warning)'])
+                            ->height(340)
+                            ->colors(['#10b981', '#f59e0b'])
                             ->description(__('admin-dashboard.descriptions.user_activity'))
                             ->dataset($userActivityData['series'])
                             ->labels($userActivityData['labels']),
@@ -505,8 +550,6 @@ class DashboardService
 
     /**
      * Get the payments tab
-     *
-     * @return array
      */
     protected function getPaymentsTab(): array
     {
@@ -534,15 +577,15 @@ class DashboardService
                     LayoutFactory::split([
                         Chart::make('payment_stats', __('admin-dashboard.charts.payment_stats'))
                             ->type('area')
-                            ->height(300)
-                            ->colors(['var(--success)', 'var(--primary)'])
+                            ->height(340)
+                            ->colors(['#10b981', '#6366f1'])
                             ->description(__('admin-dashboard.descriptions.payment_stats'))
                             ->dataset($paymentChartData['series'])
                             ->labels($paymentChartData['labels']),
                         Chart::make('payment_methods', __('admin-dashboard.charts.payment_methods'))
                             ->type('donut')
-                            ->height(300)
-                            ->colors(['var(--accent-500)', 'var(--primary-500)', 'var(--success-light)', 'var(--warning-light)'])
+                            ->height(340)
+                            ->colors(['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'])
                             ->description(__('admin-dashboard.descriptions.payment_methods'))
                             ->dataset($paymentMethodsData['series'])
                             ->labels($paymentMethodsData['labels']),
@@ -554,62 +597,51 @@ class DashboardService
 
     /**
      * Register default dashboard tabs
-     *
-     * @return void
      */
     protected function registerDefaultTabs(): void
     {
-        $mainTab = $this->getMainTab();
-        $this->addTab($mainTab['tab'], $mainTab['vars']);
+        $currentTab = request()->input('tab-dashboard_tabs');
+        $mainTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.main'));
+        $paymentsTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.payments'));
 
-        $paymentsTab = $this->getPaymentsTab();
+        if ($currentTab === $paymentsTabSlug) {
+            $mainTab = $this->getMainTabPlaceholder();
+            $paymentsTab = $this->getPaymentsTab();
+        } elseif ($currentTab === null || $currentTab === $mainTabSlug) {
+            $mainTab = $this->getMainTab();
+            $paymentsTab = $this->getPaymentsTabPlaceholder();
+        } else {
+            $mainTab = $this->getMainTabPlaceholder();
+            $paymentsTab = $this->getPaymentsTabPlaceholder();
+        }
+
+        $this->addTab($mainTab['tab'], $mainTab['vars']);
         $this->addTab($paymentsTab['tab'], $paymentsTab['vars']);
     }
 
     /**
-     * Add a new tab to the dashboard
-     *
-     * @param Tab $tab
-     * @param array $vars
-     * @return self
+     * Get main tab placeholder (no data loaded)
      */
-    public function addTab(Tab $tab, array $vars = []): self
-    {
-        $this->tabs->push($tab);
-        $this->vars = $this->vars->merge($vars);
-
-        return $this;
-    }
-
-    /**
-     * Get all registered tabs
-     *
-     * @return Collection
-     */
-    public function getTabs(): Collection
-    {
-        return $this->tabs;
-    }
-
-    /**
-     * Get all registered vars
-     *
-     * @return Collection
-     */
-    public function getVars(): Collection
-    {
-        return $this->vars;
-    }
-
-    /**
-     * Get the main dashboard layout with tabs
-     *
-     * @return array
-     */
-    public function getLayout(): array
+    protected function getMainTabPlaceholder(): array
     {
         return [
-            LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
+            'tab' => Tab::make(__('admin-dashboard.tabs.main'))
+                ->icon('ph.regular.users')
+                ->layouts([]),
+            'vars' => [],
+        ];
+    }
+
+    /**
+     * Get payments tab placeholder (no data loaded)
+     */
+    protected function getPaymentsTabPlaceholder(): array
+    {
+        return [
+            'tab' => Tab::make(__('admin-dashboard.tabs.payments'))
+                ->icon('ph.regular.currency-circle-dollar')
+                ->layouts([]),
+            'vars' => [],
         ];
     }
 }

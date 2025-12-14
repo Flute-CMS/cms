@@ -11,10 +11,10 @@ use Flute\Core\Modules\Profile\Controllers\ProfileVerificationController;
 use Flute\Core\Modules\Profile\Middlewares\UserExistsMiddleware;
 use Flute\Core\Router\Contracts\RouterInterface;
 
-$router->group(['prefix' => "/profile/", 'middleware' => 'auth'], function (RouterInterface $group) {
+$router->group(['prefix' => "/profile/", 'middleware' => 'auth'], static function (RouterInterface $group) {
     $group->get('settings', [ProfileEditController::class, 'index']);
 
-    $group->group(['prefix' => "social/"], function (RouterInterface $socialGroup) {
+    $group->group(['prefix' => "social/"], static function (RouterInterface $socialGroup) {
         $socialGroup->get('bind/{provider}', [ProfileSocialBindController::class, 'bindSocial']);
         $socialGroup->post('unbind/{provider}', [ProfileSocialBindController::class, 'unbindSocial'])->middleware('csrf');
     });

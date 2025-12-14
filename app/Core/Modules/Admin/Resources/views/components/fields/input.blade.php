@@ -22,7 +22,7 @@
 
 @php
     $hasError = $errors->has($name);
-    $inputId = $attributes->get('id', $name) ?: $name;
+    $inputId = $id ?: ($attributes->get('id', $name) ?: $name);
 @endphp
 
 @if ($type === 'hidden')
@@ -30,7 +30,7 @@
 @else
     <div class="input-wrapper">
         <div id="input-{{ $inputId }}"
-            {{ $attributes->class(['input__field-container-readonly' => $readOnly, 'has-error' => $hasError])->merge(['class' => 'input__field-container']) }}>
+            @class(['input__field-container', 'input__field-container-readonly' => $readOnly, 'has-error' => $hasError])>
             @if ($prefix)
                 <span class="input__prefix">{{ $prefix }}</span>
             @endif

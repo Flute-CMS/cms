@@ -7,6 +7,9 @@ use Flute\Admin\Packages\Search\SelectRegistry;
 use Flute\Admin\Platform\Concerns\ComplexFieldConcern;
 use Flute\Admin\Platform\Concerns\Multipliable;
 use Flute\Admin\Platform\Field;
+use ReflectionEnum;
+use ReflectionException;
+use Traversable;
 
 /**
  * Class Select.
@@ -42,7 +45,9 @@ class Select extends Field implements ComplexFieldConcern
         'mode' => 'static',              // static|database|async
         'multiple' => false,             // multiple selection mode
         'maxItems' => 1,                // maximum number of items that can be selected
-        'searchable' => false,          // enable search
+        'uiSearch' => null,             // null=auto, true=always, false=never (UI only)
+        'searchThreshold' => 6,         // auto-enable UI search when options > threshold (static mode)
+        'searchable' => false,          // enable search (async mode helper)
         'minSearchLength' => 2,         // minimum search query length
         'searchDelay' => 300,           // search delay in milliseconds
         'preload' => false,             // preload options in async mode
@@ -50,7 +55,7 @@ class Select extends Field implements ComplexFieldConcern
         'removeButton' => false,        // show remove button
         'allowEmpty' => false,          // allow empty option
         'allowAdd' => false,            // allow adding new options
-        'plugins' => ['dropdown_input'], // default plugins
+        'plugins' => [],                // default plugins (UI search plugin is enabled dynamically)
         'renderOption' => null,         // custom option render function
         'renderItem' => null,           // custom item render function
         'renderNoResults' => null,      // custom no results render function
@@ -106,6 +111,8 @@ class Select extends Field implements ComplexFieldConcern
         'data-preload',
         'data-plugins',
         'data-allow-add',
+        'data-searchable',
+        'data-search-threshold',
     ];
 
     public function __construct()
@@ -116,16 +123,11 @@ class Select extends Field implements ComplexFieldConcern
     }
 
     /**
-     * @param string      $enum
-     * @param string|null $displayName
-     *
-     * @throws \ReflectionException
-     *
-     * @return self
+     * @throws ReflectionException
      */
     public function fromEnum(string $enum, ?string $displayName = null): self
     {
-        $reflection = new \ReflectionEnum($enum);
+        $reflection = new ReflectionEnum($enum);
         $options = [];
         foreach ($enum::cases() as $item) {
             $key = $reflection->isBacked() ? $item->value : $item->name;
@@ -137,7 +139,7 @@ class Select extends Field implements ComplexFieldConcern
             $value = [];
             collect($this->get('value'))->each(static function ($item) use (&$value, $reflection, $enum) {
                 if ($item instanceof $enum) {
-                    /** @var \UnitEnum $item */
+                    /* @var \UnitEnum $item */
                     $value[] = $reflection->isBacked() ? $item->value : $item->name;
                 } else {
                     $value[] = $item;
@@ -174,131 +176,6 @@ class Select extends Field implements ComplexFieldConcern
     public function yoyo()
     {
         return $this->set('yoyo', true);
-    }
-
-    /**
-     * Configure select before render
-     */
-    protected function configureSelect(): void
-    {
-        // Set basic attributes
-        $this->set('multiple', $this->getConfig('multiple'))
-            ->set('maxItems', $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1)
-            ->set('mode', $this->getConfig('mode'));
-
-        // Expose allowAdd flag to template via data attribute
-        $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
-
-        // Configure plugins
-        $plugins = $this->getConfig('plugins', []);
-        if ($this->getConfig('clearButton')) {
-            $plugins[] = 'clear_button';
-        }
-        if ($this->getConfig('multiple') && $this->getConfig('removeButton')) {
-            $plugins[] = 'remove_button';
-        }
-        $this->set('data-plugins', json_encode(array_unique($plugins)));
-
-        // Configure options source
-        if ($this->getConfig('mode') === 'database') {
-            $this->set('options', $this->getDatabaseOptions());
-        }
-
-        // Configure async mode
-        if ($this->getConfig('mode') === 'async') {
-            $this->configureAsyncMode();
-        }
-
-        // Configure render functions
-        $this->configureRenderFunctions();
-
-        // Handle value formatting
-        $this->formatValue();
-    }
-
-    /**
-     * Configure async mode settings
-     */
-    protected function configureAsyncMode(): void
-    {
-        $this->set('data-search-url', '/admin/select/search')
-            ->set('data-search-min-length', $this->getConfig('minSearchLength'))
-            ->set('data-search-delay', $this->getConfig('searchDelay'))
-            ->set('data-search-fields', json_encode($this->databaseConfig['searchFields']))
-            ->set('data-entity', $this->databaseConfig['entity'])
-            ->set('data-display-field', $this->databaseConfig['displayField'])
-            ->set('data-value-field', $this->databaseConfig['valueField'])
-            ->set('data-preload', $this->getConfig('preload') ? 'true' : 'false');
-    }
-
-    /**
-     * Configure render functions
-     */
-    protected function configureRenderFunctions(): void
-    {
-        if ($renderOption = $this->getConfig('renderOption')) {
-            $this->set('renderOption', $renderOption);
-        }
-        if ($renderItem = $this->getConfig('renderItem')) {
-            $this->set('renderItem', $renderItem);
-        }
-        if ($renderNoResults = $this->getConfig('renderNoResults')) {
-            $this->set('renderNoResults', $renderNoResults);
-        }
-    }
-
-    /**
-     * Format field value
-     */
-    protected function formatValue(): void
-    {
-        $value = $this->get('value');
-        if (is_object($value)) {
-            $valueField = $this->databaseConfig['valueField'];
-            $this->set('value', $value->{$valueField});
-        } elseif (is_array($value) || $value instanceof \Traversable) {
-            $valueField = $this->databaseConfig['valueField'];
-            $values = [];
-            foreach ($value as $item) {
-                $values[] = is_object($item) ? $item->{$valueField} : $item;
-            }
-            $this->set('value', $values);
-        }
-    }
-
-    /**
-     * Get options from database
-     */
-    protected function getDatabaseOptions(): array
-    {
-        $entity = $this->databaseConfig['entity'];
-        if (!$entity) {
-            return [];
-        }
-
-        $selectRegistry = app(SelectRegistry::class);
-        $config = $selectRegistry->getEntityConfig($entity);
-
-        if (!$config || !$selectRegistry->canUserAccessAlias($entity)) {
-            return [];
-        }
-
-        /** @var Repository $repository */
-        $repository = orm()->getRepository($config['class']);
-        $items = $repository->findAll();
-
-        if ($filter = $this->getConfig('filter')) {
-            $items = array_filter($items, $filter);
-        }
-
-        $options = [];
-        foreach ($items as $item) {
-            if (isset($item->{$this->databaseConfig['valueField']}, $item->{$this->databaseConfig['displayField']})) {
-                $options[$item->{$this->databaseConfig['valueField']}] = $item->{$this->databaseConfig['displayField']};
-            }
-        }
-
-        return $options;
     }
 
     /**
@@ -339,6 +216,22 @@ class Select extends Field implements ComplexFieldConcern
             'minSearchLength' => $minLength,
             'searchDelay' => $delay,
             'mode' => 'async',
+            'uiSearch' => true,
+        ]);
+    }
+
+    /**
+     * Configure UI search behavior (static/database selects).
+     *
+     * - null: auto (enabled when options > threshold, or for non-static modes)
+     * - true: always
+     * - false: never
+     */
+    public function uiSearch(?bool $enabled = null, int $threshold = 6): self
+    {
+        return $this->setConfigs([
+            'uiSearch' => $enabled,
+            'searchThreshold' => $threshold,
         ]);
     }
 
@@ -506,5 +399,135 @@ class Select extends Field implements ComplexFieldConcern
     public function allowAdd(bool $allow = true): self
     {
         return $this->setConfig('allowAdd', $allow);
+    }
+
+    /**
+     * Configure select before render
+     */
+    protected function configureSelect(): void
+    {
+        // Set basic attributes
+        $this->set('multiple', $this->getConfig('multiple'))
+            ->set('maxItems', $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1)
+            ->set('mode', $this->getConfig('mode'));
+
+        // Expose allowAdd flag to template via data attribute
+        $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
+
+        // UI search behavior: true|false|auto
+        $uiSearch = $this->getConfig('uiSearch', null);
+        $this->set('data-searchable', $uiSearch === null ? 'auto' : ($uiSearch ? 'true' : 'false'));
+        $this->set('data-search-threshold', (string) $this->getConfig('searchThreshold', 6));
+
+        // Configure plugins
+        $plugins = $this->getConfig('plugins', []);
+        if ($this->getConfig('clearButton')) {
+            $plugins[] = 'clear_button';
+        }
+        if ($this->getConfig('multiple') && $this->getConfig('removeButton')) {
+            $plugins[] = 'remove_button';
+        }
+        $this->set('data-plugins', json_encode(array_unique($plugins)));
+
+        // Configure options source
+        if ($this->getConfig('mode') === 'database') {
+            $this->set('options', $this->getDatabaseOptions());
+        }
+
+        // Configure async mode
+        if ($this->getConfig('mode') === 'async') {
+            $this->configureAsyncMode();
+        }
+
+        // Configure render functions
+        $this->configureRenderFunctions();
+
+        // Handle value formatting
+        $this->formatValue();
+    }
+
+    /**
+     * Configure async mode settings
+     */
+    protected function configureAsyncMode(): void
+    {
+        $this->set('data-search-url', '/admin/select/search')
+            ->set('data-search-min-length', $this->getConfig('minSearchLength'))
+            ->set('data-search-delay', $this->getConfig('searchDelay'))
+            ->set('data-search-fields', json_encode($this->databaseConfig['searchFields']))
+            ->set('data-entity', $this->databaseConfig['entity'])
+            ->set('data-display-field', $this->databaseConfig['displayField'])
+            ->set('data-value-field', $this->databaseConfig['valueField'])
+            ->set('data-preload', $this->getConfig('preload') ? 'true' : 'false');
+    }
+
+    /**
+     * Configure render functions
+     */
+    protected function configureRenderFunctions(): void
+    {
+        if ($renderOption = $this->getConfig('renderOption')) {
+            $this->set('renderOption', $renderOption);
+        }
+        if ($renderItem = $this->getConfig('renderItem')) {
+            $this->set('renderItem', $renderItem);
+        }
+        if ($renderNoResults = $this->getConfig('renderNoResults')) {
+            $this->set('renderNoResults', $renderNoResults);
+        }
+    }
+
+    /**
+     * Format field value
+     */
+    protected function formatValue(): void
+    {
+        $value = $this->get('value');
+        if (is_object($value)) {
+            $valueField = $this->databaseConfig['valueField'];
+            $this->set('value', $value->{$valueField});
+        } elseif (is_array($value) || $value instanceof Traversable) {
+            $valueField = $this->databaseConfig['valueField'];
+            $values = [];
+            foreach ($value as $item) {
+                $values[] = is_object($item) ? $item->{$valueField} : $item;
+            }
+            $this->set('value', $values);
+        }
+    }
+
+    /**
+     * Get options from database
+     */
+    protected function getDatabaseOptions(): array
+    {
+        $entity = $this->databaseConfig['entity'];
+        if (!$entity) {
+            return [];
+        }
+
+        $selectRegistry = app(SelectRegistry::class);
+        $config = $selectRegistry->getEntityConfig($entity);
+
+        if (!$config || !$selectRegistry->canUserAccessAlias($entity)) {
+            return [];
+        }
+
+        /** @var Repository $repository */
+        $repository = orm()->getRepository($config['class']);
+        $items = $repository->findAll();
+
+        if ($filter = $this->getConfig('filter')) {
+            $items = array_filter($items, $filter);
+        }
+
+        $options = [];
+        foreach ($items as $item) {
+            if (isset($item->{$this->databaseConfig['valueField']}, $item->{$this->databaseConfig['displayField']})) {
+                $options[$item->{$this->databaseConfig['valueField']}] = $item->{$this->databaseConfig['displayField']};
+            }
+        }
+
+        return $options;
     }
 }

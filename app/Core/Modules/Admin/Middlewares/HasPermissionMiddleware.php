@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Admin\Middlewares;
 
+use Closure;
 use Flute\Core\Support\BaseMiddleware;
 use Flute\Core\Support\FluteRequest;
 
@@ -18,7 +19,7 @@ class HasPermissionMiddleware extends BaseMiddleware
         }
     }
 
-    public function handle(FluteRequest $request, \Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
+    public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         if (user()->can('admin.boss')) {
             return $next($request);

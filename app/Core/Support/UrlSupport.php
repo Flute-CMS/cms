@@ -5,7 +5,9 @@ namespace Flute\Core\Support;
 class UrlSupport
 {
     protected array $getParams;
+
     protected string $baseUrl;
+
     protected ?string $originalPath;
 
     /**
@@ -43,8 +45,6 @@ class UrlSupport
 
     /**
      * Merge the current GET parameters with the instance's parameters.
-     *
-     * @return self
      */
     public function withGet(): self
     {
@@ -57,8 +57,6 @@ class UrlSupport
      * Add parameters to the URL.
      *
      * @param array $params The parameters to add.
-     *
-     * @return self
      */
     public function addParams(array $params): self
     {
@@ -71,8 +69,6 @@ class UrlSupport
      * Remove specific parameters from the URL.
      *
      * @param array $keys The keys of the parameters to remove.
-     *
-     * @return self
      */
     public function removeParams(array $keys): self
     {
@@ -97,8 +93,6 @@ class UrlSupport
      * Set a new base URL.
      *
      * @param string $baseUrl The new base URL.
-     *
-     * @return self
      */
     public function setBaseUrl(string $baseUrl): self
     {
@@ -121,8 +115,6 @@ class UrlSupport
      * Set new parameters for the URL, replacing all existing ones.
      *
      * @param array $params The new parameters.
-     *
-     * @return self
      */
     public function setParams(array $params): self
     {
@@ -133,8 +125,6 @@ class UrlSupport
 
     /**
      * Get the original url path
-     *
-     * @return ?string
      */
     public function getOriginalPath(): ?string
     {
@@ -174,8 +164,6 @@ class UrlSupport
 
     /**
      * Get result
-     *
-     * @return string
      */
     public function get(): string
     {

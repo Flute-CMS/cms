@@ -16,14 +16,18 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\FooterItem;
 use Flute\Core\Database\Entities\FooterSocial;
+use Throwable;
 
 class FooterListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.footer';
 
     public $footerItems;
+
     public $socials;
 
     public function mount(): void
@@ -47,10 +51,10 @@ class FooterListScreen extends Screen
                     ->badge(sizeof($this->footerItems))
                     ->layouts([
                         LayoutFactory::sortable('footerItems', [
-                            Sight::make('title', __('admin-footer.table.title'))->render(fn (FooterItem $footerItem) => view('admin-footer::cells.item-title', compact('footerItem'))),
+                            Sight::make('title', __('admin-footer.table.title'))->render(static fn (FooterItem $footerItem) => view('admin-footer::cells.item-title', compact('footerItem'))),
                             Sight::make('actions', __('admin-footer.table.actions'))
                                 ->render(
-                                    fn (FooterItem $footerItem) => DropDown::make()
+                                    static fn (FooterItem $footerItem) => DropDown::make()
                                         ->icon('ph.regular.dots-three-outline-vertical')
                                         ->list([
                                             DropDownItem::make(__('def.edit'))
@@ -84,12 +88,12 @@ class FooterListScreen extends Screen
                     ->badge(sizeof($this->socials))
                     ->layouts([
                         LayoutFactory::table('socials', [
-                            TD::make('icon', __('admin-footer.table.icon'))->render(fn (FooterSocial $footerSocial) => view('admin-footer::cells.social-icon', compact('footerSocial'))),
-                            TD::make('url', __('admin-footer.table.url'))->render(fn (FooterSocial $footerSocial) => '<a class="hover-accent" href="' . $footerSocial->url . '" target="_blank">' . $footerSocial->url . '</a>'),
+                            TD::make('icon', __('admin-footer.table.icon'))->render(static fn (FooterSocial $footerSocial) => view('admin-footer::cells.social-icon', compact('footerSocial'))),
+                            TD::make('url', __('admin-footer.table.url'))->render(static fn (FooterSocial $footerSocial) => '<a class="hover-accent" href="' . $footerSocial->url . '" target="_blank">' . $footerSocial->url . '</a>'),
                             TD::make('actions', __('admin-footer.table.actions'))
                                 ->width('150px')
                                 ->alignCenter()
-                                ->render(fn (FooterSocial $footerSocial) => DropDown::make()
+                                ->render(static fn (FooterSocial $footerSocial) => DropDown::make()
                                     ->icon('ph.regular.dots-three-outline-vertical')
                                     ->list([
                                         DropDownItem::make(__('admin-footer.buttons.edit'))
@@ -122,25 +126,6 @@ class FooterListScreen extends Screen
         ];
     }
 
-    protected function loadFooterItems()
-    {
-        $this->footerItems = rep(FooterItem::class)
-            ->select()
-            ->orderBy('position', 'asc')
-            ->where('parent_id', null)
-            ->load('children', [
-                'load' => function ($qb) {
-                    $qb->orderBy('position', 'asc');
-                },
-            ])
-            ->fetchAll();
-    }
-
-    protected function loadSocials()
-    {
-        $this->socials = rep(FooterSocial::class)->select()->orderBy('id', 'desc')->fetchAll();
-    }
-
     /**
      * Обновление позиций элементов футера после сортировки
      */
@@ -160,30 +145,6 @@ class FooterListScreen extends Screen
         $this->clearFooterCache();
 
         $this->loadFooterItems();
-    }
-
-    /**
-     * Recalculate positions recursively without sharing the counter between sibling groups.
-     * Ensures stable ordering after drag-and-drop.
-     */
-    private function reorderItems(array $items, ?FooterItem $parent = null): void
-    {
-        $position = 0;
-
-        foreach ($items as $item) {
-            $footerItem = FooterItem::findByPK($item['id']);
-            if (!$footerItem) {
-                continue;
-            }
-
-            $footerItem->position = ++$position;
-            $footerItem->parent = $parent;
-            $footerItem->save();
-
-            if (!empty($item['children'])) {
-                $this->reorderItems($item['children'], $footerItem);
-            }
-        }
     }
 
     /**
@@ -571,6 +532,49 @@ class FooterListScreen extends Screen
         $this->loadSocials();
     }
 
+    protected function loadFooterItems()
+    {
+        $this->footerItems = rep(FooterItem::class)
+            ->select()
+            ->orderBy('position', 'asc')
+            ->where('parent_id', null)
+            ->load('children', [
+                'load' => static function ($qb) {
+                    $qb->orderBy('position', 'asc');
+                },
+            ])
+            ->fetchAll();
+    }
+
+    protected function loadSocials()
+    {
+        $this->socials = rep(FooterSocial::class)->select()->orderBy('id', 'desc')->fetchAll();
+    }
+
+    /**
+     * Recalculate positions recursively without sharing the counter between sibling groups.
+     * Ensures stable ordering after drag-and-drop.
+     */
+    private function reorderItems(array $items, ?FooterItem $parent = null): void
+    {
+        $position = 0;
+
+        foreach ($items as $item) {
+            $footerItem = FooterItem::findByPK($item['id']);
+            if (!$footerItem) {
+                continue;
+            }
+
+            $footerItem->position = ++$position;
+            $footerItem->parent = $parent;
+            $footerItem->save();
+
+            if (!empty($item['children'])) {
+                $this->reorderItems($item['children'], $footerItem);
+            }
+        }
+    }
+
     /**
      * Clear all cached footer keys matching the cache key prefix.
      */
@@ -582,7 +586,7 @@ class FooterListScreen extends Screen
             foreach ($keys as $key) {
                 cache()->delete($key);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Swallow exceptions to avoid breaking admin UI
         }
     }

@@ -27,14 +27,14 @@
     {{ $onSortEnd ? "yoyo:post=$onSortEnd" : '' }}
     hx-swap="outerHTML" hx-vals='js:{sortableResult: event.detail.sortable}' yoyo:trigger='sortEnd'>
     @if ($rows->isNotEmpty())
-        <div class="sortable-toolbar d-flex justify-content-end gap-2 px-2 py-2">
+        {{-- <div class="sortable-toolbar d-flex justify-content-end gap-2 px-2 py-2">
             <button type="button" class="btn-link js-collapse-all" title="Свернуть все">
                 <x-icon path="ph.regular.arrows-in-line-vertical" />
             </button>
             <button type="button" class="btn-link js-expand-all" title="Развернуть все">
                 <x-icon path="ph.regular.arrows-out-line-vertical" />
             </button>
-        </div>
+        </div> --}}
 
         @include('admin::partials.sortable-list', [
             'items' => $rows,

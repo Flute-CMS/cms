@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Icons\Services;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -11,18 +12,16 @@ class IconFinder
      * Static in-request cache for loaded SVG contents to avoid repeated disk I/O.
      */
     private static array $fileContentCache = [];
+
     /**
-     * @var Collection
      */
     private Collection $directories;
 
     /**
-     * @var string
      */
     private string $width = '1em';
 
     /**
-     * @var string
      */
     private string $height = '1em';
 
@@ -35,10 +34,7 @@ class IconFinder
     }
 
     /**
-     * @param string $directory
-     * @param string $prefix
      *
-     * @return self
      */
     public function registerIconDirectory(string $prefix, string $directory): self
     {
@@ -50,9 +46,7 @@ class IconFinder
     }
 
     /**
-     * @param string $name
      *
-     * @return string|null
      */
     public function loadFile(string $name): ?string
     {
@@ -78,47 +72,6 @@ class IconFinder
     }
 
     /**
-     * @param string $name
-     * @param string $prefix
-     * @param string $dir
-     *
-     * @return string
-     */
-    protected function getContent(string $name, string $prefix, string $dir)
-    {
-        $file = Str::of($name)
-            ->when($prefix !== $name, fn ($string) => $string->replaceFirst($prefix, ''))
-            ->replaceFirst('.', '')
-            ->replace('.', DIRECTORY_SEPARATOR);
-
-        $path = $dir . DIRECTORY_SEPARATOR . $file . '.svg';
-
-        if (isset(self::$fileContentCache[$path])) {
-            return self::$fileContentCache[$path];
-        }
-
-        if (!is_file($path)) {
-            self::$fileContentCache[$path] = null;
-
-            return null;
-        }
-
-        try {
-            $content = file_get_contents($path);
-            if ($content !== false) {
-                self::$fileContentCache[$path] = $content;
-            }
-
-            return $content ?: null;
-        } catch (\Exception) {
-            return null;
-        }
-    }
-
-    /**
-     * @param string $width
-     * @param string $height
-     *
      * @return $this
      */
     public function setSize(string $width = '1em', string $height = '1em'): IconFinder
@@ -131,8 +84,6 @@ class IconFinder
 
     /**
      * Return the default width.
-     *
-     * @return string
      */
     public function getDefaultWidth(): string
     {
@@ -141,8 +92,6 @@ class IconFinder
 
     /**
      * Return the default height.
-     *
-     * @return string
      */
     public function getDefaultHeight(): string
     {
@@ -195,7 +144,7 @@ class IconFinder
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return $icons;
@@ -230,10 +179,54 @@ class IconFinder
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return $categories;
+    }
+
+    /**
+     * Get list of all registered icon packages.
+     *
+     * @return array Array of package prefixes
+     */
+    public function getPackages(): array
+    {
+        return $this->directories->keys()->toArray();
+    }
+
+    /**
+     * @return string
+     */
+    protected function getContent(string $name, string $prefix, string $dir)
+    {
+        $file = Str::of($name)
+            ->when($prefix !== $name, static fn ($string) => $string->replaceFirst($prefix, ''))
+            ->replaceFirst('.', '')
+            ->replace('.', DIRECTORY_SEPARATOR);
+
+        $path = $dir . DIRECTORY_SEPARATOR . $file . '.svg';
+
+        if (isset(self::$fileContentCache[$path])) {
+            return self::$fileContentCache[$path];
+        }
+
+        if (!is_file($path)) {
+            self::$fileContentCache[$path] = null;
+
+            return null;
+        }
+
+        try {
+            $content = file_get_contents($path);
+            if ($content !== false) {
+                self::$fileContentCache[$path] = $content;
+            }
+
+            return $content ?: null;
+        } catch (Exception) {
+            return null;
+        }
     }
 
     /**
@@ -267,15 +260,5 @@ class IconFinder
         }
 
         return $files;
-    }
-
-    /**
-     * Get list of all registered icon packages.
-     *
-     * @return array Array of package prefixes
-     */
-    public function getPackages(): array
-    {
-        return $this->directories->keys()->toArray();
     }
 }

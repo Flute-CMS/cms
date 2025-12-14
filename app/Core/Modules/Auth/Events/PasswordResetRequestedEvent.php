@@ -10,6 +10,7 @@ class PasswordResetRequestedEvent
     public const NAME = 'flute.password_reset_requested';
 
     private User $user;
+
     private PasswordResetToken $token;
 
     public function __construct(User $user, PasswordResetToken $token)

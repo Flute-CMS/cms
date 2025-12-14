@@ -34,8 +34,6 @@ class Middleware
 
     /**
      * Get the middleware array
-     *
-     * @return array
      */
     public function getMiddleware(): array
     {
@@ -44,8 +42,6 @@ class Middleware
 
     /**
      * Check if middleware is inherited
-     *
-     * @return bool
      */
     public function isInherited(): bool
     {
@@ -57,7 +53,6 @@ class Middleware
      *
      * @param Middleware $parent Parent middleware
      * @param Middleware $child Child middleware
-     * @return Middleware
      */
     public static function inherit(Middleware $parent, Middleware $child): Middleware
     {

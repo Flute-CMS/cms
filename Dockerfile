@@ -36,7 +36,7 @@ COPY --chown=www-data:www-data . /var/www/html
 
 COPY --from=vendor /app/vendor /var/www/html/vendor
 
-RUN composer dump-autoload --optimize --apcu --no-dev --classmap-authoritative --no-interaction
+RUN composer dump-autoload --optimize --apcu --no-dev --no-interaction
 
 RUN echo "OK" > /var/www/html/health
 

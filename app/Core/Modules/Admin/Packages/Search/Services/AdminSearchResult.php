@@ -7,19 +7,17 @@ use Flute\Admin\Packages\Search\Contracts\AdminSearchResultInterface;
 class AdminSearchResult implements AdminSearchResultInterface
 {
     protected ?string $url = null;
+
     protected ?string $title = null;
+
     protected ?string $icon = "";
+
     protected ?string $category = "";
+
     protected int $relevance = 0;
 
     /**
      * SearchResult constructor.
-     *
-     * @param string|null $title
-     * @param string|null $url
-     * @param string|null $icon
-     * @param string|null $category
-     * @param int $relevance
      */
     public function __construct(?string $title = null, ?string $url = null, ?string $icon = null, ?string $category = null, int $relevance = 0)
     {

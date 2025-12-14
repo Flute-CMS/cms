@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader не установлен',
+        'missing_desc' => 'Некоторые модули в маркетплейсе могут быть зашифрованы и потребуют ionCube Loader. Установите/включите его на сервере.',
+    ],
     'labels' => [
         'marketplace' => 'Маркетплейс',
         'modules' => 'Модули',
@@ -57,6 +61,10 @@ return [
         'installed' => 'Установлен',
         'read_more' => 'Читать дальше',
         'collapse' => 'Свернуть',
+        'activate' => 'Активировать',
+        'deactivate' => 'Деактивировать',
+        'uninstall' => 'Удалить',
+        'view_on_marketplace' => 'Посмотреть на маркетплейсе',
     ],
     'steps' => [
         'download' => 'Загрузка модуля',
@@ -90,10 +98,22 @@ return [
         'finishing' => 'Завершение установки',
         'install_confirm' => 'Вы уверены, что хотите установить модуль :module?',
         'install_confirm_title' => 'Установка модуля',
+        'update_confirm' => 'Вы уверены, что хотите обновить модуль :module?',
+        'update_confirm_title' => 'Обновление модуля',
+        'activate_confirm' => 'Вы уверены, что хотите активировать модуль :module?',
+        'activate_confirm_title' => 'Активация модуля',
+        'deactivate_confirm' => 'Вы уверены, что хотите деактивировать модуль :module?',
+        'deactivate_confirm_title' => 'Деактивация модуля',
+        'uninstall_confirm' => 'Вы уверены, что хотите удалить модуль :module? Все данные модуля будут потеряны!',
+        'uninstall_confirm_title' => 'Удаление модуля',
         'requires_php' => 'Требуется PHP :version',
         'requires_flute' => 'Требуется Flute :version',
         'requires_modules' => 'Требуются модули: :modules',
         'module_installed' => 'Модуль успешно установлен!',
+        'module_activated' => 'Модуль успешно активирован!',
+        'module_deactivated' => 'Модуль успешно деактивирован!',
+        'module_uninstalled' => 'Модуль успешно удалён!',
+        'module_not_found' => 'Модуль не найден',
         'flute_key_not_set' => 'API ключ Flute не установлен. Пожалуйста, установите его в основных настройках.',
         'refresh_success' => 'Модули успешно обновлены!',
     ],

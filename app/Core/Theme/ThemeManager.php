@@ -13,28 +13,46 @@ class ThemeManager
 {
     // Constants for theme statuses
     public const ACTIVE = 'active';
+
     public const DISABLED = 'disabled';
+
     public const NOTINSTALLED = 'notinstalled';
 
+    public const DEFAULT_THEME = 'standard';
+
     protected const CACHE_TIME = 60 * 60; // Cache duration in seconds (1 hour)
-    protected Collection $themes;
-    protected string $themesPath;
-    protected bool $performance;
-    protected array $allThemes = [];
-    protected array $themesData = [];
-    protected array $allThemesKeys = [];
-    protected array $colors = [];
-    public bool $isSafeLoading = false;
-    protected ?string $currentTheme = null;
-    public Collection $installedThemes;
-    public Collection $notInstalledThemes;
-    public Collection $disabledThemes;
-    protected bool $initialized = false;
-    protected bool $isInitializing = false;
-    protected bool $colorsInitialized = false;
 
     protected const C_KEY_GET = "flute.themes.get";
-    public const DEFAULT_THEME = 'standard';
+
+    public bool $isSafeLoading = false;
+
+    public Collection $installedThemes;
+
+    public Collection $notInstalledThemes;
+
+    public Collection $disabledThemes;
+
+    protected Collection $themes;
+
+    protected string $themesPath;
+
+    protected bool $performance;
+
+    protected array $allThemes = [];
+
+    protected array $themesData = [];
+
+    protected array $allThemesKeys = [];
+
+    protected array $colors = [];
+
+    protected ?string $currentTheme = null;
+
+    protected bool $initialized = false;
+
+    protected bool $isInitializing = false;
+
+    protected bool $colorsInitialized = false;
 
     /**
      * Constructor for ThemeManager.
@@ -52,8 +70,6 @@ class ThemeManager
 
     /**
      * Initialize the ThemeManager.
-     *
-     * @return void
      */
     public function initialize(): void
     {
@@ -75,8 +91,6 @@ class ThemeManager
     /**
      * Get the settings for a specific theme.
      *
-     * @param string $themeName
-     * @return array
      * @throws RuntimeException
      */
     public function getThemeSettings(string $themeName): array
@@ -89,7 +103,6 @@ class ThemeManager
     /**
      * Get the theme information for the current theme.
      *
-     * @return Theme
      * @throws RuntimeException
      */
     public function getThemeInfo(): Theme
@@ -101,8 +114,6 @@ class ThemeManager
 
     /**
      * Get the current active theme.
-     *
-     * @return string
      */
     public function getCurrentTheme(): string
     {
@@ -117,8 +128,6 @@ class ThemeManager
 
     /**
      * Get a list of installed themes.
-     *
-     * @return Collection
      */
     public function getInstalledThemes(): Collection
     {
@@ -129,8 +138,6 @@ class ThemeManager
 
     /**
      * Get all themes from the database.
-     *
-     * @return array
      */
     public function getAllThemes(): array
     {
@@ -144,7 +151,6 @@ class ThemeManager
     /**
      * Check if a theme is active and installed.
      *
-     * @param string $themeName
      * @throws RuntimeException
      */
     public function checkTheme(string $themeName): void
@@ -157,9 +163,6 @@ class ThemeManager
 
     /**
      * Set the current theme.
-     *
-     * @param string $themeKey
-     * @return void
      */
     public function setTheme(string $themeKey): void
     {
@@ -172,9 +175,6 @@ class ThemeManager
 
     /**
      * Get theme data from theme.json for a given theme.
-     *
-     * @param string $themeName
-     * @return array|null
      */
     public function getThemeData(string $themeName): ?array
     {
@@ -187,26 +187,30 @@ class ThemeManager
 
     /**
      * Load all theme.json files for all themes.
-     *
-     * @return void
      */
     public function loadAllThemesJson(): void
     {
-        $themeDirs = array_filter(glob("{$this->themesPath}/*", GLOB_ONLYDIR), function ($dir) {
-            return basename($dir) !== '.disabled';
-        });
+        $cacheKey = 'flute.themes.json_data';
+        $cached = cache()->get($cacheKey);
+
+        if ($cached !== null && is_array($cached)) {
+            $this->themesData = $cached;
+
+            return;
+        }
+
+        $themeDirs = array_filter(glob("{$this->themesPath}/*", GLOB_ONLYDIR), static fn ($dir) => basename($dir) !== '.disabled');
 
         foreach ($themeDirs as $dir) {
             $themeName = basename($dir);
             $this->getThemeData($themeName);
         }
+
+        cache()->set($cacheKey, $this->themesData, self::CACHE_TIME);
     }
 
     /**
      * Load theme.json for a specific theme.
-     *
-     * @param string $themeName
-     * @return array|null
      */
     public function loadThemeJson(string $themeName): ?array
     {
@@ -219,9 +223,9 @@ class ThemeManager
                 $this->themesData[$themeName] = $themeData;
 
                 return $themeData;
-            } else {
-                logs('templates')->error("Invalid JSON in theme.json for theme '{$themeName}': " . json_last_error_msg());
             }
+            logs('templates')->error("Invalid JSON in theme.json for theme '{$themeName}': " . json_last_error_msg());
+
         } else {
             logs('templates')->error("theme.json not found or not readable for theme '{$themeName}'.");
         }
@@ -230,9 +234,80 @@ class ThemeManager
     }
 
     /**
-     * Sync themes with the database.
+     * Get a theme by its name.
      *
-     * @return void
+     * @throws RuntimeException
+     */
+    public function getTheme(string $themeName): Theme
+    {
+        if (isset($this->allThemesKeys[$themeName])) {
+            return $this->allThemesKeys[$themeName];
+        }
+
+        $theme = Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
+
+        if (!$theme) {
+            throw new RuntimeException("The theme '{$themeName}' does not exist.");
+        }
+
+        $this->allThemesKeys[$themeName] = $theme;
+
+        return $theme;
+    }
+
+    /**
+     * Re-initialize themes data.
+     */
+    public function reInitThemes(): void
+    {
+        $this->themesData = [];
+        $this->loadAllThemesJson();
+    }
+
+    /**
+     * Fallback to the default theme if the current theme is not set or invalid.
+     */
+    public function fallbackToDefaultTheme(): void
+    {
+        if (!isset($this->currentTheme) || $this->currentTheme !== self::DEFAULT_THEME) {
+            logs('templates')->warning('The theme was switched to "standard" to prevent interface errors. You need to change the theme manually!');
+
+            if (isset($this->themesData[self::DEFAULT_THEME])) {
+                $this->setTheme(self::DEFAULT_THEME);
+                $this->isSafeLoading = true;
+            } else {
+                throw new RuntimeException("Default theme '" . self::DEFAULT_THEME . "' not found.");
+            }
+        }
+    }
+
+    public function loadColors(bool $force = false): void
+    {
+        if ($this->colorsInitialized && !$force) {
+            return;
+        }
+
+        $colorsPath = "{$this->themesPath}/{$this->currentTheme}/colors.json";
+
+        if (file_exists($colorsPath) && is_readable($colorsPath)) {
+            $colorsData = json_decode(file_get_contents($colorsPath), true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->colors = $colorsData;
+            }
+        }
+
+        $this->colorsInitialized = true;
+    }
+
+    public function getColors(?string $mode = null): array
+    {
+        $this->loadColors();
+
+        return $mode ? $this->colors[$mode] ?? [] : $this->colors;
+    }
+
+    /**
+     * Sync themes with the database.
      */
     protected function syncThemesWithDatabase(): void
     {
@@ -316,99 +391,17 @@ class ThemeManager
     }
 
     /**
-     * Get a theme by its name.
-     *
-     * @param string $themeName
-     * @return Theme
-     * @throws RuntimeException
-     */
-    public function getTheme(string $themeName): Theme
-    {
-        if (isset($this->allThemesKeys[$themeName])) {
-            return $this->allThemesKeys[$themeName];
-        }
-
-        $theme = $this->performance
-            ? cache()->callback("flute.themes.$themeName", fn () => Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne(), self::CACHE_TIME)
-            : Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
-
-        if (!$theme) {
-            throw new RuntimeException("The theme '{$themeName}' does not exist.");
-        }
-
-        $this->allThemesKeys[$themeName] = $theme;
-
-        return $theme;
-    }
-
-    /**
-     * Re-initialize themes data.
-     *
-     * @return void
-     */
-    public function reInitThemes(): void
-    {
-        $this->themesData = [];
-        $this->loadAllThemesJson();
-    }
-
-    /**
      * Get an associative array of themes from the database.
-     *
-     * @return array
+     * Note: ORM entities cannot be cached due to serialization issues.
      */
     protected function getAssocThemes(): array
     {
         $themes = Theme::query()->load('settings')->fetchAll();
 
-        return array_reduce($themes, function ($carry, Theme $theme) {
+        return array_reduce($themes, static function ($carry, Theme $theme) {
             $carry[$theme->key] = $theme;
 
             return $carry;
         }, []);
-    }
-
-    /**
-     * Fallback to the default theme if the current theme is not set or invalid.
-     *
-     * @return void
-     */
-    public function fallbackToDefaultTheme(): void
-    {
-        if (!isset($this->currentTheme) || $this->currentTheme !== self::DEFAULT_THEME) {
-            logs('templates')->warning('The theme was switched to "standard" to prevent interface errors. You need to change the theme manually!');
-
-            if (isset($this->themesData[self::DEFAULT_THEME])) {
-                $this->setTheme(self::DEFAULT_THEME);
-                $this->isSafeLoading = true;
-            } else {
-                throw new RuntimeException("Default theme '" . self::DEFAULT_THEME . "' not found.");
-            }
-        }
-    }
-
-    public function loadColors(bool $force = false): void
-    {
-        if ($this->colorsInitialized && !$force) {
-            return;
-        }
-
-        $colorsPath = "{$this->themesPath}/{$this->currentTheme}/colors.json";
-
-        if (file_exists($colorsPath) && is_readable($colorsPath)) {
-            $colorsData = json_decode(file_get_contents($colorsPath), true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $this->colors = $colorsData;
-            }
-        }
-
-        $this->colorsInitialized = true;
-    }
-
-    public function getColors(?string $mode = null): array
-    {
-        $this->loadColors();
-
-        return $mode ? $this->colors[$mode] ?? [] : $this->colors;
     }
 }

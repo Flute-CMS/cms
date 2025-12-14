@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * @author Flames <xenozf@gmail.com>
  *
@@ -14,6 +13,7 @@ use DI\Definition\Helper\DefinitionHelper;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Exception;
+use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Events\ResponseEvent;
@@ -41,18 +41,17 @@ final class App
     use LoggerTrait;
     use SingletonTrait;
 
-    public const PERFORMANCE_MODE = 'performance';
-    public const DEFAULT_MODE = 'default';
+    public const PERFORMANCE_MODE = "performance";
+
+    public const DEFAULT_MODE = "default";
 
     /**
      * @var string
      */
-    public const VERSION = '0.1.8.3';
+    public const VERSION = "0.1.8.4";
 
     /**
      * Set the base path of the application
-     *
-     * @var string
      */
     protected string $basePath = BASE_PATH;
 
@@ -66,16 +65,15 @@ final class App
      */
     protected array $listen = [];
 
-    private ClassLoader $loader;
-
-    private bool $isBooted = false;
-
     /**
-     * @var Application|null
      */
     protected ?Application $consoleApplication = null;
 
     protected array $bootTimes = [];
+
+    private ClassLoader $loader;
+
+    private bool $isBooted = false;
 
     public function __construct(ClassLoader $loader)
     {
@@ -85,35 +83,7 @@ final class App
     }
 
     /**
-     * set the container instance
-     *
-     * @return void
-     */
-    protected function _setContainer(): void
-    {
-        $containerBuilder = new \DI\ContainerBuilder();
-
-        $containerBuilder->addDefinitions([
-            self::class => $this,
-            "app" => \DI\get(self::class),
-        ]);
-
-        // Enable container optimizations outside CLI
-        if (!(php_sapi_name() === 'cli' || defined('STDIN'))) {
-            // In performance mode compile container, always write proxies to disk
-            if (function_exists('is_performance') && is_performance()) {
-                $containerBuilder->enableCompilation(BASE_PATH . 'storage/app/cache');
-            }
-            $containerBuilder->writeProxiesToFile(true, BASE_PATH . 'storage/app/proxies');
-        }
-
-        $this->setContainerBuilder($containerBuilder);
-    }
-
-    /**
      * Get the autoload loader
-     *
-     * @return ClassLoader
      */
     public function getLoader(): ClassLoader
     {
@@ -128,7 +98,9 @@ final class App
     public static function getInstance(): App
     {
         if (is_null(self::$instance)) {
-            self::$instance = new self(require BASE_PATH . 'vendor/autoload.php');
+            self::$instance = new self(
+                require BASE_PATH . "vendor/autoload.php",
+            );
         }
 
         return self::$instance;
@@ -137,7 +109,6 @@ final class App
     /**
      * Set the shared instance of the container.
      *
-     * @param App|null $app
      * @return App|static
      */
     public static function setInstance(?App $app = null): ?App
@@ -148,8 +119,6 @@ final class App
     /**
      * Set the base path of the application
      *
-     * @param string $basePath
-     *
      * @return void
      */
     public function setBasePath(string $basePath)
@@ -157,14 +126,12 @@ final class App
         $this->basePath = $basePath;
 
         $this->containerBuilder->addDefinitions([
-            'base_path' => $this->basePath,
+            "base_path" => $this->basePath,
         ]);
     }
 
     /**
      * Get the base path of the application
-     *
-     * @return string
      */
     public function getBasePath(): string
     {
@@ -174,10 +141,7 @@ final class App
     /**
      * Set the value in the container
      *
-     * @param string $key
      * @param DefinitionHelper|mixed $value
-     *
-     * @return self
      */
     public function bind(string $key, $value): App
     {
@@ -188,16 +152,12 @@ final class App
 
     /**
      * Set debug mode
-     *
-     * @param bool $debug
-     *
-     * @return void
      */
     public function debug(bool $debug = true): void
     {
-        if (function_exists('ini_set')) {
-            ini_set('display_errors', (string) $debug);
-            ini_set('display_startup_errors', (string) $debug);
+        if (function_exists("ini_set")) {
+            ini_set("display_errors", (string) $debug);
+            ini_set("display_startup_errors", (string) $debug);
         }
 
         error_reporting(E_ALL);
@@ -210,20 +170,18 @@ final class App
      * Make class instance.
      * ALWAYS CREATES A NEW INSTANCE!!!
      *
-     * @param string $abstract
-     * @param array $parameters
-     * @param bool $throwException
-     *
-     * @return mixed|string|void
      * @throws NotFoundException
+     * @return mixed|string|void
      */
-    public function make(string $abstract, array $parameters = [], bool $throwException = false)
-    {
+    public function make(
+        string $abstract,
+        array $parameters = [],
+        bool $throwException = false,
+    ) {
         try {
             return $this->container->make($abstract, $parameters);
         } catch (NotFoundException $e) {
-
-            if (function_exists('logs')) {
+            if (function_exists("logs")) {
                 logs()->emergency($e->getMessage());
             }
 
@@ -238,9 +196,9 @@ final class App
      * Returns an entry of the container by its name.
      *
      * @param mixed $id Identifier of the entry to look for.
-     * @return mixed Returns the entry from the container corresponding to the provided identifier.
      * @throws DependencyException Error while resolving the entry.
      * @throws NotFoundException No entry found for the given name.
+     * @return mixed Returns the entry from the container corresponding to the provided identifier.
      */
     public function get($id)
     {
@@ -267,8 +225,6 @@ final class App
      * Set the service provider
      *
      * @param ServiceProviderInterface|ModuleServiceProviderInterface|string $provider
-     *
-     * @return App
      */
     public function serviceProvider($provider): App
     {
@@ -278,14 +234,16 @@ final class App
 
         try {
             $provider->register(
-                $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer()
+                $provider instanceof ServiceProviderInterface
+                    ? $this->getContainerBuilder()
+                    : $this->getContainer(),
             );
         } catch (Exception $e) {
-            if (function_exists('is_debug') && is_debug()) {
+            if (function_exists("is_debug") && is_debug()) {
                 throw $e;
             }
 
-            if (function_exists('logs')) {
+            if (function_exists("logs")) {
                 logs()->error($e);
             }
         }
@@ -308,19 +266,25 @@ final class App
             $startTime = microtime(true);
 
             try {
-                $className = get_class($provider);
+                $className = $provider::class;
 
                 $provider->setApp($this);
                 $provider->boot($this->container);
-                $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
+                $this->listen = array_merge_recursive(
+                    $this->listen,
+                    $provider->getEventListeners(),
+                );
 
-                $this->bootTimes[$className] = round(microtime(true) - $startTime, 3);
+                $this->bootTimes[$className] = round(
+                    microtime(true) - $startTime,
+                    3,
+                );
             } catch (Exception $e) {
-                if (function_exists('is_debug') && is_debug()) {
+                if (function_exists("is_debug") && is_debug()) {
                     throw $e;
                 }
 
-                if (function_exists('logs')) {
+                if (function_exists("logs")) {
                     logs()->error($e);
                 }
             }
@@ -332,26 +296,7 @@ final class App
     }
 
     /**
-     * Initialize and register event listeners from the $listen array.
-     *
-     * @return void
-     */
-    protected function initializeEventListeners(): void
-    {
-        /** @var FluteEventDispatcher $dispatcher */
-        $dispatcher = $this->container->get(FluteEventDispatcher::class);
-
-        foreach ($this->listen as $event => $listeners) {
-            foreach ($listeners as $listener) {
-                $dispatcher->addListener($event, [new $listener(), 'handle']);
-            }
-        }
-    }
-
-    /**
      * Get app version
-     *
-     * @return string
      */
     public function getVersion(): string
     {
@@ -359,8 +304,7 @@ final class App
     }
 
     /**
-     * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function runCli(): void
     {
@@ -372,7 +316,6 @@ final class App
     /**
      * Run the app
      *
-     * @return void
      * @throws DependencyException
      * @throws NotFoundException
      */
@@ -384,16 +327,17 @@ final class App
             return;
         }
 
-        if (!defined('FLUTE_ROUTER_START')) {
-            define('FLUTE_ROUTER_START', microtime(true));
+        if (!defined("FLUTE_ROUTER_START")) {
+            define("FLUTE_ROUTER_START", microtime(true));
         }
 
         // Optional global profiler (only runs if enabled in config/profiler.php)
         GlobalProfiler::start();
 
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
-        if (!defined('FLUTE_DB_SETUP_END')) {
-            define('FLUTE_DB_SETUP_END', microtime(true));
+
+        if (!defined("FLUTE_DB_SETUP_END")) {
+            define("FLUTE_DB_SETUP_END", microtime(true));
         }
 
         /** @var RouterInterface $router */
@@ -402,34 +346,42 @@ final class App
         // Split routing and event phases to measure them separately
         $request = $this->get(FluteRequest::class);
         $dispatchResult = $router->dispatch($request);
-        if (!defined('FLUTE_DISPATCH_END')) {
-            define('FLUTE_DISPATCH_END', microtime(true));
+
+        if (!defined("FLUTE_DISPATCH_END")) {
+            define("FLUTE_DISPATCH_END", microtime(true));
         }
 
         $res = $this->responseEvent($dispatchResult);
-        if (!defined('FLUTE_EVENTS_END')) {
-            define('FLUTE_EVENTS_END', microtime(true));
+
+        if (!defined("FLUTE_EVENTS_END")) {
+            define("FLUTE_EVENTS_END", microtime(true));
         }
 
-        if (!defined('FLUTE_ROUTER_END')) {
-            define('FLUTE_ROUTER_END', microtime(true));
+        if (!defined("FLUTE_ROUTER_END")) {
+            define("FLUTE_ROUTER_END", microtime(true));
         }
 
         $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
-        if (!defined('FLUTE_DEFERRED_SAVE_END')) {
-            define('FLUTE_DEFERRED_SAVE_END', microtime(true));
+
+        if (!defined("FLUTE_DEFERRED_SAVE_END")) {
+            define("FLUTE_DEFERRED_SAVE_END", microtime(true));
         }
 
         // Stop profiler before sending response
         GlobalProfiler::stop();
 
         $res->send();
+
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+
+        SWRQueue::run();
     }
 
     /**
      * Build container and save
      *
-     * @return void
      * @throws Exception
      */
     public function buildContainer(): void
@@ -438,14 +390,16 @@ final class App
     }
 
     /**
-     * @return Application
      */
     public function getConsole(): Application
     {
         if ($this->consoleApplication === null) {
-            $this->consoleApplication = new Application('Flute CLI', self::VERSION);
+            $this->consoleApplication = new Application(
+                "Flute CLI",
+                self::VERSION,
+            );
             $this->bind(Application::class, $this->consoleApplication);
-            $this->bind('console', $this->consoleApplication);
+            $this->bind("console", $this->consoleApplication);
         }
 
         return $this->consoleApplication;
@@ -453,8 +407,6 @@ final class App
 
     /**
      * Get the boot times
-     *
-     * @return array
      */
     public function getBootTimes(): array
     {
@@ -463,10 +415,6 @@ final class App
 
     /**
      * Get the boot time
-     *
-     * @param string $key
-     *
-     * @return int
      */
     public function getBootTime(string $key): int
     {
@@ -474,11 +422,64 @@ final class App
     }
 
     /**
+     * Get app container values
+     *
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @return mixed
+     */
+    public function __call($name, $args)
+    {
+        return $this->get($name);
+    }
+
+    /**
+     * set the container instance
+     */
+    protected function _setContainer(): void
+    {
+        $containerBuilder = new \DI\ContainerBuilder();
+
+        $containerBuilder->addDefinitions([
+            self::class => $this,
+            "app" => \DI\get(self::class),
+        ]);
+
+        // Enable container optimizations outside CLI
+        if (!(php_sapi_name() === "cli" || defined("STDIN"))) {
+            // In performance mode compile container, always write proxies to disk
+            if (function_exists("is_performance") && is_performance()) {
+                $containerBuilder->enableCompilation(
+                    BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
+                );
+            }
+            $containerBuilder->writeProxiesToFile(
+                true,
+                BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'proxies',
+            );
+        }
+
+        $this->setContainerBuilder($containerBuilder);
+    }
+
+    /**
+     * Initialize and register event listeners from the $listen array.
+     */
+    protected function initializeEventListeners(): void
+    {
+        /** @var FluteEventDispatcher $dispatcher */
+        $dispatcher = $this->container->get(FluteEventDispatcher::class);
+
+        foreach ($this->listen as $event => $listeners) {
+            foreach ($listeners as $listener) {
+                $dispatcher->addListener($event, [new $listener(), "handle"]);
+            }
+        }
+    }
+
+    /**
      * Function for handling all cookies
      *
-     * @param Response $response
-     *
-     * @return Response
      * @throws DependencyException
      * @throws NotFoundException
      */
@@ -487,19 +488,5 @@ final class App
         return $this->get(EventDispatcher::class)
             ->dispatch(new ResponseEvent($response), ResponseEvent::NAME)
             ->getResponse();
-    }
-
-    /**
-     * Get app container values
-     *
-     * @param $name
-     * @param $args
-     * @return mixed
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    public function __call($name, $args)
-    {
-        return $this->get($name);
     }
 }

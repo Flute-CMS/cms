@@ -12,14 +12,11 @@ class AttributeRouteServiceProvider extends AbstractServiceProvider
 {
     /**
      * Register services with the container builder
-     *
-     * @param ContainerBuilder $containerBuilder
-     * @return void
      */
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            AttributeRouteLoader::class => \DI\factory(function (Container $container) {
+            AttributeRouteLoader::class => \DI\factory(static function (Container $container) {
                 $router = $container->get(Router::class);
 
                 return new AttributeRouteLoader($router);
@@ -29,9 +26,6 @@ class AttributeRouteServiceProvider extends AbstractServiceProvider
 
     /**
      * Boot services after all providers are registered
-     *
-     * @param Container $container
-     * @return void
      */
     public function boot(Container $container): void
     {

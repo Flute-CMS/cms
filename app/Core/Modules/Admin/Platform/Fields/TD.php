@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Platform\Fields;
 
+use Exception;
 use Flute\Admin\Platform\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
@@ -13,17 +14,19 @@ class TD extends Cell
      * Align the cell to the left.
      */
     public const ALIGN_LEFT = 'start';
+
     /**
      * Align the cell to the center.
      */
     public const ALIGN_CENTER = 'center';
+
     /**
      * Align the cell to the right.
      */
     public const ALIGN_RIGHT = 'end';
 
     /**
-     * @var string|null|int
+     * @var string|int|null
      */
     protected $width;
 
@@ -110,7 +113,6 @@ class TD extends Cell
     }
 
     /**
-     * @param string $style
      */
     public function style(string $style): self
     {
@@ -120,7 +122,6 @@ class TD extends Cell
     }
 
     /**
-     * @param string $class
      */
     public function class(string $class): self
     {
@@ -131,8 +132,6 @@ class TD extends Cell
 
     /**
      * Enable sorting for the column
-     *
-     * @param bool $sort
      */
     public function sort(bool $sort = true): self
     {
@@ -143,8 +142,6 @@ class TD extends Cell
 
     /**
      * Set alignment for the column
-     *
-     * @param string $align
      */
     public function align(string $align): self
     {
@@ -185,8 +182,6 @@ class TD extends Cell
 
     /**
      * Set colspan for the column
-     *
-     * @param int $colspan
      */
     public function colspan(int $colspan): self
     {
@@ -197,8 +192,6 @@ class TD extends Cell
 
     /**
      * Builds a column header.
-     *
-     * @return Factory|View
      */
     public function buildTh(): Factory|View
     {
@@ -245,8 +238,6 @@ class TD extends Cell
      * Builds content for the column.
      *
      * @param object $source
-     * @param object|null $loop
-     * @return Factory|View
      */
     public function buildTd($source, ?object $loop = null): Factory|View
     {
@@ -291,16 +282,6 @@ class TD extends Cell
         ]);
     }
 
-    /**
-     * Slugify the column name for HTML attributes.
-     *
-     * @return string
-     */
-    protected function sluggable(): string
-    {
-        return Str::slug($this->name);
-    }
-
     public function getName(): string
     {
         return $this->name;
@@ -308,8 +289,6 @@ class TD extends Cell
 
     /**
      * Determine if the column can be hidden by the user.
-     *
-     * @return bool
      */
     public function isAllowUserHidden(): bool
     {
@@ -318,8 +297,6 @@ class TD extends Cell
 
     /**
      * Builds an item menu for showing/hiding the column.
-     *
-     * @return Factory|View|null
      */
     public function buildItemMenu(): Factory|View|null
     {
@@ -336,8 +313,6 @@ class TD extends Cell
 
     /**
      * Prevent the user from hiding a column in the interface.
-     *
-     * @param bool $hidden
      */
     public function cantHide(bool $hidden = false): self
     {
@@ -348,8 +323,6 @@ class TD extends Cell
 
     /**
      * Set the column to be hidden by default.
-     *
-     * @param bool $hidden
      */
     public function defaultHidden(bool $hidden = true): self
     {
@@ -360,8 +333,6 @@ class TD extends Cell
 
     /**
      * Build the sort URL for the column.
-     *
-     * @return string
      */
     public function buildSortUrl(): string
     {
@@ -385,8 +356,6 @@ class TD extends Cell
 
     /**
      * Returns if search is allowed for this column.
-     *
-     * @return bool
      */
     public function isSearchable(): bool
     {
@@ -395,8 +364,6 @@ class TD extends Cell
 
     /**
      * Set the search for this column.
-     *
-     * @param bool $searchable
      */
     public function searchable(bool $searchable = true): self
     {
@@ -409,11 +376,10 @@ class TD extends Cell
      * Check if any columns are visible.
      *
      * @param TD[] $columns
-     * @return bool
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(static fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
     /**
@@ -435,11 +401,11 @@ class TD extends Cell
     {
         return static::make($name)->asSelection();
     }
+
     /**
      * Check if the column should be hidden based on user preferences in cookies.
      *
      * @param string $tableId The table identifier
-     * @return bool
      */
     public function isHiddenByUserPreference(string $tableId): bool
     {
@@ -461,7 +427,7 @@ class TD extends Cell
             if (isset($preferences[$columnSlug])) {
                 return !$preferences[$columnSlug];
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return $this->defaultHidden;
@@ -470,7 +436,6 @@ class TD extends Cell
     /**
      * Set a custom attribute on the column.
      *
-     * @param string $name
      * @param mixed $value
      * @return $this
      */
@@ -484,7 +449,6 @@ class TD extends Cell
     /**
      * Get a custom attribute from the column.
      *
-     * @param string $name
      * @param mixed $default
      * @return mixed
      */
@@ -495,9 +459,6 @@ class TD extends Cell
 
     /**
      * Check if the column has a specific attribute.
-     *
-     * @param string $name
-     * @return bool
      */
     public function hasAttribute(string $name): bool
     {
@@ -517,5 +478,13 @@ class TD extends Cell
         $this->setAttribute('defaultSortDirection', $defaultSortDirection);
 
         return $this;
+    }
+
+    /**
+     * Slugify the column name for HTML attributes.
+     */
+    protected function sluggable(): string
+    {
+        return Str::slug($this->name);
     }
 }

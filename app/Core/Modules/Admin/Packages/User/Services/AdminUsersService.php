@@ -2,6 +2,8 @@
 
 namespace Flute\Admin\Packages\User\Services;
 
+use DateTimeImmutable;
+use Exception;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\SocialNetwork;
 use Flute\Core\Database\Entities\User;
@@ -10,6 +12,7 @@ use Flute\Core\Database\Entities\UserDevice;
 use Flute\Core\Database\Entities\UserSocialNetwork;
 use Flute\Core\Services\DiscordService;
 use Flute\Core\Support\FileUploader;
+use Throwable;
 
 class AdminUsersService
 {
@@ -39,6 +42,138 @@ class AdminUsersService
         $this->updateUserData($user, $data);
 
         $user->saveOrFail();
+    }
+
+    /**
+     * Блокировка пользователя.
+     */
+    public function blockUser(User $user, array $data): void
+    {
+        $block = new UserBlock();
+        $block->user = $user;
+        $block->blockedBy = user()->getCurrentUser();
+        $block->reason = $data['reason'];
+        $block->blockedFrom = new DateTimeImmutable();
+        $block->blockedUntil = $data['blockedUntil'] ? new DateTimeImmutable($data['blockedUntil']) : null;
+        $block->save();
+    }
+
+    /**
+     * Разблокировка пользователя.
+     */
+    public function unblockUser(User $user): void
+    {
+        foreach ($user->blocksReceived as $block) {
+            if ($block->isActive && ($block->blockedUntil > new DateTimeImmutable() || $block->blockedUntil === null)) {
+                $block->isActive = false;
+                $block->save();
+            }
+        }
+    }
+
+    /**
+     * Сброс пароля пользователя.
+     */
+    public function resetPassword(User $user, string $password): void
+    {
+        $user->password = password_hash($password, PASSWORD_DEFAULT);
+        $user->save();
+
+        $this->clearUserSessions($user);
+    }
+
+    /**
+     * Очистка сессий пользователя.
+     */
+    public function clearUserSessions(User $user): void
+    {
+        foreach ($user->rememberTokens as $token) {
+            $token->delete();
+        }
+
+        foreach ($user->userDevices as $device) {
+            $device->delete();
+        }
+    }
+
+    /**
+     * Завершение конкретной сессии.
+     */
+    public function terminateSession(User $user, int $deviceId): void
+    {
+        $device = UserDevice::findByPK($deviceId);
+
+        if (!$device || $device->user->id !== $user->id) {
+            throw new Exception(__('admin-users.messages.session_not_found'));
+        }
+
+        foreach ($device->rememberTokens as $token) {
+            $token->delete();
+        }
+
+        $device->delete();
+    }
+
+    /**
+     * Добавление социальной сети.
+     */
+    public function addSocialNetwork(User $user, array $data): void
+    {
+        $socialNetwork = SocialNetwork::findByPK($data['socialNetwork']);
+        if (!$socialNetwork) {
+            throw new Exception(__('admin-users.messages.social_not_found'));
+        }
+
+        $userSocialNetwork = new UserSocialNetwork();
+        $userSocialNetwork->user = $user;
+        $userSocialNetwork->socialNetwork = $socialNetwork;
+        $userSocialNetwork->value = $data['value'];
+        $userSocialNetwork->url = $data['url'];
+        $userSocialNetwork->name = $data['name'];
+        $userSocialNetwork->save();
+    }
+
+    /**
+     * Обновление социальной сети.
+     */
+    public function updateSocialNetwork(int $networkId, array $data): void
+    {
+        $network = UserSocialNetwork::findByPK($networkId);
+        if (!$network) {
+            throw new Exception(__('admin-users.messages.social_not_found'));
+        }
+
+        $network->value = $data['value'];
+        $network->url = $data['url'];
+        $network->name = $data['name'];
+        $network->save();
+    }
+
+    /**
+     * Переключение видимости социальной сети.
+     */
+    public function toggleSocialNetworkVisibility(int $networkId): void
+    {
+        $network = UserSocialNetwork::findByPK($networkId);
+        if (!$network) {
+            throw new Exception(__('admin-users.messages.social_not_found'));
+        }
+
+        $network->hidden = !$network->hidden;
+        $network->save();
+    }
+
+    /**
+     * Удаление социальной сети.
+     */
+    public function deleteSocialNetwork(int $networkId): void
+    {
+        $network = rep(UserSocialNetwork::class)->findByPK($networkId);
+        if (!$network) {
+            throw new Exception(__('admin-users.messages.social_not_found'));
+        }
+
+        $network->delete();
     }
 
     /**
@@ -87,7 +222,7 @@ class AdminUsersService
             if ($user->getSocialNetwork('Discord')) {
                 app()->get(DiscordService::class)->linkRoles($user, $user->roles);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs()->warning($e);
         }
     }
@@ -106,8 +241,8 @@ class AdminUsersService
                 if ($avatar) {
                     $user->avatar = $avatar;
                 }
-            } catch (\Exception $e) {
-                throw new \Exception(__('admin-users.messages.avatar_upload_error', ['message' => $e->getMessage()]));
+            } catch (Exception $e) {
+                throw new Exception(__('admin-users.messages.avatar_upload_error', ['message' => $e->getMessage()]));
             }
         }
 
@@ -117,8 +252,8 @@ class AdminUsersService
                 if ($banner) {
                     $user->banner = $banner;
                 }
-            } catch (\Exception $e) {
-                throw new \Exception(__('admin-users.messages.banner_upload_error', ['message' => $e->getMessage()]));
+            } catch (Exception $e) {
+                throw new Exception(__('admin-users.messages.banner_upload_error', ['message' => $e->getMessage()]));
             }
         }
     }
@@ -143,137 +278,5 @@ class AdminUsersService
         $user->hidden = isset($data['hidden']) ? filter_var($data['hidden'], FILTER_VALIDATE_BOOLEAN) : false;
 
         $user->save();
-    }
-
-    /**
-     * Блокировка пользователя.
-     */
-    public function blockUser(User $user, array $data): void
-    {
-        $block = new UserBlock();
-        $block->user = $user;
-        $block->blockedBy = user()->getCurrentUser();
-        $block->reason = $data['reason'];
-        $block->blockedFrom = new \DateTimeImmutable();
-        $block->blockedUntil = $data['blockedUntil'] ? new \DateTimeImmutable($data['blockedUntil']) : null;
-        $block->save();
-    }
-
-    /**
-     * Разблокировка пользователя.
-     */
-    public function unblockUser(User $user): void
-    {
-        foreach ($user->blocksReceived as $block) {
-            if ($block->isActive && ($block->blockedUntil > new \DateTimeImmutable() || $block->blockedUntil === null)) {
-                $block->isActive = false;
-                $block->save();
-            }
-        }
-    }
-
-    /**
-     * Сброс пароля пользователя.
-     */
-    public function resetPassword(User $user, string $password): void
-    {
-        $user->password = password_hash($password, PASSWORD_DEFAULT);
-        $user->save();
-
-        $this->clearUserSessions($user);
-    }
-
-    /**
-     * Очистка сессий пользователя.
-     */
-    public function clearUserSessions(User $user): void
-    {
-        foreach ($user->rememberTokens as $token) {
-            $token->delete();
-        }
-
-        foreach ($user->userDevices as $device) {
-            $device->delete();
-        }
-    }
-
-    /**
-     * Завершение конкретной сессии.
-     */
-    public function terminateSession(User $user, int $deviceId): void
-    {
-        $device = UserDevice::findByPK($deviceId);
-
-        if (!$device || $device->user->id !== $user->id) {
-            throw new \Exception(__('admin-users.messages.session_not_found'));
-        }
-
-        foreach ($device->rememberTokens as $token) {
-            $token->delete();
-        }
-
-        $device->delete();
-    }
-
-    /**
-     * Добавление социальной сети.
-     */
-    public function addSocialNetwork(User $user, array $data): void
-    {
-        $socialNetwork = SocialNetwork::findByPK($data['socialNetwork']);
-        if (!$socialNetwork) {
-            throw new \Exception(__('admin-users.messages.social_not_found'));
-        }
-
-        $userSocialNetwork = new UserSocialNetwork();
-        $userSocialNetwork->user = $user;
-        $userSocialNetwork->socialNetwork = $socialNetwork;
-        $userSocialNetwork->value = $data['value'];
-        $userSocialNetwork->url = $data['url'];
-        $userSocialNetwork->name = $data['name'];
-        $userSocialNetwork->save();
-    }
-
-    /**
-     * Обновление социальной сети.
-     */
-    public function updateSocialNetwork(int $networkId, array $data): void
-    {
-        $network = UserSocialNetwork::findByPK($networkId);
-        if (!$network) {
-            throw new \Exception(__('admin-users.messages.social_not_found'));
-        }
-
-        $network->value = $data['value'];
-        $network->url = $data['url'];
-        $network->name = $data['name'];
-        $network->save();
-    }
-
-    /**
-     * Переключение видимости социальной сети.
-     */
-    public function toggleSocialNetworkVisibility(int $networkId): void
-    {
-        $network = UserSocialNetwork::findByPK($networkId);
-        if (!$network) {
-            throw new \Exception(__('admin-users.messages.social_not_found'));
-        }
-
-        $network->hidden = !$network->hidden;
-        $network->save();
-    }
-
-    /**
-     * Удаление социальной сети.
-     */
-    public function deleteSocialNetwork(int $networkId): void
-    {
-        $network = rep(UserSocialNetwork::class)->findByPK($networkId);
-        if (!$network) {
-            throw new \Exception(__('admin-users.messages.social_not_found'));
-        }
-
-        $network->delete();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Support;
 
+use Exception;
 use Flute\Admin\AdminPanel;
 use Flute\Admin\Contracts\AdminPackageInterface;
 use Flute\Core\Database\DatabaseConnection;
@@ -10,8 +11,10 @@ use Flute\Core\Modules\Page\Widgets\Contracts\WidgetInterface;
 use Flute\Core\ModulesManager\Contracts\ModuleServiceProviderInterface;
 use Flute\Core\Services\ConfigurationService;
 use Flute\Core\Template\TemplateAssets;
+use InvalidArgumentException;
 use SplFileInfo;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
+use Throwable;
 
 /**
  * Class ModuleServiceProvider
@@ -28,22 +31,18 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     public array $extensions = [];
 
     /**
-     * @var string|null
      */
     protected ?string $moduleName = '';
 
     /**
-     * @var string|null
      */
     protected ?string $namespace = '';
 
     /**
-     * @var array
      */
     protected array $listen = [];
 
     /**
-     * @var array
      */
     protected array $updateChannel = [];
 
@@ -69,8 +68,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Get an array of event listeners for this module.
-     *
-     * @return array
      */
     public function getEventListeners(): array
     {
@@ -79,9 +76,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Set the name of the module.
-     *
-     * @param string $moduleName
-     * @return void
      */
     public function setModuleName(string $moduleName): void
     {
@@ -90,8 +84,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Get the name of the module.
-     *
-     * @return string
      */
     public function getModuleName(): string
     {
@@ -101,8 +93,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Set the GitHub update channel (organization and repository).
      *
-     * @param string $org
-     * @param string $rep
      * @return $this
      */
     public function setUpdateChannel(string $org, string $rep): self
@@ -132,7 +122,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Set the default cache duration (in seconds).
      *
-     * @param int $seconds
      * @return $this
      */
     public function setCacheDuration(int $seconds): self
@@ -144,9 +133,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Load routes from a specific file path.
-     *
-     * @param string $path
-     * @return void
      */
     public function loadRoutesFrom(string $path): void
     {
@@ -155,8 +141,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Load routes from the current module's routes.php file.
-     *
-     * @return void
      */
     public function loadRoutes(): void
     {
@@ -174,8 +158,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Indicates whether extensions are callable. Override if needed.
-     *
-     * @return bool
      */
     public function isExtensionsCallable(): bool
     {
@@ -184,8 +166,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Load entity classes from the module's Entities directory and register them with the ORM.
-     *
-     * @return void
      */
     public function loadEntities(): void
     {
@@ -201,7 +181,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             $cacheKey = "module.{$this->getModuleName()}.entities_dir";
-            $hasEntities = cache()->callback($cacheKey, function () use ($entDir) {
+            $hasEntities = cache()->callback($cacheKey, static function () use ($entDir) {
                 $finder = finder();
                 $finder->files()->in($entDir)->name('*.php');
 
@@ -216,16 +196,13 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
         } catch (DirectoryNotFoundException $e) {
             logs('modules')->warning("Directory not found for module {$this->getModuleName()}: " . $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs('modules')->error("Error loading entities for module {$this->getModuleName()}: " . $e->getMessage());
         }
     }
 
     /**
      * Load an admin package into the admin panel.
-     *
-     * @param AdminPackageInterface $package
-     * @return void
      */
     public function loadPackage(AdminPackageInterface $package): void
     {
@@ -234,10 +211,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Register a template component (usually for Blade or similar).
-     *
-     * @param string $component
-     * @param string $name
-     * @return void
      */
     public function loadComponent(string $component, string $name): void
     {
@@ -246,8 +219,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Load translation files from the module's language directory.
-     *
-     * @return void
      */
     public function loadTranslations(): void
     {
@@ -267,8 +238,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Load configuration files from the module's config directory.
-     *
-     * @return void
      */
     public function loadConfigs(): void
     {
@@ -283,7 +252,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }
 
         $cacheKey = "module.{$this->getModuleName()}.configs";
-        $configFiles = cache()->callback($cacheKey, function () use ($configDir) {
+        $configFiles = cache()->callback($cacheKey, static function () use ($configDir) {
             $finder = finder();
             $finder->files()->in($configDir)->name('*.php');
 
@@ -312,8 +281,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Load "page" views and automatically register routes
      * for index and subpage templates in the module's pages directory.
-     *
-     * @return void
      */
     public function loadViewPages(): void
     {
@@ -335,75 +302,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
-     * Recursively register view-based pages.
-     *
-     * @param string $directory
-     * @param string $prefix
-     * @return void
-     */
-    protected function recursivelyRegisterViewPages(string $directory, string $prefix): void
-    {
-        $cacheKey = "module.{$this->getModuleName()}.view_pages." . md5($directory . $prefix);
-
-        $viewPageData = cache()->callback($cacheKey, function () use ($directory, $prefix) {
-            $namespace = $this->kebabCase($this->getModuleName());
-            $routes = [];
-
-            foreach ($this->getFilesFromDirectory($directory) as $file) {
-                $relativePath = ltrim(str_replace($this->getModulePath('Resources/pages'), '', $file->getPathname()), DIRECTORY_SEPARATOR);
-
-                if ($file->isDir()) {
-                    // Directory will be processed in a recursive call
-                    continue;
-                }
-
-                if ($file->getExtension() !== 'php') {
-                    continue;
-                }
-
-                $filename = str_replace('.blade', '', pathinfo($file->getBasename(), PATHINFO_FILENAME));
-                $routeUri = ltrim($prefix . ($filename === 'index' ? '' : '/' . $filename), '/');
-                $viewPath = str_replace('.blade.php', '', $relativePath);
-
-                $routes[] = [
-                    'uri' => $routeUri,
-                    'view' => $namespace . '::' . $viewPath,
-                ];
-            }
-
-            // Get subdirectories for recursive processing
-            $subDirs = [];
-            foreach ($this->getFilesFromDirectory($directory) as $file) {
-                if ($file->isDir()) {
-                    $newPrefix = trim($prefix . '/' . $file->getBasename(), '/');
-                    $subDirs[] = [
-                        'path' => $file->getPathname(),
-                        'prefix' => $newPrefix,
-                    ];
-                }
-            }
-
-            return [
-                'routes' => $routes,
-                'subDirs' => $subDirs,
-            ];
-        }, $this->defaultCacheDuration);
-
-        // Register routes
-        foreach ($viewPageData['routes'] as $route) {
-            router()->view($route['uri'], $route['view']);
-        }
-
-        // Process subdirectories
-        foreach ($viewPageData['subDirs'] as $subDir) {
-            $this->recursivelyRegisterViewPages($subDir['path'], $subDir['prefix']);
-        }
-    }
-
-    /**
      * Load routes from controllers that use attribute-based routing.
-     *
-     * @return void
      */
     public function loadRouterAttributes(): void
     {
@@ -412,16 +311,23 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
+        $httpControllersPath = $this->getModulePath('Http/Controllers');
         $controllersPath = $this->getModulePath('Controllers');
 
-        if (!is_dir($controllersPath)) {
+        if (!is_dir($httpControllersPath) && !is_dir($controllersPath)) {
             return;
         }
 
-        $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Controllers";
-
         try {
-            router()->registerAttributeRoutes([$controllersPath], $moduleNamespace);
+            if (is_dir($httpControllersPath)) {
+                $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Http\\Controllers";
+                router()->registerAttributeRoutes([$httpControllersPath], $moduleNamespace);
+            }
+
+            if (is_dir($controllersPath)) {
+                $moduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Controllers";
+                router()->registerAttributeRoutes([$controllersPath], $moduleNamespace);
+            }
 
             $submodulesPath = $this->getModulePath('Submodules');
 
@@ -451,15 +357,13 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             $this->loadedStatus[$attributesCacheKey] = true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error("Error loading route attributes in module {$this->getModuleName()}: " . $e->getMessage());
         }
     }
 
     /**
      * Load widget classes from the module's Widgets directory and register them.
-     *
-     * @return void
      */
     public function loadWidgets(): void
     {
@@ -487,9 +391,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Register widget classes.
-     *
-     * @param array $widgets
-     * @return void
      */
     public function registerWidgets(array $widgets): void
     {
@@ -498,84 +399,15 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         foreach ($widgets as $key => $widget) {
             try {
                 $widgetManager->registerWidget($key, $widget);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs('modules')->error("Error registering widget {$key}: " . $e->getMessage());
             }
         }
     }
 
     /**
-     * Recursively scan a directory for widget classes. Uses caching to reduce file scans.
-     *
-     * @param string $directory
-     * @param string $namespace
-     * @param array  $widgets
-     * @return void
-     */
-    protected function scanForWidgets(string $directory, string $namespace, array &$widgets): void
-    {
-        $moduleName = $this->getModuleName();
-        $cacheKey = "module.{$moduleName}.widgets." . md5($directory . $namespace);
-
-        $cachedWidgets = cache()->get($cacheKey);
-        if ($cachedWidgets !== null) {
-            $widgets = array_merge($widgets, $cachedWidgets);
-
-            return;
-        }
-
-        $foundWidgets = [];
-        foreach ($this->getFilesFromDirectory($directory) as $file) {
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
-            $fullyQualifiedClassName = $namespace . '\\' . $className;
-
-            $fullPath = $file->getPathname();
-            if (is_file($fullPath)) {
-                @require_once $fullPath;
-            }
-
-            if (!is_subclass_of($fullyQualifiedClassName, WidgetInterface::class, true)) {
-                continue;
-            }
-
-            if (!isset($foundWidgets[$className])) {
-                $foundWidgets[$className] = $fullyQualifiedClassName;
-            }
-
-            $base = preg_replace('/Widget$/', '', $className);
-            if ($base !== '') {
-                if (!isset($foundWidgets[$base])) {
-                    $foundWidgets[$base] = $fullyQualifiedClassName;
-                }
-
-                $kebab = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $base));
-                if ($kebab && !isset($foundWidgets[$kebab])) {
-                    $foundWidgets[$kebab] = $fullyQualifiedClassName;
-                }
-
-                $kebabUcFirst = ucfirst($kebab);
-                if ($kebabUcFirst && !isset($foundWidgets[$kebabUcFirst])) {
-                    $foundWidgets[$kebabUcFirst] = $fullyQualifiedClassName;
-                }
-            }
-        }
-
-        if (!empty($foundWidgets)) {
-            cache()->set($cacheKey, $foundWidgets, $this->defaultCacheDuration);
-        }
-
-        $widgets = array_merge($widgets, $foundWidgets);
-    }
-
-    /**
      * Load a single widget by name and class.
      *
-     * @param string $name
-     * @param string $class
      * @return void
      */
     public function loadWidget(string $name, string $class)
@@ -586,7 +418,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             }
 
             app(WidgetManager::class)->registerWidget($name, $class);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs('modules')->error("Error registering widget {$name}: " . $e->getMessage());
         }
     }
@@ -594,17 +426,14 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Load and compile SCSS file from the module.
      *
-     * @param string $assetsFile
-     * @return void
-     *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function loadScss(string $assetsFile): void
     {
         $fullPath = $this->getModulePath($assetsFile);
 
         if (!file_exists($fullPath)) {
-            throw new \InvalidArgumentException("Assets file does not exist: {$fullPath}");
+            throw new InvalidArgumentException("Assets file does not exist: {$fullPath}");
         }
 
         $templateAssets = app(TemplateAssets::class);
@@ -615,11 +444,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Load views from a specific sub-directory with a given namespace.
      *
-     * @param string $viewDirectory
-     * @param string $namespace
-     * @return void
-     *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function loadViews(string $viewDirectory, string $namespace): void
     {
@@ -631,7 +456,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $fullPath = $this->getModulePath($viewDirectory);
 
         if (!is_dir($fullPath)) {
-            throw new \InvalidArgumentException("View directory does not exist: {$fullPath}");
+            throw new InvalidArgumentException("View directory does not exist: {$fullPath}");
         }
 
         $this->namespace = $namespace;
@@ -640,29 +465,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
-     * Get a file path relative to the module's directory.
-     *
-     * @param string $path
-     * @return string
-     */
-    protected function getModulePath(string $path = ''): string
-    {
-        $cacheKey = $this->getModuleName() . ($path ? '_' . md5($path) : '');
-
-        if (isset($this->modulePathCache[$cacheKey])) {
-            return $this->modulePathCache[$cacheKey];
-        }
-
-        $result = path("app/Modules/{$this->getModuleName()}") . ($path ? '/' . $path : '');
-        $this->modulePathCache[$cacheKey] = $result;
-
-        return $result;
-    }
-
-    /**
      * Load and register all Live/Blade components found in the module's Components directory.
-     *
-     * @return void
      */
     public function loadComponents(): void
     {
@@ -690,73 +493,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
-     * Recursively scan a directory for component classes. Uses caching to reduce file scans.
-     *
-     * @param string $directory
-     * @param string $namespace
-     * @param array  $components
-     * @return void
-     */
-    protected function scanForComponents(string $directory, string $namespace, array &$components): void
-    {
-        $moduleName = $this->getModuleName();
-        $cacheKey = "module.{$moduleName}.components." . md5($directory . $namespace);
-
-        $cachedComponents = cache()->get($cacheKey);
-        if ($cachedComponents !== null) {
-            $components = array_merge($components, $cachedComponents);
-
-            return;
-        }
-
-        $foundComponents = [];
-        foreach ($this->getFilesFromDirectory($directory) as $file) {
-            if ($file->isDir()) {
-                $this->scanForComponents($file->getPathname(), $namespace . '\\' . $file->getBasename(), $foundComponents);
-
-                continue;
-            }
-
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
-            $fullyQualifiedClassName = $namespace . '\\' . $className;
-
-            if (!class_exists($fullyQualifiedClassName)) {
-                continue;
-            }
-
-            $componentName = $this->kebabCase($className);
-            $foundComponents[$componentName] = $fullyQualifiedClassName;
-        }
-
-        if (!empty($foundComponents)) {
-            cache()->set($cacheKey, $foundComponents, $this->defaultCacheDuration);
-        }
-
-        $components = array_merge($components, $foundComponents);
-    }
-
-    /**
-     * Convert a string to kebab-case format (e.g., "MyExample" -> "my-example").
-     *
-     * @param string $string
-     * @return string
-     */
-    protected function kebabCase(string $string): string
-    {
-        $string = preg_replace('/Component$/', '', $string);
-
-        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $string));
-    }
-
-    /**
      * Register components (e.g., Livewire or Yoyo) globally.
-     *
-     * @param array $components
-     * @return void
      */
     public function registerComponents(array $components): void
     {
@@ -768,9 +505,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Bootstrap module by loading configs, translations, views, routes, entities, widgets, etc.
      *
-     * @return void
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public function bootstrapModule(): void
     {
@@ -789,7 +524,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $this->loadWidgets();
 
             $this->loadedStatus[$bootstrapCacheKey] = true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs('modules')->error("Error bootstrapping module {$this->getModuleName()}: " . $e->getMessage());
 
             if (is_debug()) {
@@ -800,9 +535,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Register services with the container (if needed).
-     *
-     * @param \DI\Container $container
-     * @return void
      */
     public function register(\DI\Container $container): void
     {
@@ -810,9 +542,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Boot the module (called after registration).
-     *
-     * @param \DI\Container $container
-     * @return void
      */
     public function boot(\DI\Container $container): void
     {
@@ -821,8 +550,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     /**
      * Clear cached files/directories and also clear component/widget cache.
-     *
-     * @return void
      */
     public function clearFileCache(): void
     {
@@ -911,7 +638,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                     translation()->flushLocaleCache($locale);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // noop: cache invalidation should not break flow
         }
     }
@@ -919,7 +646,6 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     /**
      * Refresh (invalidate) the cache for a specific directory and then retrieve fresh data.
      *
-     * @param string $directory
      * @return SplFileInfo[]
      */
     public function refreshDirectoryCache(string $directory): array
@@ -934,11 +660,205 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
+     * Recursively register view-based pages.
+     */
+    protected function recursivelyRegisterViewPages(string $directory, string $prefix): void
+    {
+        $cacheKey = "module.{$this->getModuleName()}.view_pages." . md5($directory . $prefix);
+
+        $viewPageData = cache()->callback($cacheKey, function () use ($directory, $prefix) {
+            $namespace = $this->kebabCase($this->getModuleName());
+            $routes = [];
+
+            foreach ($this->getFilesFromDirectory($directory) as $file) {
+                $relativePath = ltrim(str_replace($this->getModulePath('Resources/pages'), '', $file->getPathname()), DIRECTORY_SEPARATOR);
+
+                if ($file->isDir()) {
+                    // Directory will be processed in a recursive call
+                    continue;
+                }
+
+                if ($file->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $filename = str_replace('.blade', '', pathinfo($file->getBasename(), PATHINFO_FILENAME));
+                $routeUri = ltrim($prefix . ($filename === 'index' ? '' : '/' . $filename), '/');
+                $viewPath = str_replace('.blade.php', '', $relativePath);
+
+                $routes[] = [
+                    'uri' => $routeUri,
+                    'view' => $namespace . '::' . $viewPath,
+                ];
+            }
+
+            // Get subdirectories for recursive processing
+            $subDirs = [];
+            foreach ($this->getFilesFromDirectory($directory) as $file) {
+                if ($file->isDir()) {
+                    $newPrefix = trim($prefix . '/' . $file->getBasename(), '/');
+                    $subDirs[] = [
+                        'path' => $file->getPathname(),
+                        'prefix' => $newPrefix,
+                    ];
+                }
+            }
+
+            return [
+                'routes' => $routes,
+                'subDirs' => $subDirs,
+            ];
+        }, $this->defaultCacheDuration);
+
+        // Register routes
+        foreach ($viewPageData['routes'] as $route) {
+            router()->view($route['uri'], $route['view']);
+        }
+
+        // Process subdirectories
+        foreach ($viewPageData['subDirs'] as $subDir) {
+            $this->recursivelyRegisterViewPages($subDir['path'], $subDir['prefix']);
+        }
+    }
+
+    /**
+     * Recursively scan a directory for widget classes. Uses caching to reduce file scans.
+     */
+    protected function scanForWidgets(string $directory, string $namespace, array &$widgets): void
+    {
+        $moduleName = $this->getModuleName();
+        $cacheKey = "module.{$moduleName}.widgets." . md5($directory . $namespace);
+
+        $cachedWidgets = cache()->get($cacheKey);
+        if ($cachedWidgets !== null) {
+            $widgets = array_merge($widgets, $cachedWidgets);
+
+            return;
+        }
+
+        $foundWidgets = [];
+        foreach ($this->getFilesFromDirectory($directory) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
+            $fullyQualifiedClassName = $namespace . '\\' . $className;
+
+            $fullPath = $file->getPathname();
+            if (is_file($fullPath)) {
+                @require_once $fullPath;
+            }
+
+            if (!is_subclass_of($fullyQualifiedClassName, WidgetInterface::class, true)) {
+                continue;
+            }
+
+            if (!isset($foundWidgets[$className])) {
+                $foundWidgets[$className] = $fullyQualifiedClassName;
+            }
+
+            $base = preg_replace('/Widget$/', '', $className);
+            if ($base !== '') {
+                if (!isset($foundWidgets[$base])) {
+                    $foundWidgets[$base] = $fullyQualifiedClassName;
+                }
+
+                $kebab = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $base));
+                if ($kebab && !isset($foundWidgets[$kebab])) {
+                    $foundWidgets[$kebab] = $fullyQualifiedClassName;
+                }
+
+                $kebabUcFirst = ucfirst($kebab);
+                if ($kebabUcFirst && !isset($foundWidgets[$kebabUcFirst])) {
+                    $foundWidgets[$kebabUcFirst] = $fullyQualifiedClassName;
+                }
+            }
+        }
+
+        if (!empty($foundWidgets)) {
+            cache()->set($cacheKey, $foundWidgets, $this->defaultCacheDuration);
+        }
+
+        $widgets = array_merge($widgets, $foundWidgets);
+    }
+
+    /**
+     * Get a file path relative to the module's directory.
+     */
+    protected function getModulePath(string $path = ''): string
+    {
+        $cacheKey = $this->getModuleName() . ($path ? '_' . md5($path) : '');
+
+        if (isset($this->modulePathCache[$cacheKey])) {
+            return $this->modulePathCache[$cacheKey];
+        }
+
+        $result = path("app/Modules/{$this->getModuleName()}") . ($path ? '/' . $path : '');
+        $this->modulePathCache[$cacheKey] = $result;
+
+        return $result;
+    }
+
+    /**
+     * Recursively scan a directory for component classes. Uses caching to reduce file scans.
+     */
+    protected function scanForComponents(string $directory, string $namespace, array &$components): void
+    {
+        $moduleName = $this->getModuleName();
+        $cacheKey = "module.{$moduleName}.components." . md5($directory . $namespace);
+
+        $cachedComponents = cache()->get($cacheKey);
+        if ($cachedComponents !== null) {
+            $components = array_merge($components, $cachedComponents);
+
+            return;
+        }
+
+        $foundComponents = [];
+        foreach ($this->getFilesFromDirectory($directory) as $file) {
+            if ($file->isDir()) {
+                $this->scanForComponents($file->getPathname(), $namespace . '\\' . $file->getBasename(), $foundComponents);
+
+                continue;
+            }
+
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
+            $fullyQualifiedClassName = $namespace . '\\' . $className;
+
+            if (!class_exists($fullyQualifiedClassName)) {
+                continue;
+            }
+
+            $componentName = $this->kebabCase($className);
+            $foundComponents[$componentName] = $fullyQualifiedClassName;
+        }
+
+        if (!empty($foundComponents)) {
+            cache()->set($cacheKey, $foundComponents, $this->defaultCacheDuration);
+        }
+
+        $components = array_merge($components, $foundComponents);
+    }
+
+    /**
+     * Convert a string to kebab-case format (e.g., "MyExample" -> "my-example").
+     */
+    protected function kebabCase(string $string): string
+    {
+        $string = preg_replace('/Component$/', '', $string);
+
+        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $string));
+    }
+
+    /**
      * Get an array of SplFileInfo objects from a directory,
      * utilizing cache to avoid scanning the same directory repeatedly.
      *
-     * @param string    $directory
-     * @param int|null  $cacheDuration
      * @return SplFileInfo[]
      */
     protected function getFilesFromDirectory(string $directory, ?int $cacheDuration = null): array
@@ -953,7 +873,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $cacheKey = "module.{$moduleName}.files." . $dirHash;
         $duration = $cacheDuration ?? $this->defaultCacheDuration;
 
-        $filePaths = cache()->callback($cacheKey, function () use ($directory) {
+        $filePaths = cache()->callback($cacheKey, static function () use ($directory) {
             if (!is_dir($directory)) {
                 return [];
             }
@@ -968,7 +888,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return $paths;
         }, $duration);
 
-        $result = array_map(fn ($path) => new SplFileInfo($path), $filePaths);
+        $result = array_map(static fn ($path) => new SplFileInfo($path), $filePaths);
 
         $this->directoryCache[$dirHash] = $result;
 

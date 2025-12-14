@@ -76,6 +76,17 @@
         $elementAttributes['hx-flute-confirm-type'] = $confirmType;
         $elementAttributes['hx-trigger'] = 'confirmed';
     }
+
+    // Yoyo actions should include the current screen inputs by default (toggles/selects/etc).
+    // Allow explicit overrides via attributes (e.g. hx-include="none").
+    // NOTE: use raw attributes array to reliably detect keys like "yoyo:post".
+    $rawAttrs = method_exists($attributes, 'getAttributes') ? $attributes->getAttributes() : [];
+    $hasYoyoPost = array_key_exists('yoyo:post', $rawAttrs);
+    $hasHxInclude = array_key_exists('hx-include', $rawAttrs);
+    if ($tag === 'button' && $hasYoyoPost && !$hasHxInclude) {
+        // Include all inputs from current screen (works with htmx/yoyo serialization)
+        $elementAttributes['hx-include'] = '#screen-container';
+    }
 @endphp
 
 <{{ $tag }} {{ $attributes->merge($elementAttributes) }}>

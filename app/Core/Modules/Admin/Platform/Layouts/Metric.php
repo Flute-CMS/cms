@@ -33,8 +33,6 @@ class Metric extends Layout
 
     /**
      * Create a new Metric instance
-     *
-     * @param array $labels
      */
     public function __construct(array $labels)
     {
@@ -44,8 +42,6 @@ class Metric extends Layout
     /**
      * Set icon for specific metric
      *
-     * @param string $label
-     * @param string $icon
      * @return $this
      */
     public function setIcon(string $label, string $icon): self
@@ -58,7 +54,6 @@ class Metric extends Layout
     /**
      * Set multiple icons at once
      *
-     * @param array $icons
      * @return $this
      */
     public function setIcons(array $icons): self
@@ -69,20 +64,8 @@ class Metric extends Layout
     }
 
     /**
-     * Get icon for metric
-     *
-     * @param string $label
-     * @return string|null
-     */
-    protected function getIcon(string $label): ?string
-    {
-        return $this->icons[$label] ?? null;
-    }
-
-    /**
      * Build the layout
      *
-     * @param Repository $repository
      * @return Factory|\Illuminate\View\View|void
      */
     public function build(Repository $repository)
@@ -93,14 +76,12 @@ class Metric extends Layout
             return;
         }
 
-        $metrics = collect($this->labels)->mapWithKeys(function (string $value, string $key) use ($repository) {
-            return [
-                $key => [
-                    'value' => $repository->getContent($value, ''),
-                    'icon' => $this->getIcon($key),
-                ],
-            ];
-        });
+        $metrics = collect($this->labels)->mapWithKeys(fn (string $value, string $key) => [
+            $key => [
+                'value' => $repository->getContent($value, ''),
+                'icon' => $this->getIcon($key),
+            ],
+        ]);
 
         return view($this->template, [
             'title' => $this->title,
@@ -111,7 +92,6 @@ class Metric extends Layout
     /**
      * Set title for metrics group
      *
-     * @param string $title
      * @return $this
      */
     public function title(string $title): self
@@ -119,5 +99,13 @@ class Metric extends Layout
         $this->title = $title;
 
         return $this;
+    }
+
+    /**
+     * Get icon for metric
+     */
+    protected function getIcon(string $label): ?string
+    {
+        return $this->icons[$label] ?? null;
     }
 }

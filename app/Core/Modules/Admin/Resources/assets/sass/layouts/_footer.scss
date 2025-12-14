@@ -1,0 +1,87 @@
+.main-animation > footer.d-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 1.5rem 1rem;
+    margin-top: 2rem;
+    margin-bottom: 0 !important;
+    border-top: 1px solid var(--transp-05);
+    
+    > p {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--text-500);
+        letter-spacing: -0.01em;
+        margin: 0;
+        
+        strong {
+            font-weight: 600;
+            color: var(--text-400);
+            padding: 0.1rem 0.4rem;
+            background: var(--transp-05);
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.7rem;
+        }
+        
+        a {
+            color: var(--text-400);
+            font-weight: 500;
+            transition: color 0.15s ease;
+            
+            &:hover {
+                color: var(--accent);
+            }
+        }
+        
+        &:nth-child(2) {
+            font-size: 0.7rem;
+            color: var(--text-600);
+        }
+    }
+    
+    .secret-confetti {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        
+        &:hover {
+            transform: scale(1.15);
+        }
+        
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+    
+    > small {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.65rem;
+        color: var(--text-600);
+        margin-top: 0.15rem !important;
+        
+        strong {
+            font-weight: 600;
+            color: var(--text-400);
+            cursor: help;
+            padding: 0.08rem 0.3rem;
+            background: var(--transp-03);
+            border-radius: 3px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            transition: background 0.15s ease;
+            
+            &:hover {
+                background: var(--transp-05);
+            }
+        }
+    }
+}

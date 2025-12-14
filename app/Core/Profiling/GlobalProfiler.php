@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Profiling;
 
+use Exception;
 use Xhgui\Profiler\Profiler;
 use Xhgui\Profiler\ProfilingFlags;
 
@@ -12,7 +13,9 @@ use Xhgui\Profiler\ProfilingFlags;
 class GlobalProfiler
 {
     protected static ?Profiler $profiler = null;
+
     protected static array $profileData = [];
+
     protected static bool $enabled = false;
 
     /**
@@ -57,7 +60,7 @@ class GlobalProfiler
             self::$profiler->start();
 
             self::$enabled = true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->warning('Global profiler failed to start: ' . $e->getMessage());
         }
     }
@@ -77,7 +80,7 @@ class GlobalProfiler
 
             // Save profile data if configured
             self::saveProfileData();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->warning('Global profiler failed to stop: ' . $e->getMessage());
         }
     }
@@ -134,12 +137,42 @@ class GlobalProfiler
 
         // Sort each category by wall time
         foreach ($timings as &$categoryFunctions) {
-            uasort($categoryFunctions, function ($a, $b) {
-                return $b['wall_time'] <=> $a['wall_time'];
-            });
+            uasort($categoryFunctions, static fn ($a, $b) => $b['wall_time'] <=> $a['wall_time']);
         }
 
         return $timings;
+    }
+
+    /**
+     * Get top slowest functions overall
+     */
+    public static function getTopSlowFunctions(int $limit = 20): array
+    {
+        if (empty(self::$profileData['profile'])) {
+            return [];
+        }
+
+        $functions = [];
+        foreach (self::$profileData['profile'] as $function => $data) {
+            $wallTime = ($data['wt'] ?? 0) / 1_000_000;
+
+            if ($wallTime < 0.001) {
+                continue;
+            }
+
+            $functions[] = [
+                'function' => $function,
+                'wall_time' => $wallTime,
+                'cpu_time' => ($data['cpu'] ?? 0) / 1_000_000,
+                'memory' => $data['mu'] ?? 0,
+                'calls' => $data['ct'] ?? 1,
+                'category' => self::categorizeFunction($function),
+            ];
+        }
+
+        usort($functions, static fn ($a, $b) => $b['wall_time'] <=> $a['wall_time']);
+
+        return array_slice($functions, 0, $limit);
     }
 
     /**
@@ -184,40 +217,6 @@ class GlobalProfiler
     }
 
     /**
-     * Get top slowest functions overall
-     */
-    public static function getTopSlowFunctions(int $limit = 20): array
-    {
-        if (empty(self::$profileData['profile'])) {
-            return [];
-        }
-
-        $functions = [];
-        foreach (self::$profileData['profile'] as $function => $data) {
-            $wallTime = ($data['wt'] ?? 0) / 1_000_000;
-
-            if ($wallTime < 0.001) {
-                continue;
-            }
-
-            $functions[] = [
-                'function' => $function,
-                'wall_time' => $wallTime,
-                'cpu_time' => ($data['cpu'] ?? 0) / 1_000_000,
-                'memory' => $data['mu'] ?? 0,
-                'calls' => $data['ct'] ?? 1,
-                'category' => self::categorizeFunction($function),
-            ];
-        }
-
-        usort($functions, function ($a, $b) {
-            return $b['wall_time'] <=> $a['wall_time'];
-        });
-
-        return array_slice($functions, 0, $limit);
-    }
-
-    /**
      * Save profile data to storage if enabled
      */
     protected static function saveProfileData(): void
@@ -239,7 +238,7 @@ class GlobalProfiler
             ];
 
             file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->warning('Failed to save profile data: ' . $e->getMessage());
         }
     }

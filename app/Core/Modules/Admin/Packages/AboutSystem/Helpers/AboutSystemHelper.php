@@ -8,8 +8,6 @@ class AboutSystemHelper
 {
     /**
      * Get system information
-     *
-     * @return array
      */
     public static function getSystemInfo(): array
     {
@@ -17,15 +15,13 @@ class AboutSystemHelper
             'version' => App::VERSION,
             'author' => 'Flames',
             'project_link' => 'https://github.com/Flute-CMS/cms',
-            'license' => 'MIT',
+            'license' => 'GNU General Public License v3.0',
             'framework' => 'Flute CMS',
         ];
     }
 
     /**
      * Get PHP information
-     *
-     * @return array
      */
     public static function getPhpInfo(): array
     {
@@ -75,8 +71,6 @@ class AboutSystemHelper
 
     /**
      * Get server information, включая отформатированные данные по диску.
-     *
-     * @return array
      */
     public static function getServerInfo(): array
     {
@@ -104,8 +98,6 @@ class AboutSystemHelper
 
     /**
      * Get CPU load and system RAM usage.
-     *
-     * @return array
      */
     public static function getResourceUsage(): array
     {
@@ -137,10 +129,6 @@ class AboutSystemHelper
 
     /**
      * Format bytes to human-readable format
-     *
-     * @param int $bytes
-     * @param int $precision
-     * @return string
      */
     public static function formatBytes(int $bytes, int $precision = 2): string
     {
@@ -154,22 +142,7 @@ class AboutSystemHelper
     }
 
     /**
-     * Detect database driver from config
-     *
-     * @return string
-     */
-    private static function detectDatabaseDriver(): string
-    {
-        $dbConfig = config('database.connections.default');
-        $dbType = explode('\\', $dbConfig->driver);
-
-        return str_replace('Driver', '', end($dbType));
-    }
-
-    /**
      * Get required PHP extensions
-     *
-     * @return array
      */
     public static function getRequiredExtensions(): array
     {
@@ -217,8 +190,6 @@ class AboutSystemHelper
 
     /**
      * Check PHP version
-     *
-     * @return bool
      */
     public static function checkPhpVersion(): bool
     {
@@ -227,8 +198,6 @@ class AboutSystemHelper
 
     /**
      * Get PHP setting warnings
-     *
-     * @return array
      */
     public static function getPhpSettingWarnings(): array
     {
@@ -297,8 +266,6 @@ class AboutSystemHelper
 
     /**
      * Get system health information
-     *
-     * @return array
      */
     public static function getSystemHealth(): array
     {
@@ -320,10 +287,18 @@ class AboutSystemHelper
     }
 
     /**
+     * Detect database driver from config
+     */
+    private static function detectDatabaseDriver(): string
+    {
+        $dbConfig = config('database.connections.default');
+        $dbType = explode('\\', $dbConfig->driver);
+
+        return str_replace('Driver', '', end($dbType));
+    }
+
+    /**
      * Convert PHP ini value to bytes
-     *
-     * @param string $val
-     * @return int
      */
     private static function convertToBytes(string $val): int
     {

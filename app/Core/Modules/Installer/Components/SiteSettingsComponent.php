@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
+use Exception;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;
@@ -111,30 +112,10 @@ class SiteSettingsComponent extends FluteComponent
             flash()->success(__('install.common.finish_success'));
 
             return $this->redirectTo(url('/'), 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->errorMessage = $e->getMessage();
         }
     }
-
-    /**
-     * Validate the parameters
-     */
-    protected function validateParams()
-    {
-        $config = config('app');
-
-        if (!$this->cron_mode) {
-            $this->cron_mode = $this->cron_mode === 'on' ? true : false ?? $config['cron_mode'] ?? $this->cron_mode;
-            $this->maintenance_mode = $this->maintenance_mode === 'on' ? true : false ?? $config['maintenance_mode'] ?? $this->maintenance_mode;
-            $this->tips = $this->tips === 'on' ? true : false ?? $config['tips'] ?? $this->tips;
-            $this->share = $this->share === 'on' ? true : false ?? $config['share'] ?? $this->share;
-            $this->flute_copyright = $this->flute_copyright === 'on' ? true : false ?? $config['flute_copyright'] ?? $this->flute_copyright;
-            $this->convert_to_webp = $this->convert_to_webp === 'on' ? true : false ?? $config['convert_to_webp'] ?? $this->convert_to_webp;
-            $this->csrf_enabled = $this->csrf_enabled === 'on' ? true : false ?? $config['csrf_enabled'] ?? $this->csrf_enabled;
-            $this->robots ??= $config['robots'] ?? $this->robots;
-        }
-    }
-
 
     /**
      * Render the component
@@ -154,5 +135,24 @@ class SiteSettingsComponent extends FluteComponent
             'robots' => $this->robots,
             'errorMessage' => $this->errorMessage,
         ]);
+    }
+
+    /**
+     * Validate the parameters
+     */
+    protected function validateParams()
+    {
+        $config = config('app');
+
+        if (!$this->cron_mode) {
+            $this->cron_mode = $this->cron_mode === 'on' ? true : false ?? $config['cron_mode'] ?? $this->cron_mode;
+            $this->maintenance_mode = $this->maintenance_mode === 'on' ? true : false ?? $config['maintenance_mode'] ?? $this->maintenance_mode;
+            $this->tips = $this->tips === 'on' ? true : false ?? $config['tips'] ?? $this->tips;
+            $this->share = $this->share === 'on' ? true : false ?? $config['share'] ?? $this->share;
+            $this->flute_copyright = $this->flute_copyright === 'on' ? true : false ?? $config['flute_copyright'] ?? $this->flute_copyright;
+            $this->convert_to_webp = $this->convert_to_webp === 'on' ? true : false ?? $config['convert_to_webp'] ?? $this->convert_to_webp;
+            $this->csrf_enabled = $this->csrf_enabled === 'on' ? true : false ?? $config['csrf_enabled'] ?? $this->csrf_enabled;
+            $this->robots ??= $config['robots'] ?? $this->robots;
+        }
     }
 }

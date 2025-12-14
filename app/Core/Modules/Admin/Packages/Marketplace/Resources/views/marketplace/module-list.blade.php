@@ -14,32 +14,32 @@
             <div class="mp-controls">
                 <div class="segment" role="group" aria-label="{{ __('admin-marketplace.labels.price') }}">
                     @php $p = $priceFilter; @endphp
-                    <input type="radio" id="price_all" name="price" value="" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($p === '') checked @endif>
+                    <input type="radio" id="price_all" name="price" value="" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($p === '') checked @endif>
                     <label class="seg" for="price_all">{{ __('admin-marketplace.labels.all_modules') }}</label>
-                    <input type="radio" id="price_free" name="price" value="free" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($p === 'free') checked @endif>
+                    <input type="radio" id="price_free" name="price" value="free" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($p === 'free') checked @endif>
                     <label class="seg" for="price_free">{{ __('admin-marketplace.labels.free_only') }}</label>
-                    <input type="radio" id="price_paid" name="price" value="paid" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($p === 'paid') checked @endif>
+                    <input type="radio" id="price_paid" name="price" value="paid" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($p === 'paid') checked @endif>
                     <label class="seg" for="price_paid">{{ __('admin-marketplace.labels.paid_only') }}</label>
                 </div>
 
                 <div class="segment" role="group" aria-label="{{ __('admin-marketplace.labels.status') }}">
                     @php $s = $statusFilter; @endphp
-                    <input type="radio" id="status_all" name="status" value="" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($s === '') checked @endif>
+                    <input type="radio" id="status_all" name="status" value="" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($s === '') checked @endif>
                     <label class="seg" for="status_all">{{ __('admin-marketplace.labels.all_modules') }}</label>
-                    <input type="radio" id="status_installed" name="status" value="installed" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($s === 'installed') checked @endif>
+                    <input type="radio" id="status_installed" name="status" value="installed" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($s === 'installed') checked @endif>
                     <label class="seg"
                         for="status_installed">{{ __('admin-marketplace.labels.installed_only') }}</label>
-                    <input type="radio" id="status_notinstalled" name="status" value="notinstalled" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($s === 'notinstalled') checked @endif>
+                    <input type="radio" id="status_notinstalled" name="status" value="notinstalled" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($s === 'notinstalled') checked @endif>
                     <label class="seg"
                         for="status_notinstalled">{{ __('admin-marketplace.labels.not_installed') }}</label>
-                    <input type="radio" id="status_update" name="status" value="update" yoyo:on="change" yoyo:post="handleFilters"
-                        @if ($s === 'update') checked @endif>
+                    <input type="radio" id="status_update" name="status" value="update" yoyo:on="change"
+                        yoyo:post="handleFilters" @if ($s === 'update') checked @endif>
                     <label class="seg"
                         for="status_update">{{ __('admin-marketplace.labels.updates_available') }}</label>
                 </div>
@@ -81,6 +81,17 @@
             <span class="chip accent">{{ $paidCount }} {{ __('admin-marketplace.labels.paid') }}</span>
         </div>
     </form>
+
+    @if (!ioncube_loaded())
+        <x-admin::alert type="warning" withClose="false" class="mt-2">
+            <strong>{{ __('admin-marketplace.ioncube.missing_title') }}</strong>
+            <div class="mt-1">{{ __('admin-marketplace.ioncube.missing_desc') }}</div>
+            <div class="mt-1 text-sm">
+                <a href="https://www.ioncube.com/loaders.php" target="_blank"
+                    rel="noreferrer">https://www.ioncube.com/loaders.php</a>
+            </div>
+        </x-admin::alert>
+    @endif
 
     @if (empty(config('app.flute_key')))
         <x-admin::alert type="danger" withClose="false">
@@ -164,12 +175,20 @@
                         </div>
                     </div>
                     <div class="actions">
-                        <a hx-boost="true" yoyo:ignore href="{{ url('/admin/marketplace/' . $module['slug']) }}"
-                            hx-target="#main" data-tooltip="{{ __('admin-marketplace.actions.details') }}"
-                            class="mp-details-button">
+                        <a href="{{ url('/admin/marketplace/' . $module['slug']) }}"
+                            data-tooltip="{{ __('admin-marketplace.actions.details') }}" class="mp-details-button">
                             <x-icon path="ph.bold.info-bold" />
                         </a>
-                        @if (!$isInstalled)
+                        @if ($needsUpdate)
+                            <button yoyo:post="installModule('{{ $module['slug'] }}')" hx-trigger="confirmed"
+                                hx-flute-confirm="{{ __('admin-marketplace.messages.update_confirm', ['module' => $module['name']]) }}"
+                                hx-flute-confirm-title="{{ __('admin-marketplace.messages.update_confirm_title') }}"
+                                hx-flute-confirm-type="warning"
+                                data-tooltip="{{ __('admin-marketplace.actions.update') }}"
+                                class="mp-install-button mp-update-button">
+                                <x-icon path="ph.bold.arrow-circle-up-bold" />
+                            </button>
+                        @elseif (!$isInstalled)
                             <button yoyo:post="installModule('{{ $module['slug'] }}')" hx-trigger="confirmed"
                                 hx-flute-confirm="{{ __('admin-marketplace.messages.install_confirm', ['module' => $module['name']]) }}"
                                 hx-flute-confirm-title="{{ __('admin-marketplace.messages.install_confirm_title') }}"

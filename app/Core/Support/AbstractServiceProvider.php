@@ -3,6 +3,7 @@
 namespace Flute\Core\Support;
 
 use Clickfwd\Yoyo\Yoyo;
+use Exception;
 use Flute\Core\App;
 use Flute\Core\Contracts\ServiceProviderInterface;
 use Flute\Core\Router\Contracts\RouterInterface;
@@ -23,8 +24,6 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
 
     /**
      * Create a new service provider instance.
-     *
-     * @param App $app
      */
     public function setApp(App $app): void
     {
@@ -33,8 +32,6 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
 
     /**
      * Get the event listeners.
-     *
-     * @return array
      */
     public function getEventListeners(): array
     {
@@ -43,9 +40,6 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
 
     /**
      * Load routes from a given path.
-     *
-     * @param string $relativePath
-     * @return void
      */
     public function loadRoutesFrom(string $relativePath): void
     {
@@ -58,16 +52,14 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
         if (file_exists($fullPath)) {
             require $fullPath;
         } else {
-            throw new \Exception("Routes from {$relativePath} wasn't found");
+            throw new Exception("Routes from {$relativePath} wasn't found");
         }
     }
 
     /**
      * Add a namespace to the template engine.
      *
-     * @param string $namespace
      * @param string|array $hints
-     * @return void
      */
     public function addNamespace(string $namespace, $hints): void
     {
@@ -85,9 +77,6 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
 
     /**
      * Register services with the container builder.
-     *
-     * @param \DI\ContainerBuilder $containerBuilder
-     * @return void
      */
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
@@ -95,9 +84,6 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface
 
     /**
      * Boot services with the container.
-     *
-     * @param \DI\Container $container
-     * @return void
      */
     public function boot(\DI\Container $container): void
     {

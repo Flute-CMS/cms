@@ -14,64 +14,46 @@ class ModuleInstallerService
 {
     /**
      * HTTP клиент
-     *
-     * @var Client
      */
     protected Client $client;
 
     /**
      * Временная директория для загрузки модулей
-     *
-     * @var string
      */
     protected string $tempDir;
 
     /**
      * Директория для модулей
-     *
-     * @var string
      */
     protected string $modulesDir;
 
     /**
      * Путь к архиву модуля
-     *
-     * @var string|null
      */
     protected ?string $moduleArchivePath = null;
 
     /**
      * Путь к распакованному модулю
-     *
-     * @var string|null
      */
     protected ?string $moduleExtractPath = null;
 
     /**
      * Ключ модуля
-     *
-     * @var string|null
      */
     protected ?string $moduleKey = null;
 
     /**
      * Информация о модуле из module.json
-     *
-     * @var array|null
      */
     protected ?array $moduleInfo = null;
 
     /**
      * Директория для резервного копирования модуля
-     *
-     * @var string|null
      */
     protected ?string $backupDir = null;
 
     /**
      * Директория установленного модуля
-     *
-     * @var string|null
      */
     protected ?string $moduleFolder = null;
 
@@ -96,8 +78,6 @@ class ModuleInstallerService
     /**
      * Загрузить модуль
      *
-     * @param array $module
-     * @return array
      * @throws Exception
      */
     public function downloadModule(array $module): array
@@ -113,7 +93,7 @@ class ModuleInstallerService
             $this->moduleArchivePath = $this->tempDir . '/' . $module['slug'] . '-' . time() . '.zip';
 
             if (strpos($downloadUrl, 'http') !== 0) {
-                $downloadUrl = config('app.flute_market_url', 'https://flute-cms.com/api') . $downloadUrl;
+                $downloadUrl = rtrim(config('app.flute_market_url', 'https://flute-cms.com'), '/') . $downloadUrl;
             }
 
             $response = $this->client->get($downloadUrl . '&accessKey=' . config('app.flute_key', ''), [
@@ -144,8 +124,6 @@ class ModuleInstallerService
     /**
      * Распаковать модуль
      *
-     * @param array $module
-     * @return array
      * @throws Exception
      */
     public function extractModule(array $module): array
@@ -200,8 +178,6 @@ class ModuleInstallerService
     /**
      * Проверить совместимость модуля
      *
-     * @param array $module
-     * @return array
      * @throws Exception
      */
     public function validateModule(array $module): array
@@ -266,8 +242,6 @@ class ModuleInstallerService
     /**
      * Установить модуль
      *
-     * @param array $module
-     * @return array
      * @throws Exception
      */
     public function installModule(array $module): array
@@ -325,7 +299,6 @@ class ModuleInstallerService
     /**
      * Обновить зависимости Composer
      *
-     * @return array
      * @throws Exception
      */
     public function updateComposerDependencies(): array
@@ -364,8 +337,6 @@ class ModuleInstallerService
 
     /**
      * Завершить установку
-     *
-     * @return array
      */
     public function finishInstallation(): array
     {
@@ -379,19 +350,8 @@ class ModuleInstallerService
 
         app(\Flute\Core\ModulesManager\ModuleManager::class)->clearCache();
 
-        $viewsCachePath = storage_path('app/views');
-        if (is_dir($viewsCachePath)) {
-            $files = scandir($viewsCachePath);
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
-                }
-
-                $path = $viewsCachePath . '/' . $file;
-                if (is_file($path)) {
-                    unlink($path);
-                }
-            }
+        if (function_exists('cache_warmup_mark')) {
+            cache_warmup_mark();
         }
 
         return [
@@ -402,10 +362,6 @@ class ModuleInstallerService
 
     /**
      * Откатить установку модуля
-     *
-     * @param string $moduleFolder
-     * @param string|null $backupDir
-     * @return array
      */
     public function rollbackInstallation(string $moduleFolder, ?string $backupDir = null): array
     {
@@ -428,9 +384,6 @@ class ModuleInstallerService
 
     /**
      * Проверить версию PHP
-     *
-     * @param string $requiredVersion
-     * @return bool
      */
     protected function checkPhpVersion(string $requiredVersion): bool
     {
@@ -439,9 +392,6 @@ class ModuleInstallerService
 
     /**
      * Проверить версию Flute
-     *
-     * @param string $requiredVersion
-     * @return bool
      */
     protected function checkFluteVersion(string $requiredVersion): bool
     {
@@ -452,9 +402,6 @@ class ModuleInstallerService
 
     /**
      * Проверить зависимости от других модулей
-     *
-     * @param array $requiredModules
-     * @return array
      */
     protected function checkModuleDependencies(array $requiredModules): array
     {
@@ -487,12 +434,7 @@ class ModuleInstallerService
 
     /**
      * Копировать директорию рекурсивно
-     *
-     * @param string $source
-     * @param string $destination
-     * @return bool
      */
-
     protected function copyDirectory(string $source, string $destination): bool
     {
         if (!is_dir($source)) {
@@ -538,9 +480,6 @@ class ModuleInstallerService
 
     /**
      * Удалить директорию рекурсивно
-     *
-     * @param string $directory
-     * @return bool
      */
     protected function removeDirectory(string $directory): bool
     {
@@ -569,8 +508,6 @@ class ModuleInstallerService
 
     /**
      * Ensure long-running operations (download/extract/install) are not interrupted
-     *
-     * @return void
      */
     protected function keepProcessAlive(): void
     {

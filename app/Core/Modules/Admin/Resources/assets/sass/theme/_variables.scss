@@ -1,5 +1,8 @@
 :root {
     --transition: .2s;
+    --shadow-small: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015;
+    --shadow-medium: inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015;
+    --shadow-large: inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015;
 }
 
 :root[data-theme=light] {
@@ -8,6 +11,7 @@
     --primary: #1d1d1f;
     --secondary: #f5f5f7;
     --accent: #34c759;
+    --accent-transp: rgba(52, 199, 89, 0.12);
 
     --success: #30d158;
     --success-light: rgba(48, 209, 88, 0.12);
@@ -81,6 +85,8 @@
     --accent-900: #deffcc;
     --accent-950: #eeffe5;
 
+    --transp-02: rgba(0, 0, 0, 0.02);
+    --transp-03: rgba(0, 0, 0, 0.03);
     --transp-05: rgba(0, 0, 0, 0.04);
     --transp-1: rgba(0, 0, 0, 0.08);
     --transp-2: rgba(0, 0, 0, 0.12);
@@ -93,12 +99,12 @@
 }
 
 :root[data-theme=dark] {
-    // Dark mode tuned to be calmer
     --text: #f2f2f7;
     --background: #1c1c1e;
     --primary: #f2f2f7;
     --secondary: #2c2c2e;
     --accent: #32d74b;
+    --accent-transp: rgba(50, 215, 75, 0.12);
 
     --success: #30d158;
     --success-light: rgba(48, 209, 88, 0.15);
@@ -172,6 +178,8 @@
     --accent-900: #142b08;
     --accent-950: #0a1604;
 
+    --transp-02: rgba(255, 255, 255, 0.015);
+    --transp-03: rgba(255, 255, 255, 0.02);
     --transp-05: rgba(255, 255, 255, 0.03);
     --transp-1: rgba(255, 255, 255, 0.06);
     --transp-2: rgba(255, 255, 255, 0.08);

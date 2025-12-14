@@ -8,9 +8,11 @@
 
 namespace Hybridauth\Provider;
 
+use Exception;
 use Hybridauth\Adapter\OpenID;
 use Hybridauth\Data;
 use Hybridauth\Exception\UnexpectedApiResponseException;
+use SimpleXMLElement;
 
 /**
  * Steam OpenID provider adapter.
@@ -71,7 +73,7 @@ class HttpsSteam extends OpenID
                 if (empty($result['photoURL'])) {
                     $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error($e);
 
                 $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
@@ -79,7 +81,7 @@ class HttpsSteam extends OpenID
         } else {
             try {
                 $result = $this->getUserProfileLegacyAPI($userProfile->identifier);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error($e);
             }
         }
@@ -93,9 +95,6 @@ class HttpsSteam extends OpenID
 
     /**
      * Fetch user profile on Steam web API
-     *
-     * @param $apiKey
-     * @param $steam64
      *
      * @return array
      */
@@ -125,7 +124,6 @@ class HttpsSteam extends OpenID
 
     /**
      * Fetch user profile on community API
-     * @param $steam64
      * @return array
      */
     public function getUserProfileLegacyAPI($steam64)
@@ -136,7 +134,7 @@ class HttpsSteam extends OpenID
 
         $response = $this->httpClient->request($apiUrl);
 
-        $data = new \SimpleXMLElement($response);
+        $data = new SimpleXMLElement($response);
 
         $data = new Data\Collection($data);
 
@@ -158,8 +156,6 @@ class HttpsSteam extends OpenID
      * Resolve Steam API key from global config or provider-level settings.
      * This improves reliability when the key is stored in the social-network
      * settings instead of the generic config file.
-     *
-     * @return string|null
      */
     protected function resolveApiKey(): ?string
     {

@@ -10,10 +10,12 @@
 
 <div {{ $attributes->merge(['class' => 'tabs-container' . ($pills ? ' pills' : ''), 'data-sticky' => $sticky ? 'true' : 'false']) }}
     data-tabs-id="tab__{{ $name }}">
-    <ul class="{{ $name }}-headings tabs-nav">
-        {{ $headings }}
-        <div class="underline" hx-swap="none"></div>
-    </ul>
+    <div class="tabs-nav-scroll">
+        <ul class="{{ $name }}-headings tabs-nav">
+            {{ $headings }}
+            <div class="underline" hx-swap="none"></div>
+        </ul>
+    </div>
 
     {{ $slot }}
 </div>

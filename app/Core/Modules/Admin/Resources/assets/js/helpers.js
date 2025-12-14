@@ -38,6 +38,7 @@ function initializeFilePondElement(element) {
     if (element.classList.contains('filepond') && !element.filepond) {
         const defaultFile = element.dataset.defaultFile || null;
         const wrapper = element.closest('.input-wrapper');
+        const fieldName = element.name;
 
         let filePondOptions = {
             storeAsFile: true,
@@ -52,6 +53,26 @@ function initializeFilePondElement(element) {
                 const errorElement = wrapper.querySelector('.has-error');
                 if (errorElement) {
                     errorElement.style.display = 'block';
+                }
+            },
+            onremovefile: (error, file) => {
+                if (!error && fieldName) {
+                    let clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
+                    if (!clearInput) {
+                        clearInput = document.createElement('input');
+                        clearInput.type = 'hidden';
+                        clearInput.name = `${fieldName}_clear`;
+                        wrapper.appendChild(clearInput);
+                    }
+                    clearInput.value = '1';
+                }
+            },
+            onaddfile: (error, file) => {
+                if (!error && fieldName) {
+                    const clearInput = wrapper.querySelector(`input[name="${fieldName}_clear"]`);
+                    if (clearInput) {
+                        clearInput.value = '';
+                    }
                 }
             }
         };
@@ -80,6 +101,42 @@ function initializeFilePondElement(element) {
 
         if (acceptedFileTypes.length > 0) {
             filePondOptions.acceptedFileTypes = acceptedFileTypes;
+
+            filePondOptions.fileValidateTypeDetectType = (source, type) => {
+                return new Promise((resolve, reject) => {
+                    if (type && acceptedFileTypes.includes(type)) {
+                        resolve(type);
+                        return;
+                    }
+
+                    const url = typeof source === 'string' ? source : (source.name || '');
+                    const extensionMatch = url.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+
+                    if (extensionMatch) {
+                        const extension = extensionMatch[1].toLowerCase();
+                        const extensionToMime = {
+                            'jpg': 'image/jpeg',
+                            'jpeg': 'image/jpeg',
+                            'png': 'image/png',
+                            'gif': 'image/gif',
+                            'webp': 'image/webp',
+                            'svg': 'image/svg+xml',
+                            'bmp': 'image/bmp'
+                        };
+
+                        if (extensionToMime[extension]) {
+                            resolve(extensionToMime[extension]);
+                            return;
+                        }
+                    }
+
+                    if (type) {
+                        resolve(type);
+                    } else {
+                        reject();
+                    }
+                });
+            };
         }
 
         if (element.name) {
@@ -147,6 +204,33 @@ document.body.addEventListener('htmx:load', function (evt) {
     const swappedContent = evt.detail.elt;
     const newSelectElements = swappedContent.querySelectorAll('select.choices');
     newSelectElements.forEach((select) => initializeChoicesElement(select));
+});
+
+// Prevent disabling all languages in Localization settings.
+// If user turns off everything, we automatically enable English (or the first available language).
+let _enforcingLanguages = false;
+document.addEventListener('change', function (event) {
+    const checkbox = event.target;
+    if (!_enforcingLanguages && checkbox && checkbox.matches && checkbox.matches('input[type="checkbox"][name^="available["]')) {
+        const boxes = Array.from(document.querySelectorAll('input[type="checkbox"][name^="available["]'));
+        if (!boxes.length) return;
+
+        const anyChecked = boxes.some((el) => el.checked);
+        if (anyChecked) return;
+
+        _enforcingLanguages = true;
+        try {
+            const en = document.querySelector('input[type="checkbox"][name="available[en]"]');
+            const fallback = en || boxes[0];
+            if (fallback) {
+                fallback.checked = true;
+            }
+        } finally {
+            setTimeout(() => {
+                _enforcingLanguages = false;
+            }, 0);
+        }
+    }
 });
 
 $(document).on('click', '[hx-flute-confirm]', function (event) {

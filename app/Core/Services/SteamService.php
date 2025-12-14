@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Services;
 
+use Exception;
 use Flute\Core\Cache\CacheManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\FulfilledPromise;
@@ -12,22 +13,30 @@ use xPaw\SteamID\SteamID;
 class SteamService
 {
     protected string $apiKey;
+
     protected Client $httpClient;
+
     protected int $cacheDuration;
+
     protected CacheManager $cache;
 
     protected static array $pendingSteamIds = [];
+
     protected static array $deferreds = [];
+
     protected static bool $isBatchScheduled = false;
+
     /**
      * IDs, accumulated during the script execution for the «deferred» request.
      * These IDs are requested in one batch in the shutdown function.
      */
     protected static array $collectedSteamIds = [];
+
     protected static array $requestCache = [];
 
     // Memory leak prevention limits
     protected static int $maxDeferredRequests = 100;
+
     protected static int $maxRequestCache = 500;
 
     public function __construct(string $apiKey, CacheManager $cache)
@@ -46,8 +55,6 @@ class SteamService
 
     /**
      * Clear all static caches to prevent memory leaks
-     *
-     * @return void
      */
     public static function clearStaticCaches(): void
     {
@@ -59,21 +66,7 @@ class SteamService
     }
 
     /**
-     * Normalize Steam ID for cache key
-     */
-    protected function normalizeSteamId(string $steamId): string
-    {
-        $steamID = new SteamID($steamId);
-
-        return $steamID->ConvertToUInt64();
-    }
-
-    /**
      * Get SteamID object
-     *
-     * @param string $steamId
-     *
-     * @return SteamID
      */
     public function steamid(string $steamId): SteamID
     {
@@ -83,7 +76,6 @@ class SteamService
     /**
      * Get all available information about Steam user.
      *
-     * @param string $steamId
      * @return PromiseInterface|\React\Promise\Promise
      */
     public function getUserInfo(string $steamId)
@@ -106,7 +98,7 @@ class SteamService
             $oldestKeys = array_slice(array_keys(self::$deferreds), 0, 20);
             foreach ($oldestKeys as $key) {
                 if (isset(self::$deferreds[$key])) {
-                    self::$deferreds[$key]->reject(new \Exception('Request queue full, clearing old requests'));
+                    self::$deferreds[$key]->reject(new Exception('Request queue full, clearing old requests'));
                     unset(self::$deferreds[$key]);
                 }
             }
@@ -125,8 +117,6 @@ class SteamService
 
     /**
      * Execute batch request to get Steam users information.
-     *
-     * @return void
      */
     public function executeBatchRequest(): void
     {
@@ -173,7 +163,7 @@ class SteamService
                     $deferred->resolve($info);
                     unset(self::$deferreds[$id64]);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs()->error('Steam API Batch Request Failed: '.$e->getMessage());
             }
         }
@@ -211,7 +201,7 @@ class SteamService
                 } else {
                     $uncachedIds[$normalizedId] = $steamId;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // invalid steam, ignore
             }
         }
@@ -258,7 +248,7 @@ class SteamService
                             unset($uncachedIds[$normalizedId]);
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     logs()->error("Steam API Error: " . $e->getMessage());
                 }
             }
@@ -283,28 +273,18 @@ class SteamService
 
     /**
      * Get display name of Steam user.
-     *
-     * @param string $steamId
-     * @return PromiseInterface
      */
     public function getUserName(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(function ($userInfo) {
-            return $userInfo['personaname'] ?? null;
-        });
+        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['personaname'] ?? null);
     }
 
     /**
      * Get URL of Steam user avatar.
-     *
-     * @param string $steamId
-     * @return PromiseInterface
      */
     public function getUserAvatar(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(function ($userInfo) {
-            return $userInfo['avatarfull'] ?? null;
-        });
+        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['avatarfull'] ?? null);
     }
 
     /**
@@ -320,8 +300,6 @@ class SteamService
      * Immediately execute batch request and wait for its completion.
      *
      * This is useful when you need to get user information immediately.
-     *
-     * @return void
      */
     public function flushBatch(): void
     {
@@ -329,5 +307,15 @@ class SteamService
             $this->executeBatchRequest();
             Utils::queue()->run();
         }
+    }
+
+    /**
+     * Normalize Steam ID for cache key
+     */
+    protected function normalizeSteamId(string $steamId): string
+    {
+        $steamID = new SteamID($steamId);
+
+        return $steamID->ConvertToUInt64();
     }
 }

@@ -10,7 +10,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 trait LangTrait
 {
     /**
-     * @var ?string
      */
     public ?string $lang = null;
 

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Services;
 
+use DateTimeImmutable;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -12,7 +13,9 @@ use Symfony\Component\HttpFoundation\Cookie;
 class CookieService
 {
     protected FluteRequest $request;
+
     protected array $cookies = [];
+
     protected array $localCookies = [];
 
     /**
@@ -46,13 +49,12 @@ class CookieService
      *
      * @param string $name Cookie name.
      * @param string $value Cookie value.
-     * @param \DateTimeImmutable|int|null $expire Cookie lifetime (in seconds) or expiration date.
+     * @param DateTimeImmutable|int|null $expire Cookie lifetime (in seconds) or expiration date.
      * @param string $path Path on the server where the cookie is valid.
      * @param string|null $domain Domain where the cookie is valid.
      * @param bool $httpOnly Flag indicating that the cookie should be accessible only through HTTP requests.
      * @param string $sameSite SameSite attribute for the cookie
      * @param bool|null $secure Whether the cookie should only be sent over HTTPS. If null, auto-detect based on request.
-     * @return void
      */
     public function set(string $name, string $value, $expire = null, string $path = '/', ?string $domain = null, bool $httpOnly = true, string $sameSite = 'Strict', ?bool $secure = null): void
     {
@@ -75,7 +77,6 @@ class CookieService
      * Checks if a cookie with the specified name exists.
      *
      * @param string $name Cookie name.
-     * @return bool
      */
     public function has(string $name): bool
     {
@@ -88,11 +89,10 @@ class CookieService
      * @param string $name Cookie name.
      * @param string $path Path on the server where the cookie is valid.
      * @param string|null $domain Domain where the cookie is valid.
-     * @return void
      */
     public function remove(string $name, string $path = '/', ?string $domain = null): void
     {
-        $this->set($name, '', (new \DateTimeImmutable())->modify("-3600 seconds"), $path, $domain);
+        $this->set($name, '', (new DateTimeImmutable())->modify("-3600 seconds"), $path, $domain);
         unset($this->localCookies[$name]);
     }
 
@@ -100,7 +100,6 @@ class CookieService
      * Adds all cookies set during the current request to the response headers.
      *
      * @param ResponseEvent $event Response event object.
-     * @return void
      */
     public function onResponse(ResponseEvent $event): void
     {
@@ -116,21 +115,19 @@ class CookieService
     /**
      * Returns a valid DateTime for setting the cookie.
      *
-     * @param \DateTimeImmutable|int|null $expire
-     *
-     * @return \DateTimeImmutable
+     * @param DateTimeImmutable|int|null $expire
      */
-    protected function getDateTime($expire): \DateTimeImmutable
+    protected function getDateTime($expire): DateTimeImmutable
     {
-        if ($expire instanceof \DateTimeImmutable) {
+        if ($expire instanceof DateTimeImmutable) {
             return $expire;
         }
 
         if (is_int($expire)) {
-            return (new \DateTimeImmutable())->modify("+{$expire} seconds");
+            return (new DateTimeImmutable())->modify("+{$expire} seconds");
         }
 
         // Default to 30 days for null or any other type
-        return (new \DateTimeImmutable())->modify("+30 days");
+        return (new DateTimeImmutable())->modify("+30 days");
     }
 }

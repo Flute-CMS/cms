@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Pages\Screens;
 
+use Flute\Admin\Packages\Pages\Services\AdminPagesService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -11,11 +12,14 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Page;
+use Throwable;
 
 class PageListScreen extends Screen
 {
     public ?string $name = null;
+
     public ?string $description = null;
+
     public ?string $permission = 'admin.pages';
 
     public $pages;
@@ -39,20 +43,20 @@ class PageListScreen extends Screen
                 TD::selection('id'),
                 TD::make('title')
                     ->title(__('admin-pages.fields.title.label'))
-                    ->render(fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
+                    ->render(static fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('route')
                     ->title(__('admin-pages.fields.route.label'))
-                    ->render(fn (Page $page) => '<code>' . $page->route . '</code>')
+                    ->render(static fn (Page $page) => '<code>' . $page->route . '</code>')
                     ->width('200px')
                     ->sort()
                     ->cantHide(),
 
                 TD::make('blocks_count')
                     ->title(__('admin-pages.title.blocks'))
-                    ->render(fn (Page $page) => count($page->blocks))
+                    ->render(static fn (Page $page) => count($page->blocks))
                     ->width('200px')
                     ->alignCenter(),
 
@@ -69,7 +73,7 @@ class PageListScreen extends Screen
                     ->width('200px')
                     ->alignCenter()
                     ->render(
-                        fn (Page $page) => DropDown::make()
+                        static fn (Page $page) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('admin-pages.buttons.edit'))
@@ -114,17 +118,21 @@ class PageListScreen extends Screen
 
     public function delete(): void
     {
-        $page = Page::findByPK(request()->get('delete-id'));
+        $page = Page::findByPK((int) request()->get('delete-id'));
 
         if ($page) {
-            foreach ($page->blocks as $block) {
-                $block->delete();
+            try {
+                app(AdminPagesService::class)->deletePage($page);
+                $this->flashMessage(__('admin-pages.messages.page_deleted'));
+            } catch (Throwable $e) {
+                logs()->error($e);
+                $this->flashMessage($e->getMessage(), 'error');
             }
-
-            $page->delete();
+        } else {
+            $this->flashMessage(__('admin-pages.messages.page_not_found'), 'error');
         }
 
-        $this->flashMessage(__('admin-pages.messages.page_deleted'));
+        $this->pages = rep(Page::class)->select()->load('blocks');
     }
 
     public function bulkDeletePages(): void
@@ -133,16 +141,23 @@ class PageListScreen extends Screen
         if (!$ids) {
             return;
         }
+
+        $service = app(AdminPagesService::class);
+
         foreach ($ids as $id) {
             $page = Page::findByPK((int) $id);
             if (!$page) {
                 continue;
             }
-            foreach ($page->blocks as $block) {
-                $block->delete();
+
+            try {
+                $service->deletePage($page);
+            } catch (Throwable $e) {
+                logs()->error($e);
             }
-            $page->delete();
         }
+
+        $this->pages = rep(Page::class)->select()->load('blocks');
         $this->flashMessage(__('admin-pages.messages.page_deleted'));
     }
 }

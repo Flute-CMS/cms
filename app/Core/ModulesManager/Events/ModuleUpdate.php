@@ -10,6 +10,7 @@ class ModuleUpdate extends Event
     public const NAME = 'module.update';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

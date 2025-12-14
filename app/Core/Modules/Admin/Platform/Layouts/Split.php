@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform\Layouts;
 
 use Flute\Admin\Platform\Layout;
 use Flute\Admin\Platform\Repository;
+use InvalidArgumentException;
 
 /**
  * Class Split.
@@ -56,7 +57,7 @@ abstract class Split extends Layout
      *
      * @param string $ratio The width ratio in the format 'X/Y'.
      *
-     * @throws \InvalidArgumentException if the specified ratio is not valid.
+     * @throws InvalidArgumentException if the specified ratio is not valid.
      *
      * @return $this This instance of the Split class.
      */
@@ -72,7 +73,7 @@ abstract class Split extends Layout
             '80/20' => ['col-md-10', 'col-md-2'],
         ]);
 
-        throw_unless($allowedRatios->offsetExists($ratio), \InvalidArgumentException::class, sprintf(
+        throw_unless($allowedRatios->offsetExists($ratio), InvalidArgumentException::class, sprintf(
             'Invalid ratio "%s". Allowed ratios: %s',
             $ratio,
             $allowedRatios->keys()->implode(', ')

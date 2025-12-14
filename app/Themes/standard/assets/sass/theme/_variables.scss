@@ -1,8 +1,8 @@
 :root {
     --transition: .2s;
-    --shadow-small: 0 0px 10px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 0px 15px rgba(0, 0, 0, 0.15);
-    --shadow-large: 0 0px 25px rgba(0, 0, 0, 0.15);
+    --shadow-small: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015;
+    --shadow-medium: inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015;
+    --shadow-large: inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015;
 }
 
 :root[data-theme=light] {
@@ -83,6 +83,8 @@
     --accent-900: #0a2712;
     --accent-950: #051409;
 
+    --transp-02: rgba(0, 0, 0, 0.02);
+    --transp-03: rgba(0, 0, 0, 0.03);
     --transp-05: rgba(0, 0, 0, 0.04);
     --transp-1: rgba(0, 0, 0, 0.08);
     --transp-2: rgba(0, 0, 0, 0.12);
@@ -172,6 +174,8 @@
     --accent-900: #0a1f0f;
     --accent-950: #051008;
 
+    --transp-02: rgba(255, 255, 255, 0.015);
+    --transp-03: rgba(255, 255, 255, 0.02);
     --transp-05: rgba(255, 255, 255, 0.03);
     --transp-1: rgba(255, 255, 255, 0.06);
     --transp-2: rgba(255, 255, 255, 0.08);

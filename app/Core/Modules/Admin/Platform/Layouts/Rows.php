@@ -47,8 +47,6 @@ abstract class Rows extends Layout
     /**
      * @var Repository
      */
-
-
     protected $query;
 
     public function build(Repository $repository)
@@ -69,8 +67,6 @@ abstract class Rows extends Layout
             'class' => $this->class,
         ]);
     }
-
-
 
     public function title(?string $title = null): self
     {
@@ -102,7 +98,6 @@ abstract class Rows extends Layout
 
     /**
      * @return \Flute\Admin\Platform\Field[]
-
      */
     abstract protected function fields(): iterable;
 }

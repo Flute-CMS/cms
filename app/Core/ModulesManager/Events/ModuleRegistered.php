@@ -10,6 +10,7 @@ class ModuleRegistered extends Event
     public const NAME = 'module.registered';
 
     protected string $moduleName;
+
     protected ModuleInformation $moduleInformation;
 
     public function __construct(string $moduleName, ModuleInformation $moduleInformation)

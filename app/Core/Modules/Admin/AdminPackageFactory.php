@@ -6,11 +6,6 @@ use Flute\Admin\Contracts\AdminPackageInterface;
 use InvalidArgumentException;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-/**
- * Class AdminPackageFactory
- *
- * Responsible for registering and initializing admin packages.
- */
 class AdminPackageFactory
 {
     /**
@@ -18,38 +13,16 @@ class AdminPackageFactory
      */
     protected array $packages = [];
 
-    /**
-     * @var EventDispatcher
-     */
     protected EventDispatcher $dispatcher;
 
-    /**
-     * @var string
-     */
     protected string $packagesPath;
 
-    /**
-     * @var string
-     */
     protected string $baseNamespace;
 
-    /**
-     * @var array|null
-     */
     protected ?array $menuItemsCache = null;
 
-    /**
-     * @var bool
-     */
     protected bool $packagesLoaded = false;
 
-    /**
-     * AdminPackageFactory constructor.
-     *
-     * @param EventDispatcher $dispatcher The event dispatcher instance.
-     * @param string $packagesPath The path to the packages directory.
-     * @param string $baseNamespace The base namespace for the packages.
-     */
     public function __construct(
         EventDispatcher $dispatcher,
         string $packagesPath = 'app/Core/Modules/Admin/Packages',
@@ -60,14 +33,11 @@ class AdminPackageFactory
         $this->baseNamespace = rtrim($baseNamespace, '\\');
     }
 
-    /**
-     * Registers a package.
-     *
-     * Adds the package to the internal list and registers its namespace if provided.
-     *
-     * @param AdminPackageInterface $package The admin package to register.
-     * @return void
-     */
+    public function clearMenuCache(): void
+    {
+        $this->menuItemsCache = null;
+    }
+
     public function registerPackage(AdminPackageInterface $package): void
     {
         $this->packages[] = $package;
@@ -77,22 +47,13 @@ class AdminPackageFactory
         $this->dispatcher->dispatch($event, Events\PackageRegisteredEvent::NAME);
     }
 
-    /**
-     * Initializes all registered packages.
-     *
-     * Calls the initialize and boot methods on all registered packages.
-     *
-     * @return void
-     */
     public function initializePackages(): void
     {
         if (empty($this->packages)) {
             return;
         }
 
-        usort($this->packages, function (AdminPackageInterface $a, AdminPackageInterface $b) {
-            return $a->getPriority() <=> $b->getPriority();
-        });
+        usort($this->packages, static fn (AdminPackageInterface $a, AdminPackageInterface $b) => $a->getPriority() <=> $b->getPriority());
 
         foreach ($this->packages as $package) {
             $package->initialize();
@@ -107,8 +68,6 @@ class AdminPackageFactory
     }
 
     /**
-     * Retrieves all registered packages.
-     *
      * @return AdminPackageInterface[]
      */
     public function getPackages(): array
@@ -116,16 +75,6 @@ class AdminPackageFactory
         return $this->packages;
     }
 
-    /**
-     * Automatically loads and registers packages from the specified directory.
-     *
-     * Scans the packages directory for PHP files, instantiates packages that implement AdminPackageInterface,
-     * and registers them if the current user has the necessary permissions.
-     *
-     * @return void
-     *
-     * @throws InvalidArgumentException If the packages directory does not exist.
-     */
     public function loadPackagesFromDirectory(): void
     {
         if ($this->packagesLoaded) {
@@ -182,74 +131,161 @@ class AdminPackageFactory
 
             $packageClasses[] = $className;
 
-            /**
-             * @var AdminPackageInterface $package
-             */
+            /** @var AdminPackageInterface $package */
             $package = app()->get($className);
 
-            // We support 2 mods. Default web and CLI for getting routes and other things
             if (($package->getPermissions() && user()->can($package->getPermissions())) || is_cli()) {
                 $this->registerPackage($package);
             }
         }
 
         if (!empty($packageClasses) && !is_debug()) {
-            cache()->set($cacheKey, $packageClasses, 86400); // 1 day
+            cache()->set($cacheKey, $packageClasses, 86400);
         }
 
         $this->packagesLoaded = true;
     }
 
-    /**
-     * Get all menu items from registered packages.
-     *
-     * Aggregates menu items from all registered packages for display in the admin navigation.
-     *
-     * @return array
-     */
     public function getAllMenuItems(): array
     {
         if ($this->menuItemsCache !== null) {
             return $this->menuItemsCache;
         }
 
-        $menuItems = [];
+        $sections = [];
         $permissionsCache = [];
+        // Remember last explicit header from CORE admin packages so follow-up core items
+        // without a header (e.g. MainSettings) can be grouped nicely.
+        $lastCoreSectionKey = null;
 
         foreach ($this->packages as $package) {
             $packageMenuItems = $package->getMenuItems();
+            $moduleName = $this->getModuleNameFromPackage($package);
+            $isModulePackage = $moduleName !== null;
+            $packageSectionKey = null; // last explicit header inside this package
+            $moduleSectionKey = $isModulePackage ? ('module_' . $moduleName) : null;
+
             foreach ($packageMenuItems as $item) {
-                if (isset($item['permission'])) {
-                    $permissions = $item['permission'];
-                    $mode = isset($item['permission_mode']) ? strtolower($item['permission_mode']) : 'all';
+                if (!$this->checkItemPermission($item, $permissionsCache)) {
+                    continue;
+                }
 
-                    $cacheKey = $this->getPermissionCacheKey($permissions, $mode);
+                if (isset($item['type']) && $item['type'] === 'header') {
+                    $sectionKey = $item['title'];
+                    $packageSectionKey = $sectionKey;
 
-                    if (!isset($permissionsCache[$cacheKey])) {
-                        $permissionsCache[$cacheKey] = $this->userHasPermissions($permissions, $mode);
+                    if (!isset($sections[$sectionKey])) {
+                        $sections[$sectionKey] = [
+                            'type' => 'header',
+                            'title' => $item['title'],
+                            'items' => [],
+                            'priority' => $package->getPriority(),
+                        ];
+                    } else {
+                        // Keep earliest priority for stable ordering.
+                        $sections[$sectionKey]['priority'] = min($sections[$sectionKey]['priority'], $package->getPriority());
                     }
 
-                    if ($permissionsCache[$cacheKey]) {
-                        $menuItems[] = $item;
+                    if (!$isModulePackage) {
+                        $lastCoreSectionKey = $sectionKey;
                     }
                 } else {
-                    $menuItems[] = $item;
+                    // Section resolution rules:
+                    // 1) explicit header within this package
+                    // 2) module auto-section (ONLY for module packages)
+                    // 3) last core header (ONLY for core packages)
+                    // 4) ungrouped fallback
+                    $targetSection = $packageSectionKey;
+                    if ($targetSection === null && $isModulePackage) {
+                        $targetSection = $moduleSectionKey;
+                    }
+                    if ($targetSection === null && !$isModulePackage) {
+                        $targetSection = $lastCoreSectionKey;
+                    }
+
+                    if ($targetSection === null) {
+                        $targetSection = '__ungrouped__';
+                        if (!isset($sections[$targetSection])) {
+                            $sections[$targetSection] = [
+                                'type' => 'header',
+                                'title' => null,
+                                'items' => [],
+                                'priority' => 0,
+                            ];
+                        }
+                    }
+
+                    // Ensure module section exists (when used).
+                    if ($isModulePackage && $targetSection === $moduleSectionKey && !isset($sections[$targetSection])) {
+                        $sections[$targetSection] = [
+                            'type' => 'header',
+                            'title' => $moduleName,
+                            'items' => [],
+                            'priority' => $package->getPriority(),
+                            'is_module' => true,
+                        ];
+                    }
+
+                    // Ensure core header exists when used as fallback (rare but possible).
+                    if (!$isModulePackage && $targetSection === $lastCoreSectionKey && $targetSection !== null && !isset($sections[$targetSection])) {
+                        $sections[$targetSection] = [
+                            'type' => 'header',
+                            'title' => $targetSection,
+                            'items' => [],
+                            'priority' => $package->getPriority(),
+                        ];
+                    }
+
+                    $sections[$targetSection]['items'][] = $item;
                 }
             }
         }
 
-        $this->menuItemsCache = $menuItems;
+        uasort($sections, static fn ($a, $b) => $a['priority'] <=> $b['priority']);
 
-        return $menuItems;
+        $result = [];
+        foreach ($sections as $section) {
+            if (!empty($section['items'])) {
+                $result[] = $section;
+            }
+        }
+
+        $this->menuItemsCache = $result;
+
+        return $result;
     }
 
-    /**
-     * Creates a cache key for permission checks
-     *
-     * @param string|array $permissions
-     * @param string $mode
-     * @return string
-     */
+    protected function getModuleNameFromPackage(AdminPackageInterface $package): ?string
+    {
+        $basePath = $package->getBasePath();
+
+        if (strpos($basePath, 'app' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR) !== false) {
+            preg_match('/app[\/\\\\]Modules[\/\\\\]([^\/\\\\]+)/', $basePath, $matches);
+            if (!empty($matches[1])) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
+    protected function checkItemPermission(array $item, array &$permissionsCache): bool
+    {
+        if (!isset($item['permission'])) {
+            return true;
+        }
+
+        $permissions = $item['permission'];
+        $mode = isset($item['permission_mode']) ? strtolower($item['permission_mode']) : 'all';
+        $cacheKey = $this->getPermissionCacheKey($permissions, $mode);
+
+        if (!isset($permissionsCache[$cacheKey])) {
+            $permissionsCache[$cacheKey] = $this->userHasPermissions($permissions, $mode);
+        }
+
+        return $permissionsCache[$cacheKey];
+    }
+
     protected function getPermissionCacheKey($permissions, string $mode): string
     {
         if (is_array($permissions)) {
@@ -259,13 +295,6 @@ class AdminPackageFactory
         return 'single_' . $permissions;
     }
 
-    /**
-     * Checks if the user has the necessary permissions for a menu item.
-     *
-     * @param string|array $permissions Permission or an array of permissions.
-     * @param string $mode Check mode: 'all' or 'any'.
-     * @return bool
-     */
     protected function userHasPermissions($permissions, string $mode = 'all'): bool
     {
         if (is_array($permissions)) {
@@ -277,17 +306,17 @@ class AdminPackageFactory
                 }
 
                 return false;
-            } else { // 'all'
-                foreach ($permissions as $perm) {
-                    if (!user()->can($perm)) {
-                        return false;
-                    }
-                }
-
-                return true;
             }
-        } else {
-            return user()->can($permissions);
+
+            foreach ($permissions as $perm) {
+                if (!user()->can($perm)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
+
+        return user()->can($permissions);
     }
 }

@@ -1,0 +1,106 @@
+// Dirty bar - matches card/select/modal styling
+.admin-dirty-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%) translateY(calc(100% + 20px));
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 12px 10px 16px;
+    border-radius: 0.75rem; // Same as .card
+    border: 1px solid var(--transp-1); // Same as .card
+    background-color: var(--background); // Same as .card
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.12); // Enhanced card shadow
+
+    transition: 
+        opacity 0.2s ease,
+        transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &::before {
+        content: '';
+        flex-shrink: 0;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--warning);
+        animation: dirtyPulse 1.5s ease-in-out infinite;
+    }
+
+    &__text {
+        font-size: var(--p-small);
+        color: var(--text);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 4px;
+    }
+
+    &.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+    }
+
+    @include media(mobile) {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        transform: translateX(0) translateY(calc(100% + 12px));
+        width: auto;
+        justify-content: space-between;
+        padding: 10px 12px;
+
+        &.is-visible {
+            transform: translateX(0) translateY(0);
+        }
+
+        &__text {
+            font-size: var(--small);
+        }
+    }
+}
+
+@keyframes dirtyPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+// Dialog styles - matches modal styling
+#dirty-dialog {
+
+    .modal__body {
+        padding-top: 4px;
+
+        p {
+            color: var(--text-500);
+            font-size: var(--p);
+            line-height: 1.5;
+            margin: 0;
+        }
+    }
+
+    .modal__footer {
+        gap: 8px;
+        
+        > .btn,
+        > button {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+}

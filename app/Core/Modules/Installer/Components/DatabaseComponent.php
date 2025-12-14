@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Installer\Components;
 
+use Exception;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
@@ -9,6 +10,8 @@ use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Support\FluteComponent;
 use Flute\Core\SystemHealth\Migrations\CheckPermissionsMigration;
 use PDO;
+use PDOException;
+use Throwable;
 
 class DatabaseComponent extends FluteComponent
 {
@@ -118,7 +121,7 @@ class DatabaseComponent extends FluteComponent
 
                 try {
                     $this->saveConfig();
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->errorMessage = $e->getMessage();
                     $this->isConnected = false;
                 }
@@ -143,16 +146,16 @@ class DatabaseComponent extends FluteComponent
             }
 
             // Test connection to server without database first
-            $pdo = new \PDO($dsn, $this->username, $this->password, [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            $pdo = new PDO($dsn, $this->username, $this->password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
 
             // Try to select the database
             try {
-                $pdo = new \PDO($dsn."dbname={$this->database}", $this->username, $this->password, [
-                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                $pdo = new PDO($dsn."dbname={$this->database}", $this->username, $this->password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
-            } catch (\PDOException $e) {
+            } catch (PDOException $e) {
                 // If database doesn't exist, create it (if we have permissions)
                 if ($this->driver === 'mysql') {
                     $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$this->database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
@@ -176,10 +179,31 @@ class DatabaseComponent extends FluteComponent
             ]);
 
             $this->saveConfig();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->errorMessage = $e->getMessage();
             $this->isConnected = false;
         }
+    }
+
+    /**
+     * Render the component
+     *
+     * @return \Illuminate\View\View
+     */
+    public function render()
+    {
+        return view('installer::yoyo.database', [
+            'drivers' => $this->drivers,
+            'driver' => $this->driver,
+            'host' => $this->host,
+            'port' => $this->port,
+            'database' => $this->database,
+            'username' => $this->username,
+            'password' => $this->password,
+            'prefix' => $this->prefix,
+            'errorMessage' => $this->errorMessage,
+            'isConnected' => $this->isConnected,
+        ]);
     }
 
     /**
@@ -202,25 +226,24 @@ class DatabaseComponent extends FluteComponent
                         'logInterpolatedQueries' => false,
                         'logQueryParameters' => false,
                     ],
-                    'connection' =>
-                        \Cycle\Database\Config\MySQL\TcpConnectionConfig::__set_state([
-                            'nonPrintableOptions' => [
-                                0 => 'password',
-                                1 => 'PWD',
-                            ],
-                            'user' => $this->username,
-                            'password' => $this->password,
-                            'options' => [
-                                8 => 0,
-                                3 => 2,
-                                1002 => 'SET NAMES utf8mb4',
-                                17 => false,
-                            ],
-                            'port' => (int) $this->port,
-                            'database' => $this->database,
-                            'host' => $this->host,
-                            'charset' => 'utf8mb4',
-                        ]),
+                    'connection' => \Cycle\Database\Config\MySQL\TcpConnectionConfig::__set_state([
+                        'nonPrintableOptions' => [
+                            0 => 'password',
+                            1 => 'PWD',
+                        ],
+                        'user' => $this->username,
+                        'password' => $this->password,
+                        'options' => [
+                            8 => 0,
+                            3 => 2,
+                            1002 => 'SET NAMES utf8mb4',
+                            17 => false,
+                        ],
+                        'port' => (int) $this->port,
+                        'database' => $this->database,
+                        'host' => $this->host,
+                        'charset' => 'utf8mb4',
+                    ]),
                     'driver' => 'Cycle\\Database\\Driver\\MySQL\\MySQLDriver',
                     'reconnect' => true,
                     'timezone' => 'UTC',
@@ -241,23 +264,22 @@ class DatabaseComponent extends FluteComponent
                         'logInterpolatedQueries' => false,
                         'logQueryParameters' => false,
                     ],
-                    'connection' =>
-                        \Cycle\Database\Config\Postgres\TcpConnectionConfig::__set_state([
-                            'nonPrintableOptions' => [
-                                0 => 'password',
-                                1 => 'PWD',
-                            ],
-                            'user' => $this->username,
-                            'password' => $this->password,
-                            'options' => [
-                                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                                PDO::ATTR_CASE => PDO::CASE_NATURAL,
-                            ],
-                            'port' => (int) $this->port,
-                            'database' => $this->database,
-                            'host' => $this->host,
-                            'schema' => 'public',
-                        ]),
+                    'connection' => \Cycle\Database\Config\Postgres\TcpConnectionConfig::__set_state([
+                        'nonPrintableOptions' => [
+                            0 => 'password',
+                            1 => 'PWD',
+                        ],
+                        'user' => $this->username,
+                        'password' => $this->password,
+                        'options' => [
+                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                            PDO::ATTR_CASE => PDO::CASE_NATURAL,
+                        ],
+                        'port' => (int) $this->port,
+                        'database' => $this->database,
+                        'host' => $this->host,
+                        'schema' => 'public',
+                    ]),
                     'driver' => 'Cycle\\Database\\Driver\\Postgres\\PostgresDriver',
                     'reconnect' => true,
                     'timezone' => 'UTC',
@@ -278,17 +300,16 @@ class DatabaseComponent extends FluteComponent
                         'logInterpolatedQueries' => false,
                         'logQueryParameters' => false,
                     ],
-                    'connection' =>
-                        \Cycle\Database\Config\SQLite\FileConnectionConfig::__set_state([
-                            'nonPrintableOptions' => [
-                                0 => 'password',
-                                1 => 'PWD',
-                            ],
-                            'filename' => path('storage/database/'.$this->database),
-                            'options' => [
-                                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                            ],
-                        ]),
+                    'connection' => \Cycle\Database\Config\SQLite\FileConnectionConfig::__set_state([
+                        'nonPrintableOptions' => [
+                            0 => 'password',
+                            1 => 'PWD',
+                        ],
+                        'filename' => path('storage/database/'.$this->database),
+                        'options' => [
+                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        ],
+                    ]),
                     'driver' => 'Cycle\\Database\\Driver\\SQLite\\SQLiteDriver',
                     'reconnect' => true,
                     'timezone' => 'UTC',
@@ -325,26 +346,5 @@ class DatabaseComponent extends FluteComponent
             $role->priority = 1;
             $role->save();
         }
-    }
-
-    /**
-     * Render the component
-     *
-     * @return \Illuminate\View\View
-     */
-    public function render()
-    {
-        return view('installer::yoyo.database', [
-            'drivers' => $this->drivers,
-            'driver' => $this->driver,
-            'host' => $this->host,
-            'port' => $this->port,
-            'database' => $this->database,
-            'username' => $this->username,
-            'password' => $this->password,
-            'prefix' => $this->prefix,
-            'errorMessage' => $this->errorMessage,
-            'isConnected' => $this->isConnected,
-        ]);
     }
 }

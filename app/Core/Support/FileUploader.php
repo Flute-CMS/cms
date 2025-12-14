@@ -2,15 +2,19 @@
 
 namespace Flute\Core\Support;
 
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use WebPConvert\WebPConvert;
+use ZipArchive;
 
 class FileUploader
 {
     private $targetDirectory;
+
     private $filesystem;
+
     private $logger;
 
     public function __construct(
@@ -23,20 +27,8 @@ class FileUploader
     }
 
     /**
-     * Converts megabytes to bytes.
-     *
-     * @param float $megabytes Size in megabytes
-     * @return int Size in bytes
-     */
-    private function convertMegabytesToBytes(float $megabytes): int
-    {
-        return (int) round($megabytes * 1024 * 1024);
-    }
-
-    /**
      * Uploads an image with security checks and optional conversion to WebP.
      *
-     * @param UploadedFile $file
      * @param int $maxSize Maximum file size in megabytes
      * @return string|null Path to the uploaded file or null in case of an error
      */
@@ -53,13 +45,13 @@ class FileUploader
         if (in_array($mimeType, $allowedMimeTypes) && in_array($extension, $allowedExtensions)) {
             $imageInfo = getimagesize($file->getPathname());
             if ($imageInfo === false) {
-                throw new \Exception('Uploaded file is not a valid image.');
+                throw new Exception('Uploaded file is not a valid image.');
             }
 
             $maxSizeBytes = $this->convertMegabytesToBytes($maxSize);
 
             if ($file->getSize() > $maxSizeBytes) {
-                throw new \Exception('File size exceeds the maximum limit of ' . $maxSize . ' MB.');
+                throw new Exception('File size exceeds the maximum limit of ' . $maxSize . ' MB.');
             }
 
             $fileName = $safeFilename . '.' . $extension;
@@ -88,24 +80,24 @@ class FileUploader
                     $this->filesystem->remove($filePath);
 
                     return 'assets/uploads/' . $webpFileName;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->error('WebP conversion failed: ' . $e->getMessage());
                     $this->filesystem->remove($filePath);
 
-                    throw new \Exception('Image conversion to WebP failed.');
+                    throw new Exception('Image conversion to WebP failed.');
                 }
             }
 
             return 'assets/uploads/' . $fileName;
-        } else {
-            throw new \Exception('Invalid image file type.');
         }
+
+        throw new Exception('Invalid image file type.');
+
     }
 
     /**
      * Uploads a ZIP file with security checks.
      *
-     * @param UploadedFile $file
      * @param int $maxSize Maximum file size in megabytes
      * @return string|null Path to the uploaded file or null in case of an error
      */
@@ -121,25 +113,26 @@ class FileUploader
             $maxSizeBytes = $this->convertMegabytesToBytes($maxSize);
 
             if ($file->getSize() > $maxSizeBytes) {
-                throw new \Exception('File size exceeds the maximum limit of ' . $maxSize . ' MB.');
+                throw new Exception('File size exceeds the maximum limit of ' . $maxSize . ' MB.');
             }
 
             $fileName = $safeFilename . '.' . $extension;
             $file->move($this->getTargetDirectory(), $fileName);
 
-            $zip = new \ZipArchive();
+            $zip = new ZipArchive();
             if ($zip->open($this->getTargetDirectory() . '/' . $fileName) === true) {
                 $zip->close();
 
                 return 'assets/uploads/' . $fileName;
-            } else {
-                $this->filesystem->remove($this->getTargetDirectory() . '/' . $fileName);
-
-                throw new \Exception('Invalid ZIP file.');
             }
-        } else {
-            throw new \Exception('Invalid ZIP file type.');
+            $this->filesystem->remove($this->getTargetDirectory() . '/' . $fileName);
+
+            throw new Exception('Invalid ZIP file.');
+
         }
+
+        throw new Exception('Invalid ZIP file type.');
+
     }
 
     /**
@@ -150,5 +143,16 @@ class FileUploader
     public function getTargetDirectory()
     {
         return BASE_PATH . $this->targetDirectory;
+    }
+
+    /**
+     * Converts megabytes to bytes.
+     *
+     * @param float $megabytes Size in megabytes
+     * @return int Size in bytes
+     */
+    private function convertMegabytesToBytes(float $megabytes): int
+    {
+        return (int) round($megabytes * 1024 * 1024);
     }
 }

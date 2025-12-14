@@ -1,6 +1,6 @@
 <div class="flex items-center">
-    <span>{{ $module->name }}</span>
+    <span>{{ __($module->name) }}</span>
 </div>
 <small class="mt-1 text-muted">
-    {{ $module->description }}
+    {{ __($module->description) }}
 </small>

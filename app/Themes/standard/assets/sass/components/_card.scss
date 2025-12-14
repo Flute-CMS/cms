@@ -5,7 +5,7 @@
 
     border: 1px solid var(--transp-1);
     border-radius: var(--border1);
-    box-shadow: 0 10px 30px -20px rgba(0,0,0,.25);
+    box-shadow: var(--shadow-small);
     overflow: hidden;
     @include transition(box-shadow, transform);
 

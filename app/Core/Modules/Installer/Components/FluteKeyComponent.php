@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Installer\Components;
 
 use Flute\Core\Support\FluteComponent;
 use GuzzleHttp\Client;
+use Throwable;
 
 class FluteKeyComponent extends FluteComponent
 {
@@ -36,8 +37,6 @@ class FluteKeyComponent extends FluteComponent
 
     /**
      * Validate the Flute key
-     *
-     * @param string $key
      */
     public function validateKey()
     {
@@ -73,7 +72,7 @@ class FluteKeyComponent extends FluteComponent
             }
 
             $this->error = $body['message'] ?? __('install.flute_key.error_invalid');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->error = $e->getMessage();
         }
 

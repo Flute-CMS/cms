@@ -9,6 +9,7 @@
 @import 'layouts/app';
 @import 'layouts/header';
 @import 'layouts/sidebar';
+@import 'layouts/footer';
 @import 'layouts/error';
 
 @import 'partials/loading';
@@ -48,3 +49,5 @@
 @import 'components/sortable';
 @import 'components/metric';
 @import 'components/editor';
+@import 'components/charts';
+@import 'components/dirty-bar';

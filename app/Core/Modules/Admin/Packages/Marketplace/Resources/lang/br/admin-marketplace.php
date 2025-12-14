@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'ioncube' => [
+        'missing_title' => 'ionCube Loader não está instalado',
+        'missing_desc' => 'Alguns módulos do marketplace podem estar codificados e exigirão o ionCube Loader. Por favor, instale/ative-o no servidor.',
+    ],
     'labels' => [
         'marketplace' => 'Marketplace',
         'modules' => 'Módulos',
@@ -57,6 +61,10 @@ return [
         'installed' => 'Instalado',
         'read_more' => 'Leia mais',
         'collapse' => 'Minimizar',
+        'activate' => 'Ativar',
+        'deactivate' => 'Desativar',
+        'uninstall' => 'Desinstalar',
+        'view_on_marketplace' => 'Ver no Marketplace',
     ],
     'steps' => [
         'download' => 'Download Módulo',
@@ -90,10 +98,22 @@ return [
         'finishing' => 'Finalizando a instalação',
         'install_confirm' => 'Tem certeza de que deseja instalar o módulo :module?',
         'install_confirm_title' => 'Instalar Módulo',
+        'update_confirm' => 'Tem certeza de que deseja atualizar o módulo :module?',
+        'update_confirm_title' => 'Atualizar Módulo',
+        'activate_confirm' => 'Tem certeza de que deseja ativar o módulo :module?',
+        'activate_confirm_title' => 'Ativar Módulo',
+        'deactivate_confirm' => 'Tem certeza de que deseja desativar o módulo :module?',
+        'deactivate_confirm_title' => 'Desativar Módulo',
+        'uninstall_confirm' => 'Tem certeza de que deseja desinstalar o módulo :module? Todos os dados serão perdidos!',
+        'uninstall_confirm_title' => 'Desinstalar Módulo',
         'requires_php' => 'Requer PHP :version',
         'requires_flute' => 'Requer Flute :version',
         'requires_modules' => 'Requer módulos: :modules',
         'module_installed' => 'Módulo instalado com sucesso!',
+        'module_activated' => 'Módulo ativado com sucesso!',
+        'module_deactivated' => 'Módulo desativado com sucesso!',
+        'module_uninstalled' => 'Módulo desinstalado com sucesso!',
+        'module_not_found' => 'Módulo não encontrado',
         'flute_key_not_set' => 'A chave API do Flute não está definida. Defina-a nas configurações principais.',
         'refresh_success' => 'Módulos atualizados com sucesso',
     ],

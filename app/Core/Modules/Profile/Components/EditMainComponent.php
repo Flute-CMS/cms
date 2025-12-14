@@ -2,23 +2,33 @@
 
 namespace Flute\Core\Modules\Profile\Components;
 
+use Exception;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteComponent;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class EditMainComponent extends FluteComponent
 {
     public ?string $name = null;
+
     public ?string $email = null;
+
     public ?string $login = null;
+
     public ?string $uri = null;
+
     public ?string $theme = null;
+
     public ?string $privacy = null;
 
     public ?string $current_password = null;
+
     public ?string $new_password = null;
+
     public ?string $new_password_confirmation = null;
+
     public ?string $delete_confirmation = null;
 
     /**
@@ -63,7 +73,7 @@ class EditMainComponent extends FluteComponent
                 $this->updateUserMainInfo();
                 user()->updateUser($this->user);
                 $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->inputError('name', $e->getMessage());
             }
         }
@@ -106,28 +116,6 @@ class EditMainComponent extends FluteComponent
     }
 
     /**
-     * Update the main user information.
-     */
-    protected function updateUserMainInfo()
-    {
-        $this->user->name = $this->name;
-
-        if ($this->email !== $this->user->email) {
-            $this->user->email = $this->email;
-
-            if (config('auth.registration.confirm_email')) {
-                $this->user->verified = false;
-            }
-        }
-
-        $this->user->login = $this->login;
-
-        if ($this->uri) {
-            $this->user->uri = $this->uri;
-        }
-    }
-
-    /**
      * Save the user's profile images (avatar and banner).
      */
     public function saveImages()
@@ -158,94 +146,10 @@ class EditMainComponent extends FluteComponent
         try {
             user()->updateUser($this->user);
             $this->flashMessage(__('profile.edit.main.profile_images.save_changes_success'), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logs()->error($e);
             $this->addUnknownError();
         }
-    }
-
-    /**
-     * Handle the upload of a single image.
-     *
-     * @param string $field
-     * @param FileUploader $uploader
-     * @param string $uploadsDir
-     * @param int $maxSize
-     * @param string $logEvent
-     * @return string|null
-     */
-    protected function processImageUpload(string $field, FileUploader $uploader, string $uploadsDir, int $maxSize, string $logEvent): ?string
-    {
-        $file = $this->$field;
-        if ($file instanceof UploadedFile && $file->isValid()) {
-            try {
-                $newFile = $uploader->uploadImage($file, $maxSize);
-
-                if ($newFile === null) {
-                    throw new \RuntimeException(__('profile.edit.main.upload_failed', ['field' => $field]));
-                }
-
-                $this->removeOldFile($field, $uploadsDir);
-                $this->user->$field = $newFile;
-
-                return null;
-            } catch (\Exception $e) {
-                return $e->getMessage();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Remove the old image file.
-     *
-     * @param string $field
-     * @param string $uploadsDir
-     */
-    protected function removeOldFile(string $field, string $uploadsDir): void
-    {
-        $oldFile = $this->user->$field;
-        if ($oldFile && $oldFile !== config("profile.default_{$field}")) {
-            $fullPath = BASE_PATH . '/public/' . $oldFile;
-            if (realpath($fullPath) && strpos(realpath($fullPath), $uploadsDir) === 0 && fs()->exists($fullPath)) {
-                fs()->remove($fullPath);
-            }
-        }
-    }
-
-    /**
-     * Add errors when the upload directory does not exist.
-     */
-    protected function addUploadDirectoryError(): void
-    {
-        $this->inputError('avatar', __('profile.edit.main.upload_directory_error'));
-        $this->inputError('banner', __('profile.edit.main.upload_directory_error'));
-    }
-
-    /**
-     * Handle and display image upload errors.
-     *
-     * @param string|null $avatarError
-     * @param string|null $bannerError
-     */
-    protected function handleImageErrors(?string $avatarError, ?string $bannerError): void
-    {
-        if ($avatarError) {
-            $this->inputError('avatar', $avatarError);
-        }
-        if ($bannerError) {
-            $this->inputError('banner', $bannerError);
-        }
-    }
-
-    /**
-     * Add a generic unknown error.
-     */
-    protected function addUnknownError(): void
-    {
-        $this->inputError('avatar', __('def.unknown_error'));
-        $this->inputError('banner', __('def.unknown_error'));
     }
 
     /**
@@ -268,7 +172,7 @@ class EditMainComponent extends FluteComponent
             user()->updateUser($this->user);
 
             $this->flashMessage(__('profile.edit.main.change_password.save_changes_success'), 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->inputError('new_password', $e->getMessage());
         }
     }
@@ -297,16 +201,107 @@ class EditMainComponent extends FluteComponent
                 auth()->logout();
 
                 $this->flashMessage(__('profile.edit.main.delete_account.delete_success'), 'success');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->inputError('delete_confirmation', __('profile.edit.main.delete_account.delete_failed'));
             }
         }
     }
 
     /**
+     * Update the main user information.
+     */
+    protected function updateUserMainInfo()
+    {
+        $this->user->name = $this->name;
+
+        if ($this->email !== $this->user->email) {
+            $this->user->email = $this->email;
+
+            if (config('auth.registration.confirm_email')) {
+                $this->user->verified = false;
+            }
+        }
+
+        $this->user->login = $this->login;
+
+        if ($this->uri) {
+            $this->user->uri = $this->uri;
+        }
+    }
+
+    /**
+     * Handle the upload of a single image.
+     */
+    protected function processImageUpload(string $field, FileUploader $uploader, string $uploadsDir, int $maxSize, string $logEvent): ?string
+    {
+        $file = $this->$field;
+        if ($file instanceof UploadedFile && $file->isValid()) {
+            try {
+                $newFile = $uploader->uploadImage($file, $maxSize);
+
+                if ($newFile === null) {
+                    throw new RuntimeException(__('profile.edit.main.upload_failed', ['field' => $field]));
+                }
+
+                $this->removeOldFile($field, $uploadsDir);
+                $this->user->$field = $newFile;
+
+                return null;
+            } catch (Exception $e) {
+                return $e->getMessage();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove the old image file.
+     */
+    protected function removeOldFile(string $field, string $uploadsDir): void
+    {
+        $oldFile = $this->user->$field;
+        if ($oldFile && $oldFile !== config("profile.default_{$field}")) {
+            $fullPath = BASE_PATH . '/public/' . $oldFile;
+            if (realpath($fullPath) && strpos(realpath($fullPath), $uploadsDir) === 0 && fs()->exists($fullPath)) {
+                fs()->remove($fullPath);
+            }
+        }
+    }
+
+    /**
+     * Add errors when the upload directory does not exist.
+     */
+    protected function addUploadDirectoryError(): void
+    {
+        $this->inputError('avatar', __('profile.edit.main.upload_directory_error'));
+        $this->inputError('banner', __('profile.edit.main.upload_directory_error'));
+    }
+
+    /**
+     * Handle and display image upload errors.
+     */
+    protected function handleImageErrors(?string $avatarError, ?string $bannerError): void
+    {
+        if ($avatarError) {
+            $this->inputError('avatar', $avatarError);
+        }
+        if ($bannerError) {
+            $this->inputError('banner', $bannerError);
+        }
+    }
+
+    /**
+     * Add a generic unknown error.
+     */
+    protected function addUnknownError(): void
+    {
+        $this->inputError('avatar', __('def.unknown_error'));
+        $this->inputError('banner', __('def.unknown_error'));
+    }
+
+    /**
      * Validate the main user information.
-     *
-     * @return bool
      */
     protected function validateSaveMain(): bool
     {
@@ -336,8 +331,6 @@ class EditMainComponent extends FluteComponent
 
     /**
      * Validate the uploaded images.
-     *
-     * @return bool
      */
     protected function validateImages(): bool
     {
@@ -358,8 +351,6 @@ class EditMainComponent extends FluteComponent
 
     /**
      * Validate the password change data.
-     *
-     * @return bool
      */
     protected function validateSavePassword(): bool
     {
@@ -394,8 +385,6 @@ class EditMainComponent extends FluteComponent
 
     /**
      * Validate the account deletion confirmation.
-     *
-     * @return bool
      */
     protected function validateDeleteAccount(): bool
     {

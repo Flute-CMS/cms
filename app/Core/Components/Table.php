@@ -14,6 +14,38 @@ use Flute\Core\Support\Htmx\Response\HtmxResponse;
  */
 abstract class Table extends FluteComponent
 {
+    /**
+     * The current search query.
+     */
+    public ?string $search = null;
+
+    /**
+     * The field currently used for sorting.
+     */
+    public ?string $sortField = null;
+
+    /**
+     * The sort direction ('asc' or 'desc').
+     */
+    public string $sortDirection = 'asc';
+
+    /**
+     * The number of records per page.
+     */
+    public int $perPage = 10;
+
+    /**
+     * Options for records per page.
+     *
+     * @var array<int>
+     */
+    public array $paginationOptions = [10, 25, 50, 100];
+
+    /**
+     * The current page number.
+     */
+    public int $page = 1;
+
     protected ?string $entityClass = null;
 
     /**
@@ -38,48 +70,6 @@ abstract class Table extends FluteComponent
      * @var array<int, array<string, mixed>>
      */
     protected array $columns = [];
-
-    /**
-     * The current search query.
-     *
-     * @var string|null
-     */
-    public ?string $search = null;
-
-    /**
-     * The field currently used for sorting.
-     *
-     * @var string|null
-     */
-    public ?string $sortField = null;
-
-    /**
-     * The sort direction ('asc' or 'desc').
-     *
-     * @var string
-     */
-    public string $sortDirection = 'asc';
-
-    /**
-     * The number of records per page.
-     *
-     * @var int
-     */
-    public int $perPage = 10;
-
-    /**
-     * Options for records per page.
-     *
-     * @var array<int>
-     */
-    public array $paginationOptions = [10, 25, 50, 100];
-
-    /**
-     * The current page number.
-     *
-     * @var int
-     */
-    public int $page = 1;
 
     /**
      * Additional filters to apply.
@@ -124,8 +114,8 @@ abstract class Table extends FluteComponent
     /**
      * Initialize component settings.
      *
-     * @return void
      * @throws Exception
+     * @return void
      */
     public function mount()
     {
@@ -141,9 +131,7 @@ abstract class Table extends FluteComponent
         $this->search = request()->input('search', $this->search);
 
         if (is_null($this->sortField) && !empty($this->columns())) {
-            $defaultSortColumn = array_filter($this->columns(), function ($column) {
-                return isset($column['defaultSort']) && $column['defaultSort'] === true;
-            });
+            $defaultSortColumn = array_filter($this->columns(), static fn ($column) => isset($column['defaultSort']) && $column['defaultSort'] === true);
 
             $defaultSortColumn = !empty($defaultSortColumn) ? reset($defaultSortColumn) : null;
 
@@ -169,8 +157,6 @@ abstract class Table extends FluteComponent
 
     /**
      * Set the data source as a Select query.
-     *
-     * @param SelectQuery|Select $select
      */
     public function setSelect(SelectQuery|Select $select)
     {
@@ -179,8 +165,6 @@ abstract class Table extends FluteComponent
 
     /**
      * Set a transformer callable that processes each row before column rendering.
-     *
-     * @param callable $transformer
      */
     public function setRowTransformer(callable $transformer): void
     {
@@ -191,7 +175,6 @@ abstract class Table extends FluteComponent
      * Sort by a specific field.
      * Toggles sort direction if the same field is sorted again.
      *
-     * @param string $field
      * @return void
      */
     public function sortBy(string $field)
@@ -209,7 +192,6 @@ abstract class Table extends FluteComponent
     /**
      * Set the current page.
      *
-     * @param int $page
      * @return void
      */
     public function setPage(int $page)
@@ -231,13 +213,13 @@ abstract class Table extends FluteComponent
         $queryParams['search'] = $this->search;
         $queryParams['page'] = 1;
 
-        $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams)->get());
+        // Search typing shouldn't spam browser history; replace is more intuitive.
+        $this->response->header(HtmxResponse::HX_REPLACE_URL, url()->addParams($queryParams)->get());
     }
 
     /**
      * Set the number of records per page.
      *
-     * @param int $perPage
      * @return void
      */
     public function setPerPage(int $perPage)
@@ -247,10 +229,47 @@ abstract class Table extends FluteComponent
     }
 
     /**
+     * Render the component.
+     *
+     * @throws Exception
+     * @return mixed
+     */
+    public function render()
+    {
+        $pagination = $this->getPaginatedData();
+        $rows = array_map([$this, 'formatRow'], $pagination['rows']);
+
+        $displayColumns = array_map(static fn ($column) => array_merge($column, [
+            'class' => $column['class'] ?? '',
+            'width' => $column['width'] ?? '',
+            'tooltip' => $column['tooltip'] ?? '',
+            'visible' => $column['visible'] ?? true,
+            'searchable' => $column['searchable'] ?? false,
+        ]), array_filter($this->columns(), static fn ($column) => !isset($column['visible']) || $column['visible']));
+
+        return $this->view('flute::partials.modules.table', [
+            'columns' => $displayColumns,
+            'rows' => $rows,
+            'total' => $pagination['total'],
+            'pages' => $pagination['pages'],
+            'currentPage' => $pagination['currentPage'],
+            'perPage' => $this->perPage,
+            'sortField' => $this->sortField,
+            'sortDirection' => $this->sortDirection,
+            'paginationOptions' => $this->paginationOptions,
+        ]);
+    }
+
+    public function columns(): array
+    {
+        return $this->columns;
+    }
+
+    /**
      * Build the query or prepare the data array.
      *
-     * @return SelectQuery|array<int, mixed>
      * @throws Exception
+     * @return SelectQuery|array<int, mixed>
      */
     protected function buildData()
     {
@@ -281,9 +300,7 @@ abstract class Table extends FluteComponent
         }
 
         if ($this->search) {
-            $searchableColumns = array_filter($this->columns(), function ($column) {
-                return ($column['searchable'] ?? false) && (!empty($column['field']) || !empty($column['searchFields']));
-            });
+            $searchableColumns = array_filter($this->columns(), static fn ($column) => ($column['searchable'] ?? false) && (!empty($column['field']) || !empty($column['searchFields'])));
 
             if (!empty($searchableColumns)) {
                 $query->where(function ($q) use ($searchableColumns) {
@@ -330,16 +347,12 @@ abstract class Table extends FluteComponent
 
         foreach ($this->additionalFilters as $field => $value) {
             if (!empty($value)) {
-                $filtered = array_filter($filtered, function ($item) use ($field, $value) {
-                    return isset($item[$field]) && $item[$field] == $value;
-                });
+                $filtered = array_filter($filtered, static fn ($item) => isset($item[$field]) && $item[$field] == $value);
             }
         }
 
         if (!empty($this->search)) {
-            $searchableColumns = array_filter($this->columns(), function ($column) {
-                return ($column['searchable'] ?? false) && !empty($column['field']);
-            });
+            $searchableColumns = array_filter($this->columns(), static fn ($column) => ($column['searchable'] ?? false) && !empty($column['field']));
 
             $filtered = array_filter($filtered, function ($item) use ($searchableColumns) {
                 foreach ($searchableColumns as $column) {
@@ -357,9 +370,7 @@ abstract class Table extends FluteComponent
             $column = collect($this->columns())->firstWhere('field', $this->sortField);
             if ($column && ($column['allowSort'] ?? true)) {
                 if (isset($column['sortFunction']) && is_callable($column['sortFunction'])) {
-                    usort($filtered, function ($a, $b) use ($column) {
-                        return call_user_func($column['sortFunction'], $a, $b, $this->sortDirection);
-                    });
+                    usort($filtered, fn ($a, $b) => call_user_func($column['sortFunction'], $a, $b, $this->sortDirection));
                 } else {
                     usort($filtered, function ($a, $b) {
                         $valueA = $a[$this->sortField] ?? null;
@@ -371,9 +382,10 @@ abstract class Table extends FluteComponent
 
                         if ($this->sortDirection === 'asc') {
                             return ($valueA < $valueB) ? -1 : 1;
-                        } else {
-                            return ($valueA > $valueB) ? -1 : 1;
                         }
+
+                        return ($valueA > $valueB) ? -1 : 1;
+
                     });
                 }
             }
@@ -385,8 +397,8 @@ abstract class Table extends FluteComponent
     /**
      * Retrieve paginated data.
      *
-     * @return array<string, mixed>
      * @throws Exception
+     * @return array<string, mixed>
      */
     protected function getPaginatedData(): array
     {
@@ -450,7 +462,6 @@ abstract class Table extends FluteComponent
      * Get data for rendering.
      * This method can be overridden to implement custom data retrieval logic.
      *
-     * @return array
      * @throws Exception
      */
     protected function getData(): array
@@ -498,46 +509,5 @@ abstract class Table extends FluteComponent
         }
 
         return $formattedRow;
-    }
-
-    /**
-     * Render the component.
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function render()
-    {
-        $pagination = $this->getPaginatedData();
-        $rows = array_map([$this, 'formatRow'], $pagination['rows']);
-
-        $displayColumns = array_map(function ($column) {
-            return array_merge($column, [
-                'class' => $column['class'] ?? '',
-                'width' => $column['width'] ?? '',
-                'tooltip' => $column['tooltip'] ?? '',
-                'visible' => $column['visible'] ?? true,
-                'searchable' => $column['searchable'] ?? false,
-            ]);
-        }, array_filter($this->columns(), function ($column) {
-            return !isset($column['visible']) || $column['visible'];
-        }));
-
-        return $this->view('flute::partials.modules.table', [
-            'columns' => $displayColumns,
-            'rows' => $rows,
-            'total' => $pagination['total'],
-            'pages' => $pagination['pages'],
-            'currentPage' => $pagination['currentPage'],
-            'perPage' => $this->perPage,
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
-            'paginationOptions' => $this->paginationOptions,
-        ]);
-    }
-
-    public function columns(): array
-    {
-        return $this->columns;
     }
 }

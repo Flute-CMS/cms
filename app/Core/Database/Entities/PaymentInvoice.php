@@ -6,8 +6,18 @@ use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 use Cycle\ORM\Entity\Behavior;
+
 #[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["is_paid", "created_at"]),
+        new Index(columns: ["user_id"]),
+        new Index(columns: ["transaction_id"])
+    ]
+)]
 #[Behavior\CreatedAt(
     field: 'createdAt',
     column: 'created_at'

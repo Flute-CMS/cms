@@ -2,16 +2,26 @@
 
 namespace Flute\Core\Support\Htmx\Response;
 
+use InvalidArgumentException;
+
 class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
 {
     public const HX_LOCATION = 'HX-Location';
+
     public const HX_PUSH_URL = 'HX-Push-Url';
+
     public const HX_REPLACE_URL = 'HX-Replace-Url';
+
     public const HX_RESWAP = 'HX-Reswap';
+
     public const HX_RETARGET = 'HX-Retarget';
+
     public const HX_RESELECT = 'HX-Reselect';
+
     public const HX_TRIGGER = 'HX-Trigger';
+
     public const HX_TRIGGER_AFTER_SETTLE = 'HX-Trigger-After-Settle';
+
     public const HX_TRIGGER_AFTER_SWAP = 'HX-Trigger-After-Swap';
 
     public function setLocation(string $path, ?array $context = null): static
@@ -70,7 +80,7 @@ class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
     private function _setTriggers(string $key, string|array $value): static
     {
         if ($value === '' || $value === []) {
-            throw new \InvalidArgumentException("Trigger value MUST be an non-empty string or array");
+            throw new InvalidArgumentException("Trigger value MUST be an non-empty string or array");
         }
         if (is_array($value)) {
             $value = json_encode($value);

@@ -10,10 +10,12 @@ use Flute\Core\ModulesManager\ModuleDependencies;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
 use Flute\Core\Theme\ThemeManager;
+use RuntimeException;
 
 class ModuleActivate implements ModuleActionInterface
 {
     protected ModuleDependencies $dependencies;
+
     protected ModuleManager $moduleManager;
 
     public function action(ModuleInformation &$module, ?ModuleManager $moduleManager = null): bool
@@ -24,22 +26,22 @@ class ModuleActivate implements ModuleActionInterface
         $moduleGet = $this->moduleManager->getModule($module->key);
 
         if (!$moduleGet) {
-            throw new \RuntimeException("Module wasn't found in the system");
+            throw new RuntimeException("Module wasn't found in the system");
         }
 
         if ($moduleGet->status === 'notinstalled') {
-            throw new \RuntimeException("Module is not installed in the system");
+            throw new RuntimeException("Module is not installed in the system");
         }
 
         if ($moduleGet->status === 'active') {
-            throw new \RuntimeException("Module already activated");
+            throw new RuntimeException("Module already activated");
         }
 
         $this->checkModuleDependencies($moduleGet);
 
         $this->activate($moduleGet);
 
-        app(DatabaseConnection::class)->forceRefreshSchema();
+        app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$module->key]);
 
         return true;
     }

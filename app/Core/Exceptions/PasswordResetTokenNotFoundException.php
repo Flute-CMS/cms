@@ -2,6 +2,8 @@
 
 namespace Flute\Core\Exceptions;
 
-class PasswordResetTokenNotFoundException extends \Exception
+use Exception;
+
+class PasswordResetTokenNotFoundException extends Exception
 {
 }

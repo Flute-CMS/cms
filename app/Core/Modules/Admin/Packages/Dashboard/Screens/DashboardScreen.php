@@ -5,31 +5,31 @@ namespace Flute\Admin\Packages\Dashboard\Screens;
 use Flute\Admin\Packages\Dashboard\Services\DashboardService;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
+use Flute\Core\Services\IoncubeService;
+use Throwable;
 
 class DashboardScreen extends Screen
 {
     /**
      * Screen title
-     *
-     * @var string
      */
     public ?string $name = 'admin-dashboard.labels.home';
 
     /**
      * Screen description
-     *
-     * @var string
      */
     public ?string $description = 'admin-dashboard.descriptions.key_metrics';
 
     public $vars;
 
+    public ?array $ioncubeDownload = null;
+
+    public ?string $ioncubeDownloadError = null;
+
     protected $dashboardService;
 
     /**
      * Mount the screen
-     *
-     * @return void
      */
     public function mount(): void
     {
@@ -42,8 +42,6 @@ class DashboardScreen extends Screen
 
     /**
      * Get the layout elements
-     *
-     * @return array
      */
     public function layout(): array
     {
@@ -52,12 +50,23 @@ class DashboardScreen extends Screen
         $basePathResolved = realpath(BASE_PATH) ?: rtrim(BASE_PATH, DIRECTORY_SEPARATOR);
         $modulesFullPath = rtrim($basePathResolved . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Modules', DIRECTORY_SEPARATOR);
 
-        if (!$this->isIoncubeConfiguredForModules($modulesFullPath)) {
-            $iniLine = 'ioncube.loader.encoded_paths="' . $modulesFullPath . '"';
-            $layouts[] = LayoutFactory::view('admin-dashboard::components.ioncube-notice', [
-                'modules_full_path' => $modulesFullPath,
-                'ini_line' => $iniLine,
-            ]);
+        if (user()->can('admin.boss')) {
+            /** @var IoncubeService $ioncube */
+            $ioncube = app(IoncubeService::class);
+
+            if (!$ioncube->isLoaded()) {
+                $layouts[] = LayoutFactory::view('admin-dashboard::components.ioncube-missing', [
+                    'ioncube' => $ioncube,
+                    'download' => $this->ioncubeDownload,
+                    'download_error' => $this->ioncubeDownloadError,
+                ]);
+            } elseif (!$this->isIoncubeConfiguredForModules($modulesFullPath)) {
+                $iniLine = 'ioncube.loader.encoded_paths="' . $modulesFullPath . '"';
+                $layouts[] = LayoutFactory::view('admin-dashboard::components.ioncube-notice', [
+                    'modules_full_path' => $modulesFullPath,
+                    'ini_line' => $iniLine,
+                ]);
+            }
         }
 
         $layouts[] = LayoutFactory::tabs($this->dashboardService->getTabs()->all())
@@ -67,6 +76,26 @@ class DashboardScreen extends Screen
             ->lazyload(true);
 
         return $layouts;
+    }
+
+    public function downloadIoncubeLoaders(): void
+    {
+        $this->ioncubeDownload = null;
+        $this->ioncubeDownloadError = null;
+
+        /** @var IoncubeService $ioncube */
+        $ioncube = app(IoncubeService::class);
+
+        try {
+            $targetDir = storage_path('app/ioncube');
+            $this->ioncubeDownload = $ioncube->downloadLoaders($targetDir);
+
+            $this->flashMessage(__('admin-dashboard.ioncube.download_success'), 'success');
+        } catch (Throwable $e) {
+            $this->ioncubeDownloadError = $e->getMessage();
+            logs()->error($e);
+            $this->flashMessage(__('admin-dashboard.ioncube.download_failed') . ': ' . $e->getMessage(), 'error');
+        }
     }
 
     protected function isIoncubeConfiguredForModules(string $modulesFullPath): bool

@@ -23,7 +23,7 @@ class ProfileEditController extends BaseController
 
         breadcrumb()
             ->add(__('def.home'), url('/'))
-            ->add(__('def.profile') . " - $user->name", url("profile/{$user->getUrl()}"))
+            ->add(__('def.profile') . " - {$user->name}", url("profile/{$user->getUrl()}"))
             ->add(__('def.settings'), url('profile/settings'));
 
         $tabs = $profileTabService->getTabs();

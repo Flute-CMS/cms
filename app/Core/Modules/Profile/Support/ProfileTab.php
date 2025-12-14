@@ -8,29 +8,22 @@ abstract class ProfileTab
 {
     /**
      * Returns the unique identifier of the tab.
-     *
-     * @return string
      */
     abstract public function getId(): string;
 
     /**
      * Returns the URL path associated with the tab.
-     *
-     * @return string
      */
     abstract public function getPath(): string;
 
     /**
      * Returns the title of the tab.
-     *
-     * @return string
      */
     abstract public function getTitle(): string;
 
     /**
      * Returns the content of the tab.
      *
-     * @param User $user
      * @return string|\Illuminate\View\View
      */
     abstract public function getContent(User $user);
@@ -39,8 +32,6 @@ abstract class ProfileTab
      * Returns the order (priority) of the tab.
      *
      * Lower numbers indicate higher priority.
-     *
-     * @return int
      */
     public function getOrder(): int
     {
@@ -54,9 +45,6 @@ abstract class ProfileTab
 
     /**
      * Checks if the user can view this tab.
-     *
-     * @param User $user
-     * @return bool
      */
     public function canView(User $user): bool
     {

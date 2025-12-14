@@ -14,6 +14,7 @@ return [
         'promo_codes_description' => 'Управление промокодами и скидками',
         'promo_edit' => 'Редактирование промокода :name',
         'promo_add' => 'Добавление промокода',
+        'promo_details' => 'Детали промокода :name',
         'promo_history' => 'История использования промокода :name',
     ],
     'metrics' => [

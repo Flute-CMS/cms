@@ -5,7 +5,10 @@ namespace Flute\Core\ModulesManager;
 use Cycle\ORM\Exception\ORMException;
 use DI\DependencyException;
 use DI\NotFoundException;
+use Exception;
+use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Support\ModuleServiceProvider;
+use Throwable;
 
 class ModuleRegister
 {
@@ -26,7 +29,7 @@ class ModuleRegister
                 $classPath = self::normalizeClassPath($provider['class']);
 
                 if (!class_exists(self::normalizeClassPath($classPath))) {
-                    logs('modules')->error("Module $classPath wasn't found in the FileSystem!");
+                    logs('modules')->error("Module {$classPath} wasn't found in the FileSystem!");
 
                     continue;
                 }
@@ -65,8 +68,17 @@ class ModuleRegister
                         self::$modulesBootTimes[$provider['module']] += round($extensionsTime, 3);
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 logs('modules')->error($e);
+
+                // In production mode errors are often hidden; if a module fails because an ORM schema
+                // is missing, schedule a schema refresh so modules/widgets/routes recover on next request.
+                if ($e instanceof ORMException && str_contains($e->getMessage(), 'Undefined schema')) {
+                    try {
+                        app(DatabaseConnection::class)->forceRefreshSchemaDeferred([$provider['module'] ?? null]);
+                    } catch (Throwable) {
+                    }
+                }
 
                 // Schema exception is not critical and can be ignored
                 if (user()->can('admin.boss') && !($e instanceof ORMException)) {
@@ -74,6 +86,14 @@ class ModuleRegister
                 }
             }
         }
+    }
+
+    /**
+     * Get modules boot times
+     */
+    public static function getModulesBootTimes(): array
+    {
+        return self::$modulesBootTimes;
     }
 
     /**
@@ -98,15 +118,5 @@ class ModuleRegister
     protected static function normalizeClassPath(string $class): string
     {
         return str_replace('/', '\\', $class);
-    }
-
-    /**
-     * Get modules boot times
-     *
-     * @return array
-     */
-    public static function getModulesBootTimes(): array
-    {
-        return self::$modulesBootTimes;
     }
 }

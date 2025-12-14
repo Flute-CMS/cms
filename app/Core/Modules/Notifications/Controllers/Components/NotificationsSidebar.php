@@ -13,6 +13,7 @@ class NotificationsSidebar extends BaseController
             "countUnread" => notification()->countUnread(),
         ])->setTriggers('open-right-sidebar');
     }
+
     public function allSplitted()
     {
         $notifications = notification()->all(true);

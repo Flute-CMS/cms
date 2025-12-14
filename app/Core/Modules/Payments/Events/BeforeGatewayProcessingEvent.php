@@ -12,8 +12,11 @@ class BeforeGatewayProcessingEvent extends Event
     public const NAME = 'gateway.before_processing';
 
     protected $invoice;
+
     protected $gateway;
+
     protected $paymentGateway;
+
     protected $paymentData;
 
     public function __construct(PaymentInvoice $invoice, PaymentGateway $paymentGateway, ?GatewayInterface $gateway, array &$paymentData)

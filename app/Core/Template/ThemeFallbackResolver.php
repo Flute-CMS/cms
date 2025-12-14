@@ -7,18 +7,14 @@ namespace Flute\Core\Template;
  */
 class ThemeFallbackResolver
 {
-    protected static array $pathCache = [];
-    protected static array $themeCache = [];
     protected const CACHE_LIMIT = 2000;
+
+    protected static array $pathCache = [];
+
+    protected static array $themeCache = [];
 
     /**
      * Resolve file path with fallback across themes.
-     *
-     * @param string $relativePath
-     * @param array $themes
-     * @param string $type
-     * @param string $basePath
-     * @return string|null
      */
     public static function resolveFile(string $relativePath, array $themes, string $type = 'views', string $basePath = ''): ?string
     {
@@ -47,12 +43,6 @@ class ThemeFallbackResolver
 
     /**
      * Resolve multiple files at once for better performance.
-     *
-     * @param array $files
-     * @param array $themes
-     * @param string $type
-     * @param string $basePath
-     * @return array
      */
     public static function resolveMultipleFiles(array $files, array $themes, string $type = 'views', string $basePath = ''): array
     {
@@ -67,10 +57,6 @@ class ThemeFallbackResolver
 
     /**
      * Check if theme extends another theme.
-     *
-     * @param string $theme
-     * @param string $basePath
-     * @return string|null
      */
     public static function getParentTheme(string $theme, string $basePath = ''): ?string
     {
@@ -99,11 +85,6 @@ class ThemeFallbackResolver
 
     /**
      * Get complete theme hierarchy including parent themes.
-     *
-     * @param string $theme
-     * @param string $standardTheme
-     * @param string $basePath
-     * @return array
      */
     public static function getThemeHierarchy(string $theme, string $standardTheme = 'standard', string $basePath = ''): array
     {
@@ -131,10 +112,6 @@ class ThemeFallbackResolver
 
     /**
      * Scan directory for files matching pattern.
-     *
-     * @param string $directory
-     * @param string $pattern
-     * @return array
      */
     public static function scanDirectory(string $directory, string $pattern = '*.blade.php'): array
     {
@@ -164,8 +141,6 @@ class ThemeFallbackResolver
 
     /**
      * Clear all caches.
-     *
-     * @return void
      */
     public static function clearCache(): void
     {
@@ -175,8 +150,6 @@ class ThemeFallbackResolver
 
     /**
      * Get cache statistics.
-     *
-     * @return array
      */
     public static function getCacheStats(): array
     {
@@ -189,11 +162,6 @@ class ThemeFallbackResolver
 
     /**
      * Generate cache key.
-     *
-     * @param string $relativePath
-     * @param array $themes
-     * @param string $type
-     * @return string
      */
     protected static function getCacheKey(string $relativePath, array $themes, string $type): string
     {
@@ -203,9 +171,7 @@ class ThemeFallbackResolver
     /**
      * Cache result with size limit.
      *
-     * @param string $key
      * @param mixed $value
-     * @return void
      */
     protected static function cacheResult(string $key, $value): void
     {

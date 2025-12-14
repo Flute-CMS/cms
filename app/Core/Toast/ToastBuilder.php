@@ -3,10 +3,12 @@
 namespace Flute\Core\Toast;
 
 use Flute\Core\Services\ToastService;
+use LogicException;
 
 class ToastBuilder
 {
     private ToastService $toastService;
+
     private ?Toast $toast = null;
 
     public function __construct(ToastService $toastService)
@@ -118,12 +120,12 @@ class ToastBuilder
     /**
      * Проверяет, инициализирован ли тост.
      *
-     * @throws \LogicException
+     * @throws LogicException
      */
     private function ensureToast(): void
     {
         if ($this->toast === null) {
-            throw new \LogicException("Toast type must be set before setting options.");
+            throw new LogicException("Toast type must be set before setting options.");
         }
     }
 }

@@ -31,10 +31,36 @@ class FluteRichTextEditor {
             if (!textarea.id) {
                 textarea.id = 'editor-' + Math.random().toString(36).substring(2, 9);
             }
-            if (this.instances[textarea.id]) {
-                return false;
+            // If the textarea already has an instance but the DOM node was replaced (htmx morph),
+            // drop the stale instance so we can re-init correctly.
+            if (this.instances[textarea.id] && this.instances[textarea.id].element && this.instances[textarea.id].element !== textarea) {
+                try {
+                    this.instances[textarea.id].toTextArea();
+                } catch (e) {
+                    // ignore
+                }
+                delete this.instances[textarea.id];
             }
+
+            // Guard against stale EasyMDE containers left in DOM (e.g. after failed toTextArea / morph swaps).
             if (textarea.nextElementSibling && textarea.nextElementSibling.classList.contains('EasyMDEContainer')) {
+                if (!this.instances[textarea.id]) {
+                    try {
+                        textarea.nextElementSibling.remove();
+                    } catch (e) {
+                        // ignore
+                    }
+                    try {
+                        textarea.style.display = '';
+                    } catch (e) {
+                        // ignore
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            if (this.instances[textarea.id]) {
                 return false;
             }
             return true;
@@ -52,7 +78,17 @@ class FluteRichTextEditor {
             return;
         }
         if (textarea.nextElementSibling && textarea.nextElementSibling.classList.contains('EasyMDEContainer')) {
-            return;
+            // stale container without tracked instance — cleanup and re-init
+            try {
+                textarea.nextElementSibling.remove();
+            } catch (e) {
+                // ignore
+            }
+            try {
+                textarea.style.display = '';
+            } catch (e) {
+                // ignore
+            }
         }
 
         const height = parseInt(
