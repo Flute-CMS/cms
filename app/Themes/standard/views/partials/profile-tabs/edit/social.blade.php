@@ -1,1 +1,0 @@
-@yoyo('profile-edit-socials')

@@ -1,8 +1,0 @@
-{
-    "name": "{{MODULE_NAME}}",
-    "version": "1.0.0",
-    "description": "{{MODULE_DESCRIPTION}}",
-    "authors": ["{{MODULE_AUTHOR}}"],
-    "providers": ["Flute\\Modules\\{{MODULE_NAME}}\\Providers\\{{MODULE_NAME}}Provider"],
-    "dependencies": {}
-}

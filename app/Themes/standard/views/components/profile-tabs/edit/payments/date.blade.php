@@ -1,1 +1,0 @@
-<span title="{{ date(default_date_format(), $timestamp) }}">{{ $date }}</span> 
