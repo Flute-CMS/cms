@@ -1,0 +1,16 @@
+<?php return [
+    "bold"             => "Negrito",
+    "italic"           => "Itálico",
+    "strikethrough"    => "Sublinhado",    "code"             => "Código",
+    "quote"            => "Citar",
+    "unordered_list"   => "Lista com marcador",
+    "ordered_list"     => "Lista numerada",
+    "link"             => "Link",
+    "image"            => "Imagem",
+    "table"            => "Tabela",
+    "preview"          => "Prévia",    "fullscreen"       => "Tela cheia",    "guide"            => "Guia",
+    "clear"            => "Limpar",
+    "insert_image"     => "Inserir imagem",
+    "insert_table"     => "Inserir tabela",
+    "create_link"      => "Criar link",
+];

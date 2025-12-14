@@ -1,0 +1,354 @@
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1000;
+    inset: 0;
+    transition: var(--transition);
+    will-change: opacity, transform;
+
+    &.is-open {
+        display: flex;
+
+        .modal__overlay {
+            animation: mmfadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal__container {
+            animation: mmslideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    }
+
+    &[aria-hidden="true"] {
+        .modal__overlay {
+            animation: mmfadeOut 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal__container {
+            animation: mmslideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    }
+
+    // Modal sizes
+    &--sm {
+        .modal__container {
+            width: 400px;
+        }
+    }
+
+    &--lg {
+        .modal__container {
+            width: 800px;
+        }
+    }
+
+    &--xl {
+        .modal__container {
+            width: 1200px;
+        }
+    }
+
+    &__overlay {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+        position: fixed;
+        inset: 0;
+        will-change: opacity;
+        touch-action: none;
+        overscroll-behavior: contain;
+
+        @include media(pc) {
+            padding: 10px 0;
+        }
+    }
+
+    &__footer {
+        width: 100%;
+        padding: 0px 25px 20px 25px;
+        
+        > * {
+            animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: 0.1s;
+            
+            &:nth-child(2) {
+                animation-delay: 0.1s;
+            }
+            
+            &:nth-child(3) {
+                animation-delay: 0.1s;
+            }
+        }
+    }
+
+    &__container {
+        @extend .flex-between;
+
+        border-radius: var(--border1);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background-color: var(--background-950);
+        flex-direction: column;
+        border: 1px solid var(--transp-1);
+        z-index: 1001;
+        max-width: 90%;
+        max-height: 90dvh;
+        min-width: 500px;
+        pointer-events: auto;
+        margin: auto;
+        will-change: transform, opacity;
+        box-shadow: var(--shadow-medium);
+        transform-origin: center center;
+
+        @include media(pc) {
+            max-height: calc(100dvh - 20px);
+        }
+        
+        @include media(mobile) {
+            min-width: unset;
+            width: 92%;
+        }
+    }
+
+    &__header {
+        @extend .flex-between;
+
+        width: 100%;
+        padding: 25px 25px 0px 25px;
+        animation: mmfadeDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+        &-withoutHeading {
+            align-self: flex-end;
+        }
+    }
+
+    &__close {
+        align-self: flex-end;
+        background: transparent;
+        border: 0;
+        width: 40px;
+        height: 40px;
+        color: var(--text-400);
+        @include transition(all);
+        border-radius: var(--border05);
+        cursor: pointer;
+        margin-left: auto;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--transp-1);
+
+        &:hover {
+            background-color: var(--transp-2);
+            color: var(--text);
+        }
+
+        &::before {
+            content: "\2715";
+            font-size: 1.3rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        &::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--transp-1) 0%, transparent 70%);
+            transform: scale(0);
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        &:hover::after {
+            transform: scale(2.5);
+            opacity: 1;
+        }
+    }
+
+    &__title {
+        font-weight: 700;
+    }
+
+    &__content {
+        padding: 10px 25px 25px 25px;
+        width: 100%;
+        animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation-delay: 0.1s;
+
+        @include media(mobile) {
+            padding: 0px 20px 20px 20px;
+        }
+
+        &-loading {
+            @extend .d-flex;
+
+            width: 100%;
+            margin-top: 2rem;
+            flex-direction: column;
+            gap: 10px;
+
+            &-box {
+                background-color: var(--background-900);
+                min-width: 300px;
+                min-height: 40px;
+
+                &-large {
+                    min-height: 80px;
+                }
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        &.bottom-sheet {
+            .modal__container {
+                display: block;
+                width: 100%;
+                max-width: none;
+                max-height: 100dvh;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+                height: 20dvh;
+                overflow: hidden;
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                animation: none !important;
+                position: absolute;
+                bottom: 0;
+                overscroll-behavior: contain;
+            }
+
+            .modal__header {
+                padding-top: 15px;
+            }
+
+            &.is-open .modal__container {
+                transform: translateY(0);
+            }
+
+            &.dragging .modal__container {
+                transition: none;
+            }
+
+            .drag-handle {
+                cursor: grab;
+                user-select: none;
+                display: flex;
+                justify-content: center;
+                padding-top: 15px;
+                padding-bottom: 10px;
+                width: 100%;
+
+                span {
+                    display: block;
+                    width: 40px;
+                    height: 4px;
+                    background: var(--background-800);
+                    border-radius: 50px;
+                    position: relative;
+                    overflow: hidden;
+                    
+                    &::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, var(--accent-100), transparent);
+                    }
+                }
+            }
+
+            .modal__close {
+                display: none;
+            }
+
+            .modal__title {
+                text-align: center;
+                width: 100%;
+            }
+
+            .skeleton {
+                width: auto;
+            }
+
+            &.fullscreen {
+                .modal__container {
+                    border-radius: 0;
+                    overflow: auto;
+                    max-height: 100dvh;
+                }
+            }
+        }
+    }
+}
+
+@keyframes mmfadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes mmfadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes mmslideIn {
+    from {
+        transform: scale(0.98);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes mmslideOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.98);
+        opacity: 0;
+    }
+}
+
+@keyframes mmfadeUp {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes mmfadeDown {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

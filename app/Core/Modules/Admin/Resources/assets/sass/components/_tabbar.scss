@@ -1,0 +1,68 @@
+.tabbar {
+    @extend .blur-bg;
+
+    position: fixed;
+    z-index: 60;
+    overflow: auto;
+    bottom: 0px;
+    width: 100%;
+    min-height: 60px;
+    border-top: 1px solid var(--transp-1);
+    // background-color: var(--background-900);
+
+    @include media(pc) {
+        display: none;
+    }
+
+    &__content {
+        @extend .flex-center;
+
+        overflow: auto;
+    }
+
+    &__item {
+        @extend .d-flex, .align-center, .flex-column;
+
+        padding: 15px;
+        opacity: .7;
+        color: var(--text);
+        cursor: pointer; // ???
+
+        svg {
+            font-size: var(--h3);
+        }
+
+        p {
+            font-size: var(--small);
+        }
+
+        &.active {
+            opacity: 1;
+            color: var(--accent);
+        }
+    }
+
+    &__modal {
+        &-items {
+            @extend .d-flex, .flex-column;
+            
+            gap: 10px;
+            padding-top: 20px;
+        }
+
+        &-item {
+            @extend .d-flex, .flex-row, .align-center;
+
+            gap: 10px;
+            color: var(--text);
+            background-color: var(--transp-1);
+            padding: 7px 12px;
+            font-size: var(--p);
+            border-radius: var(--border05);
+            
+            svg {
+                font-size: var(--h4);
+            }
+        }
+    }
+}

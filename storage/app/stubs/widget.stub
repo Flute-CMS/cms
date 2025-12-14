@@ -1,0 +1,45 @@
+<?php
+
+namespace Flute\Modules\{{MODULE_NAME}}\Widgets;
+
+use Flute\Core\Modules\Page\Widgets\AbstractWidget;
+
+class {{MODULE_NAME}}Widget extends AbstractWidget
+{
+    public function getName(): string
+    {
+        return '{{MODULE_NAME_LOWER}}.widget';
+    }
+
+    public function getIcon(): string
+    {
+        return 'ph.regular.app-window';
+    }
+
+    public function render(array $settings): string
+    {
+        return view('{{MODULE_NAME_LOWER}}::widgets.{{MODULE_NAME_LOWER}}', [])->render();
+    }
+
+    public function getDefaultWidth(): int
+    {
+        return 12;
+    }
+
+    public function hasSettings(): bool
+    {
+        return false;
+    }
+
+    public function getSettings(): array
+    {
+        return [];
+    }
+
+    public function renderSettingsForm(array $settings): string
+    {
+        return view('{{MODULE_NAME_LOWER}}::widgets.settings', [
+            'settings' => $settings,
+        ])->render();
+    }
+}

@@ -1,0 +1,46 @@
+.popover {
+    position: absolute;
+    background-color: var(--primary-800);
+    border-radius: var(--border05);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    font-size: var(--small);
+    padding: 0.6em 1em;
+    max-width: 270px;
+    text-align: center;
+
+    a,
+    button {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+}
+
+.popover.visible {
+    opacity: 1;
+}
+
+.popover-arrow {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+    transform: rotate(45deg);
+    z-index: -1;
+}
+
+.popover-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--accent);
+    align-self: flex-start;
+    @include transition();
+    font-size: var(--p);
+}
+
+.popover-trigger:hover {
+    color: var(--accent-500);
+}

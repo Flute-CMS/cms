@@ -1,0 +1,36 @@
+.status {
+    &-container {
+        @extend .d-flex, .flex-center, .flex-column;
+
+        height: 100%;
+        position: relative;
+        margin-top: 30px;
+        height: calc(100vh - 400px);
+        --icon-color: var(--error);
+        
+        &.success {
+            --icon-color: var(--success);
+        }
+
+        gap: 10px;
+    }
+
+    &-icon {
+        position: absolute;
+        font-size: 25rem;
+        opacity: .03;
+        color: var(--icon-color);
+        z-index: -1;
+        pointer-events: none;
+        transform: rotate(25deg);
+    }
+
+    &-text {
+        max-width: 400px;
+        text-wrap: balance;
+        text-align: center;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        color: var(--text-300);
+    }
+}

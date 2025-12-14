@@ -1,0 +1,127 @@
+.auth {
+    &__skeleton {
+        width: 100%;
+        height: 60px;
+        margin-bottom: 1rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &-container {
+        @extend .flex-column;
+
+        margin-top: 2em;
+        justify-content: center;
+        max-width: 500px;
+        height: 100%;
+        margin: 0 auto;
+
+        form {
+            width: 100%;
+        }
+    }
+
+    &-form {
+        width: 100%;
+        min-width: 400px;
+
+        @include media(mobile) {
+            min-width: 100%;
+        }
+    }
+
+    &-header {
+        margin-bottom: .5em;
+
+        p {
+            color: var(--text-300);
+        }
+    }
+
+    &__password {
+        a {
+            font-size: var(--p-small);
+            color: var(--text-300);
+            font-weight: 500;
+            margin-bottom: .5em;
+        }
+    }
+
+    &__socials {
+        @extend .d-flex;
+
+        flex-wrap: wrap;
+        padding: 1.25rem 0;
+        gap: 1rem;
+
+        &.withFirst {}
+
+        &-item {
+            @extend .d-flex, .blur-bg;
+
+            gap: .5rem;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            padding: .6em 1.2em;
+            border: 1px solid var(--transp-2);
+            font-size: var(--p-small);
+            font-weight: 500;
+            @include transition(all);
+            flex: 1;
+
+            svg {
+                font-size: var(--h5);
+            }
+
+            &:active {
+                transform: scale(.99);
+            }
+
+            &.primary {
+                background-color: var(--primary);
+                color: var(--text-950);
+                font-weight: 500;
+                flex: 1 0 100%;
+
+                &:hover {
+                    background-color: var(--primary-200);
+                }
+
+                &:active {
+                    background-color: var(--primary-300);
+                }
+            }
+
+            &:hover:not(.primary) {
+                background-color: var(--transp-2);
+            }
+
+            &:active:not(.primary) {
+                background-color: var(--background-900);
+            }
+        }
+    }
+}
+
+.two-factor-verify {
+    &__actions {
+        display: flex;
+        flex-direction: row;
+        gap: var(--space-sm);
+        margin-top: var(--space-lg);
+
+        .btn {
+            width: 100%;
+        }
+    }
+
+    &__input {
+        .otp-input {
+            justify-content: center;
+        }
+    }
+}

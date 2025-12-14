@@ -1,0 +1,163 @@
+<?php
+
+namespace Flute\Admin\Packages\Pages\Screens;
+
+use Flute\Admin\Packages\Pages\Services\AdminPagesService;
+use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Actions\DropDown;
+use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Components\Cells\DateTime;
+use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\LayoutFactory;
+use Flute\Admin\Platform\Screen;
+use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\Page;
+use Throwable;
+
+class PageListScreen extends Screen
+{
+    public ?string $name = null;
+
+    public ?string $description = null;
+
+    public ?string $permission = 'admin.pages';
+
+    public $pages;
+
+    public function mount(): void
+    {
+        $this->name = __('admin-pages.title.list');
+        $this->description = __('admin-pages.title.description');
+
+        breadcrumb()
+            ->add(__('def.admin_panel'), url('/admin'))
+            ->add(__('admin-pages.title.list'));
+
+        $this->pages = rep(Page::class)->select()->load('blocks');
+    }
+
+    public function layout(): array
+    {
+        return [
+            LayoutFactory::table('pages', [
+                TD::selection('id'),
+                TD::make('title')
+                    ->title(__('admin-pages.fields.title.label'))
+                    ->render(static fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
+                    ->minWidth('250px')
+                    ->cantHide(),
+
+                TD::make('route')
+                    ->title(__('admin-pages.fields.route.label'))
+                    ->render(static fn (Page $page) => '<code>' . $page->route . '</code>')
+                    ->width('200px')
+                    ->sort()
+                    ->cantHide(),
+
+                TD::make('blocks_count')
+                    ->title(__('admin-pages.title.blocks'))
+                    ->render(static fn (Page $page) => count($page->blocks))
+                    ->width('200px')
+                    ->alignCenter(),
+
+                TD::make('createdAt')
+                    ->title(__('admin-pages.fields.created_at'))
+                    ->asComponent(DateTime::class)
+                    ->width('200px')
+                    ->sort()
+                    ->cantHide(),
+
+                TD::make('actions')
+                    ->class('actions-col')
+                    ->title(__('admin-pages.buttons.actions'))
+                    ->width('200px')
+                    ->alignCenter()
+                    ->render(
+                        static fn (Page $page) => DropDown::make()
+                            ->icon('ph.regular.dots-three-outline-vertical')
+                            ->list([
+                                DropDownItem::make(__('admin-pages.buttons.edit'))
+                                    ->redirect(url('/admin/pages/' . $page->id . '/edit'))
+                                    ->icon('ph.bold.pencil-bold')
+                                    ->type(Color::OUTLINE_PRIMARY)
+                                    ->size('small')
+                                    ->fullWidth(),
+
+                                DropDownItem::make(__('admin-pages.buttons.delete'))
+                                    ->confirm(__('admin-pages.confirms.delete_page'))
+                                    ->method('delete', ['delete-id' => $page->id])
+                                    ->icon('ph.bold.trash-bold')
+                                    ->type(Color::OUTLINE_DANGER)
+                                    ->size('small')
+                                    ->fullWidth(),
+
+                                DropDownItem::make(__('admin-pages.buttons.goto'))
+                                    ->href(url($page->route))
+                                    ->icon('ph.bold.arrow-right-bold')
+                                    ->type(Color::OUTLINE_PRIMARY)
+                                    ->size('small')
+                                    ->fullWidth(),
+                            ])
+                    ),
+            ])
+                ->searchable(['title', 'route', 'description'])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeletePages'),
+                ])
+                ->commands([
+                    Button::make(__('admin-pages.buttons.add'))
+                        ->icon('ph.bold.plus-bold')
+                        ->redirect(url('/admin/pages/add')),
+                ]),
+        ];
+    }
+
+    public function delete(): void
+    {
+        $page = Page::findByPK((int) request()->get('delete-id'));
+
+        if ($page) {
+            try {
+                app(AdminPagesService::class)->deletePage($page);
+                $this->flashMessage(__('admin-pages.messages.page_deleted'));
+            } catch (Throwable $e) {
+                logs()->error($e);
+                $this->flashMessage($e->getMessage(), 'error');
+            }
+        } else {
+            $this->flashMessage(__('admin-pages.messages.page_not_found'), 'error');
+        }
+
+        $this->pages = rep(Page::class)->select()->load('blocks');
+    }
+
+    public function bulkDeletePages(): void
+    {
+        $ids = request()->input('selected', []);
+        if (!$ids) {
+            return;
+        }
+
+        $service = app(AdminPagesService::class);
+
+        foreach ($ids as $id) {
+            $page = Page::findByPK((int) $id);
+            if (!$page) {
+                continue;
+            }
+
+            try {
+                $service->deletePage($page);
+            } catch (Throwable $e) {
+                logs()->error($e);
+            }
+        }
+
+        $this->pages = rep(Page::class)->select()->load('blocks');
+        $this->flashMessage(__('admin-pages.messages.page_deleted'));
+    }
+}

@@ -1,0 +1,5 @@
+@extends('flute::layouts.app')
+
+@section('content')
+    MODULE WORKS!
+@endsection 

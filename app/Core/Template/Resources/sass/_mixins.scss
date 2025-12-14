@@ -1,0 +1,104 @@
+// Margin and padding
+$spacing-values: 0, 0.25rem, 0.5rem, 1rem, 1.5rem;
+$directions: l, r, t, b, x, y;
+$properties: margin, padding;
+$text-alignments: left, center, right, justify;
+$visibilities: visible, hidden, collapse;
+$overflows: visible, hidden, scroll, auto;
+$gap-values: 0, 0.25rem, 0.5rem, 1rem, 1.5rem;
+$gap-properties: gap, row-gap, column-gap;
+
+@mixin media($breakpoint) {
+    @if $breakpoint ==mobile {
+        @media (max-width: 767px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==tablet {
+        @media (min-width: 768px) and (max-width: 1023px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==pc {
+        @media (min-width: 1024px) {
+            @content;
+        }
+    }
+}
+
+@mixin transition($properties: all, $duration: var(--transition), $timing: ease-out) {
+    transition: $properties $duration $timing;
+}
+
+@each $align in $text-alignments {
+    .text-#{$align} {
+        text-align: #{$align} !important;
+    }
+}
+
+// Margin and padding. e.g. mt-2, pb-2, px-2, py-2
+@each $property in $properties {
+    @each $direction in $directions {
+        @for $i from 0 through length($spacing-values) - 1 {
+            %#{$property + $direction}-#{$i} {
+                @if $direction ==x {
+                    #{$property}-left: nth($spacing-values, $i + 1) !important;
+                    #{$property}-right: nth($spacing-values, $i + 1) !important;
+                }
+
+                @else if $direction ==y {
+                    #{$property}-top: nth($spacing-values, $i + 1) !important;
+                    #{$property}-bottom: nth($spacing-values, $i + 1) !important;
+                }
+
+                @else {
+                    #{$property}-#{$direction}: nth($spacing-values, $i + 1) !important;
+                }
+            }
+        }
+    }
+}
+
+@each $property in $gap-properties {
+    @for $i from 0 through length($gap-values) - 1 {
+        .#{$property}-#{$i} {
+            #{$property}: nth($gap-values, $i + 1) !important;
+        }
+    }
+}
+
+@each $property in $gap-properties {
+    @for $i from 0 through length($gap-values) - 1 {
+        @include media(mobile) {
+            .#{$property}-mobile-#{$i} {
+                #{$property}: nth($gap-values, $i + 1) !important;
+            }
+        }
+
+        @include media(tablet) {
+            .#{$property}-tablet-#{$i} {
+                #{$property}: nth($gap-values, $i + 1) !important;
+            }
+        }
+
+        @include media(pc) {
+            .#{$property}-pc-#{$i} {
+                #{$property}: nth($gap-values, $i + 1) !important;
+            }
+        }
+    }
+}
+
+@each $visibility in $visibilities {
+    .visibility-#{$visibility} {
+        visibility: #{$visibility} !important;
+    }
+}
+
+@each $overflow in $overflows {
+    .overflow-#{$overflow} {
+        overflow: #{$overflow} !important;
+    }
+}

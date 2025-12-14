@@ -1,0 +1,121 @@
+.alert {
+    @extend .blur-bg;
+
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-radius: var(--border1);
+    display: flex;
+    font-size: var(--p-small);
+    gap: var(--space-sm);
+    background-color: var(--transp-1);
+    border: 1px solid var(--transp-1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: .5px;
+    line-height: 1.75;
+
+    p,
+    span,
+    li,
+    a,
+    button {
+        line-height: inherit;
+        font-size: var(--p-small);
+        font-weight: 500;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: .15;
+    }
+
+    >svg {
+        font-size: var(--h4);
+        flex-shrink: 0;
+    }
+
+    @include media(mobile) {
+        padding: 10px 15px;
+    }
+
+    &-success {
+        color: var(--success);
+
+        &::after {
+            background: radial-gradient(circle at 20% 50%, var(--success-light) 0%, transparent 100%);
+        }
+
+        &.border {
+            background-color: transparent;
+            border-color: var(--success);
+        }
+    }
+
+    &-danger,
+    &-error {
+        color: var(--error);
+
+        &::after {
+            background: radial-gradient(circle at 20% 50%, var(--error-light) 0%, transparent 100%);
+        }
+
+        &.border {
+            background-color: transparent;
+            border-color: var(--error-light);
+        }
+    }
+
+    &-warning {
+        color: var(--warning);
+
+        &::after {
+            background: radial-gradient(circle at 20% 50%, var(--warning-light) 0%, transparent 100%);
+        }
+
+        &.border {
+            background-color: transparent;
+            border-color: var(--warning-light);
+        }
+    }
+
+    &-info {
+        color: var(--info);
+
+        &::after {
+            background: radial-gradient(circle at 20% 50%, var(--info-light) 0%, transparent 100%);
+        }
+
+        &.border {
+            background-color: transparent;
+            border-color: var(--info-light);
+        }
+    }
+
+    &-close {
+        @extend .icon-hover;
+        position: absolute;
+        right: 7px;
+        color: var(--text-400);
+        top: 0.5rem;
+
+        svg {
+            font-size: var(--h5);
+        }
+
+        &:hover {
+            color: var(--text-200);
+        }
+    }
+
+    a {
+        color: inherit;
+        font-weight: 500;
+        text-decoration: underline;
+    }
+}

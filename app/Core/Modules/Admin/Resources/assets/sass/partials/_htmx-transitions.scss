@@ -1,0 +1,24 @@
+.main-animation {
+    // Fade out old content (no movement to avoid layout shift)
+    &.yoyo-swapping,
+    &.htmx-swapping {
+        opacity: 0;
+        transition: opacity 140ms ease;
+    }
+
+    // New content enters slightly from below
+    &.yoyo-added,
+    &.htmx-added {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    &.yoyo-added.yoyo-settling,
+    &.htmx-added.htmx-settling {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 200ms ease, transform 200ms ease;
+    }
+}
+
+// Avoid double animations inside; animate only the container

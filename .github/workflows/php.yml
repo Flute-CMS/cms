@@ -1,0 +1,49 @@
+name: PHP Composer Build & Upload to Existing Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-dev --no-progress
+
+      - name: Archive project with vendor
+        run: |
+          mkdir -p release
+          ARCHIVE_NAME="flute-cms-with-vendor-${GITHUB_REF_NAME}.zip"
+          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*"
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+
+      - name: Upload archive to existing GitHub release
+        run: |
+          echo "Uploading release/$ARCHIVE_NAME to release $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" "release/$ARCHIVE_NAME" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

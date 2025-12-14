@@ -1,0 +1,50 @@
+.textarea {
+    &-wrapper {
+        @extend .flex-column;
+
+        position: relative;
+    }
+
+    &__field-container {
+        @extend .align-center;
+
+        gap: 10px;
+        position: relative;
+        width: 100%;
+        padding: 0.75em 1em;
+        font-size: var(--p);
+        border: 1px solid var(--transp-2);
+        border-radius: var(--border05);
+        color: var(--text);
+        transition: border var(--transition), background-color var(--transition);
+
+        &:focus-within:not(.textarea__field-container-readonly):not(.has-error) {
+            border-color: var(--primary-300);
+        }
+
+        &.has-error {
+            border-color: var(--error);
+        }
+    }
+
+    &__field {
+        font: inherit;
+        outline: 0;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+        background-color: transparent;
+        color: inherit;
+        width: 100%;
+        resize: vertical;
+    }
+
+    &__error {
+        color: var(--error);
+        font-size: var(--small);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        margin-top: 0.2em;
+    }
+}

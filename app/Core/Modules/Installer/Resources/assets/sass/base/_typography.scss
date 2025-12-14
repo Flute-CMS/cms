@@ -1,0 +1,187 @@
+:root {
+    --font: 'Manrope', Arial, Helvetica, sans-serif;
+    --font-header: 'Manrope', Arial, Helvetica, sans-serif;
+
+    --font-scale: 1.15;
+
+    --p: clamp(0.8rem, 2vw, 0.9rem);
+    --p-small: clamp(0.7rem, 1.8vw, calc(var(--p) / 1.1));
+
+    --h6: clamp(1rem, 2vw, calc(var(--p) * var(--font-scale)));
+    --h5: clamp(1.2rem, 2.5vw, calc(var(--h6) * var(--font-scale)));
+    --h4: clamp(1.4rem, 3vw, calc(var(--h5) * var(--font-scale)));
+    --h3: clamp(1.6rem, 4vw, calc(var(--h4) * var(--font-scale)));
+    --h2: clamp(1.8rem, 5vw, calc(var(--h3) * var(--font-scale)));
+    --h1: clamp(2rem, 6vw, calc(var(--h2) * var(--font-scale)));
+
+    --small: clamp(0.7rem, 1.5vw, calc(var(--p) / var(--font-scale)));
+
+    --border1: 1rem;
+    --border05: 0.5rem;
+}
+
+// @media screen and (max-width: 1200px) {
+//     :root {
+//         --p: 0.8rem;
+//     }
+// }
+
+* {
+    box-sizing: border-box;
+    scroll-padding-top: 3em;
+    font-family: var(--font);
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 100%;
+    min-height: 100vh;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 100vh;
+    font-family: var(--font);
+    color: var(--text);
+    background-color: var(--background);
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    position: relative;
+    line-height: 1.75;
+    transition: background-color var(--transition), margin-left var(--transition) ease, margin-top var(--transition) ease;
+
+    &.no-scroll {
+        overflow: hidden;
+    }
+
+    @include media(mobile) {
+        padding-bottom: 80px;
+    }
+
+    // Performance issue
+    // * {
+    //     transition: background-color var(--transition);
+    // }
+}
+
+.small {
+    font-size: var(--small) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    line-height: 1.5;
+    margin: 0;
+    font: var(--font-header);
+}
+
+p,
+small,
+a,
+li,
+table {
+    line-height: 2.25;
+    margin: 0;
+}
+
+
+/* text styles */
+h1 {
+    font-size: var(--h1);
+    letter-spacing: 0;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: var(--h2);
+    letter-spacing: 0;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: var(--h3);
+    font-weight: 700;
+}
+
+h4 {
+    font-size: var(--h4);
+    font-weight: 700;
+}
+
+h5 {
+    font-size: var(--h5);
+    font-weight: 600;
+}
+
+h6 {
+    font-size: var(--h6);
+    font-weight: 600;
+}
+
+a {
+    font-size: inherit;
+    text-decoration: none;
+    color: inherit;
+}
+
+p {
+    font-size: var(--p);
+    letter-spacing: normal;
+    text-align: left;
+}
+
+::selection {
+    background-color: var(--transp-4);
+}
+
+li {
+    font-size: var(--p);
+    margin-top: 0.2rem;
+}
+
+pre {
+    font-size: var(--p);
+}
+
+small {
+    font-size: var(--small);
+}
+
+button {
+    font-size: var(--p);
+}
+
+button,
+a {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-200);
+    border-radius: 100px;
+
+    &:hover {
+        background-color: var(--primary);
+    }
+}

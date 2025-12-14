@@ -1,0 +1,250 @@
+.customization-section {
+    @extend .flex-column;
+    gap: 15px;
+    margin-bottom: 30px;
+
+    &__title {
+        font-size: var(--p-small);
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+
+        svg {
+            color: var(--accent);
+            font-size: var(--p);
+        }
+    }
+}
+
+// Theme Toggle
+.theme-toggle {
+    @extend .d-flex;
+    gap: 10px;
+    width: 100%;
+
+    &__btn {
+        @extend .flex-center, .flex-column;
+        flex: 1;
+        gap: 8px;
+        padding: 15px;
+        border-radius: var(--border05);
+        background-color: var(--transp-1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition) ease;
+
+        svg {
+            font-size: var(--h4);
+            color: var(--text-400);
+            transition: all var(--transition) ease;
+        }
+
+        span {
+            font-size: var(--p-small);
+            font-weight: 500;
+            color: var(--text-400);
+            transition: all var(--transition) ease;
+        }
+
+        &:hover {
+            background-color: var(--transp-2);
+
+            svg,
+            span {
+                color: var(--text);
+            }
+        }
+
+        &.active {
+            background-color: var(--transp-2);
+            border-color: var(--accent);
+
+            svg,
+            span {
+                color: var(--text);
+            }
+        }
+    }
+}
+
+// Color Schemes
+.color-schemes {
+    @extend .d-grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.color-scheme {
+    &__item {
+        @extend .flex-center, .flex-column;
+        gap: 8px;
+        padding: 12px;
+        border-radius: var(--border05);
+        background-color: var(--transp-1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition) ease;
+
+        &:hover {
+            background-color: var(--transp-2);
+        }
+
+        &.active {
+            background-color: var(--transp-2);
+            border-color: var(--accent);
+        }
+    }
+
+    &__preview {
+        @extend .flex-center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--transp-2);
+        padding: 3px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    &__colors {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    &__primary {
+        position: absolute;
+        width: 100%;
+        height: 50%;
+        top: 0;
+        left: 0;
+    }
+
+    &__accent {
+        position: absolute;
+        width: 100%;
+        height: 50%;
+        bottom: 0;
+        left: 0;
+    }
+
+    &__name {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-400);
+        transition: all var(--transition) ease;
+    }
+}
+
+// Container Width
+.container-width {
+    @extend .d-flex;
+    gap: 10px;
+    width: 100%;
+
+    &__btn {
+        @extend .flex-center, .flex-column;
+        flex: 1;
+        gap: 8px;
+        padding: 15px;
+        border-radius: var(--border05);
+        background-color: var(--transp-1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition) ease;
+
+        span {
+            font-size: var(--p-small);
+            font-weight: 500;
+            color: var(--text-400);
+            transition: all var(--transition) ease;
+        }
+
+        &:hover {
+            background-color: var(--transp-2);
+
+            span {
+                color: var(--text-200);
+            }
+        }
+
+        &.active {
+            background-color: var(--transp-2);
+            border-color: var(--accent);
+
+            span {
+                color: var(--text);
+            }
+
+            .container-width__bar {
+                background-color: var(--accent);
+            }
+        }
+    }
+
+    &__preview {
+        @extend .flex-center;
+        width: 100%;
+        height: 50px;
+        background-color: var(--transp-1);
+        border-radius: var(--border05);
+        padding: 10px 5px;
+
+        &--normal {
+            .container-width__bar {
+                width: 60%;
+            }
+        }
+
+        &--wide {
+            .container-width__bar {
+                width: 85%;
+            }
+        }
+    }
+
+    &__bar {
+        height: 100%;
+        background-color: var(--text-400);
+        border-radius: var(--border05);
+        transition: all var(--transition) ease;
+    }
+}
+
+// Customization button in navbar
+.navbar {
+    &__customization {
+        @extend .flex-center;
+        color: var(--text-400);
+        background-color: var(--transp-1);
+        width: 40px;
+        height: 40px;
+        border-radius: var(--border05);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition) ease;
+
+        @include media(pc) {
+            width: 44px;
+            height: 44px;
+        }
+
+        svg {
+            font-size: var(--h5);
+        }
+
+        &:hover {
+            background-color: var(--transp-2);
+            border-color: var(--transp-1);
+            color: var(--text);
+        }
+
+        &:active {
+            background-color: var(--transp-1);
+        }
+    }
+}

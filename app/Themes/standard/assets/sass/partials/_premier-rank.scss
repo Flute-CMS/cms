@@ -1,0 +1,144 @@
+.stat-item .gray-rank,
+.stat-item .wblue-rank,
+.stat-item .blue-rank,
+.stat-item .purple-rank,
+.stat-item .pink-rank,
+.stat-item .red-rank,
+.stat-item .gold-rank {
+    width: 100%;
+    margin: 5px 0 0 0;
+    height: 22px;
+    line-height: 18px;
+    font-size: 11px;
+}
+
+.gray-rank,
+.wblue-rank,
+.blue-rank,
+.purple-rank,
+.pink-rank,
+.red-rank,
+.gold-rank {
+    font-weight: 700;
+    padding: 2px 4px 2px 10px;
+    -webkit-transform: skewX(-10deg);
+    transform: skewX(-10deg);
+    display: inline-block;
+    width: 80px;
+    height: 25px;
+    line-height: 20px;
+    text-align: center;
+    position: relative;
+    margin: 0 auto;
+}
+
+.gray-rank:after,
+.wblue-rank:after,
+.blue-rank:after,
+.purple-rank:after,
+.pink-rank:after,
+.red-rank:after,
+.gold-rank:after {
+    left: 0px;
+}
+
+.gray-rank:before,
+.wblue-rank:before,
+.blue-rank:before,
+.purple-rank:before,
+.pink-rank:before,
+.red-rank:before,
+.gold-rank:before {
+    left: 5px;
+}
+
+.gray-rank:after,
+.gray-rank:before,
+.wblue-rank:after,
+.wblue-rank:before,
+.blue-rank:after,
+.blue-rank:before,
+.purple-rank:after,
+.purple-rank:before,
+.pink-rank:after,
+.pink-rank:before,
+.red-rank:after,
+.red-rank:before,
+.gold-rank:after,
+.gold-rank:before {
+    content: "";
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 3px;
+}
+
+.gray-rank {
+    background-color: #2f2f2f;
+    color: #a0a0a0;
+}
+
+.gray-rank:after,
+.gray-rank:before {
+    background-color: #a0a0a0;
+}
+
+.wblue-rank {
+    background-color: #1a2f4f;
+    color: #b3c9ff;
+}
+
+.wblue-rank:after,
+.wblue-rank:before {
+    background-color: #b3c9ff;
+}
+
+.blue-rank {
+    background-color: #1f2758;
+    color: #697ce9;
+}
+
+.blue-rank:after,
+.blue-rank:before {
+    background-color: #697ce9;
+}
+
+.purple-rank {
+    background-color: #422158;
+    color: #ba69f2;
+}
+
+.purple-rank:after,
+.purple-rank:before {
+    background-color: #ba69f2;
+}
+
+.pink-rank {
+    background-color: #5a005e;
+    color: #df16ec;
+}
+
+.pink-rank:after,
+.pink-rank:before {
+    background-color: #df16ec;
+}
+
+.red-rank {
+    background-color: #590c03;
+    color: #ec4143;
+}
+
+.red-rank:after,
+.red-rank:before {
+    background-color: #ec4143;
+}
+
+.gold-rank {
+    background-color: #4c3900;
+    color: #fdd608;
+}
+
+.gold-rank:after,
+.gold-rank:before {
+    background-color: #fdd608;
+}

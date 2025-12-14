@@ -1,0 +1,565 @@
+#page-error-container {
+    @extend .flex-center, .gap-4, .flex-row;
+
+    height: 100%;
+    position: relative;
+    margin-top: 30px;
+    height: calc(100vh - 400px);
+
+    @include media(mobile) {
+        flex-direction: column;
+    }
+
+    >div:not(.not-found-image) {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h1 {
+        font-size: calc(var(--h1) * var(--font-scale));
+    }
+
+    .not-found-image {
+        position: relative;
+        width: 250px;
+    }
+}
+
+.status-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.error {
+    &-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 1200px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+        padding: 2rem;
+
+        @media (min-width: 992px) {
+            flex-direction: row;
+            gap: 4rem;
+        }
+    }
+
+    &-code-container {
+        position: relative;
+        margin-bottom: 2rem;
+
+        @media (min-width: 992px) {
+            margin-bottom: 0;
+        }
+    }
+
+    &-code {
+        font-size: 8rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+        position: relative;
+        z-index: 2;
+        margin: 0;
+        text-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        animation: float 6s ease-in-out infinite;
+
+        @media (min-width: 768px) {
+            font-size: 12rem;
+        }
+    }
+
+    &-code-shadow {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 10px;
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    &-content {
+        text-align: center;
+        max-width: 500px;
+
+        @media (min-width: 992px) {
+            text-align: left;
+        }
+    }
+
+    &-message {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text);
+    }
+
+    &-description {
+        font-size: 1.1rem;
+        color: var(--text-200);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    &-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+
+        @media (min-width: 992px) {
+            justify-content: flex-start;
+        }
+    }
+
+    &-button {
+        min-width: 150px;
+    }
+
+    &-decoration {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    &-illustration {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.1;
+    }
+
+    &-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+}
+
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent);
+    border-radius: 50%;
+    opacity: 0.3;
+
+    &.particle-animation {
+        animation: moveParticle 10s ease-in-out infinite;
+    }
+
+    @for $i from 1 through 20 {
+        &-#{$i} {
+            top: random(100) * 1%;
+            left: random(100) * 1%;
+            width: random(8) + 2px;
+            height: random(8) + 2px;
+            opacity: (random(5) + 2) * 0.1;
+
+            @if $i % 3==0 {
+                background-color: var(--success);
+            }
+
+            @else if $i % 3==1 {
+                background-color: var(--accent);
+            }
+
+            @else {
+                background-color: var(--warning);
+            }
+        }
+    }
+}
+
+.search-animation {
+    position: relative;
+    width: 300px;
+    height: 300px;
+
+    .question-marks {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        .question-mark {
+            position: absolute;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            opacity: 0;
+            animation: fadeInOut 4s ease-in-out infinite;
+
+            &.q1 {
+                top: 30%;
+                left: 60%;
+                animation-delay: 0.5s;
+            }
+
+            &.q2 {
+                top: 50%;
+                left: 70%;
+                animation-delay: 1s;
+            }
+
+            &.q3 {
+                top: 70%;
+                left: 60%;
+                animation-delay: 1.5s;
+            }
+        }
+    }
+}
+
+// Анимации для страницы 403
+.lock-animation {
+    position: relative;
+    width: 200px;
+    height: 200px;
+
+    .lock-body {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 100px;
+        background-color: var(--accent);
+        border-radius: 10px;
+        animation: lockPulse 2s ease-in-out infinite;
+    }
+
+    .lock-hook {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 80px;
+        border: 20px solid var(--accent);
+        border-bottom: none;
+        border-radius: 50px 50px 0 0;
+        animation: lockShake 5s ease-in-out infinite;
+    }
+
+    .lock-shackle {
+        position: absolute;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 20px;
+        background-color: var(--accent);
+        border-radius: 5px;
+    }
+}
+
+// Анимации для страницы 500
+.server-animation {
+    position: relative;
+    width: 200px;
+    height: 200px;
+
+    .server {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        height: 120px;
+        background-color: var(--accent);
+        border-radius: 10px;
+        animation: serverShake 0.5s ease-in-out infinite;
+    }
+
+    .server-lights {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 20px;
+        display: flex;
+        justify-content: space-around;
+
+        .light {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+
+            &-1 {
+                background-color: var(--success);
+                animation: blinkLight 1s ease-in-out infinite;
+            }
+
+            &-2 {
+                background-color: var(--warning);
+                animation: blinkLight 0.7s ease-in-out infinite;
+                animation-delay: 0.2s;
+            }
+
+            &-3 {
+                background-color: var(--danger);
+                animation: blinkLight 0.5s ease-in-out infinite;
+                animation-delay: 0.4s;
+            }
+        }
+    }
+
+    .server-smoke {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: rgba(150, 150, 150, 0.3);
+        animation: smoke 3s ease-in-out infinite;
+    }
+}
+
+// Анимации для общей страницы ошибки
+.generic-error-animation {
+    position: relative;
+    width: 200px;
+    height: 200px;
+
+    .error-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 10px;
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        &::before {
+            transform: rotate(45deg);
+        }
+
+        &::after {
+            transform: rotate(-45deg);
+        }
+    }
+
+    .error-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: var(--danger);
+        opacity: 0.5;
+        animation: pulse 2s ease-in-out infinite;
+    }
+}
+
+// Анимации
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes shadow {
+
+    0%,
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0.1;
+    }
+}
+
+@keyframes moveParticle {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(var(--x, 50px), var(--y, 50px));
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes searchMove {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) rotate(0);
+    }
+
+    25% {
+        transform: translate(-30%, -60%) rotate(-10deg);
+    }
+
+    50% {
+        transform: translate(-10%, -50%) rotate(0);
+    }
+
+    75% {
+        transform: translate(-30%, -40%) rotate(10deg);
+    }
+}
+
+@keyframes fadeInOut {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes lockPulse {
+
+    0%,
+    100% {
+        transform: translateX(-50%) scale(1);
+    }
+
+    50% {
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+@keyframes lockShake {
+
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-55%) rotate(-5deg);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(-45%) rotate(5deg);
+    }
+}
+
+@keyframes serverShake {
+
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(0);
+    }
+
+    25% {
+        transform: translateX(-52%) rotate(-1deg);
+    }
+
+    75% {
+        transform: translateX(-48%) rotate(1deg);
+    }
+}
+
+@keyframes blinkLight {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes smoke {
+    0% {
+        transform: translateX(-50%) translateY(0) scale(0.8);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateX(-50%) translateY(-100px) scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.5;
+    }
+}

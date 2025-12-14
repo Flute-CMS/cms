@@ -1,0 +1,110 @@
+$checkbox-size: 22px;
+
+.checkbox {
+    &--compact {
+        .checkbox__label:before {
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox__label:after {
+            left: 5px;
+            width: 5px;
+            height: 8px;
+        }
+
+        .checkbox__field+.checkbox__label {
+            padding-left: 24px;
+        }
+    }
+
+    &__field {
+        position: absolute;
+        opacity: 0;
+
+        // Text
+        &+label {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            padding-left: $checkbox-size + 9;
+            font-size: var(--p);
+            color: var(--text-200);
+            @include transition(color);
+            user-select: none;
+            min-height: 15px;
+
+            // Checkbox
+            &:before {
+                position: absolute;
+                display: block;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                content: "";
+                background: transparent;
+                width: $checkbox-size;
+                height: $checkbox-size;
+
+                box-shadow: inset 0 0 0 1px var(--transp-5);
+                border-radius: 6px;
+                @include transition(all);
+            }
+
+            &:after {
+                position: absolute;
+                display: block;
+                top: 40%;
+                left: 8px;
+                content: "";
+                width: 6px;
+                height: 10px;
+                border-right: 1px solid transparent;
+                border-bottom: 1px solid transparent;
+                transform: translateY(-55%) rotate(45deg);
+
+                @include transition(all);
+            }
+
+            a {
+                line-height: inherit;
+            }
+        }
+
+        &+label:focus {
+            outline: none;
+        }
+
+        &+label:hover {
+            color: var(--text-100);
+        }
+
+        &:checked {
+            &+label {
+                &:before {
+                    background: var(--primary);
+                    box-shadow: none;
+                }
+
+                &:after {
+                    border-color: var(--primary-950);
+                    top: 50%;
+                }
+            }
+        }
+
+        &:disabled {
+            &+label {
+                opacity: .5;
+                cursor: default;
+            }
+        }
+
+        // Disabled Checked
+        &:checked:disabled {
+            &+label {
+                opacity: .5;
+            }
+        }
+    }
+}

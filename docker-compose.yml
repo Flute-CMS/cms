@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mariadb:11
+    restart: always
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: flute
+      MYSQL_DATABASE: flute
+      MYSQL_USER: flute
+      MYSQL_PASSWORD: flute
+    volumes:
+      - db_data:/var/lib/mysql
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      APP_ENV: production
+      PHP_OPCACHE_ENABLE: 1
+      SSL_MODE: mixed
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  db_data:
+    driver: local

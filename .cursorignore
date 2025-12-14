@@ -1,0 +1,4 @@
+/ai_rules_backups/*
+/vendor/*
+!app/Modules/**
+!docs/**

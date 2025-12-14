@@ -1,0 +1,103 @@
+.language-step {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin: 0 auto;
+    padding: 2rem 0;
+    position: relative;
+
+    h1 {
+        text-align: center;
+        margin-bottom: 0.5rem;
+        animation: fadeInDown 0.6s ease-out;
+    }
+
+    p {
+        text-align: center;
+        color: var(--text-400);
+        animation: fadeInDown 0.6s ease-out 0.1s backwards;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    }
+}
+
+.language-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+
+    &__item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: var(--border1);
+        border: 1px solid var(--transp-1);
+        cursor: pointer;
+        transition: all var(--transition) ease;
+        position: relative;
+        overflow: hidden;
+        padding: .75rem .9rem;
+
+        .flag {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            transition: transform var(--transition) ease, opacity var(--transition);
+            border-radius: var(--border05);
+        }
+
+        .name {
+            font-size: var(--p);
+            transition: opacity var(--transition);
+        }
+
+        .flag,
+        .name {
+            opacity: .6;
+        }
+
+        &:hover {
+            border-color: var(--transp-2);
+
+            &::before {
+                opacity: 0.7;
+            }
+
+            .flag,
+            .name {
+                opacity: 1;
+            }
+        }
+
+        &--active {
+            border-color: var(--accent);
+            background-color: var(--transp-05);
+
+            &::before {
+                opacity: 1;
+            }
+
+            &:hover {
+                transform: none;
+                border-color: var(--accent);
+            }
+
+            .flag,
+            .name {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .language-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

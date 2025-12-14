@@ -1,0 +1,25 @@
+.role-name {
+    border-radius: var(--border1);
+    padding: 4px 12px;
+    font-size: var(--p-small);
+    font-weight: 500;
+    background-color: var(--transp-1);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    .role-color {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    .role-icon {
+        margin-left: 5px;
+        font-size: var(--h6);
+        color: var(--accent);
+        display: inline-flex;
+    }
+}

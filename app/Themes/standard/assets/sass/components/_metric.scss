@@ -1,0 +1,147 @@
+.metrics {
+	margin-bottom: 1rem;
+
+	&__title {
+		margin-bottom: 0.5rem;
+		padding: 0 1.3rem;
+		color: var(--text);
+		font-weight: 600;
+		font-size: var(--h4);
+	}
+
+	&__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+	}
+
+	&__item {
+		min-width: 0;
+	}
+}
+
+.metric {
+	@extend .blur-bg;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	padding: 1.25rem 1.5rem;
+	height: 100%;
+	background-color: var(--transp-05);
+	border: 1px solid var(--transp-1);
+	border-radius: var(--border1);
+    box-shadow: var(--shadow-small);
+	overflow: hidden;
+
+	&__header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.5rem;
+	}
+
+	&__icon {
+		@extend .flex-center;
+		position: relative;
+	}
+
+	&__icon-svg {
+		width: 1rem;
+		height: 1rem;
+		color: var(--primary);
+	}
+
+	&__label {
+		font-size: var(--p);
+		color: var(--text-400);
+		font-weight: 500;
+	}
+
+	&__content {
+		margin-top: auto;
+		position: relative;
+		z-index: 1;
+	}
+
+	&__main {
+		display: flex;
+		align-items: flex-end;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+	}
+
+	&__value {
+		font-size: var(--h3);
+		font-weight: 650;
+		letter-spacing: -0.02em;
+        line-height: 1.5;
+	}
+	&__value-prefix,
+	&__value-suffix {
+		color: var(--text-500);
+		font-weight: 500;
+	}
+
+	&__trend {
+		display: inline-flex;
+		align-items: center;
+		align-self: center;
+		gap: 0.25rem;
+		font-size: var(--small);
+		font-weight: 600;
+		padding: 0.2rem 0.4rem;
+		border-radius: var(--border05);
+		margin-left: 0.25rem;
+
+		&--up {
+			color: var(--success-700, var(--success));
+			background: color-mix(in oklab, var(--success) 12%, transparent);
+		}
+		&--down {
+			color: var(--error-700, var(--error));
+			background: color-mix(in oklab, var(--error) 12%, transparent);
+		}
+	}
+
+	&__trend-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	&__progress {
+		margin-top: 0.6rem;
+		width: 100%;
+		height: 6px;
+		background: var(--transp-1);
+		border-radius: 999px;
+		overflow: hidden;
+	}
+	&__progress-bar {
+		height: 100%;
+		background: linear-gradient(90deg, var(--accent-700), var(--accent));
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+	}
+
+	&__hint {
+		margin-top: 0.5rem;
+		color: var(--text-500);
+		font-size: var(--p-small);
+	}
+
+	&__extra {
+		margin-top: 0.5rem;
+	}
+}
+
+@media (max-width: 768px) {
+	.metrics {
+		&__grid {
+			grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+			gap: 0.75rem;
+		}
+	}
+
+	.metric {
+		padding: 1rem;
+	}
+}

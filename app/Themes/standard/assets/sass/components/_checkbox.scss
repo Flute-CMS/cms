@@ -1,0 +1,96 @@
+$checkbox-size: 22px;
+
+.checkbox {
+    &__field {
+        position: absolute;
+        opacity: 0;
+
+        // Text
+        &+label {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            line-height: $checkbox-size;
+            padding-left: $checkbox-size + 9;
+            font-size: var(--p);
+            color: var(--text-200);
+            @include transition(color);
+
+            // Checkbox
+            &:before {
+                position: absolute;
+                display: block;
+                left: 0;
+                top: 0;
+                content: "";
+                background: transparent;
+                width: $checkbox-size;
+                height: $checkbox-size;
+
+                box-shadow: inset 0 0 0 1px var(--transp-5);
+                border-radius: 50%;
+                @include transition(all);
+            }
+
+            &:after {
+                position: absolute;
+                display: block;
+                top: 4px;
+                left: 8px;
+                content: "";
+                width: 6px;
+                height: 10px;
+                border-right: 1px solid transparent;
+                border-bottom: 1px solid transparent;
+                transform: rotate(45deg);
+
+                @include transition(all);
+            }
+
+            a {
+                line-height: inherit;
+            }
+        }
+
+        &+label:focus {
+            outline: none;
+        }
+
+        &+label:hover {
+            color: var(--text-100);
+        }
+
+        &:checked {
+            &+label {
+                &:before {
+                    background: var(--primary);
+                    box-shadow: none;
+                }
+
+                &:after {
+                    border-color: var(--primary-950);
+                }
+            }
+        }
+
+        &:disabled {
+            &+label {
+                opacity: .5;
+                cursor: default;
+
+                &:before {}
+
+                &:after {}
+            }
+        }
+
+        // Disabled Checked
+        &:checked:disabled {
+            &+label {
+                &:before {}
+
+                &:after {}
+            }
+        }
+    }
+}

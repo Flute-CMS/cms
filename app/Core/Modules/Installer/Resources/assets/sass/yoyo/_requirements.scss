@@ -1,0 +1,186 @@
+.requirements-step {
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    gap: 1.5rem;
+
+    &__actions {
+        @extend .base-animation;
+
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__error-message {
+        @extend .base-animation;
+
+        color: var(--error);
+        font-size: var(--small);
+        text-align: center;
+        background-color: rgba(241, 73, 73, 0.1);
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .requirement-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: var(--border05);
+        background-color: var(--transp-05);
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+        border: 1px solid var(--transp-1);
+
+        &__icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        &__info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        &__name {
+            font-weight: 500;
+            font-size: var(--p-small);
+        }
+
+        &__version {
+            font-size: var(--small);
+            color: var(--text-400);
+            font-family: var(--font-mono);
+        }
+
+        &.is-success {
+            .requirement-item__icon {
+                color: var(--success);
+            }
+        }
+
+        &.is-error {
+            .requirement-item__icon {
+                color: var(--error);
+            }
+        }
+    }
+
+    .requirement-compact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .requirement-compact {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: var(--border05);
+        background-color: var(--transp-05);
+        transition: all 0.3s ease;
+        border: 1px solid var(--transp-1);
+
+        &__icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        &__name {
+            font-size: var(--p-small);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        &.is-success {
+            .requirement-compact__icon {
+                color: var(--success);
+            }
+        }
+
+        &.is-error {
+            .requirement-compact__icon {
+                color: var(--error);
+            }
+        }
+    }
+
+    .directory-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .directory-item {
+        padding: 0.75rem;
+        border-radius: var(--border05);
+        background-color: var(--transp-05);
+        border: 1px solid var(--transp-1);
+        transition: all 0.3s ease;
+
+        &__header {
+            display: flex;
+            align-items: center;
+        }
+
+        &__icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        &__name {
+            font-weight: 500;
+            font-size: var(--p-small);
+        }
+
+        &__status {
+            padding-left: 2rem;
+            font-size: var(--small);
+            color: var(--text-400);
+            font-family: var(--font-mono);
+            word-break: break-all;
+        }
+
+        &.is-success {
+            .directory-item__icon {
+                color: var(--success);
+            }
+        }
+
+        &.is-error {
+            border-left: 3px solid var(--error);
+
+            .directory-item__icon {
+                color: var(--error);
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

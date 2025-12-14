@@ -1,0 +1,22 @@
+.form {
+    &-field {
+        small {
+            display: inline-block;
+            margin-top: 0.3rem;
+        }
+    }
+
+    &__label {
+        font-size: var(--p-small);
+        color: var(--text-300);
+        font-weight: 500;
+        line-height: 1.8;
+
+        &-required {
+            &:after {
+                content: '*';
+                color: var(--error);
+            }
+        }
+    }
+}

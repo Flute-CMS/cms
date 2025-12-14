@@ -1,0 +1,27 @@
+# Tests Directory
+
+This directory will contain unit and integration tests for Flute CMS.
+
+## Structure
+
+- Unit tests: Test individual classes and methods
+- Integration tests: Test component interactions
+- Feature tests: Test complete user workflows
+
+## Running Tests
+
+```bash
+# Run all tests (when implemented)
+composer test
+
+# Run specific test suites
+vendor/bin/phpunit tests/Unit/
+vendor/bin/phpunit tests/Integration/
+```
+
+## Writing Tests
+
+- Use PHPUnit for testing framework
+- Follow PSR-4 autoloading: `Flute\Tests\`
+- Mock external dependencies
+- Test both success and failure scenarios
