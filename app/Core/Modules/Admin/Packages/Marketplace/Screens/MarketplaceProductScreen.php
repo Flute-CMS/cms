@@ -139,11 +139,9 @@ class MarketplaceProductScreen extends Screen
             $moduleManager = app(\Flute\Core\ModulesManager\ModuleManager::class);
             $moduleActions = new \Flute\Core\ModulesManager\ModuleActions();
 
-            $moduleManager->refreshModules();
+            $moduleKey = $this->waitForInstalledModuleKey($moduleManager, (string) $installResult['moduleFolder']);
 
-            $moduleKey = $installResult['moduleFolder'];
-
-            if ($moduleManager->issetModule($moduleKey)) {
+            if ($moduleKey !== null && $moduleManager->issetModule($moduleKey)) {
                 $moduleInfo = $moduleManager->getModule($moduleKey);
 
                 if ($moduleInfo->status === \Flute\Core\ModulesManager\ModuleManager::NOTINSTALLED) {
@@ -280,6 +278,41 @@ class MarketplaceProductScreen extends Screen
                 'isLoading' => $this->isLoading,
             ]),
         ];
+    }
+
+    protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 15): ?string
+    {
+        $moduleFolder = trim($moduleFolder);
+        if ($moduleFolder === '') {
+            return null;
+        }
+
+        $normalized = str_replace('\\', '/', $moduleFolder);
+        $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
+        $normalized = trim($normalized, '/');
+
+        $candidates = array_values(array_unique(array_filter([
+            $moduleFolder,
+            $normalized,
+            basename($normalized),
+            explode('/', $normalized)[0] ?? null,
+        ], static fn ($v) => is_string($v) && $v !== '')));
+
+        $start = microtime(true);
+        while ((microtime(true) - $start) < $timeoutSeconds) {
+            clearstatcache(true);
+            $moduleManager->refreshModules();
+
+            foreach ($candidates as $candidate) {
+                if ($moduleManager->issetModule($candidate)) {
+                    return $candidate;
+                }
+            }
+
+            usleep(250000);
+        }
+
+        return null;
     }
 
     protected function ensureServicesInitialized(): void

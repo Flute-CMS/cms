@@ -263,7 +263,7 @@ class ModuleInstallerService
             $moduleName = $this->moduleInfo['name'];
         }
 
-        $moduleFolder = $moduleName ?? $this->moduleKey ?? $module['slug'];
+        $moduleFolder = $this->sanitizeModuleFolderName((string) ($moduleName ?? $this->moduleKey ?? $module['slug']));
         $destination = $this->modulesDir . '/' . $moduleFolder;
 
         $this->backupDir = null;
@@ -286,6 +286,7 @@ class ModuleInstallerService
         }
 
         $this->copyDirectory($source, $destination);
+        $this->waitForCopiedModuleJson($destination);
         $this->moduleFolder = $moduleFolder;
 
         return [
@@ -380,6 +381,68 @@ class ModuleInstallerService
             'success' => true,
             'message' => __('admin-marketplace.messages.rollback_success'),
         ];
+    }
+
+    protected function sanitizeModuleFolderName(string $name): string
+    {
+        $name = trim($name);
+
+        if ($name === '' || $name === '.' || $name === '..') {
+            throw new Exception(__('admin-marketplace.messages.install_failed') . ': Некорректное имя модуля');
+        }
+
+        $normalized = str_replace('\\', '/', $name);
+        $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
+        $normalized = trim($normalized, '/');
+
+        if ($normalized === '' || $normalized === '.' || $normalized === '..') {
+            throw new Exception(__('admin-marketplace.messages.install_failed') . ': Некорректное имя модуля');
+        }
+
+        if (preg_match('#(^|/)\.\.(?:/|$)#', $normalized)) {
+            throw new Exception(__('admin-marketplace.messages.install_failed') . ': Некорректное имя модуля');
+        }
+
+        $base = basename($normalized);
+        $base = trim($base);
+
+        if ($base === '' || $base === '.' || $base === '..') {
+            throw new Exception(__('admin-marketplace.messages.install_failed') . ': Некорректное имя модуля');
+        }
+
+        return $base;
+    }
+
+    protected function waitForCopiedModuleJson(string $destinationDir, int $timeoutSeconds = 15): void
+    {
+        $this->keepProcessAlive();
+
+        $start = microtime(true);
+
+        while ((microtime(true) - $start) < $timeoutSeconds) {
+            clearstatcache(true);
+
+            if (is_file($destinationDir . '/module.json')) {
+                return;
+            }
+
+            $jsonFinder = finder();
+            $jsonFinder
+                ->files()
+                ->name('module.json')
+                ->in($destinationDir)
+                ->depth('== 1');
+
+            foreach ($jsonFinder as $jsonFile) {
+                if ($jsonFile->isFile()) {
+                    return;
+                }
+            }
+
+            usleep(250000);
+        }
+
+        throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования');
     }
 
     /**
