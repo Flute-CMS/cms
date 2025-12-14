@@ -803,7 +803,7 @@ class MainSettingsPackageScreen extends Screen
 
     protected function invalidateConfig(string $configName): void
     {
-        if(function_exists('opcache_invalidate')) {
+        if (function_exists('opcache_invalidate')) {
             opcache_invalidate(path('config/' . $configName . '.php'), true);
         }
     }
