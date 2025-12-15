@@ -16,6 +16,8 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class ComposerManager
 {
+    private const DEFAULT_TIMEOUT = 600;
+
     /**
      * Installs a Composer package.
      *
@@ -26,133 +28,32 @@ class ComposerManager
      */
     public function installPackage(string $package)
     {
-        $this->bootstrapEnv();
-        $app = new Application();
-        $app->setAutoExit(false);
-
-        $input = new ArrayInput(
+        return $this->runComposer(
+            'require',
             [
-                'command' => "require",
                 'packages' => [$package],
-                '--working-dir' => getcwd(),
-                '--no-interaction' => true,
-                '--optimize-autoloader' => true,
-                '-v' => true,
-                '--ignore-platform-reqs' => true,
-                '--no-scripts' => true,
             ]
         );
-
-        $output = new BufferedOutput();
-
-        try {
-            $app->run($input, $output);
-            $outputContent = $output->fetch();
-
-            if (strpos($outputContent, 'Installation failed') !== false) {
-                throw new Exception('Installation failed: ' . $outputContent);
-            }
-
-            return $outputContent;
-        } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during package installation: ' . $e->getMessage());
-        }
     }
 
     public function install()
     {
-        $this->bootstrapEnv();
-        $app = new Application();
-        $app->setAutoExit(false);
-
-        $input = new ArrayInput(
+        return $this->runComposer(
+            'install',
             [
-                'command' => "install",
-                '--working-dir' => getcwd(),
-                '--no-interaction' => true,
-                '--optimize-autoloader' => true,
-                '-v' => true,
-                '--ignore-platform-reqs' => true,
                 '--no-dev' => true,
-                '--no-scripts' => true,
             ]
         );
-
-        $output = new BufferedOutput();
-
-        try {
-            $exitCode = $app->run($input, $output);
-            $outputContent = $output->fetch();
-
-            if (
-                strpos($outputContent, 'Your requirements could not be resolved') !== false ||
-                strpos($outputContent, 'Problem ') !== false ||
-                strpos($outputContent, 'Installation failed') !== false ||
-                strpos($outputContent, 'Removal failed') !== false ||
-                strpos($outputContent, 'error') !== false
-            ) {
-                throw new Exception('Install failed: ' . $outputContent);
-            }
-
-            if ($exitCode !== 0) {
-                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
-            }
-
-            return $outputContent;
-        } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during install: ' . $e->getMessage());
-        }
     }
 
     public function update()
     {
-        $this->bootstrapEnv();
-        $app = new Application();
-        $app->setAutoExit(false);
-
-        $input = new ArrayInput(
+        return $this->runComposer(
+            'update',
             [
-                'command' => "update",
-                '--working-dir' => getcwd(),
-                '--no-interaction' => true,
-                '--optimize-autoloader' => true,
-                '-v' => true,
-                '--ignore-platform-reqs' => true,
                 '--no-dev' => true,
-                '--no-scripts' => true,
             ]
         );
-
-        $output = new BufferedOutput();
-
-        try {
-            $exitCode = $app->run($input, $output);
-            $outputContent = $output->fetch();
-
-            if (
-                strpos($outputContent, 'Your requirements could not be resolved') !== false ||
-                strpos($outputContent, 'Problem ') !== false ||
-                strpos($outputContent, 'Installation failed') !== false ||
-                strpos($outputContent, 'Removal failed') !== false ||
-                strpos($outputContent, 'error') !== false
-            ) {
-                throw new Exception('Update failed: ' . $outputContent);
-            }
-
-            if ($exitCode !== 0) {
-                throw new Exception('Composer exit with error. Exit code: ' . $exitCode . '. Output: ' . $outputContent);
-            }
-
-            return $outputContent;
-        } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during update: ' . $e->getMessage());
-        }
     }
 
     /**
@@ -165,39 +66,12 @@ class ComposerManager
      */
     public function removePackage(string $package)
     {
-        $this->bootstrapEnv();
-        $app = new Application();
-        $app->setAutoExit(false);
-
-        $input = new ArrayInput(
+        return $this->runComposer(
+            'remove',
             [
-                'command' => "remove",
                 'packages' => [$package],
-                '--working-dir' => getcwd(),
-                '--no-interaction' => true,
-                '--optimize-autoloader' => true,
-                '-v' => true,
-                '--ignore-platform-reqs' => true,
-                '--no-scripts' => true,
             ]
         );
-
-        $output = new BufferedOutput();
-
-        try {
-            $app->run($input, $output);
-            $outputContent = $output->fetch();
-
-            if (strpos($outputContent, 'Removal failed') !== false) {
-                throw new Exception('Removal failed: ' . $outputContent);
-            }
-
-            return $outputContent;
-        } catch (RuntimeException $e) {
-            throw new Exception('Composer runtime error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            throw new Exception('Error during package removal: ' . $e->getMessage());
-        }
     }
 
     /**
@@ -208,7 +82,7 @@ class ComposerManager
     public function getPackages()
     {
         $this->bootstrapEnv();
-        $packages = json_decode(file_get_contents(getcwd() . '/composer.json'), true);
+        $packages = json_decode(file_get_contents($this->workingDir() . '/composer.json'), true);
 
         return $packages['require'];
     }
@@ -242,6 +116,106 @@ class ComposerManager
 
     }
 
+    private function runComposer(string $command, array $extraInput = []): string
+    {
+        $this->bootstrapEnv();
+        $this->assertWritableWorkspace();
+
+        $app = new Application();
+        $app->setAutoExit(false);
+
+        $input = new ArrayInput(array_merge(
+            [
+                'command' => $command,
+                '--working-dir' => $this->workingDir(),
+                '--no-interaction' => true,
+                '--no-ansi' => true,
+                '--no-progress' => true,
+                '--optimize-autoloader' => true,
+                '-v' => true,
+                '--ignore-platform-reqs' => true,
+                '--no-scripts' => true,
+            ],
+            $extraInput
+        ));
+
+        $output = new BufferedOutput();
+
+        try {
+            [$exitCode, $outputContent] = $this->suppressDeprecationsDuring(static function () use ($app, $input, $output) {
+                $exitCode = $app->run($input, $output);
+
+                return [$exitCode, $output->fetch()];
+            });
+
+            if ($exitCode !== 0) {
+                throw new Exception('Composer command failed: "' . $command . '" (exit code ' . $exitCode . '). Output: ' . $outputContent);
+            }
+
+            return $outputContent;
+        } catch (RuntimeException $e) {
+            $message = $e->getMessage();
+            if (str_contains($message, 'Could not delete ') || str_contains($message, 'Could not delete')) {
+                $message .= ' (check permissions/ownership for "vendor/" and "composer.lock")';
+            }
+
+            throw new Exception('Composer runtime error: ' . $message);
+        } catch (Exception $e) {
+            throw new Exception('Error during composer "' . $command . '": ' . $e->getMessage());
+        }
+    }
+
+    private function suppressDeprecationsDuring(callable $callback): mixed
+    {
+        $oldDisplayErrors = ini_get('display_errors');
+        $oldErrorReporting = error_reporting();
+
+        if (function_exists('ini_set')) {
+            @ini_set('display_errors', '0');
+        }
+        error_reporting($oldErrorReporting & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+        try {
+            return $callback();
+        } finally {
+            if (function_exists('ini_set')) {
+                @ini_set('display_errors', (string)$oldDisplayErrors);
+            }
+            error_reporting($oldErrorReporting);
+        }
+    }
+
+    private function workingDir(): string
+    {
+        $base = rtrim(BASE_PATH, " \t\n\r\0\x0B");
+        $real = realpath($base);
+
+        return rtrim($real !== false ? $real : $base, DIRECTORY_SEPARATOR);
+    }
+
+    private function assertWritableWorkspace(): void
+    {
+        $workingDir = $this->workingDir();
+
+        $composerJson = $workingDir . '/composer.json';
+        if (file_exists($composerJson) && !is_writable($composerJson)) {
+            throw new Exception('composer.json is not writable: ' . $composerJson);
+        }
+
+        $composerLock = $workingDir . '/composer.lock';
+        if (file_exists($composerLock) && !is_writable($composerLock)) {
+            throw new Exception('composer.lock is not writable: ' . $composerLock);
+        }
+        if (!file_exists($composerLock) && !is_writable($workingDir)) {
+            throw new Exception('Project directory is not writable (composer.lock cannot be created): ' . $workingDir);
+        }
+
+        $vendorDir = $workingDir . '/vendor';
+        if (is_dir($vendorDir) && !is_writable($vendorDir)) {
+            throw new Exception('vendor directory is not writable: ' . $vendorDir);
+        }
+    }
+
     /**
      * Bootstrap the environment for Composer (once before calls).
      */
@@ -253,9 +227,7 @@ class ComposerManager
         }
         $initialized = true;
 
-        $base = rtrim(BASE_PATH, " \t\n\r\0\x0B");
-        $real = realpath($base);
-        $base = $real !== false ? $real : $base;
+        $base = $this->workingDir();
 
         @chdir($base);
 
@@ -289,6 +261,6 @@ class ComposerManager
         putenv('COMPOSER_MEMORY_LIMIT=-1');
         putenv('COMPOSER_ALLOW_SUPERUSER=1');
         putenv('COMPOSER_NO_INTERACTION=1');
-        putenv('COMPOSER_PROCESS_TIMEOUT=600');
+        putenv('COMPOSER_PROCESS_TIMEOUT=' . self::DEFAULT_TIMEOUT);
     }
 }
