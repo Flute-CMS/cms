@@ -11,6 +11,7 @@ return array (
   'auto_update' => false,
   'footer_additional' => null,
   'create_backup' => true,
+  'backup_vendor_on_composer' => true,
   'maintenance_mode' => false,
   'steam_api' => '',
   'change_theme' => true,

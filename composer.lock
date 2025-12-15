@@ -4107,45 +4107,6 @@
             "time": "2019-02-05T23:41:09+00:00"
         },
         {
-            "name": "mercadopago/dx-php",
-            "version": "3.5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mercadopago/sdk-php.git",
-                "reference": "657be1bf17b08b3c887891245825e56111006883"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mercadopago/sdk-php/zipball/657be1bf17b08b3c887891245825e56111006883",
-                "reference": "657be1bf17b08b3c887891245825e56111006883",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.22",
-                "phpunit/phpunit": "^10.2",
-                "squizlabs/php_codesniffer": "3.*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "MercadoPago\\": "src/MercadoPago"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Mercado Pago PHP SDK",
-            "homepage": "https://github.com/mercadopago/sdk-php",
-            "support": {
-                "source": "https://github.com/mercadopago/sdk-php/tree/3.5.1"
-            },
-            "time": "2025-06-09T13:08:57+00:00"
-        },
-        {
             "name": "mobiledetect/mobiledetectlib",
             "version": "2.8.45",
             "source": {
@@ -5978,30 +5939,30 @@
         },
         {
             "name": "psr/log",
-            "version": "1.1.4",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "d49695b909c3b7628b6289db5479a1c204601f11"
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11",
-                "reference": "d49695b909c3b7628b6289db5479a1c204601f11",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=8.0.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.1.x-dev"
+                    "dev-master": "3.x-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Psr\\Log\\": "Psr/Log/"
+                    "Psr\\Log\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -6022,9 +5983,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/1.1.4"
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2021-05-03T11:20:27+00:00"
+            "time": "2024-09-11T13:17:53+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -6199,20 +6160,20 @@
         },
         {
             "name": "ramsey/uuid",
-            "version": "4.9.1",
+            "version": "4.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ramsey/uuid.git",
-                "reference": "81f941f6f729b1e3ceea61d9d014f8b6c6800440"
+                "reference": "8429c78ca35a09f27565311b98101e2826affde0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ramsey/uuid/zipball/81f941f6f729b1e3ceea61d9d014f8b6c6800440",
-                "reference": "81f941f6f729b1e3ceea61d9d014f8b6c6800440",
+                "url": "https://api.github.com/repos/ramsey/uuid/zipball/8429c78ca35a09f27565311b98101e2826affde0",
+                "reference": "8429c78ca35a09f27565311b98101e2826affde0",
                 "shasum": ""
             },
             "require": {
-                "brick/math": "^0.8.8 || ^0.9 || ^0.10 || ^0.11 || ^0.12 || ^0.13 || ^0.14",
+                "brick/math": "^0.8.16 || ^0.9 || ^0.10 || ^0.11 || ^0.12 || ^0.13 || ^0.14",
                 "php": "^8.0",
                 "ramsey/collection": "^1.2 || ^2.0"
             },
@@ -6271,9 +6232,9 @@
             ],
             "support": {
                 "issues": "https://github.com/ramsey/uuid/issues",
-                "source": "https://github.com/ramsey/uuid/tree/4.9.1"
+                "source": "https://github.com/ramsey/uuid/tree/4.9.2"
             },
-            "time": "2025-09-04T20:59:21+00:00"
+            "time": "2025-12-14T04:43:48+00:00"
         },
         {
             "name": "react/promise",
@@ -7285,22 +7246,22 @@
         },
         {
             "name": "spiral/core",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/core.git",
-                "reference": "e6b06d6c1e88139fd66463ce842ccdc5c204fc16"
+                "reference": "700db0337f7ba4d8ce87d102bc51c5820182edec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/core/zipball/e6b06d6c1e88139fd66463ce842ccdc5c204fc16",
-                "reference": "e6b06d6c1e88139fd66463ce842ccdc5c204fc16",
+                "url": "https://api.github.com/repos/spiral/core/zipball/700db0337f7ba4d8ce87d102bc51c5820182edec",
+                "reference": "700db0337f7ba4d8ce87d102bc51c5820182edec",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1",
                 "psr/container": "^1.1|^2.0",
-                "spiral/security": "^3.15.8"
+                "spiral/security": "^3.16"
             },
             "provide": {
                 "psr/container-implementation": "^1.1|^2.0"
@@ -7313,7 +7274,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7332,11 +7293,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7355,20 +7316,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:55+00:00"
+            "time": "2025-12-14T11:35:42+00:00"
         },
         {
             "name": "spiral/files",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/files.git",
-                "reference": "c90015021b9388d06f1f32c572651353b912e104"
+                "reference": "3db0b57ab7be4b8ef333478ccea3a35f5c0fb2f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/files/zipball/c90015021b9388d06f1f32c572651353b912e104",
-                "reference": "c90015021b9388d06f1f32c572651353b912e104",
+                "url": "https://api.github.com/repos/spiral/files/zipball/3db0b57ab7be4b8ef333478ccea3a35f5c0fb2f7",
+                "reference": "3db0b57ab7be4b8ef333478ccea3a35f5c0fb2f7",
                 "shasum": ""
             },
             "require": {
@@ -7382,7 +7343,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7401,11 +7362,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7424,37 +7385,37 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-31T15:34:02+00:00"
+            "time": "2025-12-14T11:38:06+00:00"
         },
         {
             "name": "spiral/hmvc",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/hmvc.git",
-                "reference": "533b441af0fa4bcf8fda2c763207b4bf52e34e40"
+                "reference": "cff7c60a72fd8a590f5d7e13a07244b39627aa5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/hmvc/zipball/533b441af0fa4bcf8fda2c763207b4bf52e34e40",
-                "reference": "533b441af0fa4bcf8fda2c763207b4bf52e34e40",
+                "url": "https://api.github.com/repos/spiral/hmvc/zipball/cff7c60a72fd8a590f5d7e13a07244b39627aa5d",
+                "reference": "cff7c60a72fd8a590f5d7e13a07244b39627aa5d",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1",
                 "psr/event-dispatcher": "^1.0",
-                "spiral/core": "^3.15.8",
-                "spiral/interceptors": "^3.15.8"
+                "spiral/core": "^3.16",
+                "spiral/interceptors": "^3.16"
             },
             "require-dev": {
                 "phpunit/phpunit": "^10.5.41",
-                "spiral/testing": "^2.8.3",
+                "spiral/testing": "^2.12",
                 "vimeo/psalm": "^6.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7473,11 +7434,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7498,36 +7459,36 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:19+00:00"
+            "time": "2025-12-14T11:38:02+00:00"
         },
         {
             "name": "spiral/interceptors",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/interceptors.git",
-                "reference": "511da02bb400c64dde27bb87b63df6d7007bceef"
+                "reference": "715f274b35d10565f1c910eb573162179e33b0e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/interceptors/zipball/511da02bb400c64dde27bb87b63df6d7007bceef",
-                "reference": "511da02bb400c64dde27bb87b63df6d7007bceef",
+                "url": "https://api.github.com/repos/spiral/interceptors/zipball/715f274b35d10565f1c910eb573162179e33b0e7",
+                "reference": "715f274b35d10565f1c910eb573162179e33b0e7",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1",
                 "psr/event-dispatcher": "^1.0",
-                "spiral/core": "^3.15.8"
+                "spiral/core": "^3.16"
             },
             "require-dev": {
                 "phpunit/phpunit": "^10.5.41",
-                "spiral/testing": "^2.8.3",
+                "spiral/testing": "^2.12",
                 "vimeo/psalm": "^6.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7546,11 +7507,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7576,26 +7537,26 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:19+00:00"
+            "time": "2025-12-14T11:34:19+00:00"
         },
         {
             "name": "spiral/logger",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/logger.git",
-                "reference": "35553e8badee07dbb8290a7b73aa416c78e4c390"
+                "reference": "bd902bbcdbb6f247a51a75fc716dba3831966f06"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/logger/zipball/35553e8badee07dbb8290a7b73aa416c78e4c390",
-                "reference": "35553e8badee07dbb8290a7b73aa416c78e4c390",
+                "url": "https://api.github.com/repos/spiral/logger/zipball/bd902bbcdbb6f247a51a75fc716dba3831966f06",
+                "reference": "bd902bbcdbb6f247a51a75fc716dba3831966f06",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1",
                 "psr/log": "1 - 3",
-                "spiral/core": "^3.15.8"
+                "spiral/core": "^3.16"
             },
             "require-dev": {
                 "mockery/mockery": "^1.6.12",
@@ -7605,7 +7566,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7624,11 +7585,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7647,20 +7608,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:39+00:00"
+            "time": "2025-12-14T11:36:52+00:00"
         },
         {
             "name": "spiral/pagination",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/pagination.git",
-                "reference": "6df28c30f34e601ad5df2cf7430455940e624bb2"
+                "reference": "5667ae56f0886634c9bd36bd71be22513e58d4da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/pagination/zipball/6df28c30f34e601ad5df2cf7430455940e624bb2",
-                "reference": "6df28c30f34e601ad5df2cf7430455940e624bb2",
+                "url": "https://api.github.com/repos/spiral/pagination/zipball/5667ae56f0886634c9bd36bd71be22513e58d4da",
+                "reference": "5667ae56f0886634c9bd36bd71be22513e58d4da",
                 "shasum": ""
             },
             "require": {
@@ -7674,7 +7635,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7693,11 +7654,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7716,27 +7677,27 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-31T15:31:09+00:00"
+            "time": "2025-12-14T11:34:58+00:00"
         },
         {
             "name": "spiral/reactor",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/reactor.git",
-                "reference": "1680b9736c12ccbeb627d9f92ecf328b0870f79d"
+                "reference": "041148ce6845f3bca1511c06c2cd9d5cb1e954dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/reactor/zipball/1680b9736c12ccbeb627d9f92ecf328b0870f79d",
-                "reference": "1680b9736c12ccbeb627d9f92ecf328b0870f79d",
+                "url": "https://api.github.com/repos/spiral/reactor/zipball/041148ce6845f3bca1511c06c2cd9d5cb1e954dd",
+                "reference": "041148ce6845f3bca1511c06c2cd9d5cb1e954dd",
                 "shasum": ""
             },
             "require": {
                 "doctrine/inflector": "^1.4|^2.0",
                 "nette/php-generator": "^4.1.7",
                 "php": ">=8.1",
-                "spiral/files": "^3.15.8"
+                "spiral/files": "^3.16"
             },
             "require-dev": {
                 "mockery/mockery": "^1.6.12",
@@ -7747,7 +7708,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7766,11 +7727,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7789,37 +7750,37 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:17+00:00"
+            "time": "2025-12-14T11:38:08+00:00"
         },
         {
             "name": "spiral/security",
-            "version": "3.15.8",
+            "version": "3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spiral/security.git",
-                "reference": "a7a7a83cb474f70c02ffd00899f9f87b1d5c1d0e"
+                "reference": "e47affcd2c1718209cae1fe0c3cf54c522db7b1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spiral/security/zipball/a7a7a83cb474f70c02ffd00899f9f87b1d5c1d0e",
-                "reference": "a7a7a83cb474f70c02ffd00899f9f87b1d5c1d0e",
+                "url": "https://api.github.com/repos/spiral/security/zipball/e47affcd2c1718209cae1fe0c3cf54c522db7b1a",
+                "reference": "e47affcd2c1718209cae1fe0c3cf54c522db7b1a",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1",
-                "spiral/core": "^3.15.8",
-                "spiral/hmvc": "^3.15.8"
+                "spiral/core": "^3.16",
+                "spiral/hmvc": "^3.16"
             },
             "require-dev": {
                 "mockery/mockery": "^1.6.12",
                 "phpunit/phpunit": "^10.5.41",
-                "spiral/console": "^3.15.8",
+                "spiral/console": "^3.16",
                 "vimeo/psalm": "^6.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.15.x-dev"
+                    "dev-master": "3.16.x-dev"
                 }
             },
             "autoload": {
@@ -7838,11 +7799,11 @@
                 },
                 {
                     "name": "Pavel Butchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
+                    "homepage": "https://github.com/butschster"
                 },
                 {
                     "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
+                    "homepage": "https://github.com/roxblnfk"
                 },
                 {
                     "name": "Maksim Smakouz (msmakouz)",
@@ -7861,7 +7822,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-04-22T14:03:55+00:00"
+            "time": "2025-12-14T11:39:30+00:00"
         },
         {
             "name": "spiral/tokenizer",
@@ -11903,61 +11864,6 @@
                 }
             ],
             "time": "2025-12-01T11:14:17+00:00"
-        },
-        {
-            "name": "yoomoney/yookassa-sdk-php",
-            "version": "2.12.3",
-            "source": {
-                "type": "git",
-                "url": "https://git.yoomoney.ru/scm/sdk/yookassa-sdk-php.git",
-                "reference": "f2a705b6c4785041ada1a732b6d4d7c05964108c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://git.yoomoney.ru/rest/api/latest/projects/SDK/repos/yookassa-sdk-php/archive?at=refs%2Ftags%2F2.12.3&format=zip",
-                "reference": "f2a705b6c4785041ada1a732b6d4d7c05964108c"
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "ext-mbstring": "*",
-                "php": ">=5.3.0",
-                "psr/log": "^1.0"
-            },
-            "require-dev": {
-                "ext-xml": "*",
-                "mockery/mockery": "^0.9 || ^1.6",
-                "php-parallel-lint/php-parallel-lint": "^1.0",
-                "phpmd/phpmd": "^2.13",
-                "phpunit/phpunit": "^4.8 || ^5.7",
-                "squizlabs/php_codesniffer": "*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "YooKassa\\": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "YooMoney",
-                    "email": "cms@yoomoney.ru"
-                }
-            ],
-            "description": "This is a developer tool for integration with YooMoney.",
-            "homepage": "https://yookassa.ru/developers/api",
-            "keywords": [
-                "api",
-                "payments",
-                "sdk",
-                "yookassa",
-                "yoomoney"
-            ],
-            "time": "2025-09-04T11:18:28+00:00"
         }
     ],
     "packages-dev": [

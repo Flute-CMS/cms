@@ -4,6 +4,17 @@
     </IfModule>
 
     RewriteEngine On
+    ErrorDocument 503 /maintenance.html
+
+    # Maintenance mode for updates (no PHP, fast response).
+    RewriteCond %{DOCUMENT_ROOT}/.maintenance-composer -f
+    RewriteCond %{REQUEST_URI} !^/maintenance\.html$
+    RewriteCond %{REQUEST_URI} !^/maintenance-check\.php$
+    RewriteCond %{REQUEST_URI} !^/assets/
+    RewriteCond %{REQUEST_URI} !^/favicon\.ico$
+    RewriteCond %{REQUEST_URI} !^/robots\.txt$
+    RewriteCond %{REQUEST_URI} !^/sw\.js$
+    RewriteRule ^ - [R=503,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

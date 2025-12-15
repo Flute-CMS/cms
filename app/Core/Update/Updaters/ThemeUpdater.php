@@ -61,6 +61,8 @@ class ThemeUpdater extends AbstractUpdater
             return false;
         }
 
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
+
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/theme-' . $this->theme->key . '-' . time());
 
@@ -98,25 +100,29 @@ class ThemeUpdater extends AbstractUpdater
 
         // Копируем файлы
         try {
-            // Создаем бэкап перед обновлением
-            $this->createBackup();
+            try {
+                // Создаем бэкап перед обновлением
+                $this->createBackup();
 
-            // Копируем файлы
-            $this->copyDirectory($rootDir, $themeDir);
+                // Копируем файлы
+                $this->copyDirectory($rootDir, $themeDir);
 
-            // Очищаем кэш
-            $this->clearCache();
+                // Очищаем кэш
+                $this->clearCache();
 
-            // Удаляем временные файлы
-            $this->removeDirectory($extractDir);
+                // Удаляем временные файлы
+                $this->removeDirectory($extractDir);
 
-            return true;
-        } catch (Exception $e) {
-            logs()->error('Error during theme update: ' . $e->getMessage());
-            // Удаляем временные файлы
-            $this->removeDirectory($extractDir);
+                return true;
+            } catch (Exception $e) {
+                logs()->error('Error during theme update: ' . $e->getMessage());
+                // Удаляем временные файлы
+                $this->removeDirectory($extractDir);
 
-            return false;
+                return false;
+            }
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled);
         }
     }
 

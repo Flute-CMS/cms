@@ -85,6 +85,8 @@ class ModuleUpdater extends AbstractUpdater
             return false;
         }
 
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
+
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/module-' . $this->module->key . '-' . time());
 
@@ -93,57 +95,61 @@ class ModuleUpdater extends AbstractUpdater
         }
 
         try {
-            $this->createBackup();
-
-            $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
-            if (!$modulePath) {
-                return false;
-            }
-
-            if (!$this->validateModule($modulePath)) {
-                logs()->error('Module validation failed: incompatible with current CMS version');
-
-                return false;
-            }
-
-            $moduleDir = $this->getModuleDirectory();
-            $this->copyModuleFiles($modulePath, $moduleDir);
-
-            // Update composer dependencies
-            /** @var ComposerManager $composerManager */
-            $composerManager = app(ComposerManager::class);
-
             try {
-                $composerManager->install();
-            } catch (Exception $e) {
-                // Rollback
-                $this->removeDirectory($moduleDir);
-                if ($this->backupDir && is_dir($this->backupDir)) {
-                    $this->copyDirectory($this->backupDir, $moduleDir);
+                $this->createBackup();
+
+                $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
+                if (!$modulePath) {
+                    return false;
                 }
 
-                throw $e;
-            }
+                if (!$this->validateModule($modulePath)) {
+                    logs()->error('Module validation failed: incompatible with current CMS version');
 
-            $this->updateModuleInformation();
+                    return false;
+                }
 
-            $this->clearCache();
-            cache()->clear();
-            /** @var ModuleManager $moduleManager */
-            $moduleManager = app(ModuleManager::class);
-            $moduleManager->clearCache();
-            $moduleManager->refreshModules();
+                $moduleDir = $this->getModuleDirectory();
+                $this->copyModuleFiles($modulePath, $moduleDir);
 
-            $this->removeDirectory($extractDir);
+                // Update composer dependencies
+                /** @var ComposerManager $composerManager */
+                $composerManager = app(ComposerManager::class);
 
-            return true;
-        } catch (Exception $e) {
-            logs()->error('Error during module update: ' . $e->getMessage());
-            if (is_dir($extractDir)) {
+                try {
+                    $composerManager->install();
+                } catch (Exception $e) {
+                    // Rollback
+                    $this->removeDirectory($moduleDir);
+                    if ($this->backupDir && is_dir($this->backupDir)) {
+                        $this->copyDirectory($this->backupDir, $moduleDir);
+                    }
+
+                    throw $e;
+                }
+
+                $this->updateModuleInformation();
+
+                $this->clearCache();
+                cache()->clear();
+                /** @var ModuleManager $moduleManager */
+                $moduleManager = app(ModuleManager::class);
+                $moduleManager->clearCache();
+                $moduleManager->refreshModules();
+
                 $this->removeDirectory($extractDir);
-            }
 
-            return false;
+                return true;
+            } catch (Exception $e) {
+                logs()->error('Error during module update: ' . $e->getMessage());
+                if (is_dir($extractDir)) {
+                    $this->removeDirectory($extractDir);
+                }
+
+                return false;
+            }
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled);
         }
     }
 

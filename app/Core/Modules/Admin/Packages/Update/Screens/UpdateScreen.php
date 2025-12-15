@@ -106,6 +106,8 @@ class UpdateScreen extends Screen
             @ignore_user_abort(true);
         }
 
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
+
         try {
             $data = request()->all();
 
@@ -286,6 +288,8 @@ class UpdateScreen extends Screen
             }
             logs()->error('Bulk update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled);
         }
     }
 
@@ -322,5 +326,62 @@ class UpdateScreen extends Screen
     protected function triggerSidebarRefresh(): void
     {
         $this->dispatchBrowserEvent('sidebar-refresh');
+    }
+
+    private function enableUpdateMaintenance(): bool
+    {
+        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
+        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
+        $publicFlag = $basePath . 'public/.maintenance-composer';
+
+        $existed = is_file($storageFlag) || is_file($publicFlag);
+        if ($existed) {
+            return false;
+        }
+
+        @mkdir(dirname($storageFlag), 0o775, true);
+        @mkdir(dirname($publicFlag), 0o775, true);
+
+        $payload = [
+            'title' => 'Maintenance',
+            'message' => 'Update in progress, please try again shortly.',
+            'started_at' => date(DATE_ATOM),
+            'pid' => getmypid(),
+            'force' => false,
+        ];
+
+        @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        @file_put_contents($publicFlag, '1');
+
+        return true;
+    }
+
+    private function disableUpdateMaintenance(bool $enabledByThisCall): void
+    {
+        if (!$enabledByThisCall) {
+            return;
+        }
+
+        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
+        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
+        $publicFlag = $basePath . 'public/.maintenance-composer';
+
+        $payload = [];
+        if (is_file($storageFlag)) {
+            $raw = @file_get_contents($storageFlag);
+            if (is_string($raw) && $raw !== '') {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $payload = $decoded;
+                }
+            }
+        }
+
+        if (!empty($payload['force'])) {
+            return;
+        }
+
+        @unlink($storageFlag);
+        @unlink($publicFlag);
     }
 }
