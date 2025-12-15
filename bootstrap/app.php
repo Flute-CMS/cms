@@ -28,10 +28,20 @@ if (!file_exists(BASE_PATH . 'vendor/autoload.php')) {
 
 define('FLUTE_BOOTSTRAP_START', microtime(true));
 
-/**
- * Include the composer autoloader
- */
-$loader = require BASE_PATH . 'vendor/autoload.php';
+require __DIR__ . '/composer-error.php';
+
+set_error_handler(function ($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
+try {
+    $loader = require BASE_PATH . 'vendor/autoload.php';
+} catch (Throwable $e) {
+    restore_error_handler();
+    displayComposerError($e, BASE_PATH);
+}
+
+restore_error_handler();
 
 use Flute\Core\App;
 use Flute\Core\Profiling\GlobalProfiler;
