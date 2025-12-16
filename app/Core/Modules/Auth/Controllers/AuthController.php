@@ -6,6 +6,7 @@ use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends BaseController
 {
@@ -69,5 +70,10 @@ class AuthController extends BaseController
         } catch (AccountNotVerifiedException $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         }
+    }
+
+    public function authCheck(): Response
+    {
+        return response()->make('', Response::HTTP_NO_CONTENT);
     }
 }

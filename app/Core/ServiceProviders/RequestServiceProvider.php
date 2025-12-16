@@ -37,15 +37,18 @@ class RequestServiceProvider extends AbstractServiceProvider
 
         $trustedProxies = array_filter((array) config('app.trusted_proxies', []));
 
+        if (in_array('*', $trustedProxies, true) || in_array('REMOTE_ADDR', $trustedProxies, true)) {
+            $trustedProxies = [$_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'];
+        }
+
+        $trustedHeaders = Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+            | Request::HEADER_X_FORWARDED_HOST;
+
         if (!empty($trustedProxies)) {
-            FluteRequest::setTrustedProxies(
-                $trustedProxies,
-                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
-            );
-            Request::setTrustedProxies(
-                $trustedProxies,
-                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
-            );
+            FluteRequest::setTrustedProxies($trustedProxies, $trustedHeaders);
+            Request::setTrustedProxies($trustedProxies, $trustedHeaders);
         } else {
             FluteRequest::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
             Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);

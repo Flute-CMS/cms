@@ -39,3 +39,4 @@ router()->group(['middleware' => 'guest'], static function (RouterInterface $rou
 $router->get('/social/{provider}', [SocialAuthController::class, 'redirectToProvider']);
 $router->post('/logout', [AuthController::class, 'getLogout'])->middleware(['auth', 'csrf']);
 $router->get('/confirm/{token}', [AuthController::class, 'getConfirmation']);
+$router->get('api/auth/check', [AuthController::class, 'authCheck'])->name('api.auth.check');
