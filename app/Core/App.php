@@ -31,6 +31,7 @@ use Flute\Core\Traits\ThemeTrait;
 use Symfony\Component\Console\Application;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 final class App
 {
@@ -293,6 +294,24 @@ final class App
         $this->initializeEventListeners();
 
         $this->isBooted = true;
+
+        $this->saveProviderBootTimesStats();
+    }
+
+    /**
+     * Get accumulated provider boot times statistics
+     */
+    public static function getProviderBootTimesStats(): array
+    {
+        try {
+            if (!function_exists('cache')) {
+                return [];
+            }
+
+            return cache()->get('providers.boot_times_stats', []);
+        } catch (Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -431,6 +450,55 @@ final class App
     public function __call($name, $args)
     {
         return $this->get($name);
+    }
+
+    /**
+     * Save provider boot times to statistics cache
+     */
+    protected function saveProviderBootTimesStats(): void
+    {
+        if (empty($this->bootTimes) || !function_exists('cache')) {
+            return;
+        }
+
+        try {
+            $cacheKey = 'providers.boot_times_stats';
+            $maxSamples = 100;
+
+            $stats = cache()->get($cacheKey, [
+                'samples' => [],
+                'providers' => [],
+                'last_updated' => null,
+            ]);
+
+            $timestamp = time();
+            $stats['samples'][] = [
+                'time' => $timestamp,
+                'data' => $this->bootTimes,
+                'total' => array_sum($this->bootTimes),
+            ];
+
+            if (count($stats['samples']) > $maxSamples) {
+                $stats['samples'] = array_slice($stats['samples'], -$maxSamples);
+            }
+
+            foreach ($this->bootTimes as $provider => $time) {
+                $shortName = substr(strrchr($provider, '\\') ?: $provider, 1);
+                if (!isset($stats['providers'][$shortName])) {
+                    $stats['providers'][$shortName] = [];
+                }
+                $stats['providers'][$shortName][] = $time;
+
+                if (count($stats['providers'][$shortName]) > $maxSamples) {
+                    $stats['providers'][$shortName] = array_slice($stats['providers'][$shortName], -$maxSamples);
+                }
+            }
+
+            $stats['last_updated'] = $timestamp;
+
+            cache()->set($cacheKey, $stats, 86400 * 7);
+        } catch (Throwable $e) {
+        }
     }
 
     /**

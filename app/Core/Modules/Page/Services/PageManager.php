@@ -117,9 +117,12 @@ class PageManager
 
         foreach ($widgets as $widget) {
             try {
+                $widgetName = $widget->getWidget();
+                $startTime = microtime(true);
                 $content .= $this->widgetManager
-                    ->getWidget($widget->getWidget())
+                    ->getWidget($widgetName)
                     ->render(json_decode($widget->getSettings(), true));
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
             } catch (Throwable $e) {
                 $this->logger->error('Widget render error: ' . $e->getMessage(), [
                     'widget' => $widget->getWidget(),
@@ -183,13 +186,18 @@ class PageManager
                         }
 
                         $settings = json_decode($block->getSettings(), true);
+                        $widgetName = $block->getWidget();
+
+                        $startTime = microtime(true);
+                        $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
+                        WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
                         $layout[] = [
                             'id' => $block->getId(),
-                            'widgetName' => $block->getWidget(),
+                            'widgetName' => $widgetName,
                             'settings' => $settings,
                             'gridstack' => json_decode($block->gridstack, true),
-                            'content' => $this->widgetManager->getWidget($block->getWidget())->render($settings),
+                            'content' => $widgetContent,
                         ];
                     } catch (Exception $e) {
                         $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
@@ -222,9 +230,12 @@ class PageManager
                 throw new Exception('Widget ' . $widgetId . ' does not exist on current page');
             }
 
+            $widgetName = $widgetDb->getWidget();
+            $startTime = microtime(true);
             $content = $this->widgetManager
-                ->getWidget($widgetDb->getWidget())
+                ->getWidget($widgetName)
                 ->render(json_decode($widgetDb->getSettings(), true));
+            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
             return $content !== "" ? $content : null;
         } catch (Throwable $e) {
@@ -637,8 +648,13 @@ class PageManager
     {
         try {
             $settings = json_decode($block->getSettings(), true) ?? [];
+            $widgetName = $block->getWidget();
 
-            return $this->widgetManager->getWidget($block->getWidget())->render($settings);
+            $startTime = microtime(true);
+            $content = $this->widgetManager->getWidget($widgetName)->render($settings);
+            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+            return $content;
         } catch (Throwable $e) {
             if (str_contains($e->getMessage(), 'Undefined schema')) {
                 try {

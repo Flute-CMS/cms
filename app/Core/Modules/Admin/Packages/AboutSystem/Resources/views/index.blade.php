@@ -15,6 +15,104 @@
         </div>
     </div>
 
+    <div class="about-system__report-section">
+        <div class="about-system__report-content">
+            <div class="about-system__report-info">
+                <h3><x-icon path="ph.regular.file-text" /> {{ __('admin-about-system.report.title') }}</h3>
+                <p>{{ __('admin-about-system.report.description') }}</p>
+            </div>
+            <a href="{{ url('/admin/about-system/download-report') }}" class="about-system__report-btn" data-turbo="false">
+                <x-icon path="ph.bold.download-simple-bold" />
+                {{ __('admin-about-system.report.download') }}
+            </a>
+        </div>
+    </div>
+
+    @if ($performanceData['hasData'])
+        @push('head')
+            <script src="{{ asset('assets/js/libs/apex-charts.js') }}"></script>
+        @endpush
+
+        <section class="about-system__panel about-system__panel--full">
+            <h2 class="about-system__panel-title">
+                <x-icon path="ph.regular.gauge" />
+                {{ __('admin-about-system.sections.performance.title') }}
+            </h2>
+
+            <div class="about-system__perf-overview">
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['total_requests'] }}</div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.total_requests') }}</div>
+                </div>
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['avg_response_time'] }}<small>ms</small></div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.avg_response') }}</div>
+                </div>
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['avg_db_time'] }}<small>ms</small></div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.avg_db_time') }}</div>
+                </div>
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['avg_memory'] }}<small>MB</small></div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.avg_memory') }}</div>
+                </div>
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['routes_count'] }}</div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.routes_tracked') }}</div>
+                </div>
+                <div class="about-system__perf-stat">
+                    <div class="about-system__perf-stat-value">{{ $performanceData['overview']['widgets_count'] }}</div>
+                    <div class="about-system__perf-stat-label">{{ __('admin-about-system.charts.widgets_tracked') }}</div>
+                </div>
+            </div>
+
+            @if ($performanceData['overview']['last_updated'])
+                <div class="about-system__perf-updated">
+                    {{ __('admin-about-system.charts.last_updated') }}: {{ $performanceData['overview']['last_updated'] }}
+                </div>
+            @endif
+        </section>
+
+        @php
+            $charts = array_filter([
+                ['chart' => $routesChart, 'icon' => 'ph.regular.path', 'title' => __('admin-about-system.charts.slowest_routes')],
+                ['chart' => $queriesChart, 'icon' => 'ph.regular.database', 'title' => __('admin-about-system.charts.slowest_queries')],
+                ['chart' => $widgetsChart, 'icon' => 'ph.regular.squares-four', 'title' => __('admin-about-system.charts.slowest_widgets')],
+                ['chart' => $modulesChart, 'icon' => 'ph.regular.package', 'title' => __('admin-about-system.charts.slowest_modules')],
+                ['chart' => $providersChart, 'icon' => 'ph.regular.plugs-connected', 'title' => __('admin-about-system.charts.slowest_providers')],
+            ], fn($item) => $item['chart'] !== null);
+        @endphp
+
+        @if (count($charts) > 0)
+            <div class="about-system__panels about-system__panels--charts">
+                @foreach ($charts as $chartData)
+                    <section class="about-system__panel about-system__panel--chart">
+                        <h2 class="about-system__panel-title">
+                            <x-icon path="{{ $chartData['icon'] }}" />
+                            {{ $chartData['title'] }}
+                        </h2>
+                        <div class="about-system__chart-container">
+                            {!! $chartData['chart']->container() !!}
+                        </div>
+                        {!! $chartData['chart']->script() !!}
+                    </section>
+                @endforeach
+            </div>
+        @endif
+    @else
+        <section class="about-system__panel about-system__panel--full">
+            <h2 class="about-system__panel-title">
+                <x-icon path="ph.regular.gauge" />
+                {{ __('admin-about-system.sections.performance.title') }}
+            </h2>
+            <div class="about-system__no-data">
+                <x-icon path="ph.regular.chart-line" />
+                <p>{{ __('admin-about-system.charts.no_data') }}</p>
+                <small>{{ __('admin-about-system.charts.no_data_hint') }}</small>
+            </div>
+        </section>
+    @endif
+
     <div class="about-system__panels">
         <section class="about-system__panel">
             <h2 class="about-system__panel-title">

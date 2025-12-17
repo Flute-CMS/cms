@@ -6,6 +6,7 @@ use Exception;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Modules\Page\Services\PageManager;
 use Flute\Core\Modules\Page\Services\WidgetManager;
+use Flute\Core\Modules\Page\Services\WidgetRenderTiming;
 use Flute\Core\Modules\Page\Widgets\Contracts\WidgetInterface;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
@@ -190,7 +191,10 @@ class WidgetController extends BaseController
         try {
             $widget = $this->widgetManager->getWidget($widgetName);
             $settings = $this->resolveWidgetSettings($widget, $fluteRequest);
+
+            $startTime = microtime(true);
             $html = $widget->render($settings);
+            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
             return $this->json([
                 'html' => $html,
@@ -241,7 +245,10 @@ class WidgetController extends BaseController
                 $widgetName = $widgetData['widget_name'] ?? '';
                 $widget = $this->widgetManager->getWidget($widgetName);
                 $settings = $this->resolveWidgetSettings($widget, $widgetData['settings'] ?? null);
+
+                $startTime = microtime(true);
                 $html = $widget->render($settings);
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
                 $results[] = [
                     'html' => $html,

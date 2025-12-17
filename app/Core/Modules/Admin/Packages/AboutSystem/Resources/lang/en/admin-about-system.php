@@ -59,6 +59,9 @@ return [
         'resources' => [
             'title' => 'System Resources',
         ],
+        'performance' => [
+            'title' => 'Performance',
+        ],
     ],
     'support' => [
         'github_sponsors' => 'Become a Sponsor',
@@ -67,5 +70,28 @@ return [
     ],
     'requirements' => [
         'required_extension' => 'This extension is required for the system to function properly.',
+    ],
+    'report' => [
+        'title' => 'System Report',
+        'description' => 'Download a detailed system report including environment, modules, and logs for troubleshooting and bug reports.',
+        'download' => 'Download Report',
+    ],
+    'charts' => [
+        'avg_time' => 'Avg Time (ms)',
+        'boot_time' => 'Boot Time (ms)',
+        'total_requests' => 'Total Requests',
+        'avg_response' => 'Avg Response Time',
+        'avg_db_time' => 'Avg DB Time',
+        'avg_memory' => 'Avg Memory',
+        'routes_tracked' => 'Routes Tracked',
+        'widgets_tracked' => 'Widgets Tracked',
+        'last_updated' => 'Last Updated',
+        'slowest_routes' => 'Slowest Routes',
+        'slowest_queries' => 'Slowest SQL Queries',
+        'slowest_widgets' => 'Slowest Widgets',
+        'slowest_modules' => 'Slowest Modules',
+        'slowest_providers' => 'Slowest Providers',
+        'no_data' => 'No performance data collected yet',
+        'no_data_hint' => 'Statistics are gathered automatically when pages are visited. Check back later.',
     ],
 ];

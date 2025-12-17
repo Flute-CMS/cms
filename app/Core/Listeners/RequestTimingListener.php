@@ -6,6 +6,7 @@ use function defined;
 
 use Flute\Core\Database\DatabaseTimingLogger;
 use Flute\Core\Events\ResponseEvent;
+use Flute\Core\Services\PerformanceStatsService;
 
 use const FLUTE_DB_SETUP_END;
 use const FLUTE_DEFERRED_SAVE_END;
@@ -64,5 +65,7 @@ class RequestTimingListener
         } else {
             is_debug() && logs()->debug('request.summary', $context);
         }
+
+        PerformanceStatsService::saveRouteStats();
     }
 }

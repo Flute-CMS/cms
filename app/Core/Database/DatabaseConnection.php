@@ -184,10 +184,11 @@ class DatabaseConnection
         if ($cache && file_exists(self::SCHEMA_FILE)) {
             if (!isset($this->dbal)) {
                 $this->dbal = $this->databaseManager->getDbal();
-                if (config('database.debug')) {
-                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-                    $this->dbal->setLogger($timingLogger);
-                }
+                $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                    logs('database'),
+                    (bool) config('database.debug')
+                );
+                $this->dbal->setLogger($timingLogger);
             }
 
             if ($this->isSchemaCacheValid()) {
@@ -232,10 +233,11 @@ class DatabaseConnection
         try {
             if (!isset($this->dbal)) {
                 $this->dbal = $this->databaseManager->getDbal();
-                if (config('database.debug')) {
-                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-                    $this->dbal->setLogger($timingLogger);
-                }
+                $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                    logs('database'),
+                    (bool) config('database.debug')
+                );
+                $this->dbal->setLogger($timingLogger);
             }
 
             $validDirs = [];
@@ -488,10 +490,11 @@ class DatabaseConnection
     {
         $this->dbal = $this->databaseManager->getDbal();
 
-        if (config('database.debug')) {
-            $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-            $this->dbal->setLogger($timingLogger);
-        }
+        $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+            logs('database'),
+            (bool) config('database.debug')
+        );
+        $this->dbal->setLogger($timingLogger);
 
         $this->recompileOrmSchema(true);
     }
