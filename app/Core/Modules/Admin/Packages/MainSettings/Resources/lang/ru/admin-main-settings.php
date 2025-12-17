@@ -94,6 +94,8 @@ return [
         'two_factor_enabled' => 'Включить двухфакторную аутентификацию',
         'two_factor_force' => 'Обязательная 2FA для всех пользователей',
         'two_factor_issuer' => 'Название издателя 2FA',
+        'profile_tab_title' => 'Вкладка',
+        'inactive' => 'Неактивен',
     ],
     'options' => [
         'robots' => [
@@ -187,6 +189,10 @@ return [
         'profile_images_saved' => 'Изображения профиля успешно сохранены!',
         'unknown_error' => 'Произошла неизвестная ошибка.',
         'loading' => 'Загрузка...',
+        'profile_tabs_order_saved' => 'Порядок вкладок профиля успешно сохранён!',
+        'invalid_sort' => 'Некорректные данные сортировки.',
+        'no_profile_tabs' => 'Нет закешированных вкладок профиля.',
+        'visit_profile_first' => 'Посетите любой профиль пользователя, чтобы вкладки появились здесь.',
         'cron_cli_warning_text' => 'Не удалось автоматически на 100% определить путь до PHP CLI. Пожалуйста, проверьте часть php в команде и при необходимости замените на путь к вашему PHP CLI.',
         'cron_cli_warning_current_label' => 'Текущий вариант:',
         'cron_cli_warning_examples_label' => 'Примеры:',
@@ -222,6 +228,8 @@ return [
         'active_languages' => 'Активные языки',
         'active_languages_description' => 'Эти языки будут доступны для выбора пользователям.',
         'seo' => 'Настройки SEO',
+        'profile_tabs_order' => 'Порядок вкладок профиля',
+        'profile_tabs_order_description' => 'Перетащите вкладки для изменения их порядка отображения в профиле пользователя.',
     ],
     'popovers' => [
         'steam_api' => 'Этот ключ необходим для получения информации из Steam. Получить его можно <a target="_blank" href="https://steamcommunity.com/dev/apikey">здесь</a>.',

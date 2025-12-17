@@ -119,12 +119,14 @@
     @if (! request()->htmx()->isHtmxRequest())
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
+        <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
         <script src="@asset('jquery')"></script>
         <script src="@asset('assets/js/app.js')" defer></script>
         <script src="@asset('assets/js/libs/notyf.js')" defer></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
 
         @at(path('app/Core/Modules/Installer/Resources/assets/js/installer.js'))
+        @at(path('app/Core/Modules/Installer/Resources/assets/js/select.js'))
 
         @stack('scripts')
 

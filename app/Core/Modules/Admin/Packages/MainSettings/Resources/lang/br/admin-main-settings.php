@@ -83,6 +83,7 @@ return [
         'hcaptcha_secret_key' => 'Chave Secreta hCaptcha',
         'default_theme' => 'Tema Padrão',
         'default_role' => 'Papel Padrão de Registro',
+        'profile_tab_title' => 'Aba',
     ],
 
     'options' => [
@@ -174,6 +175,9 @@ return [
         'profile_images_saved' => 'Imagens do perfil salvas com sucesso!',
         'unknown_error' => 'Ocorreu um erro desconhecido.',
         'loading' => 'Carregando...',
+        'profile_tabs_order_saved' => 'Ordem das abas do perfil salva com sucesso!',
+        'invalid_sort' => 'Dados de ordenação inválidos.',
+        'no_profile_tabs' => 'Nenhuma aba de perfil registrada. As abas aparecerão após instalar módulos que adicionam seções ao perfil.',
         'cron_cli_warning_text' => 'Não foi possível determinar automaticamente um caminho válido 100% para o PHP CLI. Verifique a parte php no comando e substitua pelo caminho correto do PHP CLI se necessário.',
         'cron_cli_warning_current_label' => 'Candidato atual:',
         'cron_cli_warning_examples_label' => 'Exemplos:',
@@ -211,6 +215,8 @@ return [
         'active_languages' => 'Idiomas Ativos',
         'active_languages_description' => 'Esses idiomas estarão disponíveis para seleção do usuário.',
         'seo' => 'Configurações de SEO',
+        'profile_tabs_order' => 'Ordem das Abas do Perfil',
+        'profile_tabs_order_description' => 'Arraste as abas para alterar a ordem de exibição no perfil do usuário.',
     ],
 
     'popovers' => [

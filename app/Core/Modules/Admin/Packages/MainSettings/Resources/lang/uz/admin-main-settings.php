@@ -78,6 +78,7 @@ return [
         'hcaptcha_site_key' => 'hCaptcha Sayt Kaliti',
         'hcaptcha_secret_key' => 'hCaptcha Maxfiy Kaliti',
         'default_theme' => 'Standart Mavzu',
+        'profile_tab_title' => 'Ichki sahifa',
     ],
 
     'options' => [
@@ -167,6 +168,9 @@ return [
         'profile_images_saved' => 'Profil rasmlari muvaffaqiyatli saqlandi!',
         'unknown_error' => 'Nomaʻlum xatolik yuz berdi.',
         'loading' => 'Yuklanmoqda...',
+        'profile_tabs_order_saved' => 'Profil ichki sahifalari tartibi muvaffaqiyatli saqlandi!',
+        'invalid_sort' => 'Notoʻgʻri saralash maʻlumotlari.',
+        'no_profile_tabs' => 'Roʻyxatga olingan profil ichki sahifalari yoʻq. Profilga boʻlimlar qoʻshadigan modullar oʻrnatilgandan soʻng ichki sahifalar paydo boʻladi.',
         'cron_cli_warning_text' => 'PHP CLI yoʻlining 100% toʻgʻri ekanini avtomatik aniqlab boʻlmadi. Iltimos, buyruqdagi php qismini tekshirib, zarur bo‘lsa PHP CLI yoʻlingizga almashtiring.',
         'cron_cli_warning_current_label' => 'Joriy variant:',
         'cron_cli_warning_examples_label' => 'Misollar:',
@@ -203,6 +207,8 @@ return [
         'active_languages' => 'Faol Tillar',
         'active_languages_description' => 'Bu tillar foydalanuvchilar uchun mavjud boʻladi.',
         'seo' => 'SEO Sozlamalari',
+        'profile_tabs_order' => 'Profil Ichki Sahifalari Tartibi',
+        'profile_tabs_order_description' => 'Foydalanuvchi profilida koʻrsatish tartibini oʻzgartirish uchun ichki sahifalarni torting.',
     ],
 
     'popovers' => [

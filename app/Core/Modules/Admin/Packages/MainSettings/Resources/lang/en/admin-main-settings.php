@@ -93,6 +93,8 @@ return [
         'two_factor_enabled' => 'Enable Two-Factor Authentication',
         'two_factor_force' => 'Force 2FA for All Users',
         'two_factor_issuer' => '2FA Issuer Name',
+        'profile_tab_title' => 'Tab',
+        'inactive' => 'Inactive',
     ],
 
     'options' => [
@@ -190,6 +192,10 @@ return [
         'profile_images_saved' => 'Profile images saved successfully!',
         'unknown_error' => 'An unknown error occurred.',
         'loading' => 'Loading...',
+        'profile_tabs_order_saved' => 'Profile tabs order saved successfully!',
+        'invalid_sort' => 'Invalid sort data.',
+        'no_profile_tabs' => 'No cached profile tabs.',
+        'visit_profile_first' => 'Visit any user profile to populate tabs here.',
         'cron_cli_warning_text' => 'Could not automatically determine a 100% valid PHP CLI path. Please verify the php part in the command and replace it with the path to your PHP CLI if necessary.',
         'cron_cli_warning_current_label' => 'Current candidate:',
         'cron_cli_warning_examples_label' => 'Examples:',
@@ -228,6 +234,8 @@ return [
         'active_languages' => 'Active Languages',
         'active_languages_description' => 'These languages will be available for user selection.',
         'seo' => 'SEO Settings',
+        'profile_tabs_order' => 'Profile Tabs Order',
+        'profile_tabs_order_description' => 'Drag tabs to change their display order in user profile.',
     ],
 
     'popovers' => [

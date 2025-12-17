@@ -60,15 +60,85 @@
 
                     @auth
                         @if (!$user->isTemporary())
-                            @if ((user()->can('admin.users') && user()->can($user)) || $user->id === user()->id)
-                                <x-button size="small"
-                                    href="{{ url($user->id !== user()->id ? 'admin/users/' . $user->id . '/edit' : 'profile/settings') }}"
-                                    class="profile__edit-btn" hx-boost="{{ $user->id !== user()->id ? 'false' : 'true' }}"
-                                    hx-target="#main" hx-swap="outerHTML transition:true" size="medium">
-                                    <x-icon path="ph.regular.pencil" />
-                                    @t('def.edit')
-                                </x-button>
-                            @endif
+                            <div class="profile__actions">
+                                @if ((user()->can('admin.users') && user()->can($user)) || $user->id === user()->id)
+                                    <x-button size="small"
+                                        href="{{ url($user->id !== user()->id ? 'admin/users/' . $user->id . '/edit' : 'profile/settings') }}"
+                                        class="profile__edit-btn" hx-boost="{{ $user->id !== user()->id ? 'false' : 'true' }}"
+                                        hx-target="#main" hx-swap="outerHTML transition:true" size="medium">
+                                        <x-icon path="ph.regular.pencil" />
+                                        @t('def.edit')
+                                    </x-button>
+                                @endif
+
+                                @if (user()->can('admin.users') && user()->can($user) && $user->id !== user()->id)
+                                    <div class="profile__admin-actions">
+                                        <button type="button" class="profile__admin-actions-trigger"
+                                            data-dropdown-open="profile-admin-dropdown-{{ $user->id }}">
+                                            <x-icon path="ph.regular.dots-three-vertical" />
+                                        </button>
+                                        <div class="profile__admin-dropdown" data-dropdown="profile-admin-dropdown-{{ $user->id }}">
+                                            <button type="button" class="profile__admin-dropdown-item"
+                                                data-modal-open="profile-add-balance-modal">
+                                                <x-icon path="ph.regular.plus-circle" />
+                                                <span>@t('profile.admin_actions.add_balance')</span>
+                                            </button>
+                                            <button type="button" class="profile__admin-dropdown-item"
+                                                data-modal-open="profile-remove-balance-modal">
+                                                <x-icon path="ph.regular.minus-circle" />
+                                                <span>@t('profile.admin_actions.remove_balance')</span>
+                                            </button>
+                                            <div class="profile__admin-dropdown-divider"></div>
+                                            <button type="button" class="profile__admin-dropdown-item"
+                                                hx-post="{{ url('api/profile/' . $user->id . '/toggle-verified') }}"
+                                                hx-swap="none"
+                                                hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
+                                                @if ($user->verified)
+                                                    <x-icon path="ph.regular.seal-warning" />
+                                                    <span>@t('profile.admin_actions.unverify_user')</span>
+                                                @else
+                                                    <x-icon path="ph.regular.seal-check" />
+                                                    <span>@t('profile.admin_actions.verify_user')</span>
+                                                @endif
+                                            </button>
+                                            <button type="button" class="profile__admin-dropdown-item profile__admin-dropdown-item--warning"
+                                                hx-post="{{ url('api/profile/' . $user->id . '/clear-sessions') }}"
+                                                hx-swap="none"
+                                                hx-confirm="{{ __('profile.admin_actions.clear_sessions_confirm') }}"
+                                                hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
+                                                <x-icon path="ph.regular.sign-out" />
+                                                <span>@t('profile.admin_actions.clear_sessions')</span>
+                                            </button>
+                                            <div class="profile__admin-dropdown-divider"></div>
+                                            @if ($user->isBlocked())
+                                                <button type="button" class="profile__admin-dropdown-item profile__admin-dropdown-item--success"
+                                                    hx-post="{{ url('api/profile/' . $user->id . '/unban') }}"
+                                                    hx-swap="none"
+                                                    hx-confirm="{{ __('profile.admin_actions.unban_confirm') }}"
+                                                    hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
+                                                    <x-icon path="ph.regular.lock-open" />
+                                                    <span>@t('profile.admin_actions.unban_user')</span>
+                                                </button>
+                                            @else
+                                                <button type="button" class="profile__admin-dropdown-item profile__admin-dropdown-item--danger"
+                                                    data-modal-open="profile-ban-modal">
+                                                    <x-icon path="ph.regular.prohibit" />
+                                                    <span>@t('profile.admin_actions.ban_user')</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <x-modal id="profile-add-balance-modal" :title="__('profile.admin_actions.add_balance')"
+                                        :loadUrl="url('api/profile/' . $user->id . '/modal/add-balance')" size="small" />
+
+                                    <x-modal id="profile-remove-balance-modal" :title="__('profile.admin_actions.remove_balance')"
+                                        :loadUrl="url('api/profile/' . $user->id . '/modal/remove-balance')" size="small" />
+
+                                    <x-modal id="profile-ban-modal" :title="__('profile.admin_actions.ban_user')"
+                                        :loadUrl="url('api/profile/' . $user->id . '/modal/ban')" size="small" />
+                                @endif
+                            </div>
                         @endif
                     @endauth
 

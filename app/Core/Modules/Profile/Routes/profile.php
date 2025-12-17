@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Profile;
 
 use Flute\Core\Modules\Profile\Controllers\Htmx\ProfileSidebar;
+use Flute\Core\Modules\Profile\Controllers\ProfileAdminActionsController;
 use Flute\Core\Modules\Profile\Controllers\ProfileEditController;
 use Flute\Core\Modules\Profile\Controllers\ProfileIndexController;
 use Flute\Core\Modules\Profile\Controllers\ProfileRedirectController;
@@ -20,6 +21,19 @@ $router->group(['prefix' => "/profile/", 'middleware' => 'auth'], static functio
     });
 
     $group->post('verify-email', [ProfileVerificationController::class, 'verifyEmail'])->middleware('throttle');
+});
+
+$router->group(['prefix' => 'api/profile/', 'middleware' => ['auth', 'can:admin.users', 'csrf']], static function (RouterInterface $group) {
+    $group->get('{id}/modal/add-balance', [ProfileAdminActionsController::class, 'getAddBalanceModal']);
+    $group->get('{id}/modal/remove-balance', [ProfileAdminActionsController::class, 'getRemoveBalanceModal']);
+    $group->get('{id}/modal/ban', [ProfileAdminActionsController::class, 'getBanModal']);
+
+    $group->post('{id}/add-balance', [ProfileAdminActionsController::class, 'addBalance']);
+    $group->post('{id}/remove-balance', [ProfileAdminActionsController::class, 'removeBalance']);
+    $group->post('{id}/ban', [ProfileAdminActionsController::class, 'banUser']);
+    $group->post('{id}/unban', [ProfileAdminActionsController::class, 'unbanUser']);
+    $group->post('{id}/clear-sessions', [ProfileAdminActionsController::class, 'clearSessions']);
+    $group->post('{id}/toggle-verified', [ProfileAdminActionsController::class, 'toggleVerified']);
 });
 
 $router->get('/profile/{id}', [ProfileIndexController::class, 'index'])->middleware(UserExistsMiddleware::class);

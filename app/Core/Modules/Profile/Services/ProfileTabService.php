@@ -8,6 +8,8 @@ use Illuminate\Support\Collection;
 
 class ProfileTabService
 {
+    private const CACHE_KEY = 'profile_tabs_cache';
+
     /**
      * Collection of registered tabs.
      *
@@ -29,13 +31,48 @@ class ProfileTabService
     }
 
     /**
-     * Returns all registered tabs, adjusted and sorted by priority.
+     * Caches current tabs for admin panel use.
+     * Should be called when profile page is visited (all modules loaded).
+     */
+    public function cacheTabsForAdmin(): void
+    {
+        $tabsData = $this->tabs
+            ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
+            ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
+            ->map(static function (Collection $group, string $path) {
+                $highestPriorityTab = $group->first();
+
+                return [
+                    'id' => $path,
+                    'path' => $path,
+                    'title' => $highestPriorityTab->getTitle(),
+                    'icon' => $highestPriorityTab->getIcon(),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        cache()->set(self::CACHE_KEY, $tabsData, 86400 * 30);
+    }
+
+    /**
+     * Returns cached tabs for admin panel.
+     */
+    public function getCachedTabs(): array
+    {
+        return cache()->get(self::CACHE_KEY, []);
+    }
+
+    /**
+     * Returns all registered tabs, adjusted and sorted by custom order from config or default priority.
      *
      * @return Collection|ProfileTab[]
      */
     public function getTabs(): Collection
     {
-        return $this->tabs
+        $customOrder = config('profile.tabs_order', []);
+
+        $grouped = $this->tabs
             ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
             ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
             ->map(static function (Collection $group) {
@@ -47,8 +84,84 @@ class ProfileTabService
                     'title' => $highestPriorityTab->getTitle(),
                     'icon' => $highestPriorityTab->getIcon(),
                 ];
-            })
-            ->values();
+            });
+
+        if (!empty($customOrder)) {
+            $ordered = collect();
+            foreach ($customOrder as $path) {
+                if ($grouped->has($path)) {
+                    $ordered->put($path, $grouped->get($path));
+                }
+            }
+            foreach ($grouped as $path => $tab) {
+                if (!$ordered->has($path)) {
+                    $ordered->put($path, $tab);
+                }
+            }
+
+            return $ordered->values();
+        }
+
+        return $grouped->values();
+    }
+
+    /**
+     * Returns all registered tabs without grouping (for admin panel).
+     *
+     * @return Collection|ProfileTab[]
+     */
+    public function getAllRegisteredTabs(): Collection
+    {
+        return $this->tabs;
+    }
+
+    /**
+     * Returns unique tab paths for sorting in admin panel.
+     * Uses cached tabs if available, otherwise falls back to currently registered.
+     */
+    public function getUniqueTabPaths(): Collection
+    {
+        $customOrder = config('profile.tabs_order', []);
+        $cachedTabs = $this->getCachedTabs();
+
+        // Use cached tabs if available, otherwise use currently registered
+        if (!empty($cachedTabs)) {
+            $grouped = collect($cachedTabs)->keyBy('path');
+        } else {
+            $grouped = $this->tabs
+                ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
+                ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
+                ->map(static function (Collection $group, string $path) {
+                    $highestPriorityTab = $group->first();
+
+                    return [
+                        'id' => $path,
+                        'path' => $path,
+                        'title' => $highestPriorityTab->getTitle(),
+                        'icon' => $highestPriorityTab->getIcon(),
+                    ];
+                });
+        }
+
+        if (!empty($customOrder)) {
+            $ordered = collect();
+
+            foreach ($customOrder as $path) {
+                if ($grouped->has($path)) {
+                    $ordered->put($path, $grouped->get($path));
+                }
+            }
+
+            foreach ($grouped as $path => $tab) {
+                if (!$ordered->has($path)) {
+                    $ordered->put($path, $tab);
+                }
+            }
+
+            return $ordered->values();
+        }
+
+        return $grouped->values();
     }
 
     /**

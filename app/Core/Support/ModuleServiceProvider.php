@@ -251,7 +251,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
-        $cacheKey = "module.{$this->getModuleName()}.configs";
+        $cacheKey = "module.{$this->getModuleName()}.configs.v2." . md5($configDir);
         $configFiles = cache()->callback($cacheKey, static function () use ($configDir) {
             $finder = finder();
             $finder->files()->in($configDir)->name('*.php');
@@ -259,7 +259,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $files = [];
             foreach ($finder as $file) {
                 $files[] = [
-                    'path' => $file->getPathname(),
+                    'relative' => $file->getRelativePathname(),
                     'name' => basename($file->getFilename(), '.php'),
                 ];
             }
@@ -271,7 +271,14 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $configService = app(ConfigurationService::class);
 
             foreach ($configFiles as $file) {
-                $configService->loadCustomConfig($file['path'], $file['name']);
+                $path = $configDir . DIRECTORY_SEPARATOR . $file['relative'];
+                if (!is_file($path)) {
+                    logs('modules')->warning("Module config file not found: {$path}");
+
+                    continue;
+                }
+
+                $configService->loadCustomConfig($path, $file['name']);
             }
 
             $this->loadedStatus[$configsCacheKey] = true;
@@ -332,27 +339,33 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $submodulesPath = $this->getModulePath('Submodules');
 
             if (is_dir($submodulesPath)) {
-                $cacheKey = "module.{$this->getModuleName()}.submodules";
+                $cacheKey = "module.{$this->getModuleName()}.submodules.v2." . md5($submodulesPath);
                 $submodules = cache()->callback($cacheKey, function () use ($submodulesPath) {
                     $result = [];
                     foreach ($this->getFilesFromDirectory($submodulesPath) as $submodule) {
-                        if ($submodule->isDir()) {
-                            $submoduleControllers = $submodule->getPathname() . '/Controllers';
-                            if (is_dir($submoduleControllers)) {
-                                $result[] = [
-                                    'name' => $submodule->getBasename(),
-                                    'controllers_path' => $submoduleControllers,
-                                ];
-                            }
+                        if (!$submodule->isDir()) {
+                            continue;
                         }
+
+                        $controllersRelativePath = $submodule->getBasename() . '/Controllers';
+                        $controllersPath = $submodulesPath . '/' . $controllersRelativePath;
+                        if (!is_dir($controllersPath)) {
+                            continue;
+                        }
+
+                        $result[] = [
+                            'name' => $submodule->getBasename(),
+                            'controllers_relative_path' => $controllersRelativePath,
+                        ];
                     }
 
                     return $result;
                 }, $this->defaultCacheDuration);
 
                 foreach ($submodules as $submodule) {
+                    $controllersPath = $submodulesPath . '/' . $submodule['controllers_relative_path'];
                     $submoduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Submodules\\" . $submodule['name'] . "\\Controllers";
-                    router()->registerAttributeRoutes([$submodule['controllers_path']], $submoduleNamespace);
+                    router()->registerAttributeRoutes([$controllersPath], $submoduleNamespace);
                 }
             }
 

@@ -28,6 +28,7 @@ return [
         'description' => 'Descrição do Site',
         'favicon' => 'Favicon',
         'social_image' => 'Imagem social (PNG)',
+        'profile_tab_title' => 'Aba',
     ],
 
     'options' => [
@@ -48,7 +49,11 @@ return [
         'save' => 'Salvar',
         'add' => 'Adicionar',    ],
 
-    'messages' => [    ],
+    'messages' => [
+        'profile_tabs_order_saved' => 'Ordem das abas do perfil salva com sucesso!',
+        'invalid_sort' => 'Dados de ordenação inválidos.',
+        'no_profile_tabs' => 'Nenhuma aba de perfil registrada. As abas aparecerão após instalar módulos que adicionam seções ao perfil.',
+    ],
 
     'breadcrumbs' => [
         'admin_panel' => 'Painel Admin',
@@ -58,7 +63,10 @@ return [
         'main_settings' => 'Configurações Principais',        'localization' => 'Localização',    ],
 
     'blocks' => [
-        'main_settings' => 'Configurações Principais',    ],
+        'main_settings' => 'Configurações Principais',
+        'profile_tabs_order' => 'Ordem das Abas do Perfil',
+        'profile_tabs_order_description' => 'Arraste as abas para alterar a ordem de exibição no perfil do usuário.',
+    ],
 
     'popovers' => [        'cron_mode' => 'Isto usa CRON em vez de solicitações normais. Veja <a target="_blank" href="https://docs.flute-cms.com">aqui</a>.',        'reset_password' => 'Habilitar recuperação de senha do usuário.',
         'only_social' => 'Autenticação padrão por login/senha será desativado.',        'check_ip' => 'Vincule cada sessão a um endereço IP específico.',        'debug_ips' => 'A depuração funciona apenas com estes endereços IP. Separe por vírgulas.',    ],

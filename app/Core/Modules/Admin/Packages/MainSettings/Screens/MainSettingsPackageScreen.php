@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\RichText;
 use Flute\Admin\Platform\Fields\Select;
+use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Fields\Toggle;
@@ -16,11 +17,13 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Modules\Profile\Services\ProfileTabService;
 use Flute\Core\Services\EmailService;
 use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteStr;
 use PDO;
 use RuntimeException;
+use stdClass;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -44,6 +47,8 @@ class MainSettingsPackageScreen extends Screen
 
     public $social_image;
 
+    public $profileTabs;
+
     protected string $name = 'admin-main-settings.labels.main_settings';
 
     protected ?string $description = 'admin-main-settings.labels.main_settings_description';
@@ -59,6 +64,7 @@ class MainSettingsPackageScreen extends Screen
 
         $this->configService = app(MainSettingsPackageService::class);
         $this->databaseConnections = $this->configService->initDatabases();
+        $this->loadProfileTabs();
     }
 
     public function dirty(): ?array
@@ -768,6 +774,54 @@ class MainSettingsPackageScreen extends Screen
         }
     }
 
+    public function saveProfileTabsOrder()
+    {
+        $sortableResult = json_decode(request()->input('sortableResult', '[]'), true);
+
+        if (!$sortableResult) {
+            $this->flashMessage(__('admin-main-settings.messages.invalid_sort'), 'error');
+
+            return;
+        }
+
+        $order = [];
+        foreach ($sortableResult as $item) {
+            if (isset($item['id'])) {
+                $order[] = $item['id'];
+            }
+        }
+
+        config()->set('profile.tabs_order', $order);
+
+        try {
+            config()->save();
+            $this->flashMessage(__('admin-main-settings.messages.profile_tabs_order_saved'));
+            $this->loadProfileTabs();
+            $this->invalidateConfig('profile');
+        } catch (Exception $e) {
+            logs()->error($e);
+            $this->flashMessage(__('admin-main-settings.messages.unknown_error'), 'error');
+        }
+    }
+
+    protected function loadProfileTabs(): void
+    {
+        if (app()->has(ProfileTabService::class)) {
+            $profileTabService = app(ProfileTabService::class);
+            $this->profileTabs = $profileTabService->getUniqueTabPaths()->map(static function ($tab) {
+                $obj = new stdClass();
+                $obj->id = $tab['id'];
+                $obj->path = $tab['path'];
+                $obj->title = $tab['title'];
+                $obj->icon = $tab['icon'];
+
+                return $obj;
+            });
+        } else {
+            $this->profileTabs = collect();
+        }
+    }
+
     protected function validateImages(): bool
     {
         $this->logo = request()->files->get('logo');
@@ -1207,6 +1261,10 @@ class MainSettingsPackageScreen extends Screen
                 ->layouts([
                     $this->usersProfileBlock(),
                 ]),
+            Tab::make(__('admin-main-settings.blocks.profile_tabs_order'))
+                ->layouts([
+                    $this->usersProfileTabsOrderBlock(),
+                ]),
         ])
             ->slug('users_settings_sections')
             ->pills()
@@ -1424,6 +1482,29 @@ class MainSettingsPackageScreen extends Screen
                     ->method('saveProfileImages'),
             ]),
         ])->title(__('admin-main-settings.blocks.profile_settings'));
+    }
+
+    private function usersProfileTabsOrderBlock()
+    {
+        if ($this->profileTabs->isEmpty()) {
+            return LayoutFactory::block([
+                LayoutFactory::view('admin-main-settings::profile-tabs-empty'),
+            ])->title(__('admin-main-settings.blocks.profile_tabs_order'));
+        }
+
+        return LayoutFactory::sortable('profileTabs', [
+            Sight::make('title', __('admin-main-settings.labels.profile_tab_title'))
+                ->render(static function ($tab) {
+                    $icon = $tab->icon;
+                    $title = $tab->title;
+                    $path = $tab->path;
+
+                    return view('admin-main-settings::cells.profile-tab-item', compact('icon', 'title', 'path'));
+                }),
+        ])
+            ->title(__('admin-main-settings.blocks.profile_tabs_order'))
+            ->description(__('admin-main-settings.blocks.profile_tabs_order_description'))
+            ->onSortEnd('saveProfileTabsOrder');
     }
 
     private function mailSettingsLayout()

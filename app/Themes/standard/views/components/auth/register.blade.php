@@ -1,4 +1,9 @@
 <form class="auth-form @if (empty(social()->getAll())) mt-4 @endif">
+    {{-- Slot: before fields --}}
+    @if(isset($formEvent))
+        {!! $formEvent->renderSlot('beforeFields') !!}
+    @endif
+
     <x-forms.field class="mb-3">
         <x-forms.label for="name" required>@t('auth.name'):</x-forms.label>
         <x-fields.input type="text" name="name" id="name" value="{{ $name }}" required autofocus
@@ -30,7 +35,17 @@
             placeholder="{{ __('auth.password_confirmation_placeholder') }}" />
     </x-forms.field>
 
+    {{-- Slot: after fields --}}
+    @if(isset($formEvent))
+        {!! $formEvent->renderSlot('afterFields') !!}
+    @endif
+
     @include('flute::components.captcha', ['action' => 'register'])
+
+    {{-- Slot: before submit --}}
+    @if(isset($formEvent))
+        {!! $formEvent->renderSlot('beforeSubmit') !!}
+    @endif
 
     <div>
         <x-button yoyo:post="register" yoyo:on="click" type="accent" class="w-100" withLoading>
@@ -38,4 +53,9 @@
             <x-icon path="ph.regular.arrow-right" />
         </x-button>
     </div>
+
+    {{-- Slot: after submit --}}
+    @if(isset($formEvent))
+        {!! $formEvent->renderSlot('afterSubmit') !!}
+    @endif
 </form>

@@ -67,6 +67,7 @@ return [
         'change_theme' => 'Change Theme',
         'logo_light' => 'Logo for Light Theme',
         'default_theme' => 'Default Theme',
+        'profile_tab_title' => 'Tab',
     ],
 
     'options' => [
@@ -150,6 +151,9 @@ return [
         'profile_images_saved' => 'Profile images saved successfully!',
         'unknown_error' => 'An unknown error occurred.',
         'loading' => 'Loading...',
+        'profile_tabs_order_saved' => 'Profile tabs order saved successfully!',
+        'invalid_sort' => 'Invalid sort data.',
+        'no_profile_tabs' => 'No profile tabs registered. Tabs will appear after installing modules that add sections to the profile.',
     ],
 
     'breadcrumbs' => [
@@ -182,6 +186,8 @@ return [
         'active_languages' => 'Active Languages',
         'active_languages_description' => 'These languages will be available for users.',
         'seo' => 'SEO Settings',
+        'profile_tabs_order' => 'Profile Tabs Order',
+        'profile_tabs_order_description' => 'Drag tabs to change their display order in user profile.',
     ],
 
     'popovers' => [

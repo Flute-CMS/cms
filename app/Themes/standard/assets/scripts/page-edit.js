@@ -673,6 +673,9 @@ class PageEditor {
                         if (sidebarContent && evt.detail.xhr?.response) {
                             sidebarContent.innerHTML = evt.detail.xhr.response;
                             try { htmx.process(sidebarContent); } catch {}
+                            if (window.FluteSelect) {
+                                window.FluteSelect.init();
+                            }
                         }
                         return;
                     }
@@ -2508,6 +2511,10 @@ class PageEditor {
                 }
 
                 htmx.process(sidebarContent);
+
+                if (window.FluteSelect) {
+                    window.FluteSelect.init();
+                }
 
                 this.dispatchWidgetEvent("widgetSettingsLoaded", {
                     widgetName,

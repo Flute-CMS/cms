@@ -8,6 +8,8 @@ use Flute\Core\Exceptions\IncorrectPasswordException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\TwoFactorRequiredException;
 use Flute\Core\Exceptions\UserNotFoundException;
+use Flute\Core\Modules\Auth\Events\LoginFormRenderingEvent;
+use Flute\Core\Modules\Auth\Events\LoginValidatingEvent;
 use Flute\Core\Services\CaptchaService;
 use Flute\Core\Services\TwoFactorService;
 use Flute\Core\Support\FluteComponent;
@@ -29,7 +31,7 @@ class LoginComponent extends FluteComponent
 
     public function login()
     {
-        if ($this->validator() && $this->validateCaptcha()) {
+        if ($this->validator() && $this->validateExtensions() && $this->validateCaptcha()) {
             try {
                 $this->rememberMe = filter_var($this->rememberMe, FILTER_VALIDATE_BOOLEAN);
 
@@ -122,9 +124,16 @@ class LoginComponent extends FluteComponent
 
     public function render()
     {
+        $formEvent = new LoginFormRenderingEvent([
+            'loginOrEmail' => $this->loginOrEmail,
+        ]);
+
+        events()->dispatch($formEvent, LoginFormRenderingEvent::NAME);
+
         return $this->view('flute::components.auth.login', [
             'showTwoFactor' => $this->showTwoFactor,
             'pendingUserId' => $this->pendingUserId,
+            'formEvent' => $formEvent,
         ]);
     }
 
@@ -140,6 +149,41 @@ class LoginComponent extends FluteComponent
             ],
             'password' => 'required',
         ]);
+    }
+
+    /**
+     * Validate using module event listeners.
+     */
+    protected function validateExtensions(): bool
+    {
+        $validationEvent = new LoginValidatingEvent([
+            'loginOrEmail' => $this->loginOrEmail,
+            'password' => $this->password,
+        ]);
+
+        events()->dispatch($validationEvent, LoginValidatingEvent::NAME);
+
+        if ($validationEvent->stopValidation) {
+            if (isset($validationEvent->errors['_global'])) {
+                toast()->error($validationEvent->errors['_global'])->push();
+            }
+
+            return false;
+        }
+
+        if ($validationEvent->hasErrors()) {
+            foreach ($validationEvent->errors as $field => $message) {
+                if ($field === '_global') {
+                    toast()->error($message)->push();
+                } else {
+                    $this->inputError($field, $message);
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     protected function validateCaptcha()

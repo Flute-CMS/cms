@@ -86,6 +86,15 @@ function openModal(modalId) {
     const modalElement = document.getElementById(modalId);
 
     if (modalElement && modalElement.dialogInstance) {
+        if (window.flute && window.flute.dropdowns) {
+            window.flute.dropdowns.closeAllDropdowns();
+        } else {
+            $('[data-dropdown].active').each(function() {
+                $(this).removeClass('active').hide();
+                $('body').removeClass('no-scroll');
+            });
+        }
+
         const $modal = $('#' + modalId);
 
         if (isMobileDevice()) {

@@ -117,6 +117,15 @@ function openModal(modalId) {
     const modalElement = document.getElementById(modalId);
 
     if (modalElement && modalElement.dialogInstance) {
+        if (window.flute && window.flute.dropdowns) {
+            window.flute.dropdowns.closeAllDropdowns();
+        } else {
+            $('[data-dropdown].active').each(function () {
+                $(this).removeClass('active').hide();
+                $('body').removeClass('no-scroll');
+            });
+        }
+
         modalElement.dialogInstance.show();
     } else {
         console.warn(`Modal '${modalId}' wasn't found or not initialized.`);
@@ -221,13 +230,13 @@ function onModalShow(modalElement) {
         }
     } else {
         updateContentOverflow(modalElement);
-        
+
         const resizeHandler = debounce(() => {
             updateContentOverflow(modalElement);
         }, 100);
         window.addEventListener('resize', resizeHandler);
         modalElement._resizeHandler = resizeHandler;
-        
+
         const contentNode = modalElement.querySelector('.modal__content');
         if (contentNode) {
             const observer = new MutationObserver(
@@ -344,7 +353,7 @@ function calculateModalHeight(modalElement) {
         if (container) {
             container.style.height = `${startHeightVh}vh`;
         }
-        
+
         updateContentOverflow(modalElement);
     }, 50);
 }
@@ -352,34 +361,34 @@ function calculateModalHeight(modalElement) {
 function updateContentOverflow(modalElement) {
     const content = modalElement.querySelector('.modal__content');
     const container = modalElement.querySelector('.modal__container');
-    
+
     if (!content || !container || modalElement.hasAttribute('data-ignore-overflow')) return;
-    
+
     const header = modalElement.querySelector('.modal__header');
     const footer = modalElement.querySelector('.modal__footer');
     const dragHandle = modalElement.querySelector('.drag-handle');
-    
+
     const headerHeight = header ? header.offsetHeight : 0;
     const footerHeight = footer ? footer.offsetHeight : 0;
     const dragHandleHeight = dragHandle ? dragHandle.offsetHeight : 0;
-    
+
     const windowHeight = window.innerHeight;
     const maxContainerHeight = isMobileDevice() ? windowHeight : Math.min(windowHeight * 0.9, windowHeight - 20);
-    
+
     const maxContentHeight = maxContainerHeight - headerHeight - footerHeight - dragHandleHeight;
-    
+
     const contentScrollHeight = content.scrollHeight;
-    
+
     if (contentScrollHeight > maxContentHeight) {
         content.style.overflow = 'auto';
-        
+
         if (isMobileDevice() && modalElement.classList.contains('bottom-sheet')) {
             modalElement.classList.add('fullscreen');
             container.style.height = '100vh';
         }
     } else {
         content.style.overflow = 'visible';
-        
+
         if (isMobileDevice() && modalElement.classList.contains('bottom-sheet') && !modalElement.classList.contains('dragging')) {
             const newContainerHeight = Math.min(
                 (contentScrollHeight + headerHeight + footerHeight + dragHandleHeight + 20) / windowHeight * 100,

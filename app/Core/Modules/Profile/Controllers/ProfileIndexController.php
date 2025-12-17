@@ -63,6 +63,8 @@ class ProfileIndexController extends BaseController
 
         $tabs = $profileTabService->getTabs();
 
+        $profileTabService->cacheTabsForAdmin();
+
         if (empty($this->path) && !empty($tabs) && $tabs->count() > 0) {
             $this->path = $tabs[0]['path'];
         }

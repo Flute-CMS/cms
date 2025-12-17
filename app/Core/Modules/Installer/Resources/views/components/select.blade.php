@@ -7,6 +7,8 @@
     'placeholder' => null,
     'required' => false,
     'disabled' => false,
+    'searchable' => false,
+    'allowEmpty' => false,
     'class' => ''
 ])
 
@@ -23,9 +25,9 @@
     }
 @endphp
 
-<div class="input-wrapper @if ($errors->has($name)) has-error @endif">
+<div class="select-wrapper @if ($errors->has($name)) has-error @endif">
     @if ($label)
-        <label for="{{ $id }}" class="input__label">
+        <label for="{{ $id }}" class="select__prefix">
             {{ $label }}
             @if ($required)
                 <span class="installer-input__required">*</span>
@@ -33,26 +35,32 @@
         </label>
     @endif
     
-    <select 
-        name="{{ $name }}"
-        id="{{ $id }}"
-        class="{{ $selectClass }}"
-        @if ($required) required @endif
-        @if ($disabled) disabled @endif
-        {{ $attributes }}
-    >
-        @if ($placeholder)
-            <option value="" disabled {{ is_null($selected) ? 'selected' : '' }}>{{ $placeholder }}</option>
-        @endif
-        
-        @foreach ($options as $value => $label)
-            <option value="{{ $value }}" {{ $selected == $value ? 'selected' : '' }}>
-                {{ $label }}
-            </option>
-        @endforeach
-    </select>
+    <div class="select__field-container @if ($errors->has($name)) has-error @endif">
+        <select 
+            name="{{ $name }}"
+            id="{{ $id }}"
+            class="{{ $selectClass }}"
+            data-tom-select
+            data-placeholder="{{ $placeholder ?? '' }}"
+            data-allow-empty="{{ $allowEmpty ? 'true' : 'false' }}"
+            data-searchable="{{ $searchable ? 'true' : 'false' }}"
+            @if ($required) required @endif
+            @if ($disabled) disabled @endif
+            {{ $attributes }}
+        >
+            @if ($placeholder && $allowEmpty)
+                <option value="" {{ is_null($selected) ? 'selected' : '' }}>{{ $placeholder }}</option>
+            @endif
+            
+            @foreach ($options as $value => $optionLabel)
+                <option value="{{ $value }}" {{ $selected == $value ? 'selected' : '' }}>
+                    {{ $optionLabel }}
+                </option>
+            @endforeach
+        </select>
+    </div>
     
     @error($name)
-        <span class="installer-input__error">{{ $message }}</span>
+        <span class="select__error">{{ $message }}</span>
     @enderror
 </div> 
