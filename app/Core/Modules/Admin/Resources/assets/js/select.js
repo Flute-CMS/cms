@@ -20,19 +20,52 @@ class Select {
             const instance = new TomSelect(select, config);
             this.instances.set(select, instance);
 
+            if (instance.wrapper) {
+                instance.wrapper.style.width = '100%';
+            }
+
+            instance.sync();
+
+            const initVal = select.dataset.initialValue;
+            if (initVal !== undefined && initVal !== 'null' && initVal !== '') {
+                try {
+                    let parsed = JSON.parse(initVal);
+                    if (parsed !== null) {
+                        instance.setValue(parsed, true);
+                    }
+                } catch (e) {
+                    if (initVal) instance.setValue(initVal, true);
+                }
+            }
+
+            // Hack: make native select "visible" for Yoyo engine to pick up the value
+            // (Yoyo might ignore display:none elements when collecting data)
+            select.style.display = 'block';
+            select.style.position = 'absolute';
+            select.style.top = '0';
+            select.style.left = '0';
+            select.style.opacity = '0';
+            select.style.pointerEvents = 'none';
+            select.style.width = '1px';
+            select.style.height = '1px';
+            select.style.zIndex = '-1';
+
             instance.on('change', () => {
                 if (instance.settings.mode === 'multi' && instance.items.includes('')) {
                     instance.removeItem('');
                 }
-                
+
                 if (select.dataset.yoyo) {
                     const yoyoValue = select.dataset.yoyoValue;
                     if (yoyoValue) {
                         instance.setValue(yoyoValue);
                     }
                 }
-                
-                select.dispatchEvent(new Event('change', { bubbles: true }));
+
+                if (select._changeTimeout) clearTimeout(select._changeTimeout);
+                select._changeTimeout = setTimeout(() => {
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }, 100);
             });
 
             if (instance.settings.mode === 'multi' && instance.items.includes('')) {
@@ -60,6 +93,12 @@ class Select {
             instance.on('dropdown_open', () => {
                 const dropdown = instance.dropdown;
                 if (!dropdown) return;
+
+                const val = instance.getValue();
+                if (val) {
+                    const option = instance.getOption(val);
+                    if (option) instance.setActiveOption(option);
+                }
 
                 dropdown.style.position = 'fixed';
                 this.positionDropdown(instance);
@@ -132,7 +171,7 @@ class Select {
     getConfig(select) {
         const isMultiple = select.multiple;
         const enableSearch = this.getEnableSearch(select);
-        
+
         const config = {
             allowEmptyOption: !isMultiple,
             maxItems: parseInt(select.dataset.maxItems || (isMultiple ? null : 1)),
@@ -146,10 +185,8 @@ class Select {
                 if (isMultiple && value === '') {
                     setTimeout(() => this.instances.get(select)?.removeItem(''), 0);
                 }
-                select.dispatchEvent(new Event('change', { bubbles: true }));
             },
             onItemRemove: () => {
-                select.dispatchEvent(new Event('change', { bubbles: true }));
             },
         };
 
@@ -286,7 +323,7 @@ class Select {
 
             fetch(`${select.dataset.searchUrl}?${queryParams}`, {
                 method: 'GET',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
@@ -383,8 +420,20 @@ document.addEventListener('DOMContentLoaded', () => {
     window.Select = new Select();
 });
 
-// Initialize on HTMX load
 document.addEventListener('htmx:load', () => {
     window.Select?.destroy();
     window.Select = new Select();
+});
+
+document.body.addEventListener('htmx:afterSwap', (evt) => {
+    setTimeout(() => {
+        window.Select?.destroy();
+        window.Select = new Select();
+    }, 10);
+});
+
+document.body.addEventListener('htmx:afterSettle', (evt) => {
+    if (window.Select) {
+        window.Select.init();
+    }
 });

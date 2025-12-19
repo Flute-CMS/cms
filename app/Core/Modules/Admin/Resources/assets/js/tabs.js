@@ -279,6 +279,27 @@ function onTabActivated(tabContentEl) {
         }
     }
 
+    if (typeof initializeFilePondElement === 'function') {
+        try {
+            const filePondInputs = tabContentEl.querySelectorAll('input.filepond');
+            filePondInputs.forEach((input) => {
+                if (!input.filepond) {
+                    initializeFilePondElement(input);
+                }
+            });
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    if (window.Select) {
+        try {
+            window.Select.init();
+        } catch (e) {
+            // ignore
+        }
+    }
+
     // Optional UI inits used across admin.
     if (window.initColorPickers) {
         try {
@@ -371,7 +392,7 @@ function initializeTabContents(container, guard) {
                 if (!targetTab.classList.contains('lazy-content')) {
                     targetTab.setAttribute('data-tab-loaded', '1');
                 }
-            } catch (_) {}
+            } catch (_) { }
 
             const paramKey = getQueryParamKeyForContainer(container);
             const tabSlug = getTabSlugFromTabId(tabId);
@@ -494,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 hidden.value = tabSettings;
             }
         }
-    } catch (_) {}
+    } catch (_) { }
 });
 
 if (typeof htmx !== 'undefined') {
@@ -561,11 +582,11 @@ if (typeof htmx !== 'undefined') {
                 if (newTarget) {
                     try {
                         newTarget.classList.remove('lazy-content');
-                    } catch (_) {}
+                    } catch (_) { }
 
                     try {
                         htmx.process(newTarget);
-                    } catch (_) {}
+                    } catch (_) { }
 
                     // Re-sync tab UI
                     try {
@@ -574,7 +595,7 @@ if (typeof htmx !== 'undefined') {
                             updateUnderline(tabsContainer);
                             initializeTabContents(tabsContainer);
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
             } else if (url) {
                 // If we can't find the target in response, fall back to full navigation.
@@ -588,24 +609,24 @@ if (typeof htmx !== 'undefined') {
     htmx.on('htmx:beforeRequest', function (event) {
         const target = event.detail.target;
         const elt = event.detail.elt;
-        
+
         if (elt && elt.closest('.tabs-nav')) {
             const container = elt.closest('.tabs-container');
             if (container) {
                 const containerId = container.dataset.tabsId || container.id || 'default';
                 abortPreviousTabRequest(containerId);
-                
+
                 const controller = new AbortController();
                 activeTabRequests.set(containerId, controller);
-                
-                event.detail.xhr.onreadystatechange = function() {
+
+                event.detail.xhr.onreadystatechange = function () {
                     if (event.detail.xhr.readyState === 4) {
                         activeTabRequests.delete(containerId);
                     }
                 };
             }
         }
-        
+
         if (
             target &&
             target.classList.contains('tab-content') &&
@@ -639,7 +660,7 @@ if (typeof htmx !== 'undefined') {
                     if (targetEl && targetEl.querySelector('.tab-skeleton-content')) {
                         targetEl.innerHTML = '';
                     }
-                } catch (_) {}
+                } catch (_) { }
 
                 // Cancel this swap and do a full navigation instead.
                 event.detail.shouldSwap = false;
@@ -649,8 +670,8 @@ if (typeof htmx !== 'undefined') {
             // If parsing fails, don't block swap.
         }
     });
-    
-    htmx.on('htmx:abort', function(event) {
+
+    htmx.on('htmx:abort', function (event) {
         const elt = event.detail.elt;
         if (elt && elt.closest('.tabs-nav')) {
             const target = document.querySelector(elt.getAttribute('hx-target'));
@@ -674,7 +695,7 @@ htmx.on('htmx:afterSwap', function (event) {
             const live = document.getElementById(swappedElement.id);
             if (live) swappedElement = live;
         }
-    } catch (_) {}
+    } catch (_) { }
 
     if (swappedElement.classList.contains('tabs-container')) {
         updateUnderline(swappedElement);
@@ -703,7 +724,7 @@ htmx.on('htmx:afterSwap', function (event) {
                     tabContentEl = el;
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
     }
 
     if (tabContentEl) {
@@ -712,7 +733,7 @@ htmx.on('htmx:afterSwap', function (event) {
         try {
             contentEl.setAttribute('data-tab-loaded', '1');
             contentEl.classList.remove('lazy-content');
-        } catch (_) {}
+        } catch (_) { }
 
         const headingLink = document.querySelector(
             `.tabs-nav a[data-tab-id="${tabId}"]`,
@@ -728,7 +749,7 @@ htmx.on('htmx:afterSwap', function (event) {
                 contentEl.style.display = 'none';
                 return;
             }
-        } catch (_) {}
+        } catch (_) { }
         const wrapper = getTabsContentContainer(tabsContainer);
 
         if (wrapper) {
@@ -765,7 +786,7 @@ document.addEventListener('click', function (e) {
 
     const container = link.closest('.tabs-container');
     if (!container) return;
-    
+
     const containerId = container.dataset.tabsId || container.id || 'default';
     abortPreviousTabRequest(containerId);
 
@@ -776,7 +797,7 @@ document.addEventListener('click', function (e) {
     // Race-guard: remember last intended tab (late HTMX responses won't override it)
     try {
         container.dataset.lastTabId = tabId || '';
-    } catch (_) {}
+    } catch (_) { }
     const tabSlug = getTabSlugFromTabId(tabId);
     const paramKey = getQueryParamKeyForContainer(container);
 
@@ -845,7 +866,7 @@ document.addEventListener('click', function (e) {
                 if (!targetTab.classList.contains('lazy-content')) {
                     targetTab.setAttribute('data-tab-loaded', '1');
                 }
-            } catch (_) {}
+            } catch (_) { }
 
             initializeNestedTabs(targetTab, new WeakSet());
             onTabActivated(targetTab);
