@@ -160,54 +160,45 @@ document.addEventListener('DOMContentLoaded', function () {
     fileInputs.forEach((input) => initializeFilePondElement(input));
 });
 
+// htmx:load - triggered for each new element added to DOM
 document.body.addEventListener('htmx:load', function (evt) {
     const swappedContent = evt.detail.elt;
-    const newFileInputs = swappedContent.querySelectorAll('input.filepond');
-    newFileInputs.forEach((input) => initializeFilePondElement(input));
-});
-
-if (typeof Choices !== 'undefined') {
-    if (!window.choicesInitialized) {
-        window.choicesInitialized = true;
-    }
-}
-
-function initializeChoicesElement(element) {
-    if (element.classList.contains('choices') && !element.choicesInstance) {
-        let choicesOptions = {
-            searchEnabled: true,
-            shouldSort: true,
-        };
-
-        try {
-            choicesOptions = {
-                ...(element.dataset.choicesOptions
-                    ? JSON.parse(element.dataset.choicesOptions)
-                    : {}),
-                ...choicesOptions,
-            };
-        } catch (e) {
-            console.error('Ошибка парсинга choicesOptions:', e);
+    if (swappedContent) {
+        if (swappedContent.matches && swappedContent.matches('input.filepond')) {
+            initializeFilePondElement(swappedContent);
+        } else if (swappedContent.querySelectorAll) {
+            const newFileInputs = swappedContent.querySelectorAll('input.filepond');
+            newFileInputs.forEach((input) => initializeFilePondElement(input));
         }
-
-        const choices = new Choices(element, choicesOptions);
-        element.choicesInstance = choices;
     }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const selectElements = document.querySelectorAll('select.choices');
-    selectElements.forEach((select) => initializeChoicesElement(select));
 });
 
-document.body.addEventListener('htmx:load', function (evt) {
+// htmx:afterSwap - triggered after any swap operation (including yoyo)
+document.body.addEventListener('htmx:afterSwap', function (evt) {
     const swappedContent = evt.detail.elt;
-    const newSelectElements = swappedContent.querySelectorAll('select.choices');
-    newSelectElements.forEach((select) => initializeChoicesElement(select));
+    if (swappedContent) {
+        setTimeout(() => {
+            if (swappedContent.matches && swappedContent.matches('input.filepond')) {
+                initializeFilePondElement(swappedContent);
+            } else if (swappedContent.querySelectorAll) {
+                const newFileInputs = swappedContent.querySelectorAll('input.filepond');
+                newFileInputs.forEach((input) => initializeFilePondElement(input));
+            }
+        }, 10);
+    }
 });
 
-// Prevent disabling all languages in Localization settings.
-// If user turns off everything, we automatically enable English (or the first available language).
+// htmx:afterSettle - triggered after swap and settle are complete
+document.body.addEventListener('htmx:afterSettle', function (evt) {
+    // Reinitialize any remaining uninitialized FilePond inputs
+    document.querySelectorAll('input.filepond').forEach((input) => {
+        if (!input.filepond) {
+            initializeFilePondElement(input);
+        }
+    });
+});
+
+
 let _enforcingLanguages = false;
 document.addEventListener('change', function (event) {
     const checkbox = event.target;

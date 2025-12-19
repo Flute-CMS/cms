@@ -19,7 +19,7 @@ router()->group(['middleware' => 'guest'], static function (RouterInterface $rou
     if (config('auth.reset_password')) {
         $router->group([], static function (RouterInterface $router) {
             $router->get('/forgot-password', [PasswordResetController::class, 'getReset']);
-            $router->get('/forgot-password/{token}', [PasswordResetController::class, 'getResetWithToken']);
+            $router->get('/reset/{token}', [PasswordResetController::class, 'getResetWithToken']);
         });
     }
 
