@@ -150,7 +150,7 @@ class FluteSelect {
         if (instance) {
             try {
                 instance.destroy();
-            } catch (e) {}
+            } catch (e) { }
             this.instances.delete(select);
         }
         const handlers = this.dropdownRepositionHandlers.get(select);
@@ -170,7 +170,21 @@ document.addEventListener('DOMContentLoaded', () => {
     window.FluteSelect = new FluteSelect();
 });
 
-htmx.onLoad(() => {
+document.body.addEventListener('htmx:load', (evt) => {
+    if (window.FluteSelect) {
+        window.FluteSelect.init();
+    }
+});
+
+document.body.addEventListener('htmx:afterSwap', (evt) => {
+    if (window.FluteSelect) {
+        setTimeout(() => {
+            window.FluteSelect.init();
+        }, 10);
+    }
+});
+
+document.body.addEventListener('htmx:afterSettle', (evt) => {
     if (window.FluteSelect) {
         window.FluteSelect.init();
     }
