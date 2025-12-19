@@ -6,20 +6,20 @@ return [
 
         "main" => [
             "title"       => "Configurações Principais",
-            "description" => "Aqui você pode alterar as configurações principais da sua conta.",
+            "description" => "Aqui você pode alterar as principais configurações da sua conta.",
             "info_title"  => "Informações Básicas",
             "info_description" => "Alguns dados podem ser visíveis para outros usuários.",
 
             "fields" => [
                 "name"                  => "Nome",
-                "email"                 => "E-mail",
+                "email"                 => "Email",
                 "password"              => "Senha",
-                "email_verified"        => "E-mail verificado",
-                "email_not_verified"    => "E-mail não verificado",
+                "email_verified"        => "Email verificado",
+                "email_not_verified"    => "Email não verificado",
                 "password_not_set"      => "Não definida",
-                "password_not_provided" => "Não informada",
+                "password_not_provided" => "Não fornecida",
                 "last_changed"          => "Última alteração",
-                "verify_email"          => "Verificar E-mail",
+                "verify_email"          => "Verificar email",
             ],
 
             "password_description" => "Uma senha forte ajuda a proteger sua conta.",
@@ -39,10 +39,10 @@ return [
 
                     "uri"                  => "URL do Perfil",
                     "uri_placeholder"      => "Digite sua URL",
-                    "uri_info"             => "Digite o slug para a URL do seu perfil. Exemplo: :example",
+                    "uri_info"             => "Digite o slug para a URL do seu perfil. Por exemplo: :example",
 
-                    "email"                => "E-mail",
-                    "email_placeholder"    => "Digite seu endereço de E-mail",
+                    "email"                => "Email",
+                    "email_placeholder"    => "Digite seu endereço de email",
                 ],
 
                 "save_changes"         => "Salvar alterações",
@@ -96,12 +96,12 @@ return [
                 "delete_button"       => "Excluir Conta",
                 "delete_success"      => "Sua conta foi excluída com sucesso.",
                 "delete_failed"       => "Confirmação incorreta. A conta não foi excluída.",
-                "confirmation_error"  => "Por favor, insira corretamente seu nome de usuário.",
+                "confirmation_error"  => "Por favor, digite seu nome de usuário corretamente.",
             ],
 
             "profile_privacy" => [
                 "title"       => "Privacidade do Perfil",
-                "description" => "Configure as opções de privacidade do seu perfil.",
+                "description" => "Configure as configurações de privacidade do seu perfil.",
 
                 "fields" => [
                     "hidden"  => [
@@ -110,7 +110,7 @@ return [
                     ],
                     "visible" => [
                         "label" => "Privado",
-                        "info"  => "Seu perfil está oculto para outros usuários.",
+                        "info"  => "Seu perfil está oculto de outros usuários.",
                     ],
                 ],
 
@@ -128,7 +128,7 @@ return [
                     ],
                     "dark"  => [
                         "label" => "Tema escuro",
-                        "info"  => "Ideal para uso noturno.",
+                        "info"  => "Ideal para uso à noite.",
                     ],
                     "system" => [
                         "label" => "Tema do sistema",
@@ -150,9 +150,9 @@ return [
             "description"         => "Conecte redes sociais para login rápido e acesso a recursos adicionais.",
             "unlink"              => "Desvincular",
             "unlink_description"  => "Tem certeza de que deseja desvincular esta rede social?",
-            "default_link"        => "Vinculação padrão",
+            "default_link"        => "Link padrão",
             "connect"             => "Vincular",
-            "no_socials"          => "Infelizmente, não há redes sociais disponíveis em nosso sistema 😢",
+            "no_socials"          => "Infelizmente, não há redes sociais em nosso sistema 😢",
             "show_description"    => "Mostrar rede social para outros usuários",
             "hide_description"    => "Ocultar rede social de outros usuários",
             "last_social_network" => "Para desvincular uma rede social, defina uma senha.",
@@ -181,14 +181,51 @@ return [
         "upload_failed"          => "Falha ao enviar :field.",
     ],
 
+    "two_factor" => [
+        "title" => "Autenticação em Duas Etapas",
+        "description" => "Proteja sua conta com uma camada extra de segurança.",
+        "status_enabled" => "Ativada",
+        "status_disabled" => "Desativada",
+        "last_enabled" => "Ativada em :date",
+    ],
+
     "protection_warning"        => "Defina uma senha para proteger sua conta. <a href=\":link\">Definir</a>",
     "no_profile_modules_info"   => "Nenhum módulo de perfil está instalado no Flute. <a href=\":link\">Ver no marketplace</a>",
-    "was_online"                => "Estava online em :date",
+    "was_online"                => "Esteve online :date",
     "view"                      => "Ver perfil",
     "social_deleted"            => "Rede social desvinculada com sucesso!",
     "social_binded"             => "Rede social vinculada com sucesso!",
     "member_since"              => "Membro desde :date",
-    "hidden_warning"            => "Seu perfil está oculto para outros usuários.",
-    "profile_hidden"            => "Este perfil está oculto para outros usuários.",
+    "hidden_warning"            => "Seu perfil está oculto de outros usuários.",
+    "profile_hidden"            => "Este perfil está oculto de outros usuários.",
     "verification_warning"      => "Verifique seu endereço de email para acessar recursos adicionais. <a href=\":link\">Verificar</a>",
+
+    "admin_actions" => [
+        "add_balance" => "Adicionar saldo",
+        "remove_balance" => "Remover saldo",
+        "ban_user" => "Banir usuário",
+        "unban_user" => "Desbanir usuário",
+        "verify_user" => "Verificar email",
+        "unverify_user" => "Remover verificação de email",
+        "clear_sessions" => "Limpar sessões",
+        "current_balance" => "Saldo atual",
+        "amount" => "Valor",
+        "amount_placeholder" => "Digite o valor",
+        "max_amount" => "Máximo: :amount",
+        "ban_reason" => "Motivo do banimento",
+        "ban_reason_placeholder" => "Digite o motivo do banimento",
+        "ban_until" => "Banir até",
+        "ban_until_hint" => "Deixe vazio para banimento permanente",
+        "balance_added" => "Saldo adicionado: :amount",
+        "balance_removed" => "Saldo removido: :amount",
+        "user_banned" => "Usuário banido",
+        "user_unbanned" => "Usuário desbanido",
+        "user_verified" => "Email verificado",
+        "user_unverified" => "Verificação de email removida",
+        "sessions_cleared" => "Sessões do usuário limpas",
+        "cant_ban_self" => "Você não pode se banir",
+        "cant_clear_own_sessions" => "Você não pode limpar suas próprias sessões",
+        "unban_confirm" => "Tem certeza de que deseja desbanir este usuário?",
+        "clear_sessions_confirm" => "Tem certeza de que deseja limpar todas as sessões deste usuário?",
+    ],
 ];
