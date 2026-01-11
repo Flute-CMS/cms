@@ -286,6 +286,16 @@ class ModuleInstallerService
         }
 
         $this->copyDirectory($source, $destination);
+
+        clearstatcache(true);
+
+        if (function_exists('opcache_invalidate')) {
+            $moduleJsonPath = $destination . '/module.json';
+            if (is_file($moduleJsonPath)) {
+                @opcache_invalidate($moduleJsonPath, true);
+            }
+        }
+
         $this->waitForCopiedModuleJson($destination);
         $this->moduleFolder = $moduleFolder;
 
@@ -413,17 +423,26 @@ class ModuleInstallerService
         return $base;
     }
 
-    protected function waitForCopiedModuleJson(string $destinationDir, int $timeoutSeconds = 15): void
+    protected function waitForCopiedModuleJson(string $destinationDir, int $timeoutSeconds = 20): void
     {
         $this->keepProcessAlive();
 
         $start = microtime(true);
+        $moduleJsonPath = $destinationDir . '/module.json';
 
         while ((microtime(true) - $start) < $timeoutSeconds) {
-            clearstatcache(true);
+            clearstatcache(true, $destinationDir);
+            clearstatcache(true, $moduleJsonPath);
 
-            if (is_file($destinationDir . '/module.json')) {
-                return;
+            if (is_file($moduleJsonPath)) {
+                $content = @file_get_contents($moduleJsonPath);
+                if ($content !== false && strlen($content) > 10) {
+                    if (function_exists('opcache_invalidate')) {
+                        @opcache_invalidate($moduleJsonPath, true);
+                    }
+
+                    return;
+                }
             }
 
             $jsonFinder = finder();
@@ -435,11 +454,19 @@ class ModuleInstallerService
 
             foreach ($jsonFinder as $jsonFile) {
                 if ($jsonFile->isFile()) {
-                    return;
+                    $nestedPath = $jsonFile->getRealPath();
+                    $content = @file_get_contents($nestedPath);
+                    if ($content !== false && strlen($content) > 10) {
+                        if (function_exists('opcache_invalidate')) {
+                            @opcache_invalidate($nestedPath, true);
+                        }
+
+                        return;
+                    }
                 }
             }
 
-            usleep(250000);
+            usleep(300000);
         }
 
         throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования');

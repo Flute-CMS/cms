@@ -16,7 +16,7 @@
     &-icon {
         @extend .flex-center;
         color: var(--accent);
-        font-size: 1.3rem;
+        font-size: var(--h4);
     }
 
     &-list {
@@ -25,8 +25,8 @@
 
     &-item {
         @extend .d-flex, .justify-between, .align-center;
-        padding: 0.9rem 1.5rem;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: var(--space-sm) var(--space-lg);
+        transition: all var(--transition) cubic-bezier(0.16, 1, 0.3, 1);
         
         &:hover {
             background: var(--transp-05);
@@ -36,8 +36,8 @@
             content: '';
             position: absolute;
             bottom: 0;
-            left: 1.5rem;
-            right: 1.5rem;
+            left: var(--space-lg);
+            right: var(--space-lg);
             height: 1px;
             background-color: var(--transp-1);
             opacity: 0.6;
@@ -75,9 +75,9 @@
     &-amount {
         color: var(--success);
         font-weight: 600;
-        padding: 0.2rem 0.6rem;
+        padding: var(--space-2xs) var(--space-xs);
         font-size: var(--p-small);
-        border-radius: 4px;
+        border-radius: var(--space-2xs);
         background-color: var(--success-light);
         opacity: 0.9;
         
@@ -121,12 +121,12 @@
 
     &-empty {
         @extend .flex-center, .flex-column;
-        padding: 3rem 0;
+        padding: var(--space-xl) 0;
         color: var(--text-400);
-        gap: 0.75rem;
+        gap: var(--space-sm);
 
         svg {
-            font-size: 1.75rem;
+            font-size: var(--h3);
             opacity: 0.6;
             color: var(--text-400);
         }

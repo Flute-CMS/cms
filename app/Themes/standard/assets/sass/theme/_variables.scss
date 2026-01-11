@@ -1,5 +1,9 @@
 :root {
     --transition: .2s;
+    --blur-amount: 10px;
+    --max-content-width: 1200px;
+    --sidebar-width: 260px;
+    
     --shadow-small: inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015;
     --shadow-medium: inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015;
     --shadow-large: inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015;

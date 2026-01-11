@@ -17,6 +17,8 @@ class ModuleFinder
     {
         $allModules = [];
 
+        clearstatcache(true);
+
         if (!is_dir($modulesPath)) {
             return $allModules;
         }

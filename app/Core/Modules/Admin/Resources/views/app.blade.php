@@ -262,7 +262,6 @@
         @at('Core/Modules/Admin/Resources/assets/js/customization.js')
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
-        @at('Core/Modules/Admin/Resources/assets/js/dirty.js')
 
         @include('admin::partials.toasts')
 

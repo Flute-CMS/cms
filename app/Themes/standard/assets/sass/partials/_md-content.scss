@@ -21,7 +21,7 @@
 	h5,
 	h6 {
 		color: var(--text-200);
-		margin: 0.35rem 0 0.25rem;
+		margin: var(--space-2xs) 0 var(--space-2xs);
 		font-weight: bold;
 	}
 	h1 {
@@ -43,12 +43,12 @@
 		font-size: calc(var(--small) * 0.95);
 	}
 	p {
-		margin: 0.375rem 0;
+		margin: var(--space-xs) 0;
 	}
 	ul,
 	ol {
-		padding-left: 1rem;
-		margin: 0.375rem 0;
+		padding-left: var(--space-md);
+		margin: var(--space-xs) 0;
 		list-style: disc;
 		font-size: var(--p-small);
 	}
@@ -61,7 +61,7 @@
 	/* nested lists and variants */
 	ul ul {
 		list-style: circle;
-		margin-top: 0.2rem;
+		margin-top: var(--space-2xs);
 	}
 	ul ul ul {
 		list-style: square;
@@ -74,12 +74,12 @@
 	}
 	li > ul,
 	li > ol {
-		margin-left: 1rem;
+		margin-left: var(--space-md);
 	}
 
 	/* task lists */
 	li input[type="checkbox"] {
-		margin-right: 0.5rem;
+		margin-right: var(--space-xs);
 		vertical-align: middle;
 	}
 	li.task-list-item {
@@ -96,7 +96,7 @@
 	pre {
 		background: var(--transp-05);
 		border: 1px solid var(--transp-1);
-		padding: 0.75rem 0.9rem;
+		padding: var(--space-sm) var(--space-md);
 		border-radius: var(--border05);
 		overflow: auto;
 		font-size: 90%;
@@ -121,9 +121,9 @@
 	}
 	blockquote {
 		border-left: 1px solid var(--transp-2);
-		margin: 0.6rem 0;
-		padding: 0.25rem 0.6rem;
-		padding-left: 0.8rem;
+		margin: var(--space-sm) 0;
+		padding: var(--space-2xs) var(--space-sm);
+		padding-left: var(--space-sm);
 		color: var(--text-300);
 	}
 
@@ -131,7 +131,7 @@
 		border: none;
 		height: 1px;
 		background: var(--transp-2);
-		margin: 0.875rem 0;
+		margin: var(--space-md) 0;
 	}
 
 	strong {
@@ -177,7 +177,7 @@
 		border-collapse: collapse;
 		table-layout: auto;
 		font-size: var(--small);
-		margin: 0.5rem 0;
+		margin: var(--space-xs) 0;
 	}
 	thead th {
 		color: var(--text-300);
@@ -190,14 +190,14 @@
 	}
 	th,
 	td {
-		padding: 0.45rem 0.5rem;
+		padding: var(--space-xs) var(--space-xs);
 		border-bottom: 1px solid var(--transp-1);
 	}
 	caption {
 		caption-side: bottom;
 		font-size: var(--small);
 		color: var(--text-500);
-		padding-top: 0.4rem;
+		padding-top: var(--space-xs);
 	}
 
 	@media (max-width: 768px) {
@@ -221,29 +221,29 @@
 		border-radius: var(--border05);
 	}
 	figure {
-		margin: 0.75rem 0;
+		margin: var(--space-sm) 0;
 	}
 	figure > img {
 		display: block;
-		margin: 0.25rem auto;
+		margin: var(--space-2xs) auto;
 	}
 	figcaption {
 		text-align: center;
 		color: var(--text-500);
 		font-size: var(--small);
-		margin-top: 0.25rem;
+		margin-top: var(--space-2xs);
 	}
 
 	/* description list */
 	dl {
-		margin: 0.5rem 0;
+		margin: var(--space-xs) 0;
 	}
 	dt {
 		font-weight: 600;
 		color: var(--text-200);
 	}
 	dd {
-		margin: 0.25rem 0 0.5rem 0.75rem;
+		margin: var(--space-2xs) 0 var(--space-xs) var(--space-sm);
 	}
 
 	/* details/summary */
@@ -251,8 +251,8 @@
 		background: var(--transp-05);
 		border: 1px solid var(--transp-1);
 		border-radius: var(--border05);
-		padding: 0.4rem 0.6rem;
-		margin: 0.5rem 0;
+		padding: var(--space-xs) var(--space-sm);
+		margin: var(--space-xs) 0;
 	}
 	details > summary {
 		cursor: pointer;

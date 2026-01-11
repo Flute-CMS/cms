@@ -4,13 +4,13 @@
     position: absolute;
     z-index: 10100;
     font-size: var(--small);
-    padding: .8em 1em;
+    padding: var(--space-sm) var(--space-md);
     border-radius: var(--border05);
     max-width: 200px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .2s ease-out,
-        transform .2s ease-in-out;
+    transition: opacity var(--transition) ease-out,
+        transform var(--transition) ease-in-out;
     line-height: 1.2;
     opacity: 0;
     will-change: transform;

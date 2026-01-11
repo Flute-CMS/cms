@@ -29,14 +29,14 @@
 }
 
 .tab-skeleton-content {
-    padding: 0.5rem 0;
+    padding: var(--space-xs) 0;
 }
 
 .tabs-skeleton-card {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1.25rem;
+    gap: var(--space-md);
+    padding: var(--space-lg);
     background: var(--transp-02);
     border: 1px solid var(--transp-05);
     border-radius: var(--border1);
@@ -44,7 +44,7 @@
     &__header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--space-sm);
     }
     
     &__icon {
@@ -62,7 +62,7 @@
     &__title-group {
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: var(--space-2xs);
         flex: 1;
     }
     
@@ -84,12 +84,12 @@
     &__content {
         display: flex;
         flex-direction: column;
-        gap: 0.65rem;
+        gap: var(--space-sm);
     }
     
     &__row {
         display: flex;
-        gap: 0.75rem;
+        gap: var(--space-sm);
         
         &--split {
             .tabs-skeleton-card__field {
@@ -101,7 +101,7 @@
     &__field {
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: var(--space-2xs);
         flex: 1;
         
         &--half {
@@ -135,8 +135,8 @@
     &__toggle {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0;
+        gap: var(--space-xs);
+        padding: var(--space-xs) 0;
     }
     
     &__toggle-switch {
@@ -156,24 +156,24 @@
 .tabs-skeleton-form {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: var(--space-lg);
     
     &__section {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: var(--space-sm);
     }
     
     &__section-title {
         height: 16px;
         width: 150px;
-        border-radius: 4px;
-        margin-bottom: 0.25rem;
+        border-radius: var(--space-2xs);
+        margin-bottom: var(--space-2xs);
     }
     
     &__fields {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
+        gap: var(--space-md);
     }
 }

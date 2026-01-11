@@ -3,8 +3,8 @@
     overflow: hidden;
     border: 1px solid var(--transp-1);
     background: radial-gradient(circle, var(--transp-05), var(--transp-1));
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    backdrop-filter: blur(10px);
+    transition: transform var(--transition) ease, box-shadow var(--transition) ease;
+    backdrop-filter: blur(var(--blur-amount));
 
     &:hover {
         box-shadow: var(--shadow-md);
@@ -12,7 +12,7 @@
 
     &-header {
         @extend .d-flex, .gap-2;
-        padding: 1rem;
+        padding: var(--space-md);
         border-bottom: 1px solid var(--background-900);
 
         h5 {
@@ -31,7 +31,7 @@
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        padding: 1.25rem;
+        padding: var(--space-lg);
     }
 
     &-avatar-wrapper {
@@ -142,19 +142,19 @@
     &-group {
         @extend .d-flex, .align-center, .gap-1;
         font-weight: 500;
-        padding: 0.25rem 0.5rem;
+        padding: var(--space-2xs) var(--space-xs);
         border-radius: 1rem;
         background-color: var(--background-900);
 
         svg {
-            font-size: 1rem;
+            font-size: var(--p);
         }
     }
 
     &-balance-card {
         @extend .d-flex, .flex-column;
         background: linear-gradient(135deg, var(--accent-800), var(--accent));
-        padding: 1rem;
+        padding: var(--space-md);
         margin: var(--space-md) var(--space-md);
         border-radius: var(--border1);
         color: var(--text);
@@ -185,7 +185,7 @@
         .balance-amount {
             font-size: var(--h3);
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: var(--space-2xs);
             z-index: 2;
         }
 
@@ -194,7 +194,7 @@
 
             align-self: flex-start;
             background-color: rgba(255, 255, 255, 0.2);
-            padding: 0.35rem 0.75rem;
+            padding: var(--space-2xs) var(--space-sm);
             font-size: var(--small);
             font-weight: 500;
             color: var(--text);
@@ -217,7 +217,7 @@
 
         font-weight: 500;
         font-size: var(--small);
-        padding: 0.25rem 0.75rem;
+        padding: var(--space-2xs) var(--space-sm);
         border-radius: 1rem;
         background-color: var(--transp-1);
 
@@ -253,7 +253,7 @@
             }
 
             svg {
-                margin-right: 0.5rem;
+                margin-right: var(--space-xs);
             }
         }
     }
@@ -269,7 +269,7 @@
 
     .guest-profile-header {
         @extend .d-flex, .align-center, .gap-3, .flex-column;
-        margin-bottom: 1.25rem;
+        margin-bottom: var(--space-lg);
     }
 
     .guest-profile-avatar {
@@ -291,7 +291,7 @@
         @extend .d-flex, .flex-column, .flex-center;
 
         h4 {
-            margin-bottom: 0.25rem;
+            margin-bottom: var(--space-2xs);
             color: var(--text);
         }
 
@@ -306,7 +306,7 @@
 
     .guest-profile-actions {
         @extend .d-flex, .flex-column, .gap-2;
-        margin-bottom: 1.25rem;
+        margin-bottom: var(--space-lg);
         margin-top: auto;
 
         .guest-profile-action {
@@ -328,13 +328,13 @@
 
     .guest-profile-socials {
         border-top: 1px solid var(--transp-2);
-        padding-top: 1rem;
+        padding-top: var(--space-md);
     }
 
     .guest-profile-socials-label {
         font-size: var(--small);
         color: var(--text-500);
-        margin-bottom: 0.75rem;
+        margin-bottom: var(--space-sm);
         text-align: center;
     }
 

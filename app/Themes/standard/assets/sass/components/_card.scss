@@ -15,7 +15,7 @@
     }
 
     &-header {
-        padding: 1.1em 1.3em;
+        padding: var(--space-md) var(--space-lg);
         border-bottom: 1px solid var(--transp-1);
 
         .card-title {
@@ -23,14 +23,14 @@
         }
 
         .card-subtitle {
-            margin-top: 0.25rem;
+            margin-top: var(--space-2xs);
             color: var(--text-200);
         }
     }
 
     &-body {
-        &:not(.withoutPadding) { padding: 1.1em 1.3em; }
+        &:not(.withoutPadding) { padding: var(--space-md) var(--space-lg); }
     }
 
-    &-footer { padding: 1.1em 1.3em 1.25em; border-top: 1px solid var(--transp-1); }
+    &-footer { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--transp-1); }
 }

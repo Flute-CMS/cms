@@ -39,8 +39,8 @@
 
     &__skeleton {
         display: flex;
-        gap: 1rem;
-        padding: 1.25rem;
+        gap: var(--space-md);
+        padding: var(--space-lg);
         width: 100%;
         
         &-icon {
@@ -53,36 +53,36 @@
         &-content {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: var(--space-xs);
             flex: 1;
         }
         
         &-title {
             height: 14px;
             width: 60%;
-            border-radius: 4px;
+            border-radius: var(--space-2xs);
         }
         
         &-text {
             height: 10px;
             width: 80%;
-            border-radius: 3px;
+            border-radius: var(--space-2xs);
             opacity: 0.6;
         }
         
         &-date {
             height: 8px;
             width: 30%;
-            border-radius: 2px;
+            border-radius: var(--space-2xs);
             opacity: 0.4;
-            margin-top: 0.25rem;
+            margin-top: var(--space-2xs);
         }
     }
 
     &__empty {
         @extend .text-center;
 
-        margin-top: 20px;
+        margin-top: var(--space-lg);
         color: var(--text-500)
     }
 }
@@ -92,15 +92,15 @@
         @extend .flex-column;
 
         flex: 1;
-        gap: 1rem;
+        gap: var(--space-md);
         max-width: calc(100% - 56px);
     }
 
     &-item {
         @extend .flex-row;
 
-        gap: 1rem;
-        padding: 1.5rem;
+        gap: var(--space-md);
+        padding: var(--space-lg);
         border-bottom: 1px solid var(--transp-1);
 
         &.unread {}
@@ -126,7 +126,7 @@
 
     &-text {
         background-color: var(--transp-1);
-        padding: .5rem 1rem;
+        padding: var(--space-xs) var(--space-md);
         border-radius: var(--border05);
     }
 

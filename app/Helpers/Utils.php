@@ -328,8 +328,16 @@ if (!function_exists('validator')) {
 if (!function_exists('carbon')) {
     function carbon($time = null)
     {
-        Carbon::setLocale(translation()->getLocale());
-        CarbonInterval::setLocale(translation()->getLocale());
+        $locale = translation()->getLocale();
+
+        // Our i18n uses "br" for Brazilian Portuguese, but Carbon treats "br" as Breton.
+        // Map to a Carbon-compatible locale to avoid output like "3 miz 'zo".
+        if ($locale === 'br') {
+            $locale = 'pt_BR';
+        }
+
+        Carbon::setLocale($locale);
+        CarbonInterval::setLocale($locale);
 
         return Carbon::parse($time);
     }

@@ -1,21 +1,29 @@
-<x-button class="page-edit-button" id="page-edit-button" size="medium" data-dropdown-open="__dropdown_page-edit"
-    type="primary">
-    <x-icon path="ph.regular.magic-wand" />{{ __('def.edit_page') }}
-</x-button>
+<div class="page-edit-fab" id="page-edit-fab">
+    <button class="page-edit-fab__trigger" id="page-edit-trigger" data-tooltip="{{ __('def.edit_page') }}" data-tooltip-pos="left">
+        <x-icon path="ph.regular.pencil-simple" />
+    </button>
 
-<div class="page-edit-dropdown" data-dropdown="__dropdown_page-edit">
-    <x-button size="medium" type="outline-primary" id="page-change-button">
-        <x-icon path="ph.regular.magic-wand" />
-        {{ __('def.edit_page') }}
-    </x-button>
-    <x-button size="medium" type="outline-primary" id="page-change-seo" data-modal-open="page-seo-dialog"
-        hx-get="{{ route('pages.seo') }}" hx-vals="js:{'route': window.location.pathname}" hx-trigger="click"
-        hx-target="#page-seo-dialog-content" hx-swap="morph:outerHTML">
-        <x-icon path="ph.regular.pencil" />
-        {{ __('page.seo.edit_seo') }}
-    </x-button>
-    <x-button class="colors" size="medium" type="outline-primary" id="page-change-colors">
-        <x-icon path="ph.regular.palette" />
-        {{ __('def.edit_colors') }}
-    </x-button>
+    <div class="page-edit-fab__ring" id="page-edit-menu">
+        <button class="page-edit-fab__item" id="page-open-editor" 
+            data-tooltip="{{ __('page-edit.editor_title') }}" data-tooltip-pos="left"
+            style="--i: 0;">
+            <x-icon path="ph.regular.sliders" />
+        </button>
+
+        <button class="page-edit-fab__item" id="page-change-button" 
+            data-tooltip="{{ __('page-edit.edit_widgets') }}" data-tooltip-pos="left"
+            style="--i: 1;">
+            <x-icon path="ph.regular.squares-four" />
+        </button>
+
+        <button class="page-edit-fab__item" id="page-change-seo" data-modal-open="page-seo-dialog"
+            hx-get="{{ route('pages.seo') }}" hx-vals="js:{'route': window.location.pathname}" hx-trigger="click"
+            hx-target="#page-seo-dialog-content" hx-swap="morph:outerHTML" 
+            data-tooltip="{{ __('page.seo.edit_seo') }}" data-tooltip-pos="left"
+            style="--i: 2;">
+            <x-icon path="ph.regular.magnifying-glass" />
+        </button>
+    </div>
+
+    <div class="page-edit-fab__backdrop" id="page-edit-backdrop"></div>
 </div>

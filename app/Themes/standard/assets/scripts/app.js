@@ -500,7 +500,17 @@ class ModalManager {
 			}
 		});
 
-		$(document).on("click", ".tabbar__modal-item", (e) => {
+		// Handle tabbar submenu toggle
+		$(document).on("click", ".tabbar__modal-submenu-trigger", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const $submenu = $(e.currentTarget).closest(".tabbar__modal-submenu");
+			const isExpanded = $submenu.hasClass("expanded");
+			$submenu.toggleClass("expanded");
+			$(e.currentTarget).attr("aria-expanded", !isExpanded);
+		});
+
+		$(document).on("click", ".tabbar__modal-item:not(.tabbar__modal-submenu-trigger)", (e) => {
 			closeModal($(e.currentTarget).closest(".modal").attr("id"));
 		});
 
@@ -902,7 +912,7 @@ class DropdownManager {
 						this.openDropdown($toggle, $menu);
 					}
 					$toggle.removeData("openTimeout");
-				}, 200);
+				}, 50);
 
 				$toggle.data("openTimeout", openTimeout);
 			}
@@ -921,13 +931,14 @@ class DropdownManager {
 					$toggle.removeData("openTimeout");
 				}
 
+				// Longer close delay to allow moving to menu
 				const closeTimeout = setTimeout(() => {
 					const toggleHovered = $toggle[0]?.matches(":hover");
 					const menuHovered = $menu[0]?.matches(":hover");
 					if (!toggleHovered && !menuHovered) {
 						this.closeDropdown($menu);
 					}
-				}, 150);
+				}, 300);
 
 				$menu.data("closeTimeout", closeTimeout);
 			}
@@ -951,13 +962,14 @@ class DropdownManager {
 				`[data-dropdown-open="${dropdownName}"][data-dropdown-hover="true"]`
 			);
 			if ($toggle.length === 0) return;
+			// Longer close delay
 			const closeTimeout = setTimeout(() => {
 				const toggleHovered = $toggle[0]?.matches(":hover");
 				const menuHovered = $menu[0]?.matches(":hover");
 				if (!toggleHovered && !menuHovered) {
 					this.closeDropdown($menu);
 				}
-			}, 150);
+			}, 300);
 			$menu.data("closeTimeout", closeTimeout);
 		});
 
@@ -1037,7 +1049,9 @@ class DropdownManager {
 
 	openDropdown($toggle, $menu) {
 		try {
-			if ($toggle.attr("data-dropdown-hover") === "true") {
+			const isHoverDropdown = $toggle.attr("data-dropdown-hover") === "true";
+			
+			if (isHoverDropdown) {
 				$("[data-dropdown].active").each((_, el) => {
 					const $otherMenu = $(el);
 					if ($otherMenu[0] === $menu[0]) return;
@@ -1057,7 +1071,11 @@ class DropdownManager {
 
 			$menu.appendTo("body");
 			$menu.show().addClass("active");
-			$("body").addClass("no-scroll");
+			
+			// Don't block scroll for hover dropdowns (navbar)
+			if (!isHoverDropdown) {
+				$("body").addClass("no-scroll");
+			}
 
 			this.positionDropdown($toggle, $menu);
 		} catch (error) {
@@ -1121,17 +1139,20 @@ class DropdownManager {
 				$menu.removeData("autoUpdateCleanup");
 			}
 
-			$menu.one("transitionend", function () {
-				$menu.hide();
-				$("body").removeClass("no-scroll");
+			// Use timeout instead of transitionend for reliability
+			setTimeout(() => {
+				if (!$menu.hasClass("active")) {
+					$menu.hide();
+					$("body").removeClass("no-scroll");
 
-				// Return to original parent
-				const $originalParent = $menu.data("originalParent");
-				if ($originalParent && $originalParent.length) {
-					$menu.appendTo($originalParent);
-					$menu.removeData("originalParent");
+					// Return to original parent
+					const $originalParent = $menu.data("originalParent");
+					if ($originalParent && $originalParent.length) {
+						$menu.appendTo($originalParent);
+						$menu.removeData("originalParent");
+					}
 				}
-			});
+			}, 250);
 		} catch (error) {
 			console.error("Error closing dropdown:", error);
 			// Fallback in case of error
@@ -1702,10 +1723,202 @@ class ConfirmationManager {
 	}
 }
 
+/**
+ * Navbar Morph Dropdown Manager
+ * Smooth animated dropdown with morphing container
+ */
+class NavbarMorphDropdown {
+	constructor() {
+		this.navbar = null;
+		this.dropdown = null;
+		this.box = null;
+		this.triggers = [];
+		this.contents = [];
+		this.activeId = null;
+		this.closeTimeout = null;
+		this.isOpen = false;
+		
+		this.init();
+		this.initHtmxEvents();
+	}
+	
+	init() {
+		this.navbar = document.querySelector('[data-navbar-morph]');
+		this.dropdown = document.querySelector('[data-morph-dropdown]');
+		this.box = document.querySelector('[data-morph-box]');
+		this.triggers = document.querySelectorAll('[data-morph-trigger]');
+		this.contents = document.querySelectorAll('[data-morph-content]');
+		
+		if (!this.navbar || !this.dropdown || !this.box || this.triggers.length === 0) {
+			return;
+		}
+		
+		this.triggers.forEach(trigger => {
+			trigger.addEventListener('mouseenter', (e) => this.handleTriggerEnter(e));
+			trigger.addEventListener('mouseleave', (e) => this.handleTriggerLeave(e));
+		});
+		
+		this.dropdown.addEventListener('mouseenter', () => this.handleDropdownEnter());
+		this.dropdown.addEventListener('mouseleave', () => this.handleDropdownLeave());
+		
+		document.addEventListener('click', (e) => {
+			if (!this.navbar.contains(e.target)) {
+				this.close();
+			}
+		});
+	}
+	
+	initHtmxEvents() {
+		document.addEventListener('htmx:afterSettle', () => {
+			this.init();
+		});
+	}
+	
+	handleTriggerEnter(e) {
+		const trigger = e.currentTarget;
+		const id = trigger.getAttribute('data-morph-trigger');
+		
+		if (this.closeTimeout) {
+			clearTimeout(this.closeTimeout);
+			this.closeTimeout = null;
+		}
+		
+		if (this.isOpen && this.activeId === id) {
+			return;
+		}
+		
+		this.open(id, trigger);
+	}
+	
+	handleTriggerLeave(e) {
+		const relatedTarget = e.relatedTarget;
+		if (relatedTarget && this.dropdown.contains(relatedTarget)) {
+			return;
+		}
+		
+		this.scheduleClose();
+	}
+	
+	handleDropdownEnter() {
+		if (this.closeTimeout) {
+			clearTimeout(this.closeTimeout);
+			this.closeTimeout = null;
+		}
+	}
+	
+	handleDropdownLeave() {
+		this.scheduleClose();
+	}
+	
+	scheduleClose() {
+		if (this.closeTimeout) {
+			clearTimeout(this.closeTimeout);
+		}
+		
+		this.closeTimeout = setTimeout(() => {
+			this.close();
+		}, 150);
+	}
+	
+	open(id, trigger) {
+		const content = document.querySelector(`[data-morph-content="${id}"]`);
+		if (!content) return;
+		
+		const wasOpen = this.isOpen;
+		const prevId = this.activeId;
+		
+		// Update active trigger styles
+		this.triggers.forEach(t => t.classList.remove('is-active'));
+		trigger.classList.add('is-active');
+		
+		// Measure content
+		const measurements = this.measureContent(content);
+		
+		// Position dropdown under trigger (move the whole dropdown)
+		const triggerRect = trigger.getBoundingClientRect();
+		const navbarRect = this.navbar.getBoundingClientRect();
+		
+		// Center dropdown under trigger
+		let dropdownX = triggerRect.left - navbarRect.left + (triggerRect.width / 2) - (measurements.width / 2);
+		
+		// Keep within viewport
+		const maxX = window.innerWidth - navbarRect.left - measurements.width - 16;
+		dropdownX = Math.max(0, Math.min(dropdownX, maxX));
+		
+		// Move dropdown container itself
+		this.dropdown.style.left = `${dropdownX}px`;
+		
+		// Apply dimensions to box
+		this.box.style.width = `${measurements.width}px`;
+		this.box.style.height = `${measurements.height}px`;
+		
+		// Hide previous content, show new
+		this.contents.forEach(c => c.classList.remove('is-active'));
+		
+		// Small delay for morph effect when switching
+		if (wasOpen && prevId !== id) {
+			setTimeout(() => {
+				content.classList.add('is-active');
+			}, 50);
+		} else {
+			content.classList.add('is-active');
+		}
+		
+		// Open dropdown
+		this.dropdown.classList.add('is-open');
+		this.isOpen = true;
+		this.activeId = id;
+	}
+	
+	close() {
+		this.dropdown.classList.remove('is-open');
+		this.triggers.forEach(t => t.classList.remove('is-active'));
+		this.isOpen = false;
+		
+		setTimeout(() => {
+			if (!this.isOpen) {
+				this.contents.forEach(c => c.classList.remove('is-active'));
+				this.activeId = null;
+			}
+		}, 200);
+	}
+	
+	measureContent(content) {
+		const allContents = this.contents;
+		allContents.forEach(c => {
+			c.style.position = 'relative';
+			c.style.opacity = '0';
+			c.style.visibility = 'hidden';
+			c.style.display = 'block';
+			c.style.pointerEvents = 'none';
+		});
+		
+		const grid = content.querySelector('.navbar-dropdown__grid');
+		const hasTwoCols = grid && grid.classList.contains('cols-2');
+		const baseWidth = hasTwoCols ? 520 : 280;
+		
+		const rect = content.getBoundingClientRect();
+		const width = Math.max(baseWidth, rect.width);
+		const height = rect.height;
+		
+		allContents.forEach(c => {
+			c.style.position = '';
+			c.style.opacity = '';
+			c.style.visibility = '';
+			c.style.display = '';
+			c.style.pointerEvents = '';
+		});
+		
+		return { width, height };
+	}
+}
+
 let app;
 let notyf;
+let navbarMorphDropdown;
 
 $(document).ready(function () {
 	app = new FluteApp();
 	notyf = app.notyf;
+	navbarMorphDropdown = new NavbarMorphDropdown();
 });

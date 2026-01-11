@@ -31,7 +31,7 @@
             border-radius: 50%;
             overflow: hidden;
             opacity: .7;
-            transition: opacity .2s ease-in-out;
+            transition: opacity var(--transition) ease-in-out;
             
             &:hover {
                 opacity: 1;
@@ -47,15 +47,15 @@
 
     &-compact-mode {
         @extend .d-flex, .flex-wrap;
-        gap: 4px;
+        gap: var(--space-2xs);
         
         .user-avatar-compact {
             width: 30px;
             height: 30px;
-            border-radius: 3px;
+            border-radius: var(--space-2xs);
             overflow: hidden;
             opacity: .8;
-            transition: all .2s ease-in-out;
+            transition: all var(--transition) ease-in-out;
             
             &:hover {
                 opacity: 1;

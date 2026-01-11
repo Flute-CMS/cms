@@ -8,11 +8,11 @@
 }
 
 .footer {
-    padding: 2.5rem 0 1.5rem 0;
-    margin-bottom: 1rem;
+    padding: var(--space-xl) 0 var(--space-lg) 0;
+    margin-bottom: var(--space-md);
 
     @include media(mobile) {
-        padding: 1.5rem 1rem;
+        padding: var(--space-lg) var(--space-md);
     }
 
     &__logo {
@@ -34,7 +34,7 @@
     &__description {
         display: block;
         font-size: var(--p-small);
-        margin-bottom: 1rem;
+        margin-bottom: var(--space-md);
         line-height: 1.4;
         color: var(--text-400);
         max-width: 90%;
@@ -44,10 +44,10 @@
         @extend .d-flex;
 
         justify-content: space-between;
-        gap: 3rem;
+        gap: var(--space-xl);
         align-items: center;
         border-top: 1px solid var(--transp-1);
-        margin-top: 1rem;
+        margin-top: var(--space-md);
     }
 
     &__content {
@@ -55,12 +55,12 @@
 
         align-items: flex-start;
         justify-content: space-between;
-        gap: 3rem;
+        gap: var(--space-xl);
         width: 100%;
 
         @include media(mobile) {
             flex-direction: column;
-            gap: 1.5rem;
+            gap: var(--space-lg);
         }
     }
 
@@ -77,12 +77,12 @@
     &__nav-cols {
         @extend .d-flex;
         flex-wrap: wrap;
-        gap: 2rem;
+        gap: var(--space-xl);
         width: 100%;
         justify-content: flex-end;
         
         @include media(mobile) {
-            gap: 1.5rem;
+            gap: var(--space-lg);
         }
     }
 
@@ -121,12 +121,12 @@
         letter-spacing: 0.5px;
         line-height: 1;
         color: var(--text-300);
-        margin-bottom: 0.75rem;
+        margin-bottom: var(--space-sm);
         
         > a, > span {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: var(--space-xs);
             color: var(--text-300);
             transition: color 0.15s ease;
             
@@ -150,7 +150,7 @@
 
         margin: 0;
         padding: 0;
-        gap: 0.4rem;
+        gap: var(--space-xs);
 
         &-item {
             color: var(--text-400);
@@ -191,8 +191,8 @@
         @extend .d-flex;
 
         flex-direction: column;
-        gap: 0.75rem;
-        margin-top: 1.25rem;
+        gap: var(--space-sm);
+        margin-top: var(--space-lg);
 
         &-title {
             @extend .text-muted;
@@ -206,7 +206,7 @@
 
             flex-direction: row;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: var(--space-sm);
 
             >a {
                 font-size: var(--h5);
@@ -233,7 +233,7 @@
     &__down {
         font-size: var(--p-small);
         text-align: center;
-        padding: 1rem 0 1rem;
+        padding: var(--space-md) 0 var(--space-md);
         color: var(--text-500);
 
         a {
@@ -260,5 +260,107 @@ html[data-theme="light"] {
 html[data-theme="dark"] {
     .footer__logo-light {
         display: none;
+    }
+}
+
+// Footer type variations
+html[data-footer-type="minimal"] {
+    #footer {
+        margin-top: 4rem;
+
+        .footer {
+            padding: 1rem 0;
+            margin-bottom: 0;
+
+            &__content {
+                display: none;
+            }
+
+            &__bottom {
+                border-top: none;
+                margin-top: 0;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+html[data-footer-type="expanded"] {
+    #footer {
+        margin-top: 6rem;
+
+        .footer {
+            padding: 4rem 0 2rem;
+
+            &__content {
+                margin-bottom: 2rem;
+                gap: 4rem;
+            }
+
+            &__col {
+                flex: 1;
+                min-width: 200px;
+
+                &:first-child {
+                    max-width: 30%;
+                    flex: 1.5;
+
+                    @include media(mobile) {
+                        max-width: 100%;
+                    }
+                }
+            }
+
+            &__description {
+                max-width: 100%;
+                font-size: var(--p-normal);
+                margin-bottom: 1.5rem;
+            }
+
+            &__socials {
+                margin-top: 2rem;
+
+                &-container > a {
+                    width: 3rem;
+                    height: 3rem;
+                    font-size: var(--h4);
+                }
+            }
+
+            &__nav-cols {
+                gap: 3rem;
+            }
+
+            &__items {
+                gap: 0.6rem;
+
+                &-item a {
+                    font-size: var(--p-normal);
+                }
+            }
+
+            &__title {
+                font-size: var(--p-normal);
+                margin-bottom: 1rem;
+            }
+
+            &__bottom {
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+            }
+        }
+    }
+}
+
+html[data-footer-type="hidden"] {
+    #footer {
+        display: none !important;
+    }
+}
+
+// Hide socials in footer
+html[data-footer-socials="false"] {
+    #footer .footer__socials {
+        display: none !important;
     }
 }

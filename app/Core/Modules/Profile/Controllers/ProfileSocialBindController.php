@@ -48,6 +48,10 @@ class ProfileSocialBindController extends BaseController
                 $userSocialNetwork->additional = json_encode($token);
             }
 
+            if ($userSocialNetwork->socialNetwork->key === 'Discord' && !empty($userSocialNetwork->value)) {
+                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+            }
+
             transaction($userSocialNetwork)->run();
 
             if ($userSocialNetwork->socialNetwork->key === 'Discord') {

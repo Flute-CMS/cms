@@ -14,7 +14,7 @@
     &__content {
         @extend .flex-center;
 
-        padding: 0 10px;
+        padding: 0 var(--space-sm);
         display: flex;
         justify-content: space-around;
         width: 100%;
@@ -23,7 +23,7 @@
     &__item {
         @extend .d-flex, .align-center, .flex-column;
 
-        padding: 15px;
+        padding: var(--space-md);
         opacity: .7;
         color: var(--text);
         cursor: pointer;
@@ -34,7 +34,7 @@
 
         p {
             font-size: var(--small);
-            margin-top: 5px;
+            margin-top: var(--space-xs);
         }
 
         &.active {
@@ -47,22 +47,58 @@
         &-items {
             @extend .d-flex, .flex-column;
             
-            gap: 10px;
-            padding-top: 20px;
+            gap: var(--space-sm);
+            padding-top: var(--space-lg);
         }
 
         &-item {
             @extend .d-flex, .flex-row, .align-center;
 
-            gap: 10px;
+            gap: var(--space-sm);
             color: var(--text);
             background-color: var(--transp-1);
-            padding: 7px 12px;
+            padding: var(--space-xs) var(--space-sm);
             font-size: var(--p);
             border-radius: var(--border05);
             
             svg {
                 font-size: var(--h4);
+            }
+        }
+
+        &-submenu {
+            display: flex;
+            flex-direction: column;
+
+            &-trigger {
+                width: 100%;
+                justify-content: flex-start;
+                cursor: pointer;
+                border: none;
+                text-align: left;
+
+                .tabbar__modal-submenu-arrow {
+                    margin-left: auto;
+                    font-size: var(--p-small);
+                    color: var(--text-400);
+                    @include transition(transform);
+                }
+
+                &[aria-expanded="true"] .tabbar__modal-submenu-arrow {
+                    transform: rotate(180deg);
+                }
+            }
+
+            &-content {
+                display: none;
+                flex-direction: column;
+                gap: var(--space-xs);
+                margin-top: var(--space-xs);
+                border-left: 2px solid var(--transp-2);
+            }
+
+            &.expanded > &-content {
+                display: flex;
             }
         }
     }

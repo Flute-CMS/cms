@@ -57,7 +57,8 @@
         right: 0;
         bottom: 0;
         background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) / 5));
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) / 5));
         z-index: 1000;
         position: fixed;
         inset: 0;
@@ -66,13 +67,13 @@
         overscroll-behavior: contain;
 
         @include media(pc) {
-            padding: 10px 0;
+            padding: var(--space-sm) 0;
         }
     }
 
     &__footer {
         width: 100%;
-        padding: 0px 25px 20px 25px;
+        padding: 0 var(--space-xl) var(--space-lg) var(--space-xl);
         
         > * {
             animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -121,7 +122,7 @@
         @extend .flex-between;
 
         width: 100%;
-        padding: 25px 25px 0px 25px;
+        padding: var(--space-xl) var(--space-xl) 0 var(--space-xl);
         animation: mmfadeDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 
         &-withoutHeading {
@@ -133,8 +134,8 @@
         align-self: flex-end;
         background: transparent;
         border: 0;
-        width: 40px;
-        height: 40px;
+        width: var(--space-xl);
+        height: var(--space-xl);
         color: var(--text-400);
         @include transition(all);
         border-radius: var(--border05);
@@ -181,22 +182,22 @@
     }
 
     &__content {
-        padding: 10px 25px 25px 25px;
+        padding: var(--space-sm) var(--space-xl) var(--space-xl) var(--space-xl);
         width: 100%;
         animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
         animation-delay: 0.1s;
 
         @include media(mobile) {
-            padding: 0px 20px 20px 20px;
+            padding: 0 var(--space-lg) var(--space-lg) var(--space-lg);
         }
 
         &-loading {
             @extend .d-flex;
 
             width: 100%;
-            margin-top: 2rem;
+            margin-top: var(--space-xl);
             flex-direction: column;
-            gap: 10px;
+            gap: var(--space-sm);
 
             &-box {
                 background-color: var(--background-900);
@@ -230,7 +231,7 @@
             }
 
             .modal__header {
-                padding-top: 15px;
+                padding-top: var(--space-md);
             }
 
             &.is-open .modal__container {
@@ -246,14 +247,14 @@
                 user-select: none;
                 display: flex;
                 justify-content: center;
-                padding-top: 15px;
-                padding-bottom: 10px;
+                padding-top: var(--space-md);
+                padding-bottom: var(--space-sm);
                 width: 100%;
 
                 span {
                     display: block;
-                    width: 40px;
-                    height: 4px;
+                    width: var(--space-xl);
+                    height: var(--space-2xs);
                     background: var(--background-800);
                     border-radius: 50px;
                     position: relative;

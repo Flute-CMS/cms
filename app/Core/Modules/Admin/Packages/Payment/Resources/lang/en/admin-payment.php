@@ -60,6 +60,7 @@ return [
         'disable' => 'Disable',
         'mark_as_paid' => 'Mark as Paid',
         'add_promo' => 'Add Promo Code',
+        'create_currency' => 'Create Currency',
     ],
     'fields' => [
         'name' => [
@@ -85,6 +86,21 @@ return [
         'image' => [
             'label' => 'Image',
             'placeholder' => 'Enter image URL',
+        ],
+        'description' => [
+            'label' => 'Description',
+            'placeholder' => 'E.g.: Visa, MasterCard, Maestro',
+            'help' => 'Short description displayed below the payment method name',
+        ],
+        'fee' => [
+            'label' => 'Fee (%)',
+            'placeholder' => '0',
+            'help' => 'Fee percentage charged by the payment gateway. Displayed to users as information',
+        ],
+        'bonus' => [
+            'label' => 'Bonus (%)',
+            'placeholder' => '0',
+            'help' => 'Bonus percentage added to the top-up when using this payment method',
         ],
         'enabled' => [
             'label' => 'Enabled',
@@ -188,6 +204,7 @@ return [
         'transaction_id_required' => 'Transaction ID is required.',
         'invoice_marked_paid' => 'Invoice marked as paid successfully.',
         'no_payment_drivers' => 'No payment drivers available.',
+        'no_currencies' => 'You need to create at least one currency before adding a payment gateway.',
         'promo_not_found' => 'Promo code not found.',
         'promo_updated' => 'Promo code updated successfully.',
         'promo_added' => 'Promo code added successfully.',

@@ -1,6 +1,6 @@
 .page-no-widgets {
     @extend .flex-center, .text-center;
-    padding: 1rem 0;
+    padding: var(--space-md) 0;
 
     .icon {
         color: var(--accent);
@@ -12,6 +12,6 @@
 
         text-align: center;
         font-size: var(--p-small);
-        margin-bottom: 2rem;
+        margin-bottom: var(--space-xl);
     }
 }

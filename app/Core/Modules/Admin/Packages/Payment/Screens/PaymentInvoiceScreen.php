@@ -86,12 +86,12 @@ class PaymentInvoiceScreen extends Screen
                 TD::make('created_at', __('admin-payment.table.created'))
                     ->sort()
                     ->defaultSort(true, 'desc')
-                    ->render(static fn (PaymentInvoice $invoice) => Carbon::parse($invoice->createdAt)->format('d.m.Y H:i:s'))
+                    ->render(static fn (PaymentInvoice $invoice) => Carbon::parse($invoice->createdAt)->setTimezone(config('app.timezone', 'UTC'))->format('d.m.Y H:i:s'))
                     ->width('200px'),
 
                 TD::make('paid_at', __('admin-payment.table.paid_at'))
                     ->sort()
-                    ->render(static fn (PaymentInvoice $invoice) => $invoice->paidAt ? Carbon::parse($invoice->paidAt)->format('d.m.Y H:i:s') : '-')
+                    ->render(static fn (PaymentInvoice $invoice) => $invoice->paidAt ? Carbon::parse($invoice->paidAt)->setTimezone(config('app.timezone', 'UTC'))->format('d.m.Y H:i:s') : '-')
                     ->width('200px'),
 
                 TD::make('actions', __('admin-payment.table.actions'))

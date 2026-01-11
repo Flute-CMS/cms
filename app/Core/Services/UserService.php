@@ -108,7 +108,7 @@ class UserService
                 return;
             }
 
-            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
+            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork', 'blocksReceived']);
 
             if (!$this->currentUser) {
                 $this->sessionExpired();
@@ -589,7 +589,7 @@ class UserService
                 }
             }
 
-            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork']);
+            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork', 'blocksReceived']);
 
             if (!$this->currentUser) {
                 $this->sessionExpired();

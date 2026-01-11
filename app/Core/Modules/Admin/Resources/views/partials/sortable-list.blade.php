@@ -1,3 +1,7 @@
+@php
+    $currentLevel = $currentLevel ?? 1;
+    $maxLevels = $maxLevels ?? 2;
+@endphp
 <ol class="list-group m-0 p-0" data-sortable data-sortable-group="nested" data-sortable-handle=".reorder-handle">
     @foreach ($items as $item)
         <li class="sortable-list-item list-group-item" data-id="{{ $item->id }}">
@@ -30,12 +34,14 @@
                 </div>
             </div>
 
-            @if (isset($item->children))
-                @if ($item->children)
+            @if ($currentLevel < $maxLevels)
+                @if (!empty($item->children))
                     @include('admin::partials.sortable-list', [
                         'items' => $item->children,
                         'columns' => $columns,
                         'showBlockHeaders' => $showBlockHeaders,
+                        'maxLevels' => $maxLevels,
+                        'currentLevel' => $currentLevel + 1,
                     ])
                 @else
                     <ol class="list-group m-0 p-0" data-sortable data-sortable-group="nested"

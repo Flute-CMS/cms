@@ -111,10 +111,10 @@
 		border-bottom: 1px solid var(--transp-1);
 		display: flex;
 		flex-wrap: wrap;
-		gap: 2px;
+		gap: var(--space-2xs);
 
 		&.fullscreen {
-			backdrop-filter: blur(10px);
+			backdrop-filter: blur(var(--blur-amount));
 			background-color: var(--blurred-background);
 		}
 
@@ -204,7 +204,7 @@
 
 		i.separator {
 			border-left: 1px solid var(--transp-2);
-			margin: 0 4px;
+			margin: 0 var(--space-2xs);
 			opacity: 0.5;
 		}
 
@@ -226,13 +226,13 @@
 	// Status bar
 	.editor-statusbar {
 		color: var(--text-600);
-		padding: 4px var(--space-sm);
+		padding: var(--space-2xs) var(--space-sm);
 		background-color: var(--transp-05);
 		border-top: 1px solid var(--transp-1);
 		font-size: 0.8em;
 		display: flex;
 		justify-content: flex-end;
-		backdrop-filter: blur(5px);
+		backdrop-filter: blur(var(--blur-amount));
 	}
 
 	.separator {
@@ -242,7 +242,7 @@
 	// Fullscreen mode
 	&.fullscreen {
 		z-index: 100;
-		backdrop-filter: blur(10px);
+		backdrop-filter: blur(var(--blur-amount));
 
 		.editor-toolbar {
 			padding: var(--space-sm) var(--space-md);
@@ -267,10 +267,10 @@
 .richtext-upload-info {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: var(--space-xs);
 	color: var(--text-500);
 	font-size: var(--small);
-	padding: 6px var(--space-sm);
+	padding: var(--space-xs) var(--space-sm);
 	background-color: var(--transp-05);
 	border-radius: 0 0 var(--border05) var(--border05);
 	border-left: 1px solid var(--transp-1);
@@ -285,17 +285,17 @@
 
 // Image upload styling
 .editor-upload-progress {
-	padding: 0.5rem 1rem;
+	padding: var(--space-xs) var(--space-md);
 	background-color: var(--info-light);
 	border-radius: var(--border05);
 	color: var(--info);
 	display: flex;
 	align-items: center;
-	margin-bottom: 0.5rem;
+	margin-bottom: var(--space-xs);
 
 	progress {
 		flex: 1;
-		margin: 0 1rem;
+		margin: 0 var(--space-md);
 		height: 6px;
 		border-radius: 3px;
 		border: none;

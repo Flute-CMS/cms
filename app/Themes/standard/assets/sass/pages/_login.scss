@@ -2,7 +2,7 @@
     &__skeleton {
         width: 100%;
         height: 60px;
-        margin-bottom: 1rem;
+        margin-bottom: var(--space-md);
 
         &:last-child {
             margin-bottom: 0;
@@ -12,7 +12,7 @@
     &-container {
         @extend .flex-column;
 
-        margin-top: 2em;
+        margin-top: var(--space-xl);
         justify-content: center;
         max-width: 500px;
         height: 100%;
@@ -33,7 +33,7 @@
     }
 
     &-header {
-        margin-bottom: .5em;
+        margin-bottom: var(--space-xs);
 
         p {
             color: var(--text-300);
@@ -45,7 +45,7 @@
             font-size: var(--p-small);
             color: var(--text-300);
             font-weight: 500;
-            margin-bottom: .5em;
+            margin-bottom: var(--space-xs);
         }
     }
 
@@ -53,20 +53,20 @@
         @extend .d-flex;
 
         flex-wrap: wrap;
-        padding: 1.25rem 0;
-        gap: 1rem;
+        padding: var(--space-lg) 0;
+        gap: var(--space-md);
 
         &.withFirst {}
 
         &-item {
             @extend .d-flex, .blur-bg;
 
-            gap: .5rem;
+            gap: var(--space-xs);
             flex-direction: row;
             align-items: center;
             justify-content: center;
             border-radius: 25px;
-            padding: .6em 1.2em;
+            padding: var(--space-xs) var(--space-lg);
             border: 1px solid var(--transp-2);
             font-size: var(--p-small);
             font-weight: 500;

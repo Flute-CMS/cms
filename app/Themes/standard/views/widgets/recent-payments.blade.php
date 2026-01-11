@@ -26,7 +26,7 @@
                                     <span>{{ $payment->user->name }}</span>
                                 </div>
                                 <div class="payment-date">
-                                    {{ $payment->paidAt->format('d.m.Y H:i') }}
+                                    {{ $payment->paidAt->setTimezone(new \DateTimeZone(config('app.timezone', 'UTC')))->format('d.m.Y H:i') }}
                                 </div>
                             </div>
                         </a>

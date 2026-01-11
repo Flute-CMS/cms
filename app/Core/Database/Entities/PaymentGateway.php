@@ -36,6 +36,15 @@ class PaymentGateway extends ActiveRecord
     #[Column(type: "string", nullable: true)]
     public ?string $image;
 
+    #[Column(type: "string", nullable: true)]
+    public ?string $description = null;
+
+    #[Column(type: "float", default: 0)]
+    public float $fee = 0;
+
+    #[Column(type: "float", default: 0)]
+    public float $bonus = 0;
+
     #[Column(type: "string", unique: true)]
     public string $adapter;
 

@@ -17,7 +17,7 @@
         @extend .flex-center;
         
         color: var(--accent);
-        font-size: 1.3rem;
+        font-size: var(--h4);
     }
     
     &-content {
@@ -30,20 +30,20 @@
         }
 
         &-item {
-            padding: 0.8rem 1.5rem;
+            padding: var(--space-sm) var(--space-lg);
             position: relative;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all var(--transition) cubic-bezier(0.16, 1, 0.3, 1);
             display: grid;
             grid-template-columns: 1fr auto;
             align-items: center;
-            gap: 1rem;
+            gap: var(--space-md);
             
             &:not(:last-child)::after {
                 content: '';
                 position: absolute;
                 bottom: 0;
-                left: 1.5rem;
-                right: 1.5rem;
+                left: var(--space-lg);
+                right: var(--space-lg);
                 height: 1px;
                 background-color: var(--transp-1);
                 opacity: 0.6;
@@ -57,7 +57,7 @@
         &-user-wrapper {
             display: grid;
             grid-template-columns: 40px 1fr;
-            gap: 1rem;
+            gap: var(--space-md);
             align-items: center;
             cursor: pointer;
             position: relative;
@@ -111,14 +111,14 @@
         &-date {
             font-size: var(--small);
             color: var(--text-500);
-            margin-top: 0.1rem;
+            margin-top: var(--space-2xs);
         }
         
         &-meta {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 0.25rem;
+            gap: var(--space-2xs);
         }
 
         &-amount {
@@ -127,7 +127,7 @@
             font-size: var(--p);
             display: flex;
             align-items: center;
-            gap: 0.1rem;
+            gap: var(--space-2xs);
             
             .currency {
                 font-size: var(--small);
@@ -139,9 +139,9 @@
         &-gateway {
             .badge {
                 font-size: var(--small);
-                padding: 0.15rem 0.5rem;
+                padding: var(--space-2xs) var(--space-xs);
                 background-color: var(--transp-1);
-                border-radius: 4px;
+                border-radius: var(--space-2xs);
                 color: var(--text-500);
             }
         }
@@ -149,12 +149,12 @@
 
     &-empty {
         @extend .flex-center, .flex-column;
-        padding: 3rem 0;
+        padding: var(--space-xl) 0;
         color: var(--text-400);
-        gap: 0.75rem;
+        gap: var(--space-sm);
 
         svg {
-            font-size: 1.75rem;
+            font-size: var(--h3);
             opacity: 0.6;
             color: var(--text-400);
         }

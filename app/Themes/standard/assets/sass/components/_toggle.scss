@@ -4,7 +4,7 @@
     cursor: pointer;
     user-select: none;
     position: relative;
-    font-size: 1rem;
+    font-size: var(--p);
 
     &-input {
         opacity: 0;
@@ -46,8 +46,8 @@
             position: absolute;
             width: 23px;
             height: 23px;
-            left: 5px;
-            bottom: 5px;
+            left: var(--space-xs);
+            bottom: var(--space-xs);
             background-color: var(--primary);
             border-radius: 50%;
             @include transition(all);

@@ -94,7 +94,7 @@ $sizes: (
     font-weight: 500;
     position: relative;
     line-height: 2.25;
-    gap: 5px;
+    gap: var(--space-xs);
 
     &::after {
         content: '';

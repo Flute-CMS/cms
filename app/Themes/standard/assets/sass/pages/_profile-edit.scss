@@ -13,8 +13,8 @@
             @extend .d-flex, .flex-row;
 
             flex-wrap: wrap;
-            margin-top: 40px;
-            gap: 1rem;
+            margin-top: var(--space-xl);
+            gap: var(--space-md);
 
             @include media(mobile) {
                 flex-direction: column;
@@ -27,19 +27,19 @@
             flex: 1;
             background-color: var(--transp-1);
             border-radius: var(--border1);
-            padding: 1.2rem 1.5rem;
+            padding: var(--space-md) var(--space-lg);
 
             &-body {
                 @extend .d-flex, .flex-column;
             }
 
             &-header {
-                padding-bottom: 20px;
+                padding-bottom: var(--space-lg);
                 border-bottom: 1px solid var(--transp-1);
 
                 h4 {
                     line-height: 1.5;
-                    margin-bottom: 3px;
+                    margin-bottom: var(--space-2xs);
                 }
 
                 p {
@@ -56,12 +56,12 @@
         @extend .d-flex, .flex-center, .flex-column;
 
         width: 100%;
-        padding-top: 40px;
+        padding-top: var(--space-xl);
 
         &-avatar {
             img {
                 object-fit: cover;
-                margin-bottom: 15px;
+                margin-bottom: var(--space-md);
                 width: 100px;
                 height: 100px;
                 border-radius: 50%;
@@ -96,7 +96,7 @@
     &__field {
         @extend .d-flex, .flex-row, .align-center;
 
-        padding: .7rem 0;
+        padding: var(--space-sm) 0;
 
         &:not(:last-of-type) {
             border-bottom: 1px solid var(--transp-1);
@@ -116,7 +116,7 @@
         &-value {
             @extend .d-flex, .flex-row, .align-center;
 
-            gap: 10px;
+            gap: var(--space-sm);
             flex: 1 0 70%;
 
             &.value-password {
@@ -155,8 +155,8 @@
         @extend .d-grid;
 
         grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        margin-top: 1rem;
-        gap: 1rem;
+        margin-top: var(--space-md);
+        gap: var(--space-md);
 
         @include media(mobile) {
             grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
@@ -168,8 +168,8 @@
 
         background-color: var(--transp-1);
         border-radius: var(--border1);
-        padding: 1.5rem;
-        padding-top: 1rem;
+        padding: var(--space-lg);
+        padding-top: var(--space-md);
         position: relative;
         @include transition(all);
         border: 1px solid transparent;
@@ -178,8 +178,8 @@
             @extend .d-flex;
 
             align-items: center;
-            gap: 12px;
-            margin-bottom: 5px;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xs);
 
             @include transition();
 
@@ -198,8 +198,8 @@
         &-arrow {
             font-size: var(--h4);
             position: absolute;
-            right: 15px;
-            top: 15px;
+            right: var(--space-md);
+            top: var(--space-md);
             transform: rotate(-45deg);
             color: var(--text-500);
             transition: transform var(--transition), color var(--transition);
@@ -245,8 +245,8 @@
     &__sidebar {
         @extend .d-flex, .flex-column, .blur-bg;
 
-        padding: 1rem;
-        padding-top: 2rem;
+        padding: var(--space-md);
+        padding-top: var(--space-xl);
         border-radius: var(--border1);
         border: 1px solid var(--transp-1);
         background-color: var(--blurred-background);
@@ -259,12 +259,12 @@
 
             width: 100%;
             border-bottom: 1px solid var(--transp-1);
-            margin-bottom: 10px;
-            padding-bottom: 20px;
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-lg);
 
             img {
                 object-fit: cover;
-                margin-bottom: 7px;
+                margin-bottom: var(--space-xs);
                 width: 80px;
                 height: 80px;
                 border-radius: 50%;
@@ -300,7 +300,7 @@
             ul {
                 @extend .d-flex, .flex-column;
 
-                gap: 5px;
+                gap: var(--space-xs);
                 flex: 1;
                 width: 100%;
 
@@ -314,10 +314,10 @@
             @extend .d-flex;
 
             cursor: pointer;
-            gap: 10px;
+            gap: var(--space-sm);
             align-items: center;
             font-size: var(--p-small);
-            padding: 6px 16px;
+            padding: var(--space-xs) var(--space-md);
             border-radius: var(--border05);
             @include transition(all);
             color: var(--text-300);
@@ -341,8 +341,8 @@
 
         &-footer {
             border-top: 1px solid var(--transp-1);
-            padding-top: 15px;
-            margin-top: 15px;
+            padding-top: var(--space-md);
+            margin-top: var(--space-md);
             width: 100%;
         }
     }
@@ -351,7 +351,7 @@
     // Edit card
     &__card {
         &-header {
-            margin-bottom: 15px;
+            margin-bottom: var(--space-md);
 
             h3 {
                 line-height: 1.2;
@@ -360,7 +360,7 @@
             p {
                 color: var(--text-500);
                 line-height: 1.5;
-                margin-top: 10px;
+                margin-top: var(--space-sm);
             }
         }
 
@@ -378,7 +378,7 @@
         &-item {
             @extend .flex-row, .flex-between;
 
-            padding: 1rem 1.5rem;
+            padding: var(--space-md) var(--space-lg);
 
             &:not(:last-of-type) {
                 border-bottom: 1px solid var(--transp-1);
@@ -387,7 +387,7 @@
             &-info {
                 @extend .flex-row, .flex-between;
 
-                gap: 1.25rem;
+                gap: var(--space-lg);
 
                 svg {
                     font-size: var(--h3);

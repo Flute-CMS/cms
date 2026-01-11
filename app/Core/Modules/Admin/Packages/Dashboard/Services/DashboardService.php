@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Dashboard\Services;
 
 use Carbon\Carbon;
 use DateTimeImmutable;
+use DateTimeZone;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Layouts\Chart;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -81,10 +82,17 @@ class DashboardService
 
     protected function doCalculateUserMetrics(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $today = $now->setTime(0, 0);
         $yesterday = $today->modify('-1 day');
         $lastWeek = $today->modify('-7 days');
+
+        $todayDb = $today->setTimezone($dbTz);
+        $yesterdayDb = $yesterday->setTimezone($dbTz);
+        $lastWeekDb = $lastWeek->setTimezone($dbTz);
 
         // Total users
         $totalUsers = User::query()->where('isTemporary', false)->count();
@@ -92,46 +100,47 @@ class DashboardService
         // Total users yesterday (users created up to end of yesterday)
         $totalUsersYesterday = User::query()
             ->where('isTemporary', false)
-            ->where('createdAt', '<=', $yesterday)
+            ->where('createdAt', '<=', $yesterdayDb)
             ->count();
 
         // New users today
         $newUsersToday = User::query()
             ->where('isTemporary', false)
-            ->where('createdAt', '>', $today)
+            ->where('createdAt', '>', $todayDb)
             ->count();
 
         // New users yesterday
         $newUsersYesterday = User::query()
             ->where('isTemporary', false)
-            ->where('createdAt', '>', $yesterday)
-            ->where('createdAt', '<=', $today)
+            ->where('createdAt', '>', $yesterdayDb)
+            ->where('createdAt', '<=', $todayDb)
             ->count();
 
         // Active users today (logged since start of today)
         $activeUsers = User::query()
             ->where('isTemporary', false)
-            ->where('last_logged', '>', $today)
+            ->where('last_logged', '>', $todayDb)
             ->count();
 
         // Active users yesterday
         $activeUsersYesterday = User::query()
             ->where('isTemporary', false)
-            ->where('last_logged', '>', $yesterday)
-            ->where('last_logged', '<=', $today)
+            ->where('last_logged', '>', $yesterdayDb)
+            ->where('last_logged', '<=', $todayDb)
             ->count();
 
         // Online users now: last_logged within 10 minutes
-        $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+        $onlineThreshold = new DateTimeImmutable('-10 minutes', $appTz);
+        $onlineThresholdDb = $onlineThreshold->setTimezone($dbTz);
         $onlineUsers = User::query()
             ->where('isTemporary', false)
-            ->where('last_logged', '>=', $onlineThreshold)
+            ->where('last_logged', '>=', $onlineThresholdDb)
             ->count();
 
         // Online last week reference (logged since last week)
         $onlineUsersLastWeek = User::query()
             ->where('isTemporary', false)
-            ->where('last_logged', '>=', $lastWeek)
+            ->where('last_logged', '>=', $lastWeekDb)
             ->count();
 
         $totalUsersDiff = $totalUsersYesterday > 0
@@ -175,8 +184,12 @@ class DashboardService
      */
     protected function calculateNotificationMetrics(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $today = $now->setTime(0, 0);
+        $todayDb = $today->setTimezone($dbTz);
 
         // Total unread notifications
         $unreadNotifications = Notification::query()
@@ -185,14 +198,15 @@ class DashboardService
 
         // Actions today: notifications created today
         $actionsToday = Notification::query()
-            ->where('createdAt', '>', $today)
+            ->where('createdAt', '>', $todayDb)
             ->count();
 
         // Active sessions ~ users online now (10 min)
-        $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
+        $onlineThreshold = new DateTimeImmutable('-10 minutes', $appTz);
+        $onlineThresholdDb = $onlineThreshold->setTimezone($dbTz);
         $activeSessions = User::query()
             ->where('isTemporary', false)
-            ->where('last_logged', '>=', $onlineThreshold)
+            ->where('last_logged', '>=', $onlineThresholdDb)
             ->count();
 
         return [
@@ -212,7 +226,10 @@ class DashboardService
 
     protected function doCalculateUserRegistrationData(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $startDate = $now->modify('-8 months');
 
         $monthlyRegistrations = array_fill(0, 9, 0);
@@ -225,10 +242,13 @@ class DashboardService
             $carbonDate = Carbon::parse($monthStart);
             $labels[] = $carbonDate->translatedFormat('M');
 
+            $monthStartDb = $monthStart->setTimezone($dbTz);
+            $monthEndDb = $monthEnd->setTimezone($dbTz);
+
             $monthlyRegistrations[$i] = User::query()
                 ->where('isTemporary', false)
-                ->where('createdAt', '>=', $monthStart)
-                ->where('createdAt', '<', $monthEnd)
+                ->where('createdAt', '>=', $monthStartDb)
+                ->where('createdAt', '<', $monthEndDb)
                 ->count();
         }
 
@@ -244,53 +264,60 @@ class DashboardService
     }
 
     /**
-     * Calculate user activity chart data
+     * Calculate user engagement chart data
      */
-    protected function calculateUserActivityData(): array
+    protected function calculateUserEngagementData(): array
     {
-        return cache()->callback('admin_dashboard_user_activity', fn () => $this->doCalculateUserActivityData(), 120);
+        return cache()->callback(
+            'admin_dashboard_user_engagement',
+            fn () => $this->doCalculateUserEngagementData(),
+            120
+        );
     }
 
-    protected function doCalculateUserActivityData(): array
+    protected function doCalculateUserEngagementData(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $startDate = $now->modify('-6 days')->setTime(0, 0);
 
-        $dailyActive = array_fill(0, 7, 0);
-        $dailyOnline = array_fill(0, 7, 0);
+        $dailyNewUsers = array_fill(0, 7, 0);
+        $dailyActiveUsers = array_fill(0, 7, 0);
         $labels = [];
 
         for ($i = 0; $i < 7; $i++) {
             $dayStart = $startDate->modify('+' . $i . ' day');
             $dayEnd = $startDate->modify('+' . ($i + 1) . ' day');
 
-            $carbonDate = Carbon::parse($dayStart);
-            $labels[] = $carbonDate->translatedFormat('D');
+            $labels[] = Carbon::parse($dayStart)->translatedFormat('D');
 
-            $dailyActive[$i] = User::query()
+            $dayStartDb = $dayStart->setTimezone($dbTz);
+            $dayEndDb = $dayEnd->setTimezone($dbTz);
+
+            $dailyNewUsers[$i] = User::query()
                 ->where('isTemporary', false)
-                ->where('last_logged', '>=', $dayStart)
-                ->where('last_logged', '<', $dayEnd)
+                ->where('createdAt', '>=', $dayStartDb)
+                ->where('createdAt', '<', $dayEndDb)
                 ->count();
 
-            if ($i === 6) {
-                $onlineThreshold = (new DateTimeImmutable('-10 minutes'));
-                $dailyOnline[$i] = User::query()
-                    ->where('isTemporary', false)
-                    ->where('last_logged', '>=', $onlineThreshold)
-                    ->count();
-            }
+            $dailyActiveUsers[$i] = User::query()
+                ->where('isTemporary', false)
+                ->where('last_logged', '>=', $dayStartDb)
+                ->where('last_logged', '<', $dayEndDb)
+                ->count();
         }
 
         return [
             'series' => [
                 [
-                    'name' => "Active Users",
-                    'data' => $dailyActive,
+                    'name' => __('admin-dashboard.charts.new_users'),
+                    'data' => $dailyNewUsers,
                 ],
                 [
-                    'name' => "Online Users",
-                    'data' => $dailyOnline,
+                    'name' => __('admin-dashboard.charts.active_users'),
+                    'data' => $dailyActiveUsers,
                 ],
             ],
             'labels' => $labels,
@@ -307,10 +334,17 @@ class DashboardService
 
     protected function doCalculatePaymentMetrics(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $today = $now->setTime(0, 0);
         $yesterday = $today->modify('-1 day');
         $lastMonth = $today->modify('-30 days');
+
+        $todayDb = $today->setTimezone($dbTz);
+        $yesterdayDb = $yesterday->setTimezone($dbTz);
+        $lastMonthDb = $lastMonth->setTimezone($dbTz);
 
         // Successful payments count (lifetime)
         $successfulPayments = PaymentInvoice::query()
@@ -320,21 +354,21 @@ class DashboardService
         // Yesterday payments count
         $yesterdayPayments = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $yesterday)
-            ->where('paidAt', '<=', $today)
+            ->where('paidAt', '>', $yesterdayDb)
+            ->where('paidAt', '<=', $todayDb)
             ->count();
 
         // Promo usage today
         $promoUsage = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $today)
+            ->where('paidAt', '>', $todayDb)
             ->where('promoCode_id', 'is not', null)
             ->count();
 
         // Promo usage last month
         $lastMonthPromoUsage = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $lastMonth)
+            ->where('paidAt', '>', $lastMonthDb)
             ->where('promoCode_id', 'is not', null)
             ->count();
 
@@ -348,7 +382,7 @@ class DashboardService
         // Today revenue
         $todayRevenueQuery = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $today)
+            ->where('paidAt', '>', $todayDb)
             ->buildQuery();
         $todayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
         $todayRevenue = $todayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
@@ -356,8 +390,8 @@ class DashboardService
         // Yesterday revenue
         $yesterdayRevenueQuery = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $yesterday)
-            ->where('paidAt', '<=', $today)
+            ->where('paidAt', '>', $yesterdayDb)
+            ->where('paidAt', '<=', $todayDb)
             ->buildQuery();
         $yesterdayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
         $yesterdayRevenue = $yesterdayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
@@ -365,7 +399,7 @@ class DashboardService
         // Last month revenue
         $lastMonthRevenueQuery = PaymentInvoice::query()
             ->where('isPaid', true)
-            ->where('paidAt', '>', $lastMonth)
+            ->where('paidAt', '>', $lastMonthDb)
             ->buildQuery();
         $lastMonthRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
         $lastMonthRevenue = $lastMonthRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
@@ -417,7 +451,10 @@ class DashboardService
 
     protected function doCalculatePaymentChartData(): array
     {
-        $now = new DateTimeImmutable();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
         $startDate = $now->modify('-6 days')->setTime(0, 0);
 
         $dailyRevenue = array_fill(0, 7, 0);
@@ -435,18 +472,21 @@ class DashboardService
 
         // Query per day using ORM aggregates (keeps memory stable)
         foreach ($days as $idx => [$dayStart, $dayEnd]) {
+            $dayStartDb = $dayStart->setTimezone($dbTz);
+            $dayEndDb = $dayEnd->setTimezone($dbTz);
+
             $revenueQuery = PaymentInvoice::query()
                 ->where('isPaid', true)
-                ->where('paidAt', '>=', $dayStart)
-                ->where('paidAt', '<', $dayEnd)
+                ->where('paidAt', '>=', $dayStartDb)
+                ->where('paidAt', '<', $dayEndDb)
                 ->buildQuery();
             $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
             $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
 
             $cnt = PaymentInvoice::query()
                 ->where('isPaid', true)
-                ->where('paidAt', '>=', $dayStart)
-                ->where('paidAt', '<', $dayEnd)
+                ->where('paidAt', '>=', $dayStartDb)
+                ->where('paidAt', '<', $dayEndDb)
                 ->count();
 
             $dailyRevenue[$idx] = (float) $sum;
@@ -508,7 +548,7 @@ class DashboardService
     {
         $userMetrics = $this->calculateUserMetrics();
         $userRegistrationData = $this->calculateUserRegistrationData();
-        $userActivityData = $this->calculateUserActivityData();
+        $userEngagementData = $this->calculateUserEngagementData();
 
         $metrics = LayoutFactory::metrics([
             'admin-dashboard.metrics.total_users' => 'vars.total_users',
@@ -535,13 +575,13 @@ class DashboardService
                             ->description(__('admin-dashboard.descriptions.user_registrations'))
                             ->dataset($userRegistrationData['series'])
                             ->labels($userRegistrationData['labels']),
-                        Chart::make('user_activity', __('admin-dashboard.charts.user_activity'))
+                        Chart::make('user_engagement', __('admin-dashboard.charts.user_engagement'))
                             ->type('area')
                             ->height(340)
-                            ->colors(['#10b981', '#f59e0b'])
-                            ->description(__('admin-dashboard.descriptions.user_activity'))
-                            ->dataset($userActivityData['series'])
-                            ->labels($userActivityData['labels']),
+                            ->colors(['#3b82f6', '#10b981'])
+                            ->description(__('admin-dashboard.descriptions.user_engagement'))
+                            ->dataset($userEngagementData['series'])
+                            ->labels($userEngagementData['labels']),
                     ]),
                 ]),
             'vars' => $userMetrics,
