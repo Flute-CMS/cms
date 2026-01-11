@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\User\Screens;
 
+use DateTimeZone;
 use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
@@ -925,7 +926,7 @@ class UserEditScreen extends Screen
                             return '-';
                         }
 
-                        $tz = new \DateTimeZone(config('app.timezone', 'UTC'));
+                        $tz = new DateTimeZone(config('app.timezone', 'UTC'));
 
                         return $invoice->paidAt->setTimezone($tz)->format('d.m.Y H:i');
                     })

@@ -92,34 +92,6 @@ class Vkontakte extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function initialize()
-    {
-        parent::initialize();
-
-        $this->apiVersion = $this->config->get('version') ?: '5.131';
-        $this->fields = $this->config->get('fields') ?: 'photo_max,screen_name';
-
-        $this->AuthorizeUrlParameters += [
-            'display' => $this->config->get('display') ?: 'page',
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function validateAccessTokenExchange($response)
-    {
-        $collection = parent::validateAccessTokenExchange($response);
-
-        $this->userId = $collection->get('user_id');
-        $this->userEmail = $collection->get('email');
-
-        return $collection;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getUserProfile()
     {
         $parameters = [
@@ -173,5 +145,33 @@ class Vkontakte extends OAuth2
         }
 
         return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->apiVersion = $this->config->get('version') ?: '5.131';
+        $this->fields = $this->config->get('fields') ?: 'photo_max,screen_name';
+
+        $this->AuthorizeUrlParameters += [
+            'display' => $this->config->get('display') ?: 'page',
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function validateAccessTokenExchange($response)
+    {
+        $collection = parent::validateAccessTokenExchange($response);
+
+        $this->userId = $collection->get('user_id');
+        $this->userEmail = $collection->get('email');
+
+        return $collection;
     }
 }

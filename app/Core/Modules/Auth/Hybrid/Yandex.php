@@ -63,18 +63,6 @@ class Yandex extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function initialize()
-    {
-        parent::initialize();
-
-        $this->tokenExchangeHeaders = [
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getUserProfile()
     {
         $response = $this->apiRequest('info', 'GET', ['format' => 'json']);
@@ -126,5 +114,17 @@ class Yandex extends OAuth2
         }
 
         return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function initialize()
+    {
+        parent::initialize();
+
+        $this->tokenExchangeHeaders = [
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ];
     }
 }
