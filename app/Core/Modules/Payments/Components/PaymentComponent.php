@@ -97,8 +97,20 @@ class PaymentComponent extends FluteComponent
         }
     }
 
+    public function setPresetAmount(float $amount): void
+    {
+        $this->amount = $amount;
+        $this->validatePromo();
+    }
+
     public function validatePromo()
     {
+        if (is_string($this->amount)) {
+            $normalized = str_replace([' ', "\u{00A0}"], '', $this->amount);
+            $normalized = str_replace(',', '.', $normalized);
+            $this->amount = $normalized;
+        }
+
         if (empty($this->amount)) {
             $this->amountToPay = null;
             $this->amountToReceive = null;
@@ -269,6 +281,12 @@ class PaymentComponent extends FluteComponent
 
     protected function validateInput()
     {
+        if (is_string($this->amount)) {
+            $normalized = str_replace([' ', "\u{00A0}"], '', $this->amount);
+            $normalized = str_replace(',', '.', $normalized);
+            $this->amount = $normalized;
+        }
+
         return validator()->validate([
             'gateway' => $this->gateway,
             'currency' => $this->currency,

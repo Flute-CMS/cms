@@ -1,15 +1,37 @@
+@php
+    $hasFilters = isset($filters) && !empty($filters);
+    $hasActions = isset($headerActions) && !empty($headerActions);
+    $searchOnly = ($showSearch ?? true) && !$hasFilters && !$hasActions;
+@endphp
 <div>
     @if ($showSearch ?? true)
-        <header class="table__header">
-            <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms" yoyo
-                yoyo:get="searchChanged('{{ $search ?? '' }}')">
-                <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}" :value="$search ?? ''">
-                    <x-slot name="prefix">
-                        <x-icon path="ph.regular.magnifying-glass" />
-                    </x-slot>
-                </x-fields.input>
-            </x-forms.field>
-        </header>
+        @if ($searchOnly)
+            <div class="table__header">
+                <div class="table__search-standalone">
+                    <x-forms.field class="table__search w-full" style="min-width: 100%" hx-trigger="input changed delay:500ms"
+                        yoyo yoyo:get="searchChanged('{{ $search ?? '' }}')">
+                        <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}"
+                            :value="$search ?? ''">
+                            <x-slot name="prefix">
+                                <x-icon path="ph.regular.magnifying-glass" />
+                            </x-slot>
+                        </x-fields.input>
+                    </x-forms.field>
+                </div>
+            </div>
+        @else
+            <header class="table__header">
+                <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms"
+                    yoyo yoyo:get="searchChanged('{{ $search ?? '' }}')">
+                    <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}"
+                        :value="$search ?? ''">
+                        <x-slot name="prefix">
+                            <x-icon path="ph.regular.magnifying-glass" />
+                        </x-slot>
+                    </x-fields.input>
+                </x-forms.field>
+            </header>
+        @endif
     @endif
 
     <div class="table-responsive">

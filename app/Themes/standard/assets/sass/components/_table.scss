@@ -192,6 +192,22 @@ tr {
 	&__search {
 		max-width: 400px;
 	}
+
+	&__search-standalone {
+		position: relative;
+
+		.table__search-icon {
+			position: absolute;
+			left: 16px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 18px;
+			height: 18px;
+			color: var(--text-600);
+			pointer-events: none;
+			transition: color 0.2s ease;
+		}
+	}
 }
 
 .table-compact > :not(caption) > * > * {
