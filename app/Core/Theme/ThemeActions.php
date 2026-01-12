@@ -48,7 +48,9 @@ class ThemeActions
             $existingColors = [];
         }
 
-        $updatedColors = array_merge($existingColors, [$theme => $newColors]);
+        $existingThemeColors = $existingColors[$theme] ?? [];
+        $updatedColors = $existingColors;
+        $updatedColors[$theme] = array_merge($existingThemeColors, $newColors);
 
         $jsonData = json_encode($updatedColors, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 

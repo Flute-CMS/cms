@@ -326,6 +326,75 @@ class FluteApp {
 				}
 			} catch (_) {}
 		});
+
+		let focusedInput = null;
+		let cursorPosition = null;
+		let inputValue = null;
+		let restorePending = false;
+
+		const captureFocusedInput = () => {
+			const activeEl = document.activeElement;
+			if (!activeEl) return;
+			if (activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA') return;
+
+			focusedInput = {
+				id: activeEl.id,
+				name: activeEl.name,
+				type: activeEl.type
+			};
+			inputValue = activeEl.value;
+			restorePending = true;
+
+			try {
+				cursorPosition = typeof activeEl.selectionStart === 'number' ? activeEl.selectionStart : null;
+			} catch (_) {
+				cursorPosition = null;
+			}
+		};
+
+		const restoreFocusedInput = () => {
+			if (!restorePending || !focusedInput) return;
+
+			let newInput = null;
+			if (focusedInput.id) {
+				newInput = document.getElementById(focusedInput.id);
+			}
+			if (!newInput && focusedInput.name) {
+				newInput = document.querySelector(`input[name="${focusedInput.name}"], textarea[name="${focusedInput.name}"]`);
+			}
+			if (!newInput) return;
+
+			try {
+				newInput.focus({ preventScroll: true });
+			} catch (_) {
+				try { newInput.focus(); } catch (_) {}
+			}
+
+			const pos = cursorPosition === null ? null : Math.min(cursorPosition, (newInput.value || '').length);
+			if (pos !== null && typeof newInput.setSelectionRange === 'function') {
+				try {
+					newInput.setSelectionRange(pos, pos);
+				} catch (_) {
+					// ignore
+				}
+			}
+
+			// Reset
+			focusedInput = null;
+			cursorPosition = null;
+			inputValue = null;
+			restorePending = false;
+		};
+
+		// Capture earlier than swap (when input is surely focused)
+		htmx.on("htmx:beforeRequest", () => captureFocusedInput());
+		// Also capture right before swap as a fallback
+		htmx.on("htmx:beforeSwap", () => captureFocusedInput());
+
+		// Try to restore ASAP after DOM replacement
+		htmx.on("htmx:afterSwap", () => restoreFocusedInput());
+		// And once more after settle (morph animations etc)
+		htmx.on("htmx:afterSettle", () => restoreFocusedInput());
 	}
 
 	// NProgress handling during HTMX requests
@@ -1701,6 +1770,50 @@ class ConfirmationManager {
 							const responseEl = temp.firstElementChild;
 
 							if (responseEl) {
+								const activeElement =
+									document.activeElement;
+								const shouldRestoreFocus =
+									activeElement &&
+									yoyoComponent.contains(activeElement);
+								let restoreState = null;
+
+								if (
+									shouldRestoreFocus &&
+									(activeElement.tagName === "INPUT" ||
+										activeElement.tagName === "TEXTAREA")
+								) {
+									const inputType =
+										(activeElement.getAttribute("type") ||
+											"")
+											.toLowerCase();
+									const isTextLike =
+										![
+											"checkbox",
+											"radio",
+											"hidden",
+											"submit",
+											"button",
+											"reset",
+											"file",
+										].includes(inputType);
+
+									if (isTextLike) {
+										restoreState = {
+											id: activeElement.getAttribute(
+												"id"
+											),
+											name: activeElement.getAttribute(
+												"name"
+											),
+											value: activeElement.value,
+											selectionStart:
+												activeElement.selectionStart,
+											selectionEnd:
+												activeElement.selectionEnd,
+										};
+									}
+								}
+
 								yoyoComponent.outerHTML = responseEl.outerHTML;
 								htmx.process(
 									document.querySelector(targetSelector)
@@ -1736,6 +1849,7 @@ class NavbarMorphDropdown {
 		this.contents = [];
 		this.activeId = null;
 		this.closeTimeout = null;
+		this.contentShowTimeout = null;
 		this.isOpen = false;
 		
 		this.init();
@@ -1827,6 +1941,12 @@ class NavbarMorphDropdown {
 		const wasOpen = this.isOpen;
 		const prevId = this.activeId;
 		
+		// Cancel any pending content show timeout
+		if (this.contentShowTimeout) {
+			clearTimeout(this.contentShowTimeout);
+			this.contentShowTimeout = null;
+		}
+		
 		// Update active trigger styles
 		this.triggers.forEach(t => t.classList.remove('is-active'));
 		trigger.classList.add('is-active');
@@ -1857,8 +1977,9 @@ class NavbarMorphDropdown {
 		
 		// Small delay for morph effect when switching
 		if (wasOpen && prevId !== id) {
-			setTimeout(() => {
+			this.contentShowTimeout = setTimeout(() => {
 				content.classList.add('is-active');
+				this.contentShowTimeout = null;
 			}, 50);
 		} else {
 			content.classList.add('is-active');
@@ -1871,6 +1992,12 @@ class NavbarMorphDropdown {
 	}
 	
 	close() {
+		// Cancel pending content show timeout
+		if (this.contentShowTimeout) {
+			clearTimeout(this.contentShowTimeout);
+			this.contentShowTimeout = null;
+		}
+		
 		this.dropdown.classList.remove('is-open');
 		this.triggers.forEach(t => t.classList.remove('is-active'));
 		this.isOpen = false;
@@ -1884,41 +2011,66 @@ class NavbarMorphDropdown {
 	}
 	
 	measureContent(content) {
-		const allContents = this.contents;
-		allContents.forEach(c => {
-			c.style.position = 'relative';
-			c.style.opacity = '0';
-			c.style.visibility = 'hidden';
-			c.style.display = 'block';
-			c.style.pointerEvents = 'none';
+		// Measure via offscreen clone to get intrinsic size (the real content width),
+		// otherwise .navbar-dropdown__content has width:100% and always equals box width.
+		const clone = content.cloneNode(true);
+		clone.classList.add('is-active');
+		clone.style.position = 'absolute';
+		clone.style.left = '-99999px';
+		clone.style.top = '0';
+		clone.style.width = 'auto';
+		clone.style.height = 'auto';
+		clone.style.opacity = '0';
+		clone.style.visibility = 'hidden';
+		clone.style.pointerEvents = 'none';
+		clone.style.transform = 'none';
+		clone.style.display = 'block';
+
+		document.body.appendChild(clone);
+
+		const rect = clone.getBoundingClientRect();
+		const width = Math.ceil(rect.width);
+		const height = Math.ceil(rect.height);
+
+		clone.remove();
+
+		// Guardrails (avoid too tiny/too huge)
+		return {
+			width: Math.max(240, Math.min(width, 820)),
+			height: Math.max(80, Math.min(height, 720)),
+		};
+	}
+}
+
+// Sidebar dropdown manager
+class SidebarManager {
+	constructor() {
+		this.sidebar = document.getElementById('sidebar-nav');
+		if (!this.sidebar) return;
+		
+		this.init();
+	}
+	
+	init() {
+		// Sidebar dropdown toggles
+		this.sidebar.querySelectorAll('[data-sidebar-dropdown]').forEach(trigger => {
+			trigger.addEventListener('click', (e) => {
+				e.preventDefault();
+				const item = trigger.closest('.sidebar__item--has-children');
+				item?.classList.toggle('is-open');
+			});
 		});
-		
-		const grid = content.querySelector('.navbar-dropdown__grid');
-		const hasTwoCols = grid && grid.classList.contains('cols-2');
-		const baseWidth = hasTwoCols ? 520 : 280;
-		
-		const rect = content.getBoundingClientRect();
-		const width = Math.max(baseWidth, rect.width);
-		const height = rect.height;
-		
-		allContents.forEach(c => {
-			c.style.position = '';
-			c.style.opacity = '';
-			c.style.visibility = '';
-			c.style.display = '';
-			c.style.pointerEvents = '';
-		});
-		
-		return { width, height };
 	}
 }
 
 let app;
 let notyf;
 let navbarMorphDropdown;
+let sidebarManager;
 
 $(document).ready(function () {
 	app = new FluteApp();
 	notyf = app.notyf;
 	navbarMorphDropdown = new NavbarMorphDropdown();
+	sidebarManager = new SidebarManager();
 });

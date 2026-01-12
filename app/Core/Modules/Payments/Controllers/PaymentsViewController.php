@@ -12,8 +12,11 @@ class PaymentsViewController extends BaseController
 {
     public function index(FluteRequest $fluteRequest)
     {
-        return view('flute::pages.lk.index')
-            ->fragmentIf($fluteRequest->isOnlyHtmx() && config('lk.only_modal'), 'lk-card');
+        $isModal = $fluteRequest->isOnlyHtmx() && config('lk.only_modal');
+
+        return view('flute::pages.lk.index', [
+            'isModal' => $isModal,
+        ])->fragmentIf($isModal, 'lk-card');
     }
 
     public function processPayment($transaction)

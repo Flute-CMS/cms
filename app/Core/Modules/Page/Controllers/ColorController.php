@@ -152,7 +152,6 @@ class ColorController extends BaseController
         }
 
         try {
-            // Convert settings to CSS custom properties format
             $customizeSettings = [
                 '--nav-type' => $settings['nav_type'] ?? 'horizontal',
                 '--nav-position' => $settings['nav_position'] ?? 'top',
@@ -160,10 +159,8 @@ class ColorController extends BaseController
                 '--footer-type' => $settings['footer_type'] ?? 'default',
                 '--footer-columns' => (string) ($settings['footer_columns'] ?? 3),
                 '--footer-socials' => ($settings['footer_socials'] ?? true) ? 'true' : 'false',
-                '--font-family' => "'" . ($settings['font_family'] ?? 'Manrope') . "', sans-serif",
-                '--heading-font' => ($settings['heading_font'] ?? 'inherit') === 'inherit'
-                    ? 'inherit'
-                    : "'" . $settings['heading_font'] . "', sans-serif",
+                '--font' => $settings['font_family'] ?? 'Manrope',
+                '--font-header' => $settings['heading_font'] ?? 'inherit',
                 '--base-font-size' => ($settings['font_size'] ?? 16) . 'px',
                 '--line-height' => (string) ($settings['line_height'] ?? 1.5),
                 '--heading-weight' => (string) ($settings['heading_weight'] ?? 600),
@@ -174,7 +171,7 @@ class ColorController extends BaseController
                 '--shadow-intensity' => (string) (($settings['shadow_intensity'] ?? 30) / 100),
                 '--blur-amount' => ($settings['blur_amount'] ?? 10) . 'px',
                 '--animations' => ($settings['animations'] ?? true) ? 'true' : 'false',
-                '--transition-speed' => $settings['transition_speed'] ?? '0.2s',
+                '--transition' => $settings['transition_speed'] ?? '0.2s',
                 '--hover-scale' => ($settings['hover_scale'] ?? true) ? 'true' : 'false',
                 '--max-content-width' => ($settings['max_width'] ?? 1200) . 'px',
                 '--sidebar-width' => ($settings['sidebar_width'] ?? 260) . 'px',
@@ -220,37 +217,40 @@ class ColorController extends BaseController
             $settings = Json::decode($settings, true);
         }
 
-        // Validate colors
         $colorRules = [
             '--accent' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--primary' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--secondary' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--background' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--text' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            '--border1' => 'sometimes|numeric|min:0.25|max:4',
+            '--border1' => 'sometimes|numeric|min:0|max:4',
+            '--border05' => 'sometimes|numeric|min:0|max:2',
             '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
             '--bg-grad1' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--bg-grad2' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--bg-grad3' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--container-width' => 'sometimes|string|in:container,fullwidth',
+            '--nav-type' => 'sometimes|string|in:horizontal,sidebar',
+            '--footer-type' => 'sometimes|string|in:default,minimal,expanded,hidden',
+            '--footer-socials' => 'sometimes|string|in:true,false',
         ];
 
-        // Validate settings
+        // Validate settings (fonts, spacing, effects)
         $settingsRules = [
-            'font' => 'sometimes|string',
-            'font_header' => 'sometimes|string',
-            'font_scale' => 'sometimes|string',
-            'space_xs' => 'sometimes|string',
-            'space_sm' => 'sometimes|string',
-            'space_md' => 'sometimes|string',
-            'space_lg' => 'sometimes|string',
-            'space_xl' => 'sometimes|string',
-            'transition' => 'sometimes|string',
-            'blur_amount' => 'sometimes|string',
-            'max_content_width' => 'sometimes|string',
-            'shadow_small' => 'sometimes|string',
-            'shadow_medium' => 'sometimes|string',
-            'shadow_large' => 'sometimes|string',
+            'font' => 'sometimes|string|max-str-len:100',
+            'font_header' => 'sometimes|string|max-str-len:100',
+            'font_scale' => 'sometimes|numeric|min:1|max:1.5',
+            'space_xs' => 'sometimes|string|max:20',
+            'space_sm' => 'sometimes|string|max:20',
+            'space_md' => 'sometimes|string|max:20',
+            'space_lg' => 'sometimes|string|max:20',
+            'space_xl' => 'sometimes|string|max:20',
+            'transition' => 'sometimes|string|max:20',
+            'blur_amount' => 'sometimes|string|max:20',
+            'max_content_width' => 'sometimes|string|max:20',
+            'shadow_small' => 'sometimes|string|max:200',
+            'shadow_medium' => 'sometimes|string|max:200',
+            'shadow_large' => 'sometimes|string|max:200',
         ];
 
         $allRules = array_merge($colorRules, $settingsRules, ['theme' => 'required|string|in:dark,light']);
@@ -270,19 +270,21 @@ class ColorController extends BaseController
         try {
             $themeSettings = [];
 
-            // Process colors
             foreach ($colors as $key => $value) {
-                if (str_starts_with($key, '--')) {
-                    if ($key === '--border1' && is_numeric($value)) {
-                        $themeSettings[$key] = $value . 'rem';
-                        $themeSettings['--border05'] = (floatval($value) / 2) . 'rem';
-                    } else {
-                        $themeSettings[$key] = $value;
-                    }
+                if (!str_starts_with($key, '--')) {
+                    continue;
+                }
+
+                if ($key === '--border1' && is_numeric($value)) {
+                    $themeSettings[$key] = $value . 'rem';
+                    $themeSettings['--border05'] = (floatval($value) / 2) . 'rem';
+                } elseif ($key === '--border05') {
+                    continue;
+                } else {
+                    $themeSettings[$key] = $value;
                 }
             }
 
-            // Process settings (convert to CSS variables)
             $settingsMap = [
                 'font' => '--font',
                 'font_header' => '--font-header',
@@ -303,13 +305,8 @@ class ColorController extends BaseController
             foreach ($settings as $key => $value) {
                 $cssKey = $settingsMap[$key] ?? null;
                 if ($cssKey && $value !== null && $value !== '') {
-                    $themeSettings[$cssKey] = $value;
+                    $themeSettings[$cssKey] = str_replace("'", '', $value);
                 }
-            }
-
-            // Set defaults if not provided
-            if (!isset($themeSettings['--background-type'])) {
-                $themeSettings['--background-type'] = 'solid';
             }
 
             $currentTheme = app('flute.view.manager')->getCurrentTheme();

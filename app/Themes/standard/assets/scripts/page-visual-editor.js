@@ -52,7 +52,14 @@ class VisualEditor {
         
         // Toggles - the input inside toggle-switch component
         this.fullwidthToggle = document.getElementById('ve-fullwidth');
+        this.fullwidthLayoutToggle = document.getElementById('ve-fullwidth-layout');
         this.shadowsToggle = document.getElementById('ve-shadows');
+        this.footerSocialsToggle = document.getElementById('ve-footer-socials');
+        
+        // Navigation type cards
+        this.navTypeCards = this.editor.querySelectorAll('[data-nav-type]');
+        // Footer type cards
+        this.footerTypeCards = this.editor.querySelectorAll('[data-footer-type]');
     }
 
     bindEvents() {
@@ -130,6 +137,38 @@ class VisualEditor {
         this.shadowsToggle?.addEventListener('change', (e) => {
             this.handleShadowsToggle(e.target.checked);
             this.recordHistory();
+        });
+        
+        // Footer socials toggle
+        this.footerSocialsToggle?.addEventListener('change', (e) => {
+            this.handleFooterSocialsToggle(e.target.checked);
+            this.recordHistory();
+        });
+        
+        // Fullwidth layout toggle (on Layout panel)
+        this.fullwidthLayoutToggle?.addEventListener('change', (e) => {
+            this.handleFullwidthToggle(e.target.checked);
+            // Sync with spacing panel toggle
+            if (this.fullwidthToggle) {
+                this.fullwidthToggle.checked = e.target.checked;
+            }
+            this.recordHistory();
+        });
+        
+        // Navigation type cards
+        this.navTypeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.setNavType(card.dataset.navType);
+                this.recordHistory();
+            });
+        });
+        
+        // Footer type cards
+        this.footerTypeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.setFooterType(card.dataset.footerType);
+                this.recordHistory();
+            });
         });
         
         // Keyboard
@@ -260,6 +299,29 @@ class VisualEditor {
         if (this.shadowsToggle) {
             const shadowSmall = computed.getPropertyValue('--shadow-small').trim();
             this.shadowsToggle.checked = shadowSmall !== 'none';
+        }
+        
+        // Navigation type
+        const navType = this.root.getAttribute('data-nav-type') || 'horizontal';
+        this.navTypeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.navType === navType);
+        });
+        
+        // Footer type
+        const footerType = this.root.getAttribute('data-footer-type') || 'default';
+        this.footerTypeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.footerType === footerType);
+        });
+        
+        // Footer socials toggle
+        if (this.footerSocialsToggle) {
+            const showSocials = this.root.getAttribute('data-footer-socials') !== 'false';
+            this.footerSocialsToggle.checked = showSocials;
+        }
+        
+        // Sync fullwidth toggles
+        if (this.fullwidthLayoutToggle && this.fullwidthToggle) {
+            this.fullwidthLayoutToggle.checked = this.fullwidthToggle.checked;
         }
         
         // Border preview
@@ -410,10 +472,10 @@ class VisualEditor {
         const value = select.value;
         
         if (value === 'inherit') {
-            this.setProperty(variable, 'var(--font)');
+            this.setProperty(variable, 'inherit');
         } else {
             this.loadFont(value);
-            this.setProperty(variable, `'${value}', sans-serif`);
+            this.setProperty(variable, `'${value}'`);
         }
         this.recordHistory();
     }
@@ -452,6 +514,34 @@ class VisualEditor {
             this.setProperty('--shadow-large', 'none');
         }
     }
+    
+    // Navigation type
+    setNavType(type) {
+        this.root.setAttribute('data-nav-type', type);
+        this.setProperty('--nav-type', type);
+        
+        // Update card states
+        this.navTypeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.navType === type);
+        });
+    }
+    
+    // Footer type
+    setFooterType(type) {
+        this.root.setAttribute('data-footer-type', type);
+        this.setProperty('--footer-type', type);
+        
+        // Update card states
+        this.footerTypeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.footerType === type);
+        });
+    }
+    
+    // Footer socials toggle
+    handleFooterSocialsToggle(show) {
+        this.root.setAttribute('data-footer-socials', show ? 'true' : 'false');
+        this.setProperty('--footer-socials', show ? 'true' : 'false');
+    }
 
     // Font loading
     loadFont(fontName) {
@@ -474,7 +564,8 @@ class VisualEditor {
             '--space-xs', '--space-sm', '--space-md', '--space-lg', '--space-xl',
             '--transition', '--blur-amount', '--max-content-width',
             '--shadow-small', '--shadow-medium', '--shadow-large',
-            '--background-type', '--bg-grad1', '--bg-grad2', '--bg-grad3', '--container-width'
+            '--background-type', '--bg-grad1', '--bg-grad2', '--bg-grad3', '--container-width',
+            '--nav-type', '--footer-type', '--footer-socials'
         ];
         
         inlineVars.forEach(key => {
@@ -492,6 +583,9 @@ class VisualEditor {
         });
         
         state['_container-width'] = this.root.getAttribute('data-container-width') || 'container';
+        state['_nav-type'] = this.root.getAttribute('data-nav-type') || 'horizontal';
+        state['_footer-type'] = this.root.getAttribute('data-footer-type') || 'default';
+        state['_footer-socials'] = this.root.getAttribute('data-footer-socials') || 'true';
         
         return state;
     }
@@ -505,7 +599,8 @@ class VisualEditor {
             '--space-xs', '--space-sm', '--space-md', '--space-lg', '--space-xl',
             '--transition', '--blur-amount', '--max-content-width',
             '--shadow-small', '--shadow-medium', '--shadow-large',
-            '--background-type', '--bg-grad1', '--bg-grad2', '--bg-grad3', '--container-width'
+            '--background-type', '--bg-grad1', '--bg-grad2', '--bg-grad3', '--container-width',
+            '--nav-type', '--footer-type', '--footer-socials'
         ];
         
         allVars.forEach(key => this.root.style.removeProperty(key));
@@ -519,7 +614,20 @@ class VisualEditor {
                 if (this.fullwidthToggle) {
                     this.fullwidthToggle.checked = value === 'fullwidth';
                 }
+                if (this.fullwidthLayoutToggle) {
+                    this.fullwidthLayoutToggle.checked = value === 'fullwidth';
+                }
                 this.handleFullwidthToggle(value === 'fullwidth');
+            } else if (key === '_nav-type') {
+                this.setNavType(value);
+            } else if (key === '_footer-type') {
+                this.setFooterType(value);
+            } else if (key === '_footer-socials') {
+                const show = value === 'true';
+                this.root.setAttribute('data-footer-socials', value);
+                if (this.footerSocialsToggle) {
+                    this.footerSocialsToggle.checked = show;
+                }
             }
         });
         
@@ -563,6 +671,9 @@ class VisualEditor {
         document.body.style.background = '';
         this.root.removeAttribute('data-bg-type');
         this.root.setAttribute('data-container-width', 'container');
+        this.root.setAttribute('data-nav-type', 'horizontal');
+        this.root.setAttribute('data-footer-type', 'default');
+        this.root.setAttribute('data-footer-socials', 'true');
         
         document.querySelectorAll('.container:not(.keep-container)').forEach(c => {
             c.style.maxWidth = '';
@@ -600,9 +711,6 @@ class VisualEditor {
         if (state['--border1']) {
             colors['--border1'] = parseFloat(state['--border1']);
         }
-        if (state['--border05']) {
-            colors['--border05'] = parseFloat(state['--border05']);
-        }
         
         // Background
         ['--background-type', '--bg-grad1', '--bg-grad2', '--bg-grad3'].forEach(key => {
@@ -612,18 +720,33 @@ class VisualEditor {
         // Container width from attribute
         colors['--container-width'] = state['_container-width'] || 'container';
         
-        // Settings - fonts and other CSS variables
-        const settingsVars = [
-            '--font', '--font-header', '--font-scale', 
-            '--space-xs', '--space-sm', '--space-md', '--space-lg', '--space-xl', 
-            '--transition', '--blur-amount', '--max-content-width', 
-            '--shadow-small', '--shadow-medium', '--shadow-large'
-        ];
+        // Navigation and footer settings
+        colors['--nav-type'] = state['_nav-type'] || 'horizontal';
+        colors['--footer-type'] = state['_footer-type'] || 'default';
+        colors['--footer-socials'] = state['_footer-socials'] || 'true';
         
-        settingsVars.forEach(key => {
-            if (state[key]) {
-                const settingKey = key.replace(/^--/, '').replace(/-/g, '_');
-                settings[settingKey] = state[key];
+        // Settings - fonts and other CSS variables
+        // Map CSS variable names to settings keys for PHP
+        const settingsVarsMap = {
+            '--font': 'font',
+            '--font-header': 'font_header',
+            '--font-scale': 'font_scale',
+            '--space-xs': 'space_xs',
+            '--space-sm': 'space_sm',
+            '--space-md': 'space_md',
+            '--space-lg': 'space_lg',
+            '--space-xl': 'space_xl',
+            '--transition': 'transition',
+            '--blur-amount': 'blur_amount',
+            '--max-content-width': 'max_content_width',
+            '--shadow-small': 'shadow_small',
+            '--shadow-medium': 'shadow_medium',
+            '--shadow-large': 'shadow_large'
+        };
+        
+        Object.entries(settingsVarsMap).forEach(([cssKey, settingKey]) => {
+            if (state[cssKey]) {
+                settings[settingKey] = state[cssKey];
             }
         });
         

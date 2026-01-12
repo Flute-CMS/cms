@@ -25,7 +25,6 @@
     $singleGateway = $hasGateways && count($currencyGateways[$currency]) === 1;
     $isConfigured = $hasCurrencies && $hasGateways;
 
-    // Preset amounts based on currency
     $presetAmounts = match ($currency) {
         'RUB' => [500, 1000, 2500, 5000],
         'USD' => [5, 10, 25, 50],
@@ -35,7 +34,6 @@
         default => [500, 1000, 2500, 5000],
     };
 
-    // Get current gateway data
     $currentGatewayData = $currencyGateways[$currency][$gateway] ?? null;
 @endphp
 
@@ -56,19 +54,21 @@
                 <form class="lk-form" id="payment-form" yoyo:post="purchase" yoyo:on="submit" aria-live="polite"
                     role="form" aria-label="{{ __('lk.payment_form') }}">
 
-                    {{-- Header --}}
-                    <x-legend title="{{ __('lk.title') }}" description="{{ __('lk.payment_form_subtitle') }}" />
+                    @if (!$isModal && !config('lk.only_modal'))
+                        {{-- Header --}}
+                        <x-legend title="{{ __('lk.title') }}" description="{{ __('lk.payment_form_subtitle') }}" />
+                    @endif
 
                     {{-- Currency Section --}}
                     <div class="lk-payment-section" id="currency-section">
-                        <div class="lk-currency-tabs {{ $singleCurrency ? 'single-currency' : '' }}"
-                            role="radiogroup" aria-label="{{ __('lk.select_currency') }}">
+                        <div class="lk-currency-tabs {{ $singleCurrency ? 'single-currency' : '' }}" role="radiogroup"
+                            aria-label="{{ __('lk.select_currency') }}">
                             @foreach ($currencies as $code)
                                 <div class="lk-currency-tabs-item">
                                     <input type="radio" id="currency__{{ $code }}" name="currency"
                                         value="{{ $code }}" @checked($currency === $code) yoyo
-                                        aria-label="{{ __('lk.currency_option', ['code' => $code]) }}"
-                                        data-noprogress {{ $singleCurrency ? 'disabled' : '' }} />
+                                        aria-label="{{ __('lk.currency_option', ['code' => $code]) }}" data-noprogress
+                                        {{ $singleCurrency ? 'disabled' : '' }} />
                                     <label for="currency__{{ $code }}" tabindex="0">
                                         {{ $code }}
                                     </label>
@@ -113,21 +113,23 @@
                                                 <div class="lk-gateway-title-row">
                                                     <span class="lk-gateway-name">{{ $gatewayName }}</span>
                                                     @if ($gatewayBonusVal > 0)
-                                                        <span class="lk-gateway-bonus-badge">+{{ $gatewayBonusVal }}%</span>
+                                                        <span
+                                                            class="lk-gateway-bonus-badge">+{{ $gatewayBonusVal }}%</span>
                                                     @endif
                                                 </div>
                                                 @if ($gatewayDescription)
-                                                    <span class="lk-gateway-description">{{ $gatewayDescription }}</span>
+                                                    <span
+                                                        class="lk-gateway-description">{{ $gatewayDescription }}</span>
                                                 @endif
                                                 @if ($gatewayFeeVal > 0)
-                                                    <span class="lk-gateway-fee">{{ $gatewayFeeVal }}% {{ __('lk.fee') }}</span>
+                                                    <span class="lk-gateway-fee">{{ $gatewayFeeVal }}%
+                                                        {{ __('lk.fee') }}</span>
                                                 @endif
                                             </div>
                                             <div class="lk-gateway-right">
                                                 <div class="lk-gateway-check">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="4" stroke-linecap="round"
-                                                        stroke-linejoin="round">
+                                                        stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
                                                         <polyline points="20 6 9 17 4 12"></polyline>
                                                     </svg>
                                                 </div>
@@ -170,7 +172,8 @@
 
                         <x-forms.field yoyo yoyo:on="input changed delay:500ms" data-noprogress class="lk-field">
                             <div class="lk-amount-input-wrapper">
-                                <input type="number" name="amount" id="amount" form="payment-form"
+                                <input type="text" name="amount" id="amount" form="payment-form"
+                                    inputmode="decimal" autocomplete="off"
                                     min="{{ $currencyMinimumAmounts[$currency] }}" step="0.01"
                                     value="{{ $amount }}" required placeholder="0"
                                     aria-describedby="amount-description" />
@@ -186,7 +189,8 @@
                         <div class="lk-presets" role="group" aria-label="{{ __('lk.preset_amounts') }}">
                             @foreach ($presetAmounts as $preset)
                                 <button type="button" class="lk-presets-item {{ $amount == $preset ? 'active' : '' }}"
-                                    data-amount="{{ $preset }}"
+                                    data-amount="{{ $preset }}" yoyo:on="click"
+                                    yoyo:get="setPresetAmount({{ $preset }})" data-noprogress
                                     aria-pressed="{{ $amount == $preset ? 'true' : 'false' }}">
                                     {{ number_format($preset, 0, '', ' ') }}
                                 </button>
@@ -200,7 +204,8 @@
                     @if ($amount)
                         <x-forms.field yoyo yoyo:on="input delay:800ms changed blur" yoyo:post="validatePromo"
                             data-noprogress class="lk-field lk-promo-field">
-                            <div class="lk-promo-inline {{ $promoCode && $promoIsValid ? 'is-valid' : '' }} {{ $promoCode && !$promoIsValid ? 'is-invalid' : '' }}">
+                            <div
+                                class="lk-promo-inline {{ $promoCode && $promoIsValid ? 'is-valid' : '' }} {{ $promoCode && !$promoIsValid ? 'is-invalid' : '' }}">
                                 <x-icon path="ph.regular.ticket" class="lk-promo-inline-icon" />
                                 <input type="text" name="promoCode" id="promoCode" form="payment-form"
                                     value="{{ $promoCode }}" class="lk-promo-inline-input"
@@ -225,9 +230,11 @@
                                 <li class="lk-details-item lk-details-fee">
                                     <span>
                                         {{ __('lk.gateway_fee') }}
-                                        <x-icon path="ph.regular.info" data-tooltip="{{ __('lk.gateway_fee_tooltip') }}" />
+                                        <x-icon path="ph.regular.info"
+                                            data-tooltip="{{ __('lk.gateway_fee_tooltip') }}" />
                                     </span>
-                                    <span>{{ $gatewayFee }}% (~{{ number_format($gatewayFeeAmount, 0) }} {{ $currency }})</span>
+                                    <span>{{ $gatewayFee }}% (~{{ number_format($gatewayFeeAmount, 0) }}
+                                        {{ $currency }})</span>
                                 </li>
                             @endif
 
@@ -235,7 +242,8 @@
                             @if ($gatewayBonus > 0)
                                 <li class="lk-details-item lk-details-bonus">
                                     <span>{{ __('lk.gateway_bonus') }} (+{{ $gatewayBonus }}%)</span>
-                                    <span>+{{ number_format($gatewayBonusAmount, 0) }} {{ config('lk.currency_view') }}</span>
+                                    <span>+{{ number_format($gatewayBonusAmount, 0) }}
+                                        {{ config('lk.currency_view') }}</span>
                                 </li>
                             @endif
 
@@ -290,8 +298,7 @@
 
                         {{-- Submit Button --}}
                         <x-button size="large" class="lk-payment-submit" withLoading submit form="payment-form"
-                            :disabled="($promoCode && !$promoIsValid) || (config('lk.oferta_view') && $agree === false)"
-                            aria-label="{{ __('lk.top_up_button') }}">
+                            :disabled="($promoCode && !$promoIsValid) || (config('lk.oferta_view') && $agree === false)" aria-label="{{ __('lk.top_up_button') }}">
                             <span>{{ __('lk.top_up_button') }}</span>
                             <x-icon path="ph.regular.arrow-right" />
                         </x-button>
@@ -313,60 +320,3 @@
         </div>
     @endif
 </div>
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            initPaymentPresets();
-        });
-
-        document.addEventListener('yoyo:success', function() {
-            initPaymentPresets();
-        });
-
-        function initPaymentPresets() {
-            const presetButtons = document.querySelectorAll('.lk-presets-item');
-            const amountInput = document.getElementById('amount');
-
-            if (!amountInput || !presetButtons.length) return;
-
-            presetButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const amount = this.dataset.amount;
-                    amountInput.value = amount;
-
-                    // Update active state
-                    presetButtons.forEach(btn => {
-                        btn.classList.remove('active');
-                        btn.setAttribute('aria-pressed', 'false');
-                    });
-                    this.classList.add('active');
-                    this.setAttribute('aria-pressed', 'true');
-
-                    // Trigger change event for yoyo
-                    amountInput.dispatchEvent(new Event('input', {
-                        bubbles: true
-                    }));
-                    amountInput.dispatchEvent(new Event('changed', {
-                        bubbles: true
-                    }));
-                });
-            });
-
-            // Update preset active state on input change
-            amountInput.addEventListener('input', function() {
-                const currentValue = parseFloat(this.value);
-                presetButtons.forEach(btn => {
-                    const presetValue = parseFloat(btn.dataset.amount);
-                    if (currentValue === presetValue) {
-                        btn.classList.add('active');
-                        btn.setAttribute('aria-pressed', 'true');
-                    } else {
-                        btn.classList.remove('active');
-                        btn.setAttribute('aria-pressed', 'false');
-                    }
-                });
-            });
-        }
-    </script>
-@endpush

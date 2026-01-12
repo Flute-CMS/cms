@@ -2,12 +2,18 @@
     $colors = app('flute.view.manager')->getColors();
 @endphp
 
+@php
+    $specialVars = ['--font', '--font-header'];
+@endphp
+
 @if (!empty($colors))
     <style>
         @isset($colors['dark'])
             :root[data-theme="dark"] {
                 @foreach ($colors['dark'] as $key => $value)
-                    {{ $key }}: {{ $value }};
+                    @if(!in_array($key, $specialVars))
+                        {{ $key }}: {{ $value }};
+                    @endif
                 @endforeach
             }
             
@@ -57,7 +63,9 @@
         @isset($colors['light'])
             :root[data-theme="light"] {
                 @foreach ($colors['light'] as $key => $value)
-                    {{ $key }}: {{ $value }};
+                    @if(!in_array($key, $specialVars))
+                        {{ $key }}: {{ $value }};
+                    @endif
                 @endforeach
             }
             
@@ -192,10 +200,24 @@
 <style>
     :root {
         @if(isset($themeColors['--font']))
-            --font: {{ $themeColors['--font'] }};
+            @php
+                $fontValue = $themeColors['--font'];
+                if (!str_contains($fontValue, ',') && !str_contains($fontValue, 'system-ui')) {
+                    $fontValue = trim($fontValue, "\"'") ;
+                    $fontValue = "'{$fontValue}', system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+                }
+            @endphp
+            --font: {!! $fontValue !!};
         @endif
         @if(isset($themeColors['--font-header']))
-            --font-header: {{ $themeColors['--font-header'] }};
+            @php
+                $headerFontValue = $themeColors['--font-header'];
+                if ($headerFontValue !== 'inherit' && !str_contains($headerFontValue, 'var(') && !str_contains($headerFontValue, ',') && !str_contains($headerFontValue, 'system-ui')) {
+                    $headerFontValue = trim($headerFontValue, "\"'");
+                    $headerFontValue = "'{$headerFontValue}', system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+                }
+            @endphp
+            --font-header: {!! $headerFontValue !!};
         @endif
         @if(isset($themeColors['--font-scale']))
             --font-scale: {{ $themeColors['--font-scale'] }};

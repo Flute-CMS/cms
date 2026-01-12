@@ -430,6 +430,7 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         gap: var(--space-sm);
         text-decoration: none;
         color: inherit;
+        padding-right: var(--space-md);
         height: 100%;
     }
 
@@ -483,6 +484,7 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         display: flex;
         align-items: center;
         gap: var(--space-sm);
+        padding-right: var(--space-md);
 
         .navbar-dropdown__menu-icon {
             flex-shrink: 0;
@@ -655,3 +657,4 @@ html[data-theme="dark"] {
         display: none;
     }
 }
+

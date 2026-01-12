@@ -9,7 +9,7 @@
         <section class="lk-container" aria-labelledby="lk-title">
             <article class="lk-content" hx-swap="morph:outerHTML">
                 @fragment('lk-card')
-                    @yoyo('payment-form')
+                    @yoyo('payment-form', ['isModal' => $isModal])
                 @endfragment
             </article>
         </section>

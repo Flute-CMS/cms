@@ -122,7 +122,6 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         &.active {
             background: var(--background);
             color: var(--accent);
-            box-shadow: 0 1px 3px var(--transp-1), 0 1px 2px var(--transp-05);
         }
     }
 
@@ -450,6 +449,177 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         color: var(--text-400);
         text-align: right;
         font-variant-numeric: tabular-nums;
+    }
+
+    // Option Cards (Navigation & Footer selectors)
+    &__option-cards {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+
+        &--nav-2col {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        &--footer {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    &__option-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 8px 8px;
+        background: var(--transp-02);
+        border: 2px solid var(--transp-1);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--transp-3);
+            background: var(--transp-05);
+        }
+
+        &.active {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 8%, transparent);
+
+            .ve__option-label {
+                color: var(--accent);
+            }
+        }
+    }
+
+    &__option-preview {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        background: var(--background);
+        border: 1px solid var(--transp-1);
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 4px;
+        gap: 3px;
+
+        // Navigation previews
+        &--nav-horizontal {
+            .ve__preview-navbar {
+                height: 8px;
+                background: var(--transp-2);
+                border-radius: 2px;
+                flex-shrink: 0;
+            }
+
+            .ve__preview-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+        }
+
+        &--nav-sidebar {
+            flex-direction: column;
+
+            .ve__preview-navbar--mini {
+                height: 6px;
+                background: var(--transp-2);
+                border-radius: 2px;
+                flex-shrink: 0;
+            }
+
+            .ve__preview-row {
+                flex: 1;
+                display: flex;
+                gap: 3px;
+            }
+
+            .ve__preview-sidebar {
+                width: 25%;
+                background: var(--transp-2);
+                border-radius: 2px;
+            }
+
+            .ve__preview-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+        }
+
+        // Footer previews
+        &--footer-default,
+        &--footer-minimal,
+        &--footer-expanded,
+        &--footer-hidden {
+            .ve__preview-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .ve__preview-footer {
+                flex-shrink: 0;
+                background: var(--transp-15);
+                border-radius: 2px;
+                padding: 3px;
+            }
+        }
+
+        &--footer-minimal {
+            .ve__preview-footer--minimal {
+                height: 6px;
+            }
+        }
+
+        &--footer-expanded {
+            .ve__preview-footer--expanded {
+                height: 28px;
+            }
+        }
+
+        &--footer-hidden {
+            .ve__preview-content {
+                flex: 1;
+            }
+        }
+    }
+
+    &__preview-block {
+        flex: 1;
+        background: var(--transp-1);
+        border-radius: 2px;
+    }
+
+    &__preview-footer-cols {
+        display: flex;
+        gap: 3px;
+        height: 100%;
+    }
+
+    &__preview-footer-col {
+        flex: 1;
+        background: var(--transp-2);
+        border-radius: 1px;
+
+        &--wide {
+            flex: 1.5;
+        }
+    }
+
+    &__option-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text-500);
+        text-align: center;
+        line-height: 1.2;
+        transition: color 0.15s ease;
     }
 
     // Preview Card

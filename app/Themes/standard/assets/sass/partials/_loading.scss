@@ -29,7 +29,8 @@
 }
 
 #nprogress .spinner {
-    display: block;
+    // display: block;
+    display: none;
     position: fixed;
     z-index: 1031;
     top: 15px;
