@@ -85,6 +85,21 @@ return [
             'label' => 'Imagem',
             'placeholder' => 'Inserir URL da imagem',
         ],
+        'description' => [
+            'label' => 'Descrição',
+            'placeholder' => 'Ex.: Visa, MasterCard, Maestro',
+            'help' => 'Breve descrição exibida abaixo do nome do método de pagamento',
+        ],
+        'fee' => [
+            'label' => 'Taxa (%)',
+            'placeholder' => '0',
+            'help' => 'Porcentagem da taxa cobrada pelo gateway de pagamento. Exibida aos usuários como informação',
+        ],
+        'bonus' => [
+            'label' => 'Bónus (%)',
+            'placeholder' => '0',
+            'help' => 'Porcentagem de bónus adicionada ao carregamento ao usar este método de pagamento',
+        ],
         'enabled' => [
             'label' => 'Ativado',
             'help' => 'Habilitar ou desabilitar esse gateway de pagamento',

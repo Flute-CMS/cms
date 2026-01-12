@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Logging\Renderer;
 
+use DateTimeZone;
 use Flute\Core\Database\Entities\UserActionLog;
 use Flute\Core\Logging\Contracts\LogFormatterInterface;
 
@@ -15,7 +16,8 @@ class DefaultLogFormatter implements LogFormatterInterface
     public function render(UserActionLog $log): string
     {
         $action = __($log->action);
-        $createdAt = $log->createdAt->format('Y-m-d H:i:s');
+        $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $createdAt = $log->createdAt->setTimezone($tz)->format('Y-m-d H:i:s');
         $userName = $log->user ? htmlspecialchars($log->user->name) : 'Guest';
 
         $levelClass = $this->mapLevelToCssClass($log->level);

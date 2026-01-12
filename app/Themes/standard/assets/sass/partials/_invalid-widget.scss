@@ -3,7 +3,7 @@
 
     border: 1px solid var(--error) !important;
     border-radius: var(--border1);
-    padding: 1.5rem 1rem;
+    padding: var(--space-lg) var(--space-md);
 
     &-icon {
         @extend .d-flex;
@@ -14,7 +14,7 @@
 
     &-title {
         color: var(--error);
-        margin-top: .7rem;
+        margin-top: var(--space-sm);
     }
 
     &-small {
@@ -26,9 +26,9 @@
         border-radius: var(--border05);
         font-size: var(--p-small);
         color: var(--text-100);
-        padding: .6rem .8rem;
-        margin: 1rem 0;
-        margin-bottom: 1.5rem;
+        padding: var(--space-xs) var(--space-sm);
+        margin: var(--space-md) 0;
+        margin-bottom: var(--space-lg);
         user-select: all;
     }
 }

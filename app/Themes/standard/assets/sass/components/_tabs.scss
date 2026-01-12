@@ -47,18 +47,18 @@
 
             a {
                 cursor: pointer;
-                padding: 10px 20px;
+                padding: var(--space-sm) var(--space-lg);
                 text-decoration: none;
                 color: var(--text-400);
                 display: flex;
                 align-items: center;
                 font-size: var(--p-small);
-                gap: 8px;
+                gap: var(--space-xs);
                 @include transition(all);
                 will-change: color;
 
                 @include media(mobile) {
-                    padding: 12px 20px;
+                    padding: var(--space-sm) var(--space-lg);
                     font-size: calc(var(--p) - 1px);
                 }
 
@@ -70,8 +70,8 @@
                     display: inline-block;
                     background-color: var(--transp-3);
                     color: var(--text);
-                    border-radius: 4px;
-                    padding: 6px 8px;
+                    border-radius: var(--space-2xs);
+                    padding: var(--space-xs) var(--space-xs);
                     font-size: var(--small);
                     line-height: 1;
                     font-weight: 600;
@@ -136,11 +136,11 @@
 
         .tabs-nav {
             border-bottom: none;
-            gap: 8px;
+            gap: var(--space-xs);
             flex-wrap: wrap;
             
             @include media(mobile) {
-                gap: 6px;
+                gap: var(--space-xs);
             }
         }
 

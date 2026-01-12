@@ -205,10 +205,12 @@ function updatePosition(toggle, menu) {
 }
 
 function handleDropdownToggle(event) {
+    const toggle = event.target.closest('[data-dropdown-open]');
+    if (!toggle) return;
+
     event.preventDefault();
     event.stopPropagation();
 
-    const toggle = event.currentTarget;
     const dropdownName = toggle.getAttribute('data-dropdown-open');
     const menu = document.querySelector(`[data-dropdown="${dropdownName}"]`);
 
@@ -303,49 +305,42 @@ function handleDropdownToggle(event) {
     }
 }
 
-function handleDocumentClick(event) {
-    const target = event.target;
-    if (
-        !target.closest('[data-dropdown-open]') &&
-        !target.closest('[data-dropdown]')
-    ) {
-        closeAllDropdowns();
-    }
-}
-
-function handleDropdownLinkClick(event) {
-    closeAllDropdowns();
-}
+let dropdownDelegationInitialized = false;
 
 function initializeDropdowns() {
-    const oldDropdownToggles = document.querySelectorAll(
-        '[data-dropdown-open]',
-    );
-    oldDropdownToggles.forEach((toggle) => {
-        toggle.removeEventListener('click', handleDropdownToggle);
-    });
+    // Use event delegation - attach single listener to document only once
+    if (dropdownDelegationInitialized) return;
+    dropdownDelegationInitialized = true;
 
-    const dropdownToggles = document.querySelectorAll('[data-dropdown-open]');
-    dropdownToggles.forEach((toggle) => {
-        toggle.addEventListener('click', handleDropdownToggle);
-    });
-
-    const dropdownLinks = document.querySelectorAll('[data-dropdown] a');
-    dropdownLinks.forEach((link) => {
-        link.removeEventListener('click', handleDropdownLinkClick);
-        link.addEventListener('click', handleDropdownLinkClick);
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Handle dropdown toggle button clicks
+        const toggle = target.closest('[data-dropdown-open]');
+        if (toggle) {
+            handleDropdownToggle(event);
+            return;
+        }
+        
+        // Handle clicks on links inside dropdown - close dropdown after click
+        const link = target.closest('[data-dropdown] a');
+        if (link) {
+            closeAllDropdowns();
+            return;
+        }
+        
+        // Handle clicks outside dropdown - close all dropdowns
+        if (!target.closest('[data-dropdown]')) {
+            closeAllDropdowns();
+        }
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDropdowns();
-
-    document.addEventListener('click', handleDocumentClick);
 });
 
 document.body.addEventListener('htmx:afterSettle', (event) => {
-    initializeDropdowns();
-
     if (event.detail.target.id.toLowerCase() === 'main') {
         window.scrollTo({
             top: 0,
@@ -556,13 +551,9 @@ document.addEventListener('visibilitychange', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initTooltipObserver();
-    initializeDropdowns();
-    document.addEventListener('click', handleDocumentClick);
 });
 
 document.body.addEventListener('htmx:afterSwap', (event) => {
-    initializeDropdowns();
-
     if (event.detail.target.id.toLowerCase() === 'main') {
         window.scrollTo({
             top: 0,

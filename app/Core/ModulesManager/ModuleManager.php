@@ -230,6 +230,20 @@ class ModuleManager
     }
 
     /**
+     * Force reload modules from filesystem without cache.
+     */
+    public function forceReloadModulesJson(): void
+    {
+        clearstatcache(true);
+
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+
+        $this->modulesJson = ModuleFinder::getAllJson($this->modulesPath);
+    }
+
+    /**
      * Register PSR-4 autoloading for all modules.
      */
     protected function registerModulesAutoload(): void

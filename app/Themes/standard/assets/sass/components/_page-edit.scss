@@ -137,13 +137,144 @@ body.page-edit-mode {
 	}
 
 	&-button {
+		display: none;
+	}
+
+	// Speed Dial FAB - Arc Layout
+	&-fab {
+		$fab-size: 52px;
+		$item-size: 42px;
+		$radius: 70px;
+		
 		position: fixed;
-		bottom: 2rem;
-		right: 2rem;
+		bottom: 28px;
+		right: 28px;
 		z-index: 100;
 
-		&:hover {
-			transform: translateY(0px);
+		@media (max-width: 768px) {
+			bottom: 20px;
+			right: 20px;
+		}
+
+		&__trigger {
+			width: $fab-size;
+			height: $fab-size;
+			border-radius: 50%;
+			background: var(--accent);
+			border: none;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+			transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+			position: relative;
+			z-index: 10;
+
+			svg {
+				width: 22px;
+				height: 22px;
+				color: var(--background-950);
+				transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+			}
+
+			&:hover {
+				transform: scale(1.08);
+			}
+
+			&:active {
+				transform: scale(0.95);
+			}
+		}
+
+		&__ring {
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			width: $fab-size;
+			height: $fab-size;
+			pointer-events: none;
+		}
+
+		&__item {
+			position: absolute;
+			bottom: 5px;
+			right: 5px;
+			width: $item-size;
+			height: $item-size;
+			border-radius: 50%;
+			background: var(--secondary);
+			border: 1px solid var(--transp-1);
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			transform: scale(0.5);
+			transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+			box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+			pointer-events: none;
+
+			svg {
+				width: 18px;
+				height: 18px;
+				color: var(--text-300);
+				transition: color 0.15s ease;
+			}
+
+			&:hover {
+				background: var(--accent);
+
+				svg {
+					color: var(--background-950);
+				}
+			}
+
+			// Arc positions (0°, 45°, 90°) for 3 items
+			&:nth-child(1) { --tx: -#{$radius}; --ty: 0; }
+			&:nth-child(2) { --tx: -#{$radius * 0.707}; --ty: -#{$radius * 0.707}; }
+			&:nth-child(3) { --tx: 0; --ty: -#{$radius}; }
+		}
+
+		&.open {
+			.page-edit-fab__trigger {
+				background: var(--text-300);
+				transform: rotate(45deg);
+
+				svg {
+					color: var(--background);
+				}
+			}
+
+			.page-edit-fab__item {
+				opacity: 1;
+				pointer-events: auto;
+				transform: translate(var(--tx), var(--ty)) scale(1);
+
+				&:nth-child(1) { transition-delay: 0s; }
+				&:nth-child(2) { transition-delay: 0.04s; }
+				&:nth-child(3) { transition-delay: 0.08s; }
+			}
+
+			.page-edit-fab__backdrop {
+				opacity: 1;
+				visibility: visible;
+			}
+		}
+
+		&__backdrop {
+			position: fixed;
+			inset: 0;
+			background: transparent;
+			opacity: 0;
+			visibility: hidden;
+			z-index: -1;
+		}
+
+		&.hide {
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
 		}
 	}
 
@@ -430,42 +561,7 @@ body.page-edit-mode {
 	}
 
 	&-dropdown {
-		> button {
-			justify-content: flex-start;
-			gap: 0.7rem;
-			border-color: transparent;
-			font-size: var(--p-small);
-
-			&.colors:not(:hover) {
-				background: linear-gradient(
-					to right,
-					var(--primary) 20%,
-					var(--accent) 40%,
-					var(--accent) 60%,
-					var(--primary) 80%
-				);
-				background-size: 200% auto;
-				font-weight: 600;
-				background-clip: text;
-				text-fill-color: transparent;
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-				animation: shine 1s linear infinite;
-				position: relative;
-				opacity: 1;
-
-				svg {
-					position: relative;
-					z-index: 1;
-				}
-
-				@keyframes shine {
-					to {
-						background-position: 200% center;
-					}
-				}
-			}
-		}
+		display: none;
 	}
 
 	&-cancel {

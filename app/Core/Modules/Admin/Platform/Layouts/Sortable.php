@@ -62,6 +62,12 @@ abstract class Sortable extends Layout
     protected $popover;
 
     /**
+     * Maximum nesting depth for sortable items.
+     * Default is 2 (parent + one level of children).
+     */
+    protected int $maxLevels = 2;
+
+    /**
      * @return Factory|\Illuminate\View\View|null
      */
     public function build(Repository $repository)
@@ -86,6 +92,7 @@ abstract class Sortable extends Layout
             'popover' => $this->popover,
             'onSortEnd' => $this->onSortEnd,
             'showBlockHeaders' => $this->showBlockHeaders,
+            'maxLevels' => $this->maxLevels,
             'iconNotFound' => $this->iconNotFound(),
             'textNotFound' => $this->textNotFound(),
             'subNotFound' => $this->subNotFound(),
@@ -140,6 +147,20 @@ abstract class Sortable extends Layout
     public function showBlockHeaders(bool $showHeaders = true): self
     {
         $this->showBlockHeaders = $showHeaders;
+
+        return $this;
+    }
+
+    /**
+     * Set maximum nesting depth for sortable items.
+     *
+     * @param int $levels Maximum nesting levels (1 = no nesting, 2 = one level of children, etc.)
+     *
+     * @return $this
+     */
+    public function maxLevels(int $levels): self
+    {
+        $this->maxLevels = max(1, $levels);
 
         return $this;
     }

@@ -209,8 +209,14 @@
                                         <ul class="profile__socials-list" role="list">
                                             @foreach ($user->socialNetworks as $social)
                                                 @if (!$social->hidden || (user()->isLoggedIn() && (user()->can('admin.users') || user()->id === $row->id)))
+                                                    @php
+                                                        $socialUrl = $social->url;
+                                                        if ($social->socialNetwork?->key === 'Discord' && !empty($social->value)) {
+                                                            $socialUrl = 'https://discordapp.com/users/' . $social->value;
+                                                        }
+                                                    @endphp
                                                     <li class="profile__socials-item-wrapper">
-                                                        <a href="{{ $social->url }}" class="profile__socials-item"
+                                                        <a href="{{ $socialUrl }}" class="profile__socials-item"
                                                             target="_blank" data-tooltip="{{ $social->name }}"
                                                             rel="noopener nofollow"
                                                             aria-label="{{ __('profile.visit_social', ['network' => $social->name]) }}"
@@ -240,7 +246,7 @@
                         <section class="profile__content-wrapper" role="main">
                             @if ($tabs->count() === 0 && user()->can('admin.boss'))
                                 <x-alert type="info" onlyBorders style="margin-top: 4.5rem;" withClose="false">
-                                    {!! __('profile.no_profile_modules_info', [':link' => url('/admin/catalog')]) !!}
+                                    {!! __('profile.no_profile_modules_info', [':link' => url('https://flute-cms.com/market')]) !!}
                                 </x-alert>
                             @else
                                 <div class="profile__content">

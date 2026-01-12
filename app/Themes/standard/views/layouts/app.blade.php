@@ -256,7 +256,7 @@
     @if (!$isPartialRequest)
         @can('admin.pages')
             <x-page-edit-widgets />
-            <x-page-colors />
+            <x-page-visual-editor />
             @include('flute::partials.page-edit-onboarding')
         @endcan
 
@@ -418,7 +418,7 @@
 
         @can('admin.pages')
             @at(tt('assets/scripts/page-edit.js'))
-            @at(tt('assets/scripts/page-color.js'))
+            @at(tt('assets/scripts/page-visual-editor.js'))
         @endcan
 
         @can('admin.boss')

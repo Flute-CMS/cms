@@ -235,7 +235,7 @@ class AdminUsersService
         /** @var FileUploader $uploader */
         $uploader = app(FileUploader::class);
 
-        if ($files->has('avatar') && $files->get('avatar')->isValid()) {
+        if ($files->has('avatar') && $this->isValidNewUpload($files->get('avatar'))) {
             try {
                 $avatar = $uploader->uploadImage($files->get('avatar'), 10);
                 if ($avatar) {
@@ -246,7 +246,7 @@ class AdminUsersService
             }
         }
 
-        if ($files->has('banner') && $files->get('banner')->isValid()) {
+        if ($files->has('banner') && $this->isValidNewUpload($files->get('banner'))) {
             try {
                 $banner = $uploader->uploadImage($files->get('banner'), 10);
                 if ($banner) {
@@ -256,6 +256,43 @@ class AdminUsersService
                 throw new Exception(__('admin-users.messages.banner_upload_error', ['message' => $e->getMessage()]));
             }
         }
+    }
+
+    /**
+     * Проверяет, является ли файл валидной новой загрузкой (не пустой и не URL-based).
+     */
+    private function isValidNewUpload($file): bool
+    {
+        if (!$file || !$file->isValid()) {
+            return false;
+        }
+
+        if ($file->getSize() === 0) {
+            return false;
+        }
+
+        $originalName = $file->getClientOriginalName();
+
+        if ($originalName && (str_starts_with($originalName, 'http://') || str_starts_with($originalName, 'https://'))) {
+            return false;
+        }
+
+        if ($originalName && (str_starts_with($originalName, '/') || str_starts_with($originalName, 'assets/'))) {
+            return false;
+        }
+
+        $tempPath = $file->getPathname();
+        if ($tempPath) {
+            $firstBytes = @file_get_contents($tempPath, false, null, 0, 256);
+            if ($firstBytes !== false) {
+                $trimmed = trim($firstBytes);
+                if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://') || str_starts_with($trimmed, '/')) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

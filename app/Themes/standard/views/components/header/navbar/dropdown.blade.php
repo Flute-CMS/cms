@@ -1,7 +1,7 @@
 @props(['item'])
 
-<div class="navbar__items-item dropdown-item @if (!$item['icon']) without-icon @endif">
-    <p data-dropdown-open="__dropdown_{{ $item['id'] }}">
+<div class="navbar__items-item dropdown-item @if (!$item['icon']) without-icon @endif" data-dropdown-hover="true" data-dropdown-open="__dropdown_{{ $item['id'] }}">
+    <p>
         @if ($item['icon'])
             <x-icon class="navbar__items-item-icon" path="{{ $item['icon'] }}" />
         @endif
@@ -18,22 +18,46 @@
     @if (count($item['children']) > 0)
         <div class="navbar__dropdown" data-dropdown="__dropdown_{{ $item['id'] }}" hx-boost="true" hx-target="#main"
             hx-swap="outerHTML transition:true">
-            @foreach ($item['children'] as $child)
-                <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" @endif
-                    itemprop="url" @if (!empty($child['description'])) class="navbar__dropdown-item-with-description" @endif>
-                    @if ($child['icon'])
-                        <x-icon class="navbar__items-item-icon" path="{{ $child['icon'] }}" />
-                    @endif
-                    @if (!empty($child['description']))
-                        <div class="navbar__dropdown-item-content">
-                            <span itemprop="name">{{ __($child['title']) }}</span>
-                            <small class="navbar__dropdown-item-description">{{ __($child['description']) }}</small>
-                        </div>
-                    @else
-                        <span itemprop="name">{{ __($child['title']) }}</span>
-                    @endif
-                </a>
-            @endforeach
+            @php
+                $cols = count($item['children']) > 3 ? 2 : 1;
+            @endphp
+            <div class="navbar__dropdown-grid cols-{{ $cols }}">
+                @foreach ($item['children'] as $child)
+                    <div class="navbar__dropdown-item-wrapper">
+                        <a href="{{ url($child['url']) }}" 
+                           @if ($child['new_tab']) target="_blank" @endif
+                           class="navbar__dropdown-item" 
+                           itemprop="url">
+                            @if ($child['icon'])
+                                <div class="navbar__dropdown-item-icon">
+                                    <x-icon path="{{ $child['icon'] }}" />
+                                </div>
+                            @endif
+                            <div class="navbar__dropdown-item-content">
+                                <span class="navbar__dropdown-item-title" itemprop="name">{{ __($child['title']) }}</span>
+                                @if (!empty($child['description']))
+                                    <small class="navbar__dropdown-item-description">{{ __($child['description']) }}</small>
+                                @endif
+                            </div>
+                        </a>
+                        {{-- Sub-links displayed below the item like in React --}}
+                        @if (!empty($child['children']) && count($child['children']) > 0)
+                            <div class="navbar__dropdown-sublinks">
+                                @foreach ($child['children'] as $lIdx => $subChild)
+                                    <a href="{{ url($subChild['url']) }}" 
+                                       @if ($subChild['new_tab']) target="_blank" @endif
+                                       class="navbar__dropdown-sublink">
+                                        {{ __($subChild['title']) }}
+                                    </a>
+                                    @if ($lIdx < count($child['children']) - 1)
+                                        <span class="navbar__dropdown-sublink-separator">•</span>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 </div>

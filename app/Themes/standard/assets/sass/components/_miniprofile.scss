@@ -2,7 +2,7 @@
     @extend .d-flex;
 
     flex-direction: column;
-    gap: 30px;
+    gap: var(--space-xl);
     width: 100%;
     height: 100%;
 
@@ -11,7 +11,7 @@
         @extend .d-flex;
 
         flex-direction: column;
-        gap: 15px;
+        gap: var(--space-md);
         width: 100%;
         height: 100%;
     }
@@ -20,7 +20,7 @@
         @extend .flex-center;
 
         flex-direction: column;
-        gap: 10px;
+        gap: var(--space-sm);
 
         &-content {
             @extend .flex-center;
@@ -47,17 +47,17 @@
             @extend .d-flex;
 
             border-top: 1px solid var(--transp-1);
-            padding-top: 10px;
+            padding-top: var(--space-sm);
             flex-direction: column;
-            gap: 5px;
+            gap: var(--space-xs);
         }
     }
 
     &__button {
         @extend .align-center;
 
-        gap: 10px;
-        padding: 6px 10px;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
         @include transition(all);
         border-radius: var(--border05);
         font-size: var(--small);
@@ -81,13 +81,13 @@
 
         width: 100%;
         flex: 1;
-        margin-top: 10px;
+        margin-top: var(--space-sm);
         border: 1px solid var(--transp-2);
-        padding: .5rem 1rem;
+        padding: var(--space-xs) var(--space-md);
         border-radius: var(--border05);
 
         &-content {
-            margin-bottom: 3px;
+            margin-bottom: var(--space-2xs);
 
             h6,
             small {

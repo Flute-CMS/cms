@@ -5,6 +5,10 @@ class PageEditorConfig {
             cancelBtn: "#page-change-cancel",
             widgetsSidebar: ".page-edit-widgets",
             pageEditBtn: "#page-edit-button",
+            pageEditFab: "#page-edit-fab",
+            fabTrigger: "#page-edit-trigger",
+            fabMenu: "#page-edit-menu, .page-edit-fab__ring",
+            fabBackdrop: "#page-edit-backdrop",
             navbar: ".page-edit-nav",
             widgetGrid: "#widget-grid",
             searchInput: "#page-edit-widgets-search",
@@ -529,9 +533,60 @@ class PageEditor {
 
             // Add SEO button element
             this.elements.seoBtn = document.querySelector("#page-change-seo");
+            
+            // Initialize FAB menu
+            this.setupFabMenu();
         } catch (err) {
             console.error("Failed to initialize elements:", err);
         }
+    }
+    
+    setupFabMenu() {
+        const fab = this.elements.pageEditFab;
+        const trigger = this.elements.fabTrigger;
+        const backdrop = this.elements.fabBackdrop;
+        
+        if (!fab || !trigger) return;
+        
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFabMenu();
+        });
+        
+        if (backdrop) {
+            backdrop.addEventListener('click', () => this.closeFabMenu());
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && fab.classList.contains('open')) {
+                this.closeFabMenu();
+            }
+        });
+        
+        // Close FAB when any menu item is clicked
+        const menuItems = fab.querySelectorAll('.page-edit-fab__item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => this.closeFabMenu());
+        });
+    }
+    
+    toggleFabMenu() {
+        const fab = this.elements.pageEditFab;
+        if (!fab) return;
+        
+        if (fab.classList.contains('open')) {
+            this.closeFabMenu();
+        } else {
+            this.openFabMenu();
+        }
+    }
+    
+    openFabMenu() {
+        this.elements.pageEditFab?.classList.add('open');
+    }
+    
+    closeFabMenu() {
+        this.elements.pageEditFab?.classList.remove('open');
     }
 
     setupEventListeners() {
@@ -767,6 +822,8 @@ class PageEditor {
             this.elements.widgetsSidebar?.classList.add("active");
             this.elements.navbar?.classList.add("active");
             this.elements.pageEditBtn?.classList.add("hide");
+            this.elements.pageEditFab?.classList.add("hide");
+            this.closeFabMenu();
 
             this.resetActiveCategory();
 
@@ -821,6 +878,7 @@ class PageEditor {
             this.elements.widgetsSidebar?.classList.remove("active");
             this.elements.navbar?.classList.remove("active");
             this.elements.pageEditBtn?.classList.remove("hide");
+            this.elements.pageEditFab?.classList.remove("hide");
 
             this.resetActiveCategory();
 

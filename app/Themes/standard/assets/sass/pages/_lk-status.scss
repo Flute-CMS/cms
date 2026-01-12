@@ -4,7 +4,7 @@
 
         height: 100%;
         position: relative;
-        margin-top: 30px;
+        margin-top: var(--space-xl);
         height: calc(100vh - 400px);
         --icon-color: var(--error);
         
@@ -12,7 +12,7 @@
             --icon-color: var(--success);
         }
 
-        gap: 10px;
+        gap: var(--space-sm);
     }
 
     &-icon {
@@ -30,7 +30,7 @@
         text-wrap: balance;
         text-align: center;
         line-height: 1.5;
-        margin-bottom: 1rem;
+        margin-bottom: var(--space-md);
         color: var(--text-300);
     }
 }

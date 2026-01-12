@@ -39,15 +39,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     protected $additionalLayouts;
 
-    /**
-     * Dirty-state configuration for the screen (unsaved changes).
-     * Screens may override dirty() to enable and configure behavior.
-     */
-    public function dirty(): ?array
-    {
-        return null;
-    }
-
     public function boot(array $variables, array $attributes): FluteComponentInterface
     {
         parent::boot($variables, $attributes);
@@ -212,7 +203,6 @@ abstract class Screen extends FluteComponent implements ScreenInterface
             'screenLayouts' => $this->build($repository),
             'js' => $this->getJs(),
             'css' => $this->getCss(),
-            'screenDirty' => $this->dirty(),
         ]);
     }
 

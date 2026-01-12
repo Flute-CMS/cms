@@ -103,6 +103,15 @@ class EditPaymentGatewayScreen extends Screen
         $availableDrivers = $this->getAvailableDrivers();
         $currencies = rep(Currency::class)->findAll();
 
+        if (!$this->isEditMode && empty($currencies)) {
+            return [
+                LayoutFactory::alert(__('admin-payment.messages.no_currencies'))
+                    ->type('warning')
+                    ->icon('ph.bold.warning-bold')
+                    ->button(__('admin-payment.buttons.create_currency'), url('/admin/currencies/add')),
+            ];
+        }
+
         if (!$this->isEditMode && empty($availableDrivers)) {
             return [
                 LayoutFactory::view('admin-payment::edit.no_drivers'),
@@ -138,6 +147,33 @@ class EditPaymentGatewayScreen extends Screen
                                 ->accept('image/png, image/jpeg, image/gif, image/webp')
                                 ->defaultFile(asset($this->gateway?->image ?? ''))
                         )->label(__('admin-payment.fields.image.label')),
+
+                        LayoutFactory::field(
+                            Input::make('description')
+                                ->type('text')
+                                ->value($this->gateway->description ?? '')
+                                ->placeholder(__('admin-payment.fields.description.placeholder'))
+                        )->label(__('admin-payment.fields.description.label'))->popover(__('admin-payment.fields.description.help')),
+
+                        LayoutFactory::field(
+                            Input::make('fee')
+                                ->type('number')
+                                ->step('0.01')
+                                ->min('0')
+                                ->max('100')
+                                ->value($this->gateway->fee ?? 0)
+                                ->placeholder(__('admin-payment.fields.fee.placeholder'))
+                        )->label(__('admin-payment.fields.fee.label'))->popover(__('admin-payment.fields.fee.help')),
+
+                        LayoutFactory::field(
+                            Input::make('bonus')
+                                ->type('number')
+                                ->step('0.01')
+                                ->min('0')
+                                ->max('100')
+                                ->value($this->gateway->bonus ?? 0)
+                                ->placeholder(__('admin-payment.fields.bonus.placeholder'))
+                        )->label(__('admin-payment.fields.bonus.label'))->popover(__('admin-payment.fields.bonus.help')),
 
                         LayoutFactory::field(
                             Toggle::make('enabled')
@@ -206,6 +242,9 @@ class EditPaymentGatewayScreen extends Screen
         try {
             if ($this->isEditMode) {
                 $this->gateway->name = $data['name'];
+                $this->gateway->description = $data['description'] ?? null;
+                $this->gateway->fee = isset($data['fee']) ? (float) $data['fee'] : 0;
+                $this->gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
                 $this->gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
                 $imageFile = $files->get('image');
@@ -271,6 +310,9 @@ class EditPaymentGatewayScreen extends Screen
 
                 $gateway = new PaymentGateway();
                 $gateway->name = $data['name'];
+                $gateway->description = $data['description'] ?? null;
+                $gateway->fee = isset($data['fee']) ? (float) $data['fee'] : 0;
+                $gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
                 $gateway->adapter = $data['driverKey'];
                 $gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
@@ -415,6 +457,9 @@ class EditPaymentGatewayScreen extends Screen
     {
         $rules = [
             'name' => ['required', 'string', 'max-str-len:255'],
+            'description' => ['nullable', 'string', 'max-str-len:500'],
+            'fee' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
+            'bonus' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
             'enabled' => ['sometimes', 'boolean'],
             'image' => ['nullable', 'image', 'max-file-size:10'],
             'currencies' => ['required', 'array'],

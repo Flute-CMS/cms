@@ -327,6 +327,10 @@ class SocialService implements SocialServiceInterface
         $userSocialNetwork->socialNetwork = $socialNetwork;
         $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
+        if ($socialNetwork->key === 'Discord' && !empty($userSocialNetwork->value)) {
+            $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+        }
+
         try {
             transaction([$user, $userSocialNetwork])->run();
         } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
@@ -413,6 +417,11 @@ class SocialService implements SocialServiceInterface
             $userSocialNetwork->name = $profile->displayName;
             $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
+            // Normalize Discord profile URL (historical compatibility + consistent behavior)
+            if ($social['entity']->key === 'Discord' && !empty($userSocialNetwork->value)) {
+                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+            }
+
             if ($token) {
                 $userSocialNetwork->additional = json_encode($token);
             }
@@ -432,6 +441,11 @@ class SocialService implements SocialServiceInterface
             $userSocialNetwork->user = $user;
             $userSocialNetwork->socialNetwork = $social['entity'];
             $userSocialNetwork->linkedAt = new DateTimeImmutable();
+
+            // Normalize Discord profile URL (historical compatibility + consistent behavior)
+            if ($social['entity']->key === 'Discord' && !empty($userSocialNetwork->value)) {
+                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+            }
 
             if ($token) {
                 $userSocialNetwork->additional = json_encode($token);

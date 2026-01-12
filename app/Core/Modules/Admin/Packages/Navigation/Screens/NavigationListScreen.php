@@ -79,7 +79,7 @@ class NavigationListScreen extends Screen
                                     ->fullWidth(),
                             ])
                     ),
-            ])->onSortEnd('updateNavbarItemPositions'),
+            ])->maxLevels(levels: 3)->onSortEnd('updateNavbarItemPositions'),
         ];
     }
 
@@ -489,11 +489,27 @@ class NavigationListScreen extends Screen
 
     protected function loadNavbarItems()
     {
-        $this->navbarItems = rep(NavbarItem::class)->select()->orderBy('position', 'asc')->where('parent_id', null)->load('children', [
-            'load' => static function ($qb) {
-                $qb->orderBy('position', 'asc');
-            },
-        ])->fetchAll();
+        $allItems = rep(NavbarItem::class)->select()->orderBy('position', 'asc')->fetchAll();
+
+        $itemsById = [];
+        foreach ($allItems as $item) {
+            $itemsById[$item->id] = $item;
+            $item->children = [];
+        }
+
+        $rootItems = [];
+        foreach ($allItems as $item) {
+            if ($item->parent === null) {
+                $rootItems[] = $item;
+            } else {
+                $parentId = $item->parent->id ?? null;
+                if ($parentId && isset($itemsById[$parentId])) {
+                    $itemsById[$parentId]->children[] = $item;
+                }
+            }
+        }
+
+        $this->navbarItems = $rootItems;
     }
 
     /**

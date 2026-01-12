@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\User\Screens;
 
+use DateTimeZone;
 use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
@@ -920,7 +921,15 @@ class UserEditScreen extends Screen
                     ->width('150px'),
 
                 TD::make('paidAt', __('admin-users.table.payment_date'))
-                    ->render(static fn (PaymentInvoice $invoice) => $invoice->paidAt ? $invoice->paidAt->format('d.m.Y H:i') : '-')
+                    ->render(static function (PaymentInvoice $invoice) {
+                        if (!$invoice->paidAt) {
+                            return '-';
+                        }
+
+                        $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                        return $invoice->paidAt->setTimezone($tz)->format('d.m.Y H:i');
+                    })
                     ->width('200px'),
             ]);
     }

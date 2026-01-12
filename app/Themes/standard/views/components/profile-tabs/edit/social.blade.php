@@ -21,8 +21,14 @@
                                         hx-flute-confirm-type="error" hx-trigger="confirmed"
                                         yoyo:val.social-key="{{ $network->key }}">{{ __('profile.edit.social.unlink') }}</button>
                                 </div>
+                                @php
+                                    $socialUrl = $userNetwork->url;
+                                    if ($network->key === 'Discord' && !empty($userNetwork->value)) {
+                                        $socialUrl = 'https://discordapp.com/users/' . $userNetwork->value;
+                                    }
+                                @endphp
                                 <x-link
-                                    href="{{ $userNetwork->url }}">{{ $userNetwork->name ?? __('profile.edit.social.default_link') }}</x-link>
+                                    href="{{ $socialUrl }}">{{ $userNetwork->name ?? __('profile.edit.social.default_link') }}</x-link>
                             </div>
                         @else
                             <h6>{{ __($network->key) }}</h6>

@@ -830,8 +830,8 @@
 /* ===== Special Effects ===== */
 .blur-bg {
     position: relative;
-    backdrop-filter: saturate(150%) blur(14px);
-    -webkit-backdrop-filter: saturate(150%) blur(14px);
+    backdrop-filter: saturate(150%) blur(var(--blur-amount, 14px));
+    -webkit-backdrop-filter: saturate(150%) blur(var(--blur-amount, 14px));
 }
 
 .icon-hover {

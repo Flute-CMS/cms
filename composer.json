@@ -92,7 +92,8 @@
 	"autoload": {
 		"psr-4": {
 			"Flute\\": "app/",
-			"Flute\\Admin\\": "app/Core/Modules/Admin/"
+			"Flute\\Admin\\": "app/Core/Modules/Admin/",
+			"Hybridauth\\Provider\\": "app/Core/Modules/Auth/Hybrid/"
 		}
 	},
 	"autoload-dev": {

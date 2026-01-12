@@ -82,10 +82,10 @@ class User extends ActiveRecord
     #[HasMany(target: "UserDevice", cascade: true)]
     public array $userDevices = [];
 
-    #[HasMany(target: "UserBlock", cascade: true)]
+    #[HasMany(target: "UserBlock", innerKey: "id", outerKey: "blockedBy_id", cascade: true)]
     public array $blocksGiven = [];
 
-    #[HasMany(target: "UserBlock", cascade: true)]
+    #[HasMany(target: "UserBlock", innerKey: "id", outerKey: "user_id", cascade: true)]
     public array $blocksReceived = [];
 
     #[HasMany(target: "UserActionLog", cascade: true)]
@@ -257,14 +257,14 @@ class User extends ActiveRecord
     public function getBlockInfo() : ?array
     {
         foreach ($this->blocksReceived as $block) {
+            if (! $block->isActive) {
+                continue;
+            }
+
             $now = new \DateTimeImmutable();
             $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
-                if (! $block->isActive) {
-                    return null;
-                }
-
                 return [
                     'reason' => $block->reason,
                     'blockedBy' => $block->blockedBy,

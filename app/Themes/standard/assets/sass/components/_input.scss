@@ -10,13 +10,13 @@
 
         font-size: var(--h5);
         line-height: 1;
-        margin-bottom: 2px;
+        margin-bottom: var(--space-2xs);
     }
 
     &__field-container {
         @extend .align-center;
 
-        gap: 10px;
+        gap: var(--space-sm);
         position: relative;
         width: 100%;
         padding: 0.75em 1em 0.75em 1em;
@@ -58,7 +58,7 @@
         @extend .icon-hover;
 
         position: absolute;
-        right: 0.3em;
+        right: var(--space-2xs);
         width: 36px;
         height: 36px;
         font-size: var(--p-small);

@@ -145,7 +145,10 @@ class ProfileAdminActionsController extends BaseController
             return $this->error(__('def.no_permission'), 403);
         }
 
-        $targetUser = User::findByPK($id);
+        $targetUser = User::query()
+            ->where('id', $id)
+            ->load('blocksReceived')
+            ->fetchOne();
 
         if (!$targetUser) {
             return $this->error(__('def.user_not_found'), 404);
@@ -157,8 +160,10 @@ class ProfileAdminActionsController extends BaseController
 
         try {
             foreach ($targetUser->blocksReceived as $block) {
-                $block->isActive = false;
-                $block->save();
+                if ($block->isActive) {
+                    $block->isActive = false;
+                    $block->save();
+                }
             }
 
             $this->toast(__('profile.admin_actions.user_unbanned'), 'success');

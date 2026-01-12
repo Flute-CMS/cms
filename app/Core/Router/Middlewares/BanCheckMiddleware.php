@@ -51,7 +51,9 @@ class BanCheckMiddleware extends BaseMiddleware
     protected function getBlockReason(FluteRequest $request): string
     {
         if (user()->isLoggedIn() && user()->isBlocked()) {
-            return user()->getCurrentUser()->getBlockInfo()['reason'];
+            $blockInfo = user()->getCurrentUser()->getBlockInfo();
+
+            return $blockInfo['reason'] ?? __('def.unknown_reason');
         }
 
         $ipAddress = $request->getClientIp();

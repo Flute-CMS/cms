@@ -43,6 +43,12 @@ router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/p
     $router->post('save-colors', [ColorController::class, 'saveColors'])
         ->name('pages.saveColors');
 
+    $router->post('save-customize', [ColorController::class, 'saveCustomize'])
+        ->name('pages.saveCustomize');
+
+    $router->post('save-theme', [ColorController::class, 'saveTheme'])
+        ->name('pages.saveTheme');
+
     $router->post('save-layout', [WidgetController::class, 'saveLayout'])
         ->name('pages.saveLayout');
 

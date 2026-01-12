@@ -22,6 +22,14 @@ class PaymentComponent extends FluteComponent
 
     public $amountToPay = null;
 
+    public $gatewayFee = 0;
+
+    public $gatewayFeeAmount = 0;
+
+    public $gatewayBonus = 0;
+
+    public $gatewayBonusAmount = 0;
+
     public ?string $promoCode = null;
 
     public bool $agree = false;
@@ -104,6 +112,26 @@ class PaymentComponent extends FluteComponent
             $exchangeRate = $this->currencyExchangeRates[$this->currency];
             $this->amountToPay = $this->amount;
             $this->amountToReceive = $this->amount * $exchangeRate;
+
+            $this->gatewayFee = 0;
+            $this->gatewayFeeAmount = 0;
+            $this->gatewayBonus = 0;
+            $this->gatewayBonusAmount = 0;
+
+            if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+                $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+                $this->gatewayFee = $gatewayData['fee'] ?? 0;
+                $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
+
+                if ($this->gatewayFee > 0) {
+                    $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
+                }
+
+                if ($this->gatewayBonus > 0) {
+                    $this->gatewayBonusAmount = round(($this->amountToReceive * $this->gatewayBonus) / 100, 2);
+                    $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
+                }
+            }
         } else {
             $this->inputError('currency', __('lk.select_currency_prompt'));
 
@@ -182,6 +210,9 @@ class PaymentComponent extends FluteComponent
                 $this->currencyGateways[$code][$gateway->adapter] = [
                     'name' => $gateway->name,
                     'image' => $gateway->image,
+                    'description' => $gateway->description ?? '',
+                    'fee' => $gateway->fee ?? 0,
+                    'bonus' => $gateway->bonus ?? 0,
                 ];
             }
         }
@@ -214,6 +245,26 @@ class PaymentComponent extends FluteComponent
         $exchangeRate = $this->currencyExchangeRates[$this->currency] ?? 1;
         $this->amountToPay = $this->amount;
         $this->amountToReceive = $this->amount * $exchangeRate;
+
+        $this->gatewayFee = 0;
+        $this->gatewayFeeAmount = 0;
+        $this->gatewayBonus = 0;
+        $this->gatewayBonusAmount = 0;
+
+        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+            $this->gatewayFee = $gatewayData['fee'] ?? 0;
+            $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
+
+            if ($this->gatewayFee > 0) {
+                $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
+            }
+
+            if ($this->gatewayBonus > 0) {
+                $this->gatewayBonusAmount = round(($this->amountToReceive * $this->gatewayBonus) / 100, 2);
+                $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
+            }
+        }
     }
 
     protected function validateInput()

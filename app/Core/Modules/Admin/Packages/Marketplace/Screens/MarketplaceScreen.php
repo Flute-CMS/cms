@@ -364,7 +364,7 @@ class MarketplaceScreen extends Screen
         }
     }
 
-    protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 15): ?string
+    protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 20): ?string
     {
         $moduleFolder = trim($moduleFolder);
         if ($moduleFolder === '') {
@@ -382,18 +382,35 @@ class MarketplaceScreen extends Screen
             explode('/', $normalized)[0] ?? null,
         ], static fn ($v) => is_string($v) && $v !== '')));
 
+        $modulesPath = path('app/Modules');
+
         $start = microtime(true);
+        $attemptCount = 0;
         while ((microtime(true) - $start) < $timeoutSeconds) {
+            $attemptCount++;
             clearstatcache(true);
-            $moduleManager->refreshModules();
 
             foreach ($candidates as $candidate) {
-                if ($moduleManager->issetModule($candidate)) {
-                    return $candidate;
+                $moduleJsonPath = $modulesPath . DIRECTORY_SEPARATOR . $candidate . DIRECTORY_SEPARATOR . 'module.json';
+                if (is_file($moduleJsonPath) && is_readable($moduleJsonPath)) {
+                    $content = @file_get_contents($moduleJsonPath);
+                    if ($content !== false && strlen($content) > 10) {
+                        $moduleManager->clearCache();
+                        $moduleManager->forceReloadModulesJson();
+                        $moduleManager->refreshModules();
+
+                        if ($moduleManager->issetModule($candidate)) {
+                            return $candidate;
+                        }
+                    }
                 }
             }
 
-            usleep(250000);
+            if ($attemptCount <= 3) {
+                usleep(500000);
+            } else {
+                usleep(250000);
+            }
         }
 
         return null;

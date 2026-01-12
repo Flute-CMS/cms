@@ -7,7 +7,7 @@
     // --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
     position: relative;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-xl);
 
     @include media(mobile) {
         --profile-header-height: 300px;
@@ -54,7 +54,7 @@
         margin-top: -2.3rem;
         display: grid;
         grid-template-columns: 300px 1fr;
-        gap: 2rem;
+        gap: var(--space-xl);
         align-items: start;
 
         @include media(mobile) {
@@ -83,11 +83,11 @@
     &__hero {
         background: var(--card-bg);
         border-radius: var(--border1);
-        padding: 1.5rem;
+        padding: var(--space-lg);
         box-shadow: var(--shadow-small);
         border: 1px solid var(--card-border);
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: var(--space-lg);
 
         &-avatar {
             position: relative;
@@ -121,7 +121,7 @@
             justify-content: center;
             flex-wrap: wrap;
             flex-direction: column;
-            gap: .2rem;
+            gap: var(--space-2xs);
         }
 
         &-meta {
@@ -129,15 +129,15 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 1.5rem;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
             color: var(--text-400);
             font-size: var(--small);
 
             span {
                 display: flex;
                 align-items: center;
-                gap: 0.2rem;
+                gap: var(--space-2xs);
             }
         }
     }
@@ -150,11 +150,11 @@
 
     &__actions {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
+        top: var(--space-md);
+        right: var(--space-md);
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-xs);
         z-index: 10;
     }
 
@@ -195,8 +195,8 @@
         &-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
+            gap: var(--space-sm);
+            padding: var(--space-xs) var(--space-sm);
             border-radius: var(--border05);
             width: 100%;
             font-size: var(--p-small);
@@ -245,18 +245,18 @@
         &-divider {
             height: 1px;
             background: var(--transp-2);
-            margin: 6px 0;
+            margin: var(--space-xs) 0;
         }
     }
 
     &__roles {
-        margin-top: 1rem;
+        margin-top: var(--space-md);
 
         &-list {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 0.5rem;
+            gap: var(--space-xs);
             list-style: none;
             padding: 0;
             margin: 0;
@@ -266,8 +266,8 @@
     &__role {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.2rem 0.8rem;
+        gap: var(--space-xs);
+        padding: var(--space-2xs) var(--space-sm);
         background: var(--transp-1);
         border-radius: 25px;
         border: 1px solid var(--transp-2);
@@ -293,7 +293,7 @@
     &__status {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-xs);
         font-size: var(--small);
 
         &--online {
@@ -324,13 +324,13 @@
     }
 
     &__socials {
-        margin-top: 1rem;
+        margin-top: var(--space-md);
 
         &-list {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 0.5rem;
+            gap: var(--space-xs);
             list-style: none;
             padding: 0;
             margin: 0;
@@ -371,7 +371,7 @@
         }
 
         .tab-content {
-            padding-top: 1.5rem;
+            padding-top: var(--space-lg);
         }
     }
 
@@ -379,23 +379,23 @@
         background: var(--card-bg);
         border-radius: var(--border1);
         border: 1px solid var(--card-border);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        padding: var(--space-lg);
+        margin-bottom: var(--space-lg);
         box-shadow: var(--shadow-small);
 
         &-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-md);
             border-bottom: 1px solid var(--transp-2);
 
             h3 {
                 margin: 0;
                 display: flex;
                 align-items: center;
-                gap: 0.5rem;
+                gap: var(--space-xs);
             }
         }
     }
@@ -413,17 +413,17 @@
 .profile-admin-modal {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: var(--space-lg);
 
     &__info {
-        padding-bottom: 1rem;
+        padding-bottom: var(--space-md);
         border-bottom: 1px solid var(--transp-1);
     }
 
     &__user {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--space-sm);
     }
 
     &__avatar {
@@ -437,7 +437,7 @@
     &__user-details {
         display: flex;
         flex-direction: column;
-        gap: 0.125rem;
+        gap: var(--space-2xs);
     }
 
     &__name {
@@ -458,7 +458,7 @@
     &__field {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-xs);
 
         .input__field-container {
             background: var(--transp-02);
@@ -502,7 +502,7 @@
     &__actions {
         display: flex;
         justify-content: flex-end;
-        gap: 0.75rem;
-        padding-top: 0.5rem;
+        gap: var(--space-sm);
+        padding-top: var(--space-xs);
     }
 }

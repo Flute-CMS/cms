@@ -170,10 +170,17 @@ class PaymentProcessor
         $amount = $invoice->amount;
 
         $promoBonus = 0;
+        $gatewayBonus = 0;
 
         if ($promo) {
             $promoData = payments()->promo()->validate($promo->code, $user->id, $invoice->originalAmount);
             $promoBonus = $this->calculatePromoBonus($promoData, $invoice->originalAmount);
+        }
+
+        // Calculate gateway bonus
+        $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
+        if ($gateway && $gateway->bonus > 0) {
+            $gatewayBonus = round(($amount * $gateway->bonus) / 100, 2);
         }
 
         $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
@@ -181,7 +188,7 @@ class PaymentProcessor
         $invoice->paidAt = new DateTimeImmutable();
         transaction($invoice)->run();
 
-        $totalAmount = $amount + $promoBonus;
+        $totalAmount = $amount + $promoBonus + $gatewayBonus;
 
         if ($promo) {
             $this->recordPromoUsage($promo, $user, $invoice);

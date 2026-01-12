@@ -1,0 +1,65 @@
+.button-group {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+
+    &__item {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: var(--border05);
+        background: var(--transp-05);
+        border: 1px solid transparent;
+        color: var(--text-500);
+        font-size: var(--p-small);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition) ease;
+        white-space: nowrap;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            background: var(--transp-1);
+            color: var(--text);
+        }
+
+        &.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--background-950);
+        }
+    }
+
+    // Icon only variant
+    &--icons {
+        .button-group__item {
+            padding: var(--space-xs);
+
+            span {
+                display: none;
+            }
+        }
+    }
+
+    // Compact variant
+    &--compact {
+        gap: var(--space-2xs);
+
+        .button-group__item {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--small);
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+    }
+}
+

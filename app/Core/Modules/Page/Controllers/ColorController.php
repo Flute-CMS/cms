@@ -96,4 +96,240 @@ class ColorController extends BaseController
             ], 500);
         }
     }
+
+    /**
+     * Saves the customization settings for a theme.
+     *
+     * @param FluteRequest $fluteRequest The incoming request containing customization data.
+     */
+    public function saveCustomize(FluteRequest $fluteRequest)
+    {
+        $settings = $fluteRequest->input('settings', []);
+        $theme = $fluteRequest->input('theme', 'dark');
+
+        if (is_string($settings)) {
+            $settings = Json::decode($settings, true);
+        }
+
+        $rules = [
+            'nav_type' => 'sometimes|string|in:horizontal,sidebar,sidebar-mini',
+            'nav_position' => 'sometimes|string|in:top,sticky,fixed',
+            'nav_blur' => 'sometimes|boolean',
+            'footer_type' => 'sometimes|string|in:default,minimal,expanded,hidden',
+            'footer_columns' => 'sometimes|integer|min:1|max:5',
+            'footer_socials' => 'sometimes|boolean',
+            'font_family' => 'sometimes|string|max:50',
+            'heading_font' => 'sometimes|string|max:50',
+            'font_size' => 'sometimes|integer|min:12|max:24',
+            'line_height' => 'sometimes|numeric|min:1|max:3',
+            'heading_weight' => 'sometimes|integer|in:400,500,600,700,800',
+            'container_padding' => 'sometimes|integer|min:0|max:64',
+            'section_gap' => 'sometimes|integer|min:0|max:96',
+            'card_padding' => 'sometimes|integer|min:0|max:48',
+            'element_gap' => 'sometimes|integer|min:0|max:32',
+            'shadow_intensity' => 'sometimes|integer|min:0|max:100',
+            'blur_amount' => 'sometimes|integer|min:0|max:30',
+            'animations' => 'sometimes|boolean',
+            'transition_speed' => 'sometimes|string|in:0.1s,0.2s,0.3s,0.5s',
+            'hover_scale' => 'sometimes|boolean',
+            'max_width' => 'sometimes|integer|min:800|max:2560',
+            'sidebar_width' => 'sometimes|integer|min:180|max:400',
+            'content_align' => 'sometimes|string|in:left,center',
+            'theme' => 'required|string|in:dark,light',
+        ];
+
+        $data = array_merge($settings, ['theme' => $theme]);
+
+        if (!$this->validator->validate($data, $rules)) {
+            $errors = collect($this->validator->getErrors()->getMessages());
+            $firstError = $errors->first()[0] ?? 'Invalid input.';
+            $this->toast($firstError, 'error');
+
+            return $this->json([
+                'success' => false,
+                'errors' => $errors->toArray(),
+            ], 422);
+        }
+
+        try {
+            // Convert settings to CSS custom properties format
+            $customizeSettings = [
+                '--nav-type' => $settings['nav_type'] ?? 'horizontal',
+                '--nav-position' => $settings['nav_position'] ?? 'top',
+                '--nav-blur' => ($settings['nav_blur'] ?? true) ? 'true' : 'false',
+                '--footer-type' => $settings['footer_type'] ?? 'default',
+                '--footer-columns' => (string) ($settings['footer_columns'] ?? 3),
+                '--footer-socials' => ($settings['footer_socials'] ?? true) ? 'true' : 'false',
+                '--font-family' => "'" . ($settings['font_family'] ?? 'Manrope') . "', sans-serif",
+                '--heading-font' => ($settings['heading_font'] ?? 'inherit') === 'inherit'
+                    ? 'inherit'
+                    : "'" . $settings['heading_font'] . "', sans-serif",
+                '--base-font-size' => ($settings['font_size'] ?? 16) . 'px',
+                '--line-height' => (string) ($settings['line_height'] ?? 1.5),
+                '--heading-weight' => (string) ($settings['heading_weight'] ?? 600),
+                '--container-padding' => ($settings['container_padding'] ?? 16) . 'px',
+                '--section-gap' => ($settings['section_gap'] ?? 24) . 'px',
+                '--card-padding' => ($settings['card_padding'] ?? 16) . 'px',
+                '--element-gap' => ($settings['element_gap'] ?? 12) . 'px',
+                '--shadow-intensity' => (string) (($settings['shadow_intensity'] ?? 30) / 100),
+                '--blur-amount' => ($settings['blur_amount'] ?? 10) . 'px',
+                '--animations' => ($settings['animations'] ?? true) ? 'true' : 'false',
+                '--transition-speed' => $settings['transition_speed'] ?? '0.2s',
+                '--hover-scale' => ($settings['hover_scale'] ?? true) ? 'true' : 'false',
+                '--max-content-width' => ($settings['max_width'] ?? 1200) . 'px',
+                '--sidebar-width' => ($settings['sidebar_width'] ?? 260) . 'px',
+                '--content-align' => $settings['content_align'] ?? 'left',
+            ];
+
+            $currentTheme = app('flute.view.manager')->getCurrentTheme();
+            $this->themeActions->updateThemeColors($currentTheme, $customizeSettings, $theme);
+
+            $this->toast(__('def.settings_updated'), 'success');
+
+            return $this->json([
+                'success' => true,
+                'message' => __('def.settings_updated'),
+            ], 200);
+        } catch (Exception $e) {
+            logs('templates')->error("Failed to update theme customization: " . $e->getMessage());
+            $message = is_debug() ? $e->getMessage() : 'Failed to update theme customization. Please try again later.';
+            $this->toast($message, 'error');
+
+            return $this->json([
+                'success' => false,
+                'error' => $message,
+            ], 500);
+        }
+    }
+
+    /**
+     * Saves all theme settings (colors + customization) in one request.
+     *
+     * @param FluteRequest $fluteRequest The incoming request containing all theme data.
+     */
+    public function saveTheme(FluteRequest $fluteRequest)
+    {
+        $colors = $fluteRequest->input('colors', []);
+        $settings = $fluteRequest->input('settings', []);
+        $theme = $fluteRequest->input('theme', 'dark');
+
+        if (is_string($colors)) {
+            $colors = Json::decode($colors, true);
+        }
+        if (is_string($settings)) {
+            $settings = Json::decode($settings, true);
+        }
+
+        // Validate colors
+        $colorRules = [
+            '--accent' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--primary' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--secondary' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--background' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--text' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--border1' => 'sometimes|numeric|min:0.25|max:4',
+            '--background-type' => 'sometimes|string|in:solid,linear-gradient,radial-gradient,mesh-gradient,subtle-gradient,aurora-gradient,sunset-gradient,ocean-gradient,spotlight-gradient',
+            '--bg-grad1' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--bg-grad2' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--bg-grad3' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            '--container-width' => 'sometimes|string|in:container,fullwidth',
+        ];
+
+        // Validate settings
+        $settingsRules = [
+            'font' => 'sometimes|string',
+            'font_header' => 'sometimes|string',
+            'font_scale' => 'sometimes|string',
+            'space_xs' => 'sometimes|string',
+            'space_sm' => 'sometimes|string',
+            'space_md' => 'sometimes|string',
+            'space_lg' => 'sometimes|string',
+            'space_xl' => 'sometimes|string',
+            'transition' => 'sometimes|string',
+            'blur_amount' => 'sometimes|string',
+            'max_content_width' => 'sometimes|string',
+            'shadow_small' => 'sometimes|string',
+            'shadow_medium' => 'sometimes|string',
+            'shadow_large' => 'sometimes|string',
+        ];
+
+        $allRules = array_merge($colorRules, $settingsRules, ['theme' => 'required|string|in:dark,light']);
+        $data = array_merge($colors, $settings, ['theme' => $theme]);
+
+        if (!$this->validator->validate($data, $allRules)) {
+            $errors = collect($this->validator->getErrors()->getMessages());
+            $firstError = $errors->first()[0] ?? 'Invalid input.';
+            $this->toast($firstError, 'error');
+
+            return $this->json([
+                'success' => false,
+                'errors' => $errors->toArray(),
+            ], 422);
+        }
+
+        try {
+            $themeSettings = [];
+
+            // Process colors
+            foreach ($colors as $key => $value) {
+                if (str_starts_with($key, '--')) {
+                    if ($key === '--border1' && is_numeric($value)) {
+                        $themeSettings[$key] = $value . 'rem';
+                        $themeSettings['--border05'] = (floatval($value) / 2) . 'rem';
+                    } else {
+                        $themeSettings[$key] = $value;
+                    }
+                }
+            }
+
+            // Process settings (convert to CSS variables)
+            $settingsMap = [
+                'font' => '--font',
+                'font_header' => '--font-header',
+                'font_scale' => '--font-scale',
+                'space_xs' => '--space-xs',
+                'space_sm' => '--space-sm',
+                'space_md' => '--space-md',
+                'space_lg' => '--space-lg',
+                'space_xl' => '--space-xl',
+                'transition' => '--transition',
+                'blur_amount' => '--blur-amount',
+                'max_content_width' => '--max-content-width',
+                'shadow_small' => '--shadow-small',
+                'shadow_medium' => '--shadow-medium',
+                'shadow_large' => '--shadow-large',
+            ];
+
+            foreach ($settings as $key => $value) {
+                $cssKey = $settingsMap[$key] ?? null;
+                if ($cssKey && $value !== null && $value !== '') {
+                    $themeSettings[$cssKey] = $value;
+                }
+            }
+
+            // Set defaults if not provided
+            if (!isset($themeSettings['--background-type'])) {
+                $themeSettings['--background-type'] = 'solid';
+            }
+
+            $currentTheme = app('flute.view.manager')->getCurrentTheme();
+            $this->themeActions->updateThemeColors($currentTheme, $themeSettings, $theme);
+
+            $this->toast(__('page-edit.settings_saved'), 'success');
+
+            return $this->json([
+                'success' => true,
+                'message' => __('page-edit.settings_saved'),
+            ], 200);
+        } catch (Exception $e) {
+            logs('templates')->error("Failed to save theme settings: " . $e->getMessage());
+            $message = is_debug() ? $e->getMessage() : 'Failed to save theme settings. Please try again later.';
+            $this->toast($message, 'error');
+
+            return $this->json([
+                'success' => false,
+                'error' => $message,
+            ], 500);
+        }
+    }
 }

@@ -9,6 +9,30 @@ if (typeof Sortable === 'undefined') {
         return container?.dataset?.containerKey || (location.pathname + '#' + Array.from(document.querySelectorAll('.sortable-container')).indexOf(container));
     }
 
+    /**
+     * Calculate maximum depth of nested children within an element
+     * Returns how many additional levels the children add (0 if no children with content)
+     */
+    function getMaxChildDepth(element) {
+        const li = element.closest('li.sortable-list-item') || element;
+        const nestedList = li.querySelector(':scope > ol[data-sortable]');
+        
+        if (!nestedList) return 0;
+        
+        const children = nestedList.querySelectorAll(':scope > li');
+        if (children.length === 0) return 0;
+
+        let maxChildDepth = 0;
+        children.forEach((child) => {
+            const childDepth = 1 + getMaxChildDepth(child);
+            if (childDepth > maxChildDepth) {
+                maxChildDepth = childDepth;
+            }
+        });
+
+        return maxChildDepth;
+    }
+
     function initializeSortables(container = document) {
         const sortableElements = container.querySelectorAll('[data-sortable]');
 
@@ -52,12 +76,31 @@ if (typeof Sortable === 'undefined') {
                         related.classList.add(event.willInsertAfter ? 'insert-after' : 'insert-before');
                     }
 
-                    const level = $(event.to).parents('[data-sortable]').length;
-                    const length = $(event.dragged).find(
-                        '[data-sortable] > li',
-                    ).length;
+                    // Get max levels from container data attribute (default: 2)
+                    const container = el.closest('.sortable-container');
+                    const maxLevels = parseInt(container?.dataset?.maxLevels, 10) || 2;
 
-                    return !((length > 0 && level > 0) || level > 1);
+                    // Count how many ancestor li.sortable-list-item elements the target ol has
+                    let targetDepth = 0;
+                    let node = event.to;
+                    while (node && node !== container) {
+                        if (node.matches && node.matches('li.sortable-list-item')) {
+                            targetDepth++;
+                        }
+                        node = node.parentElement;
+                    }
+
+                    // The item being dropped will be at depth: targetDepth + 1
+                    const dropDepth = targetDepth + 1;
+
+                    // Get how deep children of the dragged item go
+                    const draggedChildDepth = getMaxChildDepth(event.dragged);
+
+                    // Total max depth after drop
+                    const totalDepth = dropDepth + draggedChildDepth;
+
+                    // Allow if total depth <= maxLevels
+                    return totalDepth <= maxLevels;
                 },
             });
 

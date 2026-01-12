@@ -147,6 +147,9 @@ function initializeFilePondElement(element) {
             filePondOptions.files = [
                 {
                     source: defaultFile,
+                    options: {
+                        type: 'local',
+                    },
                 },
             ];
         }

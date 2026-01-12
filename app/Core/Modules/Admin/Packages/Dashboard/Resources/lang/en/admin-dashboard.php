@@ -12,6 +12,7 @@ return [
         'welcome_message' => 'Welcome to the dashboard',
         'user_registrations' => 'User registration trends',
         'user_activity' => 'User activity by day',
+        'user_engagement' => 'New users vs active users for last 7 days',
         'notifications' => 'Notification stats',
         'activity_by_hour' => 'Activity by hour',
         'system_load' => 'System load',
@@ -42,6 +43,7 @@ return [
     'charts' => [
         'user_registrations' => 'User Registrations',
         'user_activity' => 'User Activity',
+        'user_engagement' => 'User Engagement',
         'notifications' => 'Notifications',
         'activity_by_hour' => 'Hourly Activity',
         'system_load' => 'System Load',

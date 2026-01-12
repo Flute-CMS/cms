@@ -11,7 +11,7 @@
     &-content {
         @extend .flex-row, .flex-center;
 
-        gap: .8rem;
+        gap: var(--space-sm);
 
         &::before {
             content: '';
@@ -19,7 +19,7 @@
             width: 18px;
             height: 18px;
             border: 2px solid var(--transp-4);
-            right: 20px;
+            right: var(--space-lg);
             top: 50%;
             transform: translateY(-50%);
             border-radius: 50%;
@@ -81,8 +81,8 @@
             @extend .flex-column;
 
             width: 100%;
-            gap: 2px;
-            padding-right: 30px;
+            gap: var(--space-2xs);
+            padding-right: var(--space-xl);
         }
     }
 

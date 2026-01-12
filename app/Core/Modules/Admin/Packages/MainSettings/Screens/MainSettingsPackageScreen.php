@@ -67,28 +67,6 @@ class MainSettingsPackageScreen extends Screen
         $this->loadProfileTabs();
     }
 
-    public function dirty(): ?array
-    {
-        return [
-            'enabled' => true,
-            'save' => [
-                // Default save action in this screen is yoyo:post="save" (commandBar)
-                'yoyoPost' => 'save',
-            ],
-            'discard' => [
-                'mode' => 'reload',
-            ],
-            'i18n' => [
-                'bar' => __('def.save_changes'),
-                'save' => __('def.save'),
-                'discard' => __('def.reset'),
-                'stay' => __('def.cancel'),
-                'dialog_title' => __('def.unsaved_changes'),
-                'dialog_text' => __('def.unsaved_changes_text'),
-            ],
-        ];
-    }
-
     public function commandBar(): array
     {
         return [

@@ -32,3 +32,4 @@ php-cs-fixer
 /.php-cs-fixer.cache
 docs/
 .cursor
+app/Modules
