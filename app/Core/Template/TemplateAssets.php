@@ -511,12 +511,27 @@ class TemplateAssets
                 } else {
                     // Performance issue with autoprefixer in debug mode
                     if (!is_debug()) {
-                        $autoprefixer = new Autoprefixer($content);
+                        $originalContent = $content;
+                        $autoprefixTimeout = 10; // seconds
 
                         try {
+                            $startTime = microtime(true);
+                            $autoprefixer = new Autoprefixer($content);
                             $content = $autoprefixer->compile();
+                            $elapsed = microtime(true) - $startTime;
+
+                            // Log if autoprefixer took too long (for future diagnostics)
+                            if ($elapsed > $autoprefixTimeout) {
+                                logs()->warning(sprintf(
+                                    'Autoprefixer took %.2fs (threshold: %ds), CSS size: %d bytes',
+                                    $elapsed,
+                                    $autoprefixTimeout,
+                                    strlen($originalContent)
+                                ));
+                            }
                         } catch (Throwable $e) {
                             logs()->error("Autoprefixer failed: " . $e->getMessage());
+                            $content = $originalContent;
                         }
                     }
                 }
@@ -955,7 +970,7 @@ class TemplateAssets
 
         $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
         $this->scssCompiler->setImportPaths($baseImportPaths);
-        $importPaths = array_map(static fn ($p) => str_replace('\\', '/', $p), $importPaths);
+        $importPaths = array_map(static fn($p) => str_replace('\\', '/', $p), $importPaths);
         foreach (array_unique($importPaths) as $importPath) {
             if (is_dir($importPath)) {
                 $this->scssCompiler->addImportPath($importPath);
@@ -1024,9 +1039,11 @@ class TemplateAssets
                         continue;
                     }
 
-                    if (str_starts_with($importExpr, 'http')
+                    if (
+                        str_starts_with($importExpr, 'http')
                         || str_contains($importExpr, 'url(')
-                        || str_ends_with($importExpr, '.css')) {
+                        || str_ends_with($importExpr, '.css')
+                    ) {
                         continue;
                     }
 

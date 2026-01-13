@@ -210,7 +210,7 @@ class DatabaseConnection
 
         if (!$gotLock) {
             // Another process is compiling - wait for lock release (with timeout), then fallback to cache.
-            $maxWait = 30.0; // seconds
+            $maxWait = 15.0; // seconds (reduced from 30s to prevent cascading delays)
             $waited = 0.0;
 
             while (!$gotLock && $waited < $maxWait) {
@@ -221,6 +221,11 @@ class DatabaseConnection
 
             if (!$gotLock) {
                 fclose($lockHandle);
+
+                logs()->warning('ORM schema compilation: lock wait timeout', [
+                    'waited_seconds' => $waited,
+                    'max_wait' => $maxWait,
+                ]);
 
                 if (file_exists(self::SCHEMA_FILE)) {
                     $this->recompileOrmSchema(true);
@@ -323,7 +328,7 @@ class DatabaseConnection
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
-                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
+                static fn($generator) => !($generator instanceof Schema\Generator\SyncTables)
             );
 
             return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
@@ -752,8 +757,8 @@ class DatabaseConnection
      */
     private function dirsEqual(array $a, array $b): bool
     {
-        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
-        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
+        $na = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $b));
 
         return $na === $nb;
     }

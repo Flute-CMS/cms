@@ -69,11 +69,7 @@ final class CacheWarmupService
         }
 
         try {
-            @ignore_user_abort(true);
-            @set_time_limit(0);
-
             try {
-                // Ensure modules caches are built.
                 app(ModuleManager::class)->initialize();
             } catch (Throwable $e) {
                 logs('cron')->warning($e);

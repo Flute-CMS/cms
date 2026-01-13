@@ -5,13 +5,26 @@
     z-index: 60;
     overflow: auto;
     bottom: 0px;
+    left: 0;
+    right: 0;
     width: 100%;
     min-height: 60px;
     border-top: 1px solid var(--transp-1);
     // background-color: var(--background-900);
+    
+    // Safari iOS fix for bottom navigation
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 
     @include media(pc) {
         display: none;
+    }
+
+    // Ensure safe area padding for iOS devices with notch
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        padding-bottom: env(safe-area-inset-bottom);
     }
 
     &__content {

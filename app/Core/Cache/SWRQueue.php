@@ -33,7 +33,7 @@ final class SWRQueue
         return !empty(self::$tasks);
     }
 
-    public static function run(int $limit = 25): void
+    public static function run(int $limit = 25, int $maxTotalSeconds = 60, int $maxTaskSeconds = 30): void
     {
         if (self::$ran) {
             return;
@@ -63,7 +63,10 @@ final class SWRQueue
 
         try {
             @ignore_user_abort(true);
-            @set_time_limit(0);
+            // Set overall time limit instead of unlimited
+            if (function_exists('set_time_limit')) {
+                @set_time_limit($maxTotalSeconds + 10);
+            }
 
             $startedAt = microtime(true);
             $timings = [];
@@ -74,10 +77,31 @@ final class SWRQueue
                     break;
                 }
 
+                $elapsed = microtime(true) - $startedAt;
+                if ($elapsed >= $maxTotalSeconds) {
+                    if (function_exists('logs')) {
+                        logs()->warning('SWR queue: total time limit reached', [
+                            'elapsed' => $elapsed,
+                            'limit' => $maxTotalSeconds,
+                            'remaining_tasks' => count(self::$tasks) - $count,
+                        ]);
+                    }
+                    break;
+                }
+
                 try {
                     $t0 = microtime(true);
                     $task();
-                    $timings[$id] = microtime(true) - $t0;
+                    $taskTime = microtime(true) - $t0;
+                    $timings[$id] = $taskTime;
+
+                    if ($taskTime > $maxTaskSeconds && function_exists('logs')) {
+                        logs()->warning('SWR task exceeded time limit', [
+                            'task' => $id,
+                            'duration' => $taskTime,
+                            'limit' => $maxTaskSeconds,
+                        ]);
+                    }
                 } catch (Throwable $e) {
                     if (function_exists('logs')) {
                         logs()->warning($e);
