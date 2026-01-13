@@ -86,6 +86,7 @@ final class SWRQueue
                             'remaining_tasks' => count(self::$tasks) - $count,
                         ]);
                     }
+
                     break;
                 }
 

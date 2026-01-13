@@ -970,7 +970,7 @@ class TemplateAssets
 
         $baseImportPaths = $this->scssCompiler->getBaseImportPaths();
         $this->scssCompiler->setImportPaths($baseImportPaths);
-        $importPaths = array_map(static fn($p) => str_replace('\\', '/', $p), $importPaths);
+        $importPaths = array_map(static fn ($p) => str_replace('\\', '/', $p), $importPaths);
         foreach (array_unique($importPaths) as $importPath) {
             if (is_dir($importPath)) {
                 $this->scssCompiler->addImportPath($importPath);
