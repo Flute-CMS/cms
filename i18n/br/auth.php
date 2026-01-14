@@ -1,4 +1,6 @@
-<?php return [
+<?php 
+
+return [
     "confirmation" => [
         "subject"            => "Confirmação de Conta",
         "success"            => "Confirmação realizada com sucesso",
