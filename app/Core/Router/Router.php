@@ -312,7 +312,7 @@ class Router implements RouterInterface
      */
     public function view(string $path, string $view, array $options = []): Route
     {
-        return $this->addRoute('GET', $path, static fn() => response()->view($view, $options));
+        return $this->addRoute('GET', $path, static fn () => response()->view($view, $options));
     }
 
     /**
@@ -326,7 +326,7 @@ class Router implements RouterInterface
      */
     public function redirect(string $path, string $destination, int $status = 302): Route
     {
-        return $this->addRoute('GET', $path, static fn() => redirect($destination, $status));
+        return $this->addRoute('GET', $path, static fn () => redirect($destination, $status));
     }
 
     /**
@@ -452,7 +452,7 @@ class Router implements RouterInterface
             }
 
             $middleware = $this->gatherMiddleware();
-            $pipeline = new MiddlewareRunner($middleware, $request, fn($request) => $this->runRoute($request, $parameters));
+            $pipeline = new MiddlewareRunner($middleware, $request, fn ($request) => $this->runRoute($request, $parameters));
 
             $tPipe = microtime(true);
             $response = $pipeline->run();

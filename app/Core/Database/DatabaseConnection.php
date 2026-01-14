@@ -303,7 +303,7 @@ class DatabaseConnection
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
-                static fn($generator) => !($generator instanceof Schema\Generator\SyncTables)
+                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
             );
 
             return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
@@ -732,8 +732,8 @@ class DatabaseConnection
      */
     private function dirsEqual(array $a, array $b): bool
     {
-        $na = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $a));
-        $nb = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $b));
+        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
 
         return $na === $nb;
     }
