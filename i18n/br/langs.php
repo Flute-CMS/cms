@@ -1,5 +1,6 @@
 <?php
 return [
+    "az" => "Azərbaycanca",
     "en" => "English",
     "ru" => "Русский",
     "uk" => "Українська",

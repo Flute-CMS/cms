@@ -13,15 +13,15 @@ return [
     "promo_code" => "Código promocional",
     "promo_code_copy_success" => "Código promocional copiado",
     "discount" => [
-        "percentage" => "Desconto de :value%",
-        "amount" => "Adicione :value :currency ao saldo",
+        "percentage" => "Desconto :value%",
+        "amount" => "Adicionar :value :currency ao saldo",
     ],
     "recent_payments" => "Pagamentos recentes",
     "top_donors" => "Maiores doadores",
     "no_donors" => "Ninguém doou para o nosso projeto ainda 😢",
     "user_mini_profile" => "Mini perfil do usuário",
     "empty" => "Campo vazio",
-    "editor_empty" => "Por favor, insira um texto no editor",
+    "editor_empty" => "Digite um texto no editor",
     "editor" => "Editor",
     "settings" => [
         "users" => [
@@ -35,7 +35,7 @@ return [
             "height" => "Altura",
         ],
         "editor" => [
-            "inCard" => "Envolver conteúdo em um card",
+            "inCard" => "Encapsular conteúdo em um card",
             "content" => "Conteúdo",
         ],
     ],
@@ -49,7 +49,7 @@ return [
     ],
     
     "content" => [
-        "name" => "Conteúdo da Página",
+        "name" => "Conteúdo da página",
         "description" => "Conteúdo principal da página a partir de templates",
         "no_content" => "Nenhum conteúdo disponível",
     ],
