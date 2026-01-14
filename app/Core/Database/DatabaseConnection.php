@@ -210,7 +210,7 @@ class DatabaseConnection
 
         if (!$gotLock) {
             // Another process is compiling - wait for lock release (with timeout), then fallback to cache.
-            $maxWait = 30.0; // seconds
+            $maxWait = 15.0; // seconds (reduced from 30s to prevent cascading delays)
             $waited = 0.0;
 
             while (!$gotLock && $waited < $maxWait) {
@@ -221,6 +221,11 @@ class DatabaseConnection
 
             if (!$gotLock) {
                 fclose($lockHandle);
+
+                logs()->warning('ORM schema compilation: lock wait timeout', [
+                    'waited_seconds' => $waited,
+                    'max_wait' => $maxWait,
+                ]);
 
                 if (file_exists(self::SCHEMA_FILE)) {
                     $this->recompileOrmSchema(true);
