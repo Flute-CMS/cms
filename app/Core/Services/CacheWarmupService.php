@@ -55,16 +55,9 @@ final class CacheWarmupService
     public function warmup(): void
     {
         $lockPath = path(self::WARMUP_LOCK_FILE);
-        @mkdir(dirname($lockPath), 0o755, true);
 
-        $handle = @fopen($lockPath, 'w+');
+        $handle = FileLockService::acquireLock($lockPath);
         if ($handle === false) {
-            return;
-        }
-
-        if (!@flock($handle, LOCK_EX | LOCK_NB)) {
-            @fclose($handle);
-
             return;
         }
 
@@ -104,8 +97,7 @@ final class CacheWarmupService
 
             $this->clearNeeded();
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            FileLockService::releaseLock($handle);
         }
     }
 }

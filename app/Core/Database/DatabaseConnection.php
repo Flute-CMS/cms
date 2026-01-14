@@ -17,7 +17,6 @@ use Cycle\Schema;
 use Cycle\Schema\Compiler;
 use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
-use Exception;
 use FilesystemIterator;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
@@ -199,40 +198,18 @@ class DatabaseConnection
         }
 
         $lockFile = storage_path('app/cache/orm_schema.lock');
-        $lockHandle = fopen($lockFile, 'w+');
 
-        if (!$lockHandle) {
-            throw new Exception("Failed to open lock file: {$lockFile}");
-        }
+        // Use FileLockService for concurrent schema compilation protection
+        $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 15.0);
 
-        // Try non-blocking lock first
-        $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
+        if ($lockHandle === false) {
+            logs()->warning('ORM schema compilation: lock wait timeout or stale lock detected');
 
-        if (!$gotLock) {
-            // Another process is compiling - wait for lock release (with timeout), then fallback to cache.
-            $maxWait = 15.0; // seconds (reduced from 30s to prevent cascading delays)
-            $waited = 0.0;
-
-            while (!$gotLock && $waited < $maxWait) {
-                usleep(100000); // 100ms
-                $waited += 0.1;
-                $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
+            if (file_exists(self::SCHEMA_FILE)) {
+                $this->recompileOrmSchema(true);
             }
 
-            if (!$gotLock) {
-                fclose($lockHandle);
-
-                logs()->warning('ORM schema compilation: lock wait timeout', [
-                    'waited_seconds' => $waited,
-                    'max_wait' => $maxWait,
-                ]);
-
-                if (file_exists(self::SCHEMA_FILE)) {
-                    $this->recompileOrmSchema(true);
-                }
-
-                return;
-            }
+            return;
         }
 
         try {
@@ -283,9 +260,7 @@ class DatabaseConnection
 
             $this->schemaNeedsUpdate = false;
         } finally {
-            flock($lockHandle, LOCK_UN);
-            fclose($lockHandle);
-            @unlink($lockFile);
+            \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
         }
     }
 
@@ -328,7 +303,7 @@ class DatabaseConnection
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
-                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
+                static fn($generator) => !($generator instanceof Schema\Generator\SyncTables)
             );
 
             return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
@@ -757,8 +732,8 @@ class DatabaseConnection
      */
     private function dirsEqual(array $a, array $b): bool
     {
-        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
-        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
+        $na = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $b));
 
         return $na === $nb;
     }

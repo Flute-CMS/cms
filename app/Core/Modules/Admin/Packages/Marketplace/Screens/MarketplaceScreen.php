@@ -199,6 +199,8 @@ class MarketplaceScreen extends Screen
      */
     public function installModule(string $slug)
     {
+        $this->ensureServicesInitialized();
+
         if (function_exists('set_time_limit')) {
             @set_time_limit(0);
         }
@@ -321,7 +323,8 @@ class MarketplaceScreen extends Screen
             $moduleInstaller->finishInstallation();
             $this->moduleManager->clearCache();
             $this->moduleManager->refreshModules();
-            $this->loadModules();
+            $this->marketplaceService->clearModuleCache($slug);
+            $this->loadModules(true);
         }
 
         $this->isLoading = false;
@@ -467,5 +470,18 @@ class MarketplaceScreen extends Screen
         });
 
         $this->modules = array_values($filteredModules);
+    }
+
+    /**
+     * Ensure services are initialized (for Yoyo actions)
+     */
+    protected function ensureServicesInitialized(): void
+    {
+        if (!isset($this->marketplaceService)) {
+            $this->marketplaceService = app(MarketplaceService::class);
+        }
+        if (!isset($this->moduleManager)) {
+            $this->moduleManager = app(ModuleManager::class);
+        }
     }
 }

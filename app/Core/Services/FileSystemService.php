@@ -26,31 +26,19 @@ class FileSystemService extends Filesystem
 
         $this->mkdir($cacheDir);
 
-        $handle = @fopen($lockFile, 'c+');
+        // Use FileLockService for concurrent access protection
+        $handle = FileLockService::acquireLockWithWait($lockFile, 2.0);
+
         if ($handle === false) {
+            // Could not acquire lock, try to load cache anyway or generate without lock
+            if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
+                return;
+            }
+
             $this->generateHelpersCache($helpersPath, $cacheFile);
             $this->writeHelpersCacheMeta($helpersPath, $metaFile);
 
             return;
-        }
-
-        $gotLock = @flock($handle, LOCK_EX | LOCK_NB);
-        if (!$gotLock) {
-            $maxWait = 2.0;
-            $waited = 0.0;
-
-            while ($waited < $maxWait) {
-                if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
-                    @fclose($handle);
-
-                    return;
-                }
-
-                usleep(100000);
-                $waited += 0.1;
-            }
-
-            $gotLock = @flock($handle, LOCK_EX);
         }
 
         try {
@@ -61,8 +49,7 @@ class FileSystemService extends Filesystem
             $this->generateHelpersCache($helpersPath, $cacheFile);
             $this->writeHelpersCacheMeta($helpersPath, $metaFile);
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            FileLockService::releaseLock($handle);
         }
     }
 

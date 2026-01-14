@@ -157,14 +157,11 @@ abstract class AbstractCacheDriver implements CacheInterface
         }
 
         $lockDir = path('storage/app/cache/locks');
-        if (!is_dir($lockDir)) {
-            @mkdir($lockDir, 0o755, true);
-        }
-
         $lockFile = $lockDir . '/' . md5($key) . '.lock';
-        $lockHandle = @fopen($lockFile, 'w+');
 
-        if ($lockHandle && flock($lockHandle, LOCK_EX | LOCK_NB)) {
+        $lockHandle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
+
+        if ($lockHandle !== false) {
             try {
                 $item = $this->cache->getItem($key);
                 if ($item->isHit()) {
@@ -199,21 +196,13 @@ abstract class AbstractCacheDriver implements CacheInterface
 
                 return $value;
             } finally {
-                flock($lockHandle, LOCK_UN);
-                fclose($lockHandle);
-                @unlink($lockFile);
+                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
             }
-        } elseif ($lockHandle) {
-            flock($lockHandle, LOCK_SH);
-            flock($lockHandle, LOCK_UN);
-            fclose($lockHandle);
+        }
 
-            $item = $this->cache->getItem($key);
-            if ($item->isHit()) {
-                return $item->get();
-            }
-
-            return $callback();
+        $item = $this->cache->getItem($key);
+        if ($item->isHit()) {
+            return $item->get();
         }
 
         return $callback();

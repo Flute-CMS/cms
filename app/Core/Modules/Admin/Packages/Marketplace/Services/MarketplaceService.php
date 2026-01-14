@@ -258,7 +258,7 @@ class MarketplaceService
     }
 
     /**
-     * Clear
+     * Clear all marketplace cache
      */
     public function clearCache(): void
     {
@@ -271,6 +271,24 @@ class MarketplaceService
         }
 
         cache()->delete('marketplace_module_caches');
+    }
+
+    /**
+     * Clear cache for a specific module
+     *
+     * @param string $slug Module slug
+     */
+    public function clearModuleCache(string $slug): void
+    {
+        cache()->delete('marketplace_module_' . $slug);
+        cache()->delete('marketplace_module_versions_' . $slug);
+
+        $cacheKeys = cache()->get('marketplace_module_caches', []);
+        foreach ($cacheKeys as $key) {
+            if (str_starts_with($key, 'marketplace_modules_')) {
+                cache()->delete($key);
+            }
+        }
     }
 
     /**

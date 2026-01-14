@@ -50,20 +50,13 @@ final class SWRQueue
             ? storage_path('app/swr_queue.lock')
             : (defined('BASE_PATH') ? BASE_PATH . 'storage/app/swr_queue.lock' : 'swr_queue.lock');
 
-        $handle = @fopen($lockFile, 'w+');
+        $handle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
         if ($handle === false) {
-            return;
-        }
-
-        if (!@flock($handle, LOCK_EX | LOCK_NB)) {
-            fclose($handle);
-
             return;
         }
 
         try {
             @ignore_user_abort(true);
-            // Set overall time limit instead of unlimited
             if (function_exists('set_time_limit')) {
                 @set_time_limit($maxTotalSeconds + 10);
             }
@@ -122,8 +115,7 @@ final class SWRQueue
                 ]);
             }
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            \Flute\Core\Services\FileLockService::releaseLock($handle);
         }
     }
 }

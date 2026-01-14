@@ -312,7 +312,7 @@ class Router implements RouterInterface
      */
     public function view(string $path, string $view, array $options = []): Route
     {
-        return $this->addRoute('GET', $path, static fn () => response()->view($view, $options));
+        return $this->addRoute('GET', $path, static fn() => response()->view($view, $options));
     }
 
     /**
@@ -326,7 +326,7 @@ class Router implements RouterInterface
      */
     public function redirect(string $path, string $destination, int $status = 302): Route
     {
-        return $this->addRoute('GET', $path, static fn () => redirect($destination, $status));
+        return $this->addRoute('GET', $path, static fn() => redirect($destination, $status));
     }
 
     /**
@@ -405,37 +405,33 @@ class Router implements RouterInterface
                 }
 
                 $lockFile = $cacheFile . '.lock';
-                $lockHandle = @fopen($lockFile, 'w+');
-                if (!$lockHandle) {
+
+                // Use FileLockService for concurrent route compilation protection
+                $lockHandle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
+                if ($lockHandle === false) {
                     return;
                 }
 
-                if (@flock($lockHandle, LOCK_EX | LOCK_NB)) {
-                    try {
-                        if (file_exists($cacheFile)) {
-                            return;
-                        }
-
-                        $dumper = new CompiledUrlMatcherDumper($compilable);
-                        $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
-                        $compiledSource = (string) $compiledSource;
-                        $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
-
-                        $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
-                        if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
-                            @rename($tmp, $cacheFile);
-                        }
-                    } catch (Throwable $e) {
-                        if (function_exists('logs')) {
-                            logs()->warning($e);
-                        }
-                    } finally {
-                        @flock($lockHandle, LOCK_UN);
-                        @fclose($lockHandle);
-                        @unlink($lockFile);
+                try {
+                    if (file_exists($cacheFile)) {
+                        return;
                     }
-                } else {
-                    @fclose($lockHandle);
+
+                    $dumper = new CompiledUrlMatcherDumper($compilable);
+                    $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                    $compiledSource = (string) $compiledSource;
+                    $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+
+                    $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+                    if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
+                        @rename($tmp, $cacheFile);
+                    }
+                } catch (Throwable $e) {
+                    if (function_exists('logs')) {
+                        logs()->warning($e);
+                    }
+                } finally {
+                    \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
                 }
             });
         }
@@ -456,7 +452,7 @@ class Router implements RouterInterface
             }
 
             $middleware = $this->gatherMiddleware();
-            $pipeline = new MiddlewareRunner($middleware, $request, fn ($request) => $this->runRoute($request, $parameters));
+            $pipeline = new MiddlewareRunner($middleware, $request, fn($request) => $this->runRoute($request, $parameters));
 
             $tPipe = microtime(true);
             $response = $pipeline->run();

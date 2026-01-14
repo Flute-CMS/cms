@@ -33,3 +33,4 @@ php-cs-fixer
 docs/
 .cursor
 app/Modules
+*.lock

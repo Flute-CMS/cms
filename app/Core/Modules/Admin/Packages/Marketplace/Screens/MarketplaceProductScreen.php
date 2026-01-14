@@ -171,6 +171,7 @@ class MarketplaceProductScreen extends Screen
             }
             $this->moduleManager->clearCache();
             $this->moduleManager->refreshModules();
+            $this->marketplaceService->clearModuleCache($slug);
             $this->loadModule();
             $this->isLoading = false;
         }
