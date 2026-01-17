@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\User\Services;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\SocialNetwork;
@@ -54,7 +55,7 @@ class AdminUsersService
         $block->blockedBy = user()->getCurrentUser();
         $block->reason = $data['reason'];
         $block->blockedFrom = new DateTimeImmutable();
-        $block->blockedUntil = $data['blockedUntil'] ? new DateTimeImmutable($data['blockedUntil']) : null;
+        $block->blockedUntil = $data['blockedUntil'] ? $this->parseDateTime($data['blockedUntil']) : null;
         $block->save();
     }
 
@@ -174,6 +175,18 @@ class AdminUsersService
         }
 
         $network->delete();
+    }
+
+    /**
+     * Parse datetime string from datetime-local input.
+     * The input comes in format Y-m-d\TH:i without timezone info.
+     * We interpret it as the application's configured timezone.
+     */
+    private function parseDateTime(string $dateTimeString): DateTimeImmutable
+    {
+        $timezone = new DateTimeZone(config('app.timezone') ?: date_default_timezone_get());
+
+        return new DateTimeImmutable($dateTimeString, $timezone);
     }
 
     /**

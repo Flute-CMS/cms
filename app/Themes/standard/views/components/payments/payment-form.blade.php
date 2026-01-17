@@ -176,7 +176,8 @@
                                     inputmode="decimal" autocomplete="off"
                                     min="{{ $currencyMinimumAmounts[$currency] }}" step="0.01"
                                     value="{{ $amount }}" required placeholder="0"
-                                    aria-describedby="amount-description" />
+                                    aria-describedby="amount-description"
+                                    yoyo:focus />
                                 <span class="lk-amount-currency">{{ $currency }}</span>
                             </div>
                         </x-forms.field>
@@ -209,7 +210,8 @@
                                 <x-icon path="ph.regular.ticket" class="lk-promo-inline-icon" />
                                 <input type="text" name="promoCode" id="promoCode" form="payment-form"
                                     value="{{ $promoCode }}" class="lk-promo-inline-input"
-                                    placeholder="{{ __('lk.enter_promo_code') }}" />
+                                    placeholder="{{ __('lk.enter_promo_code') }}"
+                                    yoyo:focus />
                                 @if ($promoCode && $promoIsValid)
                                     <x-icon path="ph.bold.check" class="lk-promo-inline-status success" />
                                 @elseif ($promoCode && !$promoIsValid)

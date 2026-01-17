@@ -101,7 +101,7 @@ class ModuleInstallerService
                 'allow_redirects' => false,
             ]);
 
-            $body = method_exists($response, 'getBody') ? (string)$response->getBody() : '';
+            $body = method_exists($response, 'getBody') ? (string) $response->getBody() : '';
             if (
                 $response->getStatusCode() === 401
             ) {
@@ -469,7 +469,7 @@ class ModuleInstallerService
             usleep(300000);
         }
 
-        throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования');
+        throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования (' . $moduleJsonPath . ')');
     }
 
     /**
@@ -532,11 +532,7 @@ class ModuleInstallerService
         }
 
         if (!is_dir($destination)) {
-            $dirPerms = fileperms($source) & 0o777;
-            mkdir($destination, $dirPerms, true);
-            chmod($destination, $dirPerms);
-            @chown($destination, fileowner($source));
-            @chgrp($destination, filegroup($source));
+            mkdir($destination, 0o755, true);
         }
 
         $directory = opendir($source);
@@ -555,11 +551,9 @@ class ModuleInstallerService
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
-                copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+                if (copy($sourcePath, $destinationPath)) {
+                    chmod($destinationPath, 0o644);
+                }
             }
         }
 

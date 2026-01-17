@@ -180,9 +180,7 @@
     @endif
 
     @if (!$isPartialRequest)
-        @if (str_contains(strtolower($__colors['--font']), 'manrope') || str_contains(strtolower($__colors['--font-header']), 'manrope'))
-            <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        @endif
+        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
         <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
@@ -254,7 +252,6 @@
     @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.header')
-    @includeWhen(!$isPartialRequest, 'flute::components.sidebar')
 
     @if (!$isPartialRequest)
         @can('admin.pages')

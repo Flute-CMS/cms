@@ -358,9 +358,227 @@ html[data-footer-type="hidden"] {
     }
 }
 
+// ========================================
+// GLASS FOOTER - Floating bar style
+// ========================================
+
+html[data-footer-type="glass"] {
+    #footer {
+        position: relative;
+        margin-top: 4rem;
+        background: transparent;
+        border-top: none;
+
+        > .container {
+            max-width: 100%;
+            padding: 0 var(--space-lg);
+        }
+    }
+
+    .footer {
+        margin: 0 auto var(--space-lg);
+        padding: var(--space-sm) var(--space-lg);
+        background: var(--blurred-background, rgba(20, 20, 23, 0.8));
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        border-radius: var(--border1);
+        border: 1px solid var(--transp-1);
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.12),
+            0 1px 4px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+        &__content {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+        }
+
+        &__col {
+            max-width: none !important;
+            min-width: auto !important;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        &__logo {
+            margin-bottom: 0;
+        }
+
+        &__description {
+            display: none;
+        }
+
+        &__nav-cols {
+            flex: 1;
+            justify-content: center;
+            gap: var(--space-lg);
+        }
+
+        &__title {
+            margin-bottom: 0;
+
+            > a, > span {
+                font-size: var(--p-small);
+                text-transform: none;
+                font-weight: 500;
+            }
+        }
+
+        &__items {
+            display: none;
+        }
+
+        &__socials {
+            margin-top: 0;
+            flex-direction: row;
+            align-items: center;
+            gap: 0;
+
+            &-title {
+                display: none;
+            }
+
+            &-container {
+                gap: var(--space-2xs);
+
+                > a {
+                    width: 2rem;
+                    height: 2rem;
+                    background-color: transparent;
+                    border: none;
+
+                    &:hover {
+                        background-color: var(--transp-1);
+                        color: var(--accent);
+                    }
+                }
+            }
+        }
+    }
+
+    .footer__bottom {
+        display: none;
+    }
+
+    // Light theme adjustments
+    &[data-theme="light"] .footer {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.06),
+            0 1px 4px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    // Mobile responsive
+    @include media(tablet) {
+        .footer {
+            padding: var(--space-md);
+            border-radius: var(--border1);
+
+            &__content {
+                flex-direction: column;
+                text-align: center;
+                gap: var(--space-md);
+            }
+
+            &__col {
+                flex-direction: column;
+                gap: var(--space-sm);
+            }
+
+            &__nav-cols {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: var(--space-sm) var(--space-md);
+            }
+        }
+    }
+}
+
+// ========================================
+// CENTERED FOOTER - Clean centered layout
+// ========================================
+
+html[data-footer-type="centered"] {
+    #footer {
+        margin-top: 6rem;
+        text-align: center;
+    }
+
+    .footer {
+        padding: var(--space-xl) 0;
+
+        &__content {
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        &__col:first-child {
+            max-width: 100%;
+            text-align: center;
+            order: -1;
+        }
+
+        &__logo {
+            margin: 0 auto var(--space-sm);
+        }
+
+        &__description {
+            max-width: 500px;
+            margin: 0 auto var(--space-md);
+            text-align: center;
+        }
+
+        &__nav-cols {
+            justify-content: center;
+            width: auto;
+        }
+
+        &__socials {
+            align-items: center;
+            margin-top: var(--space-md);
+
+            &-title {
+                text-align: center;
+            }
+
+            &-container {
+                justify-content: center;
+            }
+        }
+
+        &__bottom {
+            justify-content: center;
+            flex-direction: column;
+            gap: var(--space-sm);
+            text-align: center;
+        }
+
+        &__down {
+            width: 100%;
+        }
+    }
+}
+
+// ========================================
+// FOOTER ELEMENT VISIBILITY
+// ========================================
+
 // Hide socials in footer
 html[data-footer-socials="false"] {
     #footer .footer__socials {
+        display: none !important;
+    }
+}
+
+// Hide logo in footer
+html[data-footer-logo="false"] {
+    #footer .footer__logo {
         display: none !important;
     }
 }

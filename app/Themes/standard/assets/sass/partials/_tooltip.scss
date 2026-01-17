@@ -1,22 +1,58 @@
 .tooltip {
-    background-color: var(--secondary);
-    color: var(--text);
+    --tooltip-bg: var(--blurred-background);
+
     position: absolute;
     z-index: 10100;
-    font-size: var(--small);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--border05);
-    max-width: 200px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--transition) ease-out,
-        transform var(--transition) ease-in-out;
-    line-height: 1.2;
-    opacity: 0;
-    will-change: transform;
+    max-width: 240px;
+    padding: 8px 14px;
+
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
     text-align: center;
+    color: var(--text);
+
+    background: var(--tooltip-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+    border-radius: 10px;
+
+    box-shadow: var(--shadow-small);
+
+    opacity: 0;
+    transform: scale(0.96);
+    transform-origin: center;
+    pointer-events: none;
+    will-change: opacity, transform;
+
+    transition:
+        opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &[data-placement^="top"] {
+        transform-origin: center bottom;
+        transform: scale(0.96) translateY(4px);
+    }
+
+    &[data-placement^="bottom"] {
+        transform-origin: center top;
+        transform: scale(0.96) translateY(-4px);
+    }
+
+    &[data-placement^="left"] {
+        transform-origin: right center;
+        transform: scale(0.96) translateX(4px);
+    }
+
+    &[data-placement^="right"] {
+        transform-origin: left center;
+        transform: scale(0.96) translateX(-4px);
+    }
 }
 
 .tooltip.show {
     opacity: 1;
+    transform: scale(1) translate(0);
 }

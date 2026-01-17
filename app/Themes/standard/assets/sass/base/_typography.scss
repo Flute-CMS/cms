@@ -59,6 +59,10 @@ body {
     font-family: var(--font);
     color: var(--text);
     background-color: var(--background);
+    background-image: var(--page-gradient, none);
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
     overflow-x: hidden;
     position: relative;
     line-height: 1.75;
@@ -76,6 +80,15 @@ body {
     @include media(mobile) {
         padding-bottom: 80px;
     }
+}
+
+html[data-container-width="fullwidth"] .container:not(.keep-container) {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+html[data-container-width="container"] .container:not(.keep-container) {
+    max-width: var(--max-content-width) !important;
 }
 
 .small {

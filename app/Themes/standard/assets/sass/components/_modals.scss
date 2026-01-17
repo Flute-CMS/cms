@@ -153,9 +153,10 @@
 
         &::before {
             content: "\2715";
-            font-size: 1.3rem;
+            font-size: 1rem;
             position: relative;
             z-index: 1;
+            line-height: 1.25;
         }
         
         &::after {

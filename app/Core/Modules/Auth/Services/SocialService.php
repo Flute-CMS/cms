@@ -558,8 +558,19 @@ class SocialService implements SocialServiceInterface
      */
     private function initializePSR()
     {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\');
-        app()->getLoader()->addPsr4('Hybridauth\\Provider\\', BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid');
+        $hybridPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid';
+
+        $loader = app()->getLoader();
+
+        $loader->addPsr4('Hybridauth\\Provider\\', $hybridPath);
+
+        $loader->addClassMap([
+            'Hybridauth\\Provider\\Vkontakte' => $hybridPath . DIRECTORY_SEPARATOR . 'Vkontakte.php',
+            'Hybridauth\\Provider\\Yandex' => $hybridPath . DIRECTORY_SEPARATOR . 'Yandex.php',
+            'Hybridauth\\Provider\\HttpsSteam' => $hybridPath . DIRECTORY_SEPARATOR . 'HttpsSteam.php',
+        ]);
+
+        $loader->register();
     }
 
     /**
@@ -569,10 +580,10 @@ class SocialService implements SocialServiceInterface
     {
         $loader = app()->getLoader();
 
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, 'Hybridauth\\Provider\\Discord');
+        $hybridPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid';
 
         $loader->addClassMap([
-            $path => BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid' . DIRECTORY_SEPARATOR . 'Discord.php',
+            'Hybridauth\\Provider\\Discord' => $hybridPath . DIRECTORY_SEPARATOR . 'Discord.php',
         ]);
 
         $loader->register();

@@ -3,6 +3,7 @@
 namespace Flute\Core\Modules\Profile\Controllers;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserBlock;
 use Flute\Core\Support\BaseController;
@@ -127,7 +128,7 @@ class ProfileAdminActionsController extends BaseController
             $block->reason = $request->input('reason');
             $block->blockedFrom = new DateTimeImmutable();
             $block->blockedUntil = $request->input('blocked_until')
-                ? new DateTimeImmutable($request->input('blocked_until'))
+                ? $this->parseDateTime($request->input('blocked_until'))
                 : null;
             $block->save();
 
@@ -292,5 +293,17 @@ class ProfileAdminActionsController extends BaseController
         } catch (Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Parse datetime string from datetime-local input.
+     * The input comes in format Y-m-d\TH:i without timezone info.
+     * We interpret it as the application's configured timezone.
+     */
+    private function parseDateTime(string $dateTimeString): DateTimeImmutable
+    {
+        $timezone = new DateTimeZone(config('app.timezone') ?: date_default_timezone_get());
+
+        return new DateTimeImmutable($dateTimeString, $timezone);
     }
 }

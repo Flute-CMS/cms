@@ -52,7 +52,8 @@ class CacheClearCommand extends Command
                     $filesystem->rename($src, $dst, true);
                 } catch (IOException) {
                     if (!is_dir($dst)) {
-                        @mkdir($dst, 0o755, true);
+                        @mkdir($dst, 0o775, true);
+                        $this->fixPermissions($dst);
                     }
 
                     $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
@@ -81,22 +82,58 @@ class CacheClearCommand extends Command
             if (function_exists('cache_warmup_mark')) {
                 cache_warmup_mark();
             }
+            
+            $rotateDir = function (Filesystem $filesystem, string $src, string $dst): void {
+                 if (is_dir($dst)) {
+                    $filesystem->remove($dst);
+                }
 
-            // Rotate cache directory for SWR: keep previous values in cache_stale.
+                if (!is_dir($src)) {
+                    return;
+                }
+
+                try {
+                    $filesystem->rename($src, $dst, true);
+                } catch (IOException) {
+                    if (!is_dir($dst)) {
+                        @mkdir($dst, 0o775, true);
+                        $this->fixPermissions($dst);
+                    }
+
+                    $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
+                    foreach ($entries as $entry) {
+                        if (is_string($entry) && str_ends_with(strtolower($entry), '.lock')) {
+                            continue;
+                        }
+
+                        try {
+                            $filesystem->rename($entry, rtrim($dst, '/\\') . '/' . basename($entry), true);
+                        } catch (IOException) {
+                            try {
+                                $filesystem->remove($entry);
+                            } catch (IOException) {
+                            }
+                        }
+                    }
+                }
+            };
+
             $rotateDir($filesystem, $cacheDir, $cacheStaleDir);
             if (!is_dir($cacheDir)) {
-                @mkdir($cacheDir, 0o755, true);
+                @mkdir($cacheDir, 0o775, true);
+                $this->fixPermissions($cacheDir);
             }
 
-            // Rotate assets cache for SWR: TemplateAssets can serve stale while recompiling.
             $rotateDir($filesystem, $cssCacheDir, $cssCacheStaleDir);
             if (!is_dir($cssCacheDir)) {
-                @mkdir($cssCacheDir, 0o755, true);
+                @mkdir($cssCacheDir, 0o775, true);
+                $this->fixPermissions($cssCacheDir);
             }
 
             $rotateDir($filesystem, $jsCacheDir, $jsCacheStaleDir);
             if (!is_dir($jsCacheDir)) {
-                @mkdir($jsCacheDir, 0o755, true);
+                @mkdir($jsCacheDir, 0o775, true);
+                $this->fixPermissions($jsCacheDir);
             }
 
             if ($full) {
@@ -118,6 +155,21 @@ class CacheClearCommand extends Command
             $io->error($e->getMessage());
 
             return Command::FAILURE;
+        }
+    }
+
+    protected function fixPermissions(string $path): void
+    {
+        if (!function_exists('posix_getuid')) {
+            return;
+        }
+
+        if (posix_getuid() === 0) { // Running as root
+            $user = posix_getpwnam('www-data');
+            if ($user) {
+                @chown($path, $user['uid']);
+                @chgrp($path, $user['gid']);
+            }
         }
     }
 }

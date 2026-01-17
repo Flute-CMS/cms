@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\Payment\Services;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PromoCode;
@@ -64,7 +65,7 @@ class PaymentService
         $promoCode->max_usages = $data['max_usages'] ? (int) $data['max_usages'] : null;
         $promoCode->type = $data['type'];
         $promoCode->value = (float) $data['value'];
-        $promoCode->expires_at = $data['expires_at'] ? new DateTimeImmutable($data['expires_at']) : null;
+        $promoCode->expires_at = $data['expires_at'] ? $this->parseDateTime($data['expires_at']) : null;
         $promoCode->max_uses_per_user = $data['max_uses_per_user'] ? (int) $data['max_uses_per_user'] : null;
         $promoCode->minimum_amount = $data['minimum_amount'] ? (float) $data['minimum_amount'] : null;
         $promoCode->save();
@@ -120,6 +121,18 @@ class PaymentService
     public function getPromoCodeUsageHistory(PromoCode $promoCode): array
     {
         return array_reverse($promoCode->usages);
+    }
+
+    /**
+     * Parse datetime string from datetime-local input.
+     * The input comes in format Y-m-d\TH:i without timezone info.
+     * We interpret it as the application's configured timezone.
+     */
+    private function parseDateTime(string $dateTimeString): DateTimeImmutable
+    {
+        $timezone = new DateTimeZone(config('app.timezone') ?: date_default_timezone_get());
+
+        return new DateTimeImmutable($dateTimeString, $timezone);
     }
 
     /**

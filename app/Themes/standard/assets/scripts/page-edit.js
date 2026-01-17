@@ -323,6 +323,7 @@ class PageEditor {
         this._docListenersAttached = false;
         this._htmxListenersAttached = false;
         this._searchDebounce = null;
+        this.skipHtmxConfirmation = false;
 
         this.elements = {};
         this.initializeElements();
@@ -866,33 +867,41 @@ class PageEditor {
 
         try {
             if (this.hasUnsavedChanges) {
-                const confirmLeave = confirm(
-                    this.config.translations.unsavedChanges
-                );
-                if (!confirmLeave) return;
+                app.confirmations.showConfirmDialog({
+                    message: this.config.translations.unsavedChanges,
+                    type: "warning",
+                    onConfirm: () => {
+                        this.performDisable(ignoreHtmx);
+                    }
+                });
+                return;
             }
 
-            this.isProcessing = true;
-
-            document.body.classList.remove("page-edit-mode");
-            this.elements.widgetsSidebar?.classList.remove("active");
-            this.elements.navbar?.classList.remove("active");
-            this.elements.pageEditBtn?.classList.remove("hide");
-            this.elements.pageEditFab?.classList.remove("hide");
-
-            this.resetActiveCategory();
-
-            this.destroyGrid(ignoreHtmx);
-
-            app.dropdowns.closeAllDropdowns();
-
-            setTimeout(() => {
-                this.isProcessing = false;
-            }, this.animationDuration);
+            this.performDisable(ignoreHtmx);
         } catch (err) {
             this.isProcessing = false;
             this.logError("disable", err);
         }
+    }
+
+    performDisable(ignoreHtmx = false) {
+        this.isProcessing = true;
+
+        document.body.classList.remove("page-edit-mode");
+        this.elements.widgetsSidebar?.classList.remove("active");
+        this.elements.navbar?.classList.remove("active");
+        this.elements.pageEditBtn?.classList.remove("hide");
+        this.elements.pageEditFab?.classList.remove("hide");
+
+        this.resetActiveCategory();
+
+        this.destroyGrid(ignoreHtmx);
+
+        app.dropdowns.closeAllDropdowns();
+
+        setTimeout(() => {
+            this.isProcessing = false;
+        }, this.animationDuration);
     }
 
     initializeGrid() {
@@ -1998,15 +2007,7 @@ class PageEditor {
                         if (
                             document.body.classList.contains("page-edit-mode")
                         ) {
-                            const confirmLeave = this.hasUnsavedChanges
-                                ? confirm(
-                                      this.config.translations.unsavedChanges
-                                  )
-                                : true;
-
-                            if (confirmLeave) {
-                                this.disable();
-                            }
+                            this.disable();
                         }
                         break;
                 }
@@ -2155,31 +2156,50 @@ class PageEditor {
             evt.detail.target?.id === "main" &&
             document.body.classList.contains("page-edit-mode")
         ) {
-            if (this.hasUnsavedChanges) {
-                const confirmLeave = confirm(
-                    this.config.translations.unsavedChanges
-                );
-                if (!confirmLeave) {
-                    evt.preventDefault();
-                    return;
-                }
+            if (this.hasUnsavedChanges && !this.skipHtmxConfirmation) {
+                evt.preventDefault();
+                
+                const triggerElement = evt.detail.elt;
+                
+                app.confirmations.showConfirmDialog({
+                    message: this.config.translations.unsavedChanges,
+                    type: "warning",
+                    onConfirm: () => {
+                        this.skipHtmxConfirmation = true;
+                        this.performDisable(true);
+                        
+                        if (triggerElement) {
+                            htmx.trigger(triggerElement, 'click');
+                        }
+                        
+                        setTimeout(() => {
+                            this.skipHtmxConfirmation = false;
+                        }, 100);
+                    }
+                });
+                return;
             }
-            this.disable(true);
+            this.skipHtmxConfirmation = false;
+            this.performDisable(true);
         }
     }
 
     resetLayout() {
-        if (!confirm(this.config.translations.resetConfirm)) return;
+        app.confirmations.showConfirmDialog({
+            message: this.config.translations.resetConfirm,
+            type: "warning",
+            onConfirm: () => {
+                // Remove all widgets except Content widget
+                const items = Array.from(this.grid.getGridItems());
+                items.forEach((item) => {
+                    if (item.getAttribute("data-widget-name") !== "Content") {
+                        this.grid.removeWidget(item);
+                    }
+                });
 
-        // Remove all widgets except Content widget
-        const items = Array.from(this.grid.getGridItems());
-        items.forEach((item) => {
-            if (item.getAttribute("data-widget-name") !== "Content") {
-                this.grid.removeWidget(item);
+                this.handleGridChange();
             }
         });
-
-        this.handleGridChange();
     }
 
     destroyGrid(ignoreHtmx = false) {

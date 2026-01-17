@@ -1,4 +1,3 @@
-// Navbar easing functions
 $nav-ease: cubic-bezier(0.32, 0.72, 0, 1);
 $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -15,6 +14,12 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     border-bottom: 1px solid var(--transp-1);
     margin-bottom: var(--space-lg);
     box-shadow: 0 1px 2px #00000030, 0 2px 4px #00000015;
+
+    // Remove backdrop-filter when dropdown is open so dropdown blur works
+    &.dropdown-open {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
 
     &__content {
         display: flex;
@@ -338,7 +343,10 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transition: opacity 0.25s ease, visibility 0.25s ease, left 0.35s $nav-ease;
+        transition:
+            opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+            visibility 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+            transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
         z-index: 100;
 
         &.is-open {
@@ -348,27 +356,19 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
-    // Box with blur hack using ::before pseudo-element
     &__box {
         position: relative;
-        border-radius: 32px;
-        box-shadow: var(--shadow-small);
+        border-radius: 24px;
+        background: var(--blurred-background, rgba(20, 20, 23, 0.8));
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid var(--transp-1);
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         transition:
-            width 0.35s $nav-ease,
-            height 0.35s $nav-ease;
+            width 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+            height 0.3s cubic-bezier(0.32, 0.72, 0, 1);
         will-change: width, height;
-        
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: var(--blurred-background);
-            backdrop-filter: blur(calc(var(--blur-amount, 10px) * 4)) saturate(180%);
-            -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 4)) saturate(180%);
-            border-radius: inherit;
-            border: 1px solid var(--transp-1);
-            z-index: -1;
-        }
     }
 
     &__content {
@@ -376,17 +376,21 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         top: 0;
         left: 0;
         width: 100%;
+        z-index: 1;
         padding: var(--space-sm);
         opacity: 0;
-        transform: translateY(8px);
         pointer-events: none;
-        transition: opacity 0.2s ease, transform 0.3s $nav-ease-out;
+        transform: translateY(8px);
+        transition:
+            opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+            transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 
         &.is-active {
             opacity: 1;
-            transform: translateY(0);
             pointer-events: auto;
-            transition-delay: 0.05s;
+            z-index: 2;
+            transform: translateY(0);
+            transition-delay: 0.075s;
         }
     }
 
@@ -408,16 +412,17 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         flex-direction: column;
         padding: var(--space-sm);
         border-radius: 20px;
-        transition: background-color 0.15s ease;
-        
+        transition: background-color 0.15s ease, transform 0.2s $nav-ease-out;
+        will-change: transform;
+
         &:hover {
             background-color: var(--transp-05);
-            
+
             .navbar-dropdown__menu-icon {
                 color: var(--text);
                 background-color: var(--transp-1);
             }
-            
+
             .navbar-dropdown__menu-title {
                 color: var(--text);
             }
@@ -518,6 +523,35 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 }
 
+@keyframes navbarDropdownItemIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.01);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .navbar-dropdown__popup,
+    .navbar-dropdown__box,
+    .navbar-dropdown__content,
+    .navbar-dropdown__menu-item {
+        transition: none;
+        animation: none;
+        transform: none;
+    }
+}
+
 // Light theme adjustments
 html[data-theme="light"] {
     .navbar-dropdown__box::before {
@@ -572,89 +606,387 @@ html[data-theme="dark"] {
     }
 }
 
-@include media(tablet) {
-    html[data-nav-type="sidebar"],
-    html[data-nav-type="sidebar-mini"] {
-        .flute_header {
-            position: relative;
-            width: 100%;
-            height: auto;
-
-            .navbar {
-                flex-direction: row;
-                height: auto;
-                padding: 15px 0;
-                border-right: none;
-                border-bottom: 1px solid var(--transp-1);
-
-                .navbar__content {
-                    flex-direction: row;
-                }
-
-                .navbar__left {
-                    flex-direction: row;
-                }
-
-                .navbar__content-logo {
-                    padding: 0;
-                    border-bottom: none;
-                    margin-bottom: 0;
-                }
-
-                .navbar-dropdown {
-                    display: flex;
-                    flex-direction: row;
-                    padding: 0;
-                    
-                    &__items {
-                        flex-direction: row;
-                    }
-                    
-                    &__item {
-                        width: auto;
-                        height: auto;
-                        padding: var(--space-xs) var(--space-sm);
-                        
-                        span {
-                            display: inline;
-                        }
-                        
-                        .navbar-dropdown__chevron {
-                            display: inline;
-                        }
-                    }
-                    
-                    &__popup {
-                        display: block;
-                        position: absolute;
-                    }
-                }
-
-                .navbar__actions {
-                    flex-direction: row;
-                    margin-top: 0;
-                    padding: 0;
-                    border-top: none;
-                }
-            }
-        }
-
-        #main,
-        #footer {
-            margin-left: 0;
-            width: 100%;
-        }
-    }
-}
-
 // Mobile
 @include media(mobile) {
     .navbar-dropdown {
         display: none;
     }
-    
+
     .navbar__socials {
         display: none;
     }
 }
 
+html[data-nav-style="pill"] {
+    .flute_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: transparent;
+        z-index: 60;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+    }
+
+    .navbar {
+        pointer-events: auto;
+        max-width: fit-content;
+        margin: var(--space-sm) auto 0;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 9999px;
+        background: var(--blurred-background);
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        border: 1px solid var(--transp-1);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.1),
+            0 1px 3px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.3s $nav-ease;
+        margin-bottom: 20px;
+
+        &__content {
+            gap: var(--space-xs);
+            justify-content: center;
+        }
+
+        &__left {
+            gap: var(--space-xs);
+            width: auto;
+        }
+
+        &__logo {
+            min-width: 32px;
+            max-width: 100px;
+
+            img {
+                max-height: 32px;
+            }
+        }
+
+        &__separator {
+            display: block;
+            height: 20px;
+            margin: 0 var(--space-2xs);
+        }
+
+        .navbar-dropdown {
+            margin: 0;
+
+            &__item {
+                font-size: calc(var(--p-small) * 0.95);
+            }
+        }
+
+        &__actions {
+            gap: var(--space-2xs);
+        }
+
+        &__profile,
+        &__lang {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    #main {
+        padding-top: calc(60px + var(--space-lg));
+    }
+}
+
+// ========================================
+// PILL TRANSPARENT - Glass reveal style
+// ========================================
+
+html[data-nav-style="pill-transparent"] {
+    .flute_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: transparent;
+        z-index: 60;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+    }
+
+    .navbar {
+        pointer-events: auto;
+        max-width: fit-content;
+        margin: 0 auto;
+        padding: var(--space-sm) var(--space-lg);
+        border-radius: 9999px;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 1px solid transparent;
+        box-shadow: none;
+        transition:
+            margin 0.5s $nav-ease,
+            padding 0.5s $nav-ease,
+            background 0.5s $nav-ease,
+            backdrop-filter 0.5s $nav-ease,
+            border-color 0.5s $nav-ease,
+            box-shadow 0.5s $nav-ease;
+        margin-bottom: 20px;
+
+        &__content {
+            gap: var(--space-sm);
+            justify-content: center;
+            transition: gap 0.5s $nav-ease;
+        }
+
+        &__left {
+            gap: var(--space-sm);
+            width: auto;
+            transition: gap 0.5s $nav-ease;
+        }
+
+        &__logo {
+            min-width: 32px;
+            max-width: 100px;
+            transition:
+                opacity 0.5s $nav-ease,
+                transform 0.5s $nav-ease;
+
+            img {
+                max-height: 32px;
+            }
+        }
+
+        &__separator {
+            display: block;
+            height: 20px;
+            margin: 0 var(--space-2xs);
+            opacity: 0;
+            transform: scaleY(0);
+            transition:
+                opacity 0.4s $nav-ease,
+                transform 0.4s $nav-ease;
+        }
+
+        .navbar-dropdown {
+            margin: 0;
+
+            &__item {
+                font-size: calc(var(--p-small) * 0.95);
+                color: var(--text-200);
+                background: transparent;
+                transition:
+                    color 0.3s $nav-ease,
+                    background-color 0.3s $nav-ease,
+                    padding 0.5s $nav-ease;
+
+                &:hover {
+                    color: var(--text);
+                }
+            }
+        }
+
+        &__actions {
+            gap: var(--space-xs);
+            transition: gap 0.5s $nav-ease;
+        }
+
+        // Initially slightly transparent
+        &__theme-switcher,
+        &__notifications,
+        &__profile,
+        &__lang,
+        &__socials {
+            opacity: 0.8;
+            transition: opacity 0.4s $nav-ease;
+        }
+    }
+
+    #main {
+        padding-top: calc(60px + var(--space-lg));
+    }
+}
+
+html[data-nav-style="pill-transparent"][data-nav-scrolled="true"] {
+    .navbar {
+        margin: var(--space-sm) auto 0;
+        padding: var(--space-xs) 0;
+        background: var(--blurred-background, rgba(20, 20, 23, 0.8)) !important;
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%) !important;
+        border-color: var(--transp-1);
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.15),
+            0 2px 4px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+        &__content {
+            gap: var(--space-xs);
+        }
+
+        &__left {
+            gap: var(--space-xs);
+        }
+
+        &__logo {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        &__separator {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+
+        &__actions {
+            gap: var(--space-2xs);
+        }
+
+        &__theme-switcher,
+        &__notifications,
+        &__profile,
+        &__lang,
+        &__socials {
+            opacity: 1;
+        }
+
+        .navbar-dropdown__item {
+            color: var(--text-400);
+
+            &:hover,
+            &.active {
+                color: var(--text);
+                background-color: var(--transp-05);
+            }
+        }
+    }
+}
+
+// ========================================
+// NAVIGATION FIXED/STATIC (via data-nav-fixed)
+// ========================================
+
+html[data-nav-fixed="false"] {
+    .flute_header {
+        position: relative;
+    }
+
+    &[data-nav-style="pill"],
+    &[data-nav-style="pill-transparent"] {
+        .flute_header {
+            position: relative;
+        }
+
+        #main {
+            padding-top: 0;
+        }
+    }
+}
+
+// ========================================
+// NAVIGATION BLUR (via data-nav-blur)
+// ========================================
+
+// No blur
+html[data-nav-blur="false"] {
+    .navbar {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--background);
+    }
+
+    &[data-nav-style="pill"] {
+        .navbar {
+            background: var(--background);
+        }
+    }
+
+    // For pill-transparent, only apply no-blur when scrolled
+    &[data-nav-style="pill-transparent"][data-nav-scrolled="true"] {
+        .navbar {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: var(--background) !important;
+        }
+    }
+}
+
+html[data-nav-blur="true"] {
+    .navbar {
+        background: var(--blurred-background);
+        backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+        -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+    }
+}
+
+// ========================================
+// MOBILE RESPONSIVE FOR NAV STYLES
+// ========================================
+
+@include media(tablet) {
+
+    html[data-nav-style="pill"],
+    html[data-nav-style="pill-transparent"] {
+        .flute_header {
+            position: sticky;
+            background: transparent;
+            pointer-events: auto;
+        }
+
+        .navbar {
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            border-radius: 0;
+            padding: var(--space-md) 0;
+            background: var(--blurred-background);
+            backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            border-color: var(--transp-1);
+
+            &__logo {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            &__separator {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+
+        #main {
+            padding-top: 0;
+        }
+    }
+}
+
+@include media(mobile) {
+
+    html[data-nav-style="pill"],
+    html[data-nav-style="pill-transparent"] {
+        .navbar {
+            max-width: none;
+            width: 100%;
+            margin: 0 !important;
+            border-radius: 0;
+            padding: var(--space-md) 0;
+
+            &__left {
+                width: 100%;
+            }
+
+            &__logo {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    }
+}
+
+// Hide navbar socials when disabled
+html[data-nav-socials="false"] {
+    .navbar__socials {
+        display: none !important;
+    }
+}

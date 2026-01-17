@@ -231,7 +231,7 @@ class ColorController extends BaseController
             '--bg-grad3' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--container-width' => 'sometimes|string|in:container,fullwidth',
             '--nav-type' => 'sometimes|string|in:horizontal,sidebar',
-            '--footer-type' => 'sometimes|string|in:default,minimal,expanded,hidden',
+            '--footer-type' => 'sometimes|string|in:default,minimal,expanded,glass,centered,hidden',
             '--footer-socials' => 'sometimes|string|in:true,false',
         ];
 
@@ -248,9 +248,9 @@ class ColorController extends BaseController
             'transition' => 'sometimes|string|max:20',
             'blur_amount' => 'sometimes|string|max:20',
             'max_content_width' => 'sometimes|string|max:20',
-            'shadow_small' => 'sometimes|string|max:200',
-            'shadow_medium' => 'sometimes|string|max:200',
-            'shadow_large' => 'sometimes|string|max:200',
+            'shadow_small' => 'sometimes|string|max-str-len:500',
+            'shadow_medium' => 'sometimes|string|max-str-len:500',
+            'shadow_large' => 'sometimes|string|max-str-len:500',
         ];
 
         $allRules = array_merge($colorRules, $settingsRules, ['theme' => 'required|string|in:dark,light']);

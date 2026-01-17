@@ -374,6 +374,8 @@ class MainSettingsPackageScreen extends Screen
         $explode = explode('\\', $defaultConnection->driver);
 
         $driver = str_replace('driver', '', strtolower(end($explode)));
+        $supportsMysqlOptions = $driver === 'mysql';
+        $supportsReconnect = in_array($driver, ['mysql', 'postgres'], true);
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
@@ -417,6 +419,54 @@ class MainSettingsPackageScreen extends Screen
                     ->type('password')
                     ->placeholder(__('admin-main-settings.placeholders.db_password'))
             )->label(__('admin-main-settings.labels.password')),
+            LayoutFactory::field(
+                Toggle::make('persistent')
+                    ->value(false)
+            )->label(__('admin-main-settings.labels.persistent_connections'))
+                ->popover(__('admin-main-settings.popovers.persistent_connections')),
+            LayoutFactory::field(
+                Input::make('init_sql')
+                    ->type('text')
+                    ->placeholder(__('admin-main-settings.placeholders.db_init_sql'))
+            )->label(__('admin-main-settings.labels.db_init_sql'))
+                ->popover(__('admin-main-settings.popovers.db_init_sql'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Toggle::make('compression')
+                    ->value(false)
+            )->label(__('admin-main-settings.labels.db_compression'))
+                ->popover(__('admin-main-settings.popovers.db_compression'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Toggle::make('reconnect')
+                    ->value(true)
+            )->label(__('admin-main-settings.labels.db_reconnect'))
+                ->popover(__('admin-main-settings.popovers.db_reconnect'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('connect_timeout')
+                    ->type('number')
+                    ->value(5)
+                    ->placeholder(__('admin-main-settings.placeholders.db_connect_timeout'))
+            )->label(__('admin-main-settings.labels.db_connect_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_connect_timeout'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('read_timeout')
+                    ->type('number')
+                    ->value(30)
+                    ->placeholder(__('admin-main-settings.placeholders.db_read_timeout'))
+            )->label(__('admin-main-settings.labels.db_read_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_read_timeout'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Input::make('write_timeout')
+                    ->type('number')
+                    ->value(30)
+                    ->placeholder(__('admin-main-settings.placeholders.db_write_timeout'))
+            )->label(__('admin-main-settings.labels.db_write_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_write_timeout'))
+                ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
                 Input::make('prefix')
                     ->type('text')
@@ -468,6 +518,60 @@ class MainSettingsPackageScreen extends Screen
             $tcpConnection = $connectionConfig->connection;
         }
 
+        $supportsMysqlOptions = $driver === 'mysql';
+        $supportsReconnect = in_array($driver, ['mysql', 'postgres'], true);
+
+        $persistent = false;
+        if (isset($tcpConnection->options) && is_array($tcpConnection->options)) {
+            $persistent = (bool) ($tcpConnection->options[PDO::ATTR_PERSISTENT] ?? false);
+        }
+
+        $initSql = null;
+        $compression = false;
+        if (isset($tcpConnection->options) && is_array($tcpConnection->options)) {
+            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+                : null;
+            if ($mysqlInitKey !== null) {
+                $initSql = $tcpConnection->options[$mysqlInitKey] ?? null;
+            }
+            $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
+                ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+                : null;
+            if ($mysqlCompressKey !== null) {
+                $compression = (bool) ($tcpConnection->options[$mysqlCompressKey] ?? false);
+            }
+        }
+
+        $reconnect = (bool) ($connectionConfig->reconnect ?? true);
+
+        $connectTimeout = null;
+        $readTimeout = null;
+        $writeTimeout = null;
+        if (isset($tcpConnection->options) && is_array($tcpConnection->options)) {
+            $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                : null;
+            $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                : null;
+            $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                : null;
+
+            $connectTimeout = $mysqlConnectKey !== null
+                ? ($tcpConnection->options[$mysqlConnectKey] ?? null)
+                : null;
+            $connectTimeout ??= $tcpConnection->options[PDO::ATTR_TIMEOUT] ?? null;
+
+            if ($mysqlReadKey !== null) {
+                $readTimeout = $tcpConnection->options[$mysqlReadKey] ?? null;
+            }
+            if ($mysqlWriteKey !== null) {
+                $writeTimeout = $tcpConnection->options[$mysqlWriteKey] ?? null;
+            }
+        }
+
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Select::make('driver')
@@ -517,6 +621,55 @@ class MainSettingsPackageScreen extends Screen
                     ->placeholder(__('admin-main-settings.placeholders.db_password'))
             )->label(__('admin-main-settings.labels.password')),
             LayoutFactory::field(
+                Toggle::make('persistent')
+                    ->value($persistent)
+            )->label(__('admin-main-settings.labels.persistent_connections'))
+                ->popover(__('admin-main-settings.popovers.persistent_connections')),
+            LayoutFactory::field(
+                Input::make('init_sql')
+                    ->type('text')
+                    ->value($initSql)
+                    ->placeholder(__('admin-main-settings.placeholders.db_init_sql'))
+            )->label(__('admin-main-settings.labels.db_init_sql'))
+                ->popover(__('admin-main-settings.popovers.db_init_sql'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Toggle::make('compression')
+                    ->value($compression)
+            )->label(__('admin-main-settings.labels.db_compression'))
+                ->popover(__('admin-main-settings.popovers.db_compression'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Toggle::make('reconnect')
+                    ->value($reconnect)
+            )->label(__('admin-main-settings.labels.db_reconnect'))
+                ->popover(__('admin-main-settings.popovers.db_reconnect'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('connect_timeout')
+                    ->type('number')
+                    ->value($connectTimeout ?? 5)
+                    ->placeholder(__('admin-main-settings.placeholders.db_connect_timeout'))
+            )->label(__('admin-main-settings.labels.db_connect_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_connect_timeout'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('read_timeout')
+                    ->type('number')
+                    ->value($readTimeout ?? 30)
+                    ->placeholder(__('admin-main-settings.placeholders.db_read_timeout'))
+            )->label(__('admin-main-settings.labels.db_read_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_read_timeout'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Input::make('write_timeout')
+                    ->type('number')
+                    ->value($writeTimeout ?? 30)
+                    ->placeholder(__('admin-main-settings.placeholders.db_write_timeout'))
+            )->label(__('admin-main-settings.labels.db_write_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_write_timeout'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
                 Input::make('prefix')
                     ->type('text')
                     ->value($database['prefix'])
@@ -542,6 +695,13 @@ class MainSettingsPackageScreen extends Screen
                 'user' => ['required', 'string'],
                 'database' => ['required', 'string'],
                 'password' => ['nullable', 'string'],
+                'persistent' => ['nullable'],
+                'init_sql' => ['nullable', 'string'],
+                'compression' => ['nullable'],
+                'reconnect' => ['nullable'],
+                'connect_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'read_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'write_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
                 'prefix' => ['nullable', 'string'],
             ], request()->input())
         ) {
@@ -565,6 +725,13 @@ class MainSettingsPackageScreen extends Screen
 
         $databaseName = $data['databaseName'];
         $driver = $data['driver'];
+        $persistent = filter_var($data['persistent'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $initSql = trim((string) ($data['init_sql'] ?? ''));
+        $compression = filter_var($data['compression'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $reconnect = filter_var($data['reconnect'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $connectTimeout = isset($data['connect_timeout']) ? (int) $data['connect_timeout'] : null;
+        $readTimeout = isset($data['read_timeout']) ? (int) $data['read_timeout'] : null;
+        $writeTimeout = isset($data['write_timeout']) ? (int) $data['write_timeout'] : null;
 
         $databases = config()->get('database.databases', []);
         if (isset($databases[$databaseName])) {
@@ -579,6 +746,49 @@ class MainSettingsPackageScreen extends Screen
         ]);
 
         if ($driver === 'mysql') {
+            $options = [];
+            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+                : null;
+            if ($mysqlInitKey !== null) {
+                $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
+            }
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($compression) {
+                $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
+                    ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+                    : null;
+                if ($mysqlCompressKey !== null) {
+                    $options[$mysqlCompressKey] = true;
+                }
+            }
+            if ($connectTimeout !== null) {
+                $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    : null;
+                if ($mysqlConnectKey !== null) {
+                    $options[$mysqlConnectKey] = $connectTimeout;
+                }
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
+            if ($readTimeout !== null) {
+                $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    : null;
+                if ($mysqlReadKey !== null) {
+                    $options[$mysqlReadKey] = $readTimeout;
+                }
+            }
+            if ($writeTimeout !== null) {
+                $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    : null;
+                if ($mysqlWriteKey !== null) {
+                    $options[$mysqlWriteKey] = $writeTimeout;
+                }
+            }
             $connectionConfig = new \Cycle\Database\Config\MySQLDriverConfig(
                 connection: new \Cycle\Database\Config\MySQL\TcpConnectionConfig(
                     database: $data['database'],
@@ -586,12 +796,20 @@ class MainSettingsPackageScreen extends Screen
                     port: $data['port'],
                     user: $data['user'],
                     password: $data['password'],
-                    options: [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4'],
+                    options: $options,
                 ),
+                reconnect: $reconnect,
                 timezone: 'Asia/Yekaterinburg',
                 queryCache: true,
             );
         } elseif ($driver === 'postgres') {
+            $options = [];
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($connectTimeout !== null) {
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
             $connectionConfig = new \Cycle\Database\Config\PostgresDriverConfig(
                 connection: new \Cycle\Database\Config\Postgres\TcpConnectionConfig(
                     database: $data['database'],
@@ -599,7 +817,9 @@ class MainSettingsPackageScreen extends Screen
                     port: $data['port'],
                     user: $data['user'],
                     password: $data['password'],
+                    options: $options,
                 ),
+                reconnect: $reconnect,
                 schema: 'public',
                 queryCache: true,
             );
@@ -636,6 +856,13 @@ class MainSettingsPackageScreen extends Screen
                 'user' => ['required', 'string'],
                 'database' => ['required', 'string'],
                 'password' => ['nullable', 'string'],
+                'persistent' => ['nullable'],
+                'init_sql' => ['nullable', 'string'],
+                'compression' => ['nullable'],
+                'reconnect' => ['nullable'],
+                'connect_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'read_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'write_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
                 'prefix' => ['nullable', 'string'],
             ], request()->input())
         ) {
@@ -659,6 +886,13 @@ class MainSettingsPackageScreen extends Screen
 
         $databaseName = $data['databaseName'];
         $driver = $data['driver'];
+        $persistent = filter_var($data['persistent'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $initSql = trim((string) ($data['init_sql'] ?? ''));
+        $compression = filter_var($data['compression'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $reconnect = filter_var($data['reconnect'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $connectTimeout = isset($data['connect_timeout']) ? (int) $data['connect_timeout'] : null;
+        $readTimeout = isset($data['read_timeout']) ? (int) $data['read_timeout'] : null;
+        $writeTimeout = isset($data['write_timeout']) ? (int) $data['write_timeout'] : null;
 
         $databases = config('database.databases');
         if (!isset($databases[$databaseName])) {
@@ -670,6 +904,49 @@ class MainSettingsPackageScreen extends Screen
         config()->set("database.databases.{$databaseName}.prefix", $data['prefix'] ?? '');
 
         if ($driver === 'mysql') {
+            $options = [];
+            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+                : null;
+            if ($mysqlInitKey !== null) {
+                $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
+            }
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($compression) {
+                $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
+                    ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+                    : null;
+                if ($mysqlCompressKey !== null) {
+                    $options[$mysqlCompressKey] = true;
+                }
+            }
+            if ($connectTimeout !== null) {
+                $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    : null;
+                if ($mysqlConnectKey !== null) {
+                    $options[$mysqlConnectKey] = $connectTimeout;
+                }
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
+            if ($readTimeout !== null) {
+                $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    : null;
+                if ($mysqlReadKey !== null) {
+                    $options[$mysqlReadKey] = $readTimeout;
+                }
+            }
+            if ($writeTimeout !== null) {
+                $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    : null;
+                if ($mysqlWriteKey !== null) {
+                    $options[$mysqlWriteKey] = $writeTimeout;
+                }
+            }
             $connectionConfig = new \Cycle\Database\Config\MySQLDriverConfig(
                 connection: new \Cycle\Database\Config\MySQL\TcpConnectionConfig(
                     database: $data['database'],
@@ -677,12 +954,20 @@ class MainSettingsPackageScreen extends Screen
                     port: $data['port'],
                     user: $data['user'],
                     password: $data['password'],
-                    options: [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4'],
+                    options: $options,
                 ),
+                reconnect: $reconnect,
                 timezone: 'Asia/Yekaterinburg',
                 queryCache: true,
             );
         } elseif ($driver === 'postgres') {
+            $options = [];
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($connectTimeout !== null) {
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
             $connectionConfig = new \Cycle\Database\Config\PostgresDriverConfig(
                 connection: new \Cycle\Database\Config\Postgres\TcpConnectionConfig(
                     database: $data['database'],
@@ -690,7 +975,9 @@ class MainSettingsPackageScreen extends Screen
                     port: $data['port'],
                     user: $data['user'],
                     password: $data['password'],
+                    options: $options,
                 ),
+                reconnect: $reconnect,
                 schema: 'public',
                 queryCache: true,
             );

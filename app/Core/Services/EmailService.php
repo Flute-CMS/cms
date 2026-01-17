@@ -67,7 +67,7 @@ class EmailService
             $user = $event->getUser();
 
             $template = template()->render('flute::emails.reset', [
-                'url' => url('reset/' . $event->getToken()->token),
+                'url' => url('reset/' . $event->getToken()->token)->get(),
                 'name' => $user->name,
             ]);
 
@@ -92,7 +92,7 @@ class EmailService
             $verificationToken = auth()->createVerificationToken($user)->token;
 
             $template = template()->render('flute::emails.confirmation', [
-                'url' => url('confirm/' . $verificationToken),
+                'url' => url('confirm/' . $verificationToken)->get(),
                 'name' => $user->name,
             ]);
 

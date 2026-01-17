@@ -20,6 +20,19 @@
         </div>
     </header>
 
+    {{-- Custom Theme Warning --}}
+    @if(app(\Flute\Core\Theme\ThemeManager::class)->getCurrentTheme() !== 'standard')
+        <div class="ve__alert ve__alert--warning">
+            <div class="ve__alert-icon">
+                <x-icon path="ph.regular.warning" />
+            </div>
+            <div class="ve__alert-content">
+                <div class="ve__alert-title">{{ __('page-edit.custom_theme_warning') }}</div>
+                <div class="ve__alert-desc">{{ __('page-edit.custom_theme_warning_desc') }}</div>
+            </div>
+        </div>
+    @endif
+
     {{-- Segmented Control with Icons --}}
     <div class="ve__segments">
         <button type="button" class="ve__segment active" data-tab="colors" title="{{ __('page-edit.theme_colors') }}">
@@ -57,34 +70,176 @@
             </section>
 
             <section class="ve__section">
-                <h4 class="ve__section-title">{{ __('page-edit.background_style') }}</h4>
-                <div class="ve__bg-types">
+                <h4 class="ve__section-title">{{ __('page-edit.background_gradient') }}</h4>
+                
+                {{-- Gradient Type Selector --}}
+                <div class="ve__gradient-types">
+                    <button type="button" class="ve__gradient-type active" data-gradient-type="none" title="{{ __('page-edit.gradient_none') }}">
+                        <x-icon path="ph.regular.prohibit" />
+                        <span>{{ __('page-edit.bg_effect_none') }}</span>
+                    </button>
+                    <button type="button" class="ve__gradient-type" data-gradient-type="linear" title="{{ __('page-edit.gradient_linear') }}">
+                        <x-icon path="ph.regular.gradient" />
+                        <span>{{ __('page-edit.gradient_linear_short') }}</span>
+                    </button>
+                    <button type="button" class="ve__gradient-type" data-gradient-type="radial" title="{{ __('page-edit.gradient_radial') }}">
+                        <x-icon path="ph.regular.circle" />
+                        <span>{{ __('page-edit.gradient_radial_short') }}</span>
+                    </button>
+                    <button type="button" class="ve__gradient-type" data-gradient-type="conic" title="{{ __('page-edit.gradient_conic') }}">
+                        <x-icon path="ph.regular.sun" />
+                        <span>{{ __('page-edit.gradient_conic_short') }}</span>
+                    </button>
+                </div>
+
+                {{-- Gradient Preview & Controls --}}
+                <div class="ve__gradient-editor" id="ve-gradient-editor" hidden>
+                    {{-- Visual Gradient Bar with Draggable Stops --}}
+                    <div class="ve__gradient-bar-container">
+                        <div class="ve__gradient-bar" id="ve-gradient-bar">
+                            <div class="ve__gradient-bar-track" id="ve-gradient-bar-track"></div>
+                            {{-- Stops will be rendered here dynamically --}}
+                        </div>
+                        <div class="ve__gradient-bar-actions">
+                            <button type="button" class="ve__gradient-bar-add" id="ve-add-gradient-stop" title="{{ __('page-edit.add_color_stop') }}">
+                                <x-icon path="ph.regular.plus" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Color Stop Editor (appears when a stop is selected) --}}
+                    <div class="ve__gradient-stop-editor" id="ve-gradient-stop-editor" hidden>
+                        <div class="ve__gradient-stop-editor-header">
+                            <span class="ve__gradient-stop-editor-title">{{ __('page-edit.color_stop') }}</span>
+                            <button type="button" class="ve__gradient-stop-delete" id="ve-delete-gradient-stop" title="{{ __('page-edit.delete_stop') }}">
+                                <x-icon path="ph.regular.trash" />
+                            </button>
+                        </div>
+                        <div class="ve__gradient-stop-editor-body">
+                            <label class="ve__gradient-color-picker" id="ve-stop-color-preview">
+                                <input type="color" id="ve-stop-color" value="#A5FF75" />
+                            </label>
+                            <div class="ve__gradient-position-input">
+                                <input type="number" id="ve-stop-position" value="0" min="0" max="100" />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="ve__gradient-stop-opacity">
+                            <label class="ve__field-label">{{ __('page-edit.opacity') }}</label>
+                            <div class="ve__opacity-slider">
+                                <input type="range" class="ve__range" id="ve-stop-opacity" 
+                                    min="0" max="100" step="5" value="100" />
+                                <span class="ve__range-val" id="ve-stop-opacity-val">100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Position Control (for radial/conic) --}}
+                    <div class="ve__gradient-position-control" id="ve-gradient-position-wrap" hidden>
+                        <label class="ve__field-label">{{ __('page-edit.gradient_position') }}</label>
+                        <div class="ve__gradient-position-preview" id="ve-gradient-position-preview">
+                            <div class="ve__gradient-position-handle" id="ve-gradient-handle" title="{{ __('page-edit.drag_to_position') }}"></div>
+                        </div>
+                    </div>
+
+                    {{-- Angle Control (for linear/conic) --}}
+                    <div class="ve__gradient-angle-control" id="ve-gradient-angle-wrap" hidden>
+                        <label class="ve__field-label">{{ __('page-edit.gradient_angle') }}</label>
+                        <div class="ve__angle-dial-container">
+                            <div class="ve__angle-dial" id="ve-angle-wheel">
+                                <div class="ve__angle-dial-marker" id="ve-angle-indicator"></div>
+                                <span class="ve__angle-dial-value" id="ve-angle-value">135°</span>
+                            </div>
+                            <input type="range" class="ve__range ve__angle-range" id="ve-gradient-angle"
+                                min="0" max="360" step="1" value="135" />
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            {{-- Background Effects --}}
+            <section class="ve__section">
+                <h4 class="ve__section-title">{{ __('page-edit.bg_effects') }}</h4>
+                <div class="ve__bg-effects">
                     @php
-                        $bgTypes = [
-                            'solid',
-                            'linear-gradient',
-                            'radial-gradient',
-                            'mesh-gradient',
-                            'subtle-gradient',
-                            'aurora-gradient',
+                        $bgEffects = [
+                            'none',
+                            'dots',
+                            'grid',
+                            'cross',
+                            'diagonal',
+                            'squares',
+                            'mesh',
+                            'emoji',
+                            'noise',
                         ];
                     @endphp
-                    @foreach ($bgTypes as $type)
-                        <button type="button" class="ve__bg-type{{ $type === 'solid' ? ' active' : '' }}"
-                            data-bg-type="{{ $type }}">
-                            <span class="ve__bg-type-preview {{ $type }}-preview"></span>
+                    @foreach ($bgEffects as $effect)
+                        <button type="button" class="ve__bg-effect{{ $effect === 'none' ? ' active' : '' }}"
+                            data-bg-effect="{{ $effect }}" title="{{ __('page-edit.bg_effect_' . $effect) }}">
+                            <span class="ve__bg-effect-preview {{ $effect }}-preview"></span>
+                            <span class="ve__bg-effect-label">{{ __('page-edit.bg_effect_' . $effect) }}</span>
                         </button>
                     @endforeach
                 </div>
-                <div class="ve__gradient-row" id="ve-gradient-colors" hidden>
-                    <span class="ve__gradient-label">{{ __('page-edit.theme_colors') }}</span>
-                    <div class="ve__gradient-swatches">
-                        @for ($i = 1; $i <= 3; $i++)
-                            <label class="ve__gradient-swatch">
-                                <input type="color" id="ve-grad-{{ $i }}"
-                                    data-variable="--bg-grad{{ $i }}" />
-                            </label>
-                        @endfor
+                <div class="ve__field" id="ve-effect-opacity-wrap" hidden>
+                    <div class="ve__field-row">
+                        <label class="ve__field-label">{{ __('page-edit.effect_opacity') }}</label>
+                        <span class="ve__range-val">0.1</span>
+                    </div>
+                    <input type="range" class="ve__range" id="ve-effect-opacity" data-variable="--bg-effect-opacity"
+                        min="0.02" max="0.3" step="0.02" value="0.1" />
+                </div>
+
+                <div class="ve__emoji-editor" id="ve-emoji-editor" hidden>
+                    <label class="ve__field-label">{{ __('page-edit.emoji_preset') }}</label>
+                    <div class="ve__emoji-presets" id="ve-emoji-presets">
+                        <button type="button" class="ve__emoji-preset active" data-emoji-preset="stars" title="{{ __('page-edit.emoji_stars') }}">⭐</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="hearts" title="{{ __('page-edit.emoji_hearts') }}">❤️</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="fire" title="{{ __('page-edit.emoji_fire') }}">🔥</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="gaming" title="{{ __('page-edit.emoji_gaming') }}">🎮</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="nature" title="{{ __('page-edit.emoji_nature') }}">🌿</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="space" title="{{ __('page-edit.emoji_space') }}">🚀</button>
+                        <button type="button" class="ve__emoji-preset" data-emoji-preset="custom" title="{{ __('page-edit.emoji_custom') }}">✏️</button>
+                    </div>
+                    
+                    <div class="ve__emoji-custom-wrap" id="ve-emoji-custom-wrap" hidden>
+                        <label class="ve__field-label">{{ __('page-edit.emoji_custom_input') }}</label>
+                        <input type="text" class="ve__emoji-input" id="ve-emoji-custom" 
+                            placeholder="⭐ ✨ 💫 🌟" value="⭐ ✨ 💫 🌟" maxlength="50" />
+                    </div>
+                    
+                    <div class="ve__field" style="margin-top: var(--space-sm);">
+                        <div class="ve__field-row">
+                            <label class="ve__field-label">{{ __('page-edit.emoji_angle') }}</label>
+                            <span class="ve__range-val" id="ve-emoji-angle-val">0°</span>
+                        </div>
+                        <input type="range" class="ve__range" id="ve-emoji-angle"
+                            min="-45" max="45" step="5" value="0" />
+                    </div>
+                    
+                    <div class="ve__field">
+                        <div class="ve__field-row">
+                            <label class="ve__field-label">{{ __('page-edit.emoji_size') }}</label>
+                            <span class="ve__range-val" id="ve-emoji-size-val">24px</span>
+                        </div>
+                        <input type="range" class="ve__range" id="ve-emoji-size"
+                            min="16" max="48" step="4" value="24" />
+                    </div>
+                    
+                    <div class="ve__field">
+                        <div class="ve__field-row">
+                            <label class="ve__field-label">{{ __('page-edit.emoji_spacing') }}</label>
+                            <span class="ve__range-val" id="ve-emoji-spacing-val">64px</span>
+                        </div>
+                        <input type="range" class="ve__range" id="ve-emoji-spacing"
+                            min="32" max="128" step="8" value="64" />
+                    </div>
+                    
+                    <div class="ve__field ve__field--switch">
+                        <label class="ve__field-label">{{ __('page-edit.emoji_use_accent') }}</label>
+                        <x-fields.toggle name="ve-emoji-accent" id="ve-emoji-accent" :checked="true" />
                     </div>
                 </div>
             </section>
@@ -104,40 +259,62 @@
 
         {{-- Layout Panel --}}
         <div class="ve__panel" data-panel="layout">
-            {{-- Navigation Type --}}
+            {{-- Navigation Style --}}
             <section class="ve__section">
                 <h4 class="ve__section-title">{{ __('page-edit.navigation') }}</h4>
-                <div class="ve__option-cards ve__option-cards--nav-2col">
-                    <button type="button" class="ve__option-card active" data-nav-type="horizontal" title="{{ __('page-edit.nav_horizontal') }}">
-                        <div class="ve__option-preview ve__option-preview--nav-horizontal">
-                            <div class="ve__preview-navbar"></div>
+                <div class="ve__option-cards ve__option-cards--nav-3col">
+                    <button type="button" class="ve__option-card active" data-nav-style="default" title="{{ __('page-edit.nav_style_default') }}">
+                        <div class="ve__option-preview ve__option-preview--nav-default">
+                            <div class="ve__preview-navbar ve__preview-navbar--full"></div>
                             <div class="ve__preview-content">
                                 <div class="ve__preview-block"></div>
                                 <div class="ve__preview-block"></div>
                             </div>
                         </div>
-                        <span class="ve__option-label">{{ __('page-edit.horizontal') }}</span>
+                        <span class="ve__option-label">{{ __('page-edit.nav_default') }}</span>
                     </button>
-                    <button type="button" class="ve__option-card" data-nav-type="sidebar" title="{{ __('page-edit.nav_sidebar') }}">
-                        <div class="ve__option-preview ve__option-preview--nav-sidebar">
-                            <div class="ve__preview-navbar ve__preview-navbar--mini"></div>
-                            <div class="ve__preview-row">
-                                <div class="ve__preview-sidebar"></div>
-                                <div class="ve__preview-content">
-                                    <div class="ve__preview-block"></div>
-                                    <div class="ve__preview-block"></div>
-                                </div>
+                    <button type="button" class="ve__option-card" data-nav-style="pill" title="{{ __('page-edit.nav_style_pill') }}">
+                        <div class="ve__option-preview ve__option-preview--nav-pill">
+                            <div class="ve__preview-navbar ve__preview-navbar--floating"></div>
+                            <div class="ve__preview-content">
+                                <div class="ve__preview-block"></div>
+                                <div class="ve__preview-block"></div>
                             </div>
                         </div>
-                        <span class="ve__option-label">{{ __('page-edit.sidebar') }}</span>
+                        <span class="ve__option-label">{{ __('page-edit.nav_pill') }}</span>
                     </button>
+                    <button type="button" class="ve__option-card" data-nav-style="pill-transparent" title="{{ __('page-edit.nav_style_pill_transparent') }}">
+                        <div class="ve__option-preview ve__option-preview--nav-pill-transparent">
+                            <div class="ve__preview-navbar ve__preview-navbar--transparent"></div>
+                            <div class="ve__preview-content">
+                                <div class="ve__preview-block ve__preview-block--hero"></div>
+                                <div class="ve__preview-block"></div>
+                            </div>
+                        </div>
+                        <span class="ve__option-label">{{ __('page-edit.nav_pill_transparent') }}</span>
+                    </button>
+                </div>
+
+                <div class="ve__field ve__field--switch" style="margin-top: var(--space-md);">
+                    <label class="ve__field-label">{{ __('page-edit.nav_fixed') }}</label>
+                    <x-fields.toggle name="ve-nav-fixed" id="ve-nav-fixed" :checked="true" />
+                </div>
+
+                <div class="ve__field ve__field--switch">
+                    <label class="ve__field-label">{{ __('page-edit.nav_blur') }}</label>
+                    <x-fields.toggle name="ve-nav-blur" id="ve-nav-blur" :checked="true" />
+                </div>
+
+                <div class="ve__field ve__field--switch">
+                    <label class="ve__field-label">{{ __('page-edit.nav_show_socials') }}</label>
+                    <x-fields.toggle name="ve-nav-socials" id="ve-nav-socials" :checked="true" />
                 </div>
             </section>
 
             {{-- Footer Type --}}
             <section class="ve__section">
                 <h4 class="ve__section-title">{{ __('page-edit.footer') }}</h4>
-                <div class="ve__option-cards ve__option-cards--footer">
+                <div class="ve__option-cards ve__option-cards--footer-3col">
                     <button type="button" class="ve__option-card active" data-footer-type="default" title="{{ __('page-edit.footer_default') }}">
                         <div class="ve__option-preview ve__option-preview--footer-default">
                             <div class="ve__preview-content">
@@ -179,6 +356,27 @@
                         </div>
                         <span class="ve__option-label">{{ __('page-edit.expanded') }}</span>
                     </button>
+                    <button type="button" class="ve__option-card" data-footer-type="glass" title="{{ __('page-edit.footer_glass') }}">
+                        <div class="ve__option-preview ve__option-preview--footer-glass">
+                            <div class="ve__preview-content">
+                                <div class="ve__preview-block"></div>
+                                <div class="ve__preview-block"></div>
+                            </div>
+                            <div class="ve__preview-footer ve__preview-footer--glass"></div>
+                        </div>
+                        <span class="ve__option-label">{{ __('page-edit.glass') }}</span>
+                    </button>
+                    <button type="button" class="ve__option-card" data-footer-type="centered" title="{{ __('page-edit.footer_centered') }}">
+                        <div class="ve__option-preview ve__option-preview--footer-centered">
+                            <div class="ve__preview-content">
+                                <div class="ve__preview-block"></div>
+                            </div>
+                            <div class="ve__preview-footer ve__preview-footer--centered">
+                                <div class="ve__preview-footer-center"></div>
+                            </div>
+                        </div>
+                        <span class="ve__option-label">{{ __('page-edit.centered') }}</span>
+                    </button>
                     <button type="button" class="ve__option-card" data-footer-type="hidden" title="{{ __('page-edit.footer_hidden') }}">
                         <div class="ve__option-preview ve__option-preview--footer-hidden">
                             <div class="ve__preview-content">
@@ -194,6 +392,11 @@
                 <div class="ve__field ve__field--switch" style="margin-top: var(--space-md);">
                     <label class="ve__field-label">{{ __('page-edit.show_socials') }}</label>
                     <x-fields.toggle name="ve-footer-socials" id="ve-footer-socials" :checked="true" />
+                </div>
+
+                <div class="ve__field ve__field--switch">
+                    <label class="ve__field-label">{{ __('page-edit.show_logo') }}</label>
+                    <x-fields.toggle name="ve-footer-logo" id="ve-footer-logo" :checked="true" />
                 </div>
             </section>
 
@@ -358,7 +561,7 @@
         {{-- Effects Panel --}}
         <div class="ve__panel" data-panel="effects">
             <section class="ve__section">
-                <h4 class="ve__section-title">{{ __('page-edit.effects') }}</h4>
+                <h4 class="ve__section-title">{{ __('page-edit.glass_effects') }}</h4>
 
                 <div class="ve__field">
                     <div class="ve__field-row">
@@ -366,8 +569,21 @@
                         <span class="ve__range-val">10px</span>
                     </div>
                     <input type="range" class="ve__range" id="ve-blur-amount" data-variable="--blur-amount"
-                        min="0" max="24" step="2" value="10" data-unit="px" />
+                        min="0" max="32" step="2" value="10" data-unit="px" />
                 </div>
+
+                <div class="ve__field">
+                    <div class="ve__field-row">
+                        <label class="ve__field-label">{{ __('page-edit.card_opacity') }}</label>
+                        <span class="ve__range-val">0.8</span>
+                    </div>
+                    <input type="range" class="ve__range" id="ve-card-opacity" data-variable="--card-opacity"
+                        min="0.4" max="1" step="0.05" value="0.8" />
+                </div>
+            </section>
+
+            <section class="ve__section">
+                <h4 class="ve__section-title">{{ __('page-edit.animations') }}</h4>
 
                 <div class="ve__field">
                     <div class="ve__field-row">
@@ -377,6 +593,11 @@
                     <input type="range" class="ve__range" id="ve-transition" data-variable="--transition"
                         min="0.1" max="0.5" step="0.05" value="0.2" data-unit="s" />
                 </div>
+
+                <div class="ve__field ve__field--switch">
+                    <label class="ve__field-label">{{ __('page-edit.hover_scale') }}</label>
+                    <x-fields.toggle name="ve-hover-scale" id="ve-hover-scale" :checked="true" />
+                </div>
             </section>
 
             <section class="ve__section">
@@ -385,6 +606,15 @@
                 <div class="ve__field ve__field--switch">
                     <label class="ve__field-label">{{ __('page-edit.shadow_enabled') }}</label>
                     <x-fields.toggle name="ve-shadows" id="ve-shadows" :checked="true" />
+                </div>
+
+                <div class="ve__field">
+                    <div class="ve__field-row">
+                        <label class="ve__field-label">{{ __('page-edit.glow_intensity') }}</label>
+                        <span class="ve__range-val">0</span>
+                    </div>
+                    <input type="range" class="ve__range" id="ve-glow-intensity" data-variable="--glow-intensity"
+                        min="0" max="1" step="0.1" value="0" />
                 </div>
             </section>
         </div>

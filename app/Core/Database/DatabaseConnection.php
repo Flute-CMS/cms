@@ -5,6 +5,7 @@ namespace Flute\Core\Database;
 use Cycle\Annotated;
 use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
 use Cycle\Annotated\Locator\TokenizerEntityLocator;
+use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
 use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\Exception\MigrationException;
@@ -43,6 +44,8 @@ class DatabaseConnection
     protected ORM $orm;
 
     protected DatabaseManager $dbal;
+
+    protected ?DatabaseManager $migrationDbal = null;
 
     protected Migrator $migrator;
 
@@ -491,8 +494,58 @@ class DatabaseConnection
         ]);
 
         $fileRepository = new FileRepository($config);
-        $this->migrator = new Migrator($config, $this->dbal, $fileRepository);
+        $this->migrator = new Migrator($config, $this->getMigrationDbal(), $fileRepository);
         $this->migrator->configure();
+    }
+
+    /**
+     * Build a dedicated DBAL for migrations to avoid connecting to every configured database.
+     * ORM migrations are intended for the primary database only.
+     */
+    private function getMigrationDbal(): DatabaseManager
+    {
+        if ($this->migrationDbal) {
+            return $this->migrationDbal;
+        }
+
+        $config = config('database');
+        if (!is_array($config)) {
+            $this->migrationDbal = $this->dbal ?? $this->databaseManager->getDbal();
+
+            return $this->migrationDbal;
+        }
+
+        $defaultDb = $config['default'] ?? 'default';
+        $databases = $config['databases'] ?? [];
+        $connections = $config['connections'] ?? ($config['drivers'] ?? []);
+
+        $defaultDatabaseConfig = $databases[$defaultDb] ?? null;
+        if (!is_array($defaultDatabaseConfig)) {
+            $this->migrationDbal = $this->dbal ?? $this->databaseManager->getDbal();
+
+            return $this->migrationDbal;
+        }
+
+        $defaultConnectionName = $defaultDatabaseConfig['connection']
+            ?? $defaultDatabaseConfig['write']
+            ?? $defaultDatabaseConfig['driver']
+            ?? $defaultDb;
+
+        $filteredConnections = [];
+        if (is_string($defaultConnectionName) && isset($connections[$defaultConnectionName])) {
+            $filteredConnections[$defaultConnectionName] = $connections[$defaultConnectionName];
+        }
+
+        $filteredConfig = [
+            'default' => $defaultDb,
+            'aliases' => $config['aliases'] ?? [],
+            'databases' => [$defaultDb => $defaultDatabaseConfig],
+            'connections' => $filteredConnections,
+        ];
+
+        $this->migrationDbal = new DatabaseManager(new DatabaseConfig($filteredConfig));
+
+        return $this->migrationDbal;
     }
 
     /**

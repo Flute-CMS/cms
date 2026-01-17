@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\MainSettings\Services;
 
 use Exception;
 use Flute\Admin\Platform\Repository;
+use Flute\Core\Database\Entities\Page;
 use Flute\Core\Support\FluteStr;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -458,6 +459,7 @@ class MainSettingsPackageService
     public function saveSettings(string $currentTab, array $data): bool
     {
         $tabSettings = $this->getTabSettings();
+        $robotsBefore = null;
 
         if (!array_key_exists($currentTab, $tabSettings)) {
             throw new Exception(__('admin-main-settings.messages.unknown_tab'));
@@ -483,9 +485,24 @@ class MainSettingsPackageService
             return false;
         }
 
+        if ($currentTab === ($this->tabSlugs['main_settings'] ?? '')) {
+            $robotsBefore = trim((string) config('app.robots', ''));
+        }
+
         $inputs = $this->processInputs($rules, $filteredData);
 
         $this->updateConfig($inputs, $currentTab);
+
+        $robotsAfter = isset($inputs['robots']) ? trim((string) $inputs['robots']) : null;
+        if (
+            $currentTab === ($this->tabSlugs['main_settings'] ?? '')
+            && $robotsBefore !== ''
+            && $robotsAfter !== null
+            && $robotsAfter !== ''
+            && $robotsAfter !== $robotsBefore
+        ) {
+            $this->syncRobotsForPages($robotsBefore, $robotsAfter);
+        }
 
         return true;
     }
@@ -522,6 +539,16 @@ class MainSettingsPackageService
             return true;
         } catch (PDOException $e) {
             return $e->getMessage();
+        }
+    }
+
+    protected function syncRobotsForPages(string $oldRobots, string $newRobots): void
+    {
+        $pages = Page::findAll(['robots' => $oldRobots]);
+
+        foreach ($pages as $page) {
+            $page->robots = $newRobots;
+            $page->save();
         }
     }
 }
