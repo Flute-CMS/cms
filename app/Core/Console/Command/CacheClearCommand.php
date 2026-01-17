@@ -82,9 +82,9 @@ class CacheClearCommand extends Command
             if (function_exists('cache_warmup_mark')) {
                 cache_warmup_mark();
             }
-            
+
             $rotateDir = function (Filesystem $filesystem, string $src, string $dst): void {
-                 if (is_dir($dst)) {
+                if (is_dir($dst)) {
                     $filesystem->remove($dst);
                 }
 

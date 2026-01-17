@@ -499,6 +499,46 @@ class DatabaseConnection
     }
 
     /**
+     * Check if entity is in ORM schema.
+     *
+     * @param string $entityClass Entity class.
+     */
+    protected function isEntityInSchema(string $entityClass): bool
+    {
+        $ormSchema = $this->orm->getSchema();
+
+        return $ormSchema->defines(lcfirst($entityClass));
+    }
+
+    /**
+     * Getting list of entities from directory.
+     *
+     * @param string $directory Directory for scanning.
+     */
+    protected function getEntitiesFromDirectory(string $directory): array
+    {
+        $finder = finder();
+        $finder->files()->in($directory)->name('*.php');
+
+        $entities = [];
+        foreach ($finder as $file) {
+            $entities[] = $file->getBasename('.php');
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Getting ClassLocator.
+     */
+    protected function getClassLocator(): ClassLocator
+    {
+        return (new Tokenizer(new TokenizerConfig([
+            'directories' => $this->entitiesDirs,
+        ])))->classLocator();
+    }
+
+    /**
      * Build a dedicated DBAL for migrations to avoid connecting to every configured database.
      * ORM migrations are intended for the primary database only.
      */
@@ -546,46 +586,6 @@ class DatabaseConnection
         $this->migrationDbal = new DatabaseManager(new DatabaseConfig($filteredConfig));
 
         return $this->migrationDbal;
-    }
-
-    /**
-     * Check if entity is in ORM schema.
-     *
-     * @param string $entityClass Entity class.
-     */
-    protected function isEntityInSchema(string $entityClass): bool
-    {
-        $ormSchema = $this->orm->getSchema();
-
-        return $ormSchema->defines(lcfirst($entityClass));
-    }
-
-    /**
-     * Getting list of entities from directory.
-     *
-     * @param string $directory Directory for scanning.
-     */
-    protected function getEntitiesFromDirectory(string $directory): array
-    {
-        $finder = finder();
-        $finder->files()->in($directory)->name('*.php');
-
-        $entities = [];
-        foreach ($finder as $file) {
-            $entities[] = $file->getBasename('.php');
-        }
-
-        return $entities;
-    }
-
-    /**
-     * Getting ClassLocator.
-     */
-    protected function getClassLocator(): ClassLocator
-    {
-        return (new Tokenizer(new TokenizerConfig([
-            'directories' => $this->entitiesDirs,
-        ])))->classLocator();
     }
 
     private function loadCachedSchemaIntoOrm(): void

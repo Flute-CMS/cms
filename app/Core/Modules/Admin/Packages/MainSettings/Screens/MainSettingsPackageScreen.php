@@ -2,6 +2,9 @@
 
 namespace Flute\Admin\Packages\MainSettings\Screens;
 
+use function constant;
+use function defined;
+
 use Exception;
 use Flute\Admin\Packages\MainSettings\Layouts\DatabaseSettingsLayout;
 use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
@@ -529,14 +532,14 @@ class MainSettingsPackageScreen extends Screen
         $initSql = null;
         $compression = false;
         if (isset($tcpConnection->options) && is_array($tcpConnection->options)) {
-            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
-                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? constant('PDO::MYSQL_ATTR_INIT_COMMAND')
                 : null;
             if ($mysqlInitKey !== null) {
                 $initSql = $tcpConnection->options[$mysqlInitKey] ?? null;
             }
-            $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
-                ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+            $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS')
+                ? constant('PDO::MYSQL_ATTR_COMPRESS')
                 : null;
             if ($mysqlCompressKey !== null) {
                 $compression = (bool) ($tcpConnection->options[$mysqlCompressKey] ?? false);
@@ -549,14 +552,14 @@ class MainSettingsPackageScreen extends Screen
         $readTimeout = null;
         $writeTimeout = null;
         if (isset($tcpConnection->options) && is_array($tcpConnection->options)) {
-            $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
-                ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+            $mysqlConnectKey = defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                ? constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
                 : null;
-            $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
-                ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+            $mysqlReadKey = defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                ? constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
                 : null;
-            $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
-                ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+            $mysqlWriteKey = defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                ? constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
                 : null;
 
             $connectTimeout = $mysqlConnectKey !== null
@@ -747,8 +750,8 @@ class MainSettingsPackageScreen extends Screen
 
         if ($driver === 'mysql') {
             $options = [];
-            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
-                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? constant('PDO::MYSQL_ATTR_INIT_COMMAND')
                 : null;
             if ($mysqlInitKey !== null) {
                 $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
@@ -757,16 +760,16 @@ class MainSettingsPackageScreen extends Screen
                 $options[PDO::ATTR_PERSISTENT] = true;
             }
             if ($compression) {
-                $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
-                    ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+                $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS')
+                    ? constant('PDO::MYSQL_ATTR_COMPRESS')
                     : null;
                 if ($mysqlCompressKey !== null) {
                     $options[$mysqlCompressKey] = true;
                 }
             }
             if ($connectTimeout !== null) {
-                $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                $mysqlConnectKey = defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
                     : null;
                 if ($mysqlConnectKey !== null) {
                     $options[$mysqlConnectKey] = $connectTimeout;
@@ -774,16 +777,16 @@ class MainSettingsPackageScreen extends Screen
                 $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
             }
             if ($readTimeout !== null) {
-                $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                $mysqlReadKey = defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
                     : null;
                 if ($mysqlReadKey !== null) {
                     $options[$mysqlReadKey] = $readTimeout;
                 }
             }
             if ($writeTimeout !== null) {
-                $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                $mysqlWriteKey = defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
                     : null;
                 if ($mysqlWriteKey !== null) {
                     $options[$mysqlWriteKey] = $writeTimeout;
@@ -905,8 +908,8 @@ class MainSettingsPackageScreen extends Screen
 
         if ($driver === 'mysql') {
             $options = [];
-            $mysqlInitKey = \defined('PDO::MYSQL_ATTR_INIT_COMMAND')
-                ? \constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? constant('PDO::MYSQL_ATTR_INIT_COMMAND')
                 : null;
             if ($mysqlInitKey !== null) {
                 $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
@@ -915,16 +918,16 @@ class MainSettingsPackageScreen extends Screen
                 $options[PDO::ATTR_PERSISTENT] = true;
             }
             if ($compression) {
-                $mysqlCompressKey = \defined('PDO::MYSQL_ATTR_COMPRESS')
-                    ? \constant('PDO::MYSQL_ATTR_COMPRESS')
+                $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS')
+                    ? constant('PDO::MYSQL_ATTR_COMPRESS')
                     : null;
                 if ($mysqlCompressKey !== null) {
                     $options[$mysqlCompressKey] = true;
                 }
             }
             if ($connectTimeout !== null) {
-                $mysqlConnectKey = \defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                $mysqlConnectKey = defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
                     : null;
                 if ($mysqlConnectKey !== null) {
                     $options[$mysqlConnectKey] = $connectTimeout;
@@ -932,16 +935,16 @@ class MainSettingsPackageScreen extends Screen
                 $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
             }
             if ($readTimeout !== null) {
-                $mysqlReadKey = \defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                $mysqlReadKey = defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
                     : null;
                 if ($mysqlReadKey !== null) {
                     $options[$mysqlReadKey] = $readTimeout;
                 }
             }
             if ($writeTimeout !== null) {
-                $mysqlWriteKey = \defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
-                    ? \constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                $mysqlWriteKey = defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
                     : null;
                 if ($mysqlWriteKey !== null) {
                     $options[$mysqlWriteKey] = $writeTimeout;
