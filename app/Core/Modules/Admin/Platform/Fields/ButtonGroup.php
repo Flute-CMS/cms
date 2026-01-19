@@ -69,7 +69,6 @@ class ButtonGroup extends Field
      * - Icon only: ['value' => ['icon' => 'ph.bold.icon-name', 'tooltip' => 'Tooltip']]
      * - Full: ['value' => ['label' => 'Label', 'icon' => 'ph.bold.icon-name', 'tooltip' => 'Tooltip']]
      *
-     * @param array $options
      * @return $this
      */
     public function options(array $options): self
@@ -98,10 +97,6 @@ class ButtonGroup extends Field
     /**
      * Set boolean options for toggle-like behavior.
      *
-     * @param string $yesLabel
-     * @param string $noLabel
-     * @param string|null $yesIcon
-     * @param string|null $noIcon
      * @return $this
      */
     public function boolean(
@@ -125,7 +120,6 @@ class ButtonGroup extends Field
     /**
      * Set size: 'tiny', 'small', 'medium', 'large'
      *
-     * @param string $size
      * @return $this
      */
     public function size(string $size): self
@@ -136,7 +130,6 @@ class ButtonGroup extends Field
     /**
      * Set color theme: 'primary', 'accent', 'secondary'
      *
-     * @param string $color
      * @return $this
      */
     public function color(string $color): self
@@ -147,7 +140,6 @@ class ButtonGroup extends Field
     /**
      * Make the button group take full width.
      *
-     * @param bool $fullWidth
      * @return $this
      */
     public function fullWidth(bool $fullWidth = true): self

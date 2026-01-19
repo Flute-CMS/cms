@@ -8,11 +8,11 @@ use Flute\Admin\Packages\Server\Services\AdminServersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
-use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -929,16 +929,16 @@ class ServerEditScreen extends Screen
                     ->label(__('admin-server.fields.ranks_format.label'))
                     ->required(),
 
-            LayoutFactory::field(
-                ButtonGroup::make('ranks_premier')
-                    ->options([
-                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
-                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.crown-bold'],
-                    ])
-                    ->value(($this->server?->ranks_premier ?? false) ? '1' : '0')
-                    ->color('accent')
-            )
-                ->label(__('admin-server.fields.ranks_premier.label')),
+                LayoutFactory::field(
+                    ButtonGroup::make('ranks_premier')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.crown-bold'],
+                        ])
+                        ->value(($this->server?->ranks_premier ?? false) ? '1' : '0')
+                        ->color('accent')
+                )
+                    ->label(__('admin-server.fields.ranks_premier.label')),
 
             ]),
 
