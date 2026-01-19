@@ -292,13 +292,7 @@ function onTabActivated(tabContentEl) {
         }
     }
 
-    if (window.Select) {
-        try {
-            window.Select.init();
-        } catch (e) {
-            // ignore
-        }
-    }
+    scheduleSelectInit(tabContentEl);
 
     // Optional UI inits used across admin.
     if (window.initColorPickers) {
@@ -315,6 +309,54 @@ function onTabActivated(tabContentEl) {
             // ignore
         }
     }
+    if (typeof initButtonGroups === 'function') {
+        try {
+            initButtonGroups(tabContentEl);
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    try {
+        const popoverTriggers = tabContentEl.querySelectorAll('[data-popover-trigger="true"]');
+        popoverTriggers.forEach((trigger) => {
+        });
+    } catch (e) {
+        // ignore
+    }
+}
+
+function scheduleSelectInit(tabContentEl) {
+    if (!tabContentEl) return;
+    if (!tabContentEl.querySelector('[data-select]')) return;
+
+    const tries = parseInt(tabContentEl.dataset.selectInitTries || '0', 10);
+    if (tries >= 6) return;
+    tabContentEl.dataset.selectInitTries = String(tries + 1);
+
+    const attemptInit = () => {
+        if (!window.Select) return false;
+        try {
+            window.Select.init();
+            return true;
+        } catch (_) {
+            return false;
+        }
+    };
+
+    const ok = attemptInit();
+    if (ok) {
+        try {
+            requestAnimationFrame(() => {
+                attemptInit();
+            });
+        } catch (_) { }
+        return;
+    }
+
+    setTimeout(() => {
+        scheduleSelectInit(tabContentEl);
+    }, 120);
 }
 
 function getTabsContentContainer(container) {
@@ -326,7 +368,6 @@ function getTabsContentContainer(container) {
     const inside = container.querySelector(`.tabs-content[data-name="${tabsId}"]`);
     if (inside) return inside;
 
-    // tabs-content is rendered as a sibling of tabs-container, within the same parent node.
     const parent = container.parentElement;
     if (!parent) return null;
 

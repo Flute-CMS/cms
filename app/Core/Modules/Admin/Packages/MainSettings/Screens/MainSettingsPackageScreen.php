@@ -15,6 +15,7 @@ use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TextArea;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
@@ -382,13 +383,19 @@ class MainSettingsPackageScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Select::make('driver')
+                ButtonGroup::make('driver')
                     ->options([
-                        'mysql' => 'MySQL',
-                        'postgres' => 'PostgreSQL',
+                        'mysql' => [
+                            'label' => 'MySQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
+                        'postgres' => [
+                            'label' => 'PostgreSQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
                     ])
                     ->value($driver)
-                    ->placeholder(__('admin-main-settings.placeholders.db_driver'))
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_driver'))->required(),
             LayoutFactory::field(
                 Input::make('databaseName')
@@ -423,8 +430,13 @@ class MainSettingsPackageScreen extends Screen
                     ->placeholder(__('admin-main-settings.placeholders.db_password'))
             )->label(__('admin-main-settings.labels.password')),
             LayoutFactory::field(
-                Toggle::make('persistent')
-                    ->value(false)
+                ButtonGroup::make('persistent')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value('0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.persistent_connections'))
                 ->popover(__('admin-main-settings.popovers.persistent_connections')),
             LayoutFactory::field(
@@ -435,14 +447,24 @@ class MainSettingsPackageScreen extends Screen
                 ->popover(__('admin-main-settings.popovers.db_init_sql'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
-                Toggle::make('compression')
-                    ->value(false)
+                ButtonGroup::make('compression')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value('0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_compression'))
                 ->popover(__('admin-main-settings.popovers.db_compression'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
-                Toggle::make('reconnect')
-                    ->value(true)
+                ButtonGroup::make('reconnect')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value('1')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_reconnect'))
                 ->popover(__('admin-main-settings.popovers.db_reconnect'))
                 ->setVisible($supportsReconnect),
@@ -577,13 +599,19 @@ class MainSettingsPackageScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Select::make('driver')
+                ButtonGroup::make('driver')
                     ->options([
-                        'mysql' => 'MySQL',
-                        'postgres' => 'PostgreSQL',
+                        'mysql' => [
+                            'label' => 'MySQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
+                        'postgres' => [
+                            'label' => 'PostgreSQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
                     ])
                     ->value($driver)
-                    ->placeholder(__('admin-main-settings.placeholders.db_driver'))
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_driver'))->required(),
             LayoutFactory::field(
                 Input::make('databaseName')
@@ -624,8 +652,13 @@ class MainSettingsPackageScreen extends Screen
                     ->placeholder(__('admin-main-settings.placeholders.db_password'))
             )->label(__('admin-main-settings.labels.password')),
             LayoutFactory::field(
-                Toggle::make('persistent')
-                    ->value($persistent)
+                ButtonGroup::make('persistent')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value($persistent ? '1' : '0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.persistent_connections'))
                 ->popover(__('admin-main-settings.popovers.persistent_connections')),
             LayoutFactory::field(
@@ -637,14 +670,24 @@ class MainSettingsPackageScreen extends Screen
                 ->popover(__('admin-main-settings.popovers.db_init_sql'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
-                Toggle::make('compression')
-                    ->value($compression)
+                ButtonGroup::make('compression')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value($compression ? '1' : '0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_compression'))
                 ->popover(__('admin-main-settings.popovers.db_compression'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
-                Toggle::make('reconnect')
-                    ->value($reconnect)
+                ButtonGroup::make('reconnect')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value($reconnect ? '1' : '0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.db_reconnect'))
                 ->popover(__('admin-main-settings.popovers.db_reconnect'))
                 ->setVisible($supportsReconnect),
@@ -1327,16 +1370,28 @@ class MainSettingsPackageScreen extends Screen
             )->label(__('admin-main-settings.labels.timezone'))->required()->small(__('admin-main-settings.examples.timezone')),
             LayoutFactory::split([
                 LayoutFactory::field(
-                    Toggle::make('change_theme')
-                        ->checked(config('app.change_theme'))
-                )->addClass('mt-2')->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
-                LayoutFactory::field(
-                    Select::make('default_theme')
+                    ButtonGroup::make('change_theme')
                         ->options([
-                            'dark' => __('admin-main-settings.options.theme.dark'),
-                            'light' => __('admin-main-settings.options.theme.light'),
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.change_theme') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
+                LayoutFactory::field(
+                    ButtonGroup::make('default_theme')
+                        ->options([
+                            'dark' => [
+                                'label' => __('admin-main-settings.options.theme.dark'),
+                                'icon' => 'ph.bold.moon-bold',
+                            ],
+                            'light' => [
+                                'label' => __('admin-main-settings.options.theme.light'),
+                                'icon' => 'ph.bold.sun-bold',
+                            ],
                         ])
                         ->value(config('app.default_theme', 'dark'))
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.default_theme'))->popover(__('admin-main-settings.popovers.default_theme')),
             ])->ratio('50/50'),
             LayoutFactory::field(
@@ -1376,9 +1431,21 @@ class MainSettingsPackageScreen extends Screen
     {
         return LayoutFactory::block([
             LayoutFactory::field(
-                Toggle::make('maintenance_mode')
-                    ->checked(config('app.maintenance_mode'))
-            )->label(__('admin-main-settings.labels.maintenance_mode'))->popover(__('admin-main-settings.popovers.maintenance_mode')),
+                ButtonGroup::make('maintenance_mode')
+                    ->options([
+                        '0' => [
+                            'label' => __('admin-main-settings.options.site_status.open'),
+                            'icon' => 'ph.bold.globe-bold',
+                        ],
+                        '1' => [
+                            'label' => __('admin-main-settings.options.site_status.closed'),
+                            'icon' => 'ph.bold.lock-bold',
+                        ],
+                    ])
+                    ->value(config('app.maintenance_mode') ? '1' : '0')
+                    ->color('accent')
+                    ->fullWidth()
+            )->label(__('admin-main-settings.labels.site_status'))->popover(__('admin-main-settings.popovers.maintenance_mode')),
             LayoutFactory::field(
                 TextArea::make('maintenance_message')
                     ->placeholder(__('admin-main-settings.placeholders.maintenance_message'))
@@ -1419,9 +1486,21 @@ class MainSettingsPackageScreen extends Screen
     {
         return LayoutFactory::block([
             LayoutFactory::field(
-                Toggle::make('development_mode')
-                    ->checked((bool) config('app.development_mode'))
-            )->label(__('admin-main-settings.labels.development_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
+                ButtonGroup::make('development_mode')
+                    ->options([
+                        '0' => [
+                            'label' => __('admin-main-settings.options.mode.production'),
+                            'icon' => 'ph.bold.rocket-bold',
+                        ],
+                        '1' => [
+                            'label' => __('admin-main-settings.options.mode.development'),
+                            'icon' => 'ph.bold.wrench-bold',
+                        ],
+                    ])
+                    ->value(config('app.development_mode') ? '1' : '0')
+                    ->color('accent')
+                    ->fullWidth()
+            )->label(__('admin-main-settings.labels.site_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
         ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2');
     }
 
@@ -1430,33 +1509,63 @@ class MainSettingsPackageScreen extends Screen
         return LayoutFactory::block([
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('is_performance')
-                        ->checked(config('app.is_performance'))
+                    ButtonGroup::make('is_performance')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.lightning-bold'],
+                        ])
+                        ->value(config('app.is_performance') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.is_performance'))->popover(__('admin-main-settings.popovers.is_performance')),
                 LayoutFactory::field(
-                    Toggle::make('cron_mode')
-                        ->checked(config('app.cron_mode'))
+                    ButtonGroup::make('cron_mode')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.clock-bold'],
+                        ])
+                        ->value(config('app.cron_mode') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.cron_mode'))->popover(__('admin-main-settings.popovers.cron_mode')),
             ]),
             LayoutFactory::view('admin-main-settings::cron')->setVisible(boolval(config('app.cron_mode'))),
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('csrf_enabled')
-                        ->checked(config('app.csrf_enabled'))
-                )->label(__('admin-main-settings.labels.csrf_enabled')),
+                    ButtonGroup::make('csrf_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.shield-check-bold'],
+                        ])
+                        ->value(config('app.csrf_enabled') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.csrf_enabled'))->popover(__('admin-main-settings.popovers.csrf_enabled')),
                 LayoutFactory::field(
-                    Toggle::make('convert_to_webp')
-                        ->checked(config('app.convert_to_webp'))
+                    ButtonGroup::make('convert_to_webp')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.image-bold'],
+                        ])
+                        ->value(config('app.convert_to_webp') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.convert_to_webp'))->popover(__('admin-main-settings.popovers.convert_to_webp')),
             ]),
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('create_backup')
-                        ->checked(config('app.create_backup', false))
+                    ButtonGroup::make('create_backup')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.download-bold'],
+                        ])
+                        ->value(config('app.create_backup', false) ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.create_backup'))->popover(__('admin-main-settings.popovers.create_backup')),
                 LayoutFactory::field(
-                    Toggle::make('auto_update')
-                        ->checked(config('app.auto_update', false))
+                    ButtonGroup::make('auto_update')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.arrow-clockwise-bold'],
+                        ])
+                        ->value(config('app.auto_update', false) ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.auto_update'))
                     ->setVisible(config('app.cron_mode'))
                     ->popover(__('admin-main-settings.popovers.auto_update')),
@@ -1467,13 +1576,22 @@ class MainSettingsPackageScreen extends Screen
     private function mainSettingsDebugBlock()
     {
         return LayoutFactory::block([
-            LayoutFactory::split([
-                LayoutFactory::field(
-                    Toggle::make('debug')
-                        ->checked(is_development() ? true : config('app.debug'))
-                        ->disabled(is_development())
-                )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
-            ])->ratio('50/50'),
+            LayoutFactory::field(
+                ButtonGroup::make('debug')
+                    ->options([
+                        '0' => [
+                            'label' => __('admin-main-settings.options.debug.off'),
+                            'icon' => 'ph.bold.eye-slash-bold',
+                        ],
+                        '1' => [
+                            'label' => __('admin-main-settings.options.debug.on'),
+                            'icon' => 'ph.bold.bug-bold',
+                        ],
+                    ])
+                    ->value((is_development() || config('app.debug')) ? '1' : '0')
+                    ->disabled(is_development())
+                    ->color('accent')
+            )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
             LayoutFactory::field(
                 Input::make('debug_ips')
                     ->type('text')
@@ -1492,14 +1610,26 @@ class MainSettingsPackageScreen extends Screen
                     ->placeholder(__('admin-main-settings.placeholders.currency_view'))
                     ->value(config('lk.currency_view'))
             )->label(__('admin-main-settings.labels.currency_view'))->popover(__('admin-main-settings.popovers.currency_view')),
-            LayoutFactory::field(
-                Toggle::make('oferta_view')
-                    ->checked(config('lk.oferta_view'))
-            )->label(__('admin-main-settings.labels.oferta_view')),
-            LayoutFactory::field(
-                Toggle::make('only_modal')
-                    ->checked(config('lk.only_modal'))
-            )->label(__('admin-main-settings.labels.lk_only_modal'))->popover(__('admin-main-settings.popovers.lk_only_modal')),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    ButtonGroup::make('oferta_view')
+                        ->options([
+                            '0' => ['label' => __('def.hide'), 'icon' => 'ph.bold.eye-slash-bold'],
+                            '1' => ['label' => __('def.show'), 'icon' => 'ph.bold.eye-bold'],
+                        ])
+                        ->value(config('lk.oferta_view') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.oferta_view')),
+                LayoutFactory::field(
+                    ButtonGroup::make('only_modal')
+                        ->options([
+                            '0' => ['label' => __('admin-main-settings.options.lk.page'), 'icon' => 'ph.bold.browser-bold'],
+                            '1' => ['label' => __('admin-main-settings.options.lk.modal'), 'icon' => 'ph.bold.frame-corners-bold'],
+                        ])
+                        ->value(config('lk.only_modal') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.lk_only_modal'))->popover(__('admin-main-settings.popovers.lk_only_modal')),
+            ]),
             LayoutFactory::field(
                 Input::make('oferta_url')
                     ->type('text')
@@ -1545,28 +1675,53 @@ class MainSettingsPackageScreen extends Screen
         return LayoutFactory::block([
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('reset_password')
-                        ->checked(config('auth.reset_password'))
+                    ButtonGroup::make('reset_password')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('auth.reset_password') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.reset_password'))->popover(__('admin-main-settings.popovers.reset_password')),
                 LayoutFactory::field(
-                    Toggle::make('only_social')
-                        ->checked(config('auth.only_social'))
+                    ButtonGroup::make('only_social')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('auth.only_social') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.only_social'))->popover(__('admin-main-settings.popovers.only_social')),
             ]),
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('only_modal')
-                        ->checked(config('auth.only_modal'))
+                    ButtonGroup::make('only_modal')
+                        ->options([
+                            '0' => ['label' => __('admin-main-settings.options.auth.page'), 'icon' => 'ph.bold.browser-bold'],
+                            '1' => ['label' => __('admin-main-settings.options.auth.modal'), 'icon' => 'ph.bold.frame-corners-bold'],
+                        ])
+                        ->value(config('auth.only_modal') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.only_modal'))->popover(__('admin-main-settings.popovers.only_modal')),
                 LayoutFactory::field(
-                    Toggle::make('confirm_email')
-                        ->checked(config('auth.registration.confirm_email'))
+                    ButtonGroup::make('confirm_email')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.envelope-bold'],
+                        ])
+                        ->value(config('auth.registration.confirm_email') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.confirm_email'))->popover(__('admin-main-settings.popovers.confirm_email')),
             ]),
             LayoutFactory::split([
                 LayoutFactory::field(
-                    Toggle::make('remember_me')
-                        ->checked(config('auth.remember_me'))
+                    ButtonGroup::make('remember_me')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('auth.remember_me') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.remember_me'))->popover(__('admin-main-settings.popovers.remember_me')),
                 LayoutFactory::field(
                     Input::make('remember_me_duration')
@@ -1589,12 +1744,22 @@ class MainSettingsPackageScreen extends Screen
         return LayoutFactory::block([
             LayoutFactory::split([
                 LayoutFactory::field(
-                    Toggle::make('check_ip')
-                        ->checked(config('auth.check_ip'))
+                    ButtonGroup::make('check_ip')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.map-pin-bold'],
+                        ])
+                        ->value(config('auth.check_ip') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.check_ip'))->popover(__('admin-main-settings.popovers.check_ip')),
                 LayoutFactory::field(
-                    Toggle::make('security_token')
-                        ->checked(config('auth.security_token'))
+                    ButtonGroup::make('security_token')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.key-bold'],
+                        ])
+                        ->value(config('auth.security_token') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.security_token'))->popover(__('admin-main-settings.popovers.security_token')),
             ]),
         ])->title(__('admin-main-settings.blocks.session_settings'))->description(__('admin-main-settings.blocks.session_description'));
@@ -1607,28 +1772,56 @@ class MainSettingsPackageScreen extends Screen
         return LayoutFactory::block([
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('captcha_enabled_login')
-                        ->checked(boolval(config('auth.captcha.enabled.login')))
+                    ButtonGroup::make('captcha_enabled_login')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('auth.captcha.enabled.login') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.captcha_enabled_login'))->popover(__('admin-main-settings.popovers.captcha_enabled_login')),
                 LayoutFactory::field(
-                    Toggle::make('captcha_enabled_register')
-                        ->checked(boolval(config('auth.captcha.enabled.register')))
+                    ButtonGroup::make('captcha_enabled_register')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('auth.captcha.enabled.register') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.captcha_enabled_register'))->popover(__('admin-main-settings.popovers.captcha_enabled_register')),
             ]),
             LayoutFactory::field(
-                Toggle::make('captcha_enabled_password_reset')
-                    ->checked(boolval(config('auth.captcha.enabled.password_reset')))
+                ButtonGroup::make('captcha_enabled_password_reset')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value(config('auth.captcha.enabled.password_reset') ? '1' : '0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.captcha_enabled_password_reset'))->popover(__('admin-main-settings.popovers.captcha_enabled_password_reset')),
             LayoutFactory::field(
-                Select::make('captcha_type')
+                ButtonGroup::make('captcha_type')
                     ->yoyo()
                     ->options([
-                        'recaptcha_v2' => 'reCAPTCHA v2',
-                        'recaptcha_v3' => 'reCAPTCHA v3',
-                        'hcaptcha' => 'hCaptcha',
-                        'turnstile' => 'Cloudflare Turnstile',
+                        'recaptcha_v2' => [
+                            'label' => 'reCAPTCHA v2',
+                            'icon' => 'ph.bold.robot-bold',
+                        ],
+                        'recaptcha_v3' => [
+                            'label' => 'reCAPTCHA v3',
+                            'icon' => 'ph.bold.robot-bold',
+                        ],
+                        'hcaptcha' => [
+                            'label' => 'hCaptcha',
+                            'icon' => 'ph.bold.puzzle-piece-bold',
+                        ],
+                        'turnstile' => [
+                            'label' => 'Turnstile',
+                            'icon' => 'ph.bold.cloud-bold',
+                        ],
                     ])
                     ->value(config('auth.captcha.type'))
+                    ->size('small')
             )->label(__('admin-main-settings.labels.captcha_type'))->required(),
             LayoutFactory::split([
                 LayoutFactory::field(
@@ -1703,14 +1896,26 @@ class MainSettingsPackageScreen extends Screen
     private function usersTwoFactorBlock()
     {
         return LayoutFactory::block([
-            LayoutFactory::field(
-                Toggle::make('two_factor_enabled')
-                    ->checked((bool) config('auth.two_factor.enabled'))
-            )->label(__('admin-main-settings.labels.two_factor_enabled'))->popover(__('admin-main-settings.popovers.two_factor_enabled')),
-            LayoutFactory::field(
-                Toggle::make('two_factor_force')
-                    ->checked((bool) config('auth.two_factor.force'))
-            )->label(__('admin-main-settings.labels.two_factor_force'))->popover(__('admin-main-settings.popovers.two_factor_force')),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    ButtonGroup::make('two_factor_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.shield-check-bold'],
+                        ])
+                        ->value(config('auth.two_factor.enabled') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.two_factor_enabled'))->popover(__('admin-main-settings.popovers.two_factor_enabled')),
+                LayoutFactory::field(
+                    ButtonGroup::make('two_factor_force')
+                        ->options([
+                            '0' => ['label' => __('admin-main-settings.options.two_factor.optional'), 'icon' => 'ph.bold.user-bold'],
+                            '1' => ['label' => __('admin-main-settings.options.two_factor.required'), 'icon' => 'ph.bold.lock-bold'],
+                        ])
+                        ->value(config('auth.two_factor.force') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.two_factor_force'))->popover(__('admin-main-settings.popovers.two_factor_force')),
+            ]),
             LayoutFactory::field(
                 Input::make('two_factor_issuer')
                     ->type('text')
@@ -1724,8 +1929,13 @@ class MainSettingsPackageScreen extends Screen
     {
         return LayoutFactory::block([
             LayoutFactory::field(
-                Toggle::make('change_uri')
-                    ->checked(config('profile.change_uri'))
+                ButtonGroup::make('change_uri')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.link-bold'],
+                    ])
+                    ->value(config('profile.change_uri') ? '1' : '0')
+                    ->color('accent')
             )->label(__('admin-main-settings.labels.change_uri')),
             LayoutFactory::split([
                 LayoutFactory::field(
@@ -1812,13 +2022,19 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('mail.password'))
                 )->label(__('admin-main-settings.labels.password')),
                 LayoutFactory::field(
-                    Select::make('secure')
+                    ButtonGroup::make('secure')
                         ->options([
-                            'tls' => 'TLS',
-                            'ssl' => 'SSL',
+                            'tls' => [
+                                'label' => 'TLS',
+                                'icon' => 'ph.bold.lock-bold',
+                            ],
+                            'ssl' => [
+                                'label' => 'SSL',
+                                'icon' => 'ph.bold.shield-check-bold',
+                            ],
                         ])
                         ->value(config('mail.secure'))
-                        ->placeholder(__('admin-main-settings.placeholders.secure'))
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.secure')),
                 LayoutFactory::field(
                     Input::make('from')
@@ -1854,15 +2070,10 @@ class MainSettingsPackageScreen extends Screen
                 )->label(__('admin-main-settings.labels.locale')),
             ])->title(__('admin-main-settings.blocks.localization_settings')),
             LayoutFactory::block([
-                LayoutFactory::split(
-                    array_map(
-                        static fn ($lang) => LayoutFactory::field(
-                            Toggle::make("available[{$lang}]")
-                                ->checked(in_array($lang, config('lang.available')))
-                        )->label(__('langs.' . $lang)),
-                        config('lang.all')
-                    )
-                )->ratio('50/50'),
+                LayoutFactory::view('admin-main-settings::languages', [
+                    'languages' => config('lang.all'),
+                    'available' => config('lang.available'),
+                ]),
             ])->title(__('admin-main-settings.blocks.active_languages'))->description(__('admin-main-settings.blocks.active_languages_description')),
         ]);
     }
@@ -1890,26 +2101,51 @@ class MainSettingsPackageScreen extends Screen
         return LayoutFactory::block([
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('share')
-                        ->checked(config('app.share'))
+                    ButtonGroup::make('share')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.share-network-bold'],
+                        ])
+                        ->value(config('app.share') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.share'))->small(__('admin-main-settings.labels.share_description')),
                 LayoutFactory::field(
-                    Toggle::make('flute_copyright')
-                        ->checked(config('app.flute_copyright'))
+                    ButtonGroup::make('flute_copyright')
+                        ->options([
+                            '0' => ['label' => __('def.hide'), 'icon' => 'ph.bold.eye-slash-bold'],
+                            '1' => ['label' => __('def.show'), 'icon' => 'ph.bold.eye-bold'],
+                        ])
+                        ->value(config('app.flute_copyright') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.copyright'))->small(__('admin-main-settings.labels.copyright_description')),
             ]),
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Toggle::make('discord_link_roles')
-                        ->checked(config('app.discord_link_roles'))
+                    ButtonGroup::make('discord_link_roles')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.discord-logo-bold'],
+                        ])
+                        ->value(config('app.discord_link_roles') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.discord_link_roles'))->small(__('admin-main-settings.labels.discord_link_roles_description')),
                 LayoutFactory::field(
-                    Toggle::make('minify')
-                        ->checked(config('assets.minify'))
+                    ButtonGroup::make('minify')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.file-zip-bold'],
+                        ])
+                        ->value(config('assets.minify') ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
                 LayoutFactory::field(
-                    Toggle::make('autoprefix')
-                        ->checked(config('assets.autoprefix', false))
+                    ButtonGroup::make('autoprefix')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.browsers-bold'],
+                        ])
+                        ->value(config('assets.autoprefix', false) ? '1' : '0')
+                        ->color('accent')
                 )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
             ]),
         ])->title(__('admin-main-settings.tabs.additional_settings'))->addClass('mb-3');

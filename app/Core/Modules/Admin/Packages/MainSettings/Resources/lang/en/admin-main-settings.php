@@ -11,6 +11,7 @@ return [
         'steam_cache_duration' => 'Steam Cache Duration (seconds)',
         'footer_description' => 'Footer Description',
         'maintenance_mode' => 'Maintenance Mode',
+        'site_status' => 'Site Status',
         'maintenance_message' => 'Maintenance Mode Message',
         'is_performance' => 'Performance Mode',
         'cron_mode' => 'CRON Mode',
@@ -19,6 +20,7 @@ return [
         'csrf_enabled' => 'CSRF Token',
         'convert_to_webp' => 'Convert Images to WebP',
         'development_mode' => 'Development Mode',
+        'site_mode' => 'Site Mode',
         'debug' => 'Debug Mode',
         'debug_ips' => 'Debug IP Addresses',
         'currency_view' => 'Display Currency',
@@ -114,6 +116,30 @@ return [
         'theme' => [
             'dark' => 'Dark',
             'light' => 'Light',
+        ],
+        'site_status' => [
+            'open' => 'Site Open',
+            'closed' => 'Maintenance',
+        ],
+        'mode' => [
+            'production' => 'Production',
+            'development' => 'Development',
+        ],
+        'debug' => [
+            'off' => 'Debug Off',
+            'on' => 'Debug On',
+        ],
+        'lk' => [
+            'page' => 'Page',
+            'modal' => 'Modal',
+        ],
+        'auth' => [
+            'page' => 'Page',
+            'modal' => 'Modal',
+        ],
+        'two_factor' => [
+            'optional' => 'Optional',
+            'required' => 'Required',
         ],
     ],
 
@@ -256,6 +282,7 @@ return [
         'is_performance' => 'The site will work faster by caching long-running queries.',
         'cron_mode' => 'This feature uses CRON instead of regular requests. Learn more <a target="_blank" href="https://docs.flute-cms.com">here</a>.',
         'auto_update' => 'When CRON is enabled, it will automatically check and install available updates (CMS, modules, themes) daily.',
+        'csrf_enabled' => 'CSRF token protects against cross-site request forgery. It is recommended to keep it enabled for form security.',
         'convert_to_webp' => 'All site images will be converted to WebP format to reduce size.',
         'development_mode' => 'Disables HTTP caching and forces assets recompilation on each request.',
         'debug' => 'All site errors will be displayed. You can configure who sees them.',

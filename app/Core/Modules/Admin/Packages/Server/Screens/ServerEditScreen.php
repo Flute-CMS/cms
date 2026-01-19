@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\Server\Screens;
 
 use Exception;
+use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
 use Flute\Admin\Packages\Server\Services\AdminServersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
@@ -11,7 +12,7 @@ use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
-use Flute\Admin\Platform\Fields\Toggle;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -19,6 +20,7 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Core\Database\Entities\Server;
 use Illuminate\Support\Str;
+use PDO;
 
 class ServerEditScreen extends Screen
 {
@@ -123,29 +125,43 @@ class ServerEditScreen extends Screen
         $availableDrivers = $this->getAvailableDrivers();
         $selectedDriver = request()->input('custom_mod');
 
-        $fields = [
-            LayoutFactory::field(
-                Select::make('custom_mod')
-                    ->options($availableDrivers)
-                    ->allowEmpty()
-                    ->yoyo()
-                    ->placeholder(__('admin-server.db_connection.fields.mod.placeholder'))
-                    ->value($selectedDriver)
-            )
-                ->label(__('admin-server.db_connection.fields.mod.label'))
-                ->small(__('admin-server.db_connection.fields.mod.help'))
-                ->required(),
+        $fields = [];
 
-            LayoutFactory::field(
-                Select::make('dbname')
-                    ->options($databaseOptions)
-                    ->allowEmpty()
-                    ->value(request()->input('dbname', ''))
-                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
-            )
-                ->label(__('admin-server.db_connection.fields.dbname.label'))
-                ->required(),
-        ];
+        if (empty($databaseOptions)) {
+            $fields[] = LayoutFactory::view('admin-server::db-connections.empty');
+        }
+
+        $fields[] = LayoutFactory::field(
+            Select::make('custom_mod')
+                ->options($availableDrivers)
+                ->allowEmpty()
+                ->yoyo()
+                ->placeholder(__('admin-server.db_connection.fields.mod.placeholder'))
+                ->value($selectedDriver)
+        )
+            ->label(__('admin-server.db_connection.fields.mod.label'))
+            ->small(__('admin-server.db_connection.fields.mod.help'))
+            ->required();
+
+        $fields[] = LayoutFactory::field(
+            Select::make('dbname')
+                ->options($databaseOptions)
+                ->allowEmpty()
+                ->value(request()->input('dbname', ''))
+                ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
+        )
+            ->label(__('admin-server.db_connection.fields.dbname.label'))
+            ->small(__('admin-server.db_connection.fields.dbname.help'))
+            ->required();
+
+        $fields[] = LayoutFactory::rows([
+            Button::make(__('admin-server.db_connection.create_db.button'))
+                ->type(Color::OUTLINE_SECONDARY)
+                ->icon('ph.bold.database-bold')
+                ->modal('addDatabaseModal')
+                ->size('small')
+                ->fullWidth(),
+        ]);
 
         if ($selectedDriver) {
             $driverView = $this->getDriverView($selectedDriver);
@@ -205,7 +221,16 @@ class ServerEditScreen extends Screen
                     ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
             )
                 ->label(__('admin-server.db_connection.fields.dbname.label'))
+                ->small(__('admin-server.db_connection.fields.dbname.help'))
                 ->required(),
+            LayoutFactory::rows([
+                Button::make(__('admin-server.db_connection.create_db.button'))
+                    ->type(Color::OUTLINE_SECONDARY)
+                    ->icon('ph.bold.database-bold')
+                    ->modal('addDatabaseModal')
+                    ->size('small')
+                    ->fullWidth(),
+            ]),
         ];
 
 
@@ -224,6 +249,150 @@ class ServerEditScreen extends Screen
             ->title(__('admin-server.db_connection.edit.title'))
             ->applyButton(__('admin-server.buttons.save'))
             ->method('updateDbConnection');
+    }
+
+    /**
+     * Модальное окно для добавления подключения к БД из интеграций.
+     */
+    public function addDatabaseModal(Repository $parameters)
+    {
+        $defaultConnection = config('database.connections.default');
+
+        $explode = explode('\\', $defaultConnection->driver);
+        $driver = str_replace('driver', '', strtolower(end($explode)));
+        $supportsMysqlOptions = $driver === 'mysql';
+        $supportsReconnect = in_array($driver, ['mysql', 'postgres'], true);
+
+        return LayoutFactory::modal($parameters, [
+            LayoutFactory::view('admin-server::db-connections.create-note'),
+            LayoutFactory::field(
+                ButtonGroup::make('driver')
+                    ->options([
+                        'mysql' => [
+                            'label' => 'MySQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
+                        'postgres' => [
+                            'label' => 'PostgreSQL',
+                            'icon' => 'ph.bold.database-bold',
+                        ],
+                    ])
+                    ->value($driver)
+                    ->color('accent')
+            )->label(__('admin-main-settings.labels.db_driver'))->required(),
+            LayoutFactory::field(
+                Input::make('databaseName')
+                    ->type('text')
+                    ->value(request()->input('databaseName', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.database_name'))
+            )->label(__('admin-main-settings.labels.database_name'))->required(),
+            LayoutFactory::field(
+                Input::make('host')
+                    ->type('text')
+                    ->value(request()->input('host', $defaultConnection->connection->host))
+                    ->placeholder(__('admin-main-settings.placeholders.db_host'))
+            )->label(__('admin-main-settings.labels.host'))->required(),
+            LayoutFactory::field(
+                Input::make('port')
+                    ->type('number')
+                    ->value(request()->input('port', $defaultConnection->connection->port))
+                    ->placeholder(__('admin-main-settings.placeholders.db_port'))
+            )->label(__('admin-main-settings.labels.port'))->required(),
+            LayoutFactory::field(
+                Input::make('user')
+                    ->type('text')
+                    ->value(request()->input('user', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.db_user'))
+            )->label(__('admin-main-settings.labels.user'))->required(),
+            LayoutFactory::field(
+                Input::make('database')
+                    ->type('text')
+                    ->value(request()->input('database', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.db_database'))
+            )->label(__('admin-main-settings.labels.database'))->required(),
+            LayoutFactory::field(
+                Input::make('password')
+                    ->type('password')
+                    ->value(request()->input('password', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.db_password'))
+            )->label(__('admin-main-settings.labels.password')),
+            LayoutFactory::field(
+                ButtonGroup::make('persistent')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value(request()->input('persistent', '0'))
+                    ->color('accent')
+            )->label(__('admin-main-settings.labels.persistent_connections'))
+                ->popover(__('admin-main-settings.popovers.persistent_connections')),
+            LayoutFactory::field(
+                Input::make('init_sql')
+                    ->type('text')
+                    ->value(request()->input('init_sql', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.db_init_sql'))
+            )->label(__('admin-main-settings.labels.db_init_sql'))
+                ->popover(__('admin-main-settings.popovers.db_init_sql'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                ButtonGroup::make('compression')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value(request()->input('compression', '0'))
+                    ->color('accent')
+            )->label(__('admin-main-settings.labels.db_compression'))
+                ->popover(__('admin-main-settings.popovers.db_compression'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                ButtonGroup::make('reconnect')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value(request()->input('reconnect', '1'))
+                    ->color('accent')
+            )->label(__('admin-main-settings.labels.db_reconnect'))
+                ->popover(__('admin-main-settings.popovers.db_reconnect'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('connect_timeout')
+                    ->type('number')
+                    ->value(request()->input('connect_timeout', 5))
+                    ->placeholder(__('admin-main-settings.placeholders.db_connect_timeout'))
+            )->label(__('admin-main-settings.labels.db_connect_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_connect_timeout'))
+                ->setVisible($supportsReconnect),
+            LayoutFactory::field(
+                Input::make('read_timeout')
+                    ->type('number')
+                    ->value(request()->input('read_timeout', 30))
+                    ->placeholder(__('admin-main-settings.placeholders.db_read_timeout'))
+            )->label(__('admin-main-settings.labels.db_read_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_read_timeout'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Input::make('write_timeout')
+                    ->type('number')
+                    ->value(request()->input('write_timeout', 30))
+                    ->placeholder(__('admin-main-settings.placeholders.db_write_timeout'))
+            )->label(__('admin-main-settings.labels.db_write_timeout'))
+                ->popover(__('admin-main-settings.popovers.db_write_timeout'))
+                ->setVisible($supportsMysqlOptions),
+            LayoutFactory::field(
+                Input::make('prefix')
+                    ->type('text')
+                    ->value(request()->input('prefix', ''))
+                    ->placeholder(__('admin-main-settings.placeholders.db_prefix'))
+            )->label(__('admin-main-settings.labels.prefix'))
+                ->popover(__('admin-main-settings.popovers.prefix'))
+                ->small(__('admin-main-settings.examples.prefix')),
+        ])
+            ->method('addDatabase')
+            ->title(__('admin-main-settings.modals.add_database'))
+            ->applyButton(__('admin-main-settings.buttons.add'))
+            ->right();
     }
 
     /**
@@ -355,6 +524,168 @@ class ServerEditScreen extends Screen
             $this->closeModal();
         } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
+        }
+    }
+
+    /**
+     * Добавление подключения к БД (из интеграций).
+     */
+    public function addDatabase()
+    {
+        $data = request()->input();
+
+        if (
+            !$this->validate([
+                'driver' => ['required', 'string', 'in:mysql,postgres'],
+                'databaseName' => ['required', 'string', 'not-in:default'],
+                'host' => ['required', 'string'],
+                'port' => ['required', 'integer', 'min:1', 'max:65535'],
+                'user' => ['required', 'string'],
+                'database' => ['required', 'string'],
+                'password' => ['nullable', 'string'],
+                'persistent' => ['nullable'],
+                'init_sql' => ['nullable', 'string'],
+                'compression' => ['nullable'],
+                'reconnect' => ['nullable'],
+                'connect_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'read_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'write_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+                'prefix' => ['nullable', 'string'],
+            ], $data)
+        ) {
+            return;
+        }
+
+        $connectionTest = app(MainSettingsPackageService::class)->testDatabaseConnection(
+            $data['driver'],
+            $data['host'],
+            (int) $data['port'],
+            $data['database'],
+            $data['user'],
+            $data['password'] ?? null
+        );
+
+        if ($connectionTest !== true) {
+            $this->flashMessage(__('admin-main-settings.messages.connection_test_failed') . ': ' . $connectionTest, 'error');
+
+            return;
+        }
+
+        $databaseName = $data['databaseName'];
+        $driver = $data['driver'];
+        $persistent = filter_var($data['persistent'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $initSql = trim((string) ($data['init_sql'] ?? ''));
+        $compression = filter_var($data['compression'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $reconnect = filter_var($data['reconnect'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $connectTimeout = isset($data['connect_timeout']) ? (int) $data['connect_timeout'] : null;
+        $readTimeout = isset($data['read_timeout']) ? (int) $data['read_timeout'] : null;
+        $writeTimeout = isset($data['write_timeout']) ? (int) $data['write_timeout'] : null;
+
+        $databases = config()->get('database.databases', []);
+        if (isset($databases[$databaseName])) {
+            $this->flashMessage(__('admin-main-settings.messages.database_exists'), 'error');
+
+            return;
+        }
+
+        config()->set("database.databases.{$databaseName}", [
+            'connection' => $databaseName,
+            'prefix' => $data['prefix'] ?? '',
+        ]);
+
+        if ($driver === 'mysql') {
+            $options = [];
+            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND')
+                ? constant('PDO::MYSQL_ATTR_INIT_COMMAND')
+                : null;
+            if ($mysqlInitKey !== null) {
+                $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
+            }
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($compression) {
+                $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS')
+                    ? constant('PDO::MYSQL_ATTR_COMPRESS')
+                    : null;
+                if ($mysqlCompressKey !== null) {
+                    $options[$mysqlCompressKey] = true;
+                }
+            }
+            if ($connectTimeout !== null) {
+                $mysqlConnectKey = defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')
+                    : null;
+                if ($mysqlConnectKey !== null) {
+                    $options[$mysqlConnectKey] = $connectTimeout;
+                }
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
+            if ($readTimeout !== null) {
+                $mysqlReadKey = defined('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_READ_TIMEOUT')
+                    : null;
+                if ($mysqlReadKey !== null) {
+                    $options[$mysqlReadKey] = $readTimeout;
+                }
+            }
+            if ($writeTimeout !== null) {
+                $mysqlWriteKey = defined('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    ? constant('PDO::MYSQL_ATTR_WRITE_TIMEOUT')
+                    : null;
+                if ($mysqlWriteKey !== null) {
+                    $options[$mysqlWriteKey] = $writeTimeout;
+                }
+            }
+            $connectionConfig = new \Cycle\Database\Config\MySQLDriverConfig(
+                connection: new \Cycle\Database\Config\MySQL\TcpConnectionConfig(
+                    database: $data['database'],
+                    host: $data['host'],
+                    port: $data['port'],
+                    user: $data['user'],
+                    password: $data['password'],
+                    options: $options,
+                ),
+                reconnect: $reconnect,
+                timezone: 'Asia/Yekaterinburg',
+                queryCache: true,
+            );
+        } elseif ($driver === 'postgres') {
+            $options = [];
+            if ($persistent) {
+                $options[PDO::ATTR_PERSISTENT] = true;
+            }
+            if ($connectTimeout !== null) {
+                $options[PDO::ATTR_TIMEOUT] = $connectTimeout;
+            }
+            $connectionConfig = new \Cycle\Database\Config\PostgresDriverConfig(
+                connection: new \Cycle\Database\Config\Postgres\TcpConnectionConfig(
+                    database: $data['database'],
+                    host: $data['host'],
+                    port: $data['port'],
+                    user: $data['user'],
+                    password: $data['password'],
+                    options: $options,
+                ),
+                reconnect: $reconnect,
+                schema: 'public',
+                queryCache: true,
+            );
+        } else {
+            $this->flashMessage(__('admin-main-settings.messages.unsupported_driver'), 'error');
+
+            return;
+        }
+
+        config()->set("database.connections.{$databaseName}", $connectionConfig);
+
+        try {
+            config()->save();
+            $this->invalidateConfig('database');
+            $this->flashMessage(__('admin-main-settings.messages.add_database_success'));
+            $this->closeModal();
+        } catch (Exception $e) {
+            $this->flashMessage(__('admin-main-settings.messages.add_database_error') . $e->getMessage(), 'error');
         }
     }
 
@@ -598,12 +929,16 @@ class ServerEditScreen extends Screen
                     ->label(__('admin-server.fields.ranks_format.label'))
                     ->required(),
 
-                LayoutFactory::field(
-                    Toggle::make('ranks_premier')
-                        ->checked($this->server?->ranks_premier ?? false)
-                        ->placeholder(__('admin-server.fields.ranks_premier.placeholder'))
-                )
-                    ->label(__('admin-server.fields.ranks_premier.label')),
+            LayoutFactory::field(
+                ButtonGroup::make('ranks_premier')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.crown-bold'],
+                    ])
+                    ->value(($this->server?->ranks_premier ?? false) ? '1' : '0')
+                    ->color('accent')
+            )
+                ->label(__('admin-server.fields.ranks_premier.label')),
 
             ]),
 
@@ -630,9 +965,14 @@ class ServerEditScreen extends Screen
             ]),
 
             LayoutFactory::field(
-                Toggle::make('enabled')
-                    ->checked($this->server?->enabled ?? true)
+                ButtonGroup::make('enabled')
+                    ->options([
+                        '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value(($this->server?->enabled ?? true) ? '1' : '0')
                     ->disabled(!$canEditServer)
+                    ->color('accent')
             )
                 ->label(__('admin-server.fields.enabled.label'))
                 ->popover(__('admin-server.fields.enabled.help')),
@@ -703,6 +1043,12 @@ class ServerEditScreen extends Screen
                 'dbname',
             ])
             ->commands([
+                Button::make(__('admin-server.db_connection.create_db.button'))
+                    ->type(Color::OUTLINE_SECONDARY)
+                    ->icon('ph.bold.database-bold')
+                    ->modal('addDatabaseModal')
+                    ->fullWidth(),
+
                 Button::make(__('admin-server.db_connection.add.button'))
                     ->type(Color::OUTLINE_PRIMARY)
                     ->icon('ph.bold.plus-bold')
@@ -791,6 +1137,13 @@ class ServerEditScreen extends Screen
         }
 
         return $options;
+    }
+
+    private function invalidateConfig(string $configName): void
+    {
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate(path('config/' . $configName . '.php'), true);
+        }
     }
 
     private function getDriverParams(string $driverName): array

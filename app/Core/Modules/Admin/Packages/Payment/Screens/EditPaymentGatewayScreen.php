@@ -8,7 +8,7 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
-use Flute\Admin\Platform\Fields\Toggle;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -176,8 +176,13 @@ class EditPaymentGatewayScreen extends Screen
                         )->label(__('admin-payment.fields.bonus.label'))->popover(__('admin-payment.fields.bonus.help')),
 
                         LayoutFactory::field(
-                            Toggle::make('enabled')
-                                ->checked($this->gateway->enabled ?? true)
+                            ButtonGroup::make('enabled')
+                                ->options([
+                                    '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                                    '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                                ])
+                                ->value(($this->gateway->enabled ?? true) ? '1' : '0')
+                                ->color('accent')
                         )->label(__('admin-payment.fields.enabled.label'))->popover(__('admin-payment.fields.enabled.help')),
                     ])->addClass('mb-2'),
 

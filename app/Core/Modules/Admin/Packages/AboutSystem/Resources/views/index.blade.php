@@ -1,5 +1,5 @@
 <div class="about-system">
-    <div class="about-system__support-banner">
+    {{-- <div class="about-system__support-banner">
         <h2><x-icon path="ph.bold.music-notes-bold" /> {{ __('admin-about-system.labels.donate_title') }}</h2>
         <p>{{ __('admin-about-system.labels.donate_description') }}</p>
         <div class="about-system__support-actions">
@@ -13,7 +13,7 @@
                 {{ __('admin-about-system.support.github') }}
             </a>
         </div>
-    </div>
+    </div> --}}
 
     <div class="about-system__report-section">
         <div class="about-system__report-content">

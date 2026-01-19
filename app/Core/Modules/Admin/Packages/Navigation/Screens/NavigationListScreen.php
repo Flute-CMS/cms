@@ -7,6 +7,7 @@ use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -163,24 +164,26 @@ class NavigationListScreen extends Screen
 
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Select::make('visibility_auth')
+                    ButtonGroup::make('visibility_auth')
                         ->options([
-                            'all' => __('admin-navigation.modal.item.fields.visibility_auth.options.all'),
-                            'guests' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests'),
-                            'logged_in' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in'),
+                            'all' => ['icon' => 'ph.bold.users-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
+                            'guests' => ['icon' => 'ph.bold.user-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
+                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
                         ])
+                        ->value('all')
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility_auth.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility_auth.help'))
                     ->required(),
 
                 LayoutFactory::field(
-                    Select::make('visibility')
+                    ButtonGroup::make('visibility')
                         ->options([
-                            'all' => __('admin-navigation.modal.item.fields.visibility.options.all'),
-                            'desktop' => __('admin-navigation.modal.item.fields.visibility.options.desktop'),
-                            'mobile' => __('admin-navigation.modal.item.fields.visibility.options.mobile'),
+                            'all' => ['icon' => 'ph.bold.devices-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.all')],
+                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
+                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
                         ])
+                        ->value('all')
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility.help'))
@@ -348,11 +351,11 @@ class NavigationListScreen extends Screen
 
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    Select::make('visibility_auth')
+                    ButtonGroup::make('visibility_auth')
                         ->options([
-                            'all' => __('admin-navigation.modal.item.fields.visibility_auth.options.all'),
-                            'guests' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests'),
-                            'logged_in' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in'),
+                            'all' => ['icon' => 'ph.bold.users-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
+                            'guests' => ['icon' => 'ph.bold.user-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
+                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
                         ])
                         ->value($visibilityAuth)
                 )
@@ -361,11 +364,11 @@ class NavigationListScreen extends Screen
                     ->required(),
 
                 LayoutFactory::field(
-                    Select::make('visibility')
+                    ButtonGroup::make('visibility')
                         ->options([
-                            'all' => __('admin-navigation.modal.item.fields.visibility.options.all'),
-                            'desktop' => __('admin-navigation.modal.item.fields.visibility.options.desktop'),
-                            'mobile' => __('admin-navigation.modal.item.fields.visibility.options.mobile'),
+                            'all' => ['icon' => 'ph.bold.devices-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.all')],
+                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
+                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
                         ])
                         ->value($navbarItem->visibility)
                 )

@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -251,12 +252,13 @@ class PromoCodeScreen extends Screen
 
             LayoutFactory::split([
                 LayoutFactory::field(
-                    Select::make('type')
+                    ButtonGroup::make('type')
                         ->options([
-                            'amount' => __('admin-payment.fields.promo.type.options.fixed'),
-                            'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
+                            'amount' => ['label' => __('admin-payment.fields.promo.type.options.fixed'), 'icon' => 'ph.bold.currency-circle-dollar-bold'],
+                            'percentage' => ['label' => __('admin-payment.fields.promo.type.options.percentage'), 'icon' => 'ph.bold.percent-bold'],
                         ])
-                        ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
+                        ->value('amount')
+                        ->color('accent')
                 )
                     ->label(__('admin-payment.fields.promo.type.label'))
                     ->required(),
@@ -388,13 +390,13 @@ class PromoCodeScreen extends Screen
 
             LayoutFactory::split([
                 LayoutFactory::field(
-                    Select::make('type')
+                    ButtonGroup::make('type')
                         ->options([
-                            'amount' => __('admin-payment.fields.promo.type.options.fixed'),
-                            'percentage' => __('admin-payment.fields.promo.type.options.percentage'),
+                            'amount' => ['label' => __('admin-payment.fields.promo.type.options.fixed'), 'icon' => 'ph.bold.currency-circle-dollar-bold'],
+                            'percentage' => ['label' => __('admin-payment.fields.promo.type.options.percentage'), 'icon' => 'ph.bold.percent-bold'],
                         ])
                         ->value($promoCode->type)
-                        ->placeholder(__('admin-payment.fields.promo.type.placeholder'))
+                        ->color('accent')
                 )
                     ->label(__('admin-payment.fields.promo.type.label'))
                     ->required(),

@@ -15,7 +15,7 @@ return [
 
     'tabs' => [
         'main' => 'Main',
-        'db_connections' => 'DB Connections',
+        'db_connections' => 'DB Integrations',
     ],
 
     'fields' => [
@@ -78,16 +78,17 @@ return [
     ],
 
     'db_connection' => [
-        'title' => 'DB Connections',
+        'title' => 'DB Integrations',
         'fields' => [
             'mod' => [
-                'label' => 'Mod',
-                'placeholder' => 'Enter mod',
-                'help' => 'Select plugin to use for this server',
+                'label' => 'Integration',
+                'placeholder' => 'Select integration',
+                'help' => 'Choose an integration (stats, bans, VIP, etc.).',
             ],
             'dbname' => [
-                'label' => 'Database',
-                'placeholder' => 'Enter database name',
+                'label' => 'Connection',
+                'placeholder' => 'Select connection',
+                'help' => 'Created in Settings → Databases.',
             ],
             'driver' => [
                 'label' => 'Driver',
@@ -110,11 +111,17 @@ return [
             ],
         ],
         'add' => [
-            'title' => 'Add DB Connection',
-            'button' => 'Add Connection',
+            'title' => 'Add DB Integration',
+            'button' => 'Add Integration',
         ],
         'edit' => [
-            'title' => 'Edit DB Connection',
+            'title' => 'Edit DB Integration',
+        ],
+        'create_db' => [
+            'title' => 'No database connections',
+            'description' => 'Create a connection first to link an integration.',
+            'note' => 'The connection will be available after saving.',
+            'button' => 'Create Connection',
         ],
         'delete' => [
             'confirm' => 'Are you sure you want to delete this connection?',

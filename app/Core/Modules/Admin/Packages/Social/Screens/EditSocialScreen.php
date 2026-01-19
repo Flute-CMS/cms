@@ -6,7 +6,7 @@ use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
-use Flute\Admin\Platform\Fields\Toggle;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -143,8 +143,13 @@ class EditSocialScreen extends Screen
                             )->label(__('admin-social.fields.icon.label'))->required(),
 
                             LayoutFactory::field(
-                                Toggle::make('allow_to_register')
-                                    ->checked($this->social->allowToRegister ?? true)
+                                ButtonGroup::make('allow_to_register')
+                                    ->options([
+                                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                                    ])
+                                    ->value(($this->social->allowToRegister ?? true) ? '1' : '0')
+                                    ->color('accent')
                             )->label(__('admin-social.fields.allow_register.label'))->popover(__('admin-social.fields.allow_register.help')),
                         ])->ratio('50/50'),
 
@@ -284,7 +289,7 @@ class EditSocialScreen extends Screen
                                 $ex = explode('\\', $class);
                                 $driver = $ex[array_key_last($ex)];
 
-                                if (Str::startsWith($class, 'Hybridauth\Provider') && !Str::contains($class, ['\\Discord', 'HttpsSteam', 'StorageSession', $this->supportedDrivers])) {
+                                if (Str::startsWith($class, 'Hybridauth\Provider') && !Str::contains($class, array_merge(['\\Discord', 'HttpsSteam', 'StorageSession'], array_keys($this->supportedDrivers)))) {
                                     $result[$driver] = $driver;
                                 }
                             }

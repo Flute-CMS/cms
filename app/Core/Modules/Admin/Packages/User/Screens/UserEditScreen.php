@@ -14,7 +14,7 @@ use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
-use Flute\Admin\Platform\Fields\Toggle;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -706,17 +706,27 @@ class UserEditScreen extends Screen
 
                 LayoutFactory::split([
                     LayoutFactory::field(
-                        Toggle::make('verified')
-                            ->checked($this->user?->verified ?? false)
+                        ButtonGroup::make('verified')
+                            ->options([
+                                '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                                '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                            ])
+                            ->value(($this->user?->verified ?? false) ? '1' : '0')
                             ->disabled(!$canEditUser)
+                            ->color('accent')
                     )
                         ->label(__('admin-users.fields.verified.label'))
                         ->popover(__('admin-users.fields.verified.help')),
 
                     LayoutFactory::field(
-                        Toggle::make('hidden')
-                            ->checked($this->user?->hidden ?? false)
+                        ButtonGroup::make('hidden')
+                            ->options([
+                                '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.eye-bold'],
+                                '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.eye-slash-bold'],
+                            ])
+                            ->value(($this->user?->hidden ?? false) ? '1' : '0')
                             ->disabled(!$canEditUser)
+                            ->color('accent')
                     )
                         ->label(__('admin-users.fields.hidden.label'))
                         ->popover(__('admin-users.fields.hidden.help')),
