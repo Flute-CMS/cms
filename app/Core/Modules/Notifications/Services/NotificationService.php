@@ -241,6 +241,27 @@ class NotificationService
     }
 
     /**
+     * Mark all notifications as read.
+     *
+     * @throws Throwable
+     */
+    public function markAllAsRead(): void
+    {
+        $unread = $this->unread();
+
+        if (empty($unread)) {
+            return;
+        }
+
+        foreach ($unread as $note) {
+            $note->viewed = true;
+        }
+
+        transaction($unread)->run();
+        $this->invalidateCache();
+    }
+
+    /**
      * Delete a notification.
      *
      * @param int $id The identifier of the notification.

@@ -1,0 +1,489 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// Page Edit Sidebar — Swiss Minimal Design
+// Inspired by: Dieter Rams, Apple HIG, Linear App
+// ═══════════════════════════════════════════════════════════════════════════
+
+.page-edit-sidebar {
+    position: fixed;
+    top: 80px;
+    right: 0;
+    width: 280px;
+    height: calc(100vh - 80px);
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(16px);
+    transition:
+        opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &.active {
+        pointer-events: auto;
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    // ─── Backdrop (Mobile) ───────────────────────────────────────────────
+    &__backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+
+        @media (max-width: 768px) {
+            display: block;
+        }
+    }
+
+    &.active &__backdrop {
+        opacity: 1;
+    }
+
+    // ─── Main Container ──────────────────────────────────────────────────
+    &__container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: var(--background);
+        border-left: 1px solid var(--transp-1);
+    }
+
+    // ─── Header ──────────────────────────────────────────────────────────
+    &__header {
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid var(--transp-05);
+
+        h3 {
+            margin: 0 0 16px 0;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    // ─── Search ──────────────────────────────────────────────────────────
+    &__search {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        > svg {
+            position: absolute;
+            left: 12px;
+            width: 14px;
+            height: 14px;
+            color: var(--text-500);
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        input {
+            width: 100%;
+            height: 36px;
+            padding: 0 36px 0 38px;
+            border: 1px solid var(--transp-1);
+            border-radius: 8px;
+            background: var(--transp-02);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 400;
+            transition:
+                border-color 0.2s ease,
+                background-color 0.2s ease,
+                box-shadow 0.2s ease;
+
+            &::placeholder {
+                color: var(--text-500);
+            }
+
+            &:hover {
+                border-color: var(--transp-2);
+            }
+
+            &:focus {
+                outline: none;
+                border-color: var(--accent);
+                background: var(--background);
+                box-shadow: 0 0 0 3px var(--accent-50);
+
+                & + .page-edit-sidebar__search-clear {
+                    color: var(--text-400);
+                }
+            }
+        }
+
+        // Показать иконку поиска зелёной при фокусе
+        &:focus-within > svg {
+            color: var(--accent);
+        }
+
+        &-clear {
+            position: absolute;
+            right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-600);
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.8);
+            transition:
+                opacity 0.15s ease,
+                transform 0.15s ease,
+                background-color 0.15s ease;
+
+            &:hover {
+                background: var(--transp-1);
+                color: var(--text-300);
+            }
+
+            svg {
+                width: 12px;
+                height: 12px;
+            }
+        }
+
+        input:not(:placeholder-shown) + &-clear {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    // ─── Categories Container ────────────────────────────────────────────
+    &__categories {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px 0;
+
+        // Тонкий скроллбар
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--transp-1);
+            border-radius: 3px;
+
+            &:hover {
+                background: var(--transp-2);
+            }
+        }
+    }
+
+    // ─── Footer ──────────────────────────────────────────────────────────
+    &__footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--transp-05);
+    }
+
+    &__tip {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--text-500);
+
+        svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+    }
+
+    // ─── Mobile ──────────────────────────────────────────────────────────
+    @media (max-width: 768px) {
+        top: 0;
+        width: 300px;
+        height: 100vh;
+        transform: translateX(100%);
+
+        &.active {
+            transform: translateX(0);
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Sidebar Category — Accordion
+// ═══════════════════════════════════════════════════════════════════════════
+
+.sidebar-category {
+    &-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 40px;
+        padding: 0 16px;
+        margin: 0;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background: var(--transp-02);
+        }
+
+        &__title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            svg {
+                width: 16px;
+                height: 16px;
+                color: var(--text-500);
+                transition: color 0.2s ease;
+            }
+        }
+
+        &__meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
+
+    // Иконка категории становится accent при hover
+    &:hover .sidebar-category-header__title svg {
+        color: var(--accent);
+    }
+
+    &-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 6px;
+        border-radius: 4px;
+        background: var(--transp-05);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-500);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &-arrow {
+        width: 16px;
+        height: 16px;
+        color: var(--text-600);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &.expanded &-arrow {
+        transform: rotate(180deg);
+    }
+
+    &-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &.expanded &-content {
+        max-height: 800px;
+    }
+
+    &-widgets {
+        padding: 4px 8px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Widget Item — Draggable Card
+// ═══════════════════════════════════════════════════════════════════════════
+
+.page-edit-sidebar .widget-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: transparent;
+    cursor: grab;
+    user-select: none;
+    transition:
+        background-color 0.15s ease,
+        transform 0.15s ease;
+
+    &:hover {
+        background: var(--transp-05);
+
+        .widget-item__icon {
+            background: var(--accent);
+            color: var(--background-950);
+        }
+
+        .widget-item__drag {
+            opacity: 1;
+        }
+    }
+
+    &:active {
+        cursor: grabbing;
+        transform: scale(0.98);
+        background: var(--transp-1);
+    }
+
+    // ─── Icon ────────────────────────────────────────────────────────────
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--transp-05);
+        color: var(--text-400);
+        flex-shrink: 0;
+        transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // ─── Info ────────────────────────────────────────────────────────────
+    &__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: -0.01em;
+    }
+
+    // ─── Drag Handle ─────────────────────────────────────────────────────
+    &__drag {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: var(--text-600);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // ─── Widget Content ─────────────────────────────────────────────────
+    &__content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 44px;
+        padding: 0;
+        background: transparent;
+        overflow: visible;
+        width: 100%;
+    }
+
+    // ─── Dragging State ──────────────────────────────────────────────────
+    &.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Search Empty State
+// ═══════════════════════════════════════════════════════════════════════════
+
+.search-no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+
+    svg {
+        width: 40px;
+        height: 40px;
+        color: var(--text-700);
+        margin-bottom: 12px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-500);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Drop Indicator
+// ═══════════════════════════════════════════════════════════════════════════
+
+.drop-indicator {
+    background: var(--accent) !important;
+    border-radius: 2px !important;
+    height: 4px !important;
+    width: 100% !important;
+    opacity: 0.8 !important;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Body States
+// ═══════════════════════════════════════════════════════════════════════════
+
+body.sidebar-open {
+    overflow: hidden;
+}
+
+body.page-edit-mode {
+    #main {
+        margin-right: 280px;
+        transition: margin-right 0.3s ease;
+
+        @media (max-width: 768px) {
+            margin-right: 0;
+        }
+    }
+}

@@ -403,6 +403,14 @@ class TD extends Cell
     }
 
     /**
+     * Check if this column is a selection column.
+     */
+    public function isSelectionColumn(): bool
+    {
+        return $this->isSelection;
+    }
+
+    /**
      * Check if the column should be hidden based on user preferences in cookies.
      *
      * @param string $tableId The table identifier

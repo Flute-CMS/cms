@@ -232,6 +232,9 @@
     "forever" => "Forever",
     "no_notifications" => "No notifications",
     "not_read" => "Unread",
+    "mark_all_read" => "Mark all as read",
+    "download_file" => "Download file",
+    "unread_notifications" => "Unread notifications",
     "top_up" => "Top up",
     "add_funds" => "Add funds",
     "configure_columns" => "Configure columns",
@@ -269,5 +272,6 @@
     "done" => "Done",
     "on" => "On",
     "off" => "Off",
-    "show" => "Show"
+    "show" => "Show",
+    "role" => "Role"
 ];

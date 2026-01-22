@@ -18,6 +18,10 @@ class RequestTimingListener
 {
     public static function onRouteResponse(ResponseEvent $event): void
     {
+        if (!is_development()) {
+            return;
+        }
+
         $now = microtime(true);
         $start = defined('FLUTE_ROUTER_START') ? (float) FLUTE_ROUTER_START : ($now - 0.0);
         $total = max(0.0, $now - $start);

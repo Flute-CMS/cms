@@ -111,6 +111,14 @@ abstract class Cell
     }
 
     /**
+     * Get the column title.
+     */
+    public function getTitle(): string
+    {
+        return $this->title ?? '';
+    }
+
+    /**
      * @throws ReflectionException
      */
     protected function getNameParameterExpected(string $component, array $params = []): ?string

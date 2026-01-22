@@ -429,8 +429,16 @@ class FluteApp {
 class NotificationManager {
     constructor(notyf) {
         this.notyf = notyf;
+        this.dropdown = null;
+        this.toggle = null;
+        this.originalParent = null;
+        this.isOpen = false;
+        this.activeTab = 'all';
+        this.cleanup = null;
+
         this.initCustomEvents();
         this.initAutoMarkRead();
+        this.initDropdown();
     }
 
     updateNotificationCount() {
@@ -517,6 +525,11 @@ class NotificationManager {
             const item = e.target.closest(".notification-item.unread");
             if (!item) return;
 
+            // Don't mark read if clicking delete or button
+            if (e.target.closest(".notification-delete") || e.target.closest(".notification-btn")) {
+                return;
+            }
+
             const id = item.getAttribute("data-id");
             if (!id) return;
 
@@ -535,14 +548,364 @@ class NotificationManager {
                 },
             }).catch(() => { });
 
-            const badge = document.getElementById("notification-count");
-            if (badge) {
+            this.updateBadges();
+        });
+    }
+
+    initDropdown() {
+        // Toggle button
+        document.addEventListener("click", (e) => {
+            const toggle = e.target.closest("[data-notification-toggle]");
+            if (toggle) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleDropdown();
+                return;
+            }
+
+            // Close on click outside
+            const dropdown = e.target.closest("[data-notification-dropdown]");
+            if (!dropdown && this.isOpen) {
+                this.closeDropdown();
+            }
+        });
+
+        // Tab switching
+        document.addEventListener("click", (e) => {
+            const tab = e.target.closest("[data-notification-tab]");
+            if (!tab) return;
+
+            e.preventDefault();
+            const tabName = tab.getAttribute("data-notification-tab");
+            this.switchTab(tabName);
+        });
+
+        // Mark all as read
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-mark-all-read]");
+            if (!btn) return;
+
+            e.preventDefault();
+            this.markAllAsRead();
+        });
+
+        // Delete notification
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-notification-delete]");
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            const id = btn.getAttribute("data-notification-delete");
+            this.deleteNotification(id, btn);
+        });
+
+        // Button handlers
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-notification-handler]");
+            if (!btn) return;
+
+            const handler = btn.getAttribute("data-notification-handler");
+            if (handler) {
                 try {
-                    if (typeof htmx !== "undefined") {
-                        htmx.trigger(badge, "refresh");
-                    }
-                } catch (_) { }
-                setTimeout(() => this.updateNotificationCount(), 120);
+                    new Function(handler)();
+                } catch (error) {
+                    console.error("Error executing notification handler:", error);
+                }
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && this.isOpen) {
+                this.closeDropdown();
+            }
+        });
+
+        // Close on scroll
+        window.addEventListener("scroll", () => {
+            if (this.isOpen) {
+                this.closeDropdown();
+            }
+        }, { passive: true });
+
+        // HTMX events for updating badges
+        if (typeof htmx !== "undefined") {
+            htmx.on("htmx:afterSwap", (e) => {
+                if (e.target.closest("[data-notification-dropdown]")) {
+                    this.updateBadges();
+                }
+            });
+        }
+    }
+
+    toggleDropdown() {
+        this.dropdown = document.querySelector("[data-notification-dropdown]");
+        this.toggle = document.querySelector("[data-notification-toggle]");
+
+        if (!this.dropdown) return;
+
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (!this.dropdown) {
+            this.dropdown = document.querySelector("[data-notification-dropdown]");
+        }
+        if (!this.toggle) {
+            this.toggle = document.querySelector("[data-notification-toggle]");
+        }
+
+        if (!this.dropdown || !this.toggle) return;
+
+        // Close profile dropdown if open
+        const profileDropdown = document.querySelector("[data-profile-dropdown].is-open");
+        if (profileDropdown) {
+            profileDropdown.classList.remove("is-open");
+            profileDropdown.setAttribute("aria-hidden", "true");
+            const profileToggle = document.querySelector("[data-profile-toggle]");
+            if (profileToggle) {
+                profileToggle.setAttribute("aria-expanded", "false");
+            }
+        }
+
+        // Move to body for proper backdrop-filter
+        this.moveToBody();
+
+        this.toggle.setAttribute("aria-expanded", "true");
+        this.isOpen = true;
+
+        // Position first, then show with animation
+        this.positionDropdown(() => {
+            this.dropdown.classList.add("is-open");
+            this.dropdown.setAttribute("aria-hidden", "false");
+        });
+    }
+
+    moveToBody() {
+        if (!this.dropdown || this.dropdown.parentElement === document.body) return;
+        this.originalParent = this.dropdown.parentElement;
+        document.body.appendChild(this.dropdown);
+    }
+
+    restoreToParent() {
+        if (!this.dropdown || !this.originalParent) return;
+        if (this.dropdown.parentElement === document.body) {
+            this.originalParent.appendChild(this.dropdown);
+        }
+    }
+
+    positionDropdown(onPositioned) {
+        if (!this.toggle || !this.dropdown || !window.FloatingUIDOM) {
+            if (onPositioned) onPositioned();
+            return;
+        }
+
+        let firstUpdate = true;
+        const updatePosition = () => {
+            if (!this.toggle || !this.dropdown) return;
+
+            window.FloatingUIDOM.computePosition(this.toggle, this.dropdown, {
+                placement: "bottom-end",
+                middleware: [
+                    window.FloatingUIDOM.offset(10),
+                    window.FloatingUIDOM.flip({
+                        fallbackPlacements: ["top-end", "bottom-start", "top-start"],
+                    }),
+                    window.FloatingUIDOM.shift({ padding: 8 }),
+                ],
+            }).then(({ x, y, placement }) => {
+                if (!this.dropdown) return;
+
+                this.dropdown.style.left = `${x}px`;
+                this.dropdown.style.top = `${y}px`;
+                this.dropdown.setAttribute("data-placement", placement);
+
+                // Call callback after first positioning
+                if (firstUpdate && onPositioned) {
+                    firstUpdate = false;
+                    requestAnimationFrame(onPositioned);
+                }
+            });
+        };
+
+        // Auto-update position on scroll/resize
+        if (this.cleanup) {
+            this.cleanup();
+        }
+        this.cleanup = window.FloatingUIDOM.autoUpdate(
+            this.toggle,
+            this.dropdown,
+            updatePosition
+        );
+    }
+
+    closeDropdown() {
+        if (!this.dropdown) {
+            this.dropdown = document.querySelector("[data-notification-dropdown]");
+        }
+        if (!this.toggle) {
+            this.toggle = document.querySelector("[data-notification-toggle]");
+        }
+
+        if (this.cleanup) {
+            this.cleanup();
+            this.cleanup = null;
+        }
+
+        if (!this.dropdown) return;
+
+        this.dropdown.classList.remove("is-open");
+        this.dropdown.setAttribute("aria-hidden", "true");
+        if (this.toggle) {
+            this.toggle.setAttribute("aria-expanded", "false");
+        }
+        this.isOpen = false;
+
+        // Return to original parent after animation
+        setTimeout(() => {
+            if (!this.isOpen) {
+                this.restoreToParent();
+            }
+        }, 200);
+    }
+
+    switchTab(tabName) {
+        const tabs = document.querySelectorAll("[data-notification-tab]");
+        const lists = document.querySelectorAll("[data-notification-list]");
+
+        tabs.forEach((tab) => {
+            const isActive = tab.getAttribute("data-notification-tab") === tabName;
+            tab.classList.toggle("active", isActive);
+        });
+
+        lists.forEach((list) => {
+            const isActive = list.getAttribute("data-notification-list") === tabName;
+            list.style.display = isActive ? "" : "none";
+
+            if (isActive && typeof htmx !== "undefined") {
+                const hasRevealed = list.getAttribute("hx-trigger")?.includes("revealed");
+                const hasGet = list.hasAttribute("hx-get");
+                const isLoaded = list.getAttribute("data-loaded") === "true";
+
+                if (hasRevealed && hasGet && !isLoaded) {
+                    list.setAttribute("data-loaded", "true");
+                    htmx.trigger(list, "revealed");
+                }
+            }
+        });
+
+        this.activeTab = tabName;
+    }
+
+    markAllAsRead() {
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+
+        fetch(u("api/notifications/read-all"), {
+            method: "PUT",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-Token": csrfToken,
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    // Update UI
+                    const items = document.querySelectorAll(".notification-item.unread");
+                    items.forEach((item) => {
+                        item.classList.remove("unread");
+                        item.classList.add("viewed");
+                        const dot = item.querySelector(".notification-unread-indicator");
+                        if (dot) dot.remove();
+                    });
+
+                    this.updateBadges();
+                }
+            })
+            .catch((error) => {
+                console.error("Error marking all as read:", error);
+            });
+    }
+
+    deleteNotification(id, btn) {
+        const item = btn.closest(".notification-item");
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+
+        // Animate out
+        if (item) {
+            item.style.transition = "all 0.3s ease";
+            item.style.opacity = "0";
+            item.style.transform = "translateX(20px)";
+        }
+
+        fetch(u(`api/notifications/${id}`), {
+            method: "DELETE",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-Token": csrfToken,
+            },
+        })
+            .then((response) => {
+                if (response.ok && item) {
+                    setTimeout(() => {
+                        item.remove();
+                        this.updateBadges();
+                        this.checkEmptyState();
+                    }, 300);
+                }
+            })
+            .catch((error) => {
+                console.error("Error deleting notification:", error);
+                if (item) {
+                    item.style.opacity = "";
+                    item.style.transform = "";
+                }
+            });
+    }
+
+    updateBadges() {
+        const badge = document.getElementById("notification-count");
+        if (badge && typeof htmx !== "undefined") {
+            htmx.trigger(badge, "refresh");
+        }
+
+        setTimeout(() => {
+            const allCount = document.querySelectorAll("[data-notification-list='all'] .notification-item").length;
+            const unreadCount = document.querySelectorAll("[data-notification-list='all'] .notification-item.unread").length
+                + document.querySelectorAll("[data-notification-list='unread'] .notification-item.unread").length;
+
+            const allBadge = document.querySelector("[data-notification-count-all]");
+            const unreadBadge = document.querySelector("[data-notification-count-unread]");
+
+            if (allBadge) allBadge.textContent = allCount;
+            if (unreadBadge) unreadBadge.textContent = unreadCount;
+
+            this.updateNotificationCount();
+        }, 150);
+    }
+
+    checkEmptyState() {
+        const lists = document.querySelectorAll("[data-notification-list]");
+        lists.forEach((list) => {
+            const items = list.querySelectorAll(".notification-item");
+            const emptyMsg = list.querySelector(".notifications__empty");
+
+            if (items.length === 0 && !emptyMsg) {
+                const p = document.createElement("p");
+                p.className = "notifications__empty";
+                const text = typeof translate === "function" 
+                    ? translate("def.no_notifications") 
+                    : "No notifications";
+                p.textContent = text || "No notifications";
+                list.appendChild(p);
             }
         });
     }
@@ -1838,6 +2201,196 @@ class ConfirmationManager {
     }
 }
 
+/**
+ * Profile Dropdown Management with FloatingUI
+ */
+class ProfileDropdownManager {
+    constructor() {
+        this.dropdown = null;
+        this.toggle = null;
+        this.originalParent = null;
+        this.isOpen = false;
+        this.cleanup = null;
+        this.initDropdown();
+    }
+
+    initDropdown() {
+        // Toggle button click
+        document.addEventListener("click", (e) => {
+            const toggle = e.target.closest("[data-profile-toggle]");
+            if (toggle) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleDropdown();
+                return;
+            }
+
+            // Close on click outside
+            const dropdown = e.target.closest("[data-profile-dropdown]");
+            if (!dropdown && this.isOpen) {
+                this.closeDropdown();
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && this.isOpen) {
+                this.closeDropdown();
+            }
+        });
+
+        // Close on scroll
+        window.addEventListener("scroll", () => {
+            if (this.isOpen) {
+                this.closeDropdown();
+            }
+        }, { passive: true });
+
+        // Close on link click inside dropdown
+        document.addEventListener("click", (e) => {
+            const link = e.target.closest("[data-profile-dropdown] a, [data-profile-dropdown] button[type='submit']");
+            if (link && this.isOpen) {
+                setTimeout(() => this.closeDropdown(), 100);
+            }
+        });
+    }
+
+    toggleDropdown() {
+        this.dropdown = document.querySelector("[data-profile-dropdown]");
+        this.toggle = document.querySelector("[data-profile-toggle]");
+
+        if (!this.dropdown) return;
+
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (!this.dropdown) {
+            this.dropdown = document.querySelector("[data-profile-dropdown]");
+        }
+        if (!this.toggle) {
+            this.toggle = document.querySelector("[data-profile-toggle]");
+        }
+
+        if (!this.dropdown || !this.toggle) return;
+
+        // Close notification dropdown if open
+        const notifDropdown = document.querySelector("[data-notification-dropdown].is-open");
+        if (notifDropdown) {
+            notifDropdown.classList.remove("is-open");
+            notifDropdown.setAttribute("aria-hidden", "true");
+            const notifToggle = document.querySelector("[data-notification-toggle]");
+            if (notifToggle) {
+                notifToggle.setAttribute("aria-expanded", "false");
+            }
+        }
+
+        // Move to body for proper backdrop-filter
+        this.moveToBody();
+
+        this.toggle.setAttribute("aria-expanded", "true");
+        this.isOpen = true;
+
+        // Position first, then show with animation
+        this.positionDropdown(() => {
+            this.dropdown.classList.add("is-open");
+            this.dropdown.setAttribute("aria-hidden", "false");
+        });
+    }
+
+    moveToBody() {
+        if (!this.dropdown || this.dropdown.parentElement === document.body) return;
+        this.originalParent = this.dropdown.parentElement;
+        document.body.appendChild(this.dropdown);
+    }
+
+    restoreToParent() {
+        if (!this.dropdown || !this.originalParent) return;
+        if (this.dropdown.parentElement === document.body) {
+            this.originalParent.appendChild(this.dropdown);
+        }
+    }
+
+    positionDropdown(onPositioned) {
+        if (!this.toggle || !this.dropdown || !window.FloatingUIDOM) {
+            if (onPositioned) onPositioned();
+            return;
+        }
+
+        let firstUpdate = true;
+        const updatePosition = () => {
+            if (!this.toggle || !this.dropdown) return;
+
+            window.FloatingUIDOM.computePosition(this.toggle, this.dropdown, {
+                placement: "bottom-end",
+                middleware: [
+                    window.FloatingUIDOM.offset(10),
+                    window.FloatingUIDOM.flip({
+                        fallbackPlacements: ["top-end", "bottom-start", "top-start"],
+                    }),
+                    window.FloatingUIDOM.shift({ padding: 8 }),
+                ],
+            }).then(({ x, y, placement }) => {
+                if (!this.dropdown) return;
+
+                this.dropdown.style.left = `${x}px`;
+                this.dropdown.style.top = `${y}px`;
+                this.dropdown.setAttribute("data-placement", placement);
+
+                // Call callback after first positioning
+                if (firstUpdate && onPositioned) {
+                    firstUpdate = false;
+                    requestAnimationFrame(onPositioned);
+                }
+            });
+        };
+
+        // Auto-update position on scroll/resize
+        if (this.cleanup) {
+            this.cleanup();
+        }
+        this.cleanup = window.FloatingUIDOM.autoUpdate(
+            this.toggle,
+            this.dropdown,
+            updatePosition
+        );
+    }
+
+    closeDropdown() {
+        if (!this.dropdown) {
+            this.dropdown = document.querySelector("[data-profile-dropdown]");
+        }
+        if (!this.toggle) {
+            this.toggle = document.querySelector("[data-profile-toggle]");
+        }
+
+        if (this.cleanup) {
+            this.cleanup();
+            this.cleanup = null;
+        }
+
+        if (!this.dropdown) return;
+
+        this.dropdown.classList.remove("is-open");
+        this.dropdown.setAttribute("aria-hidden", "true");
+        if (this.toggle) {
+            this.toggle.setAttribute("aria-expanded", "false");
+        }
+        this.isOpen = false;
+
+        // Return to original parent after animation
+        setTimeout(() => {
+            if (!this.isOpen) {
+                this.restoreToParent();
+            }
+        }, 200);
+    }
+}
+
 class NavbarMorphDropdown {
     constructor() {
         this.navbar = null;
@@ -2167,10 +2720,12 @@ let app;
 let notyf;
 let navbarMorphDropdown;
 let transparentNavbarHandler;
+let profileDropdown;
 
 $(document).ready(function () {
     app = new FluteApp();
     notyf = app.notyf;
     navbarMorphDropdown = new NavbarMorphDropdown();
     transparentNavbarHandler = new TransparentNavbarHandler();
+    profileDropdown = new ProfileDropdownManager();
 });

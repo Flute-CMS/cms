@@ -8,6 +8,7 @@ use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Support\FluteRequest;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RequestContext;
 
@@ -20,6 +21,7 @@ class RequestServiceProvider extends AbstractServiceProvider
             Request::class => \DI\get(FluteRequest::class),
             RequestInterface::class => \DI\get(FluteRequest::class),
             Response::class => \DI\create(),
+            RequestStack::class => \DI\factory(static fn () => new RequestStack()),
             RequestContext::class => \DI\factory(static function (Container $container) {
                 $context = new RequestContext();
                 $context->fromRequest($container->get(Request::class));

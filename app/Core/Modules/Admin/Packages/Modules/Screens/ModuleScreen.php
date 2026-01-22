@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -49,6 +50,15 @@ class ModuleScreen extends Screen
     {
         return [
             LayoutFactory::view('admin-modules::dropzone'),
+
+            Filters::make()
+                ->buttonGroup('module_status', __('admin.filters.status_label'), [
+                    'all' => __('admin.filters.status.all'),
+                    'active' => __('admin-modules.status.active'),
+                    'disabled' => __('admin-modules.status.disabled'),
+                    'not_installed' => __('admin-modules.status.not_installed'),
+                ], 'all')
+                ->compact(),
 
             LayoutFactory::table('modules', [
                 TD::selection('key'),
@@ -423,6 +433,22 @@ class ModuleScreen extends Screen
             $this->moduleManager->refreshModules();
         }
 
-        $this->modules = $this->moduleManager->getModules()->sortBy('status', SORT_STRING, true);
+        $modules = $this->moduleManager->getModules()->sortBy('status', SORT_STRING, true);
+
+        // Применяем фильтр статуса
+        $status = request()->input('module_status', 'all');
+        if ($status !== 'all') {
+            $statusMap = [
+                'active' => ModuleManager::ACTIVE,
+                'disabled' => ModuleManager::DISABLED,
+                'not_installed' => ModuleManager::NOTINSTALLED,
+            ];
+
+            if (isset($statusMap[$status])) {
+                $modules = $modules->filter(static fn ($module) => $module->status === $statusMap[$status]);
+            }
+        }
+
+        $this->modules = $modules;
     }
 }

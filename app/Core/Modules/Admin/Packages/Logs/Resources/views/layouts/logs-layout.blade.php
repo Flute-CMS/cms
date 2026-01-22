@@ -1,59 +1,59 @@
-<div class="logs-viewer">
-    <!-- Compact Filters -->
-    <div class="logs-filters">
-        <div class="filter-group">
-            <label class="filter-label">{{ __('admin-logs.labels.log_file') }}</label>
-            <div class="filter-select">
+<div class="logs-minimal">
+    {{-- Toolbar --}}
+    <div class="logs-toolbar">
+        <div class="toolbar-left">
+            <div class="file-selector">
                 <x-admin::fields.select name="logger" :options="collect($loggers)
                     ->mapWithKeys(function ($info, $name) {
-                        return [$name => $name . ' (' . $info['size'] . ')'];
+                        return [$name => $name];
                     })
                     ->toArray()" value="{{ $selectedLogger }}" yoyo allowEmpty
                     placeholder="{{ __('admin-logs.labels.select_file') }}" />
             </div>
-        </div>
 
-        @if (!empty($loggers[$selectedLogger]))
-            <div class="filter-group">
-                <label class="filter-label">{{ __('admin-logs.labels.level') }}</label>
-                <div class="filter-select">
+            @if (!empty($loggers[$selectedLogger]))
+                <div class="level-filter">
                     <x-admin::fields.select name="level" :options="$levels" value="{{ $selectedLevel }}"
                         yoyo:change="filterByLevel($event.target.value)" yoyo allowEmpty
                         placeholder="{{ __('admin-logs.labels.filter_by_level') }}" />
                 </div>
-            </div>
+            @endif
+        </div>
 
-            <div class="logs-meta">
-                <div class="meta-item">
-                    <x-icon path="ph.regular.file-text" size="12" />
-                    <span>{{ basename($loggers[$selectedLogger]['path']) }}</span>
+        @if (!empty($loggers[$selectedLogger]))
+            <div class="toolbar-right">
+                <div class="file-meta">
+                    <span class="meta-size">{{ $loggers[$selectedLogger]['size'] }}</span>
+                    @if (!empty($logContent))
+                        <span class="meta-divider">·</span>
+                        <span class="meta-count">{{ count($logContent) }}</span>
+                    @endif
                 </div>
-                <div class="meta-item">
-                    <x-icon path="ph.regular.database" size="12" />
-                    <span>{{ $loggers[$selectedLogger]['size'] }}</span>
-                </div>
+
                 @if (!empty($logContent))
-                    <div class="meta-item">
-                        <x-icon path="ph.regular.list-bullets" size="12" />
-                        <span>{{ count($logContent) }} записей</span>
-                    </div>
+                    <x-admin::button type="ghost" size="small" icon="ph.regular.trash"
+                        confirm="{{ __('admin-logs.clear_confirm') }}" yoyo:post="handleClearLog">
+                        {{ __('admin-logs.clear_log') }}
+                    </x-admin::button>
                 @endif
             </div>
         @endif
     </div>
 
-    <!-- Smart Logs Content -->
-    <div class="logs-content">
+    {{-- Content --}}
+    <div class="logs-body">
         @if (empty($logContent))
-            <div class="logs-empty">
-                <div class="empty-icon">
-                    <x-icon path="ph.regular.file-x" size="40" />
+            <div class="logs-empty-state">
+                <div class="empty-visual">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6M12 9v6M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/>
+                    </svg>
                 </div>
-                <h5>{{ __('admin-logs.labels.no_logs') }}</h5>
-                <p>{{ __('admin-logs.labels.no_logs_description') }}</p>
+                <p class="empty-title">{{ __('admin-logs.labels.no_logs') }}</p>
+                <p class="empty-desc">{{ __('admin-logs.labels.no_logs_description') }}</p>
             </div>
         @else
-            <div class="logs-list">
+            <div class="logs-stream">
                 @foreach ($logContent as $index => $entry)
                     @php
                         $fileInfo = $entry['file_info'] ?? [];
@@ -62,122 +62,255 @@
                         $hasException = isset($contextData['exception']);
                         $hasStackTrace = strpos($entry['full_message'], 'Stack trace:') !== false;
                         $hasDetails = $hasException || $hasStackTrace || !empty($contextData) || !empty($codeContext);
-                        
+
                         $errorType = '';
                         if (preg_match('/^([A-Z][a-zA-Z]+(?:Error|Exception|Warning))/', $entry['message'], $matches)) {
                             $errorType = $matches[1];
                         }
-                        
+
                         $cleanMessage = preg_replace('/Stack trace:.*$/s', '', $entry['message']);
                         $cleanMessage = preg_replace('/in\s+.+\.php\s+on\s+line\s+\d+/', '', $cleanMessage);
                         $cleanMessage = trim($cleanMessage);
+
+                        $levelClass = match($entry['level']) {
+                            'error', 'critical', 'alert', 'emergency' => 'level-error',
+                            'warning' => 'level-warning',
+                            'info' => 'level-info',
+                            'notice' => 'level-notice',
+                            default => 'level-debug'
+                        };
+
+                        // Данные для копирования
+                        $copyData = [
+                            'level' => strtoupper($entry['level']),
+                            'datetime' => $entry['datetime'],
+                            'channel' => $entry['channel'],
+                            'message' => $entry['message'],
+                            'file' => $fileInfo['relative_path'] ?? null,
+                            'line' => $fileInfo['line_number'] ?? null,
+                            'full_message' => $entry['full_message'] ?? null,
+                            'context' => $contextData,
+                            'code' => $codeContext,
+                        ];
                     @endphp
 
-                    <div class="log-entry {{ $entry['level'] }}-level">
-                        <!-- Log Header with Key Info -->
-                        <div class="log-header">
-                            <div class="log-meta">
-                                <span class="level-badge level-{{ $entry['level'] }}">
-                                    {{ strtoupper($entry['level']) }}
-                                </span>
-                                <span class="log-time">{{ date('d.m H:i:s', strtotime($entry['datetime'])) }}</span>
-                                <span class="log-channel">{{ $entry['channel'] }}</span>
+                    <article class="log-item {{ $levelClass }}" data-index="{{ $index }}" data-log='@json($copyData)'>
+                        <div class="log-indicator"></div>
+
+                        <div class="log-main">
+                            <header class="log-head">
+                                <div class="log-level">{{ strtoupper(substr($entry['level'], 0, 3)) }}</div>
+                                <time class="log-time">{{ date('H:i:s', strtotime($entry['datetime'])) }}</time>
+                                <span class="log-date">{{ date('d.m', strtotime($entry['datetime'])) }}</span>
+                                @if ($entry['channel'] !== 'app')
+                                    <span class="log-channel">{{ $entry['channel'] }}</span>
+                                @endif
+                            </header>
+
+                            <div class="log-content">
+                                @if ($errorType)
+                                    <span class="log-type">{{ $errorType }}</span>
+                                @endif
+                                <span class="log-msg">{{ \Flute\Core\Support\FluteStr::limit($cleanMessage, 200) }}</span>
                             </div>
-                            
-                            @if ($hasDetails)
-                                <div class="log-actions">
-                                    <button class="toggle-details" onclick="toggleDetails('{{ $index }}')">
-                                        <span class="show-text">Подробнее</span>
-                                        <span class="hide-text hidden">Скрыть</span>
-                                    </button>
+
+                            @if (!empty($fileInfo['relative_path']))
+                                <div class="log-source">
+                                    <span class="source-path">{{ $fileInfo['relative_path'] }}</span>
+                                    @if (!empty($fileInfo['line_number']))
+                                        <span class="source-line">:{{ $fileInfo['line_number'] }}</span>
+                                    @endif
                                 </div>
                             @endif
                         </div>
 
-                        <!-- Log Body with Smart Info -->
-                        <div class="log-body">
-                            <div class="log-message">
-                                <div class="message-preview">
-                                    @if ($errorType)
-                                        <span class="error-highlight">{{ $errorType }}</span>
-                                    @endif
-                                    {{ $cleanMessage }}
-                                </div>
+                        <div class="log-actions">
+                            <button class="log-action-btn" onclick="copyLog({{ $index }})" data-tooltip="{{ __('def.copy') }}" title="Копировать">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                            @if ($hasDetails)
+                                <button class="log-action-btn" onclick="toggleLogDetails({{ $index }})" aria-expanded="false">
+                                    <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 9l6 6 6-6"/>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                    </article>
+
+                    @if ($hasDetails)
+                        <div class="log-details" id="log-details-{{ $index }}" hidden>
+                            <div class="details-inner">
+                                @if (!empty($codeContext))
+                                    <section class="detail-section">
+                                        <header class="detail-header">
+                                            <h4 class="detail-title">
+                                                @if (!empty($fileInfo['relative_path']))
+                                                    {{ basename($fileInfo['relative_path']) }}
+                                                @else
+                                                    Code
+                                                @endif
+                                            </h4>
+                                            <button class="copy-section-btn" onclick="copySection(this, 'code')" title="Копировать код">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                                </svg>
+                                            </button>
+                                        </header>
+                                        <pre class="code-block"><code>@foreach ($codeContext as $line)<span class="code-line {{ $line['is_error_line'] ? 'error-line' : '' }}"><span class="line-num">{{ $line['line_number'] }}</span>{{ htmlspecialchars($line['content']) }}</span>
+@endforeach</code></pre>
+                                    </section>
+                                @endif
+
+                                @if ($hasStackTrace)
+                                    <section class="detail-section">
+                                        <header class="detail-header">
+                                            <h4 class="detail-title">Stack Trace</h4>
+                                            <button class="copy-section-btn" onclick="copySection(this, 'trace')" title="Копировать trace">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                                </svg>
+                                            </button>
+                                        </header>
+                                        <pre class="trace-block">{{ $entry['full_message'] }}</pre>
+                                    </section>
+                                @endif
+
+                                @if (!empty($contextData))
+                                    <section class="detail-section">
+                                        <header class="detail-header">
+                                            <h4 class="detail-title">Context</h4>
+                                            <button class="copy-section-btn" onclick="copySection(this, 'json')" title="Копировать контекст">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                                </svg>
+                                            </button>
+                                        </header>
+                                        <pre class="json-block">{{ json_encode($contextData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                    </section>
+                                @endif
                             </div>
                         </div>
-
-                        <!-- Expandable Details -->
-                        @if ($hasDetails)
-                            <div id="details-{{ $index }}" class="log-details hidden">
-                                <div class="details-content">
-                                    @if ($hasStackTrace)
-                                        <div class="stack-trace">{{ $entry['full_message'] }}</div>
-                                    @endif
-                                    
-                                    @if (!empty($contextData))
-                                        <div class="context-data">
-                                            <div class="context-title">Дополнительные данные</div>
-                                            <div class="context-json">{{ json_encode($contextData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</div>
-                                        </div>
-                                    @endif
-
-                                    @if (!empty($codeContext))
-                                        <div class="code-context">
-                                            <div class="code-header">
-                                                @if (!empty($fileInfo['relative_path']))
-                                                    {{ $fileInfo['relative_path'] }}:{{ $fileInfo['line_number'] }}
-                                                @else
-                                                    Контекст кода
-                                                @endif
-                                            </div>
-                                            <div class="code-content">
-                                                @foreach ($codeContext as $line)
-                                                    <span class="line {{ $line['is_error_line'] ? 'error-line' : '' }}">
-                                                        <span class="line-num">{{ $line['line_number'] }}</span>{{ htmlspecialchars($line['content']) }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
-                    </div>
+                    @endif
                 @endforeach
             </div>
         @endif
     </div>
-
-    <!-- Footer Actions -->
-    @if (!empty($selectedLogger) && !empty($logContent))
-        <div class="logs-footer">
-            <div class="footer-info">
-                <span>{{ count($logContent) }} записей загружено</span>
-            </div>
-            <div class="footer-actions">
-                <x-admin::button type="outline-danger" size="small" icon="ph.regular.trash"
-                    confirm="{{ __('admin-logs.clear_confirm') }}" yoyo:post="handleClearLog">
-                    {{ __('admin-logs.clear_log') }}
-                </x-admin::button>
-            </div>
-        </div>
-    @endif
 </div>
 
 <script>
-    function toggleDetails(id) {
-        const detailsEl = document.getElementById('details-' + id);
-        if (!detailsEl) return;
+function toggleLogDetails(index) {
+    const details = document.getElementById('log-details-' + index);
+    const item = document.querySelector(`.log-item[data-index="${index}"]`);
+    const button = item?.querySelector('.log-action-btn[aria-expanded]');
 
-        const isHidden = detailsEl.classList.contains('hidden');
-        detailsEl.classList.toggle('hidden');
+    if (!details) return;
 
-        const button = document.querySelector(`[onclick=\"toggleDetails('${id}')\"]`);
-        if (button) {
-            const showText = button.querySelector('.show-text');
-            const hideText = button.querySelector('.hide-text');
-            if (showText) showText.classList.toggle('hidden', isHidden);
-            if (hideText) hideText.classList.toggle('hidden', !isHidden);
+    const isHidden = details.hidden;
+    details.hidden = !isHidden;
+    item?.classList.toggle('expanded', isHidden);
+    button?.setAttribute('aria-expanded', isHidden);
+}
+
+function normalizePath(path) {
+    if (!path) return '';
+    return path.replace(/\\\\/g, '/').replace(/\\/g, '/');
+}
+
+function copyLog(index) {
+    const item = document.querySelector(`.log-item[data-index="${index}"]`);
+    if (!item) return;
+
+    const data = JSON.parse(item.dataset.log);
+    let output = [];
+
+    // Header
+    output.push(`## [${data.level}] ${data.datetime}`);
+    output.push(`**Channel:** ${data.channel}`);
+    output.push('');
+
+    // Message
+    output.push('### Message');
+    output.push('```');
+    output.push(data.message);
+    output.push('```');
+    output.push('');
+
+    // File location
+    if (data.file) {
+        output.push('### Location');
+        output.push(`- **File:** \`${normalizePath(data.file)}\``);
+        if (data.line) {
+            output.push(`- **Line:** ${data.line}`);
         }
+        output.push('');
     }
+
+    // Code context with error highlighting
+    if (data.code && data.code.length > 0) {
+        const fileName = data.file ? data.file.split(/[/\\]/).pop() : 'code';
+        output.push(`### Code Context`);
+        output.push('```php');
+        data.code.forEach(line => {
+            const marker = line.is_error_line ? '>>> ' : '    ';
+            const lineNum = String(line.line_number).padStart(3, ' ');
+            output.push(`${marker}${lineNum} | ${line.content}`);
+        });
+        output.push('```');
+        output.push('');
+    }
+
+    // Context data
+    if (data.context && Object.keys(data.context).length > 0) {
+        output.push('### Context');
+        output.push('```json');
+        output.push(JSON.stringify(data.context, null, 2).replace(/\\\\/g, '/').replace(/\\/g, '/'));
+        output.push('```');
+        output.push('');
+    }
+
+    // Stack trace (normalize paths)
+    if (data.full_message && data.full_message.includes('Stack trace:')) {
+        output.push('### Stack Trace');
+        output.push('```');
+        const normalized = data.full_message
+            .replace(/\\\\/g, '/')
+            .replace(/\\/g, '/');
+        output.push(normalized);
+        output.push('```');
+    }
+
+    const text = output.join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback(item.querySelector('.log-action-btn'));
+    });
+}
+
+function copySection(btn, type) {
+    const section = btn.closest('.detail-section');
+    const pre = section.querySelector('pre');
+    if (!pre) return;
+
+    let text = pre.textContent;
+
+    // Normalize paths
+    text = text.replace(/\\\\/g, '/').replace(/\\/g, '/');
+
+    navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback(btn);
+    });
+}
+
+function showCopyFeedback(btn) {
+    if (!btn) return;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1500);
+}
 </script>

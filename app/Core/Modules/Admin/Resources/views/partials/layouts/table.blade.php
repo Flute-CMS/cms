@@ -21,15 +21,35 @@
         @include('admin::partials.layouts.table-search')
     @endif
 
-    @empty(!$commandBar)
-        <div class="d-flex justify-content-end ms-auto gap-2">
-            @foreach ($commandBar as $command)
-                <div>
-                    {!! $command !!}
+    <div class="d-flex justify-content-end ms-auto gap-2">
+        @if ($exportable ?? false)
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="btn btn-outline-primary" data-dropdown-toggle>
+                    <x-icon path="ph.regular.export" />
+                    <span>{{ __('admin.export.title') }}</span>
+                    <x-icon path="ph.regular.caret-down" class="ms-1" />
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a href="{{ url()->withGet()->addParams(['export' => 'csv', 'table' => $tableId])->get() }}"
+                       class="dropdown-item">
+                        <x-icon path="ph.regular.file-csv" />
+                        {{ __('admin.export.csv') }}
+                    </a>
+                    <a href="{{ url()->withGet()->addParams(['export' => 'excel', 'table' => $tableId])->get() }}"
+                       class="dropdown-item">
+                        <x-icon path="ph.regular.file-xls" />
+                        {{ __('admin.export.excel') }}
+                    </a>
                 </div>
-            @endforeach
-        </div>
-    @endempty
+            </div>
+        @endif
+
+        @foreach ($commandBar ?? [] as $command)
+            <div>
+                {!! $command !!}
+            </div>
+        @endforeach
+    </div>
 </div>
 
 @empty(!$bulkBar)

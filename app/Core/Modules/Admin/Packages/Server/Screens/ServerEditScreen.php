@@ -21,6 +21,7 @@ use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Core\Database\Entities\Server;
 use Illuminate\Support\Str;
 use PDO;
+use xPaw\SourceQuery\SourceQuery;
 
 class ServerEditScreen extends Screen
 {
@@ -44,6 +45,8 @@ class ServerEditScreen extends Screen
     public $ranksFormats = ['webp' => 'webp', 'png' => 'png', 'svg' => 'svg', 'jpg' => 'jpg', 'gif' => 'gif', 'jpeg' => 'jpeg'];
 
     public bool $isEditMode = false;
+
+    public ?array $serverStatus = null;
 
     private $availableDrivers = null;
 
@@ -813,6 +816,62 @@ class ServerEditScreen extends Screen
         }
     }
 
+    /**
+     * Проверка соединения с сервером через Source Query.
+     */
+    public function testConnection()
+    {
+        if (!$this->server) {
+            $this->flashMessage(__('admin-server.messages.save_server_first'), 'error');
+
+            return;
+        }
+
+        $query = new SourceQuery();
+
+        try {
+            $ip = $this->server->ip;
+            $queryPort = $this->server->getSetting('query_port') ?: $this->server->port;
+            $timeout = 3;
+
+            // Определяем тип движка на основе игры
+            $engine = $this->getEngineType($this->server->mod);
+
+            $query->Connect($ip, (int) $queryPort, $timeout, $engine);
+
+            $info = $query->GetInfo();
+
+            if ($info) {
+                $this->serverStatus = [
+                    'online' => true,
+                    'hostname' => $info['HostName'] ?? $info['hostname'] ?? __('def.unknown'),
+                    'map' => $info['Map'] ?? $info['map'] ?? __('def.unknown'),
+                    'players' => ($info['Players'] ?? $info['players'] ?? 0) . '/' . ($info['MaxPlayers'] ?? $info['max_players'] ?? 0),
+                    'game' => $info['GameDir'] ?? $info['folder'] ?? $this->serversService->getGameName($this->server->mod),
+                    'vac' => isset($info['VAC']) ? ($info['VAC'] ? __('def.yes') : __('def.no')) : null,
+                ];
+
+                $this->flashMessage(__('admin-server.messages.connection_success'), 'success');
+            } else {
+                $this->serverStatus = [
+                    'online' => false,
+                    'error' => __('admin-server.messages.connection_no_response'),
+                ];
+
+                $this->flashMessage(__('admin-server.messages.connection_no_response'), 'warning');
+            }
+        } catch (Exception $e) {
+            $this->serverStatus = [
+                'online' => false,
+                'error' => $e->getMessage(),
+            ];
+
+            $this->flashMessage(__('admin-server.messages.connection_failed') . ': ' . $e->getMessage(), 'error');
+        } finally {
+            $query->Disconnect();
+        }
+    }
+
     protected function initServer(): void
     {
         $this->server = Server::findByPK($this->serverId);
@@ -826,6 +885,27 @@ class ServerEditScreen extends Screen
 
         $this->dbConnections = $this->server->dbconnections;
         $this->name = __('admin-server.title.edit') . ': ' . $this->server->name;
+    }
+
+    /**
+     * Определение типа движка для SourceQuery.
+     */
+    private function getEngineType(string $mod): int
+    {
+        // GoldSource games (HL1, CS 1.6, etc.)
+        $goldSourceMods = ['10', 'all_hl_games_mods'];
+
+        if (in_array($mod, $goldSourceMods)) {
+            return SourceQuery::GOLDSOURCE;
+        }
+
+        // Minecraft использует другой протокол
+        if ($mod === 'minecraft') {
+            return SourceQuery::SOURCE;
+        }
+
+        // По умолчанию Source engine
+        return SourceQuery::SOURCE;
     }
 
     /**
@@ -984,7 +1064,23 @@ class ServerEditScreen extends Screen
 
     private function getActionsLayout(bool $canEditServer)
     {
-        return LayoutFactory::rows([
+        $layouts = [];
+
+        // Блок статуса сервера (если была проверка)
+        if ($this->serverStatus !== null) {
+            $layouts[] = LayoutFactory::view('admin-server::partials.server-status', [
+                'status' => $this->serverStatus,
+            ]);
+        }
+
+        // Кнопки действий
+        $layouts[] = LayoutFactory::rows([
+            Button::make(__('admin-server.buttons.test_connection'))
+                ->type(Color::OUTLINE_PRIMARY)
+                ->icon('ph.bold.wifi-high-bold')
+                ->method('testConnection')
+                ->fullWidth(),
+
             Button::make(__('admin-server.buttons.delete'))
                 ->type(Color::OUTLINE_DANGER)
                 ->icon('ph.bold.trash-bold')
@@ -992,7 +1088,9 @@ class ServerEditScreen extends Screen
                 ->method('deleteServer')
                 ->confirm(__('admin-server.confirms.delete_server'))
                 ->fullWidth(),
-        ])
+        ]);
+
+        return LayoutFactory::block($layouts)
             ->title(__('admin-server.title.actions'))
             ->description(__('admin-server.title.actions_description'))
             ->setVisible($this->serverId);

@@ -34,3 +34,4 @@ docs/
 .cursor
 app/Modules
 *.lock
+.claude

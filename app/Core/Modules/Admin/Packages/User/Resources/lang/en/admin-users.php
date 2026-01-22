@@ -27,6 +27,8 @@ return [
         'details' => 'Details',
         'device' => 'Device',
         'ip' => 'IP Address',
+        'first_login' => 'First Login',
+        'last_login' => 'Last Login',
         'social_network' => 'Social Network',
         'value' => 'Value',
         'display_name' => 'Display Name',

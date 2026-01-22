@@ -42,6 +42,8 @@ class ButtonGroup extends Field
         'color' => 'primary',
         'fullWidth' => false,
         'yoyo' => false,
+        'label' => null,
+        'labelIcon' => null,
     ];
 
     /**
@@ -155,6 +157,32 @@ class ButtonGroup extends Field
     public function yoyo(): self
     {
         return $this->set('yoyo', true);
+    }
+
+    /**
+     * Set the label for the button group.
+     *
+     * @return $this
+     */
+    public function label(string $label, ?string $icon = null): self
+    {
+        $this->set('label', $label);
+
+        if ($icon !== null) {
+            $this->set('labelIcon', $icon);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set only the label icon.
+     *
+     * @return $this
+     */
+    public function labelIcon(string $icon): self
+    {
+        return $this->set('labelIcon', $icon);
     }
 
     /**

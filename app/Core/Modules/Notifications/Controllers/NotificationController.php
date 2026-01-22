@@ -46,4 +46,11 @@ class NotificationController extends BaseController
 
         return $this->success();
     }
+
+    public function readAll(FluteRequest $fluteRequest)
+    {
+        notification()->markAllAsRead();
+
+        return $this->success();
+    }
 }

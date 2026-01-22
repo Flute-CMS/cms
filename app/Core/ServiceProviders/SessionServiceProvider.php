@@ -4,7 +4,9 @@ namespace Flute\Core\ServiceProviders;
 
 use Flute\Core\Services\SessionService;
 use Flute\Core\Support\AbstractServiceProvider;
+use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
@@ -36,6 +38,17 @@ class SessionServiceProvider extends AbstractServiceProvider
     {
         if (!is_cli()) {
             $container->get(SessionService::class)->start();
+
+            $request = $container->get(FluteRequest::class);
+            $session = $container->get(SessionInterface::class);
+            if (!$request->hasSession()) {
+                $request->setSession($session);
+            }
+
+            $requestStack = $container->get(RequestStack::class);
+            if ($requestStack->getCurrentRequest() !== $request) {
+                $requestStack->push($request);
+            }
         }
     }
 }

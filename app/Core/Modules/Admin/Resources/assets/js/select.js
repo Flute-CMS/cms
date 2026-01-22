@@ -10,11 +10,52 @@ class Select {
     }
 
     /**
+     * Clean up instances for elements no longer in DOM
+     */
+    cleanup() {
+        this.instances.forEach((instance, select) => {
+            if (!document.body.contains(select) || this.isInstanceStale(select, instance)) {
+                this.destroyInstance(select, instance);
+            }
+        });
+    }
+
+    /**
      * Initialize select fields
      */
-    init() {
-        document.querySelectorAll('[data-select]').forEach((select) => {
-            if (this.instances.has(select)) return;
+    init(root = document) {
+        // Clean up stale instances first
+        this.cleanup();
+
+        this.getSelectElements(root).forEach((select) => {
+            this.ensureNativeChangeListener(select);
+            this.ensurePlaceholderAttribute(select);
+
+            const existingInstance = this.instances.get(select);
+            if (existingInstance) {
+                if (this.isInstanceStale(select, existingInstance)) {
+                    this.destroyInstance(select, existingInstance);
+                } else {
+                    this.applyPlaceholder(select, existingInstance);
+                    existingInstance.sync();
+                    console.log('[Select] Skip - already in instances:', select.name);
+                    return;
+                }
+            }
+
+            if (select.tomselect) {
+                if (this.isInstanceStale(select, select.tomselect)) {
+                    this.destroyInstance(select, select.tomselect);
+                } else {
+                    console.log('[Select] Skip - has tomselect property:', select.name);
+                    select.tomselect.sync();
+                    this.instances.set(select, select.tomselect);
+                    this.applyPlaceholder(select, select.tomselect);
+                    return;
+                }
+            }
+
+            console.log('[Select] Initializing:', select.name, select);
 
             const config = this.getConfig(select);
             const instance = new TomSelect(select, config);
@@ -23,6 +64,7 @@ class Select {
             if (instance.wrapper) {
                 instance.wrapper.style.width = '100%';
             }
+            this.applyPlaceholder(select, instance);
 
             instance.sync();
 
@@ -64,7 +106,7 @@ class Select {
 
                 if (select._changeTimeout) clearTimeout(select._changeTimeout);
                 select._changeTimeout = setTimeout(() => {
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    this.dispatchSyntheticChange(select);
                 }, 100);
             });
 
@@ -153,6 +195,125 @@ class Select {
         });
     }
 
+    ensureNativeChangeListener(select) {
+        if (select._nativeChangeListenerAttached) return;
+        select.addEventListener('change', () => {
+            if (select._dispatchingSyntheticChange) return;
+            select._lastNativeChangeAt = Date.now();
+        });
+        select._nativeChangeListenerAttached = true;
+    }
+
+    dispatchSyntheticChange(select) {
+        if (select._dispatchingSyntheticChange) return;
+
+        const now = Date.now();
+        const lastNative = select._lastNativeChangeAt || 0;
+        if (now - lastNative < 150) return;
+
+        select._dispatchingSyntheticChange = true;
+        try {
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        } finally {
+            select._dispatchingSyntheticChange = false;
+        }
+    }
+
+    getSelectElements(root) {
+        const scope = root instanceof Element ? root : document;
+        const selects = Array.from(scope.querySelectorAll('[data-select]'));
+
+        if (scope instanceof Element && scope.matches('[data-select]')) {
+            selects.unshift(scope);
+        }
+
+        return selects;
+    }
+
+    ensurePlaceholderAttribute(select) {
+        const placeholder = this.getPlaceholder(select);
+        if (!placeholder) return;
+        if (!select.getAttribute('placeholder')) {
+            select.setAttribute('placeholder', placeholder);
+        }
+    }
+
+    getPlaceholder(select) {
+        const direct = select.getAttribute('placeholder') || select.dataset.placeholder;
+        if (direct) return direct;
+
+        const container = select.closest('[data-select-placeholder]');
+        const fromContainer = container?.dataset?.selectPlaceholder;
+        return fromContainer || null;
+    }
+
+    applyPlaceholder(select, instance) {
+        const placeholder = this.getPlaceholder(select);
+        if (!placeholder) return;
+        if (!select.getAttribute('placeholder')) {
+            select.setAttribute('placeholder', placeholder);
+        }
+
+        if (!instance?.wrapper) return;
+
+        const enableSearch = this.getEnableSearch(select);
+        if (!enableSearch && !select.multiple) {
+            instance.wrapper.dataset.placeholder = placeholder;
+        } else {
+            delete instance.wrapper.dataset.placeholder;
+        }
+
+        const hasEmptyOption = !!select.querySelector('option[value=""]');
+        if (select.dataset.allowEmpty !== undefined) {
+            instance.wrapper.dataset.allowEmpty = select.dataset.allowEmpty;
+        } else if (hasEmptyOption) {
+            instance.wrapper.dataset.allowEmpty = 'true';
+        } else {
+            delete instance.wrapper.dataset.allowEmpty;
+        }
+    }
+
+    isInstanceStale(select, instance) {
+        if (!instance) return true;
+        if (instance.input && instance.input !== select) return true;
+        if (select.tomselect && select.tomselect !== instance) return true;
+
+        const wrapper = instance.wrapper;
+        if (!wrapper || !document.body.contains(wrapper)) return true;
+
+        const control = instance.control;
+        if (!control || !document.body.contains(control)) return true;
+
+        if (!select.classList.contains('tomselected')) return true;
+
+        return false;
+    }
+
+    destroyInstance(select, instance) {
+        try {
+            instance.destroy();
+        } catch (e) {
+            // ignore
+        }
+
+        const reposition = this.dropdownRepositionHandlers.get(select);
+        if (reposition) {
+            window.removeEventListener('scroll', reposition, true);
+            window.removeEventListener('resize', reposition);
+            this.dropdownRepositionHandlers.delete(select);
+        }
+
+        if (select.tomselect === instance) {
+            try {
+                delete select.tomselect;
+            } catch (e) {
+                select.tomselect = null;
+            }
+        }
+
+        this.instances.delete(select);
+    }
+
     positionDropdown(instance) {
         const control = instance.control;
         const dropdown = instance.dropdown;
@@ -175,6 +336,9 @@ class Select {
         const config = {
             allowEmptyOption: !isMultiple,
             maxItems: parseInt(select.dataset.maxItems || (isMultiple ? null : 1)),
+            hideSelected: select.dataset.hideSelected === undefined
+                ? false
+                : select.dataset.hideSelected === 'true',
             plugins: this.getPlugins(select, enableSearch),
             render: this.getRenderFunctions(select),
             placeholder: select.getAttribute('placeholder') || null,
@@ -420,20 +584,22 @@ document.addEventListener('DOMContentLoaded', () => {
     window.Select = new Select();
 });
 
-document.addEventListener('htmx:load', () => {
-    window.Select?.destroy();
-    window.Select = new Select();
-});
+let reinitTimeout = null;
+function reinitSelects(target = document) {
+    if (reinitTimeout) clearTimeout(reinitTimeout);
+    reinitTimeout = setTimeout(() => {
+        if (window.Select) {
+            const hasSelect = target.matches?.('[data-select]') || target.querySelector?.('[data-select]');
+            if (!hasSelect) return;
+            console.log('[Select] reinitSelects called, found selects:', target.querySelectorAll?.('[data-select]')?.length ?? 0);
+            window.Select.init(target);
+        }
+    }, 50);
+}
 
-document.body.addEventListener('htmx:afterSwap', (evt) => {
-    setTimeout(() => {
-        window.Select?.destroy();
-        window.Select = new Select();
-    }, 10);
-});
-
-document.body.addEventListener('htmx:afterSettle', (evt) => {
-    if (window.Select) {
-        window.Select.init();
-    }
+['htmx:afterSettle'].forEach(eventName => {
+    document.body.addEventListener(eventName, (e) => {
+        console.log('[Select] Event:', eventName, e.target);
+        reinitSelects(e.target);
+    });
 });

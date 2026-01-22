@@ -4,6 +4,7 @@
     'options' => [],
     'yoyo' => false,
     'value' => '',
+    'default' => '',
     'placeholder' => '',
     'allowEmpty' => false,
     'allowAdd' => false,
@@ -32,7 +33,9 @@
             @if ($allowEmpty) data-allow-empty="true" @endif
             @if ($allowAdd) data-allow-add="true" @endif
             @if (!empty($datalist)) list="datalist-{{ $attributes->get('id', $name) }}" @endif
-            data-initial-value="{{ json_encode($value) }}" {{ $attributes->merge(['class' => 'select__field']) }}>
+            data-initial-value="{{ json_encode($value) }}"
+            data-default="{{ $default }}"
+            {{ $attributes->merge(['class' => 'select__field']) }}>
             @if ($allowEmpty)
                 <option value="" @if (empty($value) || !isset($options[$value])) selected @endif disabled>
                     {{ $placeholder ?: __('def.select_option') }}</option>

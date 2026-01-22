@@ -15,9 +15,12 @@ class FluteSelect {
         if (typeof TomSelect === 'undefined') return;
         if (select.classList.contains('tomselected')) return;
 
+        this.ensurePlaceholderAttribute(select);
+
         const config = this.getConfig(select);
         const instance = new TomSelect(select, config);
         this.instances.set(select, instance);
+        this.applyPlaceholder(select, instance);
 
         if (instance.settings.mode === 'multi' && instance.items.includes('')) {
             instance.removeItem('', true);
@@ -77,6 +80,37 @@ class FluteSelect {
                 window.removeEventListener('resize', handlers.reposition);
             }
         });
+    }
+
+    ensurePlaceholderAttribute(select) {
+        const placeholder = this.getPlaceholder(select);
+        if (!placeholder) return;
+        if (!select.getAttribute('placeholder')) {
+            select.setAttribute('placeholder', placeholder);
+        }
+    }
+
+    getPlaceholder(select) {
+        return select.getAttribute('placeholder') || select.dataset.placeholder || null;
+    }
+
+    applyPlaceholder(select, instance) {
+        const placeholder = this.getPlaceholder(select);
+        if (!placeholder || !instance?.wrapper) return;
+
+        const isMultiple = select.multiple;
+        const searchable = select.dataset.searchable === 'true';
+        if (!isMultiple && !searchable) {
+            instance.wrapper.dataset.placeholder = placeholder;
+        }
+
+        const allowEmpty = select.dataset.allowEmpty === 'true';
+        const hasEmptyOption = !!select.querySelector('option[value=""]');
+        if (allowEmpty || hasEmptyOption) {
+            instance.wrapper.dataset.allowEmpty = 'true';
+        } else {
+            delete instance.wrapper.dataset.allowEmpty;
+        }
     }
 
     positionDropdown(instance) {

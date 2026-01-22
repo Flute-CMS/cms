@@ -27,6 +27,8 @@ return [
         'details' => 'Детали',
         'device' => 'Устройство',
         'ip' => 'IP адрес',
+        'first_login' => 'Первый вход',
+        'last_login' => 'Последний вход',
         'social_network' => 'Соц. сеть',
         'value' => 'Значение',
         'display_name' => 'Отображаемое имя',

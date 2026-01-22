@@ -75,6 +75,12 @@ return [
     'status' => [
         'active' => 'Active',
         'inactive' => 'Inactive',
+        'online' => 'Server Online',
+        'offline' => 'Server Offline',
+        'hostname' => 'Hostname',
+        'map' => 'Map',
+        'players' => 'Players',
+        'game' => 'Game',
     ],
 
     'db_connection' => [
@@ -203,6 +209,7 @@ return [
         'delete' => 'Delete',
         'edit' => 'Edit',
         'actions' => 'Actions',
+        'test_connection' => 'Test Connection',
     ],
 
     'messages' => [
@@ -223,6 +230,9 @@ return [
         'server_created' => 'Server created successfully.',
         'save_not_for_db_connections' => 'Saving is only for main server info.',
         'invalid_ip' => 'Enter a valid IP address without a port.',
+        'connection_success' => 'Successfully connected to the server.',
+        'connection_failed' => 'Failed to connect to the server',
+        'connection_no_response' => 'Server is not responding to queries.',
     ],
 
     'confirms' => [

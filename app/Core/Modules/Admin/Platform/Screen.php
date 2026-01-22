@@ -7,9 +7,12 @@ use Clickfwd\Yoyo\YoyoHelpers;
 use Exception;
 use Flute\Admin\Platform\Contracts\ScreenInterface;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
+use Flute\Admin\Platform\Layouts\Table;
+use Flute\Admin\Services\TableExportService;
 use Flute\Core\Contracts\FluteComponentInterface;
 use Flute\Core\Support\FluteComponent;
 use Illuminate\Support\Arr;
+use ReflectionClass;
 
 /**
  * Abstract class Screen.
@@ -177,6 +180,11 @@ abstract class Screen extends FluteComponent implements ScreenInterface
             return $this->redirect('admin/403');
         }
 
+        $exportFormat = request()->input('export');
+        if ($exportFormat && in_array($exportFormat, ['csv', 'excel'])) {
+            return $this->handleExport($repository, $exportFormat);
+        }
+
         if ($this->modalId !== null) {
             if ($this->modalParams !== null) {
                 $repository->set('modalParams', $this->modalParams);
@@ -245,6 +253,88 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
+    }
+
+    /**
+     * Handle table export request.
+     */
+    protected function handleExport(Repository $repository, string $format): void
+    {
+        $tableId = request()->input('table', 'default');
+        $table = $this->findExportableTable($tableId);
+
+        if (!$table || !$table->isExportable()) {
+            return;
+        }
+
+        $exportService = new TableExportService();
+        $exportData = $table->getExportData($repository);
+        $filename = $table->getExportFilename() . '_' . date('Y-m-d_H-i-s');
+
+        if ($format === 'csv') {
+            $exportService->exportCsv($exportData['rows'], $exportData['columns'], $filename . '.csv');
+        } else {
+            $exportService->exportExcel($exportData['rows'], $exportData['columns'], $filename . '.xlsx');
+        }
+    }
+
+    /**
+     * Find an exportable table layout by ID.
+     */
+    protected function findExportableTable(string $tableId): ?Table
+    {
+        $layouts = $this->layout();
+
+        return $this->searchTableInLayouts($layouts, $tableId);
+    }
+
+    /**
+     * Recursively search for a table layout.
+     */
+    protected function searchTableInLayouts($layouts, string $tableId): ?Table
+    {
+        if (!is_array($layouts)) {
+            $layouts = [$layouts];
+        }
+
+        foreach ($layouts as $layout) {
+            if ($layout instanceof Table) {
+                // Check if this is the table we're looking for
+                $target = $this->getTableTarget($layout);
+                if ($target === $tableId || $tableId === 'default') {
+                    return $layout;
+                }
+            }
+
+            // Check nested layouts
+            if (is_object($layout) && method_exists($layout, 'getLayouts')) {
+                $result = $this->searchTableInLayouts($layout->getLayouts(), $tableId);
+                if ($result !== null) {
+                    return $result;
+                }
+            }
+
+            if (is_array($layout)) {
+                $result = $this->searchTableInLayouts($layout, $tableId);
+                if ($result !== null) {
+                    return $result;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the target property from a table layout using reflection.
+     */
+    protected function getTableTarget(Table $table): string
+    {
+        $reflection = new ReflectionClass($table);
+        $property = $reflection->getProperty('target');
+        $property->setAccessible(true);
+
+        return $property->getValue($table) ?? 'default';
     }
 
     protected function checkAccess(): bool

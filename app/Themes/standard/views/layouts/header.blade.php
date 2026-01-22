@@ -147,8 +147,6 @@
                             <ul class="navbar__actions" aria-label="User actions">
                                 <x-header.language-selector />
                                 @if (!config('app.maintenance_mode') || (config('app.maintenance_mode') && user()->can('admin.pages')))
-                                    <x-header.notifications />
-
                                     @stack('navbar-actions')
 
                                     @if (isset($sections['navbar-actions']))
@@ -156,8 +154,11 @@
                                     @endif
                                 @endif
                                 <div class="navbar__separator"></div>
-                                <x-header.profile />
                                 <x-header.theme-switcher />
+                                @if (!config('app.maintenance_mode') || (config('app.maintenance_mode') && user()->can('admin.pages')))
+                                    <x-header.notifications />
+                                @endif
+                                <x-header.profile />
                             </ul>
                         @else
                             <ul class="navbar__actions login" aria-label="Authentication actions">
@@ -168,6 +169,8 @@
                                 @if (isset($sections['navbar-actions-guest']))
                                     {!! $sections['navbar-actions-guest'] !!}
                                 @endif
+                                
+                                <div class="navbar__separator"></div>
 
                                 @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
                                     @if (config('auth.only_modal'))
@@ -234,6 +237,4 @@
             </div>
         </div>
     </nav>
-
-    @include('flute::partials.default-modals')
 </header>

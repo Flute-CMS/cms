@@ -1,139 +1,301 @@
+// Top Donors Widget — Minimal Design
+// ===================================
+
 .top-donors {
-    &-header {
-        @extend .d-flex, .gap-2;
+    // Medal colors — muted, elegant
+    --medal-gold: #d4a853;
+    --medal-silver: #9ca3af;
+    --medal-bronze: #b87333;
 
+    &__header {
         h5 {
-            @extend .d-flex, .align-center, .gap-2;
+            font-size: var(--h6);
             font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-        
-        small {
-            opacity: 0.7;
+            color: var(--text);
         }
     }
 
-    &-icon {
-        @extend .flex-center;
-        color: var(--accent);
-        font-size: var(--h4);
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
     }
 
-    &-list {
-        @extend .d-flex, .flex-column;
+    // ==========================================
+    // Podium Mode
+    // ==========================================
+    &__podium {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: var(--space-md);
+        padding: var(--space-xs) 0 var(--space-sm);
     }
 
-    &-item {
-        @extend .d-flex, .justify-between, .align-center;
-        padding: var(--space-sm) var(--space-lg);
-        transition: all var(--transition) cubic-bezier(0.16, 1, 0.3, 1);
-        
-        &:hover {
-            background: var(--transp-05);
-        }
-        
-        &:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: var(--space-lg);
-            right: var(--space-lg);
-            height: 1px;
-            background-color: var(--transp-1);
-            opacity: 0.6;
-        }
-        
-        position: relative;
-    }
-
-    &-user {
-        @extend .d-flex, .align-center, .gap-2;
-        font-weight: 600;
-        color: var(--text-100);
+    &__podium-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-2xs);
         text-decoration: none;
-        
+        flex: 1;
+        max-width: 5.5rem;
+        transition: transform var(--transition);
+
         &:hover {
-            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        // First place — larger
+        &--1 {
+            max-width: 6.5rem;
+
+            .top-donors__podium-avatar {
+                width: 3.75rem;
+                height: 3.75rem;
+
+                &::after {
+                    background: var(--medal-gold);
+                }
+            }
+
+            .top-donors__podium-name {
+                color: var(--text);
+            }
+        }
+
+        &--2 .top-donors__podium-avatar::after {
+            background: var(--medal-silver);
+        }
+
+        &--3 .top-donors__podium-avatar::after {
+            background: var(--medal-bronze);
         }
     }
-    
-    &-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        overflow: hidden;
-        background-color: var(--transp-2);
-        border: 1px solid var(--transp-1);
-        
+
+    &__podium-avatar {
+        position: relative;
+        width: 3rem;
+        height: 3rem;
+
         img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 50%;
+        }
+
+        // Place indicator
+        &::after {
+            content: attr(data-place);
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 1.1rem;
+            height: 1.1rem;
+            padding: 0 4px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 700;
+            background: var(--transp-2);
+            color: var(--background-950);
+            border: 2px solid var(--background-950);
         }
     }
 
-    &-amount {
-        color: var(--success);
-        font-weight: 600;
-        padding: var(--space-2xs) var(--space-xs);
-        font-size: var(--p-small);
-        border-radius: var(--space-2xs);
-        background-color: var(--success-light);
-        opacity: 0.9;
-        
-        &:hover {
-            opacity: 1;
-        }
+    &__podium-place {
+        display: none;
     }
 
-    &-rank {
-        @extend .flex-center;
-        min-width: 28px;
-        height: 28px;
-        border-radius: 25px;
-        font-weight: 600;
+    &__podium-name {
         font-size: var(--small);
-        
-        &-1, &-2, &-3 {
-            color: white;
-        }
-        
-        &-1 {
-            background: #FFD700;
-            color: #000;
-        }
-        
-        &-2 {
-            background: #C0C0C0;
-            color: #000;
-        }
-        
-        &-3 {
-            background: #CD7F32;
-            color: #000;
-        }
-        
-        &-other {
-            background-color: var(--transp-1);
-            color: var(--text-400);
+        font-weight: 500;
+        color: var(--text-300);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        line-height: 1.3;
+    }
+
+    &__podium-amount {
+        font-size: 0.65rem;
+        color: var(--text-500);
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    // ==========================================
+    // List Mode
+    // ==========================================
+    &__list {
+        display: flex;
+        flex-direction: column;
+
+        &--full {
+            gap: 0;
         }
     }
 
-    &-empty {
-        @extend .flex-center, .flex-column;
-        padding: var(--space-xl) 0;
-        color: var(--text-400);
+    &__list-item {
+        display: grid;
+        grid-template-columns: 1.5rem 2rem 1fr auto;
+        align-items: center;
         gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-2xs);
+        border-radius: var(--border05);
+        text-decoration: none;
+        color: inherit;
+        transition: background var(--transition);
+
+        &:hover {
+            background: var(--transp-03);
+        }
+
+        // Medal positions
+        &--1 .top-donors__list-rank {
+            color: var(--medal-gold);
+        }
+
+        &--2 .top-donors__list-rank {
+            color: var(--medal-silver);
+        }
+
+        &--3 .top-donors__list-rank {
+            color: var(--medal-bronze);
+        }
+    }
+
+    &__list-rank {
+        font-size: var(--small);
+        font-weight: 600;
+        color: var(--text-500);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__list-avatar {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    &__list-name {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-200);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    &__list-amount {
+        font-size: 0.7rem;
+        color: var(--text-500);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+    }
+
+    // ==========================================
+    // Compact Mode
+    // ==========================================
+    &__compact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+        justify-content: center;
+        padding: var(--space-2xs) 0;
+    }
+
+    &__compact-item {
+        position: relative;
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: transform var(--transition);
+
+        &:hover {
+            transform: scale(1.08);
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        // Medal borders
+        &--1 img {
+            box-shadow: 0 0 0 2px var(--medal-gold);
+        }
+
+        &--2 img {
+            box-shadow: 0 0 0 2px var(--medal-silver);
+        }
+
+        &--3 img {
+            box-shadow: 0 0 0 2px var(--medal-bronze);
+        }
+    }
+
+    &__compact-badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.55rem;
+        font-weight: 700;
+        background: var(--background-900);
+        border: 2px solid var(--background-950);
+        color: var(--text-400);
+
+        .top-donors__compact-item--1 & {
+            background: var(--medal-gold);
+            color: var(--background-950);
+        }
+
+        .top-donors__compact-item--2 & {
+            background: var(--medal-silver);
+            color: var(--background-950);
+        }
+
+        .top-donors__compact-item--3 & {
+            background: var(--medal-bronze);
+            color: var(--background-950);
+        }
+    }
+
+    // ==========================================
+    // Empty State
+    // ==========================================
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-lg);
+        color: var(--text-600);
+        gap: var(--space-xs);
 
         svg {
-            font-size: var(--h3);
-            opacity: 0.6;
-            color: var(--text-400);
+            font-size: 1.5rem;
+            opacity: 0.5;
         }
 
-        p {
-            margin-bottom: 0;
-            font-size: var(--p-small);
+        span {
+            font-size: var(--small);
         }
     }
 }

@@ -132,6 +132,20 @@
     }
 }
 
+.ts-wrapper[data-placeholder]:not(.has-items) .ts-control::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    left: 0.75rem;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-400);
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .ts-wrapper.dropdown-active .ts-control::after {
     transform: translateY(-40%) rotate(-135deg);
 }
@@ -212,6 +226,15 @@
 
 .ts-dropdown .active {
     background: var(--transp-1);
+}
+
+.ts-wrapper[data-allow-empty="true"] .ts-dropdown [data-value=""] {
+    display: none;
+}
+
+.ts-dropdown .selected {
+    background: var(--transp-1);
+    font-weight: 500;
 }
 
 .ts-dropdown .ts-empty {

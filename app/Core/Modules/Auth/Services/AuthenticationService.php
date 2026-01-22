@@ -245,9 +245,11 @@ class AuthenticationService
             $userDevice->user = $user;
             $userDevice->deviceDetails = $deviceDetails;
             $userDevice->ip = $ip;
-
-            transaction($userDevice)->run();
+        } else {
+            $userDevice->touch();
         }
+
+        transaction($userDevice)->run();
 
         return $this->rememberUser($user, $userDevice);
     }

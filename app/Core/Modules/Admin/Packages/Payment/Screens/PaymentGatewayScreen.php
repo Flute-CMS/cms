@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -32,7 +33,17 @@ class PaymentGatewayScreen extends Screen
     public function mount(): void
     {
         $this->paymentService = app(PaymentService::class);
-        $this->gateways = rep(PaymentGateway::class)->select();
+
+        $query = rep(PaymentGateway::class)->select();
+
+        $status = request()->input('status', 'all');
+        if ($status === 'active') {
+            $query->where('enabled', true);
+        } elseif ($status === 'inactive') {
+            $query->where('enabled', false);
+        }
+
+        $this->gateways = $query;
         $this->metrics = $this->calculateMetrics();
 
         $this->name = __('admin-payment.title.gateways');
@@ -73,6 +84,10 @@ class PaymentGatewayScreen extends Screen
                 __('admin-payment.metrics.today_transactions') => 'chart-line-up',
                 __('admin-payment.metrics.today_revenue') => 'money',
             ]),
+
+            Filters::make()
+                ->status('status', __('admin.filters.status_label'), 'all')
+                ->compact(),
 
             LayoutFactory::table('gateways', [
                 TD::selection('id'),

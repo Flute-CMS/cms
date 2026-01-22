@@ -5,13 +5,17 @@ return [
     "categories" => [
         "general"  => "General",
         "users"    => "Users",
+        "user"     => "User",
         "content"  => "Content",
         "media"    => "Media files",
         "other"    => "Other",
         "payments" => "Payments",
         "admin"    => "Administration",
         "stats"    => "Statistics",
+        "system"   => "System",
+        "social"   => "Social",
     ],
+    "drag_widget_tip" => "Drag a widget to the page to add it",
     "edit_nav" => [
         "title" => "Editing page — :url",
         "height_mode" => "Widget Height Mode",

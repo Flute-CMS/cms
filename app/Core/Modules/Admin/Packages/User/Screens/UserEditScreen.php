@@ -778,10 +778,32 @@ class UserEditScreen extends Screen
         return LayoutFactory::table('userDevices', [
             TD::make('deviceDetails', __('admin-users.table.device'))
                 ->render(static fn (UserDevice $device) => $device->deviceDetails)
-                ->width('300px'),
+                ->width('250px'),
 
             TD::make('ip', __('admin-users.table.ip'))
                 ->render(static fn (UserDevice $device) => $device->ip)
+                ->width('120px'),
+
+            TD::make('createdAt', __('admin-users.table.first_login'))
+                ->render(static function (UserDevice $device) {
+                    if (!$device->createdAt) {
+                        return '-';
+                    }
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $device->createdAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
+                ->width('150px'),
+
+            TD::make('lastUsedAt', __('admin-users.table.last_login'))
+                ->render(static function (UserDevice $device) {
+                    if (!$device->lastUsedAt) {
+                        return '-';
+                    }
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $device->lastUsedAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
                 ->width('150px'),
 
             TD::make('actions', __('admin-users.table.actions'))
@@ -792,6 +814,7 @@ class UserEditScreen extends Screen
                 'deviceDetails',
                 'ip',
             ])
+            ->defaultSort('lastUsedAt', 'desc')
             ->commands([
                 Button::make(__('admin-users.buttons.clear_sessions'))
                     ->type(Color::OUTLINE_DANGER)

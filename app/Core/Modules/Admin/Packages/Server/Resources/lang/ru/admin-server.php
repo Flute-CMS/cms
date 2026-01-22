@@ -75,6 +75,12 @@ return [
     'status' => [
         'active' => 'Активен',
         'inactive' => 'Не активен',
+        'online' => 'Сервер онлайн',
+        'offline' => 'Сервер офлайн',
+        'hostname' => 'Название',
+        'map' => 'Карта',
+        'players' => 'Игроки',
+        'game' => 'Игра',
     ],
 
     'db_connection' => [
@@ -203,6 +209,7 @@ return [
         'delete' => 'Удалить',
         'edit' => 'Редактировать',
         'actions' => 'Действия',
+        'test_connection' => 'Проверить подключение',
     ],
 
     'messages' => [
@@ -225,6 +232,9 @@ return [
         'server_created' => 'Сервер успешно создан.',
         'save_not_for_db_connections' => 'Сохранение предназначено для основной информации сервера.',
         'invalid_ip' => 'Введите корректный IP адрес без порта.',
+        'connection_success' => 'Соединение с сервером установлено успешно.',
+        'connection_failed' => 'Не удалось подключиться к серверу',
+        'connection_no_response' => 'Сервер не отвечает на запросы.',
     ],
 
     'confirms' => [

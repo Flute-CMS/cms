@@ -23,6 +23,24 @@
     "accent_text" => "Accent text",
     "preview" => "Preview",
     "performance_info" => "Page loading took longer than usual. Please refer to the <a href='https://flute-cms.com/docs/performance' target='_blank'>documentation</a> for performance optimization tips.",
+    "filters" => [
+        "period" => "Period",
+        "reset" => "Reset filters",
+        "status_label" => "Status",
+        "periods" => [
+            "7d" => "7 days",
+            "30d" => "1 month",
+            "90d" => "3 months",
+            "180d" => "6 months",
+            "365d" => "1 year",
+            "all" => "All time",
+        ],
+        "status" => [
+            "all" => "All",
+            "active" => "Active",
+            "inactive" => "Inactive",
+        ],
+    ],
     "bulk" => [
         "selected" => "Selected",
         "enable_selected" => "Enable selected",
@@ -32,5 +50,10 @@
     ],
     "confirms" => [
         "delete_selected" => "Delete selected items?",
+    ],
+    "export" => [
+        "title" => "Export",
+        "csv" => "CSV file",
+        "excel" => "Excel file",
     ],
 ];

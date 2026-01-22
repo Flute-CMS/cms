@@ -8,6 +8,7 @@ use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Components\Cells\DateTime;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -32,12 +33,29 @@ class ServerListScreen extends Screen
             ->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-server.title.list'));
 
-        $this->servers = rep(Server::class)->select();
+        $query = rep(Server::class)->select();
+
+        // Фильтр по статусу
+        $status = request()->input('status', 'all');
+        if ($status === 'active') {
+            $query->where('enabled', true);
+        } elseif ($status === 'inactive') {
+            $query->where('enabled', false);
+        }
+
+        // Фильтр по моду/игре
+        $mod = request()->input('mod');
+        if ($mod) {
+            $query->where('mod', $mod);
+        }
+
+        $this->servers = $query;
     }
 
     public function layout(): array
     {
         return [
+            $this->getServerFilters(),
             LayoutFactory::table('servers', [
                 TD::selection('id'),
                 TD::make('mod')
@@ -173,5 +191,26 @@ class ServerListScreen extends Screen
             }
         }
         $this->flashMessage(__('admin-server.messages.servers_deleted'));
+    }
+
+    /**
+     * Получить компонент фильтров.
+     */
+    private function getServerFilters(): Filters
+    {
+        // Получаем уникальные моды
+        $servers = Server::findAll();
+        $modOptions = ['' => __('admin.filters.status.all')];
+        $serversService = app(AdminServersService::class);
+        foreach ($servers as $server) {
+            if (!isset($modOptions[$server->mod])) {
+                $modOptions[$server->mod] = $serversService->getGameName($server->mod);
+            }
+        }
+
+        return Filters::make()
+            ->status('status', __('admin.filters.status_label'), 'all')
+            ->select('mod', __('admin-server.fields.mod.label'), $modOptions)
+            ->compact();
     }
 }

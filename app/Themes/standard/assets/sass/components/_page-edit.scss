@@ -613,81 +613,378 @@ body.page-edit-mode {
 	}
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Widget Grid — Flexbox Layout with Resizable Widgets
+// ═══════════════════════════════════════════════════════════════════════════
+
 #widget-grid {
-	transition: min-height 0.3s, left 0.3s, top 0.3s, height 0.3s, width 0.3s !important;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	min-height: 200px;
+	align-content: flex-start;
+	transition: min-height 0.3s ease;
 
-	.grid-stack-item {
+	// Drop indicator для drag-and-drop
+	.drop-indicator {
+		width: 100%;
+		height: 4px;
+		background: linear-gradient(90deg, var(--accent), var(--accent-400));
+		border-radius: 2px;
+		flex-shrink: 0;
+		pointer-events: none;
+		animation: dropIndicatorPulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(var(--accent-rgb), 0.3);
+	}
+
+	@keyframes dropIndicatorPulse {
+		0%, 100% {
+			opacity: 0.6;
+			transform: scaleX(0.98);
+		}
+		50% {
+			opacity: 1;
+			transform: scaleX(1);
+		}
+	}
+
+	// Виджет
+	.widget-item {
+		position: relative;
+		height: auto;
+		min-height: 80px;
 		border-radius: var(--border05);
-		min-height: 100px;
+		background: var(--background);
+		transition:
+			width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+			flex 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.2s ease,
+			box-shadow 0.2s ease,
+			opacity 0.2s ease;
 
-		&.widget-dropping {
-			transform: scale(0.98);
-			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+		// Ширина по data-width атрибуту (поддержка всех значений от 1 до 12)
+		@for $i from 1 through 12 {
+			&[data-width="#{$i}"] {
+				$percentage: calc(#{$i} / 12 * 100%);
+				$gap-compensation: calc(16px * (12 - #{$i}) / 12);
+				width: calc(#{$percentage} - #{$gap-compensation});
+				flex: 0 0 calc(#{$percentage} - #{$gap-compensation});
+			}
 		}
 
+		// Draggable state
+		&[draggable="true"] {
+			cursor: grab;
+
+			&:active {
+				cursor: grabbing;
+			}
+		}
+
+		// Dragging state
+		&.dragging {
+			opacity: 0.5;
+			transform: scale(0.98);
+			z-index: 1000;
+		}
+
+		// Resizing state
+		&.resizing {
+			z-index: 1001;
+			transition: none !important;
+
+			&::before {
+				border-color: var(--accent) !important;
+				opacity: 1 !important;
+				box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
+			}
+
+			.widget-resize-handle {
+				opacity: 1;
+				background: var(--accent);
+
+				&::before {
+					background: var(--background);
+				}
+			}
+		}
+
+		// Widget appearing animation
+		&.widget-appearing {
+			animation: widgetAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		// Widget dropping animation
+		&.widget-dropping {
+			animation: widgetDropIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		// Content widget styling
 		&[data-widget-name="Content"],
 		&[data-system-widget="true"] {
 			padding: var(--space-md);
-			.grid-stack-item-content {
+
+			.widget-content {
 				border: 1px dashed var(--transp-1);
 				border-radius: var(--border05);
 				background: var(--transp-05);
 				position: relative;
-				height: 100%;
-				left: 0;
-				top: 0;
-				overflow: auto;
 				min-height: 80px;
+				overflow: auto;
+			}
+
+			// Hide resize handle for content widget
+			.widget-resize-handle {
+				display: none;
 			}
 		}
 
-		&-content {
-			height: 100%;
-			overflow: auto;
+		// Widget content
+		.widget-content {
+			height: auto;
 			min-height: 80px;
+			overflow: visible;
 
 			> * {
 				pointer-events: none;
 				user-select: none;
 				word-wrap: break-word;
 				overflow-wrap: break-word;
+				max-width: 100%;
+			}
+
+			// Overflow text
+			h1, h2, h3, h4, h5, h6, p, span, a {
+				overflow: hidden;
+				text-overflow: ellipsis;
 			}
 		}
 
-		&.ui-draggable-dragging {
-			background-color: var(--transp-1);
-		}
-
+		// Hover border
 		&::before {
 			content: "";
-			background: rgba(0, 0, 0, 0.3);
+			background: transparent;
+			border: 2px solid var(--transp-2);
 			opacity: 0;
-			width: 100%;
-			height: 100%;
+			width: calc(100% - 4px);
+			height: calc(100% - 4px);
 			z-index: 9;
-			left: 0;
-			top: 0;
+			left: 2px;
+			top: 2px;
 			position: absolute;
 			border-radius: var(--border1);
 			pointer-events: none;
-			transition: opacity 0.2s ease;
+			transition:
+				opacity 0.2s ease,
+				border-color 0.2s ease,
+				box-shadow 0.2s ease;
+		}
+
+		&:hover::before {
+			border-color: var(--accent);
+			opacity: 1;
 		}
 
 		&:hover {
-			&::before {
-				opacity: 0.5;
-			}
 			.widget-toolbar {
 				opacity: 1;
-				transform: translate(-50%, 0);
+				visibility: visible;
+				transform: translateX(-50%) translateY(0);
+			}
+
+			.widget-resize-handle {
+				opacity: 1;
 			}
 		}
+	}
 
-		&.grid-stack-placeholder {
-			background-color: var(--transp-1);
-			border: 2px dashed var(--transp-3);
-			min-height: 100px;
+	// Placeholder для drag-and-drop
+	.widget-placeholder {
+		background-color: var(--transp-1);
+		border: 2px dashed var(--transp-3);
+		border-radius: var(--border05);
+		min-height: 100px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-500);
+		font-size: var(--p-small);
+	}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Widget Resize Handle
+// ═══════════════════════════════════════════════════════════════════════════
+
+.widget-resize-handle {
+	position: absolute;
+	right: -6px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 12px;
+	height: 48px;
+	background: var(--transp-2);
+	border-radius: 6px;
+	cursor: ew-resize;
+	z-index: 100;
+	opacity: 0;
+	transition:
+		opacity 0.2s ease,
+		background-color 0.2s ease,
+		transform 0.2s ease;
+
+	// Grip dots
+	&::before {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 4px;
+		height: 20px;
+		background: var(--text-600);
+		border-radius: 2px;
+		mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='20'%3E%3Ccircle cx='2' cy='2' r='1.5'/%3E%3Ccircle cx='2' cy='7' r='1.5'/%3E%3Ccircle cx='2' cy='12' r='1.5'/%3E%3Ccircle cx='2' cy='17' r='1.5'/%3E%3C/svg%3E");
+		-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='20'%3E%3Ccircle cx='2' cy='2' r='1.5'/%3E%3Ccircle cx='2' cy='7' r='1.5'/%3E%3Ccircle cx='2' cy='12' r='1.5'/%3E%3Ccircle cx='2' cy='17' r='1.5'/%3E%3C/svg%3E");
+		transition: background-color 0.2s ease;
+	}
+
+	&:hover {
+		background: var(--accent);
+		transform: translateY(-50%) scaleY(1.1);
+
+		&::before {
+			background: var(--background);
 		}
+	}
+
+	&:active {
+		background: var(--accent);
+		transform: translateY(-50%) scaleY(1.15);
+	}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Width Indicator Overlay (shows during resize)
+// ═══════════════════════════════════════════════════════════════════════════
+
+.widget-width-indicator {
+	position: fixed;
+	z-index: 10000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 16px;
+	background: var(--background);
+	border: 1px solid var(--transp-1);
+	border-radius: 10px;
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.12),
+		0 0 0 1px var(--transp-02);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	pointer-events: none;
+	opacity: 0;
+	transform: translateY(8px);
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease;
+
+	&.visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	&__value {
+		font-size: 18px;
+		font-weight: 700;
+		color: var(--accent);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: -0.02em;
+	}
+
+	&__label {
+		font-size: 12px;
+		color: var(--text-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	&__bar {
+		display: flex;
+		gap: 3px;
+		margin-left: 8px;
+
+		span {
+			width: 6px;
+			height: 16px;
+			background: var(--transp-1);
+			border-radius: 2px;
+			transition: background-color 0.15s ease;
+
+			&.active {
+				background: var(--accent);
+			}
+		}
+	}
+}
+
+// Grid overlay (shows during resize)
+.widget-grid-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9998;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+
+	&.visible {
+		opacity: 1;
+	}
+
+	&__columns {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: min(1200px, 100%);
+		display: flex;
+		gap: 16px;
+		padding: 0 16px;
+
+		span {
+			flex: 1;
+			background: var(--accent);
+			opacity: 0.03;
+			border-radius: 4px;
+		}
+	}
+}
+
+@keyframes widgetDropIn {
+	0% {
+		opacity: 0;
+		transform: scale(0.85) translateY(-30px);
+	}
+	60% {
+		transform: scale(1.02) translateY(0);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+@keyframes widgetAppear {
+	0% {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
 	}
 }
 
@@ -697,63 +994,100 @@ body.page-edit-mode {
 	}
 }
 
-.widget-toolbar {
-	border-radius: 25px;
-	border: 1px solid var(--transp-2);
-	background-color: var(--secondary);
-	position: absolute;
-	display: flex;
-	gap: 3px;
-	padding: 3px;
-	bottom: -25px;
-	left: 50%;
-	transform: translate(-50%, 6px);
-	z-index: 100;
-	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
-	opacity: 0;
-	transition: opacity 0.2s ease, transform 0.25s ease;
+// ═══════════════════════════════════════════════════════════════════════════
+// Widget Toolbar — Floating Action Bar
+// ═══════════════════════════════════════════════════════════════════════════
 
-	&::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-		pointer-events: none;
-		z-index: -1;
-	}
+.widget-toolbar {
+	position: absolute;
+	bottom: 12px;
+	left: 50%;
+	transform: translateX(-50%) translateY(4px);
+	z-index: 100;
+	display: flex;
+	gap: 6px;
+	padding: 8px;
+	border-radius: 12px;
+	border: 1px solid var(--transp-1);
+	background: var(--background);
+	box-shadow:
+		0 4px 6px -1px rgba(0, 0, 0, 0.1),
+		0 2px 4px -1px rgba(0, 0, 0, 0.06),
+		0 0 0 1px var(--transp-02);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	opacity: 0;
+	visibility: hidden;
+	transition:
+		opacity 0.2s ease,
+		visibility 0.2s ease,
+		transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .widget-toolbar button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
 	border: none;
-	background: none;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--text-400);
 	cursor: pointer;
-	font-size: 1rem;
-	border-radius: 25px;
-	height: 38px;
-	width: 38px;
-	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	transition:
+		background-color 0.15s ease,
+		color 0.15s ease,
+		transform 0.15s ease;
 
-	&.widget-button-delete {
-		color: var(--error);
-
-		&:hover {
-			background-color: var(--error-light);
-		}
+	svg {
+		width: 18px;
+		height: 18px;
 	}
 
 	&:hover {
-		background: var(--transp-1);
+		background: var(--transp-05);
+		color: var(--text-200);
 	}
 
 	&:active {
-		transform: translateY(0) scale(0.98);
+		transform: scale(0.92);
 	}
+
+	// Settings button
+	&.widget-button-settings {
+		&:hover {
+			background: var(--accent);
+			color: var(--background-950);
+		}
+	}
+
+	// Refresh button
+	&.widget-button-refresh {
+		&:hover {
+			background: var(--info-light);
+			color: var(--info);
+		}
+	}
+
+	// Delete button
+	&.widget-button-delete {
+		color: var(--text-500);
+
+		&:hover {
+			background: var(--error-light);
+			color: var(--error);
+		}
+	}
+}
+
+// Разделитель в тулбаре
+.widget-toolbar-divider {
+	width: 1px;
+	height: 24px;
+	background: var(--transp-1);
+	margin: 0 4px;
 }
 
 .page-widgets {
@@ -767,7 +1101,17 @@ body.page-edit-mode {
 	}
 }
 
+// Mobile responsive для widget-grid
 @media (max-width: 768px) {
+	#widget-grid {
+		gap: 12px;
+
+		.widget-item {
+			width: 100% !important;
+			flex: 0 0 100% !important;
+		}
+	}
+
 	.page-widgets {
 		display: flex;
 		flex-direction: column;
@@ -780,13 +1124,6 @@ body.page-edit-mode {
 			min-height: 0 !important;
 			grid-column: unset !important;
 			grid-row: unset !important;
-		}
-
-		.grid-stack-item {
-			position: relative !important;
-			transform: none !important;
-			left: 0 !important;
-			top: 0 !important;
 		}
 	}
 

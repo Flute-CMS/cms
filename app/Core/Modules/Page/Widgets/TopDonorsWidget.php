@@ -17,14 +17,18 @@ class TopDonorsWidget extends AbstractWidget
 
     public function getIcon(): string
     {
-        return 'ph.regular.money';
+        return 'ph.regular.heart';
     }
 
     public function render(array $settings): string
     {
-        $topDonors = $this->getTopDonors(5);
+        $limit = (int) ($settings['limit'] ?? 5);
+        $topDonors = $this->getTopDonors($limit);
 
-        return view('flute::widgets.top-donors', ['users' => $topDonors])->render();
+        return view('flute::widgets.top-donors', [
+            'users' => $topDonors,
+            'settings' => $settings,
+        ])->render();
     }
 
     public function getCategory(): string
@@ -35,6 +39,34 @@ class TopDonorsWidget extends AbstractWidget
     public function getDefaultWidth(): int
     {
         return 3;
+    }
+
+    public function getSettings(): array
+    {
+        return [
+            'display_mode' => 'podium',
+            'limit' => 5,
+            'show_amount' => true,
+        ];
+    }
+
+    public function hasSettings(): bool
+    {
+        return true;
+    }
+
+    public function renderSettingsForm(array $settings): string|bool
+    {
+        return view('flute::widgets.settings.top-donors', ['settings' => $settings])->render();
+    }
+
+    public function saveSettings(array $input): array
+    {
+        return [
+            'display_mode' => $input['display_mode'] ?? 'podium',
+            'limit' => (int) ($input['limit'] ?? 5),
+            'show_amount' => (bool) ($input['show_amount'] ?? true),
+        ];
     }
 
     private function getTopDonors(int $limit = 5): array

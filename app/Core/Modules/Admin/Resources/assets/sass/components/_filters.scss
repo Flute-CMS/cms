@@ -1,0 +1,231 @@
+.filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.875rem 1rem;
+    background: var(--background);
+    border-radius: 0.75rem;
+    border: 1px solid var(--transp-1);
+    box-shadow: var(--shadow-small);
+
+    &--compact {
+        padding: 0.625rem 0.875rem;
+
+        .filters__row {
+            gap: 0.875rem;
+        }
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+
+        &--select {
+            min-width: 180px;
+
+            .select-wrapper {
+                margin-bottom: 0;
+            }
+        }
+
+        &--input {
+            min-width: 150px;
+        }
+
+        &--dateRange {
+            flex-shrink: 0;
+        }
+
+        &--reset {
+            margin-left: auto;
+        }
+    }
+
+    &__input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    &__input-label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-400);
+        white-space: nowrap;
+    }
+
+    &__date-range {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        &-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-400);
+            white-space: nowrap;
+
+            svg {
+                width: 1rem;
+                height: 1rem;
+                opacity: 0.7;
+            }
+        }
+
+        &-inputs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .input-wrapper {
+                margin-bottom: 0;
+            }
+
+            input {
+                max-width: 140px;
+            }
+        }
+
+        &-separator {
+            color: var(--text-500);
+            font-size: 0.75rem;
+        }
+    }
+
+    &__checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: 0.8125rem;
+        color: var(--text);
+
+        input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        &-label {
+            user-select: none;
+        }
+    }
+
+    &__reset-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-400);
+        text-decoration: none;
+        border-radius: 0.375rem;
+        background: transparent;
+        transition:
+            color 0.15s ease,
+            background-color 0.15s ease;
+        cursor: pointer;
+
+        svg {
+            width: 0.875rem;
+            height: 0.875rem;
+        }
+
+        &:hover {
+            color: var(--error);
+            background: var(--error-light);
+        }
+    }
+}
+
+.button-group-wrapper {
+    display: inline-flex;
+    align-items: center;
+
+    &--with-label {
+        gap: 0.75rem;
+    }
+}
+
+.button-group__label {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-400);
+    white-space: nowrap;
+
+    &-icon {
+        width: 1rem;
+        height: 1rem;
+        opacity: 0.7;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .filters {
+        padding: 0.75rem;
+
+        &__row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+
+        &__item {
+            width: 100%;
+
+            &--buttonGroup {
+                .button-group-wrapper {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 0.5rem;
+                }
+
+                .button-group {
+                    width: 100%;
+                    flex-wrap: wrap;
+                }
+            }
+
+            &--select {
+                min-width: auto;
+            }
+
+            &--reset {
+                margin-left: 0;
+                margin-top: 0.25rem;
+            }
+        }
+
+        &__date-range {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            &-inputs {
+                width: 100%;
+
+                input {
+                    max-width: none;
+                    flex: 1;
+                }
+            }
+        }
+    }
+}

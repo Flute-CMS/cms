@@ -7,8 +7,8 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Layouts\Chart;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
-use Flute\Core\Database\Entities\Notification;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\User;
 use Illuminate\Support\Collection;
@@ -19,11 +19,33 @@ use Illuminate\Support\Collection;
 class DashboardService
 {
     /**
+     * Available payment periods
+     */
+    public const PAYMENT_PERIODS = [
+        '7d' => 7,
+        '30d' => 30,
+        '90d' => 90,
+        '180d' => 180,
+        '365d' => 365,
+        'all' => null,
+    ];
+
+    /**
      * Collection of dashboard tabs
      */
     protected Collection $tabs;
 
     protected Collection $vars;
+
+    /**
+     * Current payment period
+     */
+    protected string $paymentPeriod = '7d';
+
+    /**
+     * Current user registration period
+     */
+    protected string $userPeriod = '90d';
 
     /**
      * Constructor
@@ -32,7 +54,29 @@ class DashboardService
     {
         $this->tabs = collect([]);
         $this->vars = collect([]);
+        $this->paymentPeriod = request()->input('payment_period', '7d');
+        $this->userPeriod = request()->input('user_period', '90d');
         $this->registerDefaultTabs();
+    }
+
+    /**
+     * Set the payment period
+     */
+    public function setPaymentPeriod(string $period): self
+    {
+        if (array_key_exists($period, self::PAYMENT_PERIODS)) {
+            $this->paymentPeriod = $period;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the current payment period
+     */
+    public function getPaymentPeriod(): string
+    {
+        return $this->paymentPeriod;
     }
 
     /**
@@ -70,6 +114,22 @@ class DashboardService
         return [
             LayoutFactory::tabs($this->tabs->all())->pills()->lazyload(false),
         ];
+    }
+
+    /**
+     * Get days count for current payment period
+     */
+    protected function getPeriodDays(): ?int
+    {
+        return self::PAYMENT_PERIODS[$this->paymentPeriod] ?? null;
+    }
+
+    /**
+     * Get days count for current user period
+     */
+    protected function getUserPeriodDays(): ?int
+    {
+        return self::PAYMENT_PERIODS[$this->userPeriod] ?? null;
     }
 
     /**
@@ -180,48 +240,13 @@ class DashboardService
     }
 
     /**
-     * Calculate notification metrics
-     */
-    protected function calculateNotificationMetrics(): array
-    {
-        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
-        $dbTz = new DateTimeZone('UTC');
-
-        $now = new DateTimeImmutable('now', $appTz);
-        $today = $now->setTime(0, 0);
-        $todayDb = $today->setTimezone($dbTz);
-
-        // Total unread notifications
-        $unreadNotifications = Notification::query()
-            ->where('viewed', false)
-            ->count();
-
-        // Actions today: notifications created today
-        $actionsToday = Notification::query()
-            ->where('createdAt', '>', $todayDb)
-            ->count();
-
-        // Active sessions ~ users online now (10 min)
-        $onlineThreshold = new DateTimeImmutable('-10 minutes', $appTz);
-        $onlineThresholdDb = $onlineThreshold->setTimezone($dbTz);
-        $activeSessions = User::query()
-            ->where('isTemporary', false)
-            ->where('last_logged', '>=', $onlineThresholdDb)
-            ->count();
-
-        return [
-            'unread_notifications' => $unreadNotifications,
-            'actions_today' => $actionsToday,
-            'active_sessions' => $activeSessions,
-        ];
-    }
-
-    /**
      * Calculate user registration chart data
      */
     protected function calculateUserRegistrationData(): array
     {
-        return cache()->callback('admin_dashboard_user_registration', fn () => $this->doCalculateUserRegistrationData(), 300);
+        $cacheKey = 'admin_dashboard_user_registration_' . $this->userPeriod;
+
+        return cache()->callback($cacheKey, fn () => $this->doCalculateUserRegistrationData(), 300);
     }
 
     protected function doCalculateUserRegistrationData(): array
@@ -230,94 +255,84 @@ class DashboardService
         $dbTz = new DateTimeZone('UTC');
 
         $now = new DateTimeImmutable('now', $appTz);
-        $startDate = $now->modify('-8 months');
+        $periodDays = $this->getUserPeriodDays() ?? 365;
 
-        $monthlyRegistrations = array_fill(0, 9, 0);
-        $labels = [];
-
-        for ($i = 0; $i < 9; $i++) {
-            $monthStart = $startDate->modify('+' . $i . ' month');
-            $monthEnd = $startDate->modify('+' . ($i + 1) . ' month');
-
-            $carbonDate = Carbon::parse($monthStart);
-            $labels[] = $carbonDate->translatedFormat('M');
-
-            $monthStartDb = $monthStart->setTimezone($dbTz);
-            $monthEndDb = $monthEnd->setTimezone($dbTz);
-
-            $monthlyRegistrations[$i] = User::query()
-                ->where('isTemporary', false)
-                ->where('createdAt', '>=', $monthStartDb)
-                ->where('createdAt', '<', $monthEndDb)
-                ->count();
+        // Determine grouping strategy based on period
+        if ($periodDays <= 14) {
+            $groupBy = 'day';
+            $pointsCount = $periodDays;
+            $dateFormat = 'D';
+        } elseif ($periodDays <= 90) {
+            $groupBy = 'week';
+            $pointsCount = (int) ceil($periodDays / 7);
+            $dateFormat = 'd M';
+        } else {
+            $groupBy = 'month';
+            $pointsCount = (int) ceil($periodDays / 30);
+            $dateFormat = 'M Y';
         }
 
-        return [
-            'series' => [
-                [
-                    'name' => "New Users",
-                    'data' => $monthlyRegistrations,
-                ],
-            ],
-            'labels' => $labels,
-        ];
-    }
-
-    /**
-     * Calculate user engagement chart data
-     */
-    protected function calculateUserEngagementData(): array
-    {
-        return cache()->callback(
-            'admin_dashboard_user_engagement',
-            fn () => $this->doCalculateUserEngagementData(),
-            120
-        );
-    }
-
-    protected function doCalculateUserEngagementData(): array
-    {
-        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
-        $dbTz = new DateTimeZone('UTC');
-
-        $now = new DateTimeImmutable('now', $appTz);
-        $startDate = $now->modify('-6 days')->setTime(0, 0);
-
-        $dailyNewUsers = array_fill(0, 7, 0);
-        $dailyActiveUsers = array_fill(0, 7, 0);
+        $registrations = [];
         $labels = [];
 
-        for ($i = 0; $i < 7; $i++) {
-            $dayStart = $startDate->modify('+' . $i . ' day');
-            $dayEnd = $startDate->modify('+' . ($i + 1) . ' day');
+        if ($groupBy === 'day') {
+            $startDate = $now->modify('-' . ($periodDays - 1) . ' days')->setTime(0, 0);
 
-            $labels[] = Carbon::parse($dayStart)->translatedFormat('D');
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $dayStart = $startDate->modify("+{$i} day");
+                $dayEnd = $dayStart->modify('+1 day');
+                $labels[] = Carbon::parse($dayStart)->translatedFormat($dateFormat);
 
-            $dayStartDb = $dayStart->setTimezone($dbTz);
-            $dayEndDb = $dayEnd->setTimezone($dbTz);
+                $dayStartDb = $dayStart->setTimezone($dbTz);
+                $dayEndDb = $dayEnd->setTimezone($dbTz);
 
-            $dailyNewUsers[$i] = User::query()
-                ->where('isTemporary', false)
-                ->where('createdAt', '>=', $dayStartDb)
-                ->where('createdAt', '<', $dayEndDb)
-                ->count();
+                $registrations[] = User::query()
+                    ->where('isTemporary', false)
+                    ->where('createdAt', '>=', $dayStartDb)
+                    ->where('createdAt', '<', $dayEndDb)
+                    ->count();
+            }
+        } elseif ($groupBy === 'week') {
+            $startDate = $now->modify('-' . ($pointsCount * 7 - 1) . ' days')->setTime(0, 0);
 
-            $dailyActiveUsers[$i] = User::query()
-                ->where('isTemporary', false)
-                ->where('last_logged', '>=', $dayStartDb)
-                ->where('last_logged', '<', $dayEndDb)
-                ->count();
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $weekStart = $startDate->modify('+' . ($i * 7) . ' days');
+                $weekEnd = $weekStart->modify('+7 days');
+                $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
+
+                $weekStartDb = $weekStart->setTimezone($dbTz);
+                $weekEndDb = $weekEnd->setTimezone($dbTz);
+
+                $registrations[] = User::query()
+                    ->where('isTemporary', false)
+                    ->where('createdAt', '>=', $weekStartDb)
+                    ->where('createdAt', '<', $weekEndDb)
+                    ->count();
+            }
+        } else {
+            $startDate = $now->modify('-' . $pointsCount . ' months');
+
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $monthStart = $startDate->modify('+' . $i . ' month');
+                $monthEnd = $monthStart->modify('+1 month');
+                $labels[] = Carbon::parse($monthStart)->translatedFormat($dateFormat);
+
+                $monthStartDb = $monthStart->setTimezone($dbTz);
+                $monthEndDb = $monthEnd->setTimezone($dbTz);
+
+                $registrations[] = User::query()
+                    ->where('isTemporary', false)
+                    ->where('createdAt', '>=', $monthStartDb)
+                    ->where('createdAt', '<', $monthEndDb)
+                    ->count();
+            }
         }
 
         return [
             'series' => [
                 [
                     'name' => __('admin-dashboard.charts.new_users'),
-                    'data' => $dailyNewUsers,
-                ],
-                [
-                    'name' => __('admin-dashboard.charts.active_users'),
-                    'data' => $dailyActiveUsers,
+                    'data' => $registrations,
                 ],
             ],
             'labels' => $labels,
@@ -329,7 +344,9 @@ class DashboardService
      */
     protected function calculatePaymentMetrics(): array
     {
-        return cache()->callback('admin_dashboard_payment_metrics', fn () => $this->doCalculatePaymentMetrics(), 120);
+        $cacheKey = 'admin_dashboard_payment_metrics_' . $this->paymentPeriod;
+
+        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentMetrics(), 120);
     }
 
     protected function doCalculatePaymentMetrics(): array
@@ -339,96 +356,93 @@ class DashboardService
 
         $now = new DateTimeImmutable('now', $appTz);
         $today = $now->setTime(0, 0);
-        $yesterday = $today->modify('-1 day');
-        $lastMonth = $today->modify('-30 days');
+        $periodDays = $this->getPeriodDays();
 
         $todayDb = $today->setTimezone($dbTz);
-        $yesterdayDb = $yesterday->setTimezone($dbTz);
-        $lastMonthDb = $lastMonth->setTimezone($dbTz);
 
-        // Successful payments count (lifetime)
-        $successfulPayments = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->count();
+        // Period start date
+        $periodStart = $periodDays !== null ? $today->modify("-{$periodDays} days") : null;
+        $periodStartDb = $periodStart ? $periodStart->setTimezone($dbTz) : null;
 
-        // Yesterday payments count
-        $yesterdayPayments = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $yesterdayDb)
-            ->where('paidAt', '<=', $todayDb)
-            ->count();
+        // Previous period for comparison
+        $prevPeriodStart = $periodDays !== null ? $today->modify('-' . ($periodDays * 2) . ' days') : null;
+        $prevPeriodStartDb = $prevPeriodStart ? $prevPeriodStart->setTimezone($dbTz) : null;
 
-        // Promo usage today
-        $promoUsage = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $todayDb)
-            ->where('promoCode_id', 'is not', null)
-            ->count();
+        // Build base query for period
+        $baseQuery = PaymentInvoice::query()->where('isPaid', true);
+        if ($periodStartDb) {
+            $baseQuery->where('paidAt', '>=', $periodStartDb);
+        }
 
-        // Promo usage last month
-        $lastMonthPromoUsage = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $lastMonthDb)
-            ->where('promoCode_id', 'is not', null)
-            ->count();
+        // Successful payments count for period
+        $successfulPayments = (clone $baseQuery)->count();
 
-        // Total revenue (lifetime)
-        $totalRevenueQuery = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->buildQuery();
+        // Previous period payments for comparison
+        $prevPeriodPayments = 0;
+        if ($prevPeriodStartDb && $periodStartDb) {
+            $prevPeriodPayments = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->where('paidAt', '>=', $prevPeriodStartDb)
+                ->where('paidAt', '<', $periodStartDb)
+                ->count();
+        }
+
+        // Promo usage for period
+        $promoUsageQuery = (clone $baseQuery)->where('promoCode_id', 'is not', null);
+        $promoUsage = $promoUsageQuery->count();
+
+        // Previous period promo usage
+        $prevPromoUsage = 0;
+        if ($prevPeriodStartDb && $periodStartDb) {
+            $prevPromoUsage = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->where('paidAt', '>=', $prevPeriodStartDb)
+                ->where('paidAt', '<', $periodStartDb)
+                ->where('promoCode_id', 'is not', null)
+                ->count();
+        }
+
+        // Total revenue for period
+        $totalRevenueQuery = (clone $baseQuery)->buildQuery();
         $totalRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-        $totalRevenue = $totalRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+        $totalRevenue = (float) ($totalRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
 
-        // Today revenue
-        $todayRevenueQuery = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $todayDb)
-            ->buildQuery();
-        $todayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-        $todayRevenue = $todayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+        // Previous period revenue
+        $prevPeriodRevenue = 0;
+        if ($prevPeriodStartDb && $periodStartDb) {
+            $prevRevenueQuery = PaymentInvoice::query()
+                ->where('isPaid', true)
+                ->where('paidAt', '>=', $prevPeriodStartDb)
+                ->where('paidAt', '<', $periodStartDb)
+                ->buildQuery();
+            $prevRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+            $prevPeriodRevenue = (float) ($prevRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
+        }
 
-        // Yesterday revenue
-        $yesterdayRevenueQuery = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $yesterdayDb)
-            ->where('paidAt', '<=', $todayDb)
-            ->buildQuery();
-        $yesterdayRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-        $yesterdayRevenue = $yesterdayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
-
-        // Last month revenue
-        $lastMonthRevenueQuery = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->where('paidAt', '>', $lastMonthDb)
-            ->buildQuery();
-        $lastMonthRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-        $lastMonthRevenue = $lastMonthRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+        // Average payment amount
+        $avgPayment = $successfulPayments > 0 ? $totalRevenue / $successfulPayments : 0;
 
         // Calculate percentage differences
-        $revenueDiff = $yesterdayRevenue > 0
-            ? (($todayRevenue - $yesterdayRevenue) / max($yesterdayRevenue, 1)) * 100
-            : 0;
+        $revenueDiff = $prevPeriodRevenue > 0
+            ? (($totalRevenue - $prevPeriodRevenue) / $prevPeriodRevenue) * 100
+            : ($totalRevenue > 0 ? 100 : 0);
 
-        $monthlyRevenueDiff = $lastMonthRevenue > 0
-            ? (($totalRevenue - $lastMonthRevenue) / max($lastMonthRevenue, 1)) * 100
-            : 0;
+        $paymentsDiff = $prevPeriodPayments > 0
+            ? (($successfulPayments - $prevPeriodPayments) / $prevPeriodPayments) * 100
+            : ($successfulPayments > 0 ? 100 : 0);
 
-        $paymentsDiff = $yesterdayPayments > 0
-            ? (($successfulPayments - $yesterdayPayments) / max($yesterdayPayments, 1)) * 100
-            : 0;
-
-        $promoUsageDiff = $lastMonthPromoUsage > 0
-            ? (($promoUsage - $lastMonthPromoUsage) / max($lastMonthPromoUsage, 1)) * 100
-            : 0;
+        $promoUsageDiff = $prevPromoUsage > 0
+            ? (($promoUsage - $prevPromoUsage) / $prevPromoUsage) * 100
+            : ($promoUsage > 0 ? 100 : 0);
 
         return [
-            'total_revenue' => [
+            'period_revenue' => [
                 'value' => number_format($totalRevenue, 2) . ' ' . config('lk.currency_view'),
-                'diff' => round($monthlyRevenueDiff, 1),
-            ],
-            'today_revenue' => [
-                'value' => number_format($todayRevenue, 2) . ' ' . config('lk.currency_view'),
                 'diff' => round($revenueDiff, 1),
+            ],
+            'avg_payment' => [
+                'value' => number_format($avgPayment, 2) . ' ' . config('lk.currency_view'),
+                'diff' => 0,
             ],
             'successful_payments' => [
                 'value' => number_format($successfulPayments),
@@ -446,7 +460,9 @@ class DashboardService
      */
     protected function calculatePaymentChartData(): array
     {
-        return cache()->callback('admin_dashboard_payment_chart', fn () => $this->doCalculatePaymentChartData(), 120);
+        $cacheKey = 'admin_dashboard_payment_chart_' . $this->paymentPeriod;
+
+        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentChartData(), 120);
     }
 
     protected function doCalculatePaymentChartData(): array
@@ -455,53 +471,126 @@ class DashboardService
         $dbTz = new DateTimeZone('UTC');
 
         $now = new DateTimeImmutable('now', $appTz);
-        $startDate = $now->modify('-6 days')->setTime(0, 0);
+        $periodDays = $this->getPeriodDays() ?? 365; // Default to 1 year for "all time"
 
-        $dailyRevenue = array_fill(0, 7, 0);
-        $dailyPayments = array_fill(0, 7, 0);
-        $labels = [];
-
-        // Pre-build 7 day windows and labels
-        $days = [];
-        for ($i = 0; $i < 7; $i++) {
-            $dayStart = $startDate->modify("+{$i} day");
-            $dayEnd = $dayStart->modify('+1 day');
-            $days[] = [$dayStart, $dayEnd];
-            $labels[] = Carbon::parse($dayStart)->translatedFormat('D');
+        // Determine grouping strategy based on period
+        if ($periodDays <= 14) {
+            // Daily grouping for up to 2 weeks
+            $groupBy = 'day';
+            $pointsCount = $periodDays;
+            $dateFormat = 'D';
+        } elseif ($periodDays <= 90) {
+            // Weekly grouping for up to 3 months
+            $groupBy = 'week';
+            $pointsCount = (int) ceil($periodDays / 7);
+            $dateFormat = 'd M';
+        } else {
+            // Monthly grouping for longer periods
+            $groupBy = 'month';
+            $pointsCount = (int) ceil($periodDays / 30);
+            $dateFormat = 'M Y';
         }
 
-        // Query per day using ORM aggregates (keeps memory stable)
-        foreach ($days as $idx => [$dayStart, $dayEnd]) {
-            $dayStartDb = $dayStart->setTimezone($dbTz);
-            $dayEndDb = $dayEnd->setTimezone($dbTz);
+        $revenue = [];
+        $payments = [];
+        $labels = [];
 
-            $revenueQuery = PaymentInvoice::query()
-                ->where('isPaid', true)
-                ->where('paidAt', '>=', $dayStartDb)
-                ->where('paidAt', '<', $dayEndDb)
-                ->buildQuery();
-            $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-            $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+        if ($groupBy === 'day') {
+            $startDate = $now->modify('-' . ($periodDays - 1) . ' days')->setTime(0, 0);
 
-            $cnt = PaymentInvoice::query()
-                ->where('isPaid', true)
-                ->where('paidAt', '>=', $dayStartDb)
-                ->where('paidAt', '<', $dayEndDb)
-                ->count();
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $dayStart = $startDate->modify("+{$i} day");
+                $dayEnd = $dayStart->modify('+1 day');
+                $labels[] = Carbon::parse($dayStart)->translatedFormat($dateFormat);
 
-            $dailyRevenue[$idx] = (float) $sum;
-            $dailyPayments[$idx] = (int) $cnt;
+                $dayStartDb = $dayStart->setTimezone($dbTz);
+                $dayEndDb = $dayEnd->setTimezone($dbTz);
+
+                $revenueQuery = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $dayStartDb)
+                    ->where('paidAt', '<', $dayEndDb)
+                    ->buildQuery();
+                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+
+                $cnt = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $dayStartDb)
+                    ->where('paidAt', '<', $dayEndDb)
+                    ->count();
+
+                $revenue[] = (float) $sum;
+                $payments[] = (int) $cnt;
+            }
+        } elseif ($groupBy === 'week') {
+            $startDate = $now->modify('-' . ($pointsCount * 7 - 1) . ' days')->setTime(0, 0);
+
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $weekStart = $startDate->modify('+' . ($i * 7) . ' days');
+                $weekEnd = $weekStart->modify('+7 days');
+                $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
+
+                $weekStartDb = $weekStart->setTimezone($dbTz);
+                $weekEndDb = $weekEnd->setTimezone($dbTz);
+
+                $revenueQuery = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $weekStartDb)
+                    ->where('paidAt', '<', $weekEndDb)
+                    ->buildQuery();
+                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+
+                $cnt = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $weekStartDb)
+                    ->where('paidAt', '<', $weekEndDb)
+                    ->count();
+
+                $revenue[] = (float) $sum;
+                $payments[] = (int) $cnt;
+            }
+        } else {
+            // Monthly grouping
+            $startDate = $now->modify('-' . $pointsCount . ' months');
+
+            for ($i = 0; $i < $pointsCount; $i++) {
+                $monthStart = $startDate->modify('+' . $i . ' month');
+                $monthEnd = $monthStart->modify('+1 month');
+                $labels[] = Carbon::parse($monthStart)->translatedFormat($dateFormat);
+
+                $monthStartDb = $monthStart->setTimezone($dbTz);
+                $monthEndDb = $monthEnd->setTimezone($dbTz);
+
+                $revenueQuery = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $monthStartDb)
+                    ->where('paidAt', '<', $monthEndDb)
+                    ->buildQuery();
+                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
+                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
+
+                $cnt = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->where('paidAt', '>=', $monthStartDb)
+                    ->where('paidAt', '<', $monthEndDb)
+                    ->count();
+
+                $revenue[] = (float) $sum;
+                $payments[] = (int) $cnt;
+            }
         }
 
         return [
             'series' => [
                 [
-                    'name' => "Daily Revenue",
-                    'data' => $dailyRevenue,
+                    'name' => __('admin-dashboard.charts.daily_revenue'),
+                    'data' => $revenue,
                 ],
                 [
-                    'name' => "Daily Payments",
-                    'data' => $dailyPayments,
+                    'name' => __('admin-dashboard.charts.daily_payments'),
+                    'data' => $payments,
                 ],
             ],
             'labels' => $labels,
@@ -513,14 +602,28 @@ class DashboardService
      */
     protected function calculatePaymentMethodsData(): array
     {
-        return cache()->callback('admin_dashboard_payment_methods', fn () => $this->doCalculatePaymentMethodsData(), 300);
+        $cacheKey = 'admin_dashboard_payment_methods_' . $this->paymentPeriod;
+
+        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentMethodsData(), 300);
     }
 
     protected function doCalculatePaymentMethodsData(): array
     {
-        $gatewayQuery = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->buildQuery();
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
+
+        $now = new DateTimeImmutable('now', $appTz);
+        $periodDays = $this->getPeriodDays();
+
+        $baseQuery = PaymentInvoice::query()->where('isPaid', true);
+
+        if ($periodDays !== null) {
+            $periodStart = $now->modify("-{$periodDays} days")->setTime(0, 0);
+            $periodStartDb = $periodStart->setTimezone($dbTz);
+            $baseQuery->where('paidAt', '>=', $periodStartDb);
+        }
+
+        $gatewayQuery = $baseQuery->buildQuery();
         $gatewayQuery->columns([
             'gateway',
             new \Cycle\Database\Injection\Fragment('COUNT(*) as count'),
@@ -548,7 +651,6 @@ class DashboardService
     {
         $userMetrics = $this->calculateUserMetrics();
         $userRegistrationData = $this->calculateUserRegistrationData();
-        $userEngagementData = $this->calculateUserEngagementData();
 
         $metrics = LayoutFactory::metrics([
             'admin-dashboard.metrics.total_users' => 'vars.total_users',
@@ -562,30 +664,42 @@ class DashboardService
             'admin-dashboard.metrics.new_users_today' => 'user-plus',
         ]);
 
+        $filters = Filters::make()
+            ->period('user_period')
+            ->compact();
+
+        $periodDescription = $this->getUserPeriodDescription();
+
         return [
             'tab' => Tab::make(__('admin-dashboard.tabs.main'))
                 ->icon('ph.regular.users')
                 ->layouts([
                     $metrics,
-                    LayoutFactory::split([
-                        Chart::make('user_registrations', __('admin-dashboard.charts.user_registrations'))
-                            ->type('area')
-                            ->height(340)
-                            ->colors(['#3b82f6', '#60a5fa'])
-                            ->description(__('admin-dashboard.descriptions.user_registrations'))
-                            ->dataset($userRegistrationData['series'])
-                            ->labels($userRegistrationData['labels']),
-                        Chart::make('user_engagement', __('admin-dashboard.charts.user_engagement'))
-                            ->type('area')
-                            ->height(340)
-                            ->colors(['#3b82f6', '#10b981'])
-                            ->description(__('admin-dashboard.descriptions.user_engagement'))
-                            ->dataset($userEngagementData['series'])
-                            ->labels($userEngagementData['labels']),
-                    ]),
+                    $filters,
+                    Chart::make('user_registrations', __('admin-dashboard.charts.user_registrations'))
+                        ->type('area')
+                        ->height(340)
+                        ->colors(['#3b82f6', '#60a5fa'])
+                        ->description($periodDescription)
+                        ->dataset($userRegistrationData['series'])
+                        ->labels($userRegistrationData['labels']),
                 ]),
             'vars' => $userMetrics,
         ];
+    }
+
+    /**
+     * Get user period description for chart
+     */
+    protected function getUserPeriodDescription(): string
+    {
+        $periodDays = $this->getUserPeriodDays();
+
+        if ($periodDays === null) {
+            return __('admin-dashboard.descriptions.user_registrations_all');
+        }
+
+        return __('admin-dashboard.descriptions.user_registrations_period', ['days' => $periodDays]);
     }
 
     /**
@@ -598,28 +712,35 @@ class DashboardService
         $paymentMethodsData = $this->calculatePaymentMethodsData();
 
         $metrics = LayoutFactory::metrics([
-            'admin-dashboard.metrics.total_revenue' => 'vars.total_revenue',
-            'admin-dashboard.metrics.today_revenue' => 'vars.today_revenue',
+            'admin-dashboard.metrics.period_revenue' => 'vars.period_revenue',
+            'admin-dashboard.metrics.avg_payment' => 'vars.avg_payment',
             'admin-dashboard.metrics.successful_payments' => 'vars.successful_payments',
             'admin-dashboard.metrics.promo_usage' => 'vars.promo_usage',
         ])->setIcons([
-            'admin-dashboard.metrics.total_revenue' => 'money',
-            'admin-dashboard.metrics.today_revenue' => 'currency-circle-dollar',
+            'admin-dashboard.metrics.period_revenue' => 'money',
+            'admin-dashboard.metrics.avg_payment' => 'currency-circle-dollar',
             'admin-dashboard.metrics.successful_payments' => 'check-circle',
             'admin-dashboard.metrics.promo_usage' => 'ticket',
         ]);
+
+        $periodDescription = $this->getPeriodDescription();
+
+        $filters = Filters::make()
+            ->period('payment_period')
+            ->compact();
 
         return [
             'tab' => Tab::make(__('admin-dashboard.tabs.payments'))
                 ->icon('ph.regular.currency-circle-dollar')
                 ->layouts([
+                    $filters,
                     $metrics,
                     LayoutFactory::split([
                         Chart::make('payment_stats', __('admin-dashboard.charts.payment_stats'))
                             ->type('area')
                             ->height(340)
                             ->colors(['#10b981', '#6366f1'])
-                            ->description(__('admin-dashboard.descriptions.payment_stats'))
+                            ->description($periodDescription)
                             ->dataset($paymentChartData['series'])
                             ->labels($paymentChartData['labels']),
                         Chart::make('payment_methods', __('admin-dashboard.charts.payment_methods'))
@@ -633,6 +754,20 @@ class DashboardService
                 ]),
             'vars' => $paymentMetrics,
         ];
+    }
+
+    /**
+     * Get period description for chart
+     */
+    protected function getPeriodDescription(): string
+    {
+        $periodDays = $this->getPeriodDays();
+
+        if ($periodDays === null) {
+            return __('admin-dashboard.descriptions.payment_stats_all');
+        }
+
+        return __('admin-dashboard.descriptions.payment_stats_period', ['days' => $periodDays]);
     }
 
     /**

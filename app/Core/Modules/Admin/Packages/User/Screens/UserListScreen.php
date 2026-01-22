@@ -11,9 +11,11 @@ use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
 use Throwable;
 
@@ -34,7 +36,7 @@ class UserListScreen extends Screen
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-users.title.users'));
 
-        $this->users = rep(User::class)
+        $usersQuery = rep(User::class)
             ->select()
             ->distinct()
             ->with('blocksReceived', [
@@ -46,6 +48,39 @@ class UserListScreen extends Screen
                     ->orWhere('blocksReceived.isActive', false)
                     ->orWhere('blocksReceived.blockedUntil', '<', new DateTimeImmutable());
             });
+
+        // Применяем фильтр верификации
+        $verified = request()->input('verified', 'all');
+        if ($verified === 'yes') {
+            $usersQuery->where('verified', true);
+        } elseif ($verified === 'no') {
+            $usersQuery->where('verified', false);
+        }
+
+        // Применяем фильтр роли
+        $roleId = request()->input('role');
+        if ($roleId) {
+            $usersQuery->where('roles.id', (int) $roleId);
+        }
+
+        // Применяем фильтр периода регистрации
+        $period = request()->input('period', 'all');
+        if ($period !== 'all') {
+            $days = match ($period) {
+                '7d' => 7,
+                '30d' => 30,
+                '90d' => 90,
+                '180d' => 180,
+                '365d' => 365,
+                default => null,
+            };
+            if ($days !== null) {
+                $dateFrom = (new DateTimeImmutable())->modify("-{$days} days");
+                $usersQuery->where('createdAt', '>=', $dateFrom);
+            }
+        }
+
+        $this->users = $usersQuery;
 
         $this->blockedUsers = rep(User::class)
             ->select()
@@ -65,6 +100,7 @@ class UserListScreen extends Screen
             LayoutFactory::tabs([
                 Tab::make(__('admin-users.tabs.all'))->badge($this->users->count())
                     ->layouts([
+                        $this->getUserFilters(),
                         LayoutFactory::table('users', [
                             TD::selection('id'),
                             TD::make('name', __('admin-users.table.user'))
@@ -341,5 +377,28 @@ class UserListScreen extends Screen
                     ->orWhere('blocksReceived.blockedUntil', null);
             })
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * Получить компонент фильтров для пользователей.
+     */
+    private function getUserFilters(): Filters
+    {
+        // Получаем все роли для фильтра
+        $roles = Role::findAll();
+        $roleOptions = ['' => __('admin.filters.status.all')];
+        foreach ($roles as $role) {
+            $roleOptions[$role->id] = $role->name;
+        }
+
+        return Filters::make()
+            ->buttonGroup('verified', __('admin-users.fields.verified.label'), [
+                'all' => __('admin.filters.status.all'),
+                'yes' => __('admin-users.status.verified'),
+                'no' => __('def.no'),
+            ], 'all')
+            ->select('role', __('admin-users.table.role'), $roleOptions)
+            ->period('period', __('admin.filters.period'), 'all')
+            ->compact();
     }
 }

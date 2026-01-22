@@ -4,14 +4,14 @@
 ]) hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
     <div class="sidebar__header" hx-boost="false">
         <a href="{{ url('/') }}" class="sidebar__logo-collapsed">
-            <img src="{{ asset('assets/img/flute_logo-simple.svg') }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+            <img src="{{ asset('assets/img/flute_logo-simple.svg') }}" alt="{{ __('def.home') }}" loading="lazy">
         </a>
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-dark">
-            <img src="{{ asset(config('app.logo')) }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+            <img src="{{ asset(config('app.logo')) }}" alt="{{ __('def.home') }}" loading="lazy">
             <p>{{ config('app.name') }}</p>
         </a>
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-light">
-            <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('messages.menu.home') }}" loading="lazy">
+            <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('def.home') }}" loading="lazy">
             <p>{{ config('app.name')  }}</p>
         </a>
         <button class="sidebar__toggle">

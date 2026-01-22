@@ -195,11 +195,6 @@
         <script src="@asset('assets/js/htmx/response-targets.js')"></script>
         <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
 
-        @can('admin.pages')
-            <script src="@asset('assets/js/libs/gridstack.js')" defer></script>
-
-            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')">
-        @endcan
 
         <script src="@asset('assets/js/htmx/loadingState.js')"></script>
 
@@ -255,7 +250,7 @@
 
     @if (!$isPartialRequest)
         @can('admin.pages')
-            <x-page-edit-widgets />
+            <x-page-edit-sidebar />
             <x-page-visual-editor />
             @include('flute::partials.page-edit-onboarding')
         @endcan
@@ -358,6 +353,8 @@
         @endcan
 
         <div id="modals">
+            @include('flute::partials.default-modals')
+
             @stack('modals')
 
             @if (isset($sections['modals']))
@@ -417,7 +414,22 @@
         @at(tt('assets/scripts/tom-select.js'))
 
         @can('admin.pages')
-            @at(tt('assets/scripts/page-edit.js'))
+            {{-- Page Edit modular scripts --}}
+            @at(tt('assets/scripts/page-edit/core/namespace.js'))
+            @at(tt('assets/scripts/page-edit/core/event-bus.js'))
+            @at(tt('assets/scripts/page-edit/core/config.js'))
+            @at(tt('assets/scripts/page-edit/managers/history-manager.js'))
+            @at(tt('assets/scripts/page-edit/managers/onboarding-manager.js'))
+            @at(tt('assets/scripts/page-edit/managers/sidebar-manager.js'))
+            @at(tt('assets/scripts/page-edit/grid/grid-controller.js'))
+            @at(tt('assets/scripts/page-edit/grid/widget-loader.js'))
+            @at(tt('assets/scripts/page-edit/grid/widget-toolbar.js'))
+            @at(tt('assets/scripts/page-edit/ui/search-handler.js'))
+            @at(tt('assets/scripts/page-edit/ui/category-accordion.js'))
+            @at(tt('assets/scripts/page-edit/ui/keyboard-handler.js'))
+            @at(tt('assets/scripts/page-edit/storage/local-storage.js'))
+            @at(tt('assets/scripts/page-edit/storage/layout-api.js'))
+            @at(tt('assets/scripts/page-edit/main.js'))
             @at(tt('assets/scripts/page-visual-editor.js'))
         @endcan
 

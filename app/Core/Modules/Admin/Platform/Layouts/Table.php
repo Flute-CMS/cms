@@ -84,6 +84,20 @@ abstract class Table extends Layout
     protected $compact = false;
 
     /**
+     * Enable export functionality.
+     *
+     * @var bool
+     */
+    protected $exportable = false;
+
+    /**
+     * Export filename.
+     *
+     * @var string
+     */
+    protected $exportFilename = 'export';
+
+    /**
      * Callback for processing each row before display.
      *
      * @var callable|null
@@ -209,6 +223,8 @@ abstract class Table extends Layout
                 'perPage' => $perPage,
             ],
             'tableStorageKey' => 'tableSelection-'.$tableId,
+            'exportable' => $this->isExportable(),
+            'exportFilename' => $this->getExportFilename(),
         ]);
     }
 
@@ -283,6 +299,77 @@ abstract class Table extends Layout
         $this->compact = $compact;
 
         return $this;
+    }
+
+    /**
+     * Enable export functionality for this table.
+     *
+     * @param bool $exportable Whether export is enabled
+     * @param string $filename The base filename for exports
+     */
+    public function exportable(bool $exportable = true, string $filename = 'export'): self
+    {
+        $this->exportable = $exportable;
+        $this->exportFilename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * Check if export is enabled.
+     */
+    public function isExportable(): bool
+    {
+        return $this->exportable;
+    }
+
+    /**
+     * Get the export filename.
+     */
+    public function getExportFilename(): string
+    {
+        return $this->exportFilename;
+    }
+
+    /**
+     * Get all exportable data (without pagination) for export.
+     */
+    public function getExportData(Repository $repository): array
+    {
+        $content = $repository->getContent($this->target);
+        $allColumns = collect($this->columns());
+        $columns = $allColumns->filter(static fn (TD $column) => $column->isVisible());
+
+        if ($this->searchQuery) {
+            $content = $this->applySearch($content);
+        }
+
+        if ($this->sortColumn) {
+            $content = $this->applySort($content);
+        }
+
+        if ($content instanceof \Cycle\ORM\Select || $content instanceof \Cycle\Database\Query\SelectQuery) {
+            $rows = collect($content->fetchAll());
+        } else {
+            $rows = $this->getCollectionFromContent($content);
+        }
+
+        if ($this->dataCallback !== null) {
+            $rows = call_user_func($this->dataCallback, $rows, $content);
+
+            if (!$rows instanceof \Illuminate\Support\Collection) {
+                $rows = collect($rows);
+            }
+        }
+
+        if ($this->rowCallback !== null && $rows->isNotEmpty()) {
+            $rows = $rows->map(fn ($row) => call_user_func($this->rowCallback, $row));
+        }
+
+        return [
+            'rows' => $rows,
+            'columns' => $columns,
+        ];
     }
 
     public function prepareContent(callable $callback): self

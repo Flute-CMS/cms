@@ -12,6 +12,7 @@ use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -37,7 +38,20 @@ class PromoCodeScreen extends Screen
     public function mount(): void
     {
         $this->paymentService = app(PaymentService::class);
-        $this->promoCodes = rep(PromoCode::class)->select();
+
+        $query = rep(PromoCode::class)->select();
+
+        // Применяем фильтр статуса
+        $status = request()->input('promo_status', 'all');
+        $now = new DateTimeImmutable();
+
+        // Применяем фильтр типа
+        $type = request()->input('type');
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        $this->promoCodes = $query;
         $this->metrics = $this->calculateMetrics();
 
         $this->name = __('admin-payment.title.promo_codes');
@@ -78,6 +92,8 @@ class PromoCodeScreen extends Screen
                 __('admin-payment.metrics.today_promo_usages') => 'chart-line-up',
                 __('admin-payment.metrics.discount_amount') => 'money',
             ]),
+
+            $this->getPromoFilters(),
 
             LayoutFactory::table('promoCodes', [
                 TD::selection('id'),
@@ -592,6 +608,20 @@ class PromoCodeScreen extends Screen
         return [
             'promoCodes' => $this->paymentService->getAllPromoCodes(),
         ];
+    }
+
+    /**
+     * Получить компонент фильтров для промо-кодов.
+     */
+    private function getPromoFilters(): Filters
+    {
+        return Filters::make()
+            ->buttonGroup('type', __('admin-payment.table.type'), [
+                '' => __('admin.filters.status.all'),
+                'amount' => __('admin-payment.type.fixed'),
+                'percentage' => __('admin-payment.type.percentage'),
+            ], '')
+            ->compact();
     }
 
     /**

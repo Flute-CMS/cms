@@ -38,6 +38,16 @@ return [
             "inCard" => "Wrap content in a card",
             "content" => "Content",
         ],
+        "top_donors" => [
+            "display_mode" => "Display mode",
+            "display_mode_help" => "Choose how donors will be displayed",
+            "mode_podium" => "Podium",
+            "mode_list" => "List",
+            "mode_compact" => "Compact",
+            "limit" => "Count",
+            "limit_help" => "How many donors to show (1-20)",
+            "show_amount" => "Show donation amount",
+        ],
     ],
     
     // Banners

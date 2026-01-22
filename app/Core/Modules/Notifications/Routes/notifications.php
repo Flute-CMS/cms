@@ -10,6 +10,7 @@ $router->group(['prefix' => "api/notifications", 'middleware' => 'auth'], static
     $routeGroup->get('/count-unread', [NotificationController::class, 'getCountUnread']);
     $routeGroup->delete('/{id<\d+>}', [NotificationController::class, 'delete']);
     $routeGroup->put('/{id<\d+>}', [NotificationController::class, 'read']);
+    $routeGroup->put('/read-all', [NotificationController::class, 'readAll']);
     $routeGroup->delete('', [NotificationController::class, 'clear']);
 });
 

@@ -3,11 +3,14 @@
 namespace Flute\Admin\Packages\Payment\Screens;
 
 use Carbon\Carbon;
+use Cycle\Database\Injection\Fragment;
 use DateTimeImmutable;
+use DateTimeZone;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -28,7 +31,40 @@ class PaymentInvoiceScreen extends Screen
 
     public function mount(): void
     {
-        $this->invoices = rep(PaymentInvoice::class)->select();
+        $query = PaymentInvoice::query();
+
+        // Применяем фильтр статуса
+        $status = request()->input('status', 'all');
+        if ($status === 'paid') {
+            $query->where('isPaid', true);
+        } elseif ($status === 'unpaid') {
+            $query->where('isPaid', false);
+        }
+
+        // Применяем фильтр шлюза
+        $gateway = request()->input('gateway');
+        if ($gateway) {
+            $query->where('gateway', $gateway);
+        }
+
+        // Применяем фильтр периода
+        $period = request()->input('period', 'all');
+        if ($period !== 'all') {
+            $days = match ($period) {
+                '7d' => 7,
+                '30d' => 30,
+                '90d' => 90,
+                '180d' => 180,
+                '365d' => 365,
+                default => null,
+            };
+            if ($days !== null) {
+                $dateFrom = (new DateTimeImmutable())->modify("-{$days} days");
+                $query->where('createdAt', '>=', $dateFrom);
+            }
+        }
+
+        $this->invoices = $query;
         $this->metrics = $this->calculateMetrics();
 
         $this->name = __('admin-payment.title.invoices');
@@ -53,6 +89,8 @@ class PaymentInvoiceScreen extends Screen
                 __('admin-payment.metrics.today_invoices') => 'chart-line-up',
                 __('admin-payment.metrics.today_revenue') => 'money',
             ]),
+
+            $this->getFilters(),
 
             LayoutFactory::table('invoices', [
                 TD::selection('id'),
@@ -103,6 +141,7 @@ class PaymentInvoiceScreen extends Screen
                     'gateway',
                     'transactionId',
                 ])
+                ->exportable(true, 'payment_invoices')
                 ->bulkActions([
                     Button::make(__('admin.bulk.enable_selected'))
                         ->icon('ph.bold.check-circle-bold')
@@ -152,7 +191,7 @@ class PaymentInvoiceScreen extends Screen
 
         $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
 
-        $this->invoices = rep(PaymentInvoice::class)->select();
+        $this->invoices = PaymentInvoice::query();
     }
 
     public function bulkMarkInvoicesPaid(): void
@@ -183,7 +222,7 @@ class PaymentInvoiceScreen extends Screen
                 // continue
             }
         }
-        $this->invoices = rep(PaymentInvoice::class)->select();
+        $this->invoices = PaymentInvoice::query();
         $this->flashMessage(__('admin-payment.messages.invoice_marked_paid'), 'success');
     }
 
@@ -205,47 +244,67 @@ class PaymentInvoiceScreen extends Screen
                 // continue
             }
         }
-        $this->invoices = rep(PaymentInvoice::class)->select();
+        $this->invoices = PaymentInvoice::query();
         $this->flashMessage(__('admin-payment.messages.invoice_deleted'), 'success');
     }
 
+    /**
+     * Вычисляет метрики через SQL агрегатные функции.
+     * Оптимизировано для больших объёмов данных.
+     */
     private function calculateMetrics(): array
     {
-        $now = Carbon::now();
-        $today = $now->copy()->startOfDay();
-        $yesterday = $today->copy()->subDay();
-        $lastMonth = $today->copy()->subDays(30);
+        $appTz = new DateTimeZone(config('app.timezone', 'UTC'));
+        $dbTz = new DateTimeZone('UTC');
 
-        $invoices = $this->invoices;
-        $totalInvoices = count($invoices);
-        $paidInvoices = 0;
-        $totalRevenue = 0;
-        $todayInvoices = 0;
-        $todayRevenue = 0;
+        $now = new DateTimeImmutable('now', $appTz);
+        $today = $now->setTime(0, 0);
+        $yesterday = $today->modify('-1 day');
+        $lastMonth = $today->modify('-30 days');
 
-        $yesterdayInvoices = 0;
-        $yesterdayRevenue = 0;
-        $lastMonthInvoices = 0;
+        $todayDb = $today->setTimezone($dbTz);
+        $yesterdayDb = $yesterday->setTimezone($dbTz);
+        $lastMonthDb = $lastMonth->setTimezone($dbTz);
 
-        foreach ($invoices as $invoice) {
-            if ($invoice->isPaid) {
-                $paidInvoices++;
-                $totalRevenue += $invoice->originalAmount;
+        // Общее количество счетов
+        $totalInvoices = PaymentInvoice::query()->count();
 
-                if ($invoice->paidAt > $today) {
-                    $todayInvoices++;
-                    $todayRevenue += $invoice->originalAmount;
-                } elseif ($invoice->paidAt > $yesterday && $invoice->paidAt <= $today) {
-                    $yesterdayInvoices++;
-                    $yesterdayRevenue += $invoice->originalAmount;
-                }
-            }
+        // Оплаченные счета
+        $paidInvoices = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->count();
 
-            if ($invoice->createdAt <= $lastMonth) {
-                $lastMonthInvoices++;
-            }
-        }
+        $todayInvoices = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $todayDb)
+            ->count();
 
+        $todayRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $todayDb)
+            ->buildQuery();
+        $todayRevenueQuery->columns([new Fragment('COALESCE(SUM(original_amount), 0) as sum')]);
+        $todayRevenue = (float) ($todayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
+
+        $yesterdayInvoices = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $yesterdayDb)
+            ->where('paidAt', '<=', $todayDb)
+            ->count();
+
+        $yesterdayRevenueQuery = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>', $yesterdayDb)
+            ->where('paidAt', '<=', $todayDb)
+            ->buildQuery();
+        $yesterdayRevenueQuery->columns([new Fragment('COALESCE(SUM(original_amount), 0) as sum')]);
+        $yesterdayRevenue = (float) ($yesterdayRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
+
+        $lastMonthInvoices = PaymentInvoice::query()
+            ->where('createdAt', '<=', $lastMonthDb)
+            ->count();
+
+        // Вычисляем разницу в процентах
         $invoicesDiff = $lastMonthInvoices > 0
             ? (($totalInvoices - $lastMonthInvoices) / $lastMonthInvoices) * 100
             : ($totalInvoices > 0 ? 100 : 0);
@@ -280,6 +339,34 @@ class PaymentInvoiceScreen extends Screen
                 'icon' => 'money',
             ],
         ];
+    }
+
+    /**
+     * Получить компонент фильтров.
+     */
+    private function getFilters(): Filters
+    {
+        // Получаем уникальные шлюзы через raw query
+        $query = PaymentInvoice::query()->buildQuery();
+        $query->columns([new Fragment('DISTINCT gateway')]);
+        $gateways = $query->fetchAll();
+
+        $gatewayOptions = ['' => __('admin.filters.status.all')];
+        foreach ($gateways as $row) {
+            if (!empty($row['gateway'])) {
+                $gatewayOptions[$row['gateway']] = $row['gateway'];
+            }
+        }
+
+        return Filters::make()
+            ->buttonGroup('status', __('admin.filters.status_label'), [
+                'all' => __('admin.filters.status.all'),
+                'paid' => __('admin-payment.status.paid'),
+                'unpaid' => __('admin-payment.status.unpaid'),
+            ], 'all')
+            ->select('gateway', __('admin-payment.table.payment_system'), $gatewayOptions)
+            ->period('period', __('admin.filters.period'), 'all')
+            ->compact();
     }
 
     private function invoiceActionsDropdown(PaymentInvoice $invoice): string

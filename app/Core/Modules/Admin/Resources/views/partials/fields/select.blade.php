@@ -20,10 +20,12 @@
                 @if ($multiple) multiple @endif @if ($required) required @endif
                 @if ($disabled) disabled @endif data-select data-mode="{{ $mode }}"
                 data-max-items="{{ $maxItems }}" data-plugins="{!! $plugins !!}"
+                data-hide-selected="{{ $attributes->get('data-hide-selected', 'false') }}"
                 placeholder="{{ $placeholder }}"
                 data-allow-add="{{ $attributes->get('data-allow-add') }}"
                 data-searchable="{{ $attributes->get('data-searchable', 'auto') }}"
                 data-search-threshold="{{ $attributes->get('data-search-threshold', '6') }}"
+                data-initial-value="{{ json_encode($value) }}"
                 @if ($mode === 'async') data-search-url="{{ $attributes->get('data-search-url') }}"
                         data-search-min-length="{{ $attributes->get('data-search-min-length') }}"
                         data-search-delay="{{ $attributes->get('data-search-delay') }}"
