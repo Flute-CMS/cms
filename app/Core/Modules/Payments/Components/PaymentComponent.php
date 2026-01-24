@@ -46,6 +46,8 @@ class PaymentComponent extends FluteComponent
 
     public array $currencyMinimumAmounts = [];
 
+    public array $gatewayMinimumAmounts = [];
+
     public function mount()
     {
         $this->loadCurrenciesAndGateways();
@@ -60,8 +62,9 @@ class PaymentComponent extends FluteComponent
             try {
                 $this->throttle('lk_purchase');
 
-                if ($this->amount < $this->currencyMinimumAmounts[$this->currency]) {
-                    throw new PaymentException(__('lk.min_amount', ['sum' => $this->currencyMinimumAmounts[$this->currency]]));
+                $minAmount = $this->getEffectiveMinimumAmount();
+                if ($this->amount < $minAmount) {
+                    throw new PaymentException(__('lk.min_amount', ['sum' => $minAmount]));
                 }
 
                 $invoice = payments()->processor()->createInvoice(
@@ -225,6 +228,7 @@ class PaymentComponent extends FluteComponent
                     'description' => $gateway->description ?? '',
                     'fee' => $gateway->fee ?? 0,
                     'bonus' => $gateway->bonus ?? 0,
+                    'minimum_amount' => $gateway->minimumAmount,
                 ];
             }
         }
@@ -277,6 +281,20 @@ class PaymentComponent extends FluteComponent
                 $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
             }
         }
+    }
+
+    public function getEffectiveMinimumAmount(): float
+    {
+        // Gateway minimum takes priority if set
+        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+            if (isset($gatewayData['minimum_amount']) && $gatewayData['minimum_amount'] !== null) {
+                return (float) $gatewayData['minimum_amount'];
+            }
+        }
+
+        // Fall back to currency minimum
+        return (float) ($this->currencyMinimumAmounts[$this->currency] ?? 0);
     }
 
     protected function validateInput()

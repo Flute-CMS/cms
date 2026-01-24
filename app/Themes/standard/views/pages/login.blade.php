@@ -10,26 +10,37 @@
 @endphp
 
 @push('content')
-    <div class="h-100 container mt-4">
+    <div class="container">
         <section class="auth-container">
-            <header class="auth-header">
-                <h2>@t('auth.header.login')</h2>
+            <div class="auth-card">
+                <header class="auth-header">
+                    <h2>@t('auth.header.login')</h2>
+                    <p>@t('auth.welcome_back')</p>
+                </header>
+
+                <article>
+                    @fragment('auth-card')
+                        @include('flute::partials.social-login')
+
+                        @if ($allowStandardAuth && !empty(social()->getAll()))
+                            <div class="auth-divider">@t('def.or')</div>
+                        @endif
+
+                        @if ($allowStandardAuth)
+                            @yoyo('login')
+                        @endif
+                    @endfragment
+                </article>
 
                 @if ($allowStandardAuth)
-                    <p>@t('auth.no_account') <x-link hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true"
-                            href="{{ url('/register') }}" type="accent">@t('auth.register')</x-link></p>
+                    <footer class="auth-footer">
+                        <p>@t('auth.no_account')
+                            <x-link hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true"
+                                    href="{{ url('/register') }}">@t('auth.register')</x-link>
+                        </p>
+                    </footer>
                 @endif
-            </header>
-
-            <article>
-                @fragment('auth-card')
-                    @include('flute::partials.social-login')
-
-                    @if ($allowStandardAuth)
-                        @yoyo('login')
-                    @endif
-                @endfragment
-            </article>
+            </div>
         </section>
     </div>
 @endpush

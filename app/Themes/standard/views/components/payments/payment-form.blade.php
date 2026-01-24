@@ -35,6 +35,11 @@
     };
 
     $currentGatewayData = $currencyGateways[$currency][$gateway] ?? null;
+
+    $effectiveMinAmount = $currencyMinimumAmounts[$currency] ?? 0;
+    if ($currentGatewayData && isset($currentGatewayData['minimum_amount']) && $currentGatewayData['minimum_amount'] !== null) {
+        $effectiveMinAmount = $currentGatewayData['minimum_amount'];
+    }
 @endphp
 
 <div class="lk-payment-container">
@@ -174,7 +179,7 @@
                             <div class="lk-amount-input-wrapper">
                                 <input type="text" name="amount" id="amount" form="payment-form"
                                     inputmode="decimal" autocomplete="off"
-                                    min="{{ $currencyMinimumAmounts[$currency] }}" step="0.01"
+                                    min="{{ $effectiveMinAmount }}" step="0.01"
                                     value="{{ $amount }}" required placeholder="0"
                                     aria-describedby="amount-description"
                                     yoyo:focus />
@@ -183,7 +188,7 @@
                         </x-forms.field>
 
                         <small class="lk-payment-hint" id="amount-description">
-                            {{ __('lk.min_amount_info', ['amount' => $currencyMinimumAmounts[$currency], 'currency' => $currency]) }}
+                            {{ __('lk.min_amount_info', ['amount' => $effectiveMinAmount, 'currency' => $currency]) }}
                         </small>
 
                         {{-- Preset Amounts --}}

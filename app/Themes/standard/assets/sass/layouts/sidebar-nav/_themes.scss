@@ -1,0 +1,42 @@
+html[data-theme="light"] {
+    .sidebar-nav__logo-img--dark {
+        display: none;
+    }
+
+    .sidebar-nav__logo-img--light {
+        display: block;
+    }
+
+    .sidebar-floating-dropdown {
+        box-shadow:
+            0 4px 20px rgba(0, 0, 0, 0.08),
+            0 8px 40px rgba(0, 0, 0, 0.05);
+    }
+}
+
+html[data-theme="light"][data-nav-style="sidebar"] {
+    .sidebar-nav {
+        background: color-mix(in srgb, var(--background) 90%, transparent);
+    }
+}
+
+html[data-nav-blur="false"][data-nav-style="sidebar"] {
+    .sidebar-nav {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--secondary);
+    }
+
+    .sidebar-floating-dropdown {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--secondary);
+    }
+}
+
+// Hide sidebar socials when disabled
+html[data-nav-socials="false"][data-nav-style="sidebar"] {
+    .sidebar-nav__socials {
+        display: none !important;
+    }
+}

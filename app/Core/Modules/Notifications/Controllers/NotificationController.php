@@ -26,6 +26,13 @@ class NotificationController extends BaseController
         return response()->make(notification()->countUnread());
     }
 
+    public function hasUnread()
+    {
+        return $this->json([
+            'hasUnread' => notification()->hasUnread(),
+        ]);
+    }
+
     public function delete(FluteRequest $fluteRequest, $id)
     {
         notification()->delete((int) $id);

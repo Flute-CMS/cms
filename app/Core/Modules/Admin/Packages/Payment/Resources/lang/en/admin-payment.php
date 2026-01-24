@@ -102,6 +102,11 @@ return [
             'placeholder' => '0',
             'help' => 'Bonus percentage added to the top-up when using this payment method',
         ],
+        'minimum_amount' => [
+            'label' => 'Minimum Amount',
+            'placeholder' => 'Leave empty to use currency minimum',
+            'help' => 'Minimum top-up amount for this gateway. If not set, the currency minimum will be used',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'Enable or disable this payment gateway',

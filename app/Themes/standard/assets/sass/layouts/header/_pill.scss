@@ -1,0 +1,329 @@
+html[data-nav-style="pill"] {
+    .flute_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: transparent;
+        z-index: 60;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+    }
+
+    .navbar {
+        pointer-events: auto;
+        max-width: fit-content;
+        margin: var(--space-sm) auto 0;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 9999px;
+        background: var(--blurred-background);
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        border: 1px solid var(--transp-1);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.1),
+            0 1px 3px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.3s $nav-ease;
+        margin-bottom: 20px;
+
+        &__content {
+            gap: var(--space-xs);
+            justify-content: center;
+        }
+
+        &__left {
+            gap: var(--space-xs);
+            width: auto;
+        }
+
+        &__logo {
+            min-width: 32px;
+            max-width: 100px;
+
+            img {
+                max-height: 32px;
+            }
+        }
+
+        &__separator {
+            display: block;
+            height: 20px;
+            margin: 0 var(--space-2xs);
+        }
+
+        .navbar-dropdown {
+            margin: 0;
+
+            &__item {
+                font-size: calc(var(--p-small) * 0.95);
+            }
+        }
+
+        &__actions {
+            gap: var(--space-2xs);
+        }
+
+        &__profile,
+        &__lang {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    #main {
+        padding-top: calc(60px + var(--space-lg));
+    }
+}
+
+// ========================================
+// PILL TRANSPARENT - Glass reveal style
+// ========================================
+
+html[data-nav-style="pill-transparent"] {
+    .flute_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: transparent;
+        z-index: 60;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+    }
+
+    .navbar {
+        pointer-events: auto;
+        max-width: fit-content;
+        margin: 0 auto;
+        padding: var(--space-sm) var(--space-lg);
+        border-radius: 9999px;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 1px solid transparent;
+        box-shadow: none;
+        transition:
+            margin 0.5s $nav-ease,
+            padding 0.5s $nav-ease,
+            background 0.5s $nav-ease,
+            backdrop-filter 0.5s $nav-ease,
+            border-color 0.5s $nav-ease,
+            box-shadow 0.5s $nav-ease;
+        margin-bottom: 20px;
+
+        &__content {
+            gap: var(--space-sm);
+            justify-content: center;
+            transition: gap 0.5s $nav-ease;
+        }
+
+        &__left {
+            gap: var(--space-sm);
+            width: auto;
+            transition: gap 0.5s $nav-ease;
+        }
+
+        &__logo {
+            min-width: 32px;
+            max-width: 100px;
+            transition:
+                opacity 0.5s $nav-ease,
+                transform 0.5s $nav-ease;
+
+            img {
+                max-height: 32px;
+            }
+        }
+
+        &__separator {
+            display: block;
+            height: 20px;
+            margin: 0 var(--space-2xs);
+            opacity: 0;
+            transform: scaleY(0);
+            transition:
+                opacity 0.4s $nav-ease,
+                transform 0.4s $nav-ease;
+        }
+
+        .navbar-dropdown {
+            margin: 0;
+
+            &__item {
+                font-size: calc(var(--p-small) * 0.95);
+                color: var(--text-200);
+                background: transparent;
+                transition:
+                    color 0.3s $nav-ease,
+                    background-color 0.3s $nav-ease,
+                    padding 0.5s $nav-ease;
+
+                &:hover {
+                    color: var(--text);
+                }
+            }
+        }
+
+        &__actions {
+            gap: var(--space-xs);
+            transition: gap 0.5s $nav-ease;
+        }
+
+        // Initially slightly transparent
+        &__theme-switcher,
+        &__notifications,
+        &__profile,
+        &__lang,
+        &__socials {
+            opacity: 0.8;
+            transition: opacity 0.4s $nav-ease;
+        }
+    }
+
+    #main {
+        padding-top: calc(60px + var(--space-lg));
+    }
+}
+
+html[data-nav-style="pill-transparent"][data-nav-scrolled="true"] {
+    .navbar {
+        margin: var(--space-sm) auto 0;
+        padding: var(--space-xs) 0;
+        background: var(--blurred-background, rgba(20, 20, 23, 0.8)) !important;
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%) !important;
+        border-color: var(--transp-1);
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.15),
+            0 2px 4px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+        &__content {
+            gap: var(--space-xs);
+        }
+
+        &__left {
+            gap: var(--space-xs);
+        }
+
+        &__logo {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        &__separator {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+
+        &__actions {
+            gap: var(--space-2xs);
+        }
+
+        &__theme-switcher,
+        &__notifications,
+        &__profile,
+        &__lang,
+        &__socials {
+            opacity: 1;
+        }
+
+        .navbar-dropdown__item {
+            color: var(--text-400);
+
+            &:hover,
+            &.active {
+                color: var(--text);
+                background-color: var(--transp-05);
+            }
+        }
+    }
+}
+
+// ========================================
+// PILL FULL - Full-width pill navigation
+// ========================================
+
+html[data-nav-style="pill-full"] {
+    .flute_header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: transparent;
+        z-index: 60;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        padding: var(--space-sm) var(--space-md) 0;
+    }
+
+    .navbar {
+        pointer-events: auto;
+        width: 100%;
+        max-width: var(--max-content-width, 1200px);
+        margin: 0 auto;
+        padding: var(--space-xs) var(--space-md);
+        border-radius: var(--border1);
+        background: var(--blurred-background);
+        backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) * 2)) saturate(180%);
+        border: 1px solid var(--transp-1);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.1),
+            0 1px 3px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.3s $nav-ease;
+
+        &__content {
+            gap: var(--space-sm);
+            justify-content: space-between;
+        }
+
+        &__left {
+            gap: var(--space-sm);
+            width: auto;
+        }
+
+        &__logo {
+            min-width: 32px;
+            max-width: 120px;
+
+            img {
+                max-height: 36px;
+            }
+        }
+
+        &__separator {
+            display: block;
+            height: 24px;
+            margin: 0 var(--space-xs);
+        }
+
+        .navbar-dropdown {
+            margin: 0;
+
+            &__item {
+                font-size: var(--p-small);
+            }
+        }
+
+        &__actions {
+            gap: var(--space-xs);
+        }
+
+        &__profile,
+        &__lang {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    #main {
+        padding-top: calc(70px + var(--space-lg));
+    }
+}
+

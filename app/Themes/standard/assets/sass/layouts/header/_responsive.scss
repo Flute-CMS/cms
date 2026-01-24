@@ -1,0 +1,94 @@
+// ========================================
+// MOBILE RESPONSIVE FOR NAV STYLES
+// ========================================
+
+@include media(tablet) {
+
+    html[data-nav-style="pill"],
+    html[data-nav-style="pill-transparent"],
+    html[data-nav-style="pill-full"] {
+        .flute_header {
+            position: sticky;
+            background: transparent;
+            pointer-events: auto;
+            padding: 0;
+        }
+
+        .navbar {
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            border-radius: 0;
+            padding: var(--space-md) 0;
+            background: var(--blurred-background);
+            backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            border-color: var(--transp-1);
+
+            &__logo {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            &__separator {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+
+        #main {
+            padding-top: 0;
+        }
+    }
+}
+
+@include media(mobile) {
+
+    html[data-nav-style="pill"],
+    html[data-nav-style="pill-transparent"],
+    html[data-nav-style="pill-full"] {
+        .navbar {
+            max-width: none;
+            width: 100%;
+            margin: 0 !important;
+            border-radius: 0;
+            padding: var(--space-md) 0;
+
+            &__left {
+                width: 100%;
+            }
+
+            &__logo {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    }
+
+    // Centered nav - revert to default layout on mobile
+    html[data-nav-style="centered"] {
+        .navbar {
+            &__left {
+                display: flex;
+            }
+
+            &__content-logo {
+                order: 0;
+            }
+
+            .navbar-dropdown {
+                order: 0;
+                flex: none;
+            }
+
+            &__actions {
+                order: 0;
+                flex: none;
+            }
+
+            &__separator {
+                display: block !important;
+            }
+        }
+    }
+}

@@ -8,10 +8,11 @@ $router->group(['prefix' => "api/notifications", 'middleware' => 'auth'], static
     $routeGroup->get('/all', [NotificationController::class, 'getAll']);
     $routeGroup->get('/unread', [NotificationController::class, 'getUnread']);
     $routeGroup->get('/count-unread', [NotificationController::class, 'getCountUnread']);
+    $routeGroup->get('/has-unread', [NotificationController::class, 'hasUnread']);
     $routeGroup->delete('/{id<\d+>}', [NotificationController::class, 'delete']);
     $routeGroup->put('/{id<\d+>}', [NotificationController::class, 'read']);
     $routeGroup->put('/read-all', [NotificationController::class, 'readAll']);
-    $routeGroup->delete('', [NotificationController::class, 'clear']);
+    $routeGroup->delete('/clear', [NotificationController::class, 'clear']);
 });
 
 $router->get('sidebar/notifications', [NotificationsSidebar::class, 'sidebarNotifications'])->middleware(['auth', 'htmx']);

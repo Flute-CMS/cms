@@ -265,6 +265,14 @@ class ThemeManager
     }
 
     /**
+     * Get the current theme key.
+     */
+    public function getThemeAttr(string $attr): string
+    {
+        return $this->getThemeData($this->getCurrentTheme())[$attr] ?? '';
+    }
+
+    /**
      * Fallback to the default theme if the current theme is not set or invalid.
      */
     public function fallbackToDefaultTheme(): void
@@ -286,6 +294,8 @@ class ThemeManager
         if ($this->colorsInitialized && !$force) {
             return;
         }
+
+        $this->initialize();
 
         $colorsPath = "{$this->themesPath}/{$this->currentTheme}/colors.json";
 

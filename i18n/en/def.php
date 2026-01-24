@@ -49,6 +49,7 @@
     "username" => "Username",
     "password" => "Password",
     "login" => "Login",
+    "not_logged_in" => "You are not logged in",
     "email" => "Email",
     "update" => "Update",
     "load_more" => "Load more",
@@ -233,6 +234,7 @@
     "no_notifications" => "No notifications",
     "not_read" => "Unread",
     "mark_all_read" => "Mark all as read",
+    "clear_all" => "Clear all",
     "download_file" => "Download file",
     "unread_notifications" => "Unread notifications",
     "top_up" => "Top up",
@@ -273,5 +275,7 @@
     "on" => "On",
     "off" => "Off",
     "show" => "Show",
-    "role" => "Role"
+    "role" => "Role",
+    "menu" => "Menu",
+    "toggle_sidebar" => "Toggle sidebar"
 ];

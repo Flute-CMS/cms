@@ -27,6 +27,7 @@ return array(
     'is_performance' => false,
     'share' => true,
     'flute_copyright' => true,
+    'copyright' => '',
     'discord_link_roles' => false,
     'bg_image' => '',
     'bg_image_light' => '',

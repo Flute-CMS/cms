@@ -1,0 +1,50 @@
+.breadcrumb--navbar {
+    display: none;
+    margin: 0 !important;
+    border-radius: 0 !important;
+
+    .breadcrumb-links {
+        column-gap: var(--space-xs);
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .breadcrumb-icon {
+        width: 0.875rem;
+        height: 0.875rem;
+        margin-right: var(--space-xs);
+    }
+
+    .breadcrumb-text {
+        font-size: 13px;
+    }
+}
+
+.navbar__mobile-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: var(--border05);
+    background: transparent;
+    color: var(--text-400);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: var(--transp-1);
+        color: var(--text);
+    }
+
+    svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    @include media(tablet) {
+        display: flex;
+    }
+}

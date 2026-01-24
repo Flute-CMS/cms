@@ -516,6 +516,16 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
+     * Register notification templates from a provider.
+     */
+    public function registerNotificationTemplates(\Flute\Core\Modules\Notifications\Contracts\NotificationTemplateProviderInterface $provider): void
+    {
+        if (function_exists('notification_templates')) {
+            notification_templates()->registerFromProvider($provider);
+        }
+    }
+
+    /**
      * Bootstrap module by loading configs, translations, views, routes, entities, widgets, etc.
      *
      * @throws Exception
@@ -901,7 +911,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return $paths;
         }, $duration);
 
-        $result = array_map(static fn ($path) => new SplFileInfo($path), $filePaths);
+        $result = array_map(static fn($path) => new SplFileInfo($path), $filePaths);
 
         $this->directoryCache[$dirHash] = $result;
 

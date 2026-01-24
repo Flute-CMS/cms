@@ -230,7 +230,10 @@ class ColorController extends BaseController
             '--bg-grad2' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--bg-grad3' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
             '--container-width' => 'sometimes|string|in:container,fullwidth',
-            '--nav-type' => 'sometimes|string|in:horizontal,sidebar',
+            '--nav-style' => 'sometimes|string|in:default,pill,pill-transparent,pill-full,sidebar',
+            '--sidebar-style' => 'sometimes|string|in:default,mini',
+            '--sidebar-mode' => 'sometimes|string|in:full,minimal',
+            '--sidebar-position' => 'sometimes|string|in:top,center',
             '--footer-type' => 'sometimes|string|in:default,minimal,expanded,glass,centered,hidden',
             '--footer-socials' => 'sometimes|string|in:true,false',
         ];

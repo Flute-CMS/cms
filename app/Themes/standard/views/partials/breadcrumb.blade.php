@@ -1,3 +1,45 @@
+@php
+    $_themeColors = app('flute.view.manager')->getColors(
+        config('app.change_theme', true)
+            ? cookie()->get('theme', config('app.default_theme', 'dark'))
+            : config('app.default_theme', 'dark'),
+    );
+    $_isSidebarMode = ($_themeColors['--nav-style'] ?? 'default') === 'sidebar';
+@endphp
+
+{{-- OOB swap for navbar breadcrumb in sidebar mode --}}
+@if ($_isSidebarMode)
+    <nav class="breadcrumb breadcrumb--navbar" id="navbar-breadcrumb" aria-label="Breadcrumb navigation" hx-swap-oob="true"
+        hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+        @if (breadcrumb()->all())
+            <ul class="breadcrumb-links">
+                @foreach (breadcrumb()->all() as $index => $crumb)
+                    <li>
+                        @if ($index > 0)
+                            <div class="breadcrumb-box">
+                                <svg class="breadcrumb-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                @if ($crumb['url'] && $index < count(breadcrumb()->all()) - 1)
+                                    <a href="{{ $crumb['url'] }}" class="breadcrumb-text">{{ $crumb['title'] }}</a>
+                                @else
+                                    <span class="breadcrumb-text">{{ $crumb['title'] }}</span>
+                                @endif
+                            </div>
+                        @else
+                            <a href="{{ $crumb['url'] ?: '#' }}" class="breadcrumb-box">
+                                <span class="breadcrumb-text">{{ $crumb['title'] }}</span>
+                            </a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </nav>
+@endif
+
 @if (breadcrumb()->all())
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb navigation" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">

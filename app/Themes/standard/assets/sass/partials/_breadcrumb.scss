@@ -5,6 +5,11 @@
     margin-top: var(--space-xs);
 }
 
+// Hide standard breadcrumb in sidebar mode (shown in header instead)
+html[data-nav-style="sidebar"] .breadcrumb {
+    display: none;
+}
+
 .breadcrumb-links {
     display: flex;
     column-gap: var(--space-md);

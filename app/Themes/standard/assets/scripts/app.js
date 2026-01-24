@@ -31,10 +31,6 @@ class FluteApp {
     }
 
     initEvents() {
-        window.addEventListener("DOMContentLoaded", () => {
-            this.notifications.updateNotificationCount();
-        });
-
         this.setupHtmxEvents();
 
         $(document).ready(() => {
@@ -254,9 +250,6 @@ class FluteApp {
         });
 
         // Main HTMX events
-        htmx.on("htmx:afterSettle", () =>
-            this.notifications.updateNotificationCount()
-        );
         htmx.on("htmx:afterRequest", (evt) =>
             this.notifications.handleToasts(evt)
         );
@@ -433,7 +426,7 @@ class NotificationManager {
         this.toggle = null;
         this.originalParent = null;
         this.isOpen = false;
-        this.activeTab = 'all';
+        this.activeTab = 'unread';
         this.cleanup = null;
 
         this.initCustomEvents();
@@ -441,15 +434,18 @@ class NotificationManager {
         this.initDropdown();
     }
 
-    updateNotificationCount() {
-        const notificationCount = document.getElementById("notification-count");
-        if (!notificationCount) return;
+    updateNotificationDot() {
+        const dot = document.getElementById("notification-dot");
+        if (!dot) return;
 
-        const text = notificationCount.textContent.trim();
-        if (text === "") return;
+        // Trigger HTMX to refresh the dot status
+        if (typeof htmx !== "undefined") {
+            htmx.trigger(dot, "notificationsUpdated");
+        }
+    }
 
-        const count = parseInt(text, 10) || 0;
-        notificationCount.style.display = count > 0 ? "inline-flex" : "none";
+    triggerNotificationsUpdate() {
+        document.body.dispatchEvent(new CustomEvent("notificationsUpdated"));
     }
 
     handleToasts(evt) {
@@ -600,6 +596,15 @@ class NotificationManager {
             this.deleteNotification(id, btn);
         });
 
+        // Clear all notifications
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-clear-all]");
+            if (!btn) return;
+
+            e.preventDefault();
+            this.clearAllNotifications();
+        });
+
         // Button handlers
         document.addEventListener("click", (e) => {
             const btn = e.target.closest("[data-notification-handler]");
@@ -621,14 +626,6 @@ class NotificationManager {
                 this.closeDropdown();
             }
         });
-
-        // Close on scroll
-        window.addEventListener("scroll", () => {
-            if (this.isOpen) {
-                this.closeDropdown();
-            }
-        }, { passive: true });
-
         // HTMX events for updating badges
         if (typeof htmx !== "undefined") {
             htmx.on("htmx:afterSwap", (e) => {
@@ -711,8 +708,9 @@ class NotificationManager {
 
             window.FloatingUIDOM.computePosition(this.toggle, this.dropdown, {
                 placement: "bottom-end",
+                strategy: "fixed",
                 middleware: [
-                    window.FloatingUIDOM.offset(10),
+                    window.FloatingUIDOM.offset(16),
                     window.FloatingUIDOM.flip({
                         fallbackPlacements: ["top-end", "bottom-start", "top-start"],
                     }),
@@ -733,14 +731,20 @@ class NotificationManager {
             });
         };
 
-        // Auto-update position on scroll/resize
+        // Auto-update position on scroll/resize with all listeners
         if (this.cleanup) {
             this.cleanup();
         }
         this.cleanup = window.FloatingUIDOM.autoUpdate(
             this.toggle,
             this.dropdown,
-            updatePosition
+            updatePosition,
+            {
+                ancestorScroll: true,
+                ancestorResize: true,
+                elementResize: true,
+                layoutShift: true,
+            }
         );
     }
 
@@ -871,28 +875,77 @@ class NotificationManager {
             });
     }
 
+    clearAllNotifications() {
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+
+        const lists = document.querySelectorAll("[data-notification-list]");
+        const items = document.querySelectorAll(".notification-item");
+
+        // Animate all items out
+        items.forEach((item, index) => {
+            item.style.transition = `all 0.3s ease ${index * 0.05}s`;
+            item.style.opacity = "0";
+            item.style.transform = "translateX(20px)";
+        });
+
+        fetch(u("api/notifications/clear"), {
+            method: "DELETE",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-Token": csrfToken,
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    setTimeout(() => {
+                        items.forEach((item) => item.remove());
+                        this.updateBadges();
+                        this.checkEmptyState();
+                    }, 300 + items.length * 50);
+                }
+            })
+            .catch((error) => {
+                console.error("Error clearing notifications:", error);
+                items.forEach((item) => {
+                    item.style.opacity = "";
+                    item.style.transform = "";
+                });
+            });
+    }
+
+    refreshNotifications() {
+        const lists = document.querySelectorAll("[data-notification-list]");
+        lists.forEach((list) => {
+            list.removeAttribute("data-loaded");
+            if (typeof htmx !== "undefined" && list.hasAttribute("hx-get")) {
+                htmx.trigger(list, "load");
+            }
+        });
+        this.updateBadges();
+    }
+
     updateBadges() {
-        const badge = document.getElementById("notification-count");
-        if (badge && typeof htmx !== "undefined") {
-            htmx.trigger(badge, "refresh");
-        }
+        // Trigger HTMX to update the dot indicator
+        this.triggerNotificationsUpdate();
 
         setTimeout(() => {
             const allCount = document.querySelectorAll("[data-notification-list='all'] .notification-item").length;
-            const unreadCount = document.querySelectorAll("[data-notification-list='all'] .notification-item.unread").length
-                + document.querySelectorAll("[data-notification-list='unread'] .notification-item.unread").length;
+            const unreadCount = document.querySelectorAll("[data-notification-list='unread'] .notification-item").length;
 
             const allBadge = document.querySelector("[data-notification-count-all]");
             const unreadBadge = document.querySelector("[data-notification-count-unread]");
 
             if (allBadge) allBadge.textContent = allCount;
             if (unreadBadge) unreadBadge.textContent = unreadCount;
-
-            this.updateNotificationCount();
         }, 150);
     }
 
     checkEmptyState() {
+        const content = document.querySelector("[data-notification-content]");
+        const emptyText = content?.dataset.emptyText || "No notifications";
+
         const lists = document.querySelectorAll("[data-notification-list]");
         lists.forEach((list) => {
             const items = list.querySelectorAll(".notification-item");
@@ -901,10 +954,7 @@ class NotificationManager {
             if (items.length === 0 && !emptyMsg) {
                 const p = document.createElement("p");
                 p.className = "notifications__empty";
-                const text = typeof translate === "function" 
-                    ? translate("def.no_notifications") 
-                    : "No notifications";
-                p.textContent = text || "No notifications";
+                p.textContent = emptyText;
                 list.appendChild(p);
             }
         });
@@ -2239,13 +2289,6 @@ class ProfileDropdownManager {
             }
         });
 
-        // Close on scroll
-        window.addEventListener("scroll", () => {
-            if (this.isOpen) {
-                this.closeDropdown();
-            }
-        }, { passive: true });
-
         // Close on link click inside dropdown
         document.addEventListener("click", (e) => {
             const link = e.target.closest("[data-profile-dropdown] a, [data-profile-dropdown] button[type='submit']");
@@ -2327,8 +2370,9 @@ class ProfileDropdownManager {
 
             window.FloatingUIDOM.computePosition(this.toggle, this.dropdown, {
                 placement: "bottom-end",
+                strategy: "fixed",
                 middleware: [
-                    window.FloatingUIDOM.offset(10),
+                    window.FloatingUIDOM.offset(16),
                     window.FloatingUIDOM.flip({
                         fallbackPlacements: ["top-end", "bottom-start", "top-start"],
                     }),
@@ -2349,14 +2393,19 @@ class ProfileDropdownManager {
             });
         };
 
-        // Auto-update position on scroll/resize
         if (this.cleanup) {
             this.cleanup();
         }
         this.cleanup = window.FloatingUIDOM.autoUpdate(
             this.toggle,
             this.dropdown,
-            updatePosition
+            updatePosition,
+            {
+                ancestorScroll: true,
+                ancestorResize: true,
+                elementResize: true,
+                layoutShift: true,
+            }
         );
     }
 

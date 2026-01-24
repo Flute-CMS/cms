@@ -323,27 +323,41 @@ class NotificationService
     }
 
     /**
+     * Check if the current user has any unread notifications.
+     * No caching - always fresh result.
+     *
+     * @return bool True if there are unread notifications.
+     */
+    public function hasUnread(): bool
+    {
+        return Notification::query()
+            ->where([
+                'user_id' => user()->id,
+                'viewed' => false,
+            ])
+            ->limit(1)
+            ->count() > 0;
+    }
+
+    /**
      * Count the number of unread notifications for the current user.
      *
      * @return int The number of unread notifications.
      */
     public function countUnread(): int
     {
-        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
-        if (cache()->has($cacheKey)) {
-            return cache()->get($cacheKey);
+        if ($this->cachedUnreadCount !== null) {
+            return $this->cachedUnreadCount;
         }
 
-        $count = Notification::query()
+        $this->cachedUnreadCount = Notification::query()
             ->where([
                 'user_id' => user()->id,
                 'viewed' => false,
             ])
             ->count();
 
-        cache()->set($cacheKey, $count, 60);
-
-        return $count;
+        return $this->cachedUnreadCount;
     }
 
     /**
@@ -417,8 +431,6 @@ class NotificationService
      */
     protected function invalidateCache(): void
     {
-        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
-        cache()->delete($cacheKey);
         $this->cached = false;
         $this->cachedItems = [];
         $this->unreadCached = false;

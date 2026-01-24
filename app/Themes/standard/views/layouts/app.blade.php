@@ -1,7 +1,17 @@
 <!DOCTYPE html>
-<html lang="{{ strtolower(app()->getLang()) }}"
-    @if (config('app.change_theme', true)) data-theme="{{ cookie()->get('theme', config('app.default_theme', 'dark')) }}"
-    @else data-theme="{{ config('app.default_theme', 'dark') }}" @endif>
+@php
+    $_currentThemeMode = config('app.change_theme', true)
+        ? cookie()->get('theme', config('app.default_theme', 'dark'))
+        : config('app.default_theme', 'dark');
+    $_themeColors = app('flute.view.manager')->getColors($_currentThemeMode);
+    $_navStyle = $_themeColors['--nav-style'] ?? 'default';
+    $_sidebarStyle = $_themeColors['--sidebar-style'] ?? 'default';
+    $_sidebarMode = $_themeColors['--sidebar-mode'] ?? 'full';
+    $_sidebarPosition = $_themeColors['--sidebar-position'] ?? 'top';
+    $_sidebarCollapsed = cookie()->get('sidebar_collapsed', 'false');
+@endphp
+<html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
+    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}">
 
 <head hx-head="append">
     @php
@@ -246,6 +256,11 @@
         @endcan
     @endif
 
+    @if (!$isPartialRequest)
+        {{-- Always render sidebar-nav, visibility controlled by CSS based on data-nav-style --}}
+        <x-sidebar-nav />
+    @endif
+
     @includeWhen(!$isPartialRequest, 'flute::layouts.header')
 
     @if (!$isPartialRequest)
@@ -438,6 +453,9 @@
                 @at(tt('assets/scripts/admin-onboarding.js'))
             @endif
         @endcan
+
+        {{-- Always load sidebar-nav script, it handles visibility check internally --}}
+        @at(tt(path: 'assets/scripts/sidebar-nav.js'))
 
         @at(tt('assets/scripts/app.js'))
 

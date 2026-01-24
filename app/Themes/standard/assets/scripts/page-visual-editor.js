@@ -97,11 +97,22 @@ class VisualEditor {
         this.footerSocialsToggle = document.getElementById('ve-footer-socials');
         this.footerLogoToggle = document.getElementById('ve-footer-logo');
         this.navFixedToggle = document.getElementById('ve-nav-fixed');
+        this.navFixedWrap = document.getElementById('ve-nav-fixed-wrap');
         this.navBlurToggle = document.getElementById('ve-nav-blur');
+        this.navBlurWrap = document.getElementById('ve-nav-blur-wrap');
         this.hoverScaleToggle = document.getElementById('ve-hover-scale');
         
         // Navigation style cards
         this.navStyleCards = this.editor.querySelectorAll('[data-nav-style]');
+        // Sidebar style section and cards
+        this.sidebarStylesSection = document.getElementById('ve-sidebar-styles');
+        this.sidebarStyleCards = this.editor.querySelectorAll('[data-sidebar-style]');
+        // Sidebar mode section and cards
+        this.sidebarModeSection = document.getElementById('ve-sidebar-mode');
+        this.sidebarModeCards = this.editor.querySelectorAll('[data-sidebar-mode]');
+        // Sidebar position section and cards
+        this.sidebarPositionSection = document.getElementById('ve-sidebar-position');
+        this.sidebarPositionCards = this.editor.querySelectorAll('[data-sidebar-position]');
         // Footer type cards
         this.footerTypeCards = this.editor.querySelectorAll('[data-footer-type]');
         
@@ -361,6 +372,30 @@ class VisualEditor {
         this.navStyleCards.forEach(card => {
             card.addEventListener('click', () => {
                 this.setNavStyle(card.dataset.navStyle);
+                this.recordHistory();
+            });
+        });
+
+        // Sidebar style cards
+        this.sidebarStyleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.setSidebarStyle(card.dataset.sidebarStyle);
+                this.recordHistory();
+            });
+        });
+
+        // Sidebar mode cards
+        this.sidebarModeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.setSidebarMode(card.dataset.sidebarMode);
+                this.recordHistory();
+            });
+        });
+
+        // Sidebar position cards
+        this.sidebarPositionCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.setSidebarPosition(card.dataset.sidebarPosition);
                 this.recordHistory();
             });
         });
@@ -644,6 +679,51 @@ class VisualEditor {
         const navStyle = this.root.getAttribute('data-nav-style') || 'default';
         this.navStyleCards.forEach(card => {
             card.classList.toggle('active', card.dataset.navStyle === navStyle);
+        });
+
+        // Show/hide sidebar style section
+        if (this.sidebarStylesSection) {
+            this.sidebarStylesSection.hidden = navStyle !== 'sidebar';
+        }
+        
+        // Show/hide nav fixed toggle (hide for sidebar)
+        const navFixedWrap = document.getElementById('ve-nav-fixed-wrap');
+        if (navFixedWrap) {
+            navFixedWrap.hidden = navStyle === 'sidebar';
+        }
+        
+        // Show/hide nav blur toggle (hide for sidebar)
+        const navBlurWrap = document.getElementById('ve-nav-blur-wrap');
+        if (navBlurWrap) {
+            navBlurWrap.hidden = navStyle === 'sidebar';
+        }
+
+        // Sidebar style
+        const sidebarStyle = this.root.getAttribute('data-sidebar-style') || 'default';
+        this.sidebarStyleCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarStyle === sidebarStyle);
+        });
+
+        // Show/hide sidebar mode section (only for default style)
+        if (this.sidebarModeSection) {
+            this.sidebarModeSection.hidden = sidebarStyle !== 'default';
+        }
+
+        // Sidebar mode
+        const sidebarMode = this.root.getAttribute('data-sidebar-mode') || 'full';
+        this.sidebarModeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarMode === sidebarMode);
+        });
+
+        // Show/hide sidebar position section (only for mini style)
+        if (this.sidebarPositionSection) {
+            this.sidebarPositionSection.hidden = sidebarStyle !== 'mini';
+        }
+
+        // Sidebar position
+        const sidebarPosition = this.root.getAttribute('data-sidebar-position') || 'top';
+        this.sidebarPositionCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarPosition === sidebarPosition);
         });
         
         // Navigation fixed toggle
@@ -1443,10 +1523,142 @@ class VisualEditor {
         this.root.setAttribute('data-nav-style', style);
         this.setProperty('--nav-style', style);
         this.setThemeAttr('nav-style', style);
-        
-        // Update card states
+
         this.navStyleCards.forEach(card => {
             card.classList.toggle('active', card.dataset.navStyle === style);
+        });
+
+        if (this.sidebarStylesSection) {
+            this.sidebarStylesSection.hidden = style !== 'sidebar';
+        }
+        
+        const navFixedWrap = document.getElementById('ve-nav-fixed-wrap');
+        if (navFixedWrap) {
+            navFixedWrap.hidden = style === 'sidebar';
+        }
+        
+        const navBlurWrap = document.getElementById('ve-nav-blur-wrap');
+        if (navBlurWrap) {
+            navBlurWrap.hidden = style === 'sidebar';
+        }
+
+        // Show/hide sidebar element dynamically
+        const sidebarEl = document.getElementById('sidebar-nav');
+        if (sidebarEl) {
+            if (style === 'sidebar') {
+                // Show sidebar
+                sidebarEl.classList.remove('sidebar-nav--hidden');
+                sidebarEl.removeAttribute('aria-hidden');
+                // Reinitialize sidebar if needed
+                if (typeof initSidebarNav === 'function') {
+                    setTimeout(initSidebarNav, 50);
+                }
+            } else {
+                // Hide sidebar
+                sidebarEl.classList.add('sidebar-nav--hidden');
+                sidebarEl.setAttribute('aria-hidden', 'true');
+            }
+        }
+        
+        if (style !== 'sidebar' && typeof NavbarMorphDropdown !== 'undefined') {
+            setTimeout(() => {
+                window.navbarMorphDropdown = new NavbarMorphDropdown();
+            }, 50);
+        }
+
+        // When switching to sidebar, ensure sidebar attributes exist
+        if (style === 'sidebar') {
+            const currentSidebarStyle = this.root.getAttribute('data-sidebar-style') || 'default';
+            const currentSidebarPosition = this.root.getAttribute('data-sidebar-position') || 'top';
+
+            this.root.setAttribute('data-sidebar-style', currentSidebarStyle);
+            this.root.setAttribute('data-sidebar-position', currentSidebarPosition);
+
+            // Reset collapsed state to avoid visual glitches
+            this.root.setAttribute('data-sidebar-collapsed', 'false');
+            const sidebar = document.getElementById('sidebar-nav');
+            if (sidebar) {
+                sidebar.classList.remove('is-collapsed');
+            }
+            document.cookie = 'sidebar_collapsed=false;path=/;SameSite=Lax';
+
+            // Update position section visibility
+            if (this.sidebarPositionSection) {
+                this.sidebarPositionSection.hidden = currentSidebarStyle !== 'mini';
+            }
+
+            // Update active cards
+            this.sidebarStyleCards.forEach(card => {
+                card.classList.toggle('active', card.dataset.sidebarStyle === currentSidebarStyle);
+            });
+            this.sidebarPositionCards.forEach(card => {
+                card.classList.toggle('active', card.dataset.sidebarPosition === currentSidebarPosition);
+            });
+        } else {
+            // Hide position section when not sidebar
+            if (this.sidebarPositionSection) {
+                this.sidebarPositionSection.hidden = true;
+            }
+        }
+    }
+
+    // Sidebar style (default/mini)
+    setSidebarStyle(style) {
+        this.root.setAttribute('data-sidebar-style', style);
+        this.setProperty('--sidebar-style', style);
+        this.setThemeAttr('sidebar-style', style);
+
+        // Reset sidebar collapsed state when switching styles to avoid visual glitches
+        this.root.setAttribute('data-sidebar-collapsed', 'false');
+        const sidebar = document.getElementById('sidebar-nav');
+        if (sidebar) {
+            sidebar.classList.remove('is-collapsed');
+        }
+        // Reset cookie for collapsed state
+        document.cookie = 'sidebar_collapsed=false;path=/;SameSite=Lax';
+        // Re-initialize sidebar nav if it exists
+        if (window.sidebarNav) {
+            window.sidebarNav.isCollapsed = false;
+            window.sidebarNav.updateState?.();
+        }
+
+        // Update card states
+        this.sidebarStyleCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarStyle === style);
+        });
+
+        // Show/hide sidebar mode section (only for default style)
+        if (this.sidebarModeSection) {
+            this.sidebarModeSection.hidden = style !== 'default';
+        }
+
+        // Show/hide sidebar position section (only for mini style)
+        if (this.sidebarPositionSection) {
+            this.sidebarPositionSection.hidden = style !== 'mini';
+        }
+    }
+
+    // Sidebar mode (minimal/full) - only for default style
+    setSidebarMode(mode) {
+        this.root.setAttribute('data-sidebar-mode', mode);
+        this.setProperty('--sidebar-mode', mode);
+        this.setThemeAttr('sidebar-mode', mode);
+
+        // Update card states
+        this.sidebarModeCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarMode === mode);
+        });
+    }
+
+    // Sidebar position (top/center) - only for mini style
+    setSidebarPosition(position) {
+        this.root.setAttribute('data-sidebar-position', position);
+        this.setProperty('--sidebar-position', position);
+        this.setThemeAttr('sidebar-position', position);
+
+        // Update card states
+        this.sidebarPositionCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.sidebarPosition === position);
         });
     }
     
@@ -1494,6 +1706,12 @@ class VisualEditor {
     loadFont(fontName) {
         if (this.loadedFonts.has(fontName)) return;
         
+        // Manrope is loaded locally, skip CDN
+        if (fontName === 'Manrope') {
+            this.loadedFonts.add(fontName);
+            return;
+        }
+        
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;500;600;700&display=swap`;
@@ -1513,7 +1731,7 @@ class VisualEditor {
             '--shadow-small', '--shadow-medium', '--shadow-large',
             '--gradient-type', '--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity', '--page-gradient',
             '--bg-effect', '--bg-effect-opacity', '--container-width',
-            '--nav-style', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
+            '--nav-style', '--sidebar-style', '--sidebar-position', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
             '--emoji-pattern', '--emoji-tile-width', '--emoji-tile-height', '--emoji-angle', '--emoji-accent-filter'
         ];
         
@@ -1537,6 +1755,9 @@ class VisualEditor {
         state['_bg-effect'] = this.root.getAttribute('data-bg-effect') || 'none';
         state['_hover-scale'] = this.root.getAttribute('data-hover-scale') || 'true';
         state['_nav-style'] = this.root.getAttribute('data-nav-style') || 'default';
+        state['_sidebar-style'] = this.root.getAttribute('data-sidebar-style') || 'default';
+        state['_sidebar-mode'] = this.root.getAttribute('data-sidebar-mode') || 'full';
+        state['_sidebar-position'] = this.root.getAttribute('data-sidebar-position') || 'top';
         state['_nav-fixed'] = this.root.getAttribute('data-nav-fixed') || 'true';
         state['_nav-blur'] = this.root.getAttribute('data-nav-blur') || 'true';
         state['_nav-socials'] = this.root.getAttribute('data-nav-socials') || 'true';
@@ -1559,7 +1780,7 @@ class VisualEditor {
             '--shadow-small', '--shadow-medium', '--shadow-large',
             '--gradient-type', '--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity', '--page-gradient',
             '--bg-effect', '--bg-effect-opacity', '--container-width',
-            '--nav-style', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
+            '--nav-style', '--sidebar-style', '--sidebar-position', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
             '--emoji-pattern', '--emoji-tile-width', '--emoji-tile-height', '--emoji-angle', '--emoji-accent-filter'
         ];
         
@@ -1630,6 +1851,12 @@ class VisualEditor {
                 this.setBackgroundEffect(value);
             } else if (key === '_nav-style') {
                 this.setNavStyle(value);
+            } else if (key === '_sidebar-style') {
+                this.setSidebarStyle(value);
+            } else if (key === '_sidebar-mode') {
+                this.setSidebarMode(value);
+            } else if (key === '_sidebar-position') {
+                this.setSidebarPosition(value);
             } else if (key === '_nav-fixed') {
                 const isFixed = value === 'true';
                 this.root.setAttribute('data-nav-fixed', value);
@@ -1799,6 +2026,9 @@ class VisualEditor {
         
         // Navigation and footer settings
         colors['--nav-style'] = state['_nav-style'] || 'default';
+        colors['--sidebar-style'] = state['_sidebar-style'] || 'default';
+        colors['--sidebar-mode'] = state['_sidebar-mode'] || 'full';
+        colors['--sidebar-position'] = state['_sidebar-position'] || 'top';
         colors['--nav-fixed'] = state['_nav-fixed'] || 'true';
         colors['--nav-blur'] = state['_nav-blur'] || 'true';
         colors['--nav-socials'] = state['_nav-socials'] || 'true';

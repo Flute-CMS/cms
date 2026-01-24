@@ -35,40 +35,42 @@
 
     &__items {
         all: unset;
+        overflow: hidden;
+        border-radius: var(--border1);
     }
 
     &__skeleton {
         display: flex;
         gap: var(--space-md);
         padding: var(--space-md);
-        
+
         &-icon {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             flex-shrink: 0;
         }
-        
+
         &-content {
             display: flex;
             flex-direction: column;
             gap: var(--space-xs);
             flex: 1;
         }
-        
+
         &-title {
             height: 14px;
             width: 60%;
             border-radius: var(--space-2xs);
         }
-        
+
         &-text {
             height: 10px;
             width: 80%;
             border-radius: var(--space-2xs);
             opacity: 0.6;
         }
-        
+
         &-date {
             height: 8px;
             width: 30%;
@@ -104,14 +106,15 @@
     flex-direction: column;
     opacity: 0;
     visibility: hidden;
-    transform: scale(0.95);
+    transform: translateY(-8px);
     transform-origin: top right;
-    @include transition(opacity, visibility, transform);
+    transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 9999;
 
     &[data-placement^="top"] {
         transform-origin: bottom right;
+        transform: translateY(8px);
     }
 
     &[data-placement="bottom-start"],
@@ -121,12 +124,13 @@
 
     &[data-placement="top-start"] {
         transform-origin: bottom left;
+        transform: translateY(8px);
     }
 
     &.is-open {
         opacity: 1;
         visibility: visible;
-        transform: scale(1);
+        transform: translateY(0) scale(1);
         pointer-events: auto;
     }
 
@@ -140,6 +144,36 @@
         font-size: var(--p);
         font-weight: 600;
         margin: 0;
+    }
+
+    &__actions {
+        @extend .flex-row;
+        gap: var(--space-2xs);
+    }
+
+    &__action {
+        @extend .flex-center;
+        padding: var(--space-xs);
+        background: transparent;
+        border: none;
+        color: var(--text-400);
+        cursor: pointer;
+        border-radius: var(--border05);
+        @include transition(all);
+
+        svg {
+            font-size: 1.1rem;
+        }
+
+        &:hover {
+            background: var(--transp-1);
+            color: var(--primary);
+        }
+
+        &--danger:hover {
+            background: rgba(var(--error-rgb), 0.1);
+            color: var(--error);
+        }
     }
 
     &__mark-read {
@@ -205,7 +239,7 @@
 
         .active & {
             background: var(--primary);
-            color: #fff;
+            color: var(--primary-900);
         }
     }
 
@@ -216,36 +250,35 @@
     }
 
     &__list {
-        .notifications__items {
-            all: unset;
-            display: block;
-        }
+        overflow: hidden;
+        border-bottom-right-radius: var(--border1);
+        border-bottom-left-radius: var(--border1);
     }
 
     &__skeleton {
         display: flex;
         gap: var(--space-sm);
         padding: var(--space-md);
-        
+
         &-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             flex-shrink: 0;
         }
-        
+
         &-body {
             @extend .flex-column;
             gap: var(--space-xs);
             flex: 1;
         }
-        
+
         &-title {
             height: 12px;
             width: 50%;
             border-radius: var(--space-2xs);
         }
-        
+
         &-text {
             height: 10px;
             width: 70%;
@@ -311,6 +344,7 @@
     &-date {
         font-size: var(--small);
         color: var(--text-500);
+        line-height: 1.4;
     }
 
     &-text {
@@ -319,6 +353,7 @@
         line-height: 1.4;
 
         p {
+            line-height: inherit;
             margin: 0;
         }
     }

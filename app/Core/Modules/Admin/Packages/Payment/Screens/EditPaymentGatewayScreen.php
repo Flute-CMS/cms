@@ -176,6 +176,15 @@ class EditPaymentGatewayScreen extends Screen
                         )->label(__('admin-payment.fields.bonus.label'))->popover(__('admin-payment.fields.bonus.help')),
 
                         LayoutFactory::field(
+                            Input::make('minimum_amount')
+                                ->type('number')
+                                ->step('0.01')
+                                ->min('0')
+                                ->value($this->gateway->minimumAmount ?? '')
+                                ->placeholder(__('admin-payment.fields.minimum_amount.placeholder'))
+                        )->label(__('admin-payment.fields.minimum_amount.label'))->popover(__('admin-payment.fields.minimum_amount.help')),
+
+                        LayoutFactory::field(
                             ButtonGroup::make('enabled')
                                 ->options([
                                     '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
@@ -250,6 +259,7 @@ class EditPaymentGatewayScreen extends Screen
                 $this->gateway->description = $data['description'] ?? null;
                 $this->gateway->fee = isset($data['fee']) ? (float) $data['fee'] : 0;
                 $this->gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
+                $this->gateway->minimumAmount = !empty($data['minimum_amount']) ? (float) $data['minimum_amount'] : null;
                 $this->gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
                 $imageFile = $files->get('image');
@@ -318,6 +328,7 @@ class EditPaymentGatewayScreen extends Screen
                 $gateway->description = $data['description'] ?? null;
                 $gateway->fee = isset($data['fee']) ? (float) $data['fee'] : 0;
                 $gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
+                $gateway->minimumAmount = !empty($data['minimum_amount']) ? (float) $data['minimum_amount'] : null;
                 $gateway->adapter = $data['driverKey'];
                 $gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
@@ -465,6 +476,7 @@ class EditPaymentGatewayScreen extends Screen
             'description' => ['nullable', 'string', 'max-str-len:500'],
             'fee' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
             'bonus' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
+            'minimum_amount' => ['nullable', 'numeric', 'gte:0'],
             'enabled' => ['sometimes', 'boolean'],
             'image' => ['nullable', 'image', 'max-file-size:10'],
             'currencies' => ['required', 'array'],

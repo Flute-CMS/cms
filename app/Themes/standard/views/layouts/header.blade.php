@@ -1,3 +1,11 @@
+@php
+    $_currentThemeMode = config('app.change_theme', true)
+        ? cookie()->get('theme', config('app.default_theme', 'dark'))
+        : config('app.default_theme', 'dark');
+    $_themeColors = app('flute.view.manager')->getColors($_currentThemeMode);
+    $_navStyle = $_themeColors['--nav-style'] ?? 'default';
+    $_isSidebarMode = $_navStyle === 'sidebar';
+@endphp
 <header class="flute_header" itemscope itemtype="https://schema.org/WPHeader">
     <nav class="navbar" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true" itemscope
         itemtype="https://schema.org/SiteNavigationElement">
@@ -6,32 +14,77 @@
                 <div class="col-md-12">
                     <div class="navbar__content">
                         <div class="navbar__left">
-                            <div class="navbar__content-logo">
-                                <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
-                                    aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                    <img src="{{ asset(config('app.logo')) }}" loading="lazy"
-                                        alt="{{ config('app.name') }}" itemprop="logo">
-                                </a>
-                                <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
-                                    aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                    <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" loading="lazy"
-                                        alt="{{ config('app.name') }}" itemprop="logo">
-                                </a>
-                            </div>
-                            <div class="navbar__separator"></div>
-                            @if (!user()->device()->isMobile())
-                                <x-header.socials />
+                            @if ($_isSidebarMode)
+                                {{-- Mobile toggle for sidebar --}}
+                                <button type="button" class="navbar__mobile-toggle" id="mobile-sidebar-toggle"
+                                    aria-label="{{ __('def.menu') }}">
+                                    <x-icon path="ph.regular.list" />
+                                </button>
+
+                                {{-- Breadcrumb in navbar for sidebar mode --}}
+                                <nav class="breadcrumb breadcrumb--navbar" id="navbar-breadcrumb" aria-label="Breadcrumb navigation"
+                                    hx-swap-oob="true" hx-boost="true" hx-target="#main"
+                                    hx-swap="outerHTML transition:true">
+                                    @if (breadcrumb()->all())
+                                        <ul class="breadcrumb-links">
+                                            @foreach (breadcrumb()->all() as $index => $crumb)
+                                                <li>
+                                                    @if ($index > 0)
+                                                        <div class="breadcrumb-box">
+                                                            <svg class="breadcrumb-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                            @if ($crumb['url'] && $index < count(breadcrumb()->all()) - 1)
+                                                                <a href="{{ $crumb['url'] }}" class="breadcrumb-text">{{ $crumb['title'] }}</a>
+                                                            @else
+                                                                <span class="breadcrumb-text">{{ $crumb['title'] }}</span>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <a href="{{ $crumb['url'] ?: '#' }}" class="breadcrumb-box">
+                                                            <span class="breadcrumb-text">{{ $crumb['title'] }}</span>
+                                                        </a>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </nav>
+
+                                @stack('navbar-logo')
+
+                                @if (isset($sections['navbar-logo']))
+                                    {!! $sections['navbar-logo'] !!}
+                                @endif
+                            @else
+                                <div class="navbar__content-logo">
+                                    <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
+                                        aria-label="{{ config('app.name') }} - Home" itemprop="url">
+                                        <img src="{{ asset(config('app.logo')) }}" loading="lazy"
+                                            alt="{{ config('app.name') }}" itemprop="logo">
+                                    </a>
+                                    <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
+                                        aria-label="{{ config('app.name') }} - Home" itemprop="url">
+                                        <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}"
+                                            loading="lazy" alt="{{ config('app.name') }}" itemprop="logo">
+                                    </a>
+                                </div>
+                                <div class="navbar__separator"></div>
+                                @if (!user()->device()->isMobile())
+                                    <x-header.socials />
+                                @endif
+
+                                @stack('navbar-logo')
+
+                                @if (isset($sections['navbar-logo']))
+                                    {!! $sections['navbar-logo'] !!}
+                                @endif
+                                <div class="navbar__separator"></div>
                             @endif
 
-                            @stack('navbar-logo')
-
-                            @if (isset($sections['navbar-logo']))
-                                {!! $sections['navbar-logo'] !!}
-                            @endif
-                            <div class="navbar__separator"></div>
-
                             @if (!user()->device()->isMobile())
-                                {{-- Navbar with morph dropdown --}}
                                 <div class="navbar-dropdown" data-navbar-morph>
                                     <div class="navbar-dropdown__items">
                                         @foreach (navbar()->all() as $item)
@@ -169,7 +222,7 @@
                                 @if (isset($sections['navbar-actions-guest']))
                                     {!! $sections['navbar-actions-guest'] !!}
                                 @endif
-                                
+
                                 <div class="navbar__separator"></div>
 
                                 @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))

@@ -12,9 +12,19 @@ class DragDropController {
 
         this.grid = null;
         this.draggedEl = null;
-        this.dropIndicator = null;
+        this.dropPlaceholder = null;
         this.changeTimeout = null;
         this._boundHandlers = {};
+
+        // Drag state - stores dragged widget dimensions
+        this.dragState = {
+            width: 6,
+            height: 100
+        };
+
+        // Drag state throttling and hysteresis
+        this._dragOverThrottled = false;
+        this._lastInsertPosition = null;
 
         // Resize state
         this.resizing = {
@@ -25,8 +35,6 @@ class DragDropController {
             gridWidth: 0,
             columnWidth: 0
         };
-        this.widthIndicator = null;
-        this.gridOverlay = null;
     }
 
     /**
@@ -43,9 +51,7 @@ class DragDropController {
                 throw new Error('Widget grid element not found');
             }
 
-            this.createDropIndicator();
-            this.createWidthIndicator();
-            this.createGridOverlay();
+            this.createDropPlaceholder();
             this.setupGridEvents();
             this.setupResizeEvents();
 
@@ -61,12 +67,12 @@ class DragDropController {
     }
 
     /**
-     * Create drop indicator element
+     * Create drop placeholder element (sized like the dragged widget)
      */
-    createDropIndicator() {
-        this.dropIndicator = document.createElement('div');
-        this.dropIndicator.className = 'drop-indicator';
-        this.dropIndicator.style.display = 'none';
+    createDropPlaceholder() {
+        this.dropPlaceholder = document.createElement('div');
+        this.dropPlaceholder.className = 'drop-placeholder';
+        this.dropPlaceholder.style.display = 'none';
     }
 
     /**
@@ -75,14 +81,12 @@ class DragDropController {
     setupGridEvents() {
         if (!this.grid) return;
 
-        // Store bound handlers for cleanup
-        this._boundHandlers = {
-            dragstart: (e) => this.onDragStart(e),
-            dragover: (e) => this.onDragOver(e),
-            dragleave: (e) => this.onDragLeave(e),
-            drop: (e) => this.onDrop(e),
-            dragend: (e) => this.onDragEnd(e)
-        };
+        // Store bound handlers for cleanup (extend, don't replace)
+        this._boundHandlers.dragstart = (e) => this.onDragStart(e);
+        this._boundHandlers.dragover = (e) => this.onDragOver(e);
+        this._boundHandlers.dragleave = (e) => this.onDragLeave(e);
+        this._boundHandlers.drop = (e) => this.onDrop(e);
+        this._boundHandlers.dragend = (e) => this.onDragEnd(e);
 
         this.grid.addEventListener('dragstart', this._boundHandlers.dragstart);
         this.grid.addEventListener('dragover', this._boundHandlers.dragover);
@@ -100,16 +104,39 @@ class DragDropController {
         if (!widget || !this.grid.contains(widget)) return;
 
         this.draggedEl = widget;
-        widget.classList.add('dragging');
+
+        // Store dragged widget dimensions for placeholder
+        this.dragState.width = parseInt(widget.dataset.width) || 6;
+        this.dragState.height = widget.offsetHeight;
 
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'reorder');
 
-        // Set drag image
+        // Create custom drag image before hiding the widget
+        const ghost = widget.cloneNode(true);
+        ghost.style.position = 'absolute';
+        ghost.style.top = '-9999px';
+        ghost.style.left = '-9999px';
+        ghost.style.width = `${widget.offsetWidth}px`;
+        ghost.style.opacity = '0.8';
+        ghost.style.pointerEvents = 'none';
+        document.body.appendChild(ghost);
+
         if (e.dataTransfer.setDragImage) {
-            const rect = widget.getBoundingClientRect();
-            e.dataTransfer.setDragImage(widget, rect.width / 2, 20);
+            e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, 20);
         }
+
+        // Remove ghost after drag image is captured
+        setTimeout(() => ghost.remove(), 0);
+
+        // Hide original widget and show placeholder in its place
+        widget.classList.add('dragging');
+
+        // Insert placeholder where the widget was
+        this.dropPlaceholder.dataset.width = this.dragState.width;
+        this.dropPlaceholder.style.minHeight = `${this.dragState.height}px`;
+        this.dropPlaceholder.style.display = 'block';
+        this.grid.insertBefore(this.dropPlaceholder, widget.nextElementSibling);
 
         this.eventBus.emit(window.FlutePageEdit.events.WIDGET_DRAG_START, {
             widget: widget
@@ -124,8 +151,13 @@ class DragDropController {
         e.preventDefault();
         e.dataTransfer.dropEffect = this.draggedEl ? 'move' : 'copy';
 
+        // Throttle to prevent excessive updates
+        if (this._dragOverThrottled) return;
+        this._dragOverThrottled = true;
+        setTimeout(() => { this._dragOverThrottled = false; }, 100);
+
         const afterEl = this.getInsertPosition(e.clientX, e.clientY);
-        this.showDropIndicator(afterEl);
+        this.showDropPlaceholder(afterEl);
     }
 
     /**
@@ -135,7 +167,7 @@ class DragDropController {
     onDragLeave(e) {
         // Only hide if leaving the grid entirely
         if (!this.grid.contains(e.relatedTarget)) {
-            this.hideDropIndicator();
+            this.hideDropPlaceholder();
         }
     }
 
@@ -145,21 +177,22 @@ class DragDropController {
      */
     onDrop(e) {
         e.preventDefault();
-        this.hideDropIndicator();
+
+        // Get position before hiding placeholder
+        const afterEl = this.getInsertPositionFromPlaceholder();
+        this.hideDropPlaceholder();
+        this._lastInsertPosition = null;
 
         // Check if it's a new widget from sidebar
         const widgetName = e.dataTransfer.getData('widget-name');
         if (widgetName) {
             const width = e.dataTransfer.getData('widget-width') || '6';
-            const afterEl = this.getInsertPosition(e.clientX, e.clientY);
             this.createWidget(widgetName, width, afterEl);
             return;
         }
 
         // Reorder existing widget
         if (this.draggedEl) {
-            const afterEl = this.getInsertPosition(e.clientX, e.clientY);
-
             if (afterEl && afterEl !== this.draggedEl) {
                 this.grid.insertBefore(this.draggedEl, afterEl);
             } else if (!afterEl) {
@@ -175,6 +208,17 @@ class DragDropController {
     }
 
     /**
+     * Get insert position based on placeholder location
+     * @returns {Element|null}
+     */
+    getInsertPositionFromPlaceholder() {
+        if (!this.dropPlaceholder || !this.dropPlaceholder.parentNode) {
+            return null;
+        }
+        return this.dropPlaceholder.nextElementSibling;
+    }
+
+    /**
      * Handle drag end event
      * @param {DragEvent} e
      */
@@ -183,64 +227,106 @@ class DragDropController {
             this.draggedEl.classList.remove('dragging');
             this.draggedEl = null;
         }
-        this.hideDropIndicator();
+        this.hideDropPlaceholder();
+        this._dragOverThrottled = false;
+        this._lastInsertPosition = null;
 
         this.eventBus.emit(window.FlutePageEdit.events.WIDGET_DRAG_END);
     }
 
     /**
      * Get the element to insert before based on mouse position
+     * Works with CSS Grid - finds closest widget and determines before/after
+     * Uses hysteresis to prevent jitter at boundaries
      * @param {number} x - Mouse X position
      * @param {number} y - Mouse Y position
      * @returns {Element|null}
      */
     getInsertPosition(x, y) {
         const widgets = [...this.grid.querySelectorAll('.widget-item:not(.dragging)')];
+        if (widgets.length === 0) return this._lastInsertPosition;
 
+        let closest = null;
+        let closestDist = Infinity;
+
+        // Find closest widget by distance to center
         for (const widget of widgets) {
             const rect = widget.getBoundingClientRect();
-            const midY = rect.top + rect.height / 2;
-            const midX = rect.left + rect.width / 2;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
 
-            // If we're above the middle of this widget, insert before it
-            if (y < midY) {
-                return widget;
-            }
-            // If we're on the same row but to the left
-            if (y >= rect.top && y <= rect.bottom && x < midX) {
-                return widget;
+            const dist = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                closest = widget;
             }
         }
 
-        return null;
-    }
+        if (!closest) return this._lastInsertPosition;
 
-    /**
-     * Show drop indicator at position
-     * @param {Element|null} afterEl - Element to show indicator before
-     */
-    showDropIndicator(afterEl) {
-        if (!this.dropIndicator.parentNode) {
-            this.grid.appendChild(this.dropIndicator);
-        }
+        const rect = closest.getBoundingClientRect();
+        const relativeX = (x - rect.left) / rect.width;
 
-        this.dropIndicator.style.display = 'block';
+        // Hysteresis: use different thresholds based on current position
+        // This prevents oscillation at the boundary
+        const currentIsBeforeClosest = this._lastInsertPosition === closest;
+        const currentIsAfterClosest = this._lastInsertPosition === closest.nextElementSibling;
 
-        if (afterEl) {
-            this.grid.insertBefore(this.dropIndicator, afterEl);
+        let insertBefore;
+        if (currentIsBeforeClosest) {
+            // Currently inserting before - need to move past 0.65 to switch to after
+            insertBefore = relativeX < 0.65;
+        } else if (currentIsAfterClosest) {
+            // Currently inserting after - need to move below 0.35 to switch to before
+            insertBefore = relativeX < 0.35;
         } else {
-            this.grid.appendChild(this.dropIndicator);
+            // No current position near this widget - use normal 0.5 threshold
+            insertBefore = relativeX < 0.5;
+        }
+
+        const newPosition = insertBefore ? closest : closest.nextElementSibling;
+        this._lastInsertPosition = newPosition;
+        return newPosition;
+    }
+
+    /**
+     * Show drop placeholder at position
+     * @param {Element|null} afterEl - Element to show placeholder before
+     */
+    showDropPlaceholder(afterEl) {
+        // Set placeholder size based on dragged widget
+        this.dropPlaceholder.dataset.width = this.dragState.width;
+        this.dropPlaceholder.style.minHeight = `${Math.max(80, this.dragState.height)}px`;
+
+        // Skip if position hasn't changed
+        const currentNext = this.dropPlaceholder.nextElementSibling;
+        if (this.dropPlaceholder.parentNode === this.grid && currentNext === afterEl) {
+            return;
+        }
+
+        // Insert placeholder
+        if (!this.dropPlaceholder.parentNode) {
+            this.grid.appendChild(this.dropPlaceholder);
+        }
+        this.dropPlaceholder.style.display = 'block';
+
+        // Move to correct position
+        if (afterEl && afterEl !== this.dropPlaceholder) {
+            this.grid.insertBefore(this.dropPlaceholder, afterEl);
+        } else if (!afterEl && this.dropPlaceholder.nextElementSibling) {
+            this.grid.appendChild(this.dropPlaceholder);
         }
     }
 
     /**
-     * Hide drop indicator
+     * Hide drop placeholder
      */
-    hideDropIndicator() {
-        this.dropIndicator.style.display = 'none';
-        if (this.dropIndicator.parentNode) {
-            this.dropIndicator.parentNode.removeChild(this.dropIndicator);
+    hideDropPlaceholder() {
+        if (this.dropPlaceholder.parentNode) {
+            this.dropPlaceholder.parentNode.removeChild(this.dropPlaceholder);
         }
+        this.dropPlaceholder.style.display = 'none';
     }
 
     /**
@@ -455,9 +541,7 @@ class DragDropController {
         document.removeEventListener('mousemove', this._boundHandlers.resizeMove);
         document.removeEventListener('mouseup', this._boundHandlers.resizeEnd);
 
-        this.hideDropIndicator();
-        this.removeWidthIndicator();
-        this.removeGridOverlay();
+        this.hideDropPlaceholder();
         this.grid = null;
         this.draggedEl = null;
 
@@ -467,105 +551,6 @@ class DragDropController {
     // ═══════════════════════════════════════════════════════════════════════════
     // Resize Handle Methods
     // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Create width indicator element
-     */
-    createWidthIndicator() {
-        this.widthIndicator = document.createElement('div');
-        this.widthIndicator.className = 'widget-width-indicator';
-        this.widthIndicator.innerHTML = `
-            <span class="widget-width-indicator__value">6</span>
-            <span class="widget-width-indicator__label">/12</span>
-            <div class="widget-width-indicator__bar">
-                ${Array(12).fill(0).map(() => '<span></span>').join('')}
-            </div>
-        `;
-        document.body.appendChild(this.widthIndicator);
-    }
-
-    /**
-     * Create grid overlay for visual feedback
-     */
-    createGridOverlay() {
-        this.gridOverlay = document.createElement('div');
-        this.gridOverlay.className = 'widget-grid-overlay';
-        this.gridOverlay.innerHTML = `
-            <div class="widget-grid-overlay__columns">
-                ${Array(12).fill(0).map(() => '<span></span>').join('')}
-            </div>
-        `;
-        document.body.appendChild(this.gridOverlay);
-    }
-
-    /**
-     * Remove width indicator
-     */
-    removeWidthIndicator() {
-        if (this.widthIndicator) {
-            this.widthIndicator.remove();
-            this.widthIndicator = null;
-        }
-    }
-
-    /**
-     * Remove grid overlay
-     */
-    removeGridOverlay() {
-        if (this.gridOverlay) {
-            this.gridOverlay.remove();
-            this.gridOverlay = null;
-        }
-    }
-
-    /**
-     * Update width indicator display
-     * @param {number} width - Current width value
-     * @param {number} x - Mouse X position
-     * @param {number} y - Mouse Y position
-     */
-    updateWidthIndicator(width, x, y) {
-        if (!this.widthIndicator) return;
-
-        const valueEl = this.widthIndicator.querySelector('.widget-width-indicator__value');
-        const bars = this.widthIndicator.querySelectorAll('.widget-width-indicator__bar span');
-
-        if (valueEl) {
-            valueEl.textContent = width;
-        }
-
-        bars.forEach((bar, i) => {
-            bar.classList.toggle('active', i < width);
-        });
-
-        // Position near cursor
-        this.widthIndicator.style.left = `${x + 20}px`;
-        this.widthIndicator.style.top = `${y - 25}px`;
-    }
-
-    /**
-     * Show width indicator
-     */
-    showWidthIndicator() {
-        if (this.widthIndicator) {
-            this.widthIndicator.classList.add('visible');
-        }
-        if (this.gridOverlay) {
-            this.gridOverlay.classList.add('visible');
-        }
-    }
-
-    /**
-     * Hide width indicator
-     */
-    hideWidthIndicator() {
-        if (this.widthIndicator) {
-            this.widthIndicator.classList.remove('visible');
-        }
-        if (this.gridOverlay) {
-            this.gridOverlay.classList.remove('visible');
-        }
-    }
 
     /**
      * Add resize handle to a widget
@@ -622,12 +607,8 @@ class DragDropController {
         };
 
         widget.classList.add('resizing');
-        widget.style.transition = 'none';
         document.body.style.cursor = 'ew-resize';
         document.body.style.userSelect = 'none';
-
-        this.showWidthIndicator();
-        this.updateWidthIndicator(this.resizing.startWidth, e.clientX, e.clientY);
 
         this.eventBus.emit(window.FlutePageEdit.events.WIDGET_RESIZE_START, {
             widget: widget,
@@ -642,11 +623,11 @@ class DragDropController {
     onResizeMove(e) {
         if (!this.resizing.active || !this.resizing.widget) return;
 
-        const { widget, gridLeft, gridWidth } = this.resizing;
+        const { widget, gridWidth } = this.resizing;
         const widgetRect = widget.getBoundingClientRect();
         const gap = 16;
 
-        // Calculate new width based on mouse position relative to grid
+        // Calculate new width based on mouse position relative to widget
         const mouseRelativeToWidget = e.clientX - widgetRect.left;
         const availableGridWidth = gridWidth - gap * 11;
         const columnWidth = availableGridWidth / 12;
@@ -659,8 +640,6 @@ class DragDropController {
         if (newCols !== parseInt(widget.dataset.width)) {
             widget.dataset.width = newCols;
         }
-
-        this.updateWidthIndicator(newCols, e.clientX, e.clientY);
     }
 
     /**
@@ -675,13 +654,10 @@ class DragDropController {
 
         if (widget) {
             widget.classList.remove('resizing');
-            widget.style.transition = '';
         }
 
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
-
-        this.hideWidthIndicator();
 
         // Trigger change if width changed
         if (widget && finalWidth !== this.resizing.startWidth) {

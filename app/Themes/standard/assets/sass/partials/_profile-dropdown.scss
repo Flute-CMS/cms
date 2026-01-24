@@ -45,15 +45,16 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     opacity: 0;
     visibility: hidden;
-    transform: scale(0.95);
+    transform: translateY(-8px);
     transform-origin: top right;
-    @include transition(opacity, visibility, transform);
+    transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     overflow: hidden;
     z-index: 9999;
 
     &[data-placement^="top"] {
         transform-origin: bottom right;
+        transform: translateY(8px);
     }
 
     &[data-placement="bottom-start"],
@@ -63,12 +64,13 @@
 
     &[data-placement="top-start"] {
         transform-origin: bottom left;
+        transform: translateY(8px);
     }
 
     &.is-open {
         opacity: 1;
         visibility: visible;
-        transform: scale(1);
+        transform: translateY(0) scale(1);
         pointer-events: auto;
     }
 

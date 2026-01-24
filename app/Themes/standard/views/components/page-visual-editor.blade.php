@@ -293,14 +293,127 @@
                         </div>
                         <span class="ve__option-label">{{ __('page-edit.nav_pill_transparent') }}</span>
                     </button>
+                    <button type="button" class="ve__option-card" data-nav-style="pill-full" title="{{ __('page-edit.nav_style_pill_full') }}">
+                        <div class="ve__option-preview ve__option-preview--nav-pill-full">
+                            <div class="ve__preview-navbar ve__preview-navbar--pill-full"></div>
+                            <div class="ve__preview-content">
+                                <div class="ve__preview-block"></div>
+                                <div class="ve__preview-block"></div>
+                            </div>
+                        </div>
+                        <span class="ve__option-label">{{ __('page-edit.nav_pill_full') }}</span>
+                    </button>
+                    <button type="button" class="ve__option-card" data-nav-style="sidebar" title="{{ __('page-edit.nav_style_sidebar') }}">
+                        <div class="ve__option-preview ve__option-preview--nav-sidebar">
+                            <div class="ve__preview-sidebar"></div>
+                            <div class="ve__preview-main">
+                                <div class="ve__preview-navbar ve__preview-navbar--slim"></div>
+                                <div class="ve__preview-content">
+                                    <div class="ve__preview-block"></div>
+                                    <div class="ve__preview-block"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="ve__option-label">{{ __('page-edit.nav_sidebar') }}</span>
+                    </button>
                 </div>
 
-                <div class="ve__field ve__field--switch" style="margin-top: var(--space-md);">
+                {{-- Sidebar style selector (shown when sidebar is selected) --}}
+                <div class="ve__sidebar-styles" id="ve-sidebar-styles" hidden>
+                    <h4 class="ve__section-title" style="margin-top: var(--space-md);">{{ __('page-edit.sidebar_style') }}</h4>
+                    <div class="ve__option-cards ve__option-cards--nav-2col">
+                        <button type="button" class="ve__option-card active" data-sidebar-style="default" title="{{ __('page-edit.sidebar_style_default') }}">
+                            <div class="ve__option-preview ve__option-preview--sidebar-default">
+                                <div class="ve__preview-sidebar ve__preview-sidebar--full">
+                                    <div class="ve__preview-sidebar-logo"></div>
+                                    <div class="ve__preview-sidebar-items">
+                                        <div class="ve__preview-sidebar-item"></div>
+                                        <div class="ve__preview-sidebar-item"></div>
+                                        <div class="ve__preview-sidebar-item"></div>
+                                    </div>
+                                </div>
+                                <div class="ve__preview-main">
+                                    <div class="ve__preview-block"></div>
+                                </div>
+                            </div>
+                            <span class="ve__option-label">{{ __('page-edit.sidebar_default') }}</span>
+                        </button>
+                        <button type="button" class="ve__option-card" data-sidebar-style="mini" title="{{ __('page-edit.sidebar_style_mini') }}">
+                            <div class="ve__option-preview ve__option-preview--sidebar-mini">
+                                <div class="ve__preview-sidebar ve__preview-sidebar--mini">
+                                    <div class="ve__preview-sidebar-icon"></div>
+                                    <div class="ve__preview-sidebar-icon"></div>
+                                    <div class="ve__preview-sidebar-icon"></div>
+                                </div>
+                                <div class="ve__preview-main">
+                                    <div class="ve__preview-block"></div>
+                                </div>
+                            </div>
+                            <span class="ve__option-label">{{ __('page-edit.sidebar_mini') }}</span>
+                        </button>
+                    </div>
+
+                    {{-- Sidebar mode selector (only for default style) --}}
+                    <div class="ve__sidebar-mode" id="ve-sidebar-mode">
+                        <h4 class="ve__section-title" style="margin-top: var(--space-md);">{{ __('page-edit.sidebar_mode') }}</h4>
+                        <div class="ve__option-cards ve__option-cards--nav-2col">
+                            <button type="button" class="ve__option-card" data-sidebar-mode="minimal" title="{{ __('page-edit.sidebar_mode_minimal') }}">
+                                <div class="ve__option-preview ve__option-preview--sidebar-minimal">
+                                    <div class="ve__preview-sidebar ve__preview-sidebar--full">
+                                        <div class="ve__preview-sidebar-item ve__preview-sidebar-item--minimal"></div>
+                                        <div class="ve__preview-sidebar-item ve__preview-sidebar-item--minimal"></div>
+                                        <div class="ve__preview-sidebar-item ve__preview-sidebar-item--minimal"></div>
+                                    </div>
+                                </div>
+                                <span class="ve__option-label">{{ __('page-edit.minimal') }}</span>
+                            </button>
+                            <button type="button" class="ve__option-card active" data-sidebar-mode="full" title="{{ __('page-edit.sidebar_mode_full') }}">
+                                <div class="ve__option-preview ve__option-preview--sidebar-full">
+                                    <div class="ve__preview-sidebar ve__preview-sidebar--full">
+                                        <div class="ve__preview-sidebar-item ve__preview-sidebar-item--active"></div>
+                                        <div class="ve__preview-sidebar-item"></div>
+                                        <div class="ve__preview-sidebar-item"></div>
+                                    </div>
+                                </div>
+                                <span class="ve__option-label">{{ __('page-edit.full') }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Sidebar position selector (only for mini style) --}}
+                    <div class="ve__sidebar-position" id="ve-sidebar-position" hidden>
+                        <h4 class="ve__section-title" style="margin-top: var(--space-md);">{{ __('page-edit.sidebar_position') }}</h4>
+                        <div class="ve__option-cards ve__option-cards--nav-2col">
+                            <button type="button" class="ve__option-card active" data-sidebar-position="top" title="{{ __('page-edit.sidebar_position_top') }}">
+                                <div class="ve__option-preview ve__option-preview--sidebar-position-top">
+                                    <div class="ve__preview-sidebar ve__preview-sidebar--mini">
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                    </div>
+                                </div>
+                                <span class="ve__option-label">{{ __('page-edit.position_top') }}</span>
+                            </button>
+                            <button type="button" class="ve__option-card" data-sidebar-position="center" title="{{ __('page-edit.sidebar_position_center') }}">
+                                <div class="ve__option-preview ve__option-preview--sidebar-position-center">
+                                    <div class="ve__preview-sidebar ve__preview-sidebar--mini">
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                        <div class="ve__preview-sidebar-icon"></div>
+                                    </div>
+                                </div>
+                                <span class="ve__option-label">{{ __('page-edit.position_center') }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ve__field ve__field--switch" style="margin-top: var(--space-md);" id="ve-nav-fixed-wrap">
                     <label class="ve__field-label">{{ __('page-edit.nav_fixed') }}</label>
                     <x-fields.toggle name="ve-nav-fixed" id="ve-nav-fixed" :checked="true" />
                 </div>
 
-                <div class="ve__field ve__field--switch">
+                <div class="ve__field ve__field--switch" id="ve-nav-blur-wrap">
                     <label class="ve__field-label">{{ __('page-edit.nav_blur') }}</label>
                     <x-fields.toggle name="ve-nav-blur" id="ve-nav-blur" :checked="true" />
                 </div>

@@ -44,6 +44,8 @@ return [
     'no_account' => 'Нет аккаунта?',
     'register' => 'Регистрация',
     'login' => 'Войти',
+    'welcome_back' => 'Рады видеть вас снова!',
+    'create_account_desc' => 'Присоединяйтесь к нашему сообществу',
     'email_placeholder' => 'Введите вашу электронную почту',
     'login_or_email_placeholder' => 'Введите ваш логин или электронную почту',
     'password_placeholder' => 'Введите ваш пароль',

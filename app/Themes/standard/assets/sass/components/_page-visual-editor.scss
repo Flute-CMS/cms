@@ -3,7 +3,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
 .ve {
     @extend .blur-bg;
-    
+
     position: fixed;
     top: 0;
     right: 0;
@@ -49,7 +49,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
     &__header-icon {
         display: flex;
         color: var(--accent);
-        
+
         svg {
             width: 18px;
             height: 18px;
@@ -221,8 +221,15 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @keyframes veSlide {
-        from { opacity: 0; transform: translateX(8px); }
-        to { opacity: 1; transform: translateX(0); }
+        from {
+            opacity: 0;
+            transform: translateX(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
     // Sections
@@ -375,7 +382,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         height: 20px;
         border-radius: 50%;
         border: 3px solid #fff;
-        box-shadow: 
+        box-shadow:
             0 0 0 2px rgba(0, 0, 0, 0.3),
             0 2px 8px rgba(0, 0, 0, 0.4),
             inset 0 0 0 1px rgba(255, 255, 255, 0.3);
@@ -396,7 +403,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
         &:hover {
             transform: translate(-50%, -50%) scale(1.15);
-            box-shadow: 
+            box-shadow:
                 0 0 0 2px rgba(0, 0, 0, 0.4),
                 0 4px 12px rgba(0, 0, 0, 0.5),
                 inset 0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -409,7 +416,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
         &.active {
             border-color: #fff;
-            box-shadow: 
+            box-shadow:
                 0 0 0 3px var(--accent),
                 0 0 0 5px rgba(0, 0, 0, 0.2),
                 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -523,7 +530,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         align-items: center;
         gap: 12px;
         padding: 0 12px 12px;
-        
+
         .ve__field-label {
             font-size: 12px;
             white-space: nowrap;
@@ -634,7 +641,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         margin-top: 8px;
 
         // Grid overlay
-        background-image: 
+        background-image:
             linear-gradient(var(--transp-05) 1px, transparent 1px),
             linear-gradient(90deg, var(--transp-05) 1px, transparent 1px);
         background-size: 20% 20%;
@@ -690,7 +697,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
             position: absolute;
             inset: 4px;
             border-radius: 50%;
-            background: 
+            background:
                 radial-gradient(circle at 50% 4px, var(--text-500) 2px, transparent 2px),
                 radial-gradient(circle at 96% 50%, var(--text-500) 2px, transparent 2px),
                 radial-gradient(circle at 50% 96%, var(--text-500) 2px, transparent 2px),
@@ -804,6 +811,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
                 inset: 0;
                 background: var(--transp-1);
             }
+
             &::before {
                 content: '';
                 position: absolute;
@@ -822,19 +830,19 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         &.grid-preview {
-            background-image: 
+            background-image:
                 linear-gradient(var(--text-400) 1px, transparent 1px),
                 linear-gradient(90deg, var(--text-400) 1px, transparent 1px);
             background-size: 7px 7px;
         }
 
         &.cross-preview {
-            background-image: 
+            background-image:
                 linear-gradient(var(--text-400) 1px, transparent 1px),
                 linear-gradient(90deg, var(--text-400) 1px, transparent 1px);
             background-size: 7px 7px;
             background-position: -0.5px -0.5px;
-            
+
             &::before {
                 content: '';
                 position: absolute;
@@ -846,17 +854,15 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         &.diagonal-preview {
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 3px,
-                var(--text-400) 3px,
-                var(--text-400) 4px
-            );
+            background-image: repeating-linear-gradient(45deg,
+                    transparent,
+                    transparent 3px,
+                    var(--text-400) 3px,
+                    var(--text-400) 4px);
         }
 
         &.squares-preview {
-            background-image: 
+            background-image:
                 linear-gradient(45deg, var(--text-400) 25%, transparent 25%),
                 linear-gradient(-45deg, var(--text-400) 25%, transparent 25%),
                 linear-gradient(45deg, transparent 75%, var(--text-400) 75%),
@@ -866,7 +872,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         &.mesh-preview {
-            background: 
+            background:
                 radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 50%),
                 radial-gradient(ellipse at 70% 80%, color-mix(in srgb, var(--primary) 30%, transparent) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 30%, color-mix(in srgb, var(--secondary) 30%, transparent) 0%, transparent 50%);
@@ -877,7 +883,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            
+
             &::after {
                 content: '⭐';
                 opacity: 0.5;
@@ -1184,6 +1190,14 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
             grid-template-columns: repeat(3, 1fr);
         }
 
+        &--nav-4col {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        &--nav-5col {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
         &--footer-3col {
             grid-template-columns: repeat(3, 1fr);
         }
@@ -1312,8 +1326,259 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
             .ve__preview-block--hero {
                 flex: 1.5;
-                background: linear-gradient(135deg, var(--accent-900) 0%, var(--transp-1) 100%);
+                background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 40%, transparent) 0%, var(--transp-1) 100%);
                 border-radius: 2px;
+            }
+        }
+
+        &--nav-pill-full {
+            .ve__preview-navbar--pill-full {
+                height: 8px;
+                width: calc(100% - 4px);
+                margin: 3px auto 0;
+                background: var(--transp-2);
+                border-radius: var(--border05, 6px);
+                border: 1px solid var(--transp-1);
+                flex-shrink: 0;
+            }
+
+            .ve__preview-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                margin-top: 3px;
+            }
+        }
+
+        // Sidebar navigation preview
+        &--nav-sidebar {
+            flex-direction: row;
+            padding: 0;
+
+            .ve__preview-sidebar {
+                width: 20%;
+                min-width: 12px;
+                background: var(--transp-2);
+                border-right: 1px solid var(--transp-1);
+                flex-shrink: 0;
+            }
+
+            .ve__preview-main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding: 3px;
+                gap: 2px;
+            }
+
+            .ve__preview-navbar--slim {
+                height: 6px;
+                background: var(--transp-2);
+                border-radius: 2px;
+                flex-shrink: 0;
+            }
+
+            .ve__preview-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+
+        // Sidebar style previews
+        &--sidebar-default,
+        &--sidebar-mini {
+            flex-direction: row;
+            padding: 0;
+
+            .ve__preview-main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding: 3px;
+                gap: 2px;
+            }
+        }
+
+        &--sidebar-default {
+            .ve__preview-sidebar--full {
+                width: 35%;
+                background: var(--transp-2);
+                border-right: 1px solid var(--transp-1);
+                display: flex;
+                flex-direction: column;
+                padding: 3px;
+                gap: 3px;
+            }
+
+            .ve__preview-sidebar-logo {
+                height: 6px;
+                background: var(--transp-2);
+                border-radius: 2px;
+            }
+
+            .ve__preview-sidebar-items {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .ve__preview-sidebar-item {
+                height: 4px;
+                background: var(--transp-2);
+                border-radius: 2px;
+
+                &:first-child {
+                    background: color-mix(in srgb, var(--accent) 60%, transparent);
+                }
+            }
+        }
+
+        &--sidebar-mini {
+            .ve__preview-sidebar--mini {
+                width: 18%;
+                min-width: 10px;
+                background: var(--transp-2);
+                border-right: 1px solid var(--transp-1);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 3px 2px;
+                gap: 3px;
+            }
+
+            .ve__preview-sidebar-icon {
+                width: 6px;
+                height: 6px;
+                background: var(--transp-3);
+                border-radius: 2px;
+
+                &:first-child {
+                    background: color-mix(in srgb, var(--accent) 60%, transparent);
+                }
+            }
+        }
+
+        // Sidebar mode: minimal preview (clean text links without boxes)
+        &--sidebar-minimal {
+            padding: 0;
+
+            .ve__preview-sidebar--full {
+                width: 100%;
+                height: 100%;
+                background: var(--transp-1);
+                border-radius: 4px;
+                display: flex;
+                flex-direction: column;
+                padding: 8px 6px;
+                gap: 2px;
+            }
+
+            .ve__preview-sidebar-item {
+                height: 3px;
+                width: 70%;
+                background: var(--transp-2);
+                border-radius: 1px;
+
+                &--minimal {
+                    height: 3px;
+                    width: 65%;
+                    background: var(--transp-2);
+                    border-radius: 1px;
+                }
+
+                &:first-child {
+                    background: color-mix(in srgb, var(--accent) 70%, transparent);
+                    width: 60%;
+                }
+            }
+        }
+
+        // Sidebar mode: full preview (boxed items with backgrounds)
+        &--sidebar-full {
+            padding: 0;
+
+            .ve__preview-sidebar--full {
+                width: 100%;
+                height: 100%;
+                background: var(--transp-1);
+                border-radius: 4px;
+                display: flex;
+                flex-direction: column;
+                padding: 6px 4px;
+                gap: 3px;
+            }
+
+            .ve__preview-sidebar-item {
+                height: 6px;
+                background: var(--transp-05);
+                border-radius: 3px;
+                border: 1px solid var(--transp-1);
+
+                &--active {
+                    background: color-mix(in srgb, var(--accent) 15%, transparent);
+                    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+                }
+            }
+        }
+
+        // Sidebar position: top preview (icons at top)
+        &--sidebar-position-top {
+            padding: 0;
+
+            .ve__preview-sidebar--mini {
+                width: 100%;
+                height: 100%;
+                background: var(--transp-1);
+                border-radius: 4px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding: 6px 4px;
+                gap: 4px;
+            }
+
+            .ve__preview-sidebar-icon {
+                width: 10px;
+                height: 10px;
+                background: var(--transp-3);
+                border-radius: 3px;
+
+                &:first-child {
+                    background: color-mix(in srgb, var(--accent) 60%, transparent);
+                }
+            }
+        }
+
+        // Sidebar position: center preview (icons centered)
+        &--sidebar-position-center {
+            padding: 0;
+
+            .ve__preview-sidebar--mini {
+                width: 100%;
+                height: 100%;
+                background: var(--transp-1);
+                border-radius: 4px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 4px;
+                gap: 4px;
+            }
+
+            .ve__preview-sidebar-icon {
+                width: 10px;
+                height: 10px;
+                background: var(--transp-3);
+                border-radius: 3px;
+
+                &:first-child {
+                    background: color-mix(in srgb, var(--accent) 60%, transparent);
+                }
             }
         }
 
@@ -1333,7 +1598,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
             .ve__preview-footer {
                 flex-shrink: 0;
-                background: var(--transp-15);
+                background: var(--transp-2);
                 border-radius: 2px;
                 padding: 3px;
             }
@@ -1525,7 +1790,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         transition: opacity 0.3s, visibility 0.3s;
         backdrop-filter: blur(4px);
 
-        .ve.open ~ & {
+        .ve.open~& {
             opacity: 1;
             visibility: visible;
         }
@@ -1545,7 +1810,7 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
     body.ve-open {
         margin-right: $ve-w;
         transition: margin-right 0.3s $ve-ease;
-        
+
         // Fixed navbar should also shift with the body
         .flute_header {
             right: $ve-w;

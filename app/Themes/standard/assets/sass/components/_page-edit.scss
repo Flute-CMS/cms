@@ -618,61 +618,38 @@ body.page-edit-mode {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #widget-grid {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(12, 1fr);
+	grid-auto-flow: dense;
 	gap: 16px;
 	min-height: 200px;
-	align-content: flex-start;
-	transition: min-height 0.3s ease;
+	align-items: start;
 
-	// Drop indicator для drag-and-drop
-	.drop-indicator {
-		width: 100%;
-		height: 4px;
-		background: linear-gradient(90deg, var(--accent), var(--accent-400));
-		border-radius: 2px;
-		flex-shrink: 0;
+	.drop-placeholder {
+		border-radius: var(--border05);
+		background: var(--transp-05);
+		border: 1px dashed var(--transp-3);
 		pointer-events: none;
-		animation: dropIndicatorPulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-		box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(var(--accent-rgb), 0.3);
-	}
 
-	@keyframes dropIndicatorPulse {
-		0%, 100% {
-			opacity: 0.6;
-			transform: scaleX(0.98);
-		}
-		50% {
-			opacity: 1;
-			transform: scaleX(1);
+		@for $i from 1 through 12 {
+			&[data-width="#{$i}"] {
+				grid-column: span #{$i};
+			}
 		}
 	}
 
-	// Виджет
 	.widget-item {
 		position: relative;
-		height: auto;
 		min-height: 80px;
 		border-radius: var(--border05);
 		background: var(--background);
-		transition:
-			width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-			flex 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-			transform 0.2s ease,
-			box-shadow 0.2s ease,
-			opacity 0.2s ease;
 
-		// Ширина по data-width атрибуту (поддержка всех значений от 1 до 12)
 		@for $i from 1 through 12 {
 			&[data-width="#{$i}"] {
-				$percentage: calc(#{$i} / 12 * 100%);
-				$gap-compensation: calc(16px * (12 - #{$i}) / 12);
-				width: calc(#{$percentage} - #{$gap-compensation});
-				flex: 0 0 calc(#{$percentage} - #{$gap-compensation});
+				grid-column: span #{$i};
 			}
 		}
 
-		// Draggable state
 		&[draggable="true"] {
 			cursor: grab;
 
@@ -681,45 +658,37 @@ body.page-edit-mode {
 			}
 		}
 
-		// Dragging state
 		&.dragging {
-			opacity: 0.5;
-			transform: scale(0.98);
-			z-index: 1000;
+			position: absolute !important;
+			opacity: 0;
+			pointer-events: none;
+			width: 0;
+			height: 0;
+			overflow: hidden;
 		}
 
-		// Resizing state
 		&.resizing {
 			z-index: 1001;
-			transition: none !important;
 
 			&::before {
-				border-color: var(--accent) !important;
+				border-color: var(--transp-4) !important;
 				opacity: 1 !important;
-				box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
 			}
 
 			.widget-resize-handle {
 				opacity: 1;
-				background: var(--accent);
-
-				&::before {
-					background: var(--background);
-				}
+				background: var(--text-500);
 			}
 		}
 
-		// Widget appearing animation
 		&.widget-appearing {
 			animation: widgetAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 		}
 
-		// Widget dropping animation
 		&.widget-dropping {
 			animation: widgetDropIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 		}
 
-		// Content widget styling
 		&[data-widget-name="Content"],
 		&[data-system-widget="true"] {
 			padding: var(--space-md);
@@ -733,13 +702,11 @@ body.page-edit-mode {
 				overflow: auto;
 			}
 
-			// Hide resize handle for content widget
 			.widget-resize-handle {
 				display: none;
 			}
 		}
 
-		// Widget content
 		.widget-content {
 			height: auto;
 			min-height: 80px;
@@ -753,35 +720,24 @@ body.page-edit-mode {
 				max-width: 100%;
 			}
 
-			// Overflow text
 			h1, h2, h3, h4, h5, h6, p, span, a {
 				overflow: hidden;
 				text-overflow: ellipsis;
 			}
 		}
 
-		// Hover border
 		&::before {
 			content: "";
-			background: transparent;
-			border: 2px solid var(--transp-2);
-			opacity: 0;
-			width: calc(100% - 4px);
-			height: calc(100% - 4px);
-			z-index: 9;
-			left: 2px;
-			top: 2px;
 			position: absolute;
-			border-radius: var(--border1);
+			inset: 0;
+			border: 1px solid var(--transp-3);
+			border-radius: var(--border05);
+			opacity: 0;
 			pointer-events: none;
-			transition:
-				opacity 0.2s ease,
-				border-color 0.2s ease,
-				box-shadow 0.2s ease;
+			transition: opacity var(--transition);
 		}
 
 		&:hover::before {
-			border-color: var(--accent);
 			opacity: 1;
 		}
 
@@ -798,7 +754,6 @@ body.page-edit-mode {
 		}
 	}
 
-	// Placeholder для drag-and-drop
 	.widget-placeholder {
 		background-color: var(--transp-1);
 		border: 2px dashed var(--transp-3);
@@ -813,155 +768,29 @@ body.page-edit-mode {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Widget Resize Handle
+// Widget Resize Handle - Minimal
 // ═══════════════════════════════════════════════════════════════════════════
 
 .widget-resize-handle {
 	position: absolute;
-	right: -6px;
+	right: -4px;
 	top: 50%;
 	transform: translateY(-50%);
-	width: 12px;
-	height: 48px;
+	width: 6px;
+	height: 32px;
 	background: var(--transp-2);
-	border-radius: 6px;
+	border-radius: var(--space-2xs);
 	cursor: ew-resize;
 	z-index: 100;
 	opacity: 0;
-	transition:
-		opacity 0.2s ease,
-		background-color 0.2s ease,
-		transform 0.2s ease;
+	transition: opacity var(--transition), background-color var(--transition);
 
-	// Grip dots
-	&::before {
-		content: "";
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 4px;
-		height: 20px;
-		background: var(--text-600);
-		border-radius: 2px;
-		mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='20'%3E%3Ccircle cx='2' cy='2' r='1.5'/%3E%3Ccircle cx='2' cy='7' r='1.5'/%3E%3Ccircle cx='2' cy='12' r='1.5'/%3E%3Ccircle cx='2' cy='17' r='1.5'/%3E%3C/svg%3E");
-		-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='20'%3E%3Ccircle cx='2' cy='2' r='1.5'/%3E%3Ccircle cx='2' cy='7' r='1.5'/%3E%3Ccircle cx='2' cy='12' r='1.5'/%3E%3Ccircle cx='2' cy='17' r='1.5'/%3E%3C/svg%3E");
-		transition: background-color 0.2s ease;
-	}
-
-	&:hover {
-		background: var(--accent);
-		transform: translateY(-50%) scaleY(1.1);
-
-		&::before {
-			background: var(--background);
-		}
-	}
-
+	&:hover,
 	&:active {
-		background: var(--accent);
-		transform: translateY(-50%) scaleY(1.15);
+		background: var(--text-400);
 	}
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Width Indicator Overlay (shows during resize)
-// ═══════════════════════════════════════════════════════════════════════════
-
-.widget-width-indicator {
-	position: fixed;
-	z-index: 10000;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	padding: 10px 16px;
-	background: var(--background);
-	border: 1px solid var(--transp-1);
-	border-radius: 10px;
-	box-shadow:
-		0 8px 32px rgba(0, 0, 0, 0.12),
-		0 0 0 1px var(--transp-02);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	pointer-events: none;
-	opacity: 0;
-	transform: translateY(8px);
-	transition:
-		opacity 0.15s ease,
-		transform 0.15s ease;
-
-	&.visible {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	&__value {
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--accent);
-		font-variant-numeric: tabular-nums;
-		letter-spacing: -0.02em;
-	}
-
-	&__label {
-		font-size: 12px;
-		color: var(--text-500);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	&__bar {
-		display: flex;
-		gap: 3px;
-		margin-left: 8px;
-
-		span {
-			width: 6px;
-			height: 16px;
-			background: var(--transp-1);
-			border-radius: 2px;
-			transition: background-color 0.15s ease;
-
-			&.active {
-				background: var(--accent);
-			}
-		}
-	}
-}
-
-// Grid overlay (shows during resize)
-.widget-grid-overlay {
-	position: fixed;
-	inset: 0;
-	z-index: 9998;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 0.2s ease;
-
-	&.visible {
-		opacity: 1;
-	}
-
-	&__columns {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 50%;
-		transform: translateX(-50%);
-		width: min(1200px, 100%);
-		display: flex;
-		gap: 16px;
-		padding: 0 16px;
-
-		span {
-			flex: 1;
-			background: var(--accent);
-			opacity: 0.03;
-			border-radius: 4px;
-		}
-	}
-}
 
 @keyframes widgetDropIn {
 	0% {
@@ -995,87 +824,66 @@ body.page-edit-mode {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Widget Toolbar — Floating Action Bar
+// Widget Toolbar — Minimal Floating Bar
 // ═══════════════════════════════════════════════════════════════════════════
 
 .widget-toolbar {
 	position: absolute;
-	bottom: 12px;
+	bottom: var(--space-sm);
 	left: 50%;
 	transform: translateX(-50%) translateY(4px);
 	z-index: 100;
 	display: flex;
-	gap: 6px;
-	padding: 8px;
-	border-radius: 12px;
+	gap: var(--space-2xs);
+	padding: var(--space-xs);
+	border-radius: var(--border05);
 	border: 1px solid var(--transp-1);
 	background: var(--background);
-	box-shadow:
-		0 4px 6px -1px rgba(0, 0, 0, 0.1),
-		0 2px 4px -1px rgba(0, 0, 0, 0.06),
-		0 0 0 1px var(--transp-02);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
+	box-shadow: var(--shadow-medium);
+	backdrop-filter: blur(var(--blur-amount));
+	-webkit-backdrop-filter: blur(var(--blur-amount));
 	opacity: 0;
 	visibility: hidden;
-	transition:
-		opacity 0.2s ease,
-		visibility 0.2s ease,
-		transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
+	transition: opacity var(--transition), visibility var(--transition), transform var(--transition);
 
-.widget-toolbar button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 36px;
-	height: 36px;
-	padding: 0;
-	border: none;
-	border-radius: 8px;
-	background: transparent;
-	color: var(--text-400);
-	cursor: pointer;
-	transition:
-		background-color 0.15s ease,
-		color 0.15s ease,
-		transform 0.15s ease;
+	button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		border: none;
+		border-radius: var(--space-2xs);
+		background: transparent;
+		color: var(--text-500);
+		cursor: pointer;
+		transition: background-color var(--transition), color var(--transition);
 
-	svg {
-		width: 18px;
-		height: 18px;
-	}
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 
-	&:hover {
-		background: var(--transp-05);
-		color: var(--text-200);
-	}
-
-	&:active {
-		transform: scale(0.92);
-	}
-
-	// Settings button
-	&.widget-button-settings {
 		&:hover {
+			background: var(--transp-05);
+			color: var(--text-200);
+		}
+
+		// Settings button
+		&.widget-button-settings:hover {
 			background: var(--accent);
 			color: var(--background-950);
 		}
-	}
 
-	// Refresh button
-	&.widget-button-refresh {
-		&:hover {
+		// Refresh button
+		&.widget-button-refresh:hover {
 			background: var(--info-light);
 			color: var(--info);
 		}
-	}
 
-	// Delete button
-	&.widget-button-delete {
-		color: var(--text-500);
-
-		&:hover {
+		// Delete button
+		&.widget-button-delete:hover {
 			background: var(--error-light);
 			color: var(--error);
 		}
@@ -1085,9 +893,9 @@ body.page-edit-mode {
 // Разделитель в тулбаре
 .widget-toolbar-divider {
 	width: 1px;
-	height: 24px;
+	height: 20px;
 	background: var(--transp-1);
-	margin: 0 4px;
+	margin: 0 var(--space-2xs);
 }
 
 .page-widgets {
@@ -1104,11 +912,12 @@ body.page-edit-mode {
 // Mobile responsive для widget-grid
 @media (max-width: 768px) {
 	#widget-grid {
+		grid-template-columns: 1fr;
 		gap: 12px;
 
-		.widget-item {
-			width: 100% !important;
-			flex: 0 0 100% !important;
+		.widget-item,
+		.drop-placeholder {
+			grid-column: span 1 !important;
 		}
 	}
 

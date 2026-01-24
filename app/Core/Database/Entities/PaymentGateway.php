@@ -45,6 +45,9 @@ class PaymentGateway extends ActiveRecord
     #[Column(type: "float", default: 0)]
     public float $bonus = 0;
 
+    #[Column(type: "float", nullable: true)]
+    public ?float $minimumAmount = null;
+
     #[Column(type: "string", unique: true)]
     public string $adapter;
 
