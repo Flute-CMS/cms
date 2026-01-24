@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\NotificationTemplates;
 
 use Flute\Admin\Support\AbstractAdminPackage;
 use Flute\Core\Database\Entities\NotificationTemplate;
+use Throwable;
 
 class NotificationTemplatesPackage extends AbstractAdminPackage
 {
@@ -56,7 +57,7 @@ class NotificationTemplatesPackage extends AbstractAdminPackage
     {
         try {
             return NotificationTemplate::query()->count();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
         }
     }

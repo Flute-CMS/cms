@@ -6,11 +6,12 @@ use Flute\Core\Database\Entities\Notification;
 use Flute\Core\Database\Entities\NotificationTemplate;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Notifications\Contracts\NotificationTemplateProviderInterface;
+use InvalidArgumentException;
 use Throwable;
 
 /**
  * Service for managing notification templates.
- * 
+ *
  * Handles template registration, retrieval, and sending notifications
  * based on templates with variable substitution.
  */
@@ -51,6 +52,7 @@ class NotificationTemplateService
             $cached = cache()->get($cacheKey);
             if ($cached instanceof NotificationTemplate) {
                 $this->templateCache[$key] = $cached;
+
                 return $cached;
             }
         } catch (Throwable) {
@@ -60,6 +62,7 @@ class NotificationTemplateService
 
         if ($template) {
             $this->templateCache[$key] = $template;
+
             try {
                 cache()->set($cacheKey, $template, self::CACHE_TTL);
             } catch (Throwable) {
@@ -71,7 +74,7 @@ class NotificationTemplateService
 
     /**
      * Get all templates, optionally filtered by module.
-     * 
+     *
      * @return NotificationTemplate[]
      */
     public function getAll(?string $module = null): array
@@ -91,7 +94,7 @@ class NotificationTemplateService
 
     /**
      * Get templates grouped by module.
-     * 
+     *
      * @return array<string, NotificationTemplate[]>
      */
     public function getGroupedByModule(): array
@@ -108,11 +111,14 @@ class NotificationTemplateService
         }
 
         // Sort modules: core first, then alphabetically
-        uksort($grouped, function ($a, $b) {
-            if ($a === 'core')
+        uksort($grouped, static function ($a, $b) {
+            if ($a === 'core') {
                 return -1;
-            if ($b === 'core')
+            }
+            if ($b === 'core') {
                 return 1;
+            }
+
             return strcmp($a, $b);
         });
 
@@ -121,7 +127,7 @@ class NotificationTemplateService
 
     /**
      * Get unique module names from existing templates.
-     * 
+     *
      * @return string[]
      */
     public function getModules(): array
@@ -147,6 +153,7 @@ class NotificationTemplateService
 
         if (!$template) {
             logs()->warning("Notification template not found: {$templateKey}");
+
             return false;
         }
 
@@ -175,156 +182,6 @@ class NotificationTemplateService
     }
 
     /**
-     * Send notification to a specific channel.
-     */
-    protected function sendToChannel(string $channel, NotificationTemplate $template, User $user, array $data): void
-    {
-        switch ($channel) {
-            case 'inapp':
-                $this->sendInApp($template, $user, $data);
-                break;
-
-            case 'email':
-                $this->sendEmail($template, $user, $data);
-                break;
-
-            case 'telegram':
-                $this->sendTelegram($template, $user, $data);
-                break;
-
-            case 'push':
-                $this->sendPush($template, $user, $data);
-                break;
-
-            default:
-                logs()->warning("Unknown notification channel: {$channel}");
-        }
-    }
-
-    /**
-     * Send in-app notification.
-     */
-    protected function sendInApp(NotificationTemplate $template, User $user, array $data): void
-    {
-        $notification = new Notification();
-        $notification->user = $user;
-        $notification->title = $template->getParsedTitle($data);
-        $notification->content = $template->getParsedContent($data);
-        $notification->icon = $template->icon;
-
-        $components = $template->getComponents();
-
-        // Determine notification type based on components
-        if ($components && $this->hasButtons($components)) {
-            $notification->type = 'button';
-            $notification->extra_data = [
-                'buttons' => $this->extractButtons($template->getParsedComponents($data)),
-                'components' => $template->getParsedComponents($data),
-                'layout' => $template->layout,
-                'template_key' => $template->key,
-            ];
-        } else {
-            $notification->type = 'text';
-            if ($components) {
-                $notification->extra_data = [
-                    'components' => $template->getParsedComponents($data),
-                    'layout' => $template->layout,
-                    'template_key' => $template->key,
-                ];
-            }
-        }
-
-        $notification->save();
-    }
-
-    /**
-     * Send email notification.
-     */
-    protected function sendEmail(NotificationTemplate $template, User $user, array $data): void
-    {
-        // Check if mailer is available
-        if (!function_exists('mailer')) {
-            return;
-        }
-
-        $email = $user->email ?? null;
-        if (!$email) {
-            return;
-        }
-
-        try {
-            mailer()->send(
-                $email,
-                $template->getParsedTitle($data),
-                view('notifications::emails.notification', [
-                    'title' => $template->getParsedTitle($data),
-                    'content' => $template->getParsedContent($data),
-                    'components' => $template->getParsedComponents($data),
-                    'user' => $user,
-                ])
-            );
-        } catch (Throwable $e) {
-            logs()->error("Failed to send email notification: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Send Telegram notification.
-     */
-    protected function sendTelegram(NotificationTemplate $template, User $user, array $data): void
-    {
-        // Implementation depends on Telegram integration
-        // This is a placeholder for future implementation
-    }
-
-    /**
-     * Send push notification.
-     */
-    protected function sendPush(NotificationTemplate $template, User $user, array $data): void
-    {
-        // Implementation depends on push notification service
-        // This is a placeholder for future implementation
-    }
-
-    /**
-     * Check if components contain buttons.
-     */
-    protected function hasButtons(array $components): bool
-    {
-        foreach ($components as $component) {
-            if (is_array($component)) {
-                if (($component['type'] ?? '') === 'actions') {
-                    return true;
-                }
-                if ($this->hasButtons($component)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Extract button definitions from components.
-     */
-    protected function extractButtons(array $components): array
-    {
-        $buttons = [];
-
-        foreach ($components as $component) {
-            if (is_array($component)) {
-                if (($component['type'] ?? '') === 'actions' && isset($component['buttons'])) {
-                    $buttons = array_merge($buttons, $component['buttons']);
-                } else {
-                    $buttons = array_merge($buttons, $this->extractButtons($component));
-                }
-            }
-        }
-
-        return $buttons;
-    }
-
-    /**
      * Register a template provider.
      */
     public function registerProvider(NotificationTemplateProviderInterface $provider): void
@@ -339,7 +196,7 @@ class NotificationTemplateService
     {
         $key = $templateData['key'] ?? null;
         if (!$key) {
-            throw new \InvalidArgumentException('Template key is required');
+            throw new InvalidArgumentException('Template key is required');
         }
 
         $existing = $this->getByKey($key);
@@ -366,6 +223,7 @@ class NotificationTemplateService
             ]);
             $existing->save();
             $this->invalidateCache($key);
+
             return $existing;
         }
 
@@ -486,19 +344,6 @@ class NotificationTemplateService
         $key = $template->key;
         $template->delete();
         $this->invalidateCache($key);
-    }
-
-    /**
-     * Invalidate cache for a template.
-     */
-    protected function invalidateCache(string $key): void
-    {
-        unset($this->templateCache[$key]);
-
-        try {
-            cache()->delete(self::CACHE_PREFIX . md5($key));
-        } catch (Throwable) {
-        }
     }
 
     /**
@@ -626,5 +471,173 @@ class NotificationTemplateService
                 'enabled' => false, // Placeholder
             ],
         ];
+    }
+
+    /**
+     * Send notification to a specific channel.
+     */
+    protected function sendToChannel(string $channel, NotificationTemplate $template, User $user, array $data): void
+    {
+        switch ($channel) {
+            case 'inapp':
+                $this->sendInApp($template, $user, $data);
+
+                break;
+
+            case 'email':
+                $this->sendEmail($template, $user, $data);
+
+                break;
+
+            case 'telegram':
+                $this->sendTelegram($template, $user, $data);
+
+                break;
+
+            case 'push':
+                $this->sendPush($template, $user, $data);
+
+                break;
+
+            default:
+                logs()->warning("Unknown notification channel: {$channel}");
+        }
+    }
+
+    /**
+     * Send in-app notification.
+     */
+    protected function sendInApp(NotificationTemplate $template, User $user, array $data): void
+    {
+        $notification = new Notification();
+        $notification->user = $user;
+        $notification->title = $template->getParsedTitle($data);
+        $notification->content = $template->getParsedContent($data);
+        $notification->icon = $template->icon;
+
+        $components = $template->getComponents();
+
+        // Determine notification type based on components
+        if ($components && $this->hasButtons($components)) {
+            $notification->type = 'button';
+            $notification->extra_data = [
+                'buttons' => $this->extractButtons($template->getParsedComponents($data)),
+                'components' => $template->getParsedComponents($data),
+                'layout' => $template->layout,
+                'template_key' => $template->key,
+            ];
+        } else {
+            $notification->type = 'text';
+            if ($components) {
+                $notification->extra_data = [
+                    'components' => $template->getParsedComponents($data),
+                    'layout' => $template->layout,
+                    'template_key' => $template->key,
+                ];
+            }
+        }
+
+        $notification->save();
+    }
+
+    /**
+     * Send email notification.
+     */
+    protected function sendEmail(NotificationTemplate $template, User $user, array $data): void
+    {
+        // Check if mailer is available
+        if (!function_exists('mailer')) {
+            return;
+        }
+
+        $email = $user->email ?? null;
+        if (!$email) {
+            return;
+        }
+
+        try {
+            mailer()->send(
+                $email,
+                $template->getParsedTitle($data),
+                view('notifications::emails.notification', [
+                    'title' => $template->getParsedTitle($data),
+                    'content' => $template->getParsedContent($data),
+                    'components' => $template->getParsedComponents($data),
+                    'user' => $user,
+                ])
+            );
+        } catch (Throwable $e) {
+            logs()->error("Failed to send email notification: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send Telegram notification.
+     */
+    protected function sendTelegram(NotificationTemplate $template, User $user, array $data): void
+    {
+        // Implementation depends on Telegram integration
+        // This is a placeholder for future implementation
+    }
+
+    /**
+     * Send push notification.
+     */
+    protected function sendPush(NotificationTemplate $template, User $user, array $data): void
+    {
+        // Implementation depends on push notification service
+        // This is a placeholder for future implementation
+    }
+
+    /**
+     * Check if components contain buttons.
+     */
+    protected function hasButtons(array $components): bool
+    {
+        foreach ($components as $component) {
+            if (is_array($component)) {
+                if (($component['type'] ?? '') === 'actions') {
+                    return true;
+                }
+                if ($this->hasButtons($component)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract button definitions from components.
+     */
+    protected function extractButtons(array $components): array
+    {
+        $buttons = [];
+
+        foreach ($components as $component) {
+            if (is_array($component)) {
+                if (($component['type'] ?? '') === 'actions' && isset($component['buttons'])) {
+                    $buttons = array_merge($buttons, $component['buttons']);
+                } else {
+                    $buttons = array_merge($buttons, $this->extractButtons($component));
+                }
+            }
+        }
+
+        return $buttons;
+    }
+
+    /**
+     * Invalidate cache for a template.
+     */
+    protected function invalidateCache(string $key): void
+    {
+        unset($this->templateCache[$key]);
+
+        try {
+            cache()->delete(self::CACHE_PREFIX . md5($key));
+        } catch (Throwable) {
+        }
     }
 }

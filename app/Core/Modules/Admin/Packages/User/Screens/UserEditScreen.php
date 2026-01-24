@@ -777,11 +777,11 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('userDevices', [
             TD::make('deviceDetails', __('admin-users.table.device'))
-                ->render(static fn(UserDevice $device) => $device->deviceDetails)
+                ->render(static fn (UserDevice $device) => $device->deviceDetails)
                 ->width('250px'),
 
             TD::make('ip', __('admin-users.table.ip'))
-                ->render(static fn(UserDevice $device) => $device->ip)
+                ->render(static fn (UserDevice $device) => $device->ip)
                 ->width('120px'),
 
             TD::make('createdAt', __('admin-users.table.first_login'))
@@ -808,7 +808,7 @@ class UserEditScreen extends Screen
                 ->defaultSort(true, 'desc'),
 
             TD::make('actions', __('admin-users.table.actions'))
-                ->render(fn(UserDevice $device) => $this->deviceActionsDropdown($device))
+                ->render(fn (UserDevice $device) => $this->deviceActionsDropdown($device))
                 ->width('100px'),
         ])
             ->searchable([
@@ -850,7 +850,7 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('socialNetworks', [
             TD::make('socialNetwork.key', __('admin-users.table.social_network'))
-                ->render(static fn(UserSocialNetwork $network) => $network->socialNetwork->key)
+                ->render(static fn (UserSocialNetwork $network) => $network->socialNetwork->key)
                 ->width('200px'),
 
             TD::make('value', __('admin-users.table.value'))
@@ -860,21 +860,21 @@ class UserEditScreen extends Screen
                 ->width('200px'),
 
             TD::make('name', __('admin-users.table.display_name'))
-                ->render(static fn(UserSocialNetwork $network) => $network->name ?? '-')
+                ->render(static fn (UserSocialNetwork $network) => $network->name ?? '-')
                 ->width('200px'),
 
             TD::make('linkedAt', __('admin-users.table.link_date'))
-                ->render(static fn(UserSocialNetwork $network) => $network->linkedAt->format('d.m.Y H:i'))
+                ->render(static fn (UserSocialNetwork $network) => $network->linkedAt->format('d.m.Y H:i'))
                 ->width('200px'),
 
             TD::make('hidden', __('admin-users.table.visibility'))
                 ->render(
-                    static fn(UserSocialNetwork $network) => view('admin-users::cells.visibility-badge', ['visible' => !$network->hidden])
+                    static fn (UserSocialNetwork $network) => view('admin-users::cells.visibility-badge', ['visible' => !$network->hidden])
                 )
                 ->width('100px'),
 
             TD::make('actions', __('admin-users.table.actions'))
-                ->render(fn(UserSocialNetwork $network) => $this->socialNetworkActionsDropdown($network))
+                ->render(fn (UserSocialNetwork $network) => $this->socialNetworkActionsDropdown($network))
                 ->width('100px'),
         ])
             ->searchable([
@@ -900,19 +900,19 @@ class UserEditScreen extends Screen
         return
             LayoutFactory::table('blocksHistory', [
                 TD::make('reason', __('admin-users.table.reason'))
-                    ->render(static fn(UserBlock $block) => $block->reason)
+                    ->render(static fn (UserBlock $block) => $block->reason)
                     ->width('300px'),
 
                 TD::make('blockedBy.name', __('admin-users.table.blocked_by'))
-                    ->render(static fn(UserBlock $block) => "<a class='badge ghost-primary' href='" . url('admin/users/' . $block->blockedBy->id . '/edit') . "'>{$block->blockedBy->name}</a>")
+                    ->render(static fn (UserBlock $block) => "<a class='badge ghost-primary' href='" . url('admin/users/' . $block->blockedBy->id . '/edit') . "'>{$block->blockedBy->name}</a>")
                     ->width('200px'),
 
                 TD::make('blockedFrom', __('admin-users.table.blocked_from'))
-                    ->render(static fn(UserBlock $block) => $block->blockedFrom->format('d.m.Y H:i'))
+                    ->render(static fn (UserBlock $block) => $block->blockedFrom->format('d.m.Y H:i'))
                     ->width('200px'),
 
                 TD::make('blockedUntil', __('admin-users.table.blocked_until'))
-                    ->render(static fn(UserBlock $block) => $block->blockedUntil ? $block->blockedUntil->format('d.m.Y H:i') : 'Навсегда')
+                    ->render(static fn (UserBlock $block) => $block->blockedUntil ? $block->blockedUntil->format('d.m.Y H:i') : 'Навсегда')
                     ->width('200px'),
             ]);
     }
@@ -925,7 +925,7 @@ class UserEditScreen extends Screen
         return
             LayoutFactory::table('actionHistory', [
                 TD::make('details', __('admin-users.table.details'))
-                    ->render(static fn(UserActionLog $log) => app(LogRendererManager::class)->render($log))
+                    ->render(static fn (UserActionLog $log) => app(LogRendererManager::class)->render($log))
                     ->width('400px'),
             ]);
     }
@@ -938,19 +938,19 @@ class UserEditScreen extends Screen
         return
             LayoutFactory::table('depositHistory', [
                 TD::make('transactionId', __('admin-users.table.transaction_id'))
-                    ->render(static fn(PaymentInvoice $invoice) => $invoice->transactionId)
+                    ->render(static fn (PaymentInvoice $invoice) => $invoice->transactionId)
                     ->width('200px'),
 
                 TD::make('gateway', __('admin-users.table.payment_gateway'))
-                    ->render(static fn(PaymentInvoice $invoice) => $invoice->gateway)
+                    ->render(static fn (PaymentInvoice $invoice) => $invoice->gateway)
                     ->width('200px'),
 
                 TD::make('amount', __('admin-users.table.amount'))
-                    ->render(static fn(PaymentInvoice $invoice) => number_format($invoice->amount, 2) . ' ' . $invoice->currency->code)
+                    ->render(static fn (PaymentInvoice $invoice) => number_format($invoice->amount, 2) . ' ' . $invoice->currency->code)
                     ->width('150px'),
 
                 TD::make('isPaid', __('admin-users.table.status'))
-                    ->render(static fn(PaymentInvoice $invoice) => view('admin-users::cells.payment-status', ['invoice' => $invoice]))
+                    ->render(static fn (PaymentInvoice $invoice) => view('admin-users::cells.payment-status', ['invoice' => $invoice]))
                     ->width('150px'),
 
                 TD::make('paidAt', __('admin-users.table.payment_date'))

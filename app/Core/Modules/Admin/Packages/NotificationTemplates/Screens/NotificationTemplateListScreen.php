@@ -37,13 +37,6 @@ class NotificationTemplateListScreen extends Screen
         $this->loadTemplates();
     }
 
-    protected function loadTemplates(): void
-    {
-        $service = app(NotificationTemplateService::class);
-        $this->groupedTemplates = $service->getGroupedByModule();
-        $this->templates = $service->getAll();
-    }
-
     public function layout(): array
     {
         return [
@@ -54,27 +47,27 @@ class NotificationTemplateListScreen extends Screen
                     ->title('')
                     ->width('50px')
                     ->alignCenter()
-                    ->render(fn(NotificationTemplate $template) => view('admin-notifications::cells.status', ['model' => $template])),
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.status', ['model' => $template])),
 
                 TD::make('key')
                     ->title(__('admin-notifications.fields.key'))
-                    ->render(fn(NotificationTemplate $template) => view('admin-notifications::cells.key', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.key', ['model' => $template]))
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('title')
                     ->title(__('admin-notifications.fields.title'))
-                    ->render(fn(NotificationTemplate $template) => view('admin-notifications::cells.title', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.title', ['model' => $template]))
                     ->width('300px'),
 
                 TD::make('channels')
                     ->title(__('admin-notifications.fields.channels'))
-                    ->render(fn(NotificationTemplate $template) => view('admin-notifications::cells.channels', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.channels', ['model' => $template]))
                     ->width('200px'),
 
                 TD::make('layout')
                     ->title(__('admin-notifications.fields.layout'))
-                    ->render(fn(NotificationTemplate $template) => view('admin-notifications::cells.layout', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.layout', ['model' => $template]))
                     ->width('100px')
                     ->alignCenter(),
 
@@ -84,7 +77,7 @@ class NotificationTemplateListScreen extends Screen
                     ->width('120px')
                     ->alignCenter()
                     ->render(
-                        fn(NotificationTemplate $template) => DropDown::make()
+                        static fn (NotificationTemplate $template) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list([
                                 DropDownItem::make(__('def.edit'))
@@ -149,6 +142,7 @@ class NotificationTemplateListScreen extends Screen
 
         if (!$template) {
             $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
+
             return;
         }
 
@@ -170,6 +164,7 @@ class NotificationTemplateListScreen extends Screen
 
         if (!$template) {
             $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
+
             return;
         }
 
@@ -191,6 +186,7 @@ class NotificationTemplateListScreen extends Screen
 
         if (!$template) {
             $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
+
             return;
         }
 
@@ -279,5 +275,12 @@ class NotificationTemplateListScreen extends Screen
 
         $this->loadTemplates();
         $this->flashMessage(__('admin-notifications.messages.bulk_deleted', ['count' => $count]));
+    }
+
+    protected function loadTemplates(): void
+    {
+        $service = app(NotificationTemplateService::class);
+        $this->groupedTemplates = $service->getGroupedByModule();
+        $this->templates = $service->getAll();
     }
 }

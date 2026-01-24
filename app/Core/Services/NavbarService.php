@@ -35,7 +35,7 @@ class NavbarService
 
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
-        $this->cachedNavbarItems = !is_development() ? cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), self::CACHE_TIME) : $this->getDefaultNavbarItems();
+        $this->cachedNavbarItems = !is_development() ? cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME) : $this->getDefaultNavbarItems();
     }
 
     /**
@@ -143,7 +143,7 @@ class NavbarService
             }
         }
 
-        usort($tree, static fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($tree, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $tree;
     }

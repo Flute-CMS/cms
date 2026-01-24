@@ -911,7 +911,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return $paths;
         }, $duration);
 
-        $result = array_map(static fn($path) => new SplFileInfo($path), $filePaths);
+        $result = array_map(static fn ($path) => new SplFileInfo($path), $filePaths);
 
         $this->directoryCache[$dirHash] = $result;
 

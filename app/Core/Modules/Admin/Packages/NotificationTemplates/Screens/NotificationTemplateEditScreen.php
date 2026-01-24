@@ -46,6 +46,7 @@ class NotificationTemplateEditScreen extends Screen
             if (!$this->template) {
                 $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
                 $this->redirectTo('/admin/notification-templates', 300);
+
                 return;
             }
 
@@ -119,6 +120,92 @@ class NotificationTemplateEditScreen extends Screen
                 ->slug('notification-edit')
                 ->pills(),
         ];
+    }
+
+    public function saveTemplate(): void
+    {
+        if (!$this->template) {
+            $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
+
+            return;
+        }
+
+        $data = request()->input();
+
+        $validation = $this->validate([
+            'title' => ['required', 'string', 'max-str-len:255'],
+            'content' => ['required', 'string'],
+            'icon' => ['nullable', 'string', 'max-str-len:100'],
+            'layout' => ['nullable', 'string', 'max-str-len:50'],
+            'priority' => ['nullable', 'integer'],
+            'components_json' => ['nullable', 'string'],
+        ], $data);
+
+        if (!$validation) {
+            return;
+        }
+
+        // Parse components JSON
+        $components = null;
+        if (!empty($data['components_json']) && $data['components_json'] !== '[]') {
+            $components = json_decode($data['components_json'], true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $this->inputError('components_json', __('admin-notifications.errors.invalid_json'));
+
+                return;
+            }
+        }
+
+        // Parse channels
+        $channels = [];
+        if (isset($data['channels']) && is_array($data['channels'])) {
+            foreach ($data['channels'] as $channel => $value) {
+                if ($value === 'on' || $value === true || $value === '1') {
+                    $channels[] = $channel;
+                }
+            }
+        }
+
+        if (empty($channels)) {
+            $channels = ['inapp'];
+        }
+
+        try {
+            $service = app(NotificationTemplateService::class);
+            $service->update($this->template, [
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'icon' => $data['icon'] ?: null,
+                'layout' => $data['layout'] ?? 'standard',
+                'priority' => (int) ($data['priority'] ?? 100),
+                'components' => $components,
+                'channels' => $channels,
+                'is_enabled' => isset($data['is_enabled']) && ($data['is_enabled'] === 'on' || $data['is_enabled'] === true),
+            ]);
+
+            $this->flashMessage(__('admin-notifications.messages.saved'));
+            $this->template = NotificationTemplate::findByPK($this->templateId);
+        } catch (Exception $e) {
+            logs()->error($e);
+            $this->flashMessage($e->getMessage(), 'error');
+        }
+    }
+
+    public function resetTemplate(): void
+    {
+        if (!$this->template) {
+            return;
+        }
+
+        try {
+            $service = app(NotificationTemplateService::class);
+            $service->reset($this->template);
+            $this->flashMessage(__('admin-notifications.messages.reset'));
+            $this->template = NotificationTemplate::findByPK($this->templateId);
+        } catch (Throwable $e) {
+            logs()->error($e);
+            $this->flashMessage($e->getMessage(), 'error');
+        }
     }
 
     protected function contentLayout()
@@ -277,89 +364,5 @@ class NotificationTemplateEditScreen extends Screen
         return LayoutFactory::block($fields)
             ->title(__('admin-notifications.blocks.components'))
             ->description(__('admin-notifications.blocks.components_description'));
-    }
-
-    public function saveTemplate(): void
-    {
-        if (!$this->template) {
-            $this->flashMessage(__('admin-notifications.errors.not_found'), 'error');
-            return;
-        }
-
-        $data = request()->input();
-
-        $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
-            'content' => ['required', 'string'],
-            'icon' => ['nullable', 'string', 'max-str-len:100'],
-            'layout' => ['nullable', 'string', 'max-str-len:50'],
-            'priority' => ['nullable', 'integer'],
-            'components_json' => ['nullable', 'string'],
-        ], $data);
-
-        if (!$validation) {
-            return;
-        }
-
-        // Parse components JSON
-        $components = null;
-        if (!empty($data['components_json']) && $data['components_json'] !== '[]') {
-            $components = json_decode($data['components_json'], true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->inputError('components_json', __('admin-notifications.errors.invalid_json'));
-                return;
-            }
-        }
-
-        // Parse channels
-        $channels = [];
-        if (isset($data['channels']) && is_array($data['channels'])) {
-            foreach ($data['channels'] as $channel => $value) {
-                if ($value === 'on' || $value === true || $value === '1') {
-                    $channels[] = $channel;
-                }
-            }
-        }
-
-        if (empty($channels)) {
-            $channels = ['inapp'];
-        }
-
-        try {
-            $service = app(NotificationTemplateService::class);
-            $service->update($this->template, [
-                'title' => $data['title'],
-                'content' => $data['content'],
-                'icon' => $data['icon'] ?: null,
-                'layout' => $data['layout'] ?? 'standard',
-                'priority' => (int) ($data['priority'] ?? 100),
-                'components' => $components,
-                'channels' => $channels,
-                'is_enabled' => isset($data['is_enabled']) && ($data['is_enabled'] === 'on' || $data['is_enabled'] === true),
-            ]);
-
-            $this->flashMessage(__('admin-notifications.messages.saved'));
-            $this->template = NotificationTemplate::findByPK($this->templateId);
-        } catch (Exception $e) {
-            logs()->error($e);
-            $this->flashMessage($e->getMessage(), 'error');
-        }
-    }
-
-    public function resetTemplate(): void
-    {
-        if (!$this->template) {
-            return;
-        }
-
-        try {
-            $service = app(NotificationTemplateService::class);
-            $service->reset($this->template);
-            $this->flashMessage(__('admin-notifications.messages.reset'));
-            $this->template = NotificationTemplate::findByPK($this->templateId);
-        } catch (Throwable $e) {
-            logs()->error($e);
-            $this->flashMessage($e->getMessage(), 'error');
-        }
     }
 }

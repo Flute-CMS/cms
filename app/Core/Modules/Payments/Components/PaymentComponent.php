@@ -194,6 +194,20 @@ class PaymentComponent extends FluteComponent
         return $this->view('flute::components.payments.payment-form');
     }
 
+    public function getEffectiveMinimumAmount(): float
+    {
+        // Gateway minimum takes priority if set
+        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+            if (isset($gatewayData['minimum_amount']) && $gatewayData['minimum_amount'] !== null) {
+                return (float) $gatewayData['minimum_amount'];
+            }
+        }
+
+        // Fall back to currency minimum
+        return (float) ($this->currencyMinimumAmounts[$this->currency] ?? 0);
+    }
+
     protected function validateCurrencyGateways(): void
     {
         if (empty($this->currencyGateways)) {
@@ -281,20 +295,6 @@ class PaymentComponent extends FluteComponent
                 $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
             }
         }
-    }
-
-    public function getEffectiveMinimumAmount(): float
-    {
-        // Gateway minimum takes priority if set
-        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
-            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
-            if (isset($gatewayData['minimum_amount']) && $gatewayData['minimum_amount'] !== null) {
-                return (float) $gatewayData['minimum_amount'];
-            }
-        }
-
-        // Fall back to currency minimum
-        return (float) ($this->currencyMinimumAmounts[$this->currency] ?? 0);
     }
 
     protected function validateInput()

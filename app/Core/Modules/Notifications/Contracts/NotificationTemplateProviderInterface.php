@@ -4,7 +4,7 @@ namespace Flute\Core\Modules\Notifications\Contracts;
 
 /**
  * Interface for modules to provide their notification templates.
- * 
+ *
  * Modules implement this interface to register their notification templates
  * that can be customized by administrators in the admin panel.
  */
@@ -12,7 +12,7 @@ interface NotificationTemplateProviderInterface
 {
     /**
      * Get the notification templates provided by this module.
-     * 
+     *
      * Each template should be an array with the following structure:
      * [
      *     'key' => 'module.template_name',           // Required: Unique template key
@@ -28,7 +28,7 @@ interface NotificationTemplateProviderInterface
      *     'channels' => ['inapp', 'email'],          // Optional: Delivery channels
      *     'priority' => 100,                         // Optional: Sort priority
      * ]
-     * 
+     *
      * @return array<int, array{
      *     key: string,
      *     title: string,
@@ -45,7 +45,7 @@ interface NotificationTemplateProviderInterface
 
     /**
      * Get the module name for template grouping.
-     * 
+     *
      * @return string Module name (e.g., 'Shop', 'BattlePass')
      */
     public function getModuleName(): string;
