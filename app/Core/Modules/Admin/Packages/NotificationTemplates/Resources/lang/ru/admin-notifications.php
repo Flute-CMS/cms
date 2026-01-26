@@ -21,7 +21,7 @@ return [
         'layout' => 'Макет',
         'channels' => 'Каналы доставки',
         'priority' => 'Приоритет',
-        'enabled' => 'Активен',
+        'enabled' => 'Статус',
         'components' => 'Компоненты (JSON)',
     ],
 
@@ -37,10 +37,14 @@ return [
         'icon' => 'Phosphor иконка, например: ph.bold.bell-bold',
         'priority' => 'Чем меньше число, тем выше приоритет сортировки',
         'components' => 'JSON-структура дополнительных компонентов (кнопки, прогресс-бар, и т.д.)',
+        'no_variables' => 'Для этого шаблона нет доступных переменных',
+        'usage' => 'Использование',
+        'variables_usage' => 'Вставьте переменную в текст заголовка или содержимого, например: "Привет, {user_name}!"',
     ],
 
     'tabs' => [
         'content' => 'Контент',
+        'settings' => 'Настройки',
         'appearance' => 'Внешний вид',
         'channels' => 'Каналы',
         'variables' => 'Переменные',
@@ -49,13 +53,14 @@ return [
 
     'blocks' => [
         'content' => 'Основная информация',
+        'settings' => 'Настройки',
         'appearance' => 'Внешний вид',
         'channels' => 'Каналы доставки',
         'channels_description' => 'Выберите, через какие каналы будет отправляться уведомление',
         'variables' => 'Доступные переменные',
         'variables_description' => 'Эти переменные можно использовать в заголовке и содержимом',
-        'components' => 'Rich-компоненты',
-        'components_description' => 'Дополнительные элементы: кнопки, прогресс-бар, таймер и т.д.',
+        'buttons' => 'Кнопки действий',
+        'buttons_description' => 'Добавьте кнопки для быстрых действий в уведомлении',
     ],
 
     'layouts' => [
@@ -70,6 +75,17 @@ return [
         'email' => 'Email',
         'telegram' => 'Telegram',
         'push' => 'Push-уведомления',
+    ],
+
+    'channels_status' => [
+        'enabled' => 'Включён',
+        'disabled' => 'Отключён',
+        'unavailable' => 'Недоступен',
+    ],
+
+    'status' => [
+        'active' => 'Активен',
+        'inactive' => 'Неактивен',
     ],
 
     'components' => [
@@ -87,6 +103,20 @@ return [
         'stats' => 'Статистика',
     ],
 
+    'add_button' => 'Добавить кнопку',
+    'buttons_empty' => 'Кнопки не добавлены',
+
+    'button_fields' => [
+        'label' => 'Текст кнопки',
+        'url' => 'URL',
+    ],
+
+    'templates' => [
+        'button' => 'Кнопки',
+        'progress' => 'Прогресс',
+        'countdown' => 'Таймер',
+    ],
+
     'actions' => [
         'navigate' => 'Переход по ссылке',
         'api' => 'API запрос',
@@ -95,6 +125,11 @@ return [
         'download' => 'Скачать',
         'dismiss' => 'Закрыть',
         'external' => 'Внешняя ссылка',
+    ],
+
+    'preview' => [
+        'title' => 'Предпросмотр',
+        'just_now' => 'Только что',
     ],
 
     'enable' => 'Включить',
@@ -125,5 +160,18 @@ return [
         'bulk_enabled' => 'Включено шаблонов: :count',
         'bulk_disabled' => 'Отключено шаблонов: :count',
         'bulk_deleted' => 'Удалено шаблонов: :count',
+    ],
+
+    'metrics' => [
+        'total_templates' => 'Всего шаблонов',
+        'active_templates' => 'Активные',
+        'modules' => 'Модули',
+    ],
+
+    'filters' => [
+        'all' => 'Все',
+        'active' => 'Активные',
+        'inactive' => 'Неактивные',
+        'customized' => 'Изменённые',
     ],
 ];

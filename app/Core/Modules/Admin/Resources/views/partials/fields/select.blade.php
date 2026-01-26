@@ -5,6 +5,7 @@
     $mode = $attributes->get('mode', 'static');
     $plugins = $attributes->get('data-plugins', '[]');
     $placeholder = $attributes->get('placeholder', '');
+    $options = $options ?? [];
 
     $value = request()->input($name, $value);
     

@@ -128,6 +128,10 @@ body.page-edit-mode {
 			&.save {
 				justify-content: flex-end;
 			}
+
+			&.scope-toggle {
+				justify-content: center;
+			}
 		}
 
 		#height-mode-toggle-label {
@@ -138,6 +142,48 @@ body.page-edit-mode {
 
 	&-button {
 		display: none;
+	}
+
+	&-scope-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0;
+		background: var(--secondary);
+		border-radius: var(--border05);
+		padding: 4px;
+		border: 1px solid var(--transp-1);
+
+		.scope-btn {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 8px 16px;
+			border: none;
+			background: transparent;
+			color: var(--text-400);
+			font-size: var(--p-small);
+			font-weight: 500;
+			cursor: pointer;
+			border-radius: calc(var(--border05) - 2px);
+			transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+			white-space: nowrap;
+
+			svg {
+				width: 16px;
+				height: 16px;
+			}
+
+			&:hover:not(.active) {
+				color: var(--text-200);
+				background: var(--transp-05);
+			}
+
+			&.active {
+				background: var(--background);
+				color: var(--text);
+				box-shadow: var(--shadow-small);
+			}
+		}
 	}
 
 	// Speed Dial FAB - Arc Layout

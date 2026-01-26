@@ -21,7 +21,7 @@ return [
         'layout' => 'Layout',
         'channels' => 'Delivery Channels',
         'priority' => 'Priority',
-        'enabled' => 'Enabled',
+        'enabled' => 'Status',
         'components' => 'Components (JSON)',
     ],
 
@@ -37,10 +37,14 @@ return [
         'icon' => 'Phosphor icon, e.g.: ph.bold.bell-bold',
         'priority' => 'Lower number = higher sort priority',
         'components' => 'JSON structure for additional components (buttons, progress bar, etc.)',
+        'no_variables' => 'No variables available for this template',
+        'usage' => 'Usage',
+        'variables_usage' => 'Insert variable into title or content text, e.g.: "Hello, {user_name}!"',
     ],
 
     'tabs' => [
         'content' => 'Content',
+        'settings' => 'Settings',
         'appearance' => 'Appearance',
         'channels' => 'Channels',
         'variables' => 'Variables',
@@ -49,13 +53,14 @@ return [
 
     'blocks' => [
         'content' => 'Basic Information',
+        'settings' => 'Settings',
         'appearance' => 'Appearance',
         'channels' => 'Delivery Channels',
         'channels_description' => 'Select which channels will be used to send this notification',
         'variables' => 'Available Variables',
         'variables_description' => 'These variables can be used in title and content',
-        'components' => 'Rich Components',
-        'components_description' => 'Additional elements: buttons, progress bar, timer, etc.',
+        'buttons' => 'Action Buttons',
+        'buttons_description' => 'Add buttons for quick actions in the notification',
     ],
 
     'layouts' => [
@@ -70,6 +75,17 @@ return [
         'email' => 'Email',
         'telegram' => 'Telegram',
         'push' => 'Push Notifications',
+    ],
+
+    'channels_status' => [
+        'enabled' => 'Enabled',
+        'disabled' => 'Disabled',
+        'unavailable' => 'Unavailable',
+    ],
+
+    'status' => [
+        'active' => 'Active',
+        'inactive' => 'Inactive',
     ],
 
     'components' => [
@@ -87,6 +103,20 @@ return [
         'stats' => 'Statistics',
     ],
 
+    'add_button' => 'Add button',
+    'buttons_empty' => 'No buttons added',
+
+    'button_fields' => [
+        'label' => 'Button label',
+        'url' => 'URL',
+    ],
+
+    'templates' => [
+        'button' => 'Buttons',
+        'progress' => 'Progress',
+        'countdown' => 'Countdown',
+    ],
+
     'actions' => [
         'navigate' => 'Navigate to URL',
         'api' => 'API Request',
@@ -95,6 +125,11 @@ return [
         'download' => 'Download',
         'dismiss' => 'Dismiss',
         'external' => 'External Link',
+    ],
+
+    'preview' => [
+        'title' => 'Preview',
+        'just_now' => 'Just now',
     ],
 
     'enable' => 'Enable',
@@ -125,5 +160,18 @@ return [
         'bulk_enabled' => ':count templates enabled',
         'bulk_disabled' => ':count templates disabled',
         'bulk_deleted' => ':count templates deleted',
+    ],
+
+    'metrics' => [
+        'total_templates' => 'Total Templates',
+        'active_templates' => 'Active',
+        'modules' => 'Modules',
+    ],
+
+    'filters' => [
+        'all' => 'All',
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'customized' => 'Customized',
     ],
 ];

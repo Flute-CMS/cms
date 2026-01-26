@@ -18,10 +18,14 @@ class LocalStorageHandler {
     }
 
     /**
-     * Get storage key for current page
+     * Get storage key for current page or global layout
      * @returns {string}
      */
     getLayoutKey() {
+        const scope = this.editor.scope || 'local';
+        if (scope === 'global') {
+            return `${this.config.storageKeys.layout}global`;
+        }
         return `${this.config.storageKeys.layout}${this.currentPath}`;
     }
 

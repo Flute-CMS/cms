@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Page\Services;
 
 use Exception;
 use Flute\Core\Database\DatabaseConnection;
+use Flute\Core\Database\Entities\GlobalPageBlock;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Modules\Page\Controllers\PageController;
@@ -33,6 +34,10 @@ class PageManager
     protected const PAGES_CACHE_KEY = 'flute.pages.all';
 
     protected const PAGES_CACHE_TIME = 3600;
+
+    protected const GLOBAL_LAYOUT_CACHE_KEY = 'flute.global.layout';
+
+    protected const GLOBAL_LAYOUT_CACHE_TIME = 3600;
 
     protected RouterInterface $router;
 
@@ -256,33 +261,131 @@ class PageManager
 
     public function renderAllWidgets(): string
     {
-        if (!$this->currentPage || $this->disabled) {
+        if ($this->disabled) {
             return '';
         }
 
-        $content = '';
+        $globalBlocks = $this->getGlobalBlocks();
 
-        foreach ($this->currentPage->getBlocks() as $block) {
-            $gridstack = json_decode($block->gridstack, true) ?? [];
+        // If there are global blocks, render global layout with local content inside Content widget
+        if (!empty($globalBlocks)) {
+            return $this->renderGlobalLayout($globalBlocks);
+        }
 
-            $style = sprintf(
-                'grid-column: %d / span %d; grid-row: %d / span %d;',
-                ($gridstack['x'] ?? 0) + 1,
-                ($gridstack['w'] ?? 1),
-                ($gridstack['y'] ?? 0) + 1,
-                ($gridstack['h'] ?? 1)
-            );
+        // Fallback to local-only rendering if no global layout exists
+        if (!$this->currentPage) {
+            return '';
+        }
 
-            $widgetContent = $this->safeRenderBlock($block);
+        return $this->renderBlocksAsGrid($this->currentPage->getBlocks(), false);
+    }
 
-            if ($widgetContent !== null && $widgetContent !== '') {
-                $content .= '<section data-widget-id="' . $block->getId() . '" data-widget-name="' . $block->getWidget() . '" style="' . $style . '">';
-                $content .= $widgetContent;
-                $content .= '</section>';
+    /**
+     * Gets all global page blocks sorted by order.
+     *
+     * @return GlobalPageBlock[]
+     */
+    public function getGlobalBlocks(): array
+    {
+        try {
+            return GlobalPageBlock::query()
+                ->orderBy('sortOrder', 'ASC')
+                ->fetchAll();
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to load global blocks: ' . $e->getMessage());
+
+            return [];
+        }
+    }
+
+    /**
+     * Gets the global layout for the editor.
+     */
+    public function getGlobalLayout(): array
+    {
+        $layout = [];
+        $globalBlocks = $this->getGlobalBlocks();
+
+        foreach ($globalBlocks as $block) {
+            try {
+                $settings = json_decode($block->getSettings(), true) ?? [];
+                $widgetName = $block->getWidget();
+
+                $startTime = microtime(true);
+                $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+                $layout[] = [
+                    'id' => $block->getId(),
+                    'widgetName' => $widgetName,
+                    'settings' => $settings,
+                    'gridstack' => json_decode($block->gridstack, true),
+                    'content' => $widgetContent,
+                    'isSystem' => $widgetName === 'Content',
+                ];
+            } catch (Exception $e) {
+                $this->logger->error("Failed to retrieve global layout widget: " . $e->getMessage());
             }
         }
 
-        return $content;
+        return $layout;
+    }
+
+    /**
+     * Saves the global layout.
+     *
+     * @throws RuntimeException If Content widget is missing
+     */
+    public function saveGlobalLayout(array $layout): void
+    {
+        // Validate that Content widget exists in global layout
+        $hasContent = false;
+        foreach ($layout as $item) {
+            if (($item['widgetName'] ?? '') === 'Content') {
+                $hasContent = true;
+
+                break;
+            }
+        }
+
+        if (!$hasContent) {
+            throw new RuntimeException(__('page.global_layout_requires_content'));
+        }
+
+        // Delete all existing global blocks
+        $existingBlocks = GlobalPageBlock::findAll();
+        foreach ($existingBlocks as $block) {
+            $block->delete();
+        }
+
+        $sortOrder = 0;
+
+        foreach ($layout as $item) {
+            $widgetName = $item['widgetName'] ?? '';
+            $settings = $item['settings'] ?? [];
+
+            $block = new GlobalPageBlock();
+            $block->setWidget($widgetName);
+            $block->setSettings(Json::encode($settings));
+            $block->setSortOrder($sortOrder++);
+
+            $block->gridstack = isset($item['gridstack'])
+                ? Json::encode([
+                    'h' => $item['gridstack']['h'] ?? 4,
+                    'w' => $item['gridstack']['w'] ?? 12,
+                    'x' => $item['gridstack']['x'] ?? 0,
+                    'y' => $item['gridstack']['y'] ?? 0,
+                    'minW' => $item['gridstack']['minW'] ?? 4,
+                ])
+                : Json::encode(['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0, 'minW' => 4]);
+
+            $block->saveOrFail();
+        }
+
+        // Clear global layout cache
+        if (is_performance()) {
+            cache()->delete(self::GLOBAL_LAYOUT_CACHE_KEY);
+        }
     }
 
     /**
@@ -475,6 +578,18 @@ class PageManager
     }
 
     /**
+     * Checks if there are any blocks to render (local or global).
+     */
+    public function hasAnyBlocks(): bool
+    {
+        if ($this->currentPage && !empty($this->currentPage->getBlocks())) {
+            return true;
+        }
+
+        return !empty($this->getGlobalBlocks());
+    }
+
+    /**
      * Returns the permissions array.
      */
     public function getPermissions(): array
@@ -527,6 +642,128 @@ class PageManager
         }
 
         return response()->view('flute::pages.home');
+    }
+
+    /**
+     * Renders the global layout with local widgets inside Content placeholder.
+     */
+    protected function renderGlobalLayout(array $globalBlocks): string
+    {
+        $content = '';
+        $localContent = '';
+
+        if ($this->currentPage) {
+            $localContent = $this->renderBlocksAsGrid($this->currentPage->getBlocks(), false);
+        }
+
+        foreach ($globalBlocks as $block) {
+            $style = $this->getBlockGridStyle($block);
+            $widgetName = $block->getWidget();
+
+            if ($widgetName === 'Content') {
+                if ($localContent !== '') {
+                    $content .= view('flute::partials.widget-content-section', [
+                        'widgetId' => 'global-' . $block->getId(),
+                        'style' => $style,
+                        'localContent' => $localContent,
+                    ])->render();
+                }
+
+                continue;
+            }
+
+            $widgetContent = $this->safeRenderGlobalBlock($block);
+
+            if ($widgetContent !== null && $widgetContent !== '') {
+                $content .= view('flute::partials.widget-section', [
+                    'widgetId' => 'global-' . $block->getId(),
+                    'widgetName' => $widgetName,
+                    'style' => $style,
+                    'content' => $widgetContent,
+                ])->render();
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Renders blocks as a CSS grid layout.
+     *
+     * @param array $blocks Array of PageBlock entities
+     * @param bool $isGlobal Whether these are global blocks
+     */
+    protected function renderBlocksAsGrid(array $blocks, bool $isGlobal = false): string
+    {
+        $content = '';
+
+        foreach ($blocks as $block) {
+            $style = $this->getBlockGridStyle($block);
+
+            $widgetContent = $isGlobal
+                ? $this->safeRenderGlobalBlock($block)
+                : $this->safeRenderBlock($block);
+
+            if ($widgetContent !== null && $widgetContent !== '') {
+                $prefix = $isGlobal ? 'global-' : '';
+                $content .= view('flute::partials.widget-section', [
+                    'widgetId' => $prefix . $block->getId(),
+                    'widgetName' => $block->getWidget(),
+                    'style' => $style,
+                    'content' => $widgetContent,
+                ])->render();
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Get CSS grid style for a block.
+     *
+     * @param PageBlock|GlobalPageBlock $block
+     */
+    protected function getBlockGridStyle($block): string
+    {
+        $gridstack = json_decode($block->gridstack, true) ?? [];
+
+        return sprintf(
+            'grid-column: %d / span %d; grid-row: %d / span %d;',
+            ($gridstack['x'] ?? 0) + 1,
+            ($gridstack['w'] ?? 1),
+            ($gridstack['y'] ?? 0) + 1,
+            ($gridstack['h'] ?? 1)
+        );
+    }
+
+    /**
+     * Safely renders a global block.
+     */
+    protected function safeRenderGlobalBlock(GlobalPageBlock $block): ?string
+    {
+        try {
+            $settings = json_decode($block->getSettings(), true) ?? [];
+            $widgetName = $block->getWidget();
+
+            $startTime = microtime(true);
+            $content = $this->widgetManager->getWidget($widgetName)->render($settings);
+            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+            return $content;
+        } catch (Throwable $e) {
+            $this->logger->error('Global widget render error: ' . $e->getMessage(), [
+                'widget' => $block->getWidget(),
+                'block_id' => $block->getId(),
+                'exception' => $e,
+            ]);
+
+            return $this->hasAccessToEdit()
+                ? view('flute::partials.invalid-widget', [
+                    'block' => $block,
+                    'exception' => $e->getMessage(),
+                ])->render()
+                : null;
+        }
     }
 
     /**

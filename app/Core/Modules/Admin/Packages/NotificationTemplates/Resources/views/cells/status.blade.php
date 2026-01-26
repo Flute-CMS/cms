@@ -1,7 +1,5 @@
-<div>
-    @if ($model->is_enabled)
-        <x-icon name="ph.check-circle" class="text-success" style="font-size: 1.25rem;" />
-    @else
-        <x-icon name="ph.x-circle" class="text-danger" style="font-size: 1.25rem;" />
-    @endif
+<div class="notification-status">
+    <span class="notification-status__indicator notification-status__indicator--{{ $model->is_enabled ? 'active' : 'inactive' }}"
+        data-tooltip="{{ __('admin-notifications.status.' . ($model->is_enabled ? 'active' : 'inactive')) }}"
+        data-tooltip-pos="top"></span>
 </div>

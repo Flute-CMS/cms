@@ -1,32 +1,20 @@
-<div class="variables-list">
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th style="width: 200px;">{{ __('admin-notifications.fields.variable') ?? 'Переменная' }}</th>
-                    <th>{{ __('admin-notifications.fields.description') ?? 'Описание' }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($variables as $name => $description)
-                    <tr>
-                        <td>
-                            <code class="bg-primary-lt px-2 py-1 rounded">{!! '{' . e($name) . '}' !!}</code>
-                        </td>
-                        <td>{{ $description }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+@props([
+    'variables' => [],
+])
 
-    <div class="alert alert-info mt-3">
-        <div class="d-flex align-items-start gap-2">
-            <i class="ph-lightbulb ph-bold mt-1"></i>
-            <div>
-                <strong>{{ __('admin-notifications.hints.usage') ?? 'Использование' }}:</strong><br>
-                {{ __('admin-notifications.hints.variables_usage') ?? 'Вставьте переменную в текст заголовка или содержимого, например: "Привет, {user_name}!"' }}
-            </div>
+@if (!empty($variables))
+    <div class="variables-list">
+        <div class="variables-list__header">
+            <x-icon path="ph.bold.brackets-curly-bold" />
+            <span>{{ __('admin-notifications.blocks.variables') }}</span>
         </div>
+        @foreach ($variables as $name => $description)
+            <button type="button" class="variables-list__item"
+                data-variable="{{ $name }}"
+                data-tooltip="{{ $description }}"
+                data-tooltip-pos="top">
+                {!! '{' . e($name) . '}' !!}
+            </button>
+        @endforeach
     </div>
-</div>
+@endif

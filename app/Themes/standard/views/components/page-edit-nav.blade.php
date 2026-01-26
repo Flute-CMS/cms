@@ -14,7 +14,17 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="page-edit-nav-block">
+                    <div class="page-edit-nav-block scope-toggle">
+                        <div class="page-edit-scope-toggle" id="page-edit-scope-toggle">
+                            <button type="button" class="scope-btn active" data-scope="local" data-tooltip="{{ __('page.layout_local_hint') }}">
+                                <x-icon path="ph.regular.file" />
+                                <span>{{ __('page.layout_local') }}</span>
+                            </button>
+                            <button type="button" class="scope-btn" data-scope="global" data-tooltip="{{ __('page.layout_global_hint') }}">
+                                <x-icon path="ph.regular.globe" />
+                                <span>{{ __('page.layout_global') }}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">

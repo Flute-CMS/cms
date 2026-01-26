@@ -2,6 +2,7 @@
     'type' => 'text',
     'name' => '',
     'value' => '',
+    'default' => '',
     'prefix' => '',
     'mask' => '',
     'id' => '',
@@ -29,8 +30,11 @@
     <input type="hidden" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}" />
 @else
     <div class="input-wrapper">
-        <div id="input-{{ $inputId }}"
-            @class(['input__field-container', 'input__field-container-readonly' => $readOnly, 'has-error' => $hasError])>
+        <div id="input-{{ $inputId }}" @class([
+            'input__field-container',
+            'input__field-container-readonly' => $readOnly,
+            'has-error' => $hasError,
+        ])>
             @if ($prefix)
                 <span class="input__prefix">{{ $prefix }}</span>
             @endif
@@ -44,17 +48,18 @@
                     {{ $attributes->merge(['class' => 'filepond input__field']) }} />
             @elseif ($type === 'color')
                 <div class="color-input-container" style="display:flex;align-items:center;gap:.5em;width:100%">
-                    <div class="pickr pickr-trigger" role="button" tabindex="0" aria-label="{{ __('def.select_color') }}" data-input-id="{{ $inputId }}"></div>
+                    <div class="pickr pickr-trigger" role="button" tabindex="0"
+                        aria-label="{{ __('def.select_color') }}" data-input-id="{{ $inputId }}"></div>
 
                     <input type="text" name="{{ $name }}" id="{{ $inputId }}"
-                        value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }}
-                        @readonly($readOnly) data-color="{{ $value ?: '#42445A' }}"
+                        value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
+                        data-color="{{ $value ?: '#42445A' }}"
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-color']) }} />
                 </div>
             @elseif ($type === 'datetime')
                 <input type="text" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}"
-                    {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
+                    data-default="{{ $default }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
                     @if ($format) data-format="{{ $format }}" @endif
                     data-enable-time="{{ $enableTime ? 'true' : 'false' }}"
                     @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
@@ -81,7 +86,8 @@
                 </div>
             @else
                 <input type="{{ $type }}" name="{{ $name }}" id="{{ $inputId }}"
-                    data-input-mask="{{ $mask ?? '' }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
+                    data-input-mask="{{ $mask ?? '' }}" data-default="{{ $default }}"
+                    {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
                     @if (!empty($datalist)) list="datalist-{{ $inputId }}" @endif
                     value="{{ $value }}"
                     @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif

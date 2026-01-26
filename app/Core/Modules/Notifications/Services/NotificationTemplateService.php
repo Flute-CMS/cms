@@ -48,14 +48,16 @@ class NotificationTemplateService
 
         $cacheKey = self::CACHE_PREFIX . md5($key);
 
-        try {
-            $cached = cache()->get($cacheKey);
-            if ($cached instanceof NotificationTemplate) {
-                $this->templateCache[$key] = $cached;
+        if (!is_development()) {
+            try {
+                $cached = cache()->get($cacheKey);
+                if ($cached instanceof NotificationTemplate) {
+                    $this->templateCache[$key] = $cached;
 
-                return $cached;
+                    return $cached;
+                }
+            } catch (Throwable) {
             }
-        } catch (Throwable) {
         }
 
         $template = NotificationTemplate::findOne(['key' => $key]);
@@ -63,9 +65,11 @@ class NotificationTemplateService
         if ($template) {
             $this->templateCache[$key] = $template;
 
-            try {
-                cache()->set($cacheKey, $template, self::CACHE_TTL);
-            } catch (Throwable) {
+            if (!is_development()) {
+                try {
+                    cache()->set($cacheKey, $template, self::CACHE_TTL);
+                } catch (Throwable) {
+                }
             }
         }
 
@@ -202,7 +206,6 @@ class NotificationTemplateService
         $existing = $this->getByKey($key);
 
         if ($existing) {
-            // Update original_data for reset functionality
             if (!$existing->is_customized) {
                 $existing->title = $templateData['title'];
                 $existing->content = $templateData['content'];

@@ -13,6 +13,14 @@ class LayoutAPI {
     }
 
     /**
+     * Get current scope from editor
+     * @returns {string} 'local' or 'global'
+     */
+    getScope() {
+        return this.editor.scope || 'local';
+    }
+
+    /**
      * Fetch layout from server
      * @param {number} retries - Number of retries
      * @returns {Promise<Array|null>}
@@ -22,12 +30,16 @@ class LayoutAPI {
         this.isFetching = true;
 
         let retryCount = 0;
+        const scope = this.getScope();
 
         const tryFetch = async () => {
             try {
                 const currentPath = this.utils.getCurrentPath();
+                const scopeParam = `scope=${encodeURIComponent(scope)}`;
+                const pathParam = scope === 'local' ? `&path=${encodeURIComponent(currentPath)}` : '';
+                
                 const res = await this.utils.csrfFetch(
-                    u(`api/pages/get-layout?path=${encodeURIComponent(currentPath)}&_=${Date.now()}`),
+                    u(`api/pages/get-layout?${scopeParam}${pathParam}&_=${Date.now()}`),
                     {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' },
@@ -47,7 +59,8 @@ class LayoutAPI {
 
                 this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_LOADED, {
                     layout: json.layout,
-                    path: currentPath
+                    path: currentPath,
+                    scope: scope
                 });
 
                 return json.layout;
@@ -82,15 +95,23 @@ class LayoutAPI {
         if (this.isSaving) return false;
         this.isSaving = true;
 
+        const scope = this.getScope();
+
         try {
             const currentPath = this.utils.getCurrentPath();
+            const bodyData = {
+                layout: layoutData,
+                scope: scope
+            };
+            
+            if (scope === 'local') {
+                bodyData.path = currentPath;
+            }
+
             const res = await this.utils.csrfFetch(u('api/pages/save-layout'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    layout: layoutData,
-                    path: currentPath
-                }),
+                body: JSON.stringify(bodyData),
                 signal: AbortSignal.timeout(15000)
             });
 
@@ -102,7 +123,8 @@ class LayoutAPI {
 
             this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_SAVED, {
                 path: currentPath,
-                layout: layoutData
+                layout: layoutData,
+                scope: scope
             });
 
             return true;
@@ -248,10 +270,15 @@ class LayoutAPI {
             }
 
             // Add Content widget if missing
-            if (!hasContentWidget && this.utils.getCurrentPath() !== '/') {
-                setTimeout(() => {
-                    this.editor.addContentWidget();
-                }, 600);
+            // For global scope: Content is always required
+            // For local scope: Content is added only if not on home page
+            const scope = this.getScope();
+            if (!hasContentWidget) {
+                if (scope === 'global' || this.utils.getCurrentPath() !== '/') {
+                    setTimeout(() => {
+                        this.editor.addContentWidget();
+                    }, 600);
+                }
             }
 
         } catch (err) {

@@ -45,6 +45,11 @@ return [
     ],
     "saved_successfully" => "Page saved successfully!",
     "error_saving"       => "Error saving page!",
+    "layout_local" => "Local",
+    "layout_global" => "Global",
+    "layout_local_hint" => "Widgets only for the current page",
+    "layout_global_hint" => "Widgets for all pages on the site",
+    "global_layout_requires_content" => "Global layout must contain the Content widget",
     "seo" => [
         "title" => "Page SEO Settings",
         "edit_seo" => "Edit SEO",

@@ -11,6 +11,7 @@ class PageEditor {
         this.hasUnsavedChanges = false;
         this.isProcessing = false;
         this.skipHtmxConfirmation = false;
+        this.scope = 'local'; // 'local' or 'global'
         this._handlers = {
             beforeUnload: (e) => this.handleBeforeUnload(e),
             htmxAfterSwap: (e) => {
@@ -136,6 +137,110 @@ class PageEditor {
 
         // HTMX page navigation
         this.bindOnce(document, 'htmx:afterSwap', this._handlers.htmxAfterSwap, 'after-swap');
+
+        // Scope toggle (local/global)
+        this.setupScopeToggle();
+    }
+
+    /**
+     * Setup scope toggle buttons
+     */
+    setupScopeToggle() {
+        const scopeToggle = document.getElementById('page-edit-scope-toggle');
+        if (!scopeToggle) return;
+
+        const buttons = scopeToggle.querySelectorAll('.scope-btn');
+        buttons.forEach(btn => {
+            this.bindOnce(btn, 'click', async (e) => {
+                const newScope = btn.dataset.scope;
+                if (newScope === this.scope) return;
+
+                // Check for unsaved changes before switching
+                if (this.hasUnsavedChanges) {
+                    const confirmed = await this.confirmScopeSwitch();
+                    if (!confirmed) return;
+                }
+
+                this.switchScope(newScope);
+            }, `scope-${btn.dataset.scope}`);
+        });
+    }
+
+    /**
+     * Confirm scope switch with unsaved changes
+     * @returns {Promise<boolean>}
+     */
+    confirmScopeSwitch() {
+        return new Promise((resolve) => {
+            if (typeof app !== 'undefined' && app.confirmations) {
+                app.confirmations.showConfirmDialog({
+                    message: this.config.translations.unsavedChanges,
+                    type: 'warning',
+                    onConfirm: () => resolve(true),
+                    onCancel: () => resolve(false)
+                });
+            } else if (confirm(this.config.translations.unsavedChanges)) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+    }
+
+    /**
+     * Switch between local and global scope
+     * @param {string} newScope - 'local' or 'global'
+     */
+    async switchScope(newScope) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        try {
+            // Update UI
+            const scopeToggle = document.getElementById('page-edit-scope-toggle');
+            if (scopeToggle) {
+                scopeToggle.querySelectorAll('.scope-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.scope === newScope);
+                });
+            }
+
+            // Update state
+            this.scope = newScope;
+            this.hasUnsavedChanges = false;
+            this.history.clear();
+            this.updateUndoRedoButtons();
+            this.updateSaveButtonState();
+
+            // Clear current grid
+            const gridEl = document.getElementById('widget-grid');
+            if (gridEl) {
+                gridEl.innerHTML = '';
+            }
+
+            // Re-initialize localStorage with new scope
+            this.localStorage.initialize();
+
+            // Check for saved layout in localStorage first
+            const savedLayout = this.localStorage.loadLayout();
+            if (savedLayout) {
+                await this.layoutAPI.loadLayoutJson(savedLayout);
+                this.hasUnsavedChanges = true;
+                this.updateSaveButtonState();
+            } else {
+                // Fetch from server
+                const layout = await this.layoutAPI.fetchLayout();
+                if (layout) {
+                    await this.layoutAPI.loadLayoutJson(layout);
+                }
+            }
+
+            this.eventBus.emit(window.FlutePageEdit.events.SCOPE_CHANGED, { scope: newScope });
+
+        } catch (err) {
+            this.utils.logError('switchScope', err);
+        } finally {
+            this.isProcessing = false;
+        }
     }
 
     /**
@@ -517,7 +622,10 @@ class PageEditor {
      */
     addContentWidget() {
         if (!this.grid) return;
-        if (this.utils.getCurrentPath() === '/') return;
+        
+        // For local scope, don't add Content on home page
+        // For global scope, Content is always required
+        if (this.scope === 'local' && this.utils.getCurrentPath() === '/') return;
 
         const existingContentWidget = document.querySelector('#widget-grid [data-widget-name="Content"]');
         if (existingContentWidget) return;

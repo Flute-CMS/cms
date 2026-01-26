@@ -4,9 +4,8 @@ namespace Flute\Admin\Packages\NotificationTemplates\Screens;
 
 use Exception;
 use Flute\Admin\Platform\Actions\Button;
-use Flute\Admin\Platform\Fields\CheckBox;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
-use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TextArea;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -28,8 +27,6 @@ class NotificationTemplateEditScreen extends Screen
 
     public ?int $templateId = null;
 
-    public array $layoutTypes = [];
-
     public array $channelOptions = [];
 
     public function mount(): void
@@ -37,7 +34,6 @@ class NotificationTemplateEditScreen extends Screen
         $this->templateId = (int) request()->input('id');
 
         $service = app(NotificationTemplateService::class);
-        $this->layoutTypes = $service->getLayoutTypes();
         $this->channelOptions = $service->getChannels();
 
         if ($this->templateId) {
@@ -92,28 +88,15 @@ class NotificationTemplateEditScreen extends Screen
 
         $tabs = [];
 
-        $tabs[] = Tab::make(__('admin-notifications.tabs.content'))
-            ->icon('ph.bold.text-t-bold')
-            ->layouts([$this->contentLayout()])
+        $tabs[] = Tab::make(__('admin-notifications.tabs.settings'))
+            ->icon('ph.bold.gear-bold')
+            ->layouts([$this->settingsLayout()])
             ->active(true);
-
-        $tabs[] = Tab::make(__('admin-notifications.tabs.appearance'))
-            ->icon('ph.bold.paint-brush-bold')
-            ->layouts([$this->appearanceLayout()]);
 
         $tabs[] = Tab::make(__('admin-notifications.tabs.channels'))
             ->icon('ph.bold.broadcast-bold')
-            ->layouts([$this->channelsLayout()]);
-
-        $tabs[] = Tab::make(__('admin-notifications.tabs.variables'))
-            ->icon('ph.bold.code-bold')
-            ->layouts([$this->variablesLayout()])
-            ->badge(count($this->template->variables ?? []));
-
-        $tabs[] = Tab::make(__('admin-notifications.tabs.components'))
-            ->icon('ph.bold.squares-four-bold')
-            ->layouts([$this->componentsLayout()])
-            ->badge(count($this->template->components ?? []));
+            ->layouts([$this->channelsLayout()])
+            ->badge(count($this->template->getChannels() ?: []));
 
         return [
             LayoutFactory::tabs($tabs)
@@ -136,33 +119,27 @@ class NotificationTemplateEditScreen extends Screen
             'title' => ['required', 'string', 'max-str-len:255'],
             'content' => ['required', 'string'],
             'icon' => ['nullable', 'string', 'max-str-len:100'],
-            'layout' => ['nullable', 'string', 'max-str-len:50'],
-            'priority' => ['nullable', 'integer'],
-            'components_json' => ['nullable', 'string'],
         ], $data);
 
         if (!$validation) {
             return;
         }
 
-        // Parse components JSON
+        // Parse buttons
         $components = null;
-        if (!empty($data['components_json']) && $data['components_json'] !== '[]') {
-            $components = json_decode($data['components_json'], true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->inputError('components_json', __('admin-notifications.errors.invalid_json'));
-
-                return;
-            }
+        $buttons = $this->parseButtons($data);
+        if (!empty($buttons)) {
+            $components = [
+                ['type' => 'actions', 'buttons' => $buttons],
+            ];
         }
 
-        // Parse channels
+        // Parse channels from toggles
         $channels = [];
-        if (isset($data['channels']) && is_array($data['channels'])) {
-            foreach ($data['channels'] as $channel => $value) {
-                if ($value === 'on' || $value === true || $value === '1') {
-                    $channels[] = $channel;
-                }
+        foreach ($this->channelOptions as $key => $channel) {
+            $channelKey = 'channels_' . $key;
+            if (isset($data[$channelKey]) && ($data[$channelKey] === 'true' || $data[$channelKey] === '1')) {
+                $channels[] = $key;
             }
         }
 
@@ -176,11 +153,9 @@ class NotificationTemplateEditScreen extends Screen
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'icon' => $data['icon'] ?: null,
-                'layout' => $data['layout'] ?? 'standard',
-                'priority' => (int) ($data['priority'] ?? 100),
                 'components' => $components,
                 'channels' => $channels,
-                'is_enabled' => isset($data['is_enabled']) && ($data['is_enabled'] === 'on' || $data['is_enabled'] === true),
+                'is_enabled' => ($data['is_enabled'] ?? '0') === '1',
             ]);
 
             $this->flashMessage(__('admin-notifications.messages.saved'));
@@ -208,97 +183,111 @@ class NotificationTemplateEditScreen extends Screen
         }
     }
 
-    protected function contentLayout()
+    protected function parseButtons(array $data): array
     {
-        $fields = [
-            LayoutFactory::field(
-                Input::make('key')
-                    ->type('text')
-                    ->value($this->template->key)
-                    ->disabled(true)
-            )
-                ->label(__('admin-notifications.fields.key'))
-                ->small(__('admin-notifications.hints.key')),
+        $buttons = [];
+        $index = 0;
 
-            LayoutFactory::split([
-                LayoutFactory::field(
-                    Input::make('module')
-                        ->type('text')
-                        ->value($this->template->module ?? 'core')
-                        ->disabled(true)
-                )
-                    ->label(__('admin-notifications.fields.module')),
+        while (isset($data["button_{$index}_label"]) || isset($data["button_{$index}_url"])) {
+            $label = trim($data["button_{$index}_label"] ?? '');
+            $url = trim($data["button_{$index}_url"] ?? '');
 
-                LayoutFactory::field(
-                    CheckBox::make('is_enabled')
-                        ->label(__('admin-notifications.fields.enabled'))
-                        ->checked($this->template->is_enabled)
-                ),
-            ]),
-
-            LayoutFactory::field(
-                Input::make('title')
-                    ->type('text')
-                    ->value($this->template->title)
-                    ->placeholder(__('admin-notifications.placeholders.title'))
-            )
-                ->label(__('admin-notifications.fields.title'))
-                ->small(__('admin-notifications.hints.title'))
-                ->required(),
-
-            LayoutFactory::field(
-                TextArea::make('content')
-                    ->value($this->template->content)
-                    ->placeholder(__('admin-notifications.placeholders.content'))
-                    ->rows(5)
-            )
-                ->label(__('admin-notifications.fields.content'))
-                ->small(__('admin-notifications.hints.content'))
-                ->required(),
-        ];
-
-        return LayoutFactory::block($fields)
-            ->title(__('admin-notifications.blocks.content'));
-    }
-
-    protected function appearanceLayout()
-    {
-        $layoutOptions = [];
-        foreach ($this->layoutTypes as $key => $label) {
-            $layoutOptions[] = ['id' => $key, 'name' => $label];
+            if ($label !== '' || $url !== '') {
+                $buttons[] = [
+                    'label' => $label,
+                    'url' => $url,
+                    'type' => $data["button_{$index}_type"] ?? 'primary',
+                ];
+            }
+            $index++;
         }
 
-        $fields = [
-            LayoutFactory::split([
-                LayoutFactory::field(
-                    Input::make('icon')
-                        ->type('text')
-                        ->value($this->template->icon ?? '')
-                        ->placeholder('ph.bold.bell-bold')
-                )
-                    ->label(__('admin-notifications.fields.icon'))
-                    ->small(__('admin-notifications.hints.icon')),
+        return $buttons;
+    }
 
-                LayoutFactory::field(
-                    Select::make('layout')
-                        ->options($layoutOptions)
-                        ->value($this->template->layout)
-                )
-                    ->label(__('admin-notifications.fields.layout')),
+    protected function settingsLayout()
+    {
+        $variables = $this->template->getVariables();
+        $buttons = $this->extractButtons($this->template->getComponents());
+
+        return LayoutFactory::blank([
+            // Template info bar
+            LayoutFactory::block([
+                LayoutFactory::split([
+                    LayoutFactory::field(
+                        Input::make('key')
+                            ->value($this->template->key)
+                            ->readonly()
+                    )->label(__('admin-notifications.fields.key')),
+
+                    LayoutFactory::field(
+                        Input::make('module')
+                            ->value($this->template->module ?? 'core')
+                            ->readonly()
+                    )->label(__('admin-notifications.fields.module')),
+
+                    LayoutFactory::field(
+                        ButtonGroup::make('is_enabled')
+                            ->options([
+                                '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                                '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                            ])
+                            ->value($this->template->is_enabled ? '1' : '0')
+                            ->color('accent')
+                    )->label(__('admin-notifications.fields.enabled')),
+                ]),
+            ])->addClass('mb-3'),
+
+            // Main content
+            LayoutFactory::columns([
+                // Left: Form
+                LayoutFactory::blank([
+                    LayoutFactory::block([
+                        LayoutFactory::field(
+                            Input::make('title')
+                                ->value($this->template->title)
+                                ->placeholder(__('admin-notifications.placeholders.title'))
+                                ->required()
+                        )->label(__('admin-notifications.fields.title'))->required(),
+
+                        LayoutFactory::field(
+                            TextArea::make('content')
+                                ->value($this->template->content)
+                                ->placeholder(__('admin-notifications.placeholders.content'))
+                                ->rows(3)
+                                ->required()
+                        )->label(__('admin-notifications.fields.content'))->required(),
+
+                        LayoutFactory::view('admin-notifications::partials.variables-list', [
+                            'variables' => $variables,
+                        ]),
+
+                        LayoutFactory::field(
+                            Input::make('icon')
+                                ->type('icon')
+                                ->value($this->template->icon ?? '')
+                                ->placeholder('ph.bold.bell-bold')
+                        )->label(__('admin-notifications.fields.icon')),
+                    ])->title(__('admin-notifications.blocks.content')),
+
+                    // Buttons editor
+                    LayoutFactory::block([
+                        LayoutFactory::view('admin-notifications::partials.buttons-editor', [
+                            'buttons' => $buttons,
+                        ]),
+                    ])->title(__('admin-notifications.blocks.buttons'))
+                        ->description(__('admin-notifications.blocks.buttons_description'))
+                        ->addClass('mt-3'),
+                ]),
+
+                // Right: Preview
+                LayoutFactory::blank([
+                    LayoutFactory::view('admin-notifications::partials.preview', [
+                        'template' => $this->template,
+                    ]),
+                ]),
             ]),
-
-            LayoutFactory::field(
-                Input::make('priority')
-                    ->type('number')
-                    ->value((string) $this->template->priority)
-                    ->placeholder('100')
-            )
-                ->label(__('admin-notifications.fields.priority'))
-                ->small(__('admin-notifications.hints.priority')),
-        ];
-
-        return LayoutFactory::block($fields)
-            ->title(__('admin-notifications.blocks.appearance'));
+        ]);
     }
 
     protected function channelsLayout()
@@ -307,62 +296,29 @@ class NotificationTemplateEditScreen extends Screen
         if (empty($enabledChannels)) {
             $enabledChannels = ['inapp'];
         }
-        $checkboxes = [];
-
-        foreach ($this->channelOptions as $key => $channel) {
-            $checkboxes[] = LayoutFactory::field(
-                CheckBox::make("channels.{$key}")
-                    ->label($channel['name'])
-                    ->checked(in_array($key, $enabledChannels, true))
-                    ->disabled(!$channel['enabled'])
-            );
-        }
 
         return LayoutFactory::block([
-            LayoutFactory::view('admin-notifications::partials.channels-info'),
-            LayoutFactory::split($checkboxes),
+            LayoutFactory::view('admin-notifications::partials.channels-list', [
+                'channels' => $this->channelOptions,
+                'enabledChannels' => $enabledChannels,
+            ]),
         ])
             ->title(__('admin-notifications.blocks.channels'))
             ->description(__('admin-notifications.blocks.channels_description'));
     }
 
-    protected function variablesLayout()
+    protected function extractButtons(?array $components): array
     {
-        $variables = $this->template->getVariables();
-
-        if (empty($variables)) {
-            return LayoutFactory::block([
-                LayoutFactory::view('admin-notifications::partials.no-variables'),
-            ])
-                ->title(__('admin-notifications.blocks.variables'));
+        if (!$components) {
+            return [];
         }
 
-        return LayoutFactory::block([
-            LayoutFactory::view('admin-notifications::partials.variables-list', [
-                'variables' => $variables,
-            ]),
-        ])
-            ->title(__('admin-notifications.blocks.variables'))
-            ->description(__('admin-notifications.blocks.variables_description'));
-    }
+        foreach ($components as $component) {
+            if (($component['type'] ?? '') === 'actions' && isset($component['buttons'])) {
+                return $component['buttons'];
+            }
+        }
 
-    protected function componentsLayout()
-    {
-        $components = $this->template->getComponents();
-
-        $fields = [
-            LayoutFactory::field(
-                TextArea::make('components_json')
-                    ->value(!empty($components) ? json_encode($components, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]')
-                    ->placeholder('[]')
-                    ->rows(15)
-            )
-                ->label(__('admin-notifications.fields.components'))
-                ->small(__('admin-notifications.hints.components')),
-        ];
-
-        return LayoutFactory::block($fields)
-            ->title(__('admin-notifications.blocks.components'))
-            ->description(__('admin-notifications.blocks.components_description'));
+        return [];
     }
 }

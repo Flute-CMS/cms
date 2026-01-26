@@ -20,6 +20,8 @@ class NotificationTemplatesPackage extends AbstractAdminPackage
         $this->loadViews('Resources/views', 'admin-notifications');
 
         $this->loadTranslations('Resources/lang');
+
+        $this->registerScss('Resources/assets/scss/notifications.scss');
     }
 
     /**
@@ -50,7 +52,7 @@ class NotificationTemplatesPackage extends AbstractAdminPackage
      */
     public function getPriority(): int
     {
-        return 15;
+        return 18;
     }
 
     protected function getTemplatesCount(): int

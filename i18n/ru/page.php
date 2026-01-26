@@ -45,6 +45,11 @@ return [
     ],
     'saved_successfully' => 'Страница успешно сохранена!',
     'error_saving' => 'Ошибка сохранения страницы!',
+    'layout_local' => 'Локальные',
+    'layout_global' => 'Глобальные',
+    'layout_local_hint' => 'Виджеты только для текущей страницы',
+    'layout_global_hint' => 'Виджеты для всех страниц сайта',
+    'global_layout_requires_content' => 'Глобальный layout должен содержать виджет Content',
     'seo' => [
         'title' => 'SEO настройки страницы',
         'edit_seo' => 'Редактировать SEO',

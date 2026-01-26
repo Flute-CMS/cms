@@ -1,13 +1,13 @@
-<div class="d-flex flex-column gap-1">
-    <div class="d-flex align-items-center gap-2">
-        <code class="fw-semibold">{{ $model->key }}</code>
+<div class="notification-key">
+    <div class="notification-key__code">
+        <code>{{ $model->key }}</code>
         @if ($model->is_customized)
-            <span class="badge warning ms-2">{{ __('admin-notifications.customized') }}</span>
+            <span class="notification-key__customized" data-tooltip="{{ __('admin-notifications.customized') }}" data-tooltip-pos="top">
+                <x-icon path="ph.bold.pencil-simple-bold" />
+            </span>
         @endif
     </div>
-    @php
-        $module = $model->module ?? 'core';
-        $moduleClass = $module === 'core' ? 'primary' : 'secondary';
-    @endphp
-    <span class="badge {{ $moduleClass }}">{{ $module }}</span>
+    <span class="badge {{ ($model->module ?? 'core') === 'core' ? 'primary' : 'secondary' }} notification-key__module">
+        {{ $model->module ?? 'core' }}
+    </span>
 </div>

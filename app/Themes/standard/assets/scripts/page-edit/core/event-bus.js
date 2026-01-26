@@ -113,6 +113,10 @@ const PageEditEvents = {
     WIDGET_SETTINGS_SAVED: 'widgetSettingsSaved',
     WIDGET_SETTINGS_LOADED: 'widgetSettingsLoaded',
     WIDGET_CONTENT_LOADED: 'widgetContentLoaded',
+    WIDGET_DRAG_START: 'widgetDragStart',
+    WIDGET_DRAG_END: 'widgetDragEnd',
+    WIDGET_REORDERED: 'widgetReordered',
+    WIDGET_RESIZE_START: 'widgetResizeStart',
 
     // History events
     HISTORY_PUSH: 'historyPush',
@@ -129,6 +133,8 @@ const PageEditEvents = {
     // UI events
     SIDEBAR_OPENED: 'sidebarOpened',
     SIDEBAR_CLOSED: 'sidebarClosed',
+    SIDEBAR_DRAG_START: 'sidebarDragStart',
+    SIDEBAR_DRAG_END: 'sidebarDragEnd',
     CATEGORY_OPENED: 'categoryOpened',
     CATEGORY_CLOSED: 'categoryClosed',
     SEARCH_PERFORMED: 'searchPerformed',
@@ -136,6 +142,7 @@ const PageEditEvents = {
     // Mode events
     HEIGHT_MODE_CHANGED: 'heightModeChanged',
     CONTAINER_WIDTH_CHANGED: 'containerWidthChanged',
+    SCOPE_CHANGED: 'scopeChanged',
 
     // Error events
     ERROR: 'error',

@@ -520,8 +520,16 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     public function registerNotificationTemplates(\Flute\Core\Modules\Notifications\Contracts\NotificationTemplateProviderInterface $provider): void
     {
-        if (function_exists('notification_templates')) {
+        if (!function_exists('notification_templates')) {
+            logs('modules')->warning("notification_templates() helper not available for module: " . $this->getModuleName());
+
+            return;
+        }
+
+        try {
             notification_templates()->registerFromProvider($provider);
+        } catch (Throwable $e) {
+            logs('modules')->error("Failed to register notification templates for " . $this->getModuleName() . ": " . $e->getMessage());
         }
     }
 

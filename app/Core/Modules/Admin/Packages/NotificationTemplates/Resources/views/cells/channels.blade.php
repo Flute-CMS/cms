@@ -1,18 +1,19 @@
 @php
     $channels = $model->getChannels() ?: ['inapp'];
     $channelIcons = [
-        'inapp' => 'ph.bell',
-        'email' => 'ph.envelope',
-        'telegram' => 'ph.telegram-logo',
-        'push' => 'ph.device-mobile',
+        'inapp' => 'ph.bold.bell-bold',
+        'email' => 'ph.bold.envelope-bold',
+        'telegram' => 'ph.bold.telegram-logo-bold',
+        'push' => 'ph.bold.device-mobile-bold',
     ];
 @endphp
 
-<div class="d-flex flex-wrap gap-1">
+<div class="notification-channels">
     @foreach ($channels as $channel)
-        <span class="badge outline-primary d-inline-flex align-items-center gap-1">
-            <x-icon :name="$channelIcons[$channel] ?? 'ph.broadcast'" size="14" />
-            {{ $channel }}
+        <span class="notification-channels__item notification-channels__item--{{ $channel }}"
+            data-tooltip="{{ __('admin-notifications.channels.' . $channel) }}"
+            data-tooltip-pos="top">
+            <x-icon :path="$channelIcons[$channel] ?? 'ph.bold.broadcast-bold'" />
         </span>
     @endforeach
 </div>

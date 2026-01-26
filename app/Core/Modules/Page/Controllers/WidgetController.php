@@ -39,12 +39,30 @@ class WidgetController extends BaseController
     }
 
     /**
-     * Retrieves the layout for a specific page path.
+     * Retrieves the layout for a specific page path or global layout.
      *
-     * @param FluteRequest $fluteRequest The incoming request containing the path.
+     * @param FluteRequest $fluteRequest The incoming request containing the path and scope.
      */
     public function getLayout(FluteRequest $fluteRequest)
     {
+        $scope = $fluteRequest->query->get('scope', 'local');
+
+        // If requesting global layout, return it directly
+        if ($scope === 'global') {
+            try {
+                $layout = $this->pageManager->getGlobalLayout();
+
+                return $this->json([
+                    'layout' => $layout,
+                    'scope' => 'global',
+                ], 200);
+            } catch (Exception $e) {
+                logs()->error("Failed to retrieve global layout: " . $e->getMessage());
+
+                return $this->handleError($e, 'Failed to retrieve global layout');
+            }
+        }
+
         $rules = [
             'path' => 'string',
         ];
@@ -84,6 +102,7 @@ class WidgetController extends BaseController
 
             return $this->json([
                 'layout' => $layout,
+                'scope' => 'local',
             ], 200);
         } catch (Exception $e) {
             logs()->error("Failed to retrieve layout for path {$path}: ".$e->getMessage());
@@ -93,12 +112,46 @@ class WidgetController extends BaseController
     }
 
     /**
-     * Saves the layout for a specific page path.
+     * Saves the layout for a specific page path or global layout.
      *
      * @param FluteRequest $fluteRequest The incoming request containing layout data.
      */
     public function saveLayout(FluteRequest $fluteRequest)
     {
+        $scope = $fluteRequest->input('scope', 'local');
+
+        if ($scope === 'global') {
+            $rules = [
+                'layout' => 'array',
+            ];
+
+            if (!$this->validator->validate($fluteRequest->input(), $rules)) {
+                $errors = collect($this->validator->getErrors()->getMessages());
+                $firstError = $errors->first()[0] ?? 'Invalid input.';
+
+                return $this->json([
+                    'error' => $firstError,
+                    'errors' => $errors->toArray(),
+                ], 422);
+            }
+
+            $layout = $fluteRequest->input('layout', []);
+
+            try {
+                $this->pageManager->saveGlobalLayout($layout);
+                $this->toast(__('def.layout_saved'), 'success');
+
+                return $this->json([
+                    'message' => __('def.layout_saved'),
+                    'scope' => 'global',
+                ], 200);
+            } catch (Exception $e) {
+                logs()->error("Failed to save global layout: " . $e->getMessage());
+
+                return $this->handleError($e, 'Failed to save global layout');
+            }
+        }
+
         $rules = [
             'layout' => 'array',
             'path' => 'required|string',
@@ -129,6 +182,7 @@ class WidgetController extends BaseController
 
             return $this->json([
                 'message' => __('def.layout_saved'),
+                'scope' => 'local',
             ], 200);
         } catch (Exception $e) {
             logs()->error("Failed to save layout for path {$path}: ".$e->getMessage());
