@@ -76,9 +76,6 @@ class PaymentService
      */
     public function deletePromoCode(PromoCode $promoCode): void
     {
-        if ($this->hasActiveUsages($promoCode)) {
-            throw new Exception('Невозможно удалить промо-код, так как он уже использовался.');
-        }
         $promoCode->delete();
     }
 
@@ -154,14 +151,6 @@ class PaymentService
         }
 
         $promoCode->save();
-    }
-
-    /**
-     * Проверка наличия использований промо-кода.
-     */
-    private function hasActiveUsages(PromoCode $promoCode): bool
-    {
-        return !empty($promoCode->usages);
     }
 
     /**

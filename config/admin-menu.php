@@ -55,6 +55,6 @@ return [
         'key' => 'system-group',
         'title' => 'admin-menu.system',
         'icon' => 'ph.regular.info',
-        'children' => ['logs', 'updates', 'about'],
+        'children' => ['logs', 'backups', 'updates', 'about'],
     ],
 ];

@@ -8,7 +8,7 @@ const TOAST_ICONS = {
 
 // Initialize Notyf
 var notyf = new Notyf({
-    duration: 100000,
+    duration: 4000,
     position: { x: 'right', y: 'top' },
     dismissible: true,
     ripple: false,
@@ -54,7 +54,7 @@ function displayToast(toast) {
     const options = {
         type: type,
         message: message,
-        // duration: duration,
+        duration: duration,
         dismissible: toast.dismissible !== false,
     };
 

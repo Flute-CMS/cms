@@ -199,6 +199,7 @@ return [
     "hidden_warning"            => "Your profile is hidden from other users.",
     "profile_hidden"            => "This profile is hidden from other users.",
     "verification_warning"      => "Verify your email address to access additional features. <a href=\":link\">Verify</a>",
+    "verify_email"              => "Verify email",
 
     "admin_actions" => [
         "add_balance" => "Add balance",

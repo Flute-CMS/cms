@@ -277,5 +277,8 @@
     "show" => "Show",
     "role" => "Role",
     "menu" => "Menu",
-    "toggle_sidebar" => "Toggle sidebar"
+    "toggle_sidebar" => "Toggle sidebar",
+    "updated" => "Updated",
+    "created" => "Created",
+    "deleted" => "Deleted"
 ];

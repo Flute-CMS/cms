@@ -118,7 +118,7 @@ return [
         "share"                 => "Споделяне на грешките",
         "share_desc"            => "Изпращане на CMS грешки към сървъра на разработчика",
         "flute_copyright"       => "Споменаване на Flute",
-        "flute_copyright_desc"  => "A small link to Flute CMS in the site footer",
+        "flute_copyright_desc"  => "Малка връзка към Flute CMS в долната част на сайта",
         "csrf_enabled"          => "CSRF защита",
         "csrf_enabled_desc"     => "Защитава сайта ви от фалшифициране на заявки от различни сайтове. Препоръчваме ви да я поддържате включена",
         "convert_to_webp"       => "WebP изображения",
