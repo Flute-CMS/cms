@@ -4,7 +4,6 @@ namespace Flute\Admin\Packages\Payment\Services;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use Exception;
 use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\Role;
