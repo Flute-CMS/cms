@@ -1,365 +1,355 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const searchDialog = document.getElementById('search-dialog');
-    if (!searchDialog) return;
+class AdminSearch {
+    static instance = null;
+    static CONFIG = {
+        DEBOUNCE_MS: 200,
+        ENDPOINTS: {
+            SEARCH: '/admin/search',
+            COMMANDS: '/admin/search/commands',
+        },
+    };
 
-    const searchInput = searchDialog.querySelector('.search-dialog__input');
-    const searchTrigger = document.getElementById('search-trigger');
-    const searchResults = document.getElementById('search-results');
-    const commandSuggestions = document.getElementById('command-suggestions');
+    constructor() {
+        if (AdminSearch.instance) return AdminSearch.instance;
+        AdminSearch.instance = this;
 
-    let currentFocusIndex = -1;
-    let isCommandMode = false;
-    let activeContainer = searchResults;
-    let hasShownCommandsHint = false;
-    let lastCommandSearch = '';
-    let isExecutingSearch = false; // Flag to prevent concurrent searches
+        this.elements = {};
+        this.state = {
+            isOpen: false,
+            isLoading: false,
+            query: '',
+            focusIndex: -1,
+            isCommandMode: false,
+            abortController: null,
+        };
 
-    if (!window.htmx) {
-        console.error('HTMX is not loaded');
-        return;
+        this.debounceTimer = null;
+        this.init();
     }
 
-    const clearFocusedResult = (container) => {
-        const focused = container.querySelector(
-            '.search-result-item--focused, .command-suggestion-item--focused'
-        );
-        if (focused) {
-            focused.classList.remove('search-result-item--focused', 'command-suggestion-item--focused');
-            focused.setAttribute('aria-selected', 'false');
-        }
-    };
-
-    const focusResultByIndex = (container, index) => {
-        const selector = container === searchResults 
-            ? '.search-result-item' 
-            : '.command-suggestion-item';
-        
-        const items = container.querySelectorAll(selector);
-        if (items.length === 0) return;
-
-        if (index < 0) {
-            index = items.length - 1;
-        } else if (index >= items.length) {
-            index = 0;
-        }
-
-        clearFocusedResult(container);
-        const item = items[index];
-        const focusClass = container === searchResults 
-            ? 'search-result-item--focused' 
-            : 'command-suggestion-item--focused';
-        
-        item.classList.add(focusClass);
-        item.setAttribute('aria-selected', 'true');
-        item.scrollIntoView({ block: 'nearest' });
-        currentFocusIndex = index;
-    };
-
-    const openSearchDialog = () => {
-        searchDialog.classList.add('showing');
-        setTimeout(() => {
-            searchDialog.classList.remove('showing');
-        }, 10);
-
-        searchResults.classList.add('search-results--hidden');
-        commandSuggestions.classList.add('search-results--hidden');
-        searchResults.innerHTML = '';
-        commandSuggestions.innerHTML = '';
-        currentFocusIndex = -1;
-        isCommandMode = false;
-        activeContainer = searchResults;
-        hasShownCommandsHint = false;
-        lastCommandSearch = '';
-        isExecutingSearch = false;
-
-        searchInput.value = '';
-        searchInput.setAttribute('aria-expanded', 'false');
-
-        openModal('search-dialog');
-        searchInput.focus();
-    };
-
-    if (searchTrigger) {
-        searchTrigger.addEventListener('click', openSearchDialog);
+    init() {
+        this.cacheElements();
+        if (!this.elements.dialog) return;
+        this.bindEvents();
     }
 
-    const checkForSlashCommand = (value) => {
-        const containsSpace = value.includes(' ');
-        
-        if (value.startsWith('/')) {
-            if (containsSpace && !searchResults.classList.contains('search-results--hidden') && 
-                searchResults.querySelector('.search-result-item')) {
-                return false;
+    cacheElements() {
+        this.elements = {
+            dialog: document.getElementById('search-dialog'),
+            input: document.querySelector('#search-dialog .search-dialog__input'),
+            form: document.querySelector('#search-dialog .search-dialog__form'),
+            spinner: document.getElementById('search-spinner'),
+            escButton: document.querySelector('#search-dialog [data-close-search]'),
+            resultsContainer: document.getElementById('search-results'),
+            commandsContainer: document.getElementById('command-suggestions'),
+            emptyState: document.getElementById('search-empty'),
+            body: document.querySelector('#search-dialog .search-dialog__body'),
+            trigger: document.getElementById('search-trigger'),
+            sidebarTrigger: document.getElementById('sidebar-search-trigger'),
+        };
+    }
+
+    bindEvents() {
+        this.elements.form?.addEventListener('submit', (e) => e.preventDefault());
+        this.elements.input?.addEventListener('input', () => this.handleInput());
+        this.elements.input?.addEventListener('keydown', (e) => this.handleKeydown(e));
+        this.elements.escButton?.addEventListener('click', () => this.close());
+        this.elements.trigger?.addEventListener('click', () => this.open());
+        this.elements.sidebarTrigger?.addEventListener('click', () => this.open());
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                this.open();
             }
-            
-            isCommandMode = true;
-            activeContainer = commandSuggestions;
-            
-            if (value !== lastCommandSearch) {
-                lastCommandSearch = value;
-                fetchSlashCommands(value);
+        });
+
+        this.elements.dialog?.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal__container')) {
+                this.close();
             }
-            return true;
-        } else {
-            isCommandMode = false;
-            activeContainer = searchResults;
-            commandSuggestions.classList.add('search-results--hidden');
-            
-            if (!hasShownCommandsHint && value.length === 1) {
-                showCommandsHint();
-                hasShownCommandsHint = true;
+        });
+
+        this.elements.emptyState?.addEventListener('click', (e) => {
+            const tip = e.target.closest('[data-search-tip]');
+            if (tip) {
+                this.elements.input.value = tip.dataset.searchTip + ' ';
+                this.elements.input.focus();
+                this.handleInput();
             }
-            
-            return false;
-        }
-    };
+        });
 
-    const showCommandsHint = () => {
-        const hintHtml = `
-            <ul class="command-suggestions-list">
-                <li class="command-suggestion-item" data-command="/" data-tooltip="${translate('search.available_commands')}">
-                    <span class="command-name">/</span>
-                </li>
-            </ul>`;
+        this.elements.body?.addEventListener('click', (e) => {
+            const commandItem = e.target.closest('.search-command-item');
+            if (commandItem) {
+                e.preventDefault();
+                this.selectCommand(commandItem.dataset.command);
+                return;
+            }
 
-        commandSuggestions.innerHTML = hintHtml;
-        commandSuggestions.classList.remove('search-results--hidden');
-        commandSuggestions.classList.add('fade-in');
-    };
+            const resultLink = e.target.closest('.search-result-item a');
+            if (resultLink) {
+                e.preventDefault();
+                this.navigateTo(resultLink.href);
+            }
+        });
+    }
 
-    const fetchSlashCommands = (query = '/') => {
-        if (commandSuggestions.classList.contains('search-results--hidden')) {
-            commandSuggestions.classList.remove('search-results--hidden');
-            commandSuggestions.classList.add('fade-in');
-            searchInput.setAttribute('aria-expanded', 'true');
-        }
+    open() {
+        this.cacheElements();
+        this.reset();
+        if (typeof openModal === 'function') openModal('search-dialog');
+        this.state.isOpen = true;
+        requestAnimationFrame(() => this.elements.input?.focus());
+    }
 
-        if (query.includes(' ') && !searchResults.classList.contains('search-results--hidden') && 
-            searchResults.querySelector('.search-result-item')) {
-            commandSuggestions.classList.add('search-results--hidden');
+    close() {
+        if (typeof closeModal === 'function') closeModal('search-dialog');
+        this.state.isOpen = false;
+        this.cancelPendingRequest();
+    }
+
+    reset() {
+        this.state.query = '';
+        this.state.focusIndex = -1;
+        this.state.isCommandMode = false;
+        this.state.isLoading = false;
+
+        if (this.elements.input) this.elements.input.value = '';
+
+        this.hideResults();
+        this.hideCommands();
+        this.showEmptyState();
+        this.hideSpinner();
+    }
+
+    handleInput() {
+        const query = this.elements.input?.value.trim() || '';
+
+        if (query === this.state.query) return;
+        this.state.query = query;
+
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+
+        if (query.length === 0) {
+            this.reset();
+            if (this.elements.input) this.elements.input.value = '';
             return;
         }
 
-        if (searchInput.commandsTimer) {
-            clearTimeout(searchInput.commandsTimer);
-        }
+        this.state.isCommandMode = query.startsWith('/');
 
-        searchInput.commandsTimer = setTimeout(() => {
-            htmx.ajax('GET', `/admin/search/commands?query=${encodeURIComponent(query)}`, {
-                target: '#command-suggestions',
-                swap: 'innerHTML',
-            });
-        }, 150);
-    };
+        this.debounceTimer = setTimeout(() => {
+            const endpoint = this.state.isCommandMode
+                ? AdminSearch.CONFIG.ENDPOINTS.COMMANDS
+                : AdminSearch.CONFIG.ENDPOINTS.SEARCH;
+            this.fetchHTML(endpoint, query);
+        }, AdminSearch.CONFIG.DEBOUNCE_MS);
+    }
 
-    const selectCommand = (command) => {
-        searchInput.value = command;
-        commandSuggestions.classList.add('search-results--hidden');
-        isCommandMode = true;
-        activeContainer = searchResults;
-        
-        const event = new Event('keyup');
-        searchInput.dispatchEvent(event);
-        
-        searchInput.focus();
-    };
+    handleKeydown(event) {
+        const { key } = event;
+        const items = this.getNavigableItems();
+        const totalItems = items.length;
 
-    const performSearch = (value) => {
-        if (isExecutingSearch) return;
-        
-        isExecutingSearch = true;
-        
-        if (searchInput.searchTimer) {
-            clearTimeout(searchInput.searchTimer);
-        }
-
-        searchInput.searchTimer = setTimeout(() => {
-            if (value.length > 0) {
-                if (!checkForSlashCommand(value)) {
-                    if (searchResults.classList.contains('search-results--hidden')) {
-                        searchResults.classList.remove('search-results--hidden');
-                        searchResults.classList.add('fade-in');
-                        searchInput.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            } else {
-                searchResults.classList.add('search-results--hidden');
-                commandSuggestions.classList.add('search-results--hidden');
-                searchResults.innerHTML = '';
-                commandSuggestions.innerHTML = '';
-                searchInput.setAttribute('aria-expanded', 'false');
-                currentFocusIndex = -1;
-                hasShownCommandsHint = false;
-                lastCommandSearch = '';
-            }
-            isExecutingSearch = false;
-        }, 200);
-    };
-
-    searchInput.addEventListener('input', (e) => {
-        const value = searchInput.value.trim();
-        performSearch(value);
-    });
-
-    searchDialog.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal__container')) {
-            closeModal('search-dialog');
-        } 
-        
-        const commandItem = e.target.closest('.command-suggestion-item');
-        if (commandItem) {
-            const command = commandItem.dataset.command;
-            selectCommand(command);
-        }
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-        const hasCommandItems = commandSuggestions.querySelectorAll('.command-suggestion-item').length > 0;
-        const isCommandVisible = !commandSuggestions.classList.contains('search-results--hidden');
-        
-        if (isCommandMode && hasCommandItems && isCommandVisible) {
-            activeContainer = commandSuggestions;
-        } else {
-            activeContainer = searchResults;
-        }
-
-        const selector = activeContainer === searchResults 
-            ? '.search-result-item' 
-            : '.command-suggestion-item';
-            
-        const items = activeContainer.querySelectorAll(selector);
-        if (items.length === 0) return;
-
-        switch (e.key) {
+        switch (key) {
             case 'ArrowDown':
-                e.preventDefault();
-                if (currentFocusIndex < items.length - 1) {
-                    focusResultByIndex(activeContainer, currentFocusIndex + 1);
-                } else {
-                    focusResultByIndex(activeContainer, 0);
+                event.preventDefault();
+                if (totalItems > 0) {
+                    this.state.focusIndex = (this.state.focusIndex + 1) % totalItems;
+                    this.updateFocus(items);
                 }
                 break;
+
             case 'ArrowUp':
-                e.preventDefault();
-                if (currentFocusIndex > 0) {
-                    focusResultByIndex(activeContainer, currentFocusIndex - 1);
-                } else {
-                    focusResultByIndex(activeContainer, items.length - 1);
+                event.preventDefault();
+                if (totalItems > 0) {
+                    this.state.focusIndex = this.state.focusIndex <= 0 ? totalItems - 1 : this.state.focusIndex - 1;
+                    this.updateFocus(items);
                 }
                 break;
+
             case 'Enter':
-                e.preventDefault();
-                if (activeContainer === commandSuggestions && currentFocusIndex > -1) {
-                    const focusedItem = activeContainer.querySelector(
-                        '.command-suggestion-item--focused'
-                    );
-                    if (focusedItem) {
-                        selectCommand(focusedItem.dataset.command);
-                    }
-                } else if (currentFocusIndex > -1) {
-                    const focusedItem = activeContainer.querySelector(
-                        '.search-result-item--focused a'
-                    );
-                    if (focusedItem) {
-                        focusedItem.click();
-                        closeModal('search-dialog');
-                    }
-                } else {
-                    const firstLink = activeContainer.querySelector(
-                        '.search-result-item a'
-                    );
-                    if (firstLink) {
-                        firstLink.click();
-                        closeModal('search-dialog');
-                    }
-                }
+                event.preventDefault();
+                this.selectFocusedItem(items);
                 break;
+
             case 'Tab':
-                if (activeContainer === commandSuggestions && currentFocusIndex > -1) {
-                    e.preventDefault();
-                    const focusedItem = activeContainer.querySelector(
-                        '.command-suggestion-item--focused'
-                    );
-                    if (focusedItem) {
-                        selectCommand(focusedItem.dataset.command);
-                    }
+                if (this.state.isCommandMode && this.state.focusIndex >= 0) {
+                    event.preventDefault();
+                    const focused = items[this.state.focusIndex];
+                    if (focused?.dataset?.command) this.selectCommand(focused.dataset.command);
                 }
                 break;
+
             case 'Escape':
-                closeModal('search-dialog');
-                break;
-            default:
+                event.preventDefault();
+                this.close();
                 break;
         }
-    });
+    }
 
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.code === 'KeyK') {
-            e.preventDefault();
-            openSearchDialog();
+    getNavigableItems() {
+        const commandItems = this.elements.commandsContainer?.querySelectorAll('.search-command-item') || [];
+        const resultItems = this.elements.resultsContainer?.querySelectorAll('.search-result-item') || [];
+
+        if (commandItems.length > 0 && !this.elements.commandsContainer?.classList.contains('search-section--hidden')) {
+            return Array.from(commandItems);
         }
-    });
+        return Array.from(resultItems);
+    }
 
-    document.addEventListener('htmx:afterSwap', (e) => {
-        if (e.detail.target.getAttribute('id') === 'search-results') {
-            if (searchInput.value.trim().length === 0) {
-                searchResults.classList.add('search-results--hidden');
-                searchResults.innerHTML = '';
-                searchInput.setAttribute('aria-expanded', 'false');
-                currentFocusIndex = -1;
+    updateFocus(items) {
+        items.forEach((item, index) => {
+            const isCommand = item.classList.contains('search-command-item');
+            const focusClass = isCommand ? 'search-command-item--focused' : 'search-result-item--focused';
+
+            if (index === this.state.focusIndex) {
+                item.classList.add(focusClass);
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             } else {
-                clearFocusedResult(searchResults);
-                const firstResult = searchResults.querySelector(
-                    '.search-result-item a'
-                );
-                if (firstResult) {
-                    const parentItem = firstResult.parentElement;
-                    parentItem.classList.add('search-result-item--focused');
-                    firstResult.setAttribute('aria-selected', 'true');
-                    currentFocusIndex = 0;
-                }
-                
-                if (searchResults.querySelector('.search-result-item') && 
-                    !commandSuggestions.classList.contains('search-results--hidden')) {
-                    commandSuggestions.classList.add('search-results--hidden');
-                }
+                item.classList.remove(focusClass);
             }
+        });
+    }
+
+    selectFocusedItem(items) {
+        if (this.state.focusIndex < 0 && items.length > 0) this.state.focusIndex = 0;
+        if (this.state.focusIndex < 0 || this.state.focusIndex >= items.length) return;
+
+        const focused = items[this.state.focusIndex];
+        if (!focused) return;
+
+        if (focused.classList.contains('search-command-item')) {
+            this.selectCommand(focused.dataset.command);
+        } else {
+            const link = focused.querySelector('a');
+            if (link) this.navigateTo(link.href);
+        }
+    }
+
+    selectCommand(command) {
+        if (!command) return;
+
+        this.elements.input.value = command + ' ';
+        this.state.query = command + ' ';
+        this.state.isCommandMode = false;
+        this.state.focusIndex = -1;
+
+        this.hideCommands();
+        this.elements.input.focus();
+
+        setTimeout(() => this.fetchHTML(AdminSearch.CONFIG.ENDPOINTS.SEARCH, this.state.query), 50);
+    }
+
+    navigateTo(url) {
+        this.close();
+
+        if (window.htmx) {
+            htmx.ajax('GET', url, { target: '#main', swap: 'outerHTML transition:true' });
+        } else {
+            window.location.href = url;
+        }
+    }
+
+    async fetchHTML(endpoint, query) {
+        this.cancelPendingRequest();
+        this.showSpinner();
+
+        try {
+            this.state.abortController = new AbortController();
+
+            const response = await fetch(`${endpoint}?query=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: this.state.abortController.signal,
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const html = await response.text();
+
+            if (this.state.query === query || this.state.query.startsWith(query)) {
+                this.renderHTML(html);
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Search error:', error);
+            }
+        } finally {
+            this.hideSpinner();
+        }
+    }
+
+    renderHTML(html) {
+        this.hideEmptyState();
+
+        const hasCommands = html.includes('search-command-item');
+        const hasResults = html.includes('search-result-item') || html.includes('search-group') || html.includes('search-no-results');
+        const isTips = html.includes('search-tips__item');
+
+        if (isTips) {
+            this.showEmptyState();
+            this.hideResults();
+            this.hideCommands();
+            return;
         }
 
-        if (e.detail.target.getAttribute('id') === 'command-suggestions') {
-            const firstCommand = commandSuggestions.querySelector(
-                '.command-suggestion-item'
-            );
-            
-            if (commandSuggestions.querySelector('.search-results-list')) {
-                searchResults.innerHTML = commandSuggestions.innerHTML;
-                commandSuggestions.innerHTML = '';
-                commandSuggestions.classList.add('search-results--hidden');
-                searchResults.classList.remove('search-results--hidden');
-                searchResults.classList.add('fade-in');
-                
-                const firstResult = searchResults.querySelector('.search-result-item a');
-                if (firstResult) {
-                    const parentItem = firstResult.parentElement;
-                    parentItem.classList.add('search-result-item--focused');
-                    firstResult.setAttribute('aria-selected', 'true');
-                    currentFocusIndex = 0;
-                }
-                
-                if (searchInput.value.includes(' ')) {
-                    isCommandMode = false;
-                    activeContainer = searchResults;
-                }
-            } else if (firstCommand) {
-                clearFocusedResult(commandSuggestions);
-                firstCommand.classList.add('command-suggestion-item--focused');
-                firstCommand.setAttribute('aria-selected', 'true');
-                currentFocusIndex = 0;
-            }
+        if (hasCommands) {
+            this.elements.commandsContainer.innerHTML = html;
+            this.elements.commandsContainer.classList.remove('search-section--hidden');
+            this.elements.commandsContainer.classList.add('search-fade-in');
+            this.hideResults();
+        } else if (hasResults) {
+            this.elements.resultsContainer.innerHTML = html;
+            this.elements.resultsContainer.classList.remove('search-section--hidden');
+            this.elements.resultsContainer.classList.add('search-fade-in');
+            this.hideCommands();
         }
 
-        if (e.detail.target.getAttribute('id') === 'main') {
-            closeModal('search-dialog');
+        this.state.focusIndex = 0;
+        this.updateFocus(this.getNavigableItems());
+    }
+
+    cancelPendingRequest() {
+        if (this.state.abortController) {
+            this.state.abortController.abort();
+            this.state.abortController = null;
         }
-    });
+    }
+
+    showSpinner() {
+        this.state.isLoading = true;
+        this.elements.spinner?.classList.add('yoyo-request');
+    }
+
+    hideSpinner() {
+        this.state.isLoading = false;
+        this.elements.spinner?.classList.remove('yoyo-request');
+    }
+
+    showEmptyState() {
+        if (this.elements.emptyState) this.elements.emptyState.style.display = '';
+    }
+
+    hideEmptyState() {
+        if (this.elements.emptyState) this.elements.emptyState.style.display = 'none';
+    }
+
+    hideResults() {
+        if (this.elements.resultsContainer) {
+            this.elements.resultsContainer.classList.add('search-section--hidden');
+            this.elements.resultsContainer.innerHTML = '';
+        }
+    }
+
+    hideCommands() {
+        if (this.elements.commandsContainer) {
+            this.elements.commandsContainer.classList.add('search-section--hidden');
+            this.elements.commandsContainer.innerHTML = '';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.adminSearch = new AdminSearch();
 });

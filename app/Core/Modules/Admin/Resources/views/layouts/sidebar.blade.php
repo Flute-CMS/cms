@@ -3,18 +3,15 @@
     'collapsed' => cookie()->get('admin-sidebar-collapsed', 'false') === 'true' && !user()->device()->isMobile(),
 ]) hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
     <div class="sidebar__header" hx-boost="false">
-        <a href="{{ url('/') }}" class="sidebar__logo-collapsed">
-            <img src="{{ asset('assets/img/flute_logo-simple.svg') }}" alt="{{ __('def.home') }}" loading="lazy">
-        </a>
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-dark">
             <img src="{{ asset(config('app.logo')) }}" alt="{{ __('def.home') }}" loading="lazy">
             <p>{{ config('app.name') }}</p>
         </a>
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-light">
             <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('def.home') }}" loading="lazy">
-            <p>{{ config('app.name')  }}</p>
+            <p>{{ config('app.name') }}</p>
         </a>
-        <button class="sidebar__toggle">
+        <button class="sidebar__toggle" data-tooltip="{{ __('def.toggle_sidebar') }}" data-tooltip-placement="right">
             <x-icon path="ph.regular.sidebar-simple" />
         </button>
         <button class="sidebar__toggle-mobile hamburger" aria-label="Toggle Sidebar">
@@ -22,17 +19,15 @@
         </button>
     </div>
 
-    <div class="sidebar__container">
-        <div class="sidebar__section sidebar__section--recent" id="recent-pages" style="display: none;">
-            <button class="sidebar__section-header" data-section="recent">
-                <span class="sidebar__section-title">{{ __('admin.recent_pages') }}</span>
-                <x-icon path="ph.regular.caret-down" class="sidebar__section-chevron" />
-            </button>
-            <div class="sidebar__section-content">
-                <ul class="sidebar__recent-list" id="recent-pages-list"></ul>
-            </div>
-        </div>
+    <div class="sidebar__search" hx-boost="false">
+        <button class="sidebar__search-btn" id="sidebar-search-trigger">
+            <x-icon path="ph.regular.magnifying-glass" class="sidebar__search-icon" />
+            <span class="sidebar__search-text">{{ __('search.quick_search') }}</span>
+            <kbd class="sidebar__search-kbd">Ctrl K</kbd>
+        </button>
+    </div>
 
+    <div class="sidebar__container">
         <nav class="sidebar__content">
             @php
                 $menuSections = app(\Flute\Admin\AdminPanel::class)->getAllMenuItems();
@@ -41,33 +36,17 @@
             @foreach ($menuSections as $sectionIndex => $section)
                 @if (!empty($section['items']))
                     <div class="sidebar__section" data-section-id="{{ $sectionIndex }}">
-                        @if ($section['title'])
-                            <button class="sidebar__section-header" data-section="{{ $sectionIndex }}">
-                                <span class="sidebar__section-title">{{ __($section['title']) }}</span>
-                                <x-icon path="ph.regular.caret-down" class="sidebar__section-chevron" />
-                            </button>
+                        @if (!empty($section['title']))
+                            <div class="sidebar__section-title">{{ $section['title'] }}</div>
                         @endif
-                        <div class="sidebar__section-content @if(!$section['title']) sidebar__section-content--no-header @endif">
-                            <ul class="sidebar__menu">
-                                @foreach ($section['items'] as $item)
-                                    <x-menu-item :item="$item" />
-                                @endforeach
-                            </ul>
-                        </div>
+                        <ul class="sidebar__menu">
+                            @foreach ($section['items'] as $item)
+                                <x-menu-item :item="$item" />
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
             @endforeach
         </nav>
-    </div>
-
-    <div class="sidebar__footer" hx-boost="false">
-        <a href="{{ url('/') }}" class="sidebar__footer-link" data-tooltip="{{ __('admin.back_to_site') }}" data-tooltip-placement="right">
-            <x-icon path="ph.regular.house" />
-            <span>{{ __('admin.back_to_site') }}</span>
-        </a>
-        <a href="{{ url('/profile/' . user()->getUrl()) }}" class="sidebar__footer-user">
-            <img src="{{ url(user()->getCurrentUser()->avatar) }}" alt="{{ user()->getCurrentUser()->name }}" loading="lazy">
-            <span>{{ user()->getCurrentUser()->name }}</span>
-        </a>
     </div>
 </aside>

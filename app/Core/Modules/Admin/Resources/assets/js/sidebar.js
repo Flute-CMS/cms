@@ -1,179 +1,49 @@
 $(document).ready(function () {
-    const RECENT_PAGES_KEY = 'admin_recent_pages';
-    const COLLAPSED_SECTIONS_KEY = 'admin_collapsed_sections';
-    const MAX_RECENT_PAGES = 5;
-
-    function getRecentPages() {
-        try {
-            return JSON.parse(localStorage.getItem(RECENT_PAGES_KEY)) || [];
-        } catch {
-            return [];
-        }
+    var sidebarState = getCookie('admin-sidebar-collapsed');
+    if (sidebarState === 'true') {
+        $('body').addClass('sidebar-collapsed');
+        $('.sidebar').addClass('collapsed');
+        toggleMenuTooltips(true);
+    } else {
+        $('body').removeClass('sidebar-collapsed');
+        $('.sidebar').removeClass('collapsed');
+        toggleMenuTooltips(false);
     }
 
-    function saveRecentPages(pages) {
-        localStorage.setItem(RECENT_PAGES_KEY, JSON.stringify(pages));
-    }
-
-    function getCollapsedSections() {
-        try {
-            return JSON.parse(localStorage.getItem(COLLAPSED_SECTIONS_KEY)) || [];
-        } catch {
-            return [];
-        }
-    }
-
-    function saveCollapsedSections(sections) {
-        localStorage.setItem(COLLAPSED_SECTIONS_KEY, JSON.stringify(sections));
-    }
-
-    function addRecentPage(title, url, svgHtml, parentTitle) {
-        if (!title || !url || url === '/admin' || url === '/admin/') return;
-
-        let pages = getRecentPages();
-        pages = pages.filter(p => p.url !== url);
-
-        pages.unshift({
-            title,
-            url,
-            svg: svgHtml || '',
-            parent: parentTitle || null,
-            timestamp: Date.now()
-        });
-        pages = pages.slice(0, MAX_RECENT_PAGES);
-        saveRecentPages(pages);
-        renderRecentPages();
-    }
-
-    function renderRecentPages() {
-        const $list = $('#recent-pages-list');
-        const $container = $('#recent-pages');
-        const pages = getRecentPages();
-
-        if (pages.length === 0) {
-            $container.hide();
-            return;
-        }
-
-        $container.show();
-        $list.empty();
-
-        pages.forEach(page => {
-            const parentHtml = page.parent ? `<span class="recent-path">${page.parent} →</span>` : '';
-            const svgHtml = page.svg || '<svg viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"></path></svg>';
-
-            const $item = $(`
-                <li class="sidebar__recent-item">
-                    <a href="${page.url}">
-                        <span class="recent-icon">${svgHtml}</span>
-                        <span class="recent-title">
-                            ${parentHtml}
-                            <span class="recent-name">${page.title}</span>
-                        </span>
-                    </a>
-                </li>
-            `);
-            $list.append($item);
-        });
-
-        htmx.process($list[0]);
-    }
-
-    function trackCurrentPage() {
-        const $activeItem = $('.sidebar__menu .menu-item.active');
-        if ($activeItem.length) {
-            const title = $activeItem.find('.menu-title').text().trim();
-            const url = $activeItem.attr('href');
-
-            const $svg = $activeItem.find('.menu-icon svg').first();
-            let svgHtml = '';
-            if ($svg.length) {
-                svgHtml = $svg[0].outerHTML;
-            }
-
-            let parentTitle = null;
-            const $parentSubmenu = $activeItem.closest('.menu-sub');
-            if ($parentSubmenu.length) {
-                const $parentItem = $parentSubmenu.prev('.menu-item');
-                if ($parentItem.length) {
-                    parentTitle = $parentItem.find('.menu-title').text().trim();
-                }
-            }
-
-            addRecentPage(title, url, svgHtml, parentTitle);
-        }
-    }
-
-    function initCollapsibleSections() {
-        const collapsedSections = getCollapsedSections();
-
-        $('.sidebar__section, .sidebar__section--recent').each(function () {
-            const $section = $(this);
-            const $header = $section.find('.sidebar__section-header');
-            const sectionId = $header.data('section');
-            const $content = $section.find('.sidebar__section-content');
-
-            if (collapsedSections.includes(sectionId) || collapsedSections.includes(String(sectionId))) {
-                $section.addClass('collapsed');
-                $content.css('display', 'none');
-            }
-        });
-
-        $(document).on('click', '.sidebar__section-header', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const $header = $(this);
-            const $section = $header.closest('.sidebar__section, .sidebar__section--recent');
-            const $content = $section.find('.sidebar__section-content');
-            const sectionId = String($header.data('section'));
-            const isCollapsed = $section.hasClass('collapsed');
-
-            if (isCollapsed) {
-                $section.removeClass('collapsed');
-                $content.css('display', 'block');
+    // Toggle tooltips for menu items based on sidebar state
+    function toggleMenuTooltips(show) {
+        $('.sidebar .menu-item[data-tooltip-text]').each(function () {
+            const $item = $(this);
+            if (show) {
+                $item.attr('data-tooltip', $item.attr('data-tooltip-text'));
             } else {
-                $section.addClass('collapsed');
-                $content.css('display', 'none');
+                $item.removeAttr('data-tooltip');
             }
-
-            let sections = getCollapsedSections().map(String);
-            if (isCollapsed) {
-                sections = sections.filter(s => s !== sectionId);
-            } else {
-                if (!sections.includes(sectionId)) {
-                    sections.push(sectionId);
-                }
+        });
+        $('.sidebar .menu-item[data-tooltip]').each(function () {
+            const $item = $(this);
+            if (!$item.attr('data-tooltip-text')) {
+                $item.attr('data-tooltip-text', $item.attr('data-tooltip'));
             }
-            saveCollapsedSections(sections);
+            if (!show) {
+                $item.removeAttr('data-tooltip');
+            }
         });
     }
 
     function closeSubmenuAnimated($parentItem, callback) {
-        const $submenu = $parentItem.find('> .menu-sub');
-        if (!$submenu.length) return;
-
-        $submenu.css('display', 'none');
         $parentItem.removeClass('open');
-        if (callback) callback();
+        if (callback) setTimeout(callback, 250);
     }
 
     function openSubmenuAnimated($parentItem, callback) {
-        const $submenu = $parentItem.find('> .menu-sub');
-        if (!$submenu.length) return;
-
-        $submenu.css('display', 'block');
         $parentItem.addClass('open');
-        if (callback) callback();
+        if (callback) setTimeout(callback, 250);
     }
 
     function closeAllSubmenus(callback) {
-        $('.sidebar__menu-item.sub-menu.open').each(function () {
-            const $item = $(this);
-            $item.removeClass('open');
-            $item.find('> .menu-sub').css('display', 'none');
-        });
-        if (callback) callback();
+        $('.sidebar__menu-item.sub-menu.open').removeClass('open');
+        if (callback) setTimeout(callback, 250);
     }
 
     function positionSubmenu($menuItem, $submenu) {
@@ -192,7 +62,6 @@ $(document).ready(function () {
                 left: `${x}px`,
                 top: `${y}px`,
                 position: 'fixed',
-                // Keep above everything (dropdown has 1000000 in SCSS)
                 zIndex: 1000001,
             });
 
@@ -227,28 +96,7 @@ $(document).ready(function () {
         }
     }
 
-    var sidebarState = getCookie('admin-sidebar-collapsed');
-    if (sidebarState === 'true') {
-        $('body').addClass('sidebar-collapsed');
-        $('.sidebar').addClass('collapsed');
-        $('.navbar .sidebar__toggle').show();
-
-        $('.sidebar__menu > .sidebar__menu-item > .menu-item').each(function () {
-            const $menuItem = $(this);
-            const menuTitle = $menuItem.find('.menu-title').text().trim();
-            $menuItem.attr('data-tooltip', menuTitle);
-            $menuItem.attr('data-tooltip-placement', 'right');
-        });
-    } else {
-        $('body').removeClass('sidebar-collapsed');
-        $('.sidebar').removeClass('collapsed');
-        $('.navbar .sidebar__toggle').hide();
-        $('.sidebar__menu > .sidebar__menu-item > .menu-item').removeAttr('data-tooltip');
-    }
-
-    initCollapsibleSections();
-
-    // Delegate so it still works after sidebar HTML refresh.
+    // Submenu click handler
     $(document).on('click', '.sidebar__menu-item.sub-menu > .menu-item', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -277,8 +125,6 @@ $(document).ready(function () {
         } else {
             if (isCollapsed) {
                 $('.cloned-menu-sub').remove();
-                // Keep the original submenu hidden in collapsed mode; we only show the flyout clone.
-                $submenu.css('display', 'none');
                 const $clone = $submenu.clone().addClass('cloned-menu-sub').appendTo('body');
                 htmx.process($clone[0]);
 
@@ -293,7 +139,6 @@ $(document).ready(function () {
                 positionSubmenu($menuItem, $clone);
 
                 requestAnimationFrame(() => {
-                    // Make sure it's visible even if CSS transition is disrupted
                     $clone.addClass('open').css({ opacity: 1 });
                     $parentItem.addClass('open');
                 });
@@ -308,6 +153,7 @@ $(document).ready(function () {
         updateIndicator();
     });
 
+    // Close submenus when clicking outside
     $(document).on('click', function (e) {
         const $sidebar = $('.sidebar');
         if (!$sidebar.is(e.target) && $sidebar.has(e.target).length === 0) {
@@ -319,43 +165,32 @@ $(document).ready(function () {
         }
     });
 
-    $(document).on('click', '.sidebar__toggle', function () {
+    // Toggle sidebar collapse - both old button and new one in profile dropdown
+    $(document).on('click', '.sidebar__toggle, .sidebar__toggle-collapse', function (e) {
+        e.preventDefault();
+
         $('.sidebar').toggleClass('collapsed');
 
         if ($('.sidebar').hasClass('collapsed')) {
             $('body').addClass('sidebar-collapsed');
-            $('.navbar .sidebar__toggle').show();
             setCookie('admin-sidebar-collapsed', 'true', 7);
+            toggleMenuTooltips(true);
 
             $('.cloned-menu-sub').remove();
-            $('.sidebar__menu-item.sub-menu.open').each(function () {
-                $(this).removeClass('open');
-                $(this).find('.menu-sub').css('display', 'none');
-            });
-
-            $('.sidebar__menu > .sidebar__menu-item > .menu-item').each(function () {
-                const $menuItem = $(this);
-                const menuTitle = $menuItem.find('.menu-title').text().trim();
-                $menuItem.attr('data-tooltip', menuTitle);
-                $menuItem.attr('data-tooltip-placement', 'right');
-            });
+            $('.sidebar__menu-item.sub-menu.open').removeClass('open');
         } else {
             $('body').removeClass('sidebar-collapsed');
-            $('.navbar .sidebar__toggle').hide();
             setCookie('admin-sidebar-collapsed', 'false', 7);
+            toggleMenuTooltips(false);
 
             $('.cloned-menu-sub').remove();
-            $('.sidebar__menu-item.sub-menu.open').each(function () {
-                $(this).removeClass('open');
-                $(this).find('.menu-sub').css('display', 'none');
-            });
-
-            $('.sidebar__menu > .sidebar__menu-item > .menu-item').removeAttr('data-tooltip');
+            $('.sidebar__menu-item.sub-menu.open').removeClass('open');
         }
 
         updateIndicator();
     });
 
+    // Mobile toggle
     const $toggleButton = $('.sidebar__toggle-mobile');
     const $sidebar = $('.sidebar');
 
@@ -385,7 +220,6 @@ $(document).ready(function () {
         toggleOverlay(false);
         $('.cloned-menu-sub').remove();
         updateIndicator();
-        trackCurrentPage();
     });
 
     function updateIndicator() {
@@ -403,8 +237,6 @@ $(document).ready(function () {
     }
 
     updateIndicator();
-    renderRecentPages();
-    trackCurrentPage();
 
     $('.sidebar__container').on('scroll', updateIndicator);
 
@@ -434,9 +266,8 @@ $(document).ready(function () {
                         if (typeof htmx !== 'undefined') {
                             htmx.process(sidebar);
                         }
-                        renderRecentPages();
-                        initCollapsibleSections();
                         updateIndicator();
+                        toggleMenuTooltips(wasCollapsed);
                     }
                 }
             })

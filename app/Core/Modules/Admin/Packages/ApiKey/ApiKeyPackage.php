@@ -37,8 +37,9 @@ class ApiKeyPackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'api-keys',
                 'title' => __('admin-apikey.title.list'),
-                'icon' => 'ph.bold.key-bold',
+                'icon' => 'ph.regular.key',
                 'url' => url('/admin/api-keys'),
             ],
         ];

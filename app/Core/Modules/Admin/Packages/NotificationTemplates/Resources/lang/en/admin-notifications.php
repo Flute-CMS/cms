@@ -22,6 +22,7 @@ return [
         'channels' => 'Delivery Channels',
         'priority' => 'Priority',
         'enabled' => 'Status',
+        'status' => 'Status',
         'components' => 'Components (JSON)',
     ],
 

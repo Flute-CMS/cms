@@ -37,15 +37,25 @@ class PageSearchListener implements EventSubscriberInterface
     {
         $searchValue = trim($event->getValue());
 
-        if (!str_starts_with($searchValue, '/page')) {
-            return;
-        }
+        $isSlashCommand = str_starts_with($searchValue, '/page');
 
-        $searchValue = substr($searchValue, 5);
-        $searchValue = trim($searchValue);
+        if ($isSlashCommand) {
+            $searchValue = substr($searchValue, 5);
+            $searchValue = trim($searchValue);
 
-        if ($searchValue === '') {
-            return;
+            if ($searchValue === '') {
+                $pages = Page::query()->orderBy('title', 'asc')->limit(10)->fetchAll();
+
+                foreach ($pages as $page) {
+                    $event->add($this->createPageSearchResult($page, 1));
+                }
+
+                return;
+            }
+        } else {
+            if (strlen($searchValue) < 2) {
+                return;
+            }
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
@@ -62,17 +72,22 @@ class PageSearchListener implements EventSubscriberInterface
 
         foreach ($pages as $page) {
             $relevance = $this->calculateRelevance($searchValueLower, $page);
-
-            $searchResult = new AdminSearchResult(
-                $page->title,
-                url('admin/pages/' . $page->id . '/edit'),
-                $icon = 'ph.regular.file-text',
-                $description = $page->route,
-                $relevance
-            );
-
-            $event->add($searchResult);
+            $event->add($this->createPageSearchResult($page, $relevance));
         }
+    }
+
+    /**
+     * Create a search result for a page
+     */
+    protected function createPageSearchResult(Page $page, int $relevance): AdminSearchResult
+    {
+        return new AdminSearchResult(
+            $page->title,
+            url('admin/pages/' . $page->id . '/edit'),
+            'ph.regular.file-text',
+            __('search.category_pages'),
+            $relevance
+        );
     }
 
     /**

@@ -44,12 +44,9 @@ class PagesPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-pages.title.content'),
-            ],
-            [
+                'key' => 'pages',
                 'title' => __('admin-pages.title.list'),
-                'icon' => 'ph.bold.file-text-bold',
+                'icon' => 'ph.regular.file-text',
                 'url' => url('/admin/pages'),
                 'badge' => $this->getPagesCount(),
             ],

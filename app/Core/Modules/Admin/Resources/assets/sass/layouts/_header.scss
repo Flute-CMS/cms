@@ -1,6 +1,20 @@
 .admin-header {
+    @extend .blur-bg;
     height: 64px;
-    margin-bottom: 1rem;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 260px;
+    z-index: 99;
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    body.sidebar-collapsed & {
+        left: 68px;
+    }
+
+    @media (max-width: 768px) {
+        left: 0;
+    }
 }
 
 .navbar {
@@ -18,76 +32,52 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    &__search {
-        @extend .d-flex, .align-center, .gap-2;
-
-        color: var(--text);
-        font-size: var(--p-small);
-        background-color: var(--transp-1);
-        padding: .5rem .6rem .5rem .8rem;
-        border-radius: var(--border05);
-        line-height: 1;
+    &__customization {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: var(--text-500);
         cursor: pointer;
-        border: 1px solid transparent;
-        @include transition();
+        transition: all 0.15s ease;
+        background: none;
+        border: none;
+        opacity: 0.7;
 
-        @include media(mobile) {
-            padding: .6rem;
-        }
-
-        span {
-            color: var(--text-400);
-            font-weight: 500;
+        &:hover {
+            opacity: 1;
+            color: var(--text);
         }
 
         svg {
-            font-size: var(--h5);
-            color: var(--text-400);
-            margin-right: 3px;
-        }
-
-        .search-shortcut {
-            font-size: var(--small);
-            color: var(--text-200);
-            margin-left: 5px;
-            background-color: var(--transp-1);
-            padding: 0.4rem 0.5rem;
-            border-radius: var(--border05);
-            border: 1px solid var(--transp-1);
-            font-weight: 500;
-
-            @include media(mobile) {
-                display: none;
-            }
-        }
-
-        &:hover {
-            background-color: var(--transp-2);
-            border-color: var(--transp-1);
-        }
-
-        &:active {
-            background-color: var(--transp-1);
+            font-size: 1rem;
         }
     }
 
-    .sidebar__toggle {
-        left: 20px;
-        position: absolute;
-        width: 40px;
-        height: 40px;
+    &__profile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+
+        &-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
     }
 }
 
-body.sidebar-collapsed {
-    .navbar__content.container-wide {
-        padding-left: 4rem;
-    }
-
-    @media(max-width: 1500px) and (min-width: 1300px) {
-        .navbar__content {
-            padding-left: 4rem;
-        }
-    }
-    
+.admin-main-wrapper {
+    padding-top: 64px;
 }

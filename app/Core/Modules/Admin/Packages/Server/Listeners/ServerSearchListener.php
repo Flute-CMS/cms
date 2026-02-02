@@ -37,15 +37,25 @@ class ServerSearchListener implements EventSubscriberInterface
     {
         $searchValue = trim($event->getValue());
 
-        if (!str_starts_with($searchValue, '/server')) {
-            return;
-        }
+        $isSlashCommand = str_starts_with($searchValue, '/server');
 
-        $searchValue = substr($searchValue, 7);
-        $searchValue = trim($searchValue);
+        if ($isSlashCommand) {
+            $searchValue = substr($searchValue, 7);
+            $searchValue = trim($searchValue);
 
-        if ($searchValue === '') {
-            return;
+            if ($searchValue === '') {
+                $servers = Server::query()->orderBy('name', 'asc')->limit(10)->fetchAll();
+
+                foreach ($servers as $server) {
+                    $event->add($this->createServerSearchResult($server, 1));
+                }
+
+                return;
+            }
+        } else {
+            if (strlen($searchValue) < 2) {
+                return;
+            }
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
@@ -62,17 +72,22 @@ class ServerSearchListener implements EventSubscriberInterface
 
         foreach ($servers as $server) {
             $relevance = $this->calculateRelevance($searchValueLower, $server);
-
-            $searchResult = new AdminSearchResult(
-                $server->name,
-                url('admin/servers/' . $server->id . '/edit'),
-                $icon = null,
-                $description = null,
-                $relevance
-            );
-
-            $event->add($searchResult);
+            $event->add($this->createServerSearchResult($server, $relevance));
         }
+    }
+
+    /**
+     * Create a search result for a server
+     */
+    protected function createServerSearchResult(Server $server, int $relevance): AdminSearchResult
+    {
+        return new AdminSearchResult(
+            $server->name,
+            url('admin/servers/' . $server->id . '/edit'),
+            'ph.regular.hard-drives',
+            __('search.category_servers'),
+            $relevance
+        );
     }
 
     /**

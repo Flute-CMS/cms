@@ -1,43 +1,24 @@
-/**
- * Notification Templates Editor
- */
 (function () {
     'use strict';
 
-    let initialized = false;
-
     function init() {
-        if (initialized) return;
-        initialized = true;
-
         initButtonsEditor();
         initVariablesInsert();
         initPreviewUpdater();
     }
 
-    // Initialize on DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    /**
-     * Buttons Editor
-     */
     function initButtonsEditor() {
         const editor = document.querySelector('[data-buttons-editor]');
-        if (!editor) return;
+        if (!editor || editor.dataset.initialized) return;
+        editor.dataset.initialized = 'true';
 
         const list = editor.querySelector('[data-buttons-list]');
         const addBtn = editor.querySelector('[data-add-button]');
 
-        // Get translations from data attributes
         const labelPlaceholder = editor.dataset.labelPlaceholder || 'Label';
         const urlPlaceholder = editor.dataset.urlPlaceholder || 'URL';
         const emptyText = editor.dataset.emptyText || 'No buttons';
 
-        // Add button
         addBtn?.addEventListener('click', () => {
             const empty = list.querySelector('[data-buttons-empty]');
             if (empty) empty.remove();
@@ -48,7 +29,6 @@
             updatePreview();
         });
 
-        // Remove button (delegated)
         list?.addEventListener('click', (e) => {
             const removeBtn = e.target.closest('[data-remove-button]');
             if (removeBtn) {
@@ -62,7 +42,6 @@
             }
         });
 
-        // Update preview on input
         list?.addEventListener('input', updatePreview);
     }
 
@@ -104,11 +83,9 @@
         }
     }
 
-    /**
-     * Variables Insert
-     */
     function initVariablesInsert() {
-        document.querySelectorAll('[data-variable]').forEach(btn => {
+        document.querySelectorAll('[data-variable]:not([data-variable-initialized])').forEach(btn => {
+            btn.dataset.variableInitialized = 'true';
             btn.addEventListener('click', () => {
                 const variable = btn.dataset.variable;
                 insertVariable(`{${variable}}`);
@@ -138,15 +115,19 @@
         }
     }
 
-    /**
-     * Preview Updater
-     */
     function initPreviewUpdater() {
         const titleInput = document.querySelector('[name="title"]');
         const contentInput = document.querySelector('[name="content"]');
 
-        titleInput?.addEventListener('input', updatePreview);
-        contentInput?.addEventListener('input', updatePreview);
+        if (titleInput && !titleInput.dataset.previewInitialized) {
+            titleInput.dataset.previewInitialized = 'true';
+            titleInput.addEventListener('input', updatePreview);
+        }
+
+        if (contentInput && !contentInput.dataset.previewInitialized) {
+            contentInput.dataset.previewInitialized = 'true';
+            contentInput.addEventListener('input', updatePreview);
+        }
     }
 
     function updatePreview() {
@@ -158,7 +139,6 @@
         const titleInput = document.querySelector('[name="title"]');
         const contentInput = document.querySelector('[name="content"]');
 
-        // Get translations from preview data attributes
         const defaultTitle = preview?.dataset.defaultTitle || 'Title';
         const defaultContent = preview?.dataset.defaultContent || 'Content';
         const defaultButton = preview?.dataset.defaultButton || 'Button';
@@ -212,4 +192,13 @@
         div.textContent = text;
         return div.innerHTML;
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    document.body.addEventListener('htmx:afterSettle', init);
+    document.body.addEventListener('htmx:afterSwap', init);
 })();

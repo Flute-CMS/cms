@@ -33,12 +33,9 @@ class DashboardPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-main-settings.labels.main'),
-            ],
-            [
+                'key' => 'dashboard',
                 'title' => __('admin-dashboard.labels.home'),
-                'icon' => 'ph.bold.chart-line-up-bold',
+                'icon' => 'ph.regular.house',
                 'url' => url('/admin'),
             ],
         ];

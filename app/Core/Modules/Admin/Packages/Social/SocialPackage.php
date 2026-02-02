@@ -37,8 +37,9 @@ class SocialPackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'socials',
                 'title' => __('admin-social.title.social'),
-                'icon' => 'ph.bold.globe-simple-bold',
+                'icon' => 'ph.regular.globe-simple',
                 'url' => url('/admin/socials'),
             ],
         ];

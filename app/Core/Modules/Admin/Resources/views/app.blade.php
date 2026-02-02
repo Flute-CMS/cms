@@ -94,7 +94,7 @@
                     document.head.appendChild(m)
                 }
                 var bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim() ||
-                '#1c1c1e';
+                    '#1c1c1e';
                 m.setAttribute('content', bg);
                 var ms1 = document.querySelector('meta[name="msapplication-TileColor"]');
                 if (ms1) {
@@ -121,6 +121,17 @@
         cookie()->get('admin-sidebar-collapsed', 'false') === 'true' &&
         !user()->device()->isMobile(),
 ])>
+    @if (!request()->htmx()->isHtmxRequest())
+        <div class="admin-grid-pattern" aria-hidden="true"></div>
+        <div class="admin-particles" aria-hidden="true">
+            <div class="admin-particle admin-particle--1"></div>
+            <div class="admin-particle admin-particle--2"></div>
+            <div class="admin-particle admin-particle--3"></div>
+            <div class="admin-particle admin-particle--4"></div>
+            <div class="admin-particle admin-particle--5"></div>
+        </div>
+    @endif
+
     @includeWhen(!request()->htmx()->isHtmxRequest(), 'admin::layouts.sidebar')
 
     @if (!request()->htmx()->isHtmxRequest())

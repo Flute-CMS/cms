@@ -118,12 +118,13 @@
 	},
 	"scripts": {
 		"test": [
-			"@php vendor/bin/php-cs-fixer fix --dry-run --diff"
+			"@php vendor/bin/php-cs-fixer fix --dry-run --diff",
+			"@php vendor/bin/phpstan analyse --memory-limit=2G"
 		],
 		"test-fix": [
 			"@php vendor/bin/php-cs-fixer fix"
 		],
-		"analyse": "@php -r \"echo 'PHPStan is temporarily disabled.\\n'; exit(0);\"",
+		"analyse": "@php vendor/bin/phpstan analyse --memory-limit=2G",
 		"format": "vendor/bin/php-cs-fixer fix",
 		"format-check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
 		"optimize": [

@@ -16,22 +16,22 @@ composer install
 composer test
 
 # Auto-fix code style
-composer test-fix   # or composer format
+composer test-fix # or composer format
 
 # Dry-run style check
 composer format-check
 
 # Project CLI utilities
-php flute cache:clear           # Clear cache
-php flute template:cache:clear  # Clear template cache
-php flute logs:clear            # Clear logs
-php flute logs:cleanup          # Remove old logs
-php flute cache:warmup          # Warm up cache
-php flute generate:migration    # Generate migration
-php flute generate:module       # Generate module
-php flute routes:list           # List routes
-php flute route:detail          # Route details
-php flute cron:run              # Run cron jobs
+php flute cache:clear # Clear cache
+php flute template:cache:clear # Clear template cache
+php flute logs:clear # Clear logs
+php flute logs:cleanup # Remove old logs
+php flute cache:warmup # Warm up cache
+php flute generate:migration # Generate migration
+php flute generate:module # Generate module
+php flute routes:list # List routes
+php flute route:detail # Route details
+php flute cron:run # Run cron jobs
 ```
 
 ## Architecture
@@ -60,14 +60,16 @@ Main application class. Uses traits for container, router, theme, language, and 
 
 **Router**:
 Symfony Routing with attribute-based annotations. Routes are defined using `#[Route]` attributes on controller methods.
+Middlewares are registered in `app/Core/Router/Router.php` (e.g., `auth`, `admin`, `csrf`).
 
 **Database**:
 Cycle ORM with Active Record. Entities are located in `app/Core/Database/Entities/`.
-Migrations are generated via `php flute generate:migration`.
+* **Auto-migration**: Migrations are generated automatically from Entity attributes via `php flute generate:migration`.
+* **ActiveRecord**: Entities MUST extend `Cycle\ActiveRecord\ActiveRecord` to use methods like `query()`, `save()`, `delete()`.
 
 **Template**:
 Blade templating engine (jenssegers/blade).
-Use the `<x-icon>` component for icons.
+Use the `<x-icon>` component for icons (example: `<x-icon path="ph.bold.scales-bold" />`, `<x-icon path="ph.regular.scales" />`).
 
 **Modules**:
 Each module in `app/Modules/ModuleName/` contains:
@@ -85,6 +87,20 @@ Each module in `app/Modules/ModuleName/` contains:
 * `Flute\` → `app/`
 * `Flute\Admin\` → `app/Core/Modules/Admin/`
 * `Flute\Modules\ModuleName\` → `app/Modules/ModuleName/`
+
+## Module & Admin Development
+
+### Modules
+* **Function Safety**: Verify existence of methods/classes when interacting with other modules.
+* **Dependencies**: Respect module dependencies in `module.json`.
+
+### Admin Screens
+Structure (`Flute\Admin\Platform\Screen`):
+* **Properties**: `$name`, `$description`, `$permission`.
+* **Lifecycle**: `mount()` (init data), `commandBar()` (actions), `layout()` (UI structure).
+* **Layouts**: Use `LayoutFactory` for components (Fields, Tabs, Tables, Modals).
+* **Actions**: Public methods handle events (e.g., `saveUser()`).
+* **Helpers**: `rep()` (Repository), `user()->can()` (Permissions), `breadcrumb()`, `auth()`, `router()`.
 
 ## Coding Standards
 

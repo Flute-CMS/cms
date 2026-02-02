@@ -1,94 +1,108 @@
-.sidebar-nav.is-collapsed {
-    width: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
+@media(min-width: 769px) {
+    .sidebar-nav.is-collapsed {
+        width: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
 
-    .sidebar-nav__logo-text,
-    .sidebar-nav__item-text,
-    .sidebar-nav__item-badge,
-    .sidebar-nav__item-chevron,
-    .sidebar-nav__section-title,
-    .sidebar-nav__toggle-text {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        width: 0;
-        margin: 0;
-        overflow: hidden;
-        display: none;
-    }
+        .sidebar-nav__header {
+            padding: 0.75rem 0.5rem;
+            justify-content: center;
+        }
 
-    .sidebar-nav__header {
-        justify-content: center;
-        padding: var(--space-md) var(--space-xs);
-    }
+        .sidebar-nav__logo-text,
+        .sidebar-nav__logo p {
+            display: none;
+        }
 
-    .sidebar-nav__logo {
-        justify-content: center;
-    }
-
-    .sidebar-nav__item {
-        justify-content: center;
-        padding: 12px;
-        height: 47px;
-        width: 47px;
-        transform: none !important;
-
-        .sidebar-nav__item-icon {
+        .sidebar-nav__toggle {
             margin: 0;
         }
-    }
 
-    .sidebar-nav__toggle svg {
-        transform: rotate(180deg);
-    }
+        .sidebar-nav__section-title {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            overflow: hidden;
+        }
 
-    .sidebar-nav__socials {
-        flex-direction: column;
-        gap: var(--space-2xs);
+        .sidebar-nav__items {
+            padding: 0 0.875rem;
+            gap: 0.25rem;
+            align-items: center;
+        }
 
-        a {
+        .sidebar-nav__dropdown {
+            width: 100%;
+            align-items: center;
+        }
+
+        .sidebar-nav__item {
+            justify-content: center;
+            padding: 0;
             width: 40px;
             height: 40px;
+            min-height: 40px;
+            border-radius: 0.5rem;
+
+            .sidebar-nav__item-icon {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+        }
+
+        .sidebar-nav__item-text,
+        .sidebar-nav__item-chevron,
+        .sidebar-nav__item-badge {
+            display: none;
+        }
+
+        .sidebar-nav__submenu {
+            display: none !important;
+        }
+
+        .sidebar-nav__socials {
+            flex-direction: column;
+            gap: var(--space-2xs);
+
+            a {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        // Guest block in collapsed mode
+        .sidebar-nav__guest {
+            padding: var(--space-xs);
+            margin-bottom: var(--space-xs);
+        }
+
+        .sidebar-nav__guest-content {
+            gap: 0;
+        }
+
+        .sidebar-nav__guest-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .sidebar-nav__guest-text {
+            display: none;
+        }
+
+        .sidebar-nav__guest-btn {
+            padding: var(--space-2xs);
+            min-width: 0;
+            width: 100%;
+            font-size: 0;
+
+            &::before {
+                content: "→";
+                font-size: 14px;
+            }
         }
     }
+}
 
-    .sidebar-nav__submenu {
+body.sidebar-collapsed {
+    .sidebar-nav__dropdown.is-open > .sidebar-nav__submenu {
         display: none !important;
-    }
-
-    .sidebar-nav__dropdown.is-open>.sidebar-nav__item {
-        background: transparent;
-    }
-
-    // Guest block in collapsed mode
-    .sidebar-nav__guest {
-        padding: var(--space-xs);
-        margin-bottom: var(--space-xs);
-    }
-
-    .sidebar-nav__guest-content {
-        gap: 0;
-    }
-
-    .sidebar-nav__guest-icon {
-        width: 28px;
-        height: 28px;
-    }
-
-    .sidebar-nav__guest-text {
-        display: none;
-    }
-
-    .sidebar-nav__guest-btn {
-        padding: var(--space-2xs);
-        min-width: 0;
-        width: 100%;
-
-        // Hide text, show only icon-like appearance
-        font-size: 0;
-
-        &::before {
-            content: "→";
-            font-size: 14px;
-        }
     }
 }

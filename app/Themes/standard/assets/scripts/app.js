@@ -4,14 +4,60 @@
  * Однажды мудрец сказал:
  * "Если ты в душе не ебешь как это работает, то не трогай"
  */
+
+window.TOAST_ICONS = {
+    success: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    warning: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
+};
+
 class FluteApp {
     constructor() {
         this.notyf = new Notyf({
             duration: 4000,
-            position: { x: "right", y: "top" },
+            position: { x: 'right', y: 'top' },
             dismissible: true,
             ripple: false,
+            types: [
+                {
+                    type: 'success',
+                    className: 'notyf__toast--success',
+                    icon: { className: 'notyf__icon notyf__icon--success', tagName: 'div' },
+                },
+                {
+                    type: 'error',
+                    className: 'notyf__toast--error',
+                    icon: { className: 'notyf__icon notyf__icon--error', tagName: 'div' },
+                },
+                {
+                    type: 'warning',
+                    className: 'notyf__toast--warning',
+                    icon: { className: 'notyf__icon notyf__icon--warning', tagName: 'div' },
+                },
+                {
+                    type: 'info',
+                    className: 'notyf__toast--info',
+                    icon: { className: 'notyf__icon notyf__icon--info', tagName: 'div' },
+                },
+            ],
         });
+
+        const originalOpen = this.notyf.open.bind(this.notyf);
+        this.notyf.open = (options) => {
+            const result = originalOpen(options);
+            const type = options.type || 'info';
+            setTimeout(() => {
+                const toastEl = document.querySelector('.notyf__toast:last-child');
+                if (toastEl) {
+                    const iconContainer = toastEl.querySelector('.notyf__icon');
+                    if (iconContainer && window.TOAST_ICONS[type]) {
+                        iconContainer.innerHTML = window.TOAST_ICONS[type];
+                    }
+                }
+            }, 50);
+            return result;
+        };
 
         this.notifications = new NotificationManager(this.notyf);
         this.modals = new ModalManager();
@@ -438,7 +484,6 @@ class NotificationManager {
         const dot = document.getElementById("notification-dot");
         if (!dot) return;
 
-        // Trigger HTMX to refresh the dot status
         if (typeof htmx !== "undefined") {
             htmx.trigger(dot, "notificationsUpdated");
         }
@@ -465,40 +510,35 @@ class NotificationManager {
     displayToast(toast) {
         if (!toast) return;
 
-        const options = {};
+        const type = toast.type || 'info';
+        const duration = toast.duration || 4000;
+        const message = toast.message || '';
 
-        // Copy toast properties to options
-        if (toast.type) options.type = toast.type;
-        if (toast.message) options.message = toast.message;
-        if (toast.duration) options.duration = toast.duration;
-        if (toast.dismissible) options.dismissible = toast.dismissible;
-        if (toast.ripple) options.ripple = toast.ripple;
-        if (toast.position) options.position = toast.position;
-        if (toast.icon) options.icon = toast.icon;
-        if (toast.className) options.className = toast.className;
+        const options = {
+            type: type,
+            duration: duration,
+            message: message,
+            dismissible: toast.dismissible !== false,
+        };
 
-        // Handle event handlers
-        if (toast.events) {
-            try {
-                const eventHandlers = {};
-                Object.entries(toast.events).forEach(([eventName, handler]) => {
-                    eventHandlers[eventName] = () => {
-                        new Function(handler)();
-                    };
-                });
-
-                // Add events after creating handlers
-                Object.entries(eventHandlers).forEach(
-                    ([eventName, handlerFn]) => {
-                        this.notyf.on(eventName, handlerFn);
-                    }
-                );
-            } catch (error) {
-                console.error("Error processing toast event handlers:", error);
-            }
+        if (toast.className) {
+            options.className = toast.className;
         }
 
-        this.notyf.open(options);
+        if (toast.events) {
+            const eventHandlers = {};
+            Object.entries(toast.events).forEach(([eventName, handler]) => {
+                eventHandlers[eventName] = () => {
+                    new Function(handler)();
+                };
+            });
+
+            Object.entries(eventHandlers).forEach(([eventName, handlerFn]) => {
+                this.notyf.on(eventName, handlerFn);
+            });
+        }
+
+        return this.notyf.open(options);
     }
 
     initCustomEvents() {

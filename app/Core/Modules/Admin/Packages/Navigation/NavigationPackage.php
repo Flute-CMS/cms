@@ -37,12 +37,9 @@ class NavigationPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
+                'key' => 'navigation',
                 'title' => __('admin-navigation.title'),
-            ],
-            [
-                'title' => __('admin-navigation.title'),
-                'icon' => 'ph.bold.list-bold',
+                'icon' => 'ph.regular.list',
                 'url' => url('/admin/navigation'),
             ],
         ];

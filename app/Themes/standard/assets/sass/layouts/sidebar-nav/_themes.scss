@@ -7,16 +7,35 @@ html[data-theme="light"] {
         display: block;
     }
 
-    .sidebar-floating-dropdown {
+    .sidebar-floating-dropdown,
+    .cloned-menu-sub {
         box-shadow:
             0 4px 20px rgba(0, 0, 0, 0.08),
             0 8px 40px rgba(0, 0, 0, 0.05);
     }
 }
 
+html[data-nav-style="sidebar"] {
+    .sidebar-nav__logo-img--dark {
+        display: flex;
+    }
+
+    .sidebar-nav__logo-img--light {
+        display: none;
+    }
+}
+
 html[data-theme="light"][data-nav-style="sidebar"] {
     .sidebar-nav {
-        background: color-mix(in srgb, var(--background) 90%, transparent);
+        background: var(--blurred-background);
+    }
+
+    .sidebar-nav__logo-img--dark {
+        display: none;
+    }
+
+    .sidebar-nav__logo-img--light {
+        display: flex;
     }
 }
 
@@ -27,7 +46,8 @@ html[data-nav-blur="false"][data-nav-style="sidebar"] {
         background: var(--secondary);
     }
 
-    .sidebar-floating-dropdown {
+    .sidebar-floating-dropdown,
+    .cloned-menu-sub {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
         background: var(--secondary);

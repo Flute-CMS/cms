@@ -1,9 +1,39 @@
-// Initialize Notyf for notifications
+// Toast notification icons
+const TOAST_ICONS = {
+    success: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    warning: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
+};
+
+// Initialize Notyf
 var notyf = new Notyf({
-    duration: 4000,
-    position: { x: 'right', y: 'bottom' },
+    duration: 100000,
+    position: { x: 'right', y: 'top' },
     dismissible: true,
     ripple: false,
+    types: [
+        {
+            type: 'success',
+            className: 'notyf__toast--success',
+            icon: { className: 'notyf__icon notyf__icon--success', tagName: 'div' },
+        },
+        {
+            type: 'error',
+            className: 'notyf__toast--error',
+            icon: { className: 'notyf__icon notyf__icon--error', tagName: 'div' },
+        },
+        {
+            type: 'warning',
+            className: 'notyf__toast--warning',
+            icon: { className: 'notyf__icon notyf__icon--warning', tagName: 'div' },
+        },
+        {
+            type: 'info',
+            className: 'notyf__toast--info',
+            icon: { className: 'notyf__icon notyf__icon--info', tagName: 'div' },
+        },
+    ],
 });
 
 // Handle toast messages from HTMX responses
@@ -17,29 +47,17 @@ function handleToasts(evt) {
 
 // Display a toast notification
 function displayToast(toast) {
-    const options = {};
+    const type = toast.type || 'info';
+    const duration = toast.duration || 4000;
+    const message = toast.message || '';
 
-    if (toast.type) {
-        options.type = toast.type;
-    }
-    if (toast.message) {
-        options.message = toast.message;
-    }
-    if (toast.duration) {
-        options.duration = toast.duration;
-    }
-    if (toast.dismissible) {
-        options.dismissible = toast.dismissible;
-    }
-    if (toast.ripple) {
-        options.ripple = toast.ripple;
-    }
-    if (toast.position) {
-        options.position = toast.position;
-    }
-    if (toast.icon) {
-        options.icon = toast.icon;
-    }
+    const options = {
+        type: type,
+        message: message,
+        // duration: duration,
+        dismissible: toast.dismissible !== false,
+    };
+
     if (toast.className) {
         options.className = toast.className;
     }
@@ -57,7 +75,21 @@ function displayToast(toast) {
         });
     }
 
-    notyf.open(options);
+    const notification = notyf.open(options);
+
+    requestAnimationFrame(() => {
+        const notyfContainer = document.querySelector('.notyf');
+        const toastEl = notyfContainer?.querySelector('.notyf__toast:last-child');
+        if (toastEl) {
+            toastEl.classList.add('notyf__toast--dismissible');
+            const iconContainer = toastEl.querySelector('.notyf__icon');
+            if (iconContainer && TOAST_ICONS[type]) {
+                iconContainer.innerHTML = TOAST_ICONS[type];
+            }
+        }
+    });
+
+    return notification;
 }
 
 // Show NProgress during HTMX requests
@@ -103,10 +135,9 @@ window.addEventListener('htmx:configRequest', (evt) => {
 });
 
 window.addEventListener('htmx:sendError', (evt) => {
-    notyf.open({
+    displayToast({
         type: 'error',
-        message:
-            'Error sending request. Please refresh the page and try again.',
+        message: 'Error sending request. Please refresh the page and try again.',
     });
 });
 

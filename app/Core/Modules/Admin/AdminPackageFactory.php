@@ -152,18 +152,16 @@ class AdminPackageFactory
             return $this->menuItemsCache;
         }
 
-        $sections = [];
+        // Collect all registered items by key
+        $registeredItems = [];
         $permissionsCache = [];
-        // Remember last explicit header from CORE admin packages so follow-up core items
-        // without a header (e.g. MainSettings) can be grouped nicely.
-        $lastCoreSectionKey = null;
+        $moduleItems = [];
+        $itemsWithoutKey = [];
 
         foreach ($this->packages as $package) {
             $packageMenuItems = $package->getMenuItems();
             $moduleName = $this->getModuleNameFromPackage($package);
             $isModulePackage = $moduleName !== null;
-            $packageSectionKey = null; // last explicit header inside this package
-            $moduleSectionKey = $isModulePackage ? ('module_' . $moduleName) : null;
 
             foreach ($packageMenuItems as $item) {
                 if (!$this->checkItemPermission($item, $permissionsCache)) {
@@ -171,88 +169,189 @@ class AdminPackageFactory
                 }
 
                 if (isset($item['type']) && $item['type'] === 'header') {
-                    $sectionKey = $item['title'];
-                    $packageSectionKey = $sectionKey;
+                    continue;
+                }
 
-                    if (!isset($sections[$sectionKey])) {
-                        $sections[$sectionKey] = [
-                            'type' => 'header',
-                            'title' => $item['title'],
-                            'items' => [],
-                            'priority' => $package->getPriority(),
-                        ];
-                    } else {
-                        // Keep earliest priority for stable ordering.
-                        $sections[$sectionKey]['priority'] = min($sections[$sectionKey]['priority'], $package->getPriority());
-                    }
+                $key = $item['key'] ?? null;
 
-                    if (!$isModulePackage) {
-                        $lastCoreSectionKey = $sectionKey;
+                if ($key !== null) {
+                    $registeredItems[$key] = $item;
+                } elseif ($isModulePackage) {
+                    if (!isset($moduleItems[$moduleName])) {
+                        $moduleItems[$moduleName] = [];
                     }
+                    $moduleItems[$moduleName][] = $item;
                 } else {
-                    // Section resolution rules:
-                    // 1) explicit header within this package
-                    // 2) module auto-section (ONLY for module packages)
-                    // 3) last core header (ONLY for core packages)
-                    // 4) ungrouped fallback
-                    $targetSection = $packageSectionKey;
-                    if ($targetSection === null && $isModulePackage) {
-                        $targetSection = $moduleSectionKey;
-                    }
-                    if ($targetSection === null && !$isModulePackage) {
-                        $targetSection = $lastCoreSectionKey;
-                    }
-
-                    if ($targetSection === null) {
-                        $targetSection = '__ungrouped__';
-                        if (!isset($sections[$targetSection])) {
-                            $sections[$targetSection] = [
-                                'type' => 'header',
-                                'title' => null,
-                                'items' => [],
-                                'priority' => 0,
-                            ];
-                        }
-                    }
-
-                    // Ensure module section exists (when used).
-                    if ($isModulePackage && $targetSection === $moduleSectionKey && !isset($sections[$targetSection])) {
-                        $sections[$targetSection] = [
-                            'type' => 'header',
-                            'title' => $moduleName,
-                            'items' => [],
-                            'priority' => $package->getPriority(),
-                            'is_module' => true,
-                        ];
-                    }
-
-                    // Ensure core header exists when used as fallback (rare but possible).
-                    if (!$isModulePackage && $targetSection === $lastCoreSectionKey && $targetSection !== null && !isset($sections[$targetSection])) {
-                        $sections[$targetSection] = [
-                            'type' => 'header',
-                            'title' => $targetSection,
-                            'items' => [],
-                            'priority' => $package->getPriority(),
-                        ];
-                    }
-
-                    $sections[$targetSection]['items'][] = $item;
+                    $itemsWithoutKey[] = $item;
                 }
             }
         }
 
-        uasort($sections, static fn ($a, $b) => $a['priority'] <=> $b['priority']);
-
+        // Get menu config (with defaults)
+        $menuConfig = config('admin-menu') ?? $this->getDefaultMenuConfig();
         $result = [];
-        foreach ($sections as $section) {
-            if (!empty($section['items'])) {
-                $result[] = $section;
+        $currentSection = null;
+
+        foreach ($menuConfig as $configItem) {
+            // Section header
+            if (isset($configItem['section'])) {
+                if ($currentSection !== null && !empty($currentSection['items'])) {
+                    $result[] = $currentSection;
+                }
+                $currentSection = [
+                    'title' => __($configItem['section']),
+                    'items' => [],
+                ];
+
+                continue;
+            }
+
+            $key = $configItem['key'] ?? null;
+            if ($key === null) {
+                continue;
+            }
+
+            // Group with children
+            if (isset($configItem['children']) && is_array($configItem['children'])) {
+                $children = [];
+                foreach ($configItem['children'] as $childKey) {
+                    if (isset($registeredItems[$childKey])) {
+                        $children[] = $registeredItems[$childKey];
+                        unset($registeredItems[$childKey]);
+                    }
+                }
+
+                if (empty($children)) {
+                    continue;
+                }
+
+                // If only 1 child - show it directly without nesting
+                if (count($children) === 1) {
+                    $menuItem = $children[0];
+                    // Use group icon if child doesn't have one
+                    if (empty($menuItem['icon']) && isset($configItem['icon'])) {
+                        $menuItem['icon'] = $configItem['icon'];
+                    }
+                } else {
+                    $menuItem = [
+                        'title' => __($configItem['title']),
+                        'icon' => $configItem['icon'] ?? 'ph.regular.folder',
+                        'url' => '#',
+                        'children' => $children,
+                    ];
+                }
+
+                $this->addToSection($result, $currentSection, $menuItem);
+            } else {
+                // Direct item
+                $menuItem = null;
+
+                if (isset($registeredItems[$key])) {
+                    $menuItem = $registeredItems[$key];
+                    if (isset($configItem['icon'])) {
+                        $menuItem['icon'] = $configItem['icon'];
+                    }
+                    unset($registeredItems[$key]);
+                } elseif (isset($configItem['url'])) {
+                    $menuItem = [
+                        'title' => __($configItem['title']),
+                        'icon' => $configItem['icon'] ?? 'ph.regular.circle',
+                        'url' => url($configItem['url']),
+                    ];
+                }
+
+                if ($menuItem !== null) {
+                    $this->addToSection($result, $currentSection, $menuItem);
+                }
             }
         }
 
-        $this->menuItemsCache = $result;
+        // Add last section
+        if ($currentSection !== null && !empty($currentSection['items'])) {
+            $result[] = $currentSection;
+        }
 
-        return $result;
+        // Remaining items (backward compatibility)
+        $remainingItems = array_merge(array_values($registeredItems), $itemsWithoutKey);
+        if (!empty($remainingItems)) {
+            $result[] = [
+                'title' => null,
+                'items' => $remainingItems,
+            ];
+        }
+
+        // Module items
+        foreach ($moduleItems as $moduleName => $items) {
+            if (!empty($items)) {
+                $result[] = [
+                    'title' => $moduleName,
+                    'items' => $items,
+                    'is_module' => true,
+                ];
+            }
+        }
+
+        // Filter empty sections
+        $this->menuItemsCache = array_values(array_filter($result, static fn ($s) => !empty($s['items'])));
+
+        return $this->menuItemsCache;
+    }
+
+    protected function addToSection(array &$result, ?array &$currentSection, array $menuItem): void
+    {
+        if ($currentSection !== null) {
+            $currentSection['items'][] = $menuItem;
+        } else {
+            if (!isset($result['__main__'])) {
+                $result['__main__'] = ['title' => null, 'items' => []];
+            }
+            $result['__main__']['items'][] = $menuItem;
+        }
+    }
+
+    protected function getDefaultMenuConfig(): array
+    {
+        return [
+            ['key' => 'dashboard'],
+            ['section' => 'admin-menu.sections.management'],
+            [
+                'key' => 'settings-group',
+                'title' => 'admin-menu.settings',
+                'icon' => 'ph.regular.gear',
+                'children' => ['main-settings', 'notifications', 'api-keys', 'socials'],
+            ],
+            [
+                'key' => 'users-group',
+                'title' => 'admin-menu.users',
+                'icon' => 'ph.regular.users',
+                'children' => ['users', 'roles'],
+            ],
+            [
+                'key' => 'content-group',
+                'title' => 'admin-menu.content',
+                'icon' => 'ph.regular.article',
+                'children' => ['pages', 'navigation', 'footer'],
+            ],
+            ['key' => 'servers'],
+            ['section' => 'admin-menu.sections.finance'],
+            [
+                'key' => 'finance-group',
+                'title' => 'admin-menu.finance',
+                'icon' => 'ph.regular.wallet',
+                'children' => ['gateways', 'invoices', 'promo-codes', 'currencies'],
+            ],
+            ['section' => 'admin-menu.sections.extensions'],
+            ['key' => 'modules'],
+            ['key' => 'themes'],
+            ['key' => 'marketplace'],
+            ['section' => 'admin-menu.sections.system'],
+            [
+                'key' => 'system-group',
+                'title' => 'admin-menu.system',
+                'icon' => 'ph.regular.info',
+                'children' => ['logs', 'updates', 'about'],
+            ],
+        ];
     }
 
     protected function getModuleNameFromPackage(AdminPackageInterface $package): ?string

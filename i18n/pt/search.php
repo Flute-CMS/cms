@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Quick search...",
+    "search_placeholder" => "Search pages, settings, and features...",
+    "search_input" => "Search input",
+    "to_navigate" => "to navigate",
+    "to_select" => "to select",
+    "search_results_for" => "Search results for \"%query%\"",
+    "no_results_found" => "No results found",
+    "available_commands" => "Available commands",
+    "no_commands_available" => "No commands found",
+    "search_users" => "Search users",
+    "users" => "Users",
+    "settings" => "Settings",
+    "lets_search" => "Let's find something...",
+];

@@ -44,12 +44,9 @@ class ServerPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-server.title.integrations'),
-            ],
-            [
+                'key' => 'servers',
                 'title' => __('admin-server.title.list'),
-                'icon' => 'ph.bold.hard-drives-bold',
+                'icon' => 'ph.regular.hard-drives',
                 'url' => url('/admin/servers'),
                 'badge' => $this->getServersCount(),
             ],

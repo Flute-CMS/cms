@@ -22,6 +22,7 @@ return [
         'channels' => 'Каналы доставки',
         'priority' => 'Приоритет',
         'enabled' => 'Статус',
+        'status' => 'Статус',
         'components' => 'Компоненты (JSON)',
     ],
 

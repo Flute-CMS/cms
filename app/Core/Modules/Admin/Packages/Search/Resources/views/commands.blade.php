@@ -1,17 +1,29 @@
 @if (count($commands) > 0)
-    <div class="search-results-count">
-        <span>{{ __('search.available_commands') }}:</span>
+    <div class="search-commands__header">
+        <span class="search-commands__title">{{ __('search.available_commands') }}</span>
     </div>
-    <ul class="command-suggestions-list">
+    <ul class="search-commands__list">
         @foreach ($commands as $command)
-            <li class="command-suggestion-item" data-command="{{ $command['command'] }}" data-tooltip="{{ $command['description'] }}" role="option" aria-selected="false">
-                @if (isset($command['icon']))
-                    <x-icon :path="$command['icon']" class="command-icon" />
-                @endif
-                <div class="command-name">{{ $command['command'] }}</div>
+            <li class="search-command-item" data-command="{{ $command['command'] }}">
+                <div class="search-command-item__icon">
+                    @if (isset($command['icon']))
+                        <x-icon :path="$command['icon']" />
+                    @else
+                        <x-icon path="ph.regular.terminal" />
+                    @endif
+                </div>
+                <div class="search-command-item__content">
+                    <span class="search-command-item__name">{{ $command['command'] }}</span>
+                    <span class="search-tips__sep">—</span>
+                    <span class="search-command-item__desc">{{ $command['description'] }}</span>
+                </div>
+                <x-icon path="ph.regular.arrow-right" class="search-command-item__arrow" />
             </li>
         @endforeach
     </ul>
 @else
-    <p class="text-muted">{{ __('search.no_commands_available') }}</p>
-@endif 
+    <div class="search-no-results">
+        <x-icon path="ph.regular.terminal" />
+        <p>{{ __('search.no_commands') }}</p>
+    </div>
+@endif

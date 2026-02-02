@@ -146,6 +146,21 @@ class SidebarNav {
 
     toggleInlineDropdown(dropdown, submenu) {
         const isOpen = dropdown.classList.contains('is-open');
+
+        if (!isOpen) {
+            const siblings = Array.from(dropdown.parentNode.children);
+            siblings.forEach(sibling => {
+                if (sibling !== dropdown && sibling.classList.contains('sidebar-nav__dropdown')) {
+                    sibling.classList.remove('is-open');
+                    const siblingSubmenu = sibling.querySelector('.sidebar-nav__submenu');
+                    if (siblingSubmenu) {
+                        siblingSubmenu.classList.remove('is-open');
+                    }
+                }
+            });
+        }
+
+        // Toggle current
         dropdown.classList.toggle('is-open', !isOpen);
         submenu?.classList.toggle('is-open', !isOpen);
     }

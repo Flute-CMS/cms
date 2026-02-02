@@ -39,8 +39,9 @@ class AdminUpdatePackage extends AbstractAdminPackage
 
         return [
             [
+                'key' => 'updates',
                 'title' => __('admin-update.title'),
-                'icon' => 'ph.bold.arrows-clockwise-bold',
+                'icon' => 'ph.regular.arrows-clockwise',
                 'url' => url('/admin/update'),
                 'badge' => $badge['text'] ?? null,
                 'badge-type' => $badge['class'] ?? null,

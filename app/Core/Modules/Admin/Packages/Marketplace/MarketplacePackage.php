@@ -37,11 +37,10 @@ class MarketplacePackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'marketplace',
                 'title' => __('admin-marketplace.labels.marketplace'),
-                'icon' => 'ph.bold.storefront-bold',
+                'icon' => 'ph.regular.storefront',
                 'url' => url('/admin/marketplace'),
-                'badge' => 'NEW!',
-                'badge-type' => 'primary',
             ],
         ];
     }

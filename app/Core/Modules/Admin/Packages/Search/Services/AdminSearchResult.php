@@ -88,6 +88,20 @@ class AdminSearchResult implements AdminSearchResultInterface
         return $this;
     }
 
+    public function getHighlightedTitle(string $query): string
+    {
+        $title = e($this->title ?? '');
+        $cleanQuery = trim(preg_replace('/^\/\w+\s*/', '', $query));
+
+        if (empty($cleanQuery)) {
+            return $title;
+        }
+
+        $pattern = '/' . preg_quote($cleanQuery, '/') . '/iu';
+
+        return preg_replace($pattern, '<mark class="search-highlight">$0</mark>', $title);
+    }
+
     public function toArray(): array
     {
         return [

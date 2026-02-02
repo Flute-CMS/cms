@@ -1,9 +1,6 @@
 <header class="admin-header">
     <div class="navbar">
         <div class="navbar__container">
-            <button class="sidebar__toggle" @if (cookie()->get('admin-sidebar-collapsed', 'false') !== 'true') style="display: none" @endif>
-                <x-icon path="ph.regular.sidebar-simple" />
-            </button>
             <div class="navbar__content @if (cookie()->get('container-width', 'normal') === 'wide') container-wide @endif container">
                 <div class="row">
                     <div class="col-md-12">
@@ -22,12 +19,9 @@
                                     <x-icon path="ph.regular.palette" />
                                 </button>
 
-                                <button class="navbar__search" id="search-trigger">
-                                    <x-icon path="ph.bold.magnifying-glass-bold" />
-                                    <span>{{ __('def.lets_search') }}</span>
-
-                                    <kbd class="search-shortcut">Ctrl + K</kbd>
-                                </button>
+                                <a href="{{ url('/profile/' . user()->getUrl()) }}" class="navbar__profile" data-tooltip="{{ user()->getCurrentUser()->name }}" data-tooltip-placement="bottom">
+                                    <img src="{{ url(user()->getCurrentUser()->avatar) }}" alt="{{ user()->getCurrentUser()->name }}" class="navbar__profile-avatar">
+                                </a>
                             </div>
                         </div>
                     </div>

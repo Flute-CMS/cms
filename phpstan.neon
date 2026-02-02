@@ -1,3 +1,6 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
     level: 3
     paths:
@@ -6,14 +9,19 @@ parameters:
     excludePaths:
         - app/Core/Database/Entities
         - app/Modules/*/vendor
+        - app/Modules/*/database/Entities
+        - '*/database/Migrations/*'
         - app/*/Tests
-    ignoreErrors:
-        # Ignore specific legacy code patterns that are hard to fix immediately
-        - '#Call to an undefined method [a-zA-Z0-9\\_]+::[a-zA-Z0-9_]+\(\)#'
-        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
+        - app/Modules/*/Resources
     scanDirectories:
         - app/Helpers
     bootstrapFiles:
         - bootstrap/phpstan-boot.php
         - vendor/autoload.php
     reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Ignore magic methods from Cycle ORM and admin platform
+        - '#Call to an undefined method Flute\\Admin\\Platform\\Field::#'
+        - '#Call to an undefined static method Flute\\Core\\Router\\Router::screen\(\)#'
+        - '#Access to an undefined property .+::\$(?!trans_choice)#'
+        # But DO NOT ignore undefined functions - we want to catch those!

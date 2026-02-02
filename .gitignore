@@ -35,3 +35,4 @@ docs/
 app/Modules
 *.lock
 .claude
+phpstan-baseline.neon

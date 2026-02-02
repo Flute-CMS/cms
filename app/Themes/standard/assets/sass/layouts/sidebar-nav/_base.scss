@@ -3,54 +3,87 @@ $sidebar-collapsed-width: 78px;
 $sidebar-mini-width: 78px;
 $sidebar-ease: cubic-bezier(0.32, 0.72, 0, 1);
 
-.sidebar-nav--hidden {
-    display: none !important;
-}
-
-html[data-nav-style="sidebar"] .sidebar-nav--hidden {
-    display: flex !important;
-}
-
 .sidebar-nav {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     width: var(--sidebar-width, #{$sidebar-width});
-    background-color: var(--background);
-    border-right: 1px solid var(--transp-1);
-    box-shadow: 1px 0 2px rgba(0, 0, 0, 0.05);
+    background-color: var(--blurred-background);
+    border-right: 1px solid var(--sidebar-border);
     z-index: 50;
     display: none;
     flex-direction: column;
-    transition: width 0.3s $sidebar-ease, transform 0.3s $sidebar-ease;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+
+    // CSS Variables
+    --sidebar-bg: var(--blurred-background);
+    --sidebar-border: rgba(0, 0, 0, 0.08);
+    --sidebar-text: #1a1a1a;
+    --sidebar-text-muted: #6b6b6b;
+    --sidebar-text-light: #9a9a9a;
+    --sidebar-hover: rgba(0, 0, 0, 0.04);
+    --sidebar-active: color-mix(in srgb, var(--accent) 12%, transparent);
+    --sidebar-active-text: var(--accent);
+    --sidebar-line: rgba(0, 0, 0, 0.06);
+
+    html[data-theme="dark"] & {
+        --sidebar-bg: var(--blurred-background);
+        --sidebar-border: var(--transp-1);
+        --sidebar-text: var(--text);
+        --sidebar-text-muted: var(--text-400);
+        --sidebar-text-light: var(--text-600);
+        --sidebar-hover: var(--transp-1);
+        --sidebar-active: color-mix(in srgb, var(--accent) 15%, transparent);
+        --sidebar-active-text: var(--accent);
+        --sidebar-line: var(--transp-1);
+    }
 
     &__header {
         display: flex;
         align-items: center;
-        padding: var(--space-md);
-        min-height: 73px;
-        border-bottom: 1px solid var(--transp-1);
+        justify-content: space-between;
+        padding: 0 1rem;
+        height: 64px;
+        border-bottom: 1px solid var(--sidebar-border);
         flex-shrink: 0;
     }
 
     &__logo {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: 0.5rem;
         text-decoration: none;
-        overflow: hidden;
+        flex: 1;
+        min-width: 0;
+
+        img {
+            height: 28px;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        p {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--sidebar-text);
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
     }
 
     &__logo-img {
-        height: 36px;
+        height: 28px;
         width: auto;
         flex-shrink: 0;
-        transition: transform 0.2s ease;
 
         &--dark {
-            display: block;
+            display: flex;
         }
 
         &--light {
@@ -58,43 +91,42 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
         }
     }
 
-    &__logo:hover &__logo-img {
-        transform: scale(1.02);
-    }
-
     &__logo-text {
+        font-size: 0.875rem;
         font-weight: 600;
-        font-size: 1.125rem;
-        color: var(--text);
+        color: var(--sidebar-text);
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
-        opacity: 1;
-        transition: opacity 0.2s $sidebar-ease;
-        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     &__mobile-close {
         display: none;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         margin-left: auto;
         padding: 0;
         border: none;
-        border-radius: var(--border05);
-        background: var(--transp-05);
-        color: var(--text-400);
+        border-radius: 0.375rem;
+        background: transparent;
+        color: var(--sidebar-text-muted);
         cursor: pointer;
         transition: all 0.15s ease;
+        flex-shrink: 0;
 
         &:hover {
-            background: var(--transp-1);
-            color: var(--text);
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text);
         }
 
         svg {
-            width: 20px;
-            height: 20px;
+            font-size: 1.125rem;
         }
     }
 
@@ -102,7 +134,7 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: var(--space-sm);
+        padding: 0;
         display: flex;
         flex-direction: column;
 
@@ -115,17 +147,17 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
         }
 
         &::-webkit-scrollbar-thumb {
-            background: var(--transp-1);
+            background: var(--sidebar-border);
             border-radius: 4px;
 
             &:hover {
-                background: var(--transp-2);
+                background: var(--sidebar-text-light);
             }
         }
     }
 
     &__section {
-        margin-bottom: var(--space-md);
+        margin-bottom: 0.25rem;
 
         &:last-child {
             margin-bottom: 0;
@@ -133,21 +165,20 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
     }
 
     &__section-title {
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-600);
-        padding: var(--space-xs) var(--space-sm);
-        margin-bottom: var(--space-2xs);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        letter-spacing: 0.03em;
+        color: var(--sidebar-text-light);
+        padding: 0.75rem 1rem 0.375rem;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                    height 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     &__footer {
         padding: var(--space-sm);
-        border-top: 1px solid var(--transp-1);
+        border-top: 1px solid var(--sidebar-border);
         display: flex;
         flex-direction: column;
         gap: var(--space-xs);
@@ -168,13 +199,13 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
             justify-content: center;
             width: 36px;
             height: 36px;
-            border-radius: var(--border05);
-            color: var(--text-500);
+            border-radius: 0.375rem;
+            color: var(--sidebar-text-muted);
             transition: all 0.15s ease;
 
             &:hover {
-                background: var(--transp-1);
-                color: var(--text);
+                background: var(--sidebar-hover);
+                color: var(--sidebar-text);
             }
 
             svg {
@@ -188,32 +219,30 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: var(--space-xs);
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: var(--border05);
-        background: var(--transp-05);
-        border: none;
-        color: var(--text-500);
+        width: 32px;
+        height: 32px;
+        border-radius: 0.375rem;
+        color: var(--sidebar-text-muted);
         cursor: pointer;
         transition: all 0.15s ease;
-        font-size: 12px;
-        font-weight: 500;
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        margin-left: auto;
 
         &:hover {
-            background: var(--transp-1);
-            color: var(--text);
+            background-color: var(--sidebar-hover);
+            color: var(--sidebar-text);
         }
 
         svg {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.3s $sidebar-ease;
+            font-size: 1.125rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
     }
 
     &__toggle-text {
-        transition: opacity 0.2s $sidebar-ease;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     // Guest section for unauthorized users
@@ -224,9 +253,9 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
         gap: var(--space-sm);
         padding: var(--space-md);
         margin-bottom: var(--space-sm);
-        background: var(--transp-02);
-        border-radius: var(--border05);
-        border: 1px solid var(--transp-1);
+        background: var(--sidebar-hover);
+        border-radius: 0.375rem;
+        border: 1px solid var(--sidebar-border);
     }
 
     &__guest-content {
@@ -240,12 +269,12 @@ html[data-nav-style="sidebar"] .sidebar-nav--hidden {
     &__guest-icon {
         width: 40px;
         height: 40px;
-        color: var(--text-500);
+        color: var(--sidebar-text-muted);
     }
 
     &__guest-text {
         font-size: 12px;
-        color: var(--text-500);
+        color: var(--sidebar-text-muted);
         font-weight: 500;
     }
 

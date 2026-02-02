@@ -37,8 +37,9 @@ class RolesPackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'roles',
                 'title' => __('admin-roles.title.roles'),
-                'icon' => 'ph.bold.shield-bold',
+                'icon' => 'ph.regular.shield',
                 'url' => url('/admin/roles'),
             ],
         ];

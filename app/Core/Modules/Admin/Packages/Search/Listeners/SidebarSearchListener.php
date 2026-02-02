@@ -10,47 +10,58 @@ class SidebarSearchListener
     public static function handle(AdminSearchEvent $event)
     {
         $menuItems = app(\Flute\Admin\AdminPanel::class)->getAllMenuItems();
-        $searchValue = mb_strtolower($event->getValue(), 'UTF-8');
+        $searchValue = $event->getValue();
 
         if (empty($searchValue)) {
             return;
         }
 
-        self::searchInMenuItems($menuItems, $searchValue, $event);
+        if (str_starts_with($searchValue, '/')) {
+            return;
+        }
+
+        if (mb_strlen($searchValue, 'UTF-8') < 2) {
+            return;
+        }
+
+        $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+
+        self::searchInMenuItems($menuItems, $searchValueLower, $event);
     }
 
     private static function searchInMenuItems(array $menuItems, string $searchValue, AdminSearchEvent $event)
     {
         foreach ($menuItems as $item) {
-            if (empty($item['url']) && empty($item['children'])) {
+            if (!empty($item['items'])) {
+                self::searchInMenuItems($item['items'], $searchValue, $event);
+            }
+
+            if (empty($item['url'])) {
                 continue;
             }
 
-            if (!empty($item['title']) && !empty($item['url'])) {
-                $itemTitle = mb_strtolower(__($item['title']), 'UTF-8');
-                $pos = mb_strpos($itemTitle, $searchValue);
+            if (!empty($item['title'])) {
+                $translatedTitle = __($item['title']);
+                $itemTitleLower = mb_strtolower($translatedTitle, 'UTF-8');
+                $pos = mb_strpos($itemTitleLower, $searchValue);
 
                 if ($pos !== false) {
-                    $relevance = 1;
-                    if ($itemTitle === $searchValue) {
-                        $relevance = 3;
+                    $relevance = 5;
+                    if ($itemTitleLower === $searchValue) {
+                        $relevance = 10;
                     } elseif ($pos === 0) {
-                        $relevance = 2;
+                        $relevance = 8;
                     }
 
                     $searchResult = new AdminSearchResult(
-                        $item['title'],
+                        $translatedTitle,
                         $item['url'],
                         $item['icon'] ?? null,
-                        $item['category'] ?? null,
+                        __('search.category_navigation'),
                         $relevance
                     );
                     $event->add($searchResult);
                 }
-            }
-
-            if (!empty($item['children'])) {
-                self::searchInMenuItems($item['children'], $searchValue, $event);
             }
         }
     }

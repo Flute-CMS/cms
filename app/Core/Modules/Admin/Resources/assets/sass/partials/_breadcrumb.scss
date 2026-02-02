@@ -51,7 +51,7 @@
     }
 }
 
-.breadcrumb-box:hover > *:not(.breadcrumb-icon) {
+.breadcrumb-box:hover>*:not(.breadcrumb-icon) {
     color: var(--text);
 }
 
@@ -60,6 +60,7 @@
     color: var(--text-600);
     font-size: 0.75rem;
     margin: 0 0.25rem;
+    margin-right: 0.75rem;
 
     @include media(mobile) {
         margin: 0 0.25rem;

@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Быстрый поиск...",
+    "search_placeholder" => "Поиск страниц, настроек и функций...",
+    "search_input" => "Поле поиска",
+    "to_navigate" => "для навигации",
+    "to_select" => "для выбора",
+    "search_results_for" => "Найдено по запросу «%query%»",
+    "no_results_found" => "Ничего не найдено",
+    "available_commands" => "Доступные команды",
+    "no_commands_available" => "Команды не найдены",
+    "search_users" => "Поиск пользователей",
+    "users" => "Пользователи",
+    "settings" => "Настройки",
+    "lets_search" => "Давайте найдем что-нибудь...",
+];
