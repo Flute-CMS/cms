@@ -49,10 +49,10 @@ class NotificationTemplateListScreen extends Screen
                 __('admin-notifications.metrics.active_templates') => 'metrics.active',
                 __('admin-notifications.metrics.modules') => 'metrics.modules',
             ])->setIcons([
-                        __('admin-notifications.metrics.total_templates') => 'bell-ringing',
-                        __('admin-notifications.metrics.active_templates') => 'check-circle',
-                        __('admin-notifications.metrics.modules') => 'squares-four',
-                    ]),
+                __('admin-notifications.metrics.total_templates') => 'bell-ringing',
+                __('admin-notifications.metrics.active_templates') => 'check-circle',
+                __('admin-notifications.metrics.modules') => 'squares-four',
+            ]),
 
             $this->getFilters(),
 
@@ -63,22 +63,22 @@ class NotificationTemplateListScreen extends Screen
                     ->title(__('admin-notifications.fields.status'))
                     ->width('100px')
                     ->alignCenter()
-                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.status', ['model' => $template])),
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.status', ['model' => $template])),
 
                 TD::make('key')
                     ->title(__('admin-notifications.fields.key'))
-                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.key', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.key', ['model' => $template]))
                     ->minWidth('200px')
                     ->cantHide(),
 
                 TD::make('title')
                     ->title(__('admin-notifications.fields.title'))
-                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.title', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.title', ['model' => $template]))
                     ->minWidth('250px'),
 
                 TD::make('channels')
                     ->title(__('admin-notifications.fields.channels'))
-                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.channels', ['model' => $template]))
+                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.channels', ['model' => $template]))
                     ->width('150px')
                     ->alignCenter(),
 
@@ -88,7 +88,7 @@ class NotificationTemplateListScreen extends Screen
                     ->width('100px')
                     ->alignCenter()
                     ->render(
-                        static fn(NotificationTemplate $template) => DropDown::make()
+                        static fn (NotificationTemplate $template) => DropDown::make()
                             ->icon('ph.regular.dots-three-outline-vertical')
                             ->list(array_filter([
                                 DropDownItem::make(__('def.edit'))
