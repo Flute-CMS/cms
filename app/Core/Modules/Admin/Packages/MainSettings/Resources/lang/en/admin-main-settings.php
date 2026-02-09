@@ -21,6 +21,11 @@ return [
         'convert_to_webp' => 'Convert Images to WebP',
         'development_mode' => 'Development Mode',
         'site_mode' => 'Site Mode',
+        'auth_enabled' => 'Authorization & Registration',
+        'profile_enabled' => 'User Profiles',
+        'balance_enabled' => 'Balance & Payments',
+        'notifications_enabled' => 'Notifications',
+        'site_mode_preset' => 'Preset',
         'debug' => 'Debug Mode',
         'debug_ips' => 'Debug IP Addresses',
         'currency_view' => 'Display Currency',
@@ -140,6 +145,12 @@ return [
         'two_factor' => [
             'optional' => 'Optional',
             'required' => 'Required',
+        ],
+        'site_mode_presets' => [
+            'full' => 'Full',
+            'showcase' => 'Showcase',
+            'landing' => 'Landing',
+            'custom' => 'Custom',
         ],
     ],
 
@@ -270,6 +281,8 @@ return [
         'localization_settings' => 'Localization Settings',
         'active_languages' => 'Active Languages',
         'active_languages_description' => 'These languages will be available for user selection.',
+        'site_mode' => 'Site Mode',
+        'site_mode_description' => 'Enable or disable site features. Useful for creating landing pages or showcases.',
         'seo' => 'SEO Settings',
         'profile_tabs_order' => 'Profile Tabs Order',
         'profile_tabs_order_description' => 'Drag tabs to change their display order in user profile.',
@@ -330,6 +343,11 @@ return [
         'two_factor_enabled' => 'Allow users to enable two-factor authentication for their accounts.',
         'two_factor_force' => 'When enabled, all users will be required to set up 2FA.',
         'two_factor_issuer' => 'Name that will appear in authenticator apps. Leave empty to use site name.',
+        'auth_enabled' => 'Show login/register buttons and allow authentication routes.',
+        'profile_enabled' => 'Show user profile pages and profile settings.',
+        'balance_enabled' => 'Show balance section, top-up button, and personal cabinet.',
+        'notifications_enabled' => 'Show notification bell and notification panel.',
+        'site_mode_preset' => 'Quick selection of predefined feature sets.',
     ],
 
     'examples' => [

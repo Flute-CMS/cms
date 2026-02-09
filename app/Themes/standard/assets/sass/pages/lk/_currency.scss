@@ -1,0 +1,50 @@
+// ============================================================
+// Currency — segmented control
+// ============================================================
+
+.lk-currency-bar {
+    display: flex;
+    background: var(--transp-05);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: var(--space-lg);
+
+    &__item {
+        flex: 1;
+        position: relative;
+
+        input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+
+            &:checked ~ label {
+                background: var(--background);
+                color: var(--text);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            }
+
+            &:focus-visible ~ label {
+                box-shadow: 0 0 0 2px var(--accent);
+            }
+        }
+
+        label {
+            display: block;
+            padding: 6px 0;
+            border-radius: 8px;
+            font-size: var(--p-small);
+            font-weight: 600;
+            color: var(--text-400);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            user-select: none;
+
+            &:hover {
+                color: var(--text-200);
+            }
+        }
+    }
+}

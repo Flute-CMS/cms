@@ -92,7 +92,7 @@ class PageController extends BaseController
                 'error' => __('page.seo.error'),
                 'debug' => is_debug() ? [
                     'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
+                    'file' => basename($e->getFile()) . ':' . $e->getLine(),
                 ] : null,
             ], 500);
         }

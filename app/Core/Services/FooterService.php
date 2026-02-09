@@ -9,6 +9,8 @@ class FooterService
 {
     public const CACHE_KEY = 'flute.footer.items';
 
+    public const CACHE_TAG = 'footer';
+
     protected const CACHE_TIME = 24 * 60 * 60;
 
     protected array $cachedItems;
@@ -23,6 +25,7 @@ class FooterService
     {
         $this->performance = (bool) (is_performance());
 
+        cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
         $this->cachedItems = cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME);
     }
 

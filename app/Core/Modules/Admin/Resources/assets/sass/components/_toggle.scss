@@ -16,11 +16,20 @@
         &:checked+.toggle-switch-slider {
             background-color: var(--primary);
 
+            :root[data-theme=light] & {
+                background-color: var(--accent);
+                border-color: var(--accent);
+            }
+
             &::before {
                 transform: translate(26px, 1px);
                 background-color: var(--primary-950);
                 height: 25px;
                 width: 25px;
+
+                :root[data-theme=light] & {
+                    background-color: #ffffff;
+                }
             }
         }
 
@@ -42,6 +51,11 @@
         @include transition(all);
         flex-shrink: 0;
 
+        :root[data-theme=light] & {
+            border-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(0, 0, 0, 0.06);
+        }
+
         &::before {
             content: "";
             position: absolute;
@@ -52,6 +66,10 @@
             background-color: var(--primary);
             border-radius: 50%;
             @include transition(all);
+
+            :root[data-theme=light] & {
+                background-color: #999999;
+            }
         }
     }
 }

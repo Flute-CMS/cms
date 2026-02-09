@@ -208,7 +208,7 @@
                                 @endif
                                 <div class="navbar__separator"></div>
                                 <x-header.theme-switcher />
-                                @if (!config('app.maintenance_mode') || (config('app.maintenance_mode') && user()->can('admin.pages')))
+                                @if (config('app.notifications_enabled', true) && (!config('app.maintenance_mode') || (config('app.maintenance_mode') && user()->can('admin.pages'))))
                                     <x-header.notifications />
                                 @endif
                                 <x-header.profile />
@@ -223,63 +223,65 @@
                                     {!! $sections['navbar-actions-guest'] !!}
                                 @endif
 
-                                <div class="navbar__separator"></div>
+                                @if (config('app.auth_enabled', true))
+                                    <div class="navbar__separator"></div>
 
-                                @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
-                                    @if (config('auth.only_modal'))
-                                        <li>
-                                            <x-link class="navbar__actions-login link" data-modal-open="auth-modal">
-                                                @t('def.login')
-                                            </x-link>
-                                        </li>
-                                        @if (!config('app.maintenance_mode'))
+                                    @if (!config('auth.only_social', false) || (config('auth.only_social') && social()->isEmpty()))
+                                        @if (config('auth.only_modal'))
                                             <li>
-                                                <x-button data-modal-open="register-modal" size="tiny">
-                                                    @t('def.register')
-                                                </x-button>
+                                                <x-link class="navbar__actions-login link" data-modal-open="auth-modal">
+                                                    @t('def.login')
+                                                </x-link>
                                             </li>
-                                        @endif
-                                    @else
-                                        <li>
-                                            <x-link class="navbar__actions-login link" href="{{ url('login') }}">
-                                                @t('def.login')
-                                            </x-link>
-                                        </li>
-                                        @if (!config('app.maintenance_mode'))
+                                            @if (!config('app.maintenance_mode'))
+                                                <li>
+                                                    <x-button data-modal-open="register-modal" size="tiny">
+                                                        @t('def.register')
+                                                    </x-button>
+                                                </li>
+                                            @endif
+                                        @else
                                             <li>
-                                                <x-button href="{{ url('register') }}" size="tiny">
-                                                    @t('def.register')
-                                                </x-button>
+                                                <x-link class="navbar__actions-login link" href="{{ url('login') }}">
+                                                    @t('def.login')
+                                                </x-link>
                                             </li>
+                                            @if (!config('app.maintenance_mode'))
+                                                <li>
+                                                    <x-button href="{{ url('register') }}" size="tiny">
+                                                        @t('def.register')
+                                                    </x-button>
+                                                </li>
+                                            @endif
                                         @endif
                                     @endif
-                                @endif
 
-                                @if (config('auth.only_social', false) && sizeof(social()->getAll()) === 1)
-                                    @php
-                                        $item = social()->toDisplay();
-                                        $key = key($item);
-                                        $icon = $item[$key];
-                                    @endphp
+                                    @if (config('auth.only_social', false) && sizeof(social()->getAll()) === 1)
+                                        @php
+                                            $item = social()->toDisplay();
+                                            $key = key($item);
+                                            $icon = $item[$key];
+                                        @endphp
 
-                                    <li>
-                                        <x-button href="{{ url('social/' . $key) }}" size="tiny" hx-boost="false">
-                                            @t('auth.social.auth_via', [':social' => $key])
-                                        </x-button>
-                                    </li>
-                                @elseif(config('auth.only_social', false) && sizeof(social()->getAll()) > 1)
-                                    <li>
-                                        @if (config('auth.only_modal'))
-                                            <x-button class="navbar__actions-login link" size="tiny"
-                                                data-modal-open="auth-modal">
-                                                @t('def.login')
+                                        <li>
+                                            <x-button href="{{ url('social/' . $key) }}" size="tiny" hx-boost="false">
+                                                @t('auth.social.auth_via', [':social' => $key])
                                             </x-button>
-                                        @else
-                                            <x-button href="{{ url('login') }}" size="tiny">
-                                                @t('def.login')
-                                            </x-button>
-                                        @endif
-                                    </li>
+                                        </li>
+                                    @elseif(config('auth.only_social', false) && sizeof(social()->getAll()) > 1)
+                                        <li>
+                                            @if (config('auth.only_modal'))
+                                                <x-button class="navbar__actions-login link" size="tiny"
+                                                    data-modal-open="auth-modal">
+                                                    @t('def.login')
+                                                </x-button>
+                                            @else
+                                                <x-button href="{{ url('login') }}" size="tiny">
+                                                    @t('def.login')
+                                                </x-button>
+                                            @endif
+                                        </li>
+                                    @endif
                                 @endif
                                 <div class="navbar__separator"></div>
                                 <x-header.theme-switcher />

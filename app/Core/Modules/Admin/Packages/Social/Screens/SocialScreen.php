@@ -11,6 +11,7 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\SocialNetwork;
+use Throwable;
 
 class SocialScreen extends Screen
 {
@@ -109,6 +110,8 @@ class SocialScreen extends Screen
             $social->enabled = !$social->enabled;
             transaction($social)->run();
 
+            $this->clearSocialCache();
+
             $this->socials = rep(SocialNetwork::class)->select();
             $this->flashMessage(__('admin-social.messages.toggle_success'));
         } else {
@@ -129,6 +132,7 @@ class SocialScreen extends Screen
 
             if ($social) {
                 transaction($social, 'delete')->run();
+                $this->clearSocialCache();
                 $this->socials = rep(SocialNetwork::class)->select();
                 $this->flashMessage(__('admin-social.messages.delete_success'));
             } else {
@@ -153,6 +157,7 @@ class SocialScreen extends Screen
             $social->enabled = true;
             transaction($social)->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.toggle_success'));
     }
@@ -171,6 +176,7 @@ class SocialScreen extends Screen
             $social->enabled = false;
             transaction($social)->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.toggle_success'));
     }
@@ -188,7 +194,21 @@ class SocialScreen extends Screen
             }
             transaction($social, 'delete')->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.delete_success'));
+    }
+
+    /**
+     * Clear social network related caches.
+     */
+    private function clearSocialCache(): void
+    {
+        try {
+            cache()->deleteImmediately('available_social_drivers');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
+        }
     }
 }

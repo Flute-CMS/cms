@@ -1,5 +1,5 @@
 /**
- * History Manager - handles undo/redo functionality
+ * History Manager — undo/redo via GridStack-compatible snapshots.
  */
 class HistoryManager {
     constructor(editor) {
@@ -12,76 +12,102 @@ class HistoryManager {
     }
 
     /**
-     * Create a snapshot of the current grid state
-     * @returns {object}
+     * Create a snapshot of the current grid state.
+     * Captures GridStack node positions (x, y, w, h).
      */
     createSnapshot() {
-        const items = Array.from(
-            document.querySelectorAll('.grid-stack .grid-stack-item')
-        ).map(el => {
-            const node = el.gridstackNode;
-            const toolbar = el.querySelector('.widget-toolbar');
+        const gc = this.editor.gridController;
+        if (!gc?.gsGrid) return { items: [], timestamp: Date.now() };
+
+        const items = gc.getItems().map((el, index) => {
+            const node = el.gridstackNode || {};
 
             return {
                 id: el.getAttribute('data-widget-id'),
                 widgetName: el.getAttribute('data-widget-name'),
                 settings: el.dataset.widgetSettings,
-                content: el.querySelector('.grid-stack-item-content')?.innerHTML,
-                buttons: toolbar
-                    ? this.editor.widgetButtonsCache[el.getAttribute('data-widget-name')]
-                    : [],
+                content: el.querySelector('.widget-content')?.innerHTML,
+                buttons: this.editor.widgetButtonsCache?.[el.getAttribute('data-widget-name')] || [],
+                isSystem: el.getAttribute('data-system-widget') === 'true',
+                hasSettings: el.getAttribute('data-has-settings'),
                 position: {
-                    x: node?.x ?? 0,
-                    y: node?.y ?? 0,
-                    w: node?.w ?? 1,
-                    h: node?.h ?? 1
+                    width: node.w || DragDropController.getCols(el),
+                    height: node.h || 2,
+                    x: node.x ?? 0,
+                    y: node.y ?? 0,
+                    order: index
                 }
             };
         });
 
-        return {
-            items,
-            timestamp: Date.now()
-        };
+        return { items, timestamp: Date.now() };
     }
 
     /**
-     * Apply a snapshot to the grid
-     * @param {object} snapshot - Snapshot to apply
+     * Apply a snapshot to the grid using GridStack API.
      */
     applySnapshot(snapshot) {
-        if (!snapshot || !snapshot.items) return;
+        if (!snapshot?.items) return;
+
+        const gc = this.editor.gridController;
+        if (!gc?.gsGrid) return;
 
         this.isProcessing = true;
 
-        this.editor.grid.removeAll();
+        try {
+            gc.gsGrid.batchUpdate();
+            gc.gsGrid.removeAll();
 
-        snapshot.items.forEach(item => {
-            const div = document.createElement('div');
-            div.classList.add('grid-stack-item');
+            snapshot.items.forEach(item => {
+                const isSystem = item.isSystem;
 
-            if (item.id) div.setAttribute('data-widget-id', item.id);
-            div.setAttribute('data-widget-name', item.widgetName || '');
-            div.dataset.widgetSettings = item.settings;
+                const el = gc.gsGrid.addWidget({
+                    w: item.position?.width || 6,
+                    h: item.position?.height || 1,
+                    x: item.position?.x ?? 0,
+                    y: item.position?.y,
+                    sizeToContent: true,
+                    content: `<div class="widget-content">${item.content || ''}</div>`,
+                    noResize: isSystem,
+                    noMove: isSystem,
+                });
 
-            Object.entries(item.position).forEach(([key, value]) => {
-                div.setAttribute(`gs-${key}`, value);
+                if (!el) return;
+
+                if (item.id) el.setAttribute('data-widget-id', item.id);
+                el.setAttribute('data-widget-name', item.widgetName || '');
+                el.dataset.widgetSettings = item.settings || '{}';
+                el.classList.add('widget-item');
+
+                if (isSystem) {
+                    el.setAttribute('data-system-widget', 'true');
+                }
+
+                if (item.hasSettings) {
+                    el.setAttribute('data-has-settings', item.hasSettings);
+                }
+
+                // Re-add toolbar
+                if (item.buttons) {
+                    this.editor.addToolbar(el, item.buttons);
+                }
+
+                // Make widget content non-interactive
+                const widgetContent = el.querySelector('.widget-content');
+                if (widgetContent) {
+                    widgetContent.style.pointerEvents = 'auto';
+                }
             });
 
-            const content = document.createElement('div');
-            content.classList.add('grid-stack-item-content');
-            content.innerHTML = item.content;
-            content.style.pointerEvents = 'auto';
-            div.appendChild(content);
+            gc.gsGrid.batchUpdate(false);
 
-            const widget = this.editor.grid.makeWidget(div);
-
-            this.editor.grid.update(widget, item.position);
-
-            if (item.buttons) {
-                this.editor.addToolbar(div, item.buttons);
-            }
-        });
+            // Resize all widgets to content after restoring snapshot
+            setTimeout(() => {
+                gc.resizeAllToContent();
+            }, 100);
+        } catch (err) {
+            console.error('HistoryManager.applySnapshot error:', err);
+        }
 
         this.isProcessing = false;
     }
@@ -92,7 +118,6 @@ class HistoryManager {
     push() {
         if (this.isProcessing) return;
 
-        // Remove states after current position (for new branch)
         if (this.currentIndex < this.states.length - 1) {
             this.states = this.states.slice(0, this.currentIndex + 1);
         }
@@ -100,7 +125,6 @@ class HistoryManager {
         this.states.push(this.createSnapshot());
         this.currentIndex = this.states.length - 1;
 
-        // Limit history size
         if (this.states.length > this.maxStates) {
             this.states.shift();
             this.currentIndex--;
@@ -113,59 +137,31 @@ class HistoryManager {
         });
     }
 
-    /**
-     * Undo last action
-     * @returns {boolean} Success
-     */
     undo() {
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.applySnapshot(this.states[this.currentIndex]);
             this.editor.updateUndoRedoButtons();
-            this.eventBus.emit(window.FlutePageEdit.events.HISTORY_UNDO, {
-                index: this.currentIndex
-            });
+            this.eventBus.emit(window.FlutePageEdit.events.HISTORY_UNDO, { index: this.currentIndex });
             return true;
         }
         return false;
     }
 
-    /**
-     * Redo last undone action
-     * @returns {boolean} Success
-     */
     redo() {
         if (this.currentIndex < this.states.length - 1) {
             this.currentIndex++;
             this.applySnapshot(this.states[this.currentIndex]);
             this.editor.updateUndoRedoButtons();
-            this.eventBus.emit(window.FlutePageEdit.events.HISTORY_REDO, {
-                index: this.currentIndex
-            });
+            this.eventBus.emit(window.FlutePageEdit.events.HISTORY_REDO, { index: this.currentIndex });
             return true;
         }
         return false;
     }
 
-    /**
-     * Check if undo is available
-     * @returns {boolean}
-     */
-    canUndo() {
-        return this.currentIndex > 0;
-    }
+    canUndo() { return this.currentIndex > 0; }
+    canRedo() { return this.currentIndex < this.states.length - 1; }
 
-    /**
-     * Check if redo is available
-     * @returns {boolean}
-     */
-    canRedo() {
-        return this.currentIndex < this.states.length - 1;
-    }
-
-    /**
-     * Clear all history
-     */
     clear() {
         this.states = [];
         this.currentIndex = -1;
@@ -173,10 +169,6 @@ class HistoryManager {
         this.eventBus.emit(window.FlutePageEdit.events.HISTORY_CLEAR);
     }
 
-    /**
-     * Get current history state info
-     * @returns {object}
-     */
     getState() {
         return {
             canUndo: this.canUndo(),

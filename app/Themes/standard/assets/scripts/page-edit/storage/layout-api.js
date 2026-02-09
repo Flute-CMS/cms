@@ -1,5 +1,6 @@
 /**
- * Layout API - handles server communication for layouts
+ * Layout API — server communication for widget layouts.
+ * Works with GridStack for layout serialization.
  */
 class LayoutAPI {
     constructor(editor) {
@@ -12,18 +13,12 @@ class LayoutAPI {
         this.isSaving = false;
     }
 
-    /**
-     * Get current scope from editor
-     * @returns {string} 'local' or 'global'
-     */
     getScope() {
         return this.editor.scope || 'local';
     }
 
     /**
      * Fetch layout from server
-     * @param {number} retries - Number of retries
-     * @returns {Promise<Array|null>}
      */
     async fetchLayout(retries = 2) {
         if (this.isFetching) return null;
@@ -37,7 +32,7 @@ class LayoutAPI {
                 const currentPath = this.utils.getCurrentPath();
                 const scopeParam = `scope=${encodeURIComponent(scope)}`;
                 const pathParam = scope === 'local' ? `&path=${encodeURIComponent(currentPath)}` : '';
-                
+
                 const res = await this.utils.csrfFetch(
                     u(`api/pages/get-layout?${scopeParam}${pathParam}&_=${Date.now()}`),
                     {
@@ -47,34 +42,23 @@ class LayoutAPI {
                     }
                 );
 
-                if (!res.ok) {
-                    throw new Error(`Server responded with ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
                 const json = await res.json();
-
-                if (!json || !json.layout) {
-                    throw new Error('Invalid layout data received');
-                }
+                if (!json?.layout) throw new Error('Invalid layout data');
 
                 this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_LOADED, {
-                    layout: json.layout,
-                    path: currentPath,
-                    scope: scope
+                    layout: json.layout, path: currentPath, scope
                 });
 
                 return json.layout;
-
             } catch (err) {
                 this.utils.logError(`fetchLayout (attempt ${retryCount + 1})`, err);
-
                 if (retryCount < retries) {
                     retryCount++;
-                    const backoff = Math.pow(2, retryCount - 1) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    await new Promise(r => setTimeout(r, Math.pow(2, retryCount - 1) * 1000));
                     return tryFetch();
                 }
-
                 return null;
             }
         };
@@ -88,8 +72,6 @@ class LayoutAPI {
 
     /**
      * Save layout to server
-     * @param {Array} layoutData - Layout data
-     * @returns {Promise<boolean>}
      */
     async saveLayout(layoutData) {
         if (this.isSaving) return false;
@@ -99,14 +81,8 @@ class LayoutAPI {
 
         try {
             const currentPath = this.utils.getCurrentPath();
-            const bodyData = {
-                layout: layoutData,
-                scope: scope
-            };
-            
-            if (scope === 'local') {
-                bodyData.path = currentPath;
-            }
+            const bodyData = { layout: layoutData, scope };
+            if (scope === 'local') bodyData.path = currentPath;
 
             const res = await this.utils.csrfFetch(u('api/pages/save-layout'), {
                 method: 'POST',
@@ -116,26 +92,15 @@ class LayoutAPI {
             });
 
             const json = await res.json();
-
-            if (!res.ok) {
-                throw new Error(json?.error || `Failed to save layout (${res.status})`);
-            }
+            if (!res.ok) throw new Error(json?.error || `Failed (${res.status})`);
 
             this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_SAVED, {
-                path: currentPath,
-                layout: layoutData,
-                scope: scope
+                path: currentPath, layout: layoutData, scope
             });
-
             return true;
-
         } catch (err) {
             this.utils.logError('saveLayout', err);
-
-            this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_SAVE_ERROR, {
-                error: err.message
-            });
-
+            this.eventBus.emit(window.FlutePageEdit.events.LAYOUT_SAVE_ERROR, { error: err.message });
             return false;
         } finally {
             this.isSaving = false;
@@ -143,47 +108,39 @@ class LayoutAPI {
     }
 
     /**
-     * Get layout JSON from current grid state
-     * Uses new format: { widgetName, settings, layout: { width, order } }
-     * @returns {Array}
+     * Get layout JSON from current GridStack state.
      */
     getLayoutJson() {
-        const gridController = this.editor.gridController;
-        if (!gridController) return [];
+        const gc = this.editor.gridController;
+        if (!gc?.gsGrid) return [];
 
         try {
-            const widgets = gridController.getWidgets();
-            if (!widgets || widgets.length === 0) return [];
+            const items = gc.getWidgets();
+            if (!items?.length) return [];
 
-            return widgets.map((el, index) => {
-                let parsedSettings = {};
-
+            return items.map((el, index) => {
+                let settings = {};
                 try {
-                    const settingsStr = el.dataset.widgetSettings;
-                    parsedSettings = settingsStr ? JSON.parse(settingsStr) : {};
-                } catch (err) {
-                    this.utils.logError('getLayoutJson parse settings', err);
-                }
+                    settings = JSON.parse(el.dataset.widgetSettings || '{}');
+                } catch (_) {}
+
+                const node = el.gridstackNode || {};
 
                 return {
                     index,
-                    id: el.getAttribute('data-widget-id') || null,
+                    id: el.getAttribute('data-widget-id') || node.id || null,
                     widgetName: el.getAttribute('data-widget-name') || '',
-                    settings: parsedSettings,
-                    layout: {
-                        width: parseInt(el.dataset.width) || 6,
-                        order: index
-                    },
-                    // Keep gridstack for backwards compatibility with server
+                    settings,
+                    layout: { width: node.w || 6, order: index },
                     gridstack: {
-                        w: parseInt(el.dataset.width) || 6,
-                        h: 2,
-                        x: 0,
-                        y: index
+                        w: node.w || 6,
+                        h: node.h || 1,
+                        x: node.x ?? 0,
+                        y: node.y ?? 0,
+                        sizeToContent: true
                     }
                 };
             }).filter(Boolean);
-
         } catch (err) {
             this.utils.logError('getLayoutJson', err);
             return [];
@@ -191,71 +148,59 @@ class LayoutAPI {
     }
 
     /**
-     * Load layout JSON into grid
-     * Supports both old (gridstack) and new (layout) formats
-     * @param {Array} data - Layout data
+     * Load layout JSON into GridStack grid.
      */
     async loadLayoutJson(data) {
-        const gridController = this.editor.gridController;
-        const gridEl = document.getElementById('widget-grid');
-        if (!gridController || !gridEl || !Array.isArray(data)) return;
+        const gc = this.editor.gridController;
+        if (!gc?.gsGrid || !Array.isArray(data)) return;
 
         try {
-            // Clear grid
-            gridEl.innerHTML = '';
+            // Batch update for performance
+            gc.gsGrid.batchUpdate();
+            gc.gsGrid.removeAll();
 
-            // Sort by order (supports both formats)
             const sorted = [...data].sort((a, b) => {
-                const orderA = a.layout?.order ?? a.gridstack?.y ?? a.index ?? 0;
-                const orderB = b.layout?.order ?? b.gridstack?.y ?? b.index ?? 0;
-                return orderA - orderB;
+                const oA = a.gridstack?.y ?? a.layout?.order ?? a.index ?? 0;
+                const oB = b.gridstack?.y ?? b.layout?.order ?? b.index ?? 0;
+                return oA - oB;
             });
 
             const widgetElements = [];
-            const hasContentWidget = data.some(item => item.widgetName === 'Content');
+            const hasContent = data.some(d => d.widgetName === 'Content');
 
-            // Create widget elements
             for (const nd of sorted) {
                 try {
-                    const div = document.createElement('div');
-                    div.classList.add('widget-item');
-                    div.draggable = true;
+                    const cols = nd.gridstack?.w || nd.layout?.width || 6;
+                    const h = nd.gridstack?.h || 1;
+                    const x = nd.gridstack?.x ?? 0;
+                    const y = nd.gridstack?.y;
+                    const isSystem = nd.widgetName === 'Content';
 
-                    // Get width from new or old format
-                    const width = nd.layout?.width || nd.gridstack?.w || 6;
-                    div.dataset.width = width;
+                    const el = gc.gsGrid.addWidget({
+                        w: cols,
+                        h: h,
+                        x: x,
+                        y: y !== undefined ? y : undefined,
+                        sizeToContent: true,
+                        content: `<div class="widget-content">${this.utils.createSkeleton()}</div>`,
+                        id: nd.id || `widget-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                        noResize: isSystem,
+                        noMove: isSystem,
+                    });
 
-                    // Set widget data
-                    div.setAttribute('data-widget-name', nd.widgetName || '');
-                    if (nd.id) div.setAttribute('data-widget-id', nd.id);
-                    div.dataset.widgetSettings = JSON.stringify(nd.settings || {});
+                    if (!el) continue;
 
-                    // Handle Content widget
-                    if (nd.widgetName === 'Content') {
-                        div.setAttribute('data-system-widget', 'true');
+                    el.setAttribute('data-widget-name', nd.widgetName || '');
+                    if (nd.id) el.setAttribute('data-widget-id', nd.id);
+                    el.dataset.widgetSettings = JSON.stringify(nd.settings || {});
+                    el.classList.add('widget-item');
+
+                    if (isSystem) {
+                        el.setAttribute('data-system-widget', 'true');
                     }
-
-                    const content = document.createElement('div');
-                    content.classList.add('widget-content');
-                    content.innerHTML = this.utils.createSkeleton();
-                    div.appendChild(content);
-
-                    // Add resize handle for non-Content widgets
-                    if (nd.widgetName !== 'Content' && gridController.addResizeHandle) {
-                        gridController.addResizeHandle(div);
-                    }
-
-                    // Add appearing animation
-                    div.classList.add('widget-appearing');
-                    setTimeout(() => {
-                        div.classList.remove('widget-appearing');
-                    }, 500 + widgetElements.length * 50);
-
-                    // Add to DOM
-                    gridEl.appendChild(div);
 
                     widgetElements.push({
-                        el: div,
+                        el,
                         widgetName: nd.widgetName,
                         settings: nd.settings || {}
                     });
@@ -264,23 +209,24 @@ class LayoutAPI {
                 }
             }
 
-            // Batch render widgets
-            if (widgetElements.length > 0) {
+            gc.gsGrid.batchUpdate(false);
+
+            if (widgetElements.length) {
                 await this.editor.widgetLoader.renderWidgetsBatch(widgetElements);
+
+                // After all widgets are rendered, resize them to fit content
+                setTimeout(() => {
+                    gc.resizeAllToContent();
+                }, 300);
             }
 
             // Add Content widget if missing
-            // For global scope: Content is always required
-            // For local scope: Content is added only if not on home page
             const scope = this.getScope();
-            if (!hasContentWidget) {
+            if (!hasContent) {
                 if (scope === 'global' || this.utils.getCurrentPath() !== '/') {
-                    setTimeout(() => {
-                        this.editor.addContentWidget();
-                    }, 600);
+                    setTimeout(() => this.editor.addContentWidget(), 600);
                 }
             }
-
         } catch (err) {
             this.utils.logError('loadLayoutJson', err);
         }
@@ -293,9 +239,7 @@ class LayoutAPI {
         try {
             htmx.ajax('GET', window.location.href, '#main', {
                 swap: 'innerHTML transition:true',
-                headers: {
-                    'X-CSRF-Token': this.utils.getCsrfToken()
-                }
+                headers: { 'X-CSRF-Token': this.utils.getCsrfToken() }
             });
         } catch (err) {
             this.utils.logError('refreshPageContent', err);
@@ -303,21 +247,8 @@ class LayoutAPI {
         }
     }
 
-    /**
-     * Check if currently fetching
-     * @returns {boolean}
-     */
-    isFetchingLayout() {
-        return this.isFetching;
-    }
-
-    /**
-     * Check if currently saving
-     * @returns {boolean}
-     */
-    isSavingLayout() {
-        return this.isSaving;
-    }
+    isFetchingLayout() { return this.isFetching; }
+    isSavingLayout()   { return this.isSaving; }
 }
 
 window.FlutePageEdit.register('LayoutAPI', LayoutAPI);

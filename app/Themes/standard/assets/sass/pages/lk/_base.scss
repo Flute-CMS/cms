@@ -1,0 +1,200 @@
+// ============================================================
+// LK Page — base layout, card shell, header, empty states
+// ============================================================
+
+// Legacy wrappers (index.blade.php)
+.lk {
+    &-container {
+        @extend .flex-column;
+        justify-content: center;
+        height: 100%;
+
+        form {
+            width: 100%;
+            position: relative;
+        }
+    }
+
+    &-currencies {
+        display: none;
+    }
+
+    &-bonus {
+        color: var(--success);
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--space-2xs) + 2px);
+        font-size: var(--p-small);
+        font-weight: 600;
+    }
+
+    // Kept for skeleton compat
+    &-payment-container {
+        margin: 0 auto;
+        width: 100%;
+        max-width: 680px;
+    }
+
+    &-payment-error {
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--border1);
+        color: var(--error);
+        background: var(--error-light);
+        text-align: center;
+        font-size: var(--p-small);
+        font-weight: 500;
+    }
+}
+
+// ==============================================================
+// Root
+// ==============================================================
+
+.lk-page {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+// ==============================================================
+// Card shell — wraps the entire form
+// ==============================================================
+
+.lk-card {
+    background: var(--secondary);
+    border: 1px solid var(--transp-1);
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+
+    &__section {
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    &__divider {
+        height: 1px;
+        background: var(--transp-1);
+        margin: 0 var(--space-xl);
+    }
+}
+
+// ==============================================================
+// Header (above card)
+// ==============================================================
+
+.lk-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+
+    &__title {
+        font-size: var(--h3);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+        color: var(--text);
+    }
+
+    &__sub {
+        margin-top: var(--space-2xs);
+        font-size: var(--p);
+        color: var(--text-500);
+        font-weight: 400;
+    }
+}
+
+// ==============================================================
+// Footnote
+// ==============================================================
+
+.lk-footnote {
+    margin-top: var(--space-md);
+    font-size: var(--small);
+    color: var(--text-600);
+    line-height: 1.6;
+    text-align: center;
+}
+
+// ==============================================================
+// Empty state
+// ==============================================================
+
+.lk-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--space-xl) * 3) var(--space-xl);
+    text-align: center;
+
+    &__icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: var(--transp-05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: var(--space-lg);
+        color: var(--text-600);
+
+        svg {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    &__title {
+        font-size: var(--h5);
+        font-weight: 600;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-2xs);
+    }
+
+    &__text {
+        font-size: var(--p);
+        color: var(--text-500);
+        max-width: 340px;
+        line-height: 1.55;
+    }
+}
+
+// ==============================================================
+// Responsive
+// ==============================================================
+
+@media (max-width: 720px) {
+    .lk-card {
+        border-radius: 16px;
+
+        &__section {
+            padding: var(--space-md) var(--space-lg);
+        }
+
+        &__divider {
+            margin: 0 var(--space-lg);
+        }
+    }
+
+    .lk-header__title {
+        font-size: var(--h4);
+    }
+}
+
+@media (max-width: 480px) {
+    .lk-page {
+        padding: 0 var(--space-sm);
+    }
+
+    .lk-card {
+        border-radius: 14px;
+
+        &__section {
+            padding: var(--space-md);
+        }
+
+        &__divider {
+            margin: 0 var(--space-md);
+        }
+    }
+}

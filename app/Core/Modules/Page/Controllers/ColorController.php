@@ -236,6 +236,7 @@ class ColorController extends BaseController
             '--sidebar-position' => 'sometimes|string|in:top,center',
             '--footer-type' => 'sometimes|string|in:default,minimal,expanded,glass,centered,hidden',
             '--footer-socials' => 'sometimes|string|in:true,false',
+            '--design-preset' => 'sometimes|string|in:default,vapor,neon,brutalist,obsidian,golden,coral,matrix,arctic,rose',
         ];
 
         // Validate settings (fonts, spacing, effects)
@@ -250,7 +251,10 @@ class ColorController extends BaseController
             'space_xl' => 'sometimes|string|max:20',
             'transition' => 'sometimes|string|max:20',
             'blur_amount' => 'sometimes|string|max:20',
+            'card_opacity' => 'sometimes|string|max:20',
+            'glow_intensity' => 'sometimes|string|max:20',
             'max_content_width' => 'sometimes|string|max:20',
+            'widget_gap' => 'sometimes|string|max:20',
             'shadow_small' => 'sometimes|string|max-str-len:500',
             'shadow_medium' => 'sometimes|string|max-str-len:500',
             'shadow_large' => 'sometimes|string|max-str-len:500',
@@ -299,7 +303,10 @@ class ColorController extends BaseController
                 'space_xl' => '--space-xl',
                 'transition' => '--transition',
                 'blur_amount' => '--blur-amount',
+                'card_opacity' => '--card-opacity',
+                'glow_intensity' => '--glow-intensity',
                 'max_content_width' => '--max-content-width',
+                'widget_gap' => '--widget-gap',
                 'shadow_small' => '--shadow-small',
                 'shadow_medium' => '--shadow-medium',
                 'shadow_large' => '--shadow-large',

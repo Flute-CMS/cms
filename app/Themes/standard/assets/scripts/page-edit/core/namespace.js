@@ -3,7 +3,7 @@
  * Central namespace for page editor modules
  */
 window.FlutePageEdit = window.FlutePageEdit || {
-    version: '2.0.0',
+    version: '3.0.0',
     modules: {},
 
     /**
@@ -130,8 +130,11 @@ window.FlutePageEdit.utils = {
      * @returns {string}
      */
     createSkeleton() {
-        return `<div class="skeleton page-edit-skeleton"
-             style="animation: skeleton-loading 1.5s infinite ease-in-out;">
+        return `<div class="page-edit-skeleton">
+            <div class="page-edit-skeleton__block" style="width:35%;height:18px"></div>
+            <div class="page-edit-skeleton__line" style="width:100%"></div>
+            <div class="page-edit-skeleton__line" style="width:85%"></div>
+            <div class="page-edit-skeleton__line" style="width:65%"></div>
         </div>`;
     },
 

@@ -7,6 +7,10 @@ html[data-nav-style="sidebar"] {
     body {
         padding-left: var(--sidebar-width, #{$sidebar-width});
         transition: padding-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        @media (max-width: 768px) {
+            padding-left: 0 !important;
+        }
     }
 
     .flute_header {
@@ -17,6 +21,10 @@ html[data-nav-style="sidebar"] {
         width: auto;
         z-index: 55;
         transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        @media (max-width: 768px) {
+            left: 0 !important;
+        }
     }
 
     .navbar {
@@ -55,19 +63,35 @@ html[data-nav-style="sidebar"] {
     .flute_footer {
         margin-left: var(--sidebar-width, #{$sidebar-width});
         transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        @media (max-width: 768px) {
+            margin-left: 0 !important;
+        }
     }
 
     &[data-sidebar-collapsed="true"] {
         body {
             padding-left: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
+
+            @media (max-width: 768px) {
+                padding-left: 0 !important;
+            }
         }
 
         .flute_header {
             left: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
+
+            @media (max-width: 768px) {
+                left: 0 !important;
+            }
         }
 
         .flute_footer {
             margin-left: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
+
+            @media (max-width: 768px) {
+                margin-left: 0 !important;
+            }
         }
     }
 }
@@ -76,14 +100,26 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
     // В mini режиме --sidebar-width переопределяется в _mini.scss на уровне html
     body {
         padding-left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
+        
+        @media (max-width: 768px) {
+            padding-left: 0 !important;
+        }
     }
 
     .flute_header {
         left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
+
+        @media (max-width: 768px) {
+            left: 0 !important;
+        }
     }
 
     .flute_footer {
         margin-left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
+
+        @media (max-width: 768px) {
+            margin-left: 0 !important;
+        }
     }
 
     &[data-sidebar-collapsed="true"] {

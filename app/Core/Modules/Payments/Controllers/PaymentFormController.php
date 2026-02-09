@@ -1,0 +1,162 @@
+<?php
+
+namespace Flute\Core\Modules\Payments\Controllers;
+
+use Exception;
+use Flute\Core\Modules\Payments\Exceptions\PaymentException;
+use Flute\Core\Modules\Payments\Exceptions\PaymentPromoException;
+use Flute\Core\Support\BaseController;
+use Flute\Core\Support\FluteRequest;
+use Nette\Schema\ValidationException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+
+class PaymentFormController extends BaseController
+{
+    public function validatePromo(FluteRequest $request): JsonResponse
+    {
+        try {
+            $this->throttle('lk_validate_promo');
+
+            $code = $request->input('promoCode');
+            $amount = (float) $request->input('amount', 0);
+
+            if (empty($code)) {
+                return $this->json(['valid' => false, 'error' => __('lk.promo_is_empty')]);
+            }
+
+            $details = payments()->promo()->validate($code, user()->getCurrentUser()->id, $amount);
+
+            return $this->json([
+                'valid' => true,
+                'type' => $details['type'],
+                'value' => $details['value'],
+                'message' => $details['message'],
+            ]);
+        } catch (PaymentPromoException $e) {
+            return $this->json(['valid' => false, 'error' => __($e->getMessage())]);
+        } catch (Exception $e) {
+            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+
+            return $this->json(['valid' => false, 'error' => $message]);
+        }
+    }
+
+    public function purchase(FluteRequest $request): JsonResponse
+    {
+        try {
+            $this->throttle('lk_purchase');
+
+            $gateway = $request->input('gateway');
+            $currency = $request->input('currency');
+            $amount = $request->input('amount');
+            $promoCode = $request->input('promoCode', '');
+            $agree = (bool) $request->input('agree', false);
+
+            if (is_string($amount)) {
+                $amount = str_replace([' ', "\u{00A0}"], '', $amount);
+                $amount = str_replace(',', '.', $amount);
+            }
+
+            $valid = validator()->validate([
+                'gateway' => $gateway,
+                'currency' => $currency,
+                'amount' => $amount,
+                'promoCode' => $promoCode,
+            ], [
+                'gateway' => 'required|string',
+                'currency' => 'required|string',
+                'amount' => 'required|numeric|gt:0|max:' . config('lk.max_single_amount', 1000000),
+                'promoCode' => 'nullable|string',
+            ]);
+
+            if (!$valid) {
+                return $this->json(['error' => __('def.unknown_error')], 422);
+            }
+
+            if (config('lk.oferta_view') && !$agree) {
+                return $this->json(['error' => __('lk.agree_terms')], 422);
+            }
+
+            $amount = (float) $amount;
+
+            // Calculate amountToPay using exchange rate + promo
+            $currencies = \Flute\Core\Database\Entities\Currency::findAll();
+            $exchangeRate = 1;
+            $minAmount = 0;
+
+            foreach ($currencies as $cur) {
+                if ($cur->code === $currency) {
+                    $exchangeRate = $cur->exchange_rate;
+                    $minAmount = $cur->minimum_value;
+
+                    // Check gateway-specific minimum
+                    foreach ($cur->paymentGateways as $gw) {
+                        if ($gw->adapter === $gateway && $gw->minimumAmount !== null) {
+                            $minAmount = $gw->minimumAmount;
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            if ($amount < $minAmount) {
+                return $this->json(['error' => __('lk.min_amount', ['sum' => $minAmount])], 422);
+            }
+
+            $amountToPay = $amount;
+
+            // Apply promo discount to amountToPay
+            if (!empty($promoCode)) {
+                try {
+                    $promoDetails = payments()->promo()->validate($promoCode, user()->getCurrentUser()->id, $amount);
+
+                    if ($promoDetails['type'] === 'percentage') {
+                        $discount = ($amountToPay * $promoDetails['value']) / 100;
+                        $amountToPay = round(max(0, $amountToPay - $discount), 2);
+                    }
+                } catch (PaymentPromoException $e) {
+                    return $this->json(['error' => __($e->getMessage())], 422);
+                }
+            }
+
+            $invoice = payments()->processor()->createInvoice(
+                $gateway,
+                $amountToPay,
+                (string) $promoCode,
+                $currency
+            );
+
+            // If invoice amount is zero (promo covered full sum)
+            if ($invoice->amount <= 0) {
+                payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
+
+                return $this->json([
+                    'redirect' => url('/lk/success'),
+                    'message' => __('lk.success'),
+                ]);
+            }
+
+            return $this->json([
+                'redirect' => url("/payment/{$invoice->transactionId}"),
+                'message' => __('lk.redirect'),
+            ]);
+        } catch (PaymentPromoException $e) {
+            return $this->json(['error' => $e->getMessage(), 'field' => 'promoCode'], 422);
+        } catch (ValidationException $e) {
+            $messages = [];
+            foreach ($e->getMessageObjects() as $error) {
+                $messages[] = __($error->code, $error->variables);
+            }
+
+            return $this->json(['error' => implode(', ', $messages)], 422);
+        } catch (PaymentException $e) {
+            return $this->json(['error' => $e->getMessage(), 'field' => 'amount'], 422);
+        } catch (Exception $e) {
+            logs()->error($e);
+            $message = is_debug() ? $e->getMessage() : __('def.unknown_error');
+
+            return $this->json(['error' => $message], 500);
+        }
+    }
+}

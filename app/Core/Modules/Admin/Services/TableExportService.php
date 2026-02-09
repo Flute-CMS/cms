@@ -20,8 +20,10 @@ class TableExportService
     {
         $exportColumns = $this->filterExportableColumns($columns);
 
+        $safeFilename = $this->sanitizeFilename($filename);
+
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
 
@@ -55,8 +57,10 @@ class TableExportService
     {
         $exportColumns = $this->filterExportableColumns($columns);
 
+        $safeFilename = $this->sanitizeFilename($filename);
+
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
 
@@ -194,7 +198,20 @@ class TableExportService
     }
 
     /**
+     * Sanitize a filename for use in Content-Disposition header.
+     */
+    protected function sanitizeFilename(string $filename): string
+    {
+        $filename = basename($filename);
+        $filename = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $filename);
+        $filename = substr($filename, 0, 255);
+
+        return $filename ?: 'export';
+    }
+
+    /**
      * Clean text by stripping HTML and normalizing whitespace.
+     * Also prevents CSV formula injection.
      */
     protected function cleanText($text): string
     {
@@ -211,6 +228,11 @@ class TableExportService
         // Normalize whitespace
         $text = preg_replace('/\s+/', ' ', $text);
         $text = trim($text);
+
+        // Prevent CSV formula injection
+        if (isset($text[0]) && in_array($text[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            $text = "'" . $text;
+        }
 
         return $text;
     }

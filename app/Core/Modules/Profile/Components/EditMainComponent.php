@@ -171,6 +171,12 @@ class EditMainComponent extends FluteComponent
             $this->user->setPassword($this->new_password);
             user()->updateUser($this->user);
 
+            if (function_exists('notify')) {
+                notify('core.password_changed', $this->user, [
+                    'time' => date('d.m.Y H:i'),
+                ]);
+            }
+
             $this->flashMessage(__('profile.edit.main.change_password.save_changes_success'), 'success');
         } catch (Exception $e) {
             $this->inputError('new_password', $e->getMessage());

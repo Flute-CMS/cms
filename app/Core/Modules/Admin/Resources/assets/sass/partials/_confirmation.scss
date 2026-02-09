@@ -45,4 +45,8 @@
     font-size: var(--p);
     color: var(--text-200);
     margin: 0 auto;
+
+    :root[data-theme=light] & {
+        color: var(--text-400);
+    }
 }

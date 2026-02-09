@@ -12,7 +12,7 @@ use Flute\Core\Modules\Profile\Controllers\ProfileVerificationController;
 use Flute\Core\Modules\Profile\Middlewares\UserExistsMiddleware;
 use Flute\Core\Router\Contracts\RouterInterface;
 
-$router->group(['prefix' => "/profile/", 'middleware' => 'auth'], static function (RouterInterface $group) {
+$router->group(['prefix' => "/profile/", 'middleware' => ['auth', 'site_mode:profile']], static function (RouterInterface $group) {
     $group->get('settings', [ProfileEditController::class, 'index']);
 
     $group->group(['prefix' => "social/"], static function (RouterInterface $socialGroup) {
@@ -36,8 +36,8 @@ $router->group(['prefix' => 'api/profile/', 'middleware' => ['auth', 'can:admin.
     $group->post('{id}/toggle-verified', [ProfileAdminActionsController::class, 'toggleVerified']);
 });
 
-$router->get('/profile/{id}', [ProfileIndexController::class, 'index'])->middleware(UserExistsMiddleware::class);
-$router->get('/profile/{id}/mini', [ProfileIndexController::class, 'mini']);
+$router->get('/profile/{id}', [ProfileIndexController::class, 'index'])->middleware([UserExistsMiddleware::class, 'site_mode:profile']);
+$router->get('/profile/{id}/mini', [ProfileIndexController::class, 'mini'])->middleware('site_mode:profile');
 
-$router->get('/sidebar/miniprofile', [ProfileSidebar::class, 'open'])->middleware(['htmx', 'auth']);
-$router->get('/profile/search/{value}', [ProfileRedirectController::class, 'search'])->middleware('throttle');
+$router->get('/sidebar/miniprofile', [ProfileSidebar::class, 'open'])->middleware(['htmx', 'auth', 'site_mode:profile']);
+$router->get('/profile/search/{value}', [ProfileRedirectController::class, 'search'])->middleware(['throttle', 'site_mode:profile']);

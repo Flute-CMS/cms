@@ -540,16 +540,13 @@ class NavigationListScreen extends Screen
     }
 
     /**
-     * Clear all cached navbar keys matching the cache key prefix.
+     * Clear all cached navbar keys and global layout.
      */
     private function clearNavbarCache(): void
     {
         try {
-            $pattern = \Flute\Core\Services\NavbarService::CACHE_KEY . '*';
-            $keys = cache()->getKeys($pattern);
-            foreach ($keys as $key) {
-                cache()->delete($key);
-            }
+            cache()->deleteByTag(\Flute\Core\Services\NavbarService::CACHE_TAG);
+            cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails
         }

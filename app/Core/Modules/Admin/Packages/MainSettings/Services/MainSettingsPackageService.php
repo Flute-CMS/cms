@@ -63,6 +63,10 @@ class MainSettingsPackageService
                 'robots' => 'app.robots',
                 'change_theme' => 'app.change_theme',
                 'default_theme' => 'app.default_theme',
+                'auth_enabled' => 'app.auth_enabled',
+                'profile_enabled' => 'app.profile_enabled',
+                'balance_enabled' => 'app.balance_enabled',
+                'notifications_enabled' => 'app.notifications_enabled',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'app.share',
@@ -197,6 +201,10 @@ class MainSettingsPackageService
                 'robots',
                 'change_theme',
                 'default_theme',
+                'auth_enabled',
+                'profile_enabled',
+                'balance_enabled',
+                'notifications_enabled',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share',
@@ -289,6 +297,10 @@ class MainSettingsPackageService
                 'description' => 'nullable|string',
                 'change_theme' => 'boolean',
                 'default_theme' => 'nullable|string',
+                'auth_enabled' => 'boolean',
+                'profile_enabled' => 'boolean',
+                'balance_enabled' => 'boolean',
+                'notifications_enabled' => 'boolean',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'boolean',

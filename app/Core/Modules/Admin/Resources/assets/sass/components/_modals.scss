@@ -66,6 +66,10 @@
         pointer-events: auto;
         margin: auto;
 
+        :root[data-theme=light] & {
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
         @include media(pc) {
             max-height: calc(100vh - 2rem);
         }
@@ -173,6 +177,10 @@
         border-top: 1px solid var(--transp-1);
         background-color: var(--transp-05);
         border-radius: 0 0 0.875rem 0.875rem;
+
+        :root[data-theme=light] & {
+            background-color: #f9fafb;
+        }
 
         .modal-admin-footer {
             display: flex;

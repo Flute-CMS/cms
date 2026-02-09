@@ -14,6 +14,7 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
+use Throwable;
 
 class RoleListScreen extends Screen
 {
@@ -89,6 +90,8 @@ class RoleListScreen extends Screen
         $this->reorderRoles($sortableResult);
 
         orm()->getHeap()->clean();
+
+        $this->clearRoleRelatedCaches();
 
         $this->loadRoles();
     }
@@ -198,6 +201,8 @@ class RoleListScreen extends Screen
         }
 
         $role->save();
+
+        $this->clearRoleRelatedCaches();
 
         $this->flashMessage(__('admin-roles.messages.created'), 'success');
         $this->closeModal();
@@ -330,6 +335,8 @@ class RoleListScreen extends Screen
         // Persist clearing permissions even when none are selected
         $role->save();
 
+        $this->clearRoleRelatedCaches();
+
         $this->flashMessage(__('admin-roles.messages.updated'), 'success');
         $this->closeModal();
         $this->loadRoles();
@@ -350,6 +357,8 @@ class RoleListScreen extends Screen
         }
 
         $role->delete();
+
+        $this->clearRoleRelatedCaches();
 
         $this->flashMessage(__('admin-roles.messages.deleted'), 'success');
         $this->loadRoles();
@@ -378,6 +387,19 @@ class RoleListScreen extends Screen
             $role->priority = $index;
 
             $role->save();
+        }
+    }
+
+    /**
+     * Clear caches that depend on role data (navbar visibility is role-based).
+     */
+    private function clearRoleRelatedCaches(): void
+    {
+        try {
+            cache()->deleteByTag(\Flute\Core\Services\NavbarService::CACHE_TAG);
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
         }
     }
 }

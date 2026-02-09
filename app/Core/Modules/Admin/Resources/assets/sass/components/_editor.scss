@@ -1,26 +1,36 @@
-.markdown-editor {
+.richtext-editor {
 	border-radius: var(--border05);
 	border: none;
 	transition: all var(--transition);
 	background-color: transparent;
 }
 
-.markdown-editor-wrapper {
+.richtext-editor-wrapper {
 	margin-bottom: var(--space-md);
 
-	&.is-invalid .EasyMDEContainer {
+	&.is-invalid .tiptap-editor {
 		border: 1px solid var(--error);
 	}
 }
 
-.EasyMDEContainer {
+.tiptap-editor {
 	border-radius: var(--border05);
-	transition: all var(--transition);
-	overflow: hidden;
+	transition: border-color var(--transition), box-shadow var(--transition);
+	overflow: visible;
 	margin-bottom: 0;
 	border: 1px solid var(--transp-1);
+	position: relative;
 
-	.CodeMirror {
+	:root[data-theme=light] & {
+		border-color: rgba(0, 0, 0, 0.15);
+		background-color: var(--background);
+	}
+	.tiptap-content-area {
+		position: relative;
+	}
+
+	// ProseMirror content area
+	.ProseMirror {
 		border-radius: 0;
 		border: none;
 		color: var(--text);
@@ -29,122 +39,294 @@
 		font-size: var(--p);
 		line-height: 1.6;
 		padding: 1rem var(--space-md);
-		height: auto;
+		min-height: 200px;
+		outline: none;
+		white-space: pre-wrap;
+		@extend .md-content;
 
-		.cm-header {
-			color: var(--text-200);
+		> * + * {
+			margin-top: 0.75em;
 		}
-		.cm-header-1 {
-			font-size: var(--h4);
+
+		p.is-editor-empty:first-child::before {
+			content: attr(data-placeholder);
+			float: left;
+			color: var(--text-600);
+			pointer-events: none;
+			height: 0;
 		}
-		.cm-header-2 {
-			font-size: var(--h5);
+
+		// Links — not clickable inside editor
+		a {
+			cursor: text;
 		}
-		.cm-header-3 {
-			font-size: var(--h6);
-		}
-		.cm-quote {
-			border-left: 2px solid var(--transp-2);
-			padding-left: 0.6rem;
-			margin-left: 0;
-		}
-		.cm-link,
-		.cm-url {
-			color: var(--accent);
-		}
-		.cm-strong {
-			font-weight: 600;
-		}
-		.cm-em {
-			font-style: italic;
-		}
-		.cm-strikethrough {
-			text-decoration: line-through;
-		}
-		.cm-code,
-		.cm-comment {
-			background: var(--transp-1);
+
+		// ========= IMAGE =========
+		img {
+			max-width: 100%;
+			height: auto;
 			border-radius: var(--border05);
+			cursor: pointer;
+			transition: outline 0.15s;
+
+			&.ProseMirror-selectednode {
+				outline: 2px solid var(--accent);
+				border-radius: var(--border05);
+			}
 		}
 
-		.CodeMirror-lines {
-			padding: 0;
-		}
+		// Image resize (TipTap v3 ResizableNodeView)
+		// DOM: [data-resize-container] > [data-resize-wrapper] > img + [data-resize-handle]*4
+		// ResizableNodeView sets inline: display:flex on container, position:relative on wrapper
+		// Handles get inline: position:absolute + top/bottom/left/right:0 at corners
+		[data-resize-container] {
+			display: inline-flex !important;
+			line-height: 0;
 
-		.CodeMirror-line {
-			padding: 0;
-		}
-
-		.CodeMirror-cursor {
-			border-left: 1px solid var(--text);
-		}
-
-		.CodeMirror-selected {
-			background: var(--transp-2);
-		}
-
-		&.CodeMirror-fullscreen {
-			background-color: var(--background);
-		}
-
-		@keyframes pulse {
-			0% {
-				opacity: 0.6;
+			// Selection outline on the container (not the img)
+			&.ProseMirror-selectednode {
+				outline: 2px solid var(--accent);
+				border-radius: var(--border05);
 			}
 
-			50% {
+			&.ProseMirror-selectednode [data-resize-handle],
+			&:hover [data-resize-handle] {
 				opacity: 1;
 			}
+		}
 
-			100% {
-				opacity: 0.6;
+		[data-resize-handle] {
+			// Inline styles already set by ResizableNodeView:
+			// position: absolute; top/bottom/left/right: 0 (at corners)
+			// We only provide visual appearance + cursor + centering via transform
+			width: 10px;
+			height: 10px;
+			background: var(--accent);
+			border: 2px solid #fff;
+			border-radius: 50%;
+			z-index: 10;
+			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+			opacity: 0;
+			transition: opacity 0.15s;
+
+			// Center handles on corners using transform (inline top/left/right/bottom = 0)
+			&[data-resize-handle='top-left'] {
+				cursor: nwse-resize;
+				transform: translate(-50%, -50%);
 			}
+			&[data-resize-handle='top-right'] {
+				cursor: nesw-resize;
+				transform: translate(50%, -50%);
+			}
+			&[data-resize-handle='bottom-left'] {
+				cursor: nesw-resize;
+				transform: translate(-50%, 50%);
+			}
+			&[data-resize-handle='bottom-right'] {
+				cursor: nwse-resize;
+				transform: translate(50%, 50%);
+			}
+		}
+
+		[data-resize-container][data-resize-state='true'] [data-resize-handle] {
+			opacity: 1;
+		}
+
+		// ========= TABLE (Notion-like) =========
+		.tableWrapper {
+			overflow-x: auto;
+			margin: 1em 0;
+			position: relative;
+		}
+
+		table {
+			border-collapse: collapse;
+			table-layout: fixed;
+			width: 100%;
+			overflow: visible;
+			margin: 0;
+			border-radius: 4px;
+
+			td,
+			th {
+				border: 1px solid var(--transp-2);
+				padding: 0.5rem 0.75rem;
+				min-width: 80px;
+				vertical-align: top;
+				position: relative;
+				box-sizing: border-box;
+				transition: background-color 0.1s;
+
+				&:hover {
+					background-color: var(--transp-05);
+				}
+
+				// Notion-style minimal paragraphs inside cells
+				p {
+					margin: 0;
+				}
+			}
+
+			th {
+				background-color: var(--transp-05);
+				font-weight: 600;
+
+				&:hover {
+					background-color: var(--transp-1);
+				}
+			}
+
+			.selectedCell {
+				background-color: rgba(var(--accent-rgb, 99, 102, 241), 0.08);
+
+				&::after {
+					content: '';
+					position: absolute;
+					inset: 0;
+					border: 2px solid var(--accent);
+					pointer-events: none;
+				}
+			}
+		}
+
+		.column-resize-handle {
+			position: absolute;
+			z-index: 20;
+			background-color: var(--accent);
+			pointer-events: none;
+			width: 2px !important;
+			border-radius: 1px;
+		}
+
+		&.resize-cursor {
+			cursor: col-resize;
+		}
+
+		// ========= TASK LIST =========
+		ul[data-type='taskList'] {
+			list-style: none;
+			padding: 0;
+			margin: 0.5em 0;
+
+			li[data-type='taskItem'] {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.5em;
+				margin: 0.25em 0;
+
+				> label {
+					flex: 0 0 auto;
+					margin-top: 0.15em;
+					user-select: none;
+
+					input[type='checkbox'] {
+						cursor: pointer;
+						width: 16px;
+						height: 16px;
+						accent-color: var(--accent);
+					}
+				}
+
+				> div {
+					flex: 1;
+					min-width: 0;
+				}
+
+				&[data-checked='true'] > div {
+					text-decoration: line-through;
+					opacity: 0.6;
+				}
+			}
+
+			// Nested task lists
+			ul[data-type='taskList'] {
+				margin-left: 1.5em;
+			}
+		}
+
+		// ========= OTHER CONTENT =========
+		blockquote {
+			border-left: 3px solid var(--accent);
+			padding-left: 1rem;
+			margin-left: 0;
+			color: var(--text-400);
+		}
+
+		pre {
+			background: var(--transp-1);
+			border-radius: var(--border05);
+			padding: 0.75rem 1rem;
+			overflow-x: auto;
+
+			code {
+				background: none;
+				padding: 0;
+				font-size: 0.9em;
+			}
+		}
+
+		code {
+			background: var(--transp-1);
+			border-radius: 4px;
+			padding: 0.15rem 0.3rem;
+			font-size: 0.9em;
+			color: var(--accent);
+		}
+
+		hr {
+			border: none;
+			border-top: 1px solid var(--transp-2);
+			margin: 1.5em 0;
+		}
+
+		mark {
+			background-color: #fef08a;
+			border-radius: 2px;
+			padding: 0.1em 0.2em;
+		}
+
+		iframe {
+			max-width: 100%;
+			border-radius: var(--border05);
 		}
 	}
 
-	// Toolbar
-	.editor-toolbar {
+	// ========= TOOLBAR =========
+	.tiptap-toolbar {
 		border: none;
-		opacity: 1;
 		background-color: var(--transp-05);
-		padding: var(--space-xs) var(--space-sm);
+		padding: 4px 8px;
 		border-bottom: 1px solid var(--transp-1);
 		display: flex;
 		flex-wrap: wrap;
-		gap: 2px;
+		gap: 1px;
+		align-items: center;
+        justify-content: center;
 
-		&.fullscreen {
-			backdrop-filter: blur(10px);
-			background-color: var(--blurred-background);
-		}
-
-		&.disabled-for-preview {
-			button.preview {
-				pointer-events: all;
-				opacity: 1;
-			}
+		:root[data-theme=light] & {
+			background-color: #f8f9fa;
+			border-bottom-color: rgba(0, 0, 0, 0.1);
 		}
 
 		button {
 			color: var(--text-500);
+			background: none;
 			border: none;
-			border-radius: var(--border05);
-			transition: all var(--transition);
+			border-radius: 6px;
+			transition: all 0.15s;
 			margin: 0;
-			width: 34px;
-			height: 34px;
-			font-size: var(--h6);
+			width: 32px;
+			height: 32px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			padding: 0;
 
-			&::after {
-				content: "";
-			}
-
-			.editor-toolbar-icon {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				width: 100%;
-				height: 100%;
+			svg {
+				width: 16px;
+				height: 16px;
+				fill: currentColor;
 			}
 
 			&:hover {
@@ -152,169 +334,594 @@
 				color: var(--text-200);
 			}
 
-			&.active {
-				background-color: var(--transp-1);
+			&.is-active {
+				background-color: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
 				color: var(--accent);
 			}
 		}
 
-		// Custom button icon styles
-		.custom-icon {
-			font-style: normal;
-			font-size: 1em;
-			min-width: 24px;
-			text-align: center;
-			display: inline-block;
-
-			// Emoji icon
-			&[title="Insert Emoji"] {
-				color: var(--accent-400);
-			}
-
-			// Clear editor icon
-			&[title="Clear Editor"] {
-				color: var(--error);
-			}
-
-			// Bold icon
-			&[title="Bold (Ctrl+B)"] {
-				font-weight: bold;
-			}
-
-			// Italic icon
-			&[title="Italic (Ctrl+I)"] {
-				font-style: italic;
-			}
-
-			// Heading icons
-			&[title^="Heading"] {
-				font-weight: bold;
-			}
-
-			// Preview icon
-			&[title="Toggle Preview (Ctrl+P)"] {
-				color: var(--info);
-			}
-
-			// Fullscreen icon
-			&[title="Toggle Fullscreen (F11)"] {
-				color: var(--accent);
-			}
-		}
-
-		i.separator {
-			border-left: 1px solid var(--transp-2);
+		.toolbar-separator {
+			width: 1px;
+			height: 20px;
+			background-color: var(--transp-2);
 			margin: 0 4px;
-			opacity: 0.5;
+			opacity: 0.4;
 		}
 
-		.editor-clear {
-			color: var(--error);
+		.toolbar-group {
+			display: flex;
+			align-items: center;
+			gap: 1px;
 		}
 	}
 
-	// Preview mode
-	.editor-preview,
-	.editor-preview-side {
-		background-color: var(--background);
-		border-left: 1px solid var(--transp-1);
-		color: var(--text);
-		white-space: normal;
-		@extend .md-content;
+	// ========= DROPDOWN =========
+	.toolbar-dropdown {
+		position: relative;
+		display: inline-flex;
+
+		.toolbar-dropdown-toggle {
+			display: flex;
+			align-items: center;
+			gap: 2px;
+			width: auto;
+			padding: 0 6px;
+
+			.toolbar-dropdown-chevron {
+				display: flex;
+
+				svg {
+					width: 12px;
+					height: 12px;
+					transition: transform 0.15s;
+				}
+			}
+		}
+
+		.toolbar-dropdown-menu {
+			display: none;
+			position: absolute;
+			top: calc(100% + 4px);
+			left: 0;
+			background: var(--background);
+			border: 1px solid var(--transp-1);
+			border-radius: 8px;
+			padding: 4px;
+			min-width: 160px;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+			z-index: 60;
+
+			&.is-open {
+				display: block;
+			}
+		}
+
+		.toolbar-dropdown-item {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 10px;
+			border: none;
+			background: none;
+			color: var(--text);
+			font-size: 13px;
+			border-radius: 6px;
+			cursor: pointer;
+			transition: all 0.1s;
+			height: auto;
+
+			.dropdown-item-icon {
+				display: flex;
+				width: 18px;
+				height: 18px;
+
+				svg {
+					width: 18px;
+					height: 18px;
+				}
+			}
+
+			&:hover {
+				background: var(--transp-1);
+			}
+
+			&.is-active {
+				background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+				color: var(--accent);
+			}
+		}
 	}
 
-	// Status bar
-	.editor-statusbar {
+	// ========= STATUS BAR =========
+	.tiptap-statusbar {
 		color: var(--text-600);
-		padding: 4px var(--space-sm);
+		padding: 4px 12px;
 		background-color: var(--transp-05);
 		border-top: 1px solid var(--transp-1);
-		font-size: 0.8em;
+		font-size: 0.75em;
 		display: flex;
 		justify-content: flex-end;
-		backdrop-filter: blur(5px);
+		gap: 8px;
+		user-select: none;
+
+		:root[data-theme=light] & {
+			background-color: #f8f9fa;
+			border-top-color: rgba(0, 0, 0, 0.1);
+			color: var(--text-500);
+		}
 	}
 
-	.separator {
-		border-right: 1px solid var(--transp-1) !important;
-	}
-
-	// Fullscreen mode
-	&.fullscreen {
+	// ========= FULLSCREEN =========
+	&.tiptap-fullscreen {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		z-index: 100;
-		backdrop-filter: blur(10px);
+		background-color: var(--background);
+		border-radius: 0;
+		border: none;
+		display: flex;
+		flex-direction: column;
 
-		.editor-toolbar {
-			padding: var(--space-sm) var(--space-md);
+		.tiptap-toolbar {
+			padding: 8px 16px;
 			background-color: var(--transp-1);
+			flex-shrink: 0;
 		}
 
-		.CodeMirror {
-			padding: var(--space-lg);
+		.tiptap-content-area {
+			flex: 1 !important;
+			max-height: none !important;
+			overflow-y: auto !important;
+		}
+
+		.ProseMirror {
+			padding: 2rem;
 			max-width: 900px;
 			margin: 0 auto;
-			height: calc(100% - 110px) !important;
-			background-color: var(--background);
+			min-height: 100%;
 		}
 
-		.editor-statusbar {
-			padding: var(--space-xs) var(--space-md);
+		.tiptap-statusbar {
+			flex-shrink: 0;
+			padding: 6px 16px;
 		}
 	}
 }
 
-// Rich text upload info
-.richtext-upload-info {
+// ========= EDITOR MODAL HELPERS =========
+.popup-body-list {
+	padding: 4px;
+}
+
+
+.popup-list-item {
+	width: 100%;
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	color: var(--text-500);
-	font-size: var(--small);
-	padding: 6px var(--space-sm);
-	background-color: var(--transp-05);
-	border-radius: 0 0 var(--border05) var(--border05);
-	border-left: 1px solid var(--transp-1);
-	border-right: 1px solid var(--transp-1);
-	border-bottom: 1px solid var(--transp-1);
+	gap: 10px;
+	padding: 8px 12px;
+	border: none;
+	background: none;
+	color: var(--text);
+	font-size: 13px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.1s;
 
-	&::before {
-		content: "🖼️";
-		font-size: 1.1em;
+	.popup-list-icon {
+		display: flex;
+		width: 18px;
+		height: 18px;
+		color: var(--text-500);
+
+		svg {
+			width: 18px;
+			height: 18px;
+			fill: currentColor;
+		}
+	}
+
+	&:hover {
+		background: var(--transp-1);
+	}
+
+	&-danger {
+		color: #ef4444;
+
+		.popup-list-icon {
+			color: #ef4444;
+		}
+
+		&:hover {
+			background: rgba(239, 68, 68, 0.08);
+		}
 	}
 }
 
-// Image upload styling
-.editor-upload-progress {
-	padding: 0.5rem 1rem;
-	background-color: var(--info-light);
-	border-radius: var(--border05);
-	color: var(--info);
-	display: flex;
-	align-items: center;
-	margin-bottom: 0.5rem;
+// ========= TABLE GRID PICKER =========
+.table-grid-picker {
+	display: grid;
+	grid-template-columns: repeat(8, 1fr);
+	gap: 3px;
+	padding: 4px;
+	margin-bottom: 8px;
 
-	progress {
-		flex: 1;
-		margin: 0 1rem;
-		height: 6px;
+	.table-grid-cell {
+		width: 24px;
+		height: 24px;
+		border: 1px solid var(--transp-2);
 		border-radius: 3px;
-		border: none;
-		background-color: var(--transp-2);
+		cursor: pointer;
+		transition: all 0.1s;
+
+		&.is-selected {
+			background: rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+			border-color: var(--accent);
+		}
+
+		&:hover {
+			border-color: var(--accent);
+		}
+	}
+}
+
+.table-grid-label {
+	text-align: center;
+	font-size: 12px;
+	color: var(--text-500);
+	font-weight: 500;
+}
+
+// ========= MODAL FOOTER BUTTONS =========
+.modal .modal__footer {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+// ========= BUBBLE MENUS =========
+.tiptap-bubble-menu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	background: var(--background);
+	border: 1px solid var(--transp-1);
+	border-radius: 10px;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	white-space: nowrap;
+	pointer-events: auto;
+
+	:root[data-theme=light] & {
+		border-color: rgba(0, 0, 0, 0.12);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+	}
+
+	&.tiptap-bubble-link {
+		z-index: 52;
+	}
+
+	&.tiptap-bubble-image {
+		z-index: 53;
+	}
+
+	&.tiptap-bubble-text {
+		z-index: 54;
+	}
+
+	&.tiptap-bubble-table {
+		z-index: 51;
+	}
+
+	.bubble-link-url {
+		font-size: 12px;
 		color: var(--accent);
+		padding: 4px 8px;
+		text-decoration: none;
+		max-width: 200px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 
-		&::-webkit-progress-bar {
-			background-color: var(--transp-2);
-			border-radius: 3px;
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	.bubble-btn {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		background: none;
+		color: var(--text-500);
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.1s;
+		padding: 0;
+		font-size: 12px;
+		font-weight: 600;
+
+		svg {
+			width: 14px;
+			height: 14px;
+			fill: currentColor;
 		}
 
-		&::-webkit-progress-value {
-			background-color: var(--accent);
-			border-radius: 3px;
+		&:hover {
+			background: var(--transp-1);
+			color: var(--text-200);
 		}
 
-		&::-moz-progress-bar {
-			background-color: var(--accent);
-			border-radius: 3px;
+		&.is-active {
+			background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+			color: var(--accent);
 		}
+
+		&-danger {
+			&:hover {
+				background: rgba(239, 68, 68, 0.1);
+				color: #ef4444;
+			}
+		}
+	}
+
+	.bubble-sep {
+		width: 1px;
+		height: 18px;
+		background: var(--transp-2);
+		margin: 0 2px;
+	}
+
+	// Heading dropdown inside text bubble
+	.bubble-heading-dropdown {
+		position: relative;
+	}
+
+	.bubble-heading-toggle {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		width: auto !important;
+		padding: 0 6px !important;
+	}
+
+	.bubble-heading-chevron {
+		display: flex;
+
+		svg {
+			width: 10px;
+			height: 10px;
+			transition: transform 0.15s;
+		}
+	}
+
+	.bubble-heading-menu {
+		display: none;
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		background: var(--background);
+		border: 1px solid var(--transp-1);
+		border-radius: 8px;
+		padding: 4px;
+		min-width: 140px;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+		z-index: 60;
+		white-space: nowrap;
+
+		&.is-open {
+			display: block;
+		}
+	}
+
+	.bubble-heading-item {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 10px;
+		border: none;
+		background: none;
+		color: var(--text);
+		font-size: 13px;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.1s;
+
+		svg {
+			width: 16px;
+			height: 16px;
+			fill: currentColor;
+		}
+
+		&:hover {
+			background: var(--transp-1);
+		}
+
+		&.is-active {
+			background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+			color: var(--accent);
+		}
+	}
+}
+
+// ========= NOTION-LIKE TABLE CONTROLS (overlay) =========
+
+// Overlay container — sits inside .tiptap-content-area, outside ProseMirror
+.table-controls-overlay {
+	position: absolute;
+	pointer-events: none; // let clicks pass through to table below
+	z-index: 25;
+	display: none; // shown by JS when hovering a table
+
+	// All children (buttons, grips) are interactive
+	> * {
+		pointer-events: auto;
+	}
+}
+
+// "+" add buttons (column right / row bottom)
+.table-ctrl {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: 1.5px dashed var(--transp-2);
+	border-radius: 6px;
+	color: var(--text-600);
+	cursor: pointer;
+	transition: all 0.15s;
+	padding: 0;
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+		background: rgba(var(--accent-rgb, 99, 102, 241), 0.06);
+		border-style: solid;
+	}
+}
+
+.table-ctrl-add-col {
+	width: 20px;
+}
+
+.table-ctrl-add-row {
+	height: 22px;
+}
+
+// Column & row grips (shared)
+.table-ctrl-col-grip,
+.table-ctrl-row-grip {
+	position: absolute;
+	background: none;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	color: var(--text-600);
+	opacity: 0.4;
+	transition: all 0.15s;
+
+	&:hover {
+		opacity: 1;
+		background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+		color: var(--accent);
+	}
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+}
+
+// Right-click context menu (appended to body)
+.table-context-menu {
+	position: fixed;
+	z-index: 200;
+	background: var(--background);
+	border: 1px solid var(--transp-1);
+	border-radius: 10px;
+	padding: 4px;
+	min-width: 200px;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+	animation: tableCtxFadeIn 0.12s ease-out;
+}
+
+@keyframes tableCtxFadeIn {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.table-ctx-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 7px 12px;
+	border: none;
+	background: none;
+	color: var(--text);
+	font-size: 13px;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.1s;
+	text-align: left;
+
+	&:hover {
+		background: var(--transp-1);
+	}
+}
+
+.table-ctx-danger {
+	color: #ef4444;
+
+	&:hover {
+		background: rgba(239, 68, 68, 0.08);
+	}
+}
+
+.table-ctx-sep {
+	height: 1px;
+	background: var(--transp-1);
+	margin: 3px 8px;
+}
+
+// ========= UPLOAD OVERLAY =========
+.tiptap-upload-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	color: #fff;
+	font-size: var(--p);
+	z-index: 10;
+	border-radius: var(--border05);
+	pointer-events: none;
+	backdrop-filter: blur(2px);
+
+	.upload-spinner {
+		width: 24px;
+		height: 24px;
+		border: 3px solid rgba(255, 255, 255, 0.3);
+		border-top-color: #fff;
+		border-radius: 50%;
+		animation: tiptap-spin 0.6s linear infinite;
+	}
+}
+
+@keyframes tiptap-spin {
+	to {
+		transform: rotate(360deg);
 	}
 }

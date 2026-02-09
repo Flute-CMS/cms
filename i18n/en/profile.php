@@ -141,6 +141,27 @@ return [
             ],
         ],
 
+        "notifications" => [
+            "title"       => "Notifications",
+            "description" => "Manage how and where you receive notifications.",
+
+            "channels_title"       => "Notification Channels",
+            "channels_description" => "Enable or disable notification channels globally.",
+
+            "channels" => [
+                "inapp"      => "In-App Notifications",
+                "inapp_desc" => "Receive notifications inside the platform.",
+                "email"      => "Email Notifications",
+                "email_desc" => "Receive notifications to your email address.",
+            ],
+
+            "templates_title"       => "Notification Types",
+            "templates_description" => "Fine-tune which notifications you want to receive per channel.",
+
+            "core_module"   => "System",
+            "save_success"  => "Notification settings saved successfully.",
+        ],
+
         "settings" => [
             "title" => "Settings",
         ],

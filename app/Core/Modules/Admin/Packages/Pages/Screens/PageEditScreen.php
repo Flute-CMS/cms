@@ -263,13 +263,13 @@ class PageEditScreen extends Screen
 
             if (function_exists('cache')) {
                 try {
-                    cache()->delete('flute.pages.all');
+                    cache()->deleteImmediately('flute.pages.all');
                 } catch (Throwable) {
                 }
 
                 foreach (array_filter(array_unique([$previousRoute, $this->page->route])) as $route) {
                     try {
-                        cache()->delete('flute.page.route.' . md5($route));
+                        cache()->deleteImmediately('flute.page.route.' . md5($route));
                     } catch (Throwable) {
                     }
                 }

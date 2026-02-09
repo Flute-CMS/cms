@@ -19,10 +19,10 @@
     <label for="{{ $inputId }}" class="form-label mb-2">{{ $label }}</label>
 @endisset
 
-<div @class(['markdown-editor-wrapper', 'is-invalid' => $hasError])>
+<div @class(['richtext-editor-wrapper', 'is-invalid' => $hasError])>
     <textarea name="{{ $name }}" {{ $attributes }} id="{{ $inputId }}"
-        data-editor="markdown" data-height="{{ $height ?? 300 }}"
-        {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}>{!! $value !!}</textarea>
+        data-editor="richtext" data-height="{{ $height ?? 300 }}"
+        {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}>{{ $value }}</textarea>
 
     @error($name)
         <span class="input__error">{{ $message }}</span>

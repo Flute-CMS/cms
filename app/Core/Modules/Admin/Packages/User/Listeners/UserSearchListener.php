@@ -41,11 +41,12 @@ class UserSearchListener implements EventSubscriberInterface
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
-        $users = User::query()->where(static function ($query) use ($searchValueLower) {
-            $query->orWhere('name', 'LIKE', "%{$searchValueLower}%")
-                ->orWhere('login', 'LIKE', "%{$searchValueLower}%")
-                ->orWhere('email', 'LIKE', "%{$searchValueLower}%");
+        $users = User::query()->where(static function ($query) use ($escapedSearch) {
+            $query->orWhere('name', 'LIKE', "%{$escapedSearch}%")
+                ->orWhere('login', 'LIKE', "%{$escapedSearch}%")
+                ->orWhere('email', 'LIKE', "%{$escapedSearch}%");
         })->limit(10)->fetchAll();
 
         foreach ($users as $user) {

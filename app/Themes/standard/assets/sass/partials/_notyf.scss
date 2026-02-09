@@ -47,21 +47,6 @@
         background-size: 100px 100px;
     }
 
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--toast-background);
-        border-radius: 50%;
-        filter: blur(70px);
-        opacity: 0.15;
-        left: -70px;
-        top: 15px;
-        width: 170px;
-        height: 120px;
-        z-index: -1;
-    }
-
     &--disappear {
         animation: toast-out 0.4s forwards;
     }
@@ -79,7 +64,7 @@
         --toast-background: var(--error);
 
         .notyf__icon {
-            background: var(--error-light);
+            background: var(--error);
             color: #000;
         }
     }
@@ -88,7 +73,7 @@
         --toast-background: var(--warning);
 
         .notyf__icon {
-            background: var(--warning-light);
+            background: var(--warning);
             color: #000;
         }
     }
@@ -97,7 +82,7 @@
         --toast-background: var(--info);
 
         .notyf__icon {
-            background: var(--info-light);
+            background: var(--info);
             color: #000;
         }
     }
@@ -105,6 +90,22 @@
     &--dismissible {
         padding-right: 3rem;
     }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--toast-background);
+        border-radius: 50%;
+        filter: blur(70px);
+        opacity: 0.15;
+        left: -70px;
+        top: 15px;
+        width: 170px;
+        height: 120px;
+        z-index: -1;
+    }
+
 }
 
 .notyf__icon {
@@ -123,7 +124,7 @@
         border-radius: 50%;
         width: 100%;
         height: 100%;
-        background-color: var(--success);
+        background-color: var(--toast-background);
         opacity: 0.07;
         z-index: -1;
         transform: scale(1.8);

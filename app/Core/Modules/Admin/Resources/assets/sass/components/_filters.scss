@@ -9,6 +9,10 @@
     border: 1px solid var(--transp-1);
     box-shadow: var(--shadow-small);
 
+    :root[data-theme=light] & {
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
     &--compact {
         padding: 0.625rem 0.875rem;
 

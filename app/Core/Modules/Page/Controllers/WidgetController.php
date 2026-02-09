@@ -169,6 +169,7 @@ class WidgetController extends BaseController
 
         $layout = $fluteRequest->input('layout', []);
         $path = $fluteRequest->input('path', '/');
+
         if (!is_string($path) || $path === '') {
             $path = '/';
         }
@@ -566,7 +567,7 @@ class WidgetController extends BaseController
             'error' => $message,
             'debug' => is_debug() ? [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'file' => basename($e->getFile()) . ':' . $e->getLine(),
             ] : null,
         ], 500);
     }

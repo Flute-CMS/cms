@@ -98,6 +98,27 @@ class DatabaseComponent extends FluteComponent
                 return;
             }
 
+            // Validate database name to prevent injection in DSN and SQL
+            if ($this->driver !== 'sqlite' && !preg_match('/^[a-zA-Z0-9_]+$/', $this->database)) {
+                $this->errorMessage = __('install.database.error_invalid_name');
+
+                return;
+            }
+
+            // Validate host to prevent DSN injection
+            if ($this->driver !== 'sqlite' && !preg_match('/^[a-zA-Z0-9._\-]+$/', $this->host)) {
+                $this->errorMessage = __('install.database.error_host_required');
+
+                return;
+            }
+
+            // Validate port is numeric
+            if (!empty($this->port) && !ctype_digit((string) $this->port)) {
+                $this->errorMessage = __('install.database.error_host_required');
+
+                return;
+            }
+
             // For SQLite, we just need to make sure the directory exists
             if ($this->driver === 'sqlite') {
                 $databaseDir = dirname(path('storage/database/'.$this->database));

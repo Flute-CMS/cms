@@ -26,6 +26,7 @@ use Flute\Core\Router\Middlewares\CsrfMiddleware;
 use Flute\Core\Router\Middlewares\HtmxMiddleware;
 use Flute\Core\Router\Middlewares\MaintenanceMiddleware;
 use Flute\Core\Router\Middlewares\RateLimiterMiddleware;
+use Flute\Core\Router\Middlewares\SiteModeMiddleware;
 use Flute\Core\Router\Middlewares\TokenMiddleware;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
@@ -83,6 +84,7 @@ class Router implements RouterInterface
         'ban.check' => BanCheckMiddleware::class,
         'maintenance' => MaintenanceMiddleware::class,
         'page.permissions' => PagePermissionsMiddleware::class,
+        'site_mode' => SiteModeMiddleware::class,
     ];
 
     protected ?RouteInterface $currentRoute = null;

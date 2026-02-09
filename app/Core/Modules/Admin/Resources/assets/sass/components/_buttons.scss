@@ -43,6 +43,33 @@ $button-types: (
     )
 );
 
+:root[data-theme=light] {
+    .btn-info {
+        color: #007aff;
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #007aff;
+        }
+    }
+    .btn-success {
+        color: #28a745;
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #28a745;
+        }
+    }
+    .btn-warning {
+        color: #e68a00;
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #e68a00;
+        }
+    }
+    .btn-error {
+        color: #e53935;
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #e53935;
+        }
+    }
+}
+
 $button-outline-types: (
     primary: (
         color: var(--text),
@@ -52,8 +79,8 @@ $button-outline-types: (
     ),
     accent: (
         color: var(--accent),
-        border-color: var(--accent-transp, rgba(50, 215, 75, 0.3)),
-        hover-background: var(--accent-transp, rgba(50, 215, 75, 0.1)),
+        border-color: color-mix(in srgb, var(--accent) 30%, transparent),
+        hover-background: color-mix(in srgb, var(--accent) 10%, transparent),
         hover-color: var(--accent)
     ),
     error: (

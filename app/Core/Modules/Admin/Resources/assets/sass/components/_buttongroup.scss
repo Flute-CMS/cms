@@ -9,6 +9,10 @@
     position: relative;
     max-width: 100%;
 
+    :root[data-theme=light] & {
+        background: rgba(0, 0, 0, 0.06);
+    }
+
     // Size variants
     &--tiny {
         padding: 0.1875rem;
@@ -99,6 +103,12 @@
             box-shadow: 
                 0 1px 3px rgba(0, 0, 0, 0.12),
                 0 1px 2px rgba(0, 0, 0, 0.08);
+
+            :root[data-theme=light] & {
+                box-shadow: 
+                    0 1px 3px rgba(0, 0, 0, 0.1),
+                    0 1px 2px rgba(0, 0, 0, 0.06);
+            }
         }
     }
 
@@ -108,7 +118,7 @@
             background: var(--accent);
             color: var(--accent-900);
             box-shadow: 
-                0 1px 3px var(--accent-transp, rgba(50, 215, 75, 0.25)),
+                0 1px 3px color-mix(in srgb, var(--accent) 25%, transparent),
                 0 1px 2px rgba(0, 0, 0, 0.08);
         }
     }
@@ -159,7 +169,7 @@
             transform 0.1s ease;
 
         &:hover:not(&--active) {
-            color: var(--text-200);
+            color: var(--text);
             background: var(--transp-05);
         }
 

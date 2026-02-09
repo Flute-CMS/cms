@@ -476,14 +476,3 @@
 body.sidebar-open {
     overflow: hidden;
 }
-
-body.page-edit-mode {
-    #main {
-        margin-right: 280px;
-        transition: margin-right 0.3s ease;
-
-        @media (max-width: 768px) {
-            margin-right: 0;
-        }
-    }
-}

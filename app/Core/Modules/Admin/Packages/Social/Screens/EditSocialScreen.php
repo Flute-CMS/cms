@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Nette\Utils\Json;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Throwable;
 
 class EditSocialScreen extends Screen
 {
@@ -241,6 +242,8 @@ class EditSocialScreen extends Screen
                 $this->redirectTo('/admin/socials', 300);
             }
 
+            $this->clearSocialCache();
+
             $this->flashMessage(__('admin-social.messages.save_success'), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-social.messages.save_error', ['message' => $e->getMessage()]), 'error');
@@ -259,6 +262,8 @@ class EditSocialScreen extends Screen
 
         try {
             SocialNetwork::findByPK($this->social->id)->delete();
+
+            $this->clearSocialCache();
 
             $this->flashMessage(__('admin-social.messages.delete_success'), 'success');
             $this->redirectTo('/admin/socials', 300);
@@ -440,5 +445,18 @@ class EditSocialScreen extends Screen
         }
 
         return $fields;
+    }
+
+    /**
+     * Clear social network related caches.
+     */
+    private function clearSocialCache(): void
+    {
+        try {
+            cache()->deleteImmediately('available_social_drivers');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
+        }
     }
 }

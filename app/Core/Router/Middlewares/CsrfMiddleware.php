@@ -49,7 +49,13 @@ class CsrfMiddleware extends BaseMiddleware
             return false;
         }
 
-        return (bool) config('app.csrf_enabled');
+        $enabled = (bool) config('app.csrf_enabled');
+
+        if (!$enabled) {
+            logs()->warning('CSRF protection is disabled via configuration. This is a security risk in production.');
+        }
+
+        return $enabled;
     }
 
     private function isTokenValid(FluteRequest $request): bool

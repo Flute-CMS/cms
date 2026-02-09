@@ -9,9 +9,10 @@
     $_sidebarMode = $_themeColors['--sidebar-mode'] ?? 'full';
     $_sidebarPosition = $_themeColors['--sidebar-position'] ?? 'top';
     $_sidebarCollapsed = cookie()->get('sidebar_collapsed', 'false');
+    $_designPreset = $_themeColors['--design-preset'] ?? 'default';
 @endphp
 <html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
-    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}">
+    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}" data-design-preset="{{ $_designPreset }}">
 
 <head hx-head="append">
     @php
@@ -98,7 +99,7 @@
     <meta name="view-transition" content="same-origin">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() ? 'true' : 'false' }}">
-    <meta name="auth-token" content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
+    <meta name="state-token" content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
     <meta name="google" content="notranslate" />
     <meta name="default-theme" content="{{ config('app.default_theme', 'dark') }}">
     <meta name="change-theme" content="{{ config('app.change_theme', true) ? 'true' : 'false' }}">
@@ -194,7 +195,6 @@
         <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
-        <link rel="stylesheet" href="@asset('assets/css/libs/easymde.min.css')">
 
         @at(tt('assets/sass/app.scss'))
 
@@ -384,9 +384,9 @@
                 logs()->error('Layout component error (user-card): ' . $e->getMessage(), ['exception' => $e]);
             }
         @endphp
-    @endif
 
-    @includeWhen(!$isPartialRequest, 'flute::components.richtext-icons')
+        @include('flute::components.richtext-icons')
+    @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
 
@@ -414,7 +414,7 @@
         <script src="@asset('assets/js/libs/filepond.js')" defer></script>
         <script src="@asset('assets/js/libs/notyf.js')" defer></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
-        <script src="@asset('assets/js/libs/easymde.js')" defer></script>
+        <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
 
         <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
 
@@ -424,11 +424,21 @@
         @at(tt('assets/scripts/bottom-sheet.js'))
         @at(tt('assets/scripts/user-card.js'))
         @at(tt('assets/scripts/tabs.js'))
-        @at(tt('assets/scripts/richtext.js'))
+        @at(tt('assets/scripts/richtext/icons.js'))
+        @at(tt('assets/scripts/richtext/extensions.js'))
+        @at(tt('assets/scripts/richtext/upload.js'))
+        @at(tt('assets/scripts/richtext/toolbar.js'))
+        @at(tt('assets/scripts/richtext/modals.js'))
+        @at(tt('assets/scripts/richtext/bubble-menu.js'))
+        @at(tt('assets/scripts/richtext/table-controls.js'))
+        @at(tt('assets/scripts/richtext/main.js'))
         @at(tt('assets/scripts/otp-input.js'))
         @at(tt('assets/scripts/tom-select.js'))
 
         @can('admin.pages')
+            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')">
+            <script src="@asset('assets/js/libs/gridstack-all.js')"></script>
+
             {{-- Page Edit modular scripts --}}
             @at(tt('assets/scripts/page-edit/core/namespace.js'))
             @at(tt('assets/scripts/page-edit/core/event-bus.js'))

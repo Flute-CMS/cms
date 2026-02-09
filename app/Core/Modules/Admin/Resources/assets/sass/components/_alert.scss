@@ -42,6 +42,11 @@
             background: radial-gradient(circle at 20% 50%, var(--success-light) 0%, transparent 100%);
         }
 
+        :root[data-theme=light] & {
+            background-color: rgba(48, 209, 88, 0.06);
+            border-color: rgba(48, 209, 88, 0.2);
+        }
+
         &.border {
             background-color: transparent;
             border-color: var(--success);
@@ -54,6 +59,11 @@
 
         &::after {
             background: radial-gradient(circle at 20% 50%, var(--error-light) 0%, transparent 100%);
+        }
+
+        :root[data-theme=light] & {
+            background-color: rgba(255, 59, 48, 0.06);
+            border-color: rgba(255, 59, 48, 0.2);
         }
 
         &.border {
@@ -69,6 +79,11 @@
             background: radial-gradient(circle at 20% 50%, var(--warning-light) 0%, transparent 100%);
         }
 
+        :root[data-theme=light] & {
+            background-color: rgba(255, 149, 0, 0.06);
+            border-color: rgba(255, 149, 0, 0.2);
+        }
+
         &.border {
             background-color: transparent;
             border-color: var(--warning-light);
@@ -80,6 +95,11 @@
 
         &::after {
             background: radial-gradient(circle at 20% 50%, var(--info-light) 0%, transparent 100%);
+        }
+
+        :root[data-theme=light] & {
+            background-color: rgba(90, 200, 250, 0.06);
+            border-color: rgba(90, 200, 250, 0.25);
         }
 
         &.border {

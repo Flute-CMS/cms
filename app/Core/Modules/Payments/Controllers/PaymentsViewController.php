@@ -27,6 +27,10 @@ class PaymentsViewController extends BaseController
             return $this->errors()->notFound("Invoice wasn't found");
         }
 
+        if ($invoice->user->id !== user()->id) {
+            return $this->errors()->forbidden('Access denied');
+        }
+
         if ($invoice->isPaid) {
             return $this->errors()->forbidden('Invoice already paid');
         }

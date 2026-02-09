@@ -114,6 +114,18 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
+     * Delete a cache key immediately, bypassing SWR (stale-while-revalidate).
+     * Base implementation is identical to delete(). Drivers with stale cache
+     * should override this to also remove from stale.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function deleteImmediately(string $key): bool
+    {
+        return $this->delete($key);
+    }
+
+    /**
      * Clear all cache
      */
     public function clear(): bool
@@ -209,6 +221,53 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
+     * Register a cache key under a tag for grouped invalidation.
+     * The tag registry itself is stored as a regular cache item.
+     */
+    public function tagKey(string $tag, string $key): void
+    {
+        $registryKey = '_tag_registry.' . $tag;
+
+        try {
+            $item = $this->cache->getItem($registryKey);
+            $keys = $item->isHit() ? (array) $item->get() : [];
+
+            if (!in_array($key, $keys, true)) {
+                $keys[] = $key;
+                $item->set($keys);
+                $this->cache->save($item);
+            }
+        } catch (Throwable $e) {
+            $this->logger->warning("Failed to register cache key '{$key}' under tag '{$tag}': " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete all cache keys registered under the given tag and the registry itself.
+     * Uses deleteImmediately() so stale cache is also cleared (admin sees fresh data).
+     */
+    public function deleteByTag(string $tag): void
+    {
+        $registryKey = '_tag_registry.' . $tag;
+
+        try {
+            $item = $this->cache->getItem($registryKey);
+
+            if ($item->isHit()) {
+                $keys = (array) $item->get();
+
+                foreach ($keys as $cachedKey) {
+                    $this->deleteImmediately($cachedKey);
+                }
+            }
+
+            $this->cache->deleteItem($registryKey);
+        } catch (Throwable $e) {
+            $this->logger->warning("Failed to delete cache by tag '{$tag}': " . $e->getMessage());
+        }
+    }
+
+    /**
      * Get all cache keys matching a pattern
      *
      * @param string $pattern Pattern to match keys against
@@ -236,33 +295,23 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Get keys from filesystem adapter
+     * Get keys from filesystem adapter.
+     *
+     * Note: Symfony FilesystemAdapter stores cache items using hashed filenames,
+     * so pattern matching against original key names is not possible.
+     * Use tagKey()/deleteByTag() instead for grouped invalidation.
      *
      * @param string $pattern Pattern to match keys against
-     * @return array Array of matching keys
+     * @return array Always returns empty array for filesystem adapter
      */
     protected function getKeysFromFilesystem(string $pattern): array
     {
-        $keys = [];
-        $cacheDir = $this->config['directory'] ?? storage_path('cache/symfony');
+        $this->logger->debug(
+            "getKeys() is not supported for FilesystemAdapter (keys are hashed). "
+            . "Pattern '{$pattern}' ignored. Use tagKey()/deleteByTag() for grouped cache invalidation."
+        );
 
-        if (!is_dir($cacheDir)) {
-            return [];
-        }
-
-        $finder = new \Symfony\Component\Finder\Finder();
-        $finder->files()->in($cacheDir)->name('*.php');
-
-        foreach ($finder as $file) {
-            $key = str_replace('.php', '', $file->getFilename());
-            if (fnmatch($pattern, $key)) {
-                $keys[] = $key;
-            }
-        }
-
-        $this->logger->debug("Found " . count($keys) . " keys matching pattern: {$pattern}");
-
-        return $keys;
+        return [];
     }
 
     /**

@@ -117,6 +117,8 @@ const PageEditEvents = {
     WIDGET_DRAG_END: 'widgetDragEnd',
     WIDGET_REORDERED: 'widgetReordered',
     WIDGET_RESIZE_START: 'widgetResizeStart',
+    WIDGET_SELECTED: 'widgetSelected',
+    WIDGET_DESELECTED: 'widgetDeselected',
 
     // History events
     HISTORY_PUSH: 'historyPush',

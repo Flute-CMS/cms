@@ -18,8 +18,23 @@
         color: var(--text);
         transition: border var(--transition), background-color var(--transition);
 
+        :root[data-theme=light] & {
+            background-color: var(--background);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
         &:focus-within:not(.textarea__field-container-readonly):not(.has-error) {
-            border-color: var(--primary-300);
+            border-color: var(--accent);
+
+            :root[data-theme=light] & {
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+            }
+        }
+
+        &:hover:not(:focus-within):not(.has-error) {
+            :root[data-theme=light] & {
+                border-color: rgba(0, 0, 0, 0.25);
+            }
         }
 
         &.has-error {

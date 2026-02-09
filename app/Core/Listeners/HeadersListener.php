@@ -10,29 +10,31 @@ class HeadersListener
     {
         $response = $event->getResponse();
 
-        // $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: * blob:; object-src 'none'; worker-src 'self' blob:;");
+        // $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http: blob:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; worker-src 'self' blob:; frame-src 'self'; frame-ancestors 'self';");
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
         if (request()->isSecure()) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=86400; includeSubDomains');
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        }
+
+        $appKey = (string) config('app.key');
+        if (empty($appKey)) {
+            logs()->warning('Application key (app.key) is not set. Using fallback for auth token HMAC.');
         }
 
         if (!session()->has('auth_token')) {
             $state = user()->isLoggedIn()
                 ? '1:' . (user()->id ?? '0')
                 : '0:guest';
-            $secret = (string) (config('app.key') ?? 'flute');
+            $secret = !empty($appKey) ? $appKey : hash('sha256', __DIR__ . session()->getId());
             $seed = bin2hex(random_bytes(8));
             $token = hash_hmac('sha256', $state . '|' . session()->getId() . '|' . $seed, $secret);
             session()->set('auth_token', $token);
         }
         $authToken = session()->get('auth_token');
-
-        $response->headers->set('Is-Logged-In', user()->isLoggedIn() ? 'true' : 'false');
-        $response->headers->set('Auth-Token', $authToken);
 
         if (request()->getMethod() === 'HEAD') {
             $response->headers->set('Cache-Control', 'no-cache');
@@ -49,11 +51,18 @@ class HeadersListener
                 session()->remove('just_logged_in_at');
             }
         } elseif (is_performance()) {
-            $response->setCache([
-                'public' => true,
-                'max_age' => 900,
-                's_maxage' => 1800,
-            ]);
+            if (user()->isLoggedIn()) {
+                $response->setCache([
+                    'private' => true,
+                    'max_age' => 300,
+                ]);
+            } else {
+                $response->setCache([
+                    'public' => true,
+                    'max_age' => 900,
+                    's_maxage' => 1800,
+                ]);
+            }
         }
 
         $varyHeaders = array_unique(array_merge($response->getVary(), ['HX-Request', 'HX-Boosted', 'Cookie', 'Authorization']));

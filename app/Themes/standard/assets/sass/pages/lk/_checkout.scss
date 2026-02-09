@@ -1,0 +1,253 @@
+// ============================================================
+// Checkout — promo, receipt, terms, pay button
+// ============================================================
+
+// ----------------------------------------------------------
+// Promo code
+// ----------------------------------------------------------
+
+.lk-promo {
+    &-wrap {
+        margin: 0 0 var(--space-lg);
+    }
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: var(--transp-03);
+    border: 1.5px solid var(--transp-1);
+    border-radius: 12px;
+    padding: var(--space-xs) var(--space-md);
+    transition: all 0.2s ease;
+
+    &:focus-within {
+        border-color: var(--text);
+        background: var(--transp-05);
+    }
+
+    &.is-valid {
+        border-color: var(--success);
+        background: var(--success-light);
+
+        .lk-promo__icon {
+            color: var(--success);
+        }
+    }
+
+    &.is-invalid {
+        border-color: var(--error);
+        background: var(--error-light);
+
+        .lk-promo__icon {
+            color: var(--error);
+        }
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        color: var(--text-500);
+        transition: color 0.2s ease;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &__input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-size: var(--p-small);
+        font-weight: 500;
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        min-width: 0;
+        padding: var(--space-2xs) 0;
+
+        &::placeholder {
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: 400;
+            color: var(--text-600);
+        }
+    }
+
+    &__badge {
+        flex-shrink: 0;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        &.is-valid {
+            color: var(--success);
+        }
+
+        &.is-invalid {
+            color: var(--error);
+        }
+    }
+}
+
+// ----------------------------------------------------------
+// Receipt rows
+// ----------------------------------------------------------
+
+.lk-receipt {
+    display: flex;
+    flex-direction: column;
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-sm) 0;
+        font-size: var(--p-small);
+        color: var(--text-300);
+        border-bottom: 1px solid var(--transp-05);
+
+        &:last-of-type {
+            border-bottom: none;
+        }
+
+        span:first-child {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2xs);
+
+            svg {
+                width: 12px;
+                height: 12px;
+                color: var(--text-600);
+                cursor: help;
+            }
+        }
+
+        span:last-child {
+            font-weight: 600;
+            color: var(--text-200);
+            font-variant-numeric: tabular-nums;
+        }
+
+        &--dim {
+            font-size: var(--small);
+            color: var(--text-500);
+
+            span:last-child {
+                color: var(--text-400);
+            }
+        }
+
+        &--green {
+            span,
+            span:last-child {
+                color: var(--success);
+            }
+        }
+    }
+
+    &__total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: var(--space-md);
+        margin-top: var(--space-2xs);
+        border-top: 1px solid var(--transp-1);
+
+        span:first-child {
+            font-weight: 600;
+            font-size: var(--p);
+            color: var(--text);
+        }
+
+        span:last-child {
+            font-size: var(--h4);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+}
+
+// ----------------------------------------------------------
+// Terms
+// ----------------------------------------------------------
+
+.lk-terms {
+    margin-top: var(--space-md);
+
+    label {
+        font-size: var(--small);
+        color: var(--text-400);
+        line-height: 1.6;
+    }
+}
+
+// ----------------------------------------------------------
+// Pay button
+// ----------------------------------------------------------
+
+.lk-pay-btn {
+    width: 100%;
+    margin-top: var(--space-lg);
+    height: 52px;
+    border-radius: 14px;
+    font-size: var(--p);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    &.is-loading {
+        pointer-events: none;
+    }
+
+    &__loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: lk-spin 0.7s linear infinite;
+    }
+}
+
+@keyframes lk-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ----------------------------------------------------------
+// Responsive
+// ----------------------------------------------------------
+
+@media (max-width: 640px) {
+    .lk-receipt__total span:last-child {
+        font-size: var(--h5);
+    }
+
+    .lk-pay-btn {
+        height: 48px;
+        border-radius: 12px;
+    }
+}

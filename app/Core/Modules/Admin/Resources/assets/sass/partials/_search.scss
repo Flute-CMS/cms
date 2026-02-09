@@ -30,6 +30,11 @@
         overflow: hidden;
         box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.2),
             0 0 0 1px rgba(0, 0, 0, 0.04);
+
+        :root[data-theme=light] & {
+            box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(0, 0, 0, 0.06);
+        }
     }
 
     .search-dialog__container {
