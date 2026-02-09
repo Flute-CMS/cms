@@ -697,6 +697,14 @@ class PageManager
     {
         $content = '';
 
+        usort($blocks, static function ($a, $b) {
+            $aGs = json_decode($a->gridstack, true) ?? [];
+            $bGs = json_decode($b->gridstack, true) ?? [];
+            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
+
+            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+        });
+
         foreach ($blocks as $block) {
             $style = $this->getBlockGridStyle($block);
 
@@ -728,11 +736,9 @@ class PageManager
         $gridstack = json_decode($block->gridstack, true) ?? [];
 
         return sprintf(
-            'grid-column: %d / span %d; grid-row: %d / span %d;',
+            'grid-column: %d / span %d;',
             ($gridstack['x'] ?? 0) + 1,
-            ($gridstack['w'] ?? 1),
-            ($gridstack['y'] ?? 0) + 1,
-            ($gridstack['h'] ?? 1)
+            ($gridstack['w'] ?? 1)
         );
     }
 

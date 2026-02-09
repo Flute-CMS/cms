@@ -84,10 +84,10 @@ class SearchHandler {
         const searchTerm = term.toLowerCase().trim();
         this.lastSearchTerm = searchTerm;
 
-        const categories = document.querySelectorAll('.sidebar-category');
+        const categories = document.querySelectorAll('.sidebar-category, .pe-sidebar__category');
 
         categories.forEach(category => {
-            const widgets = category.querySelectorAll('.widget-item');
+            const widgets = category.querySelectorAll('.widget-item, .pe-widget-card');
             let hasVisibleWidgets = false;
 
             widgets.forEach(widget => {
@@ -143,8 +143,9 @@ class SearchHandler {
         const originalText = nameEl.dataset.originalText || nameEl.textContent;
         nameEl.dataset.originalText = originalText;
 
+        const escaped = originalText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const regex = new RegExp(`(${this.escapeRegex(term)})`, 'gi');
-        nameEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+        nameEl.innerHTML = escaped.replace(regex, '<mark>$1</mark>');
     }
 
     /**
@@ -163,11 +164,11 @@ class SearchHandler {
      * @param {string} searchTerm - Current search term
      */
     updateNoResultsMessage(searchTerm) {
-        const sidebar = document.querySelector('.page-edit-sidebar');
+        const sidebar = document.querySelector('.pe-sidebar') || document.querySelector('.page-edit-sidebar');
         if (!sidebar) return;
 
         let noResults = sidebar.querySelector('.search-no-results');
-        const hasResults = document.querySelectorAll('.sidebar-category:not([style*="display: none"])').length > 0;
+        const hasResults = document.querySelectorAll('.sidebar-category:not([style*="display: none"]), .pe-sidebar__category:not([style*="display: none"])').length > 0;
 
         if (searchTerm && !hasResults) {
             if (!noResults) {
@@ -179,7 +180,7 @@ class SearchHandler {
                     </svg>
                     <p>${typeof translate === 'function' ? translate('def.no_results') : 'No results found'}</p>
                 `;
-                sidebar.querySelector('.page-edit-sidebar__categories')?.appendChild(noResults);
+                (sidebar.querySelector('.pe-sidebar__content') || sidebar.querySelector('.page-edit-sidebar__categories'))?.appendChild(noResults);
             }
             noResults.style.display = 'flex';
         } else if (noResults) {

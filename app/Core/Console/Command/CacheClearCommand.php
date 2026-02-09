@@ -39,42 +39,7 @@ class CacheClearCommand extends Command
         try {
             $filesystem = new Filesystem();
 
-            $rotateDir = static function (Filesystem $filesystem, string $src, string $dst): void {
-                if (is_dir($dst)) {
-                    $filesystem->remove($dst);
-                }
-
-                if (!is_dir($src)) {
-                    return;
-                }
-
-                try {
-                    $filesystem->rename($src, $dst, true);
-                } catch (IOException) {
-                    if (!is_dir($dst)) {
-                        @mkdir($dst, 0o775, true);
-                        $this->fixPermissions($dst);
-                    }
-
-                    $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
-                    foreach ($entries as $entry) {
-                        if (is_string($entry) && str_ends_with(strtolower($entry), '.lock')) {
-                            continue;
-                        }
-
-                        try {
-                            $filesystem->rename($entry, rtrim($dst, '/\\') . '/' . basename($entry), true);
-                        } catch (IOException) {
-                            try {
-                                $filesystem->remove($entry);
-                            } catch (IOException) {
-                            }
-                        }
-                    }
-
-                    // Keep src dir itself; it will be recreated below anyway.
-                }
-            };
+            \Flute\Core\Cache\SWRQueue::flush();
 
             if (function_exists('cache_bump_epoch')) {
                 cache_bump_epoch();
@@ -83,69 +48,33 @@ class CacheClearCommand extends Command
                 cache_warmup_mark();
             }
 
-            $rotateDir = function (Filesystem $filesystem, string $src, string $dst): void {
-                if (is_dir($dst)) {
-                    $filesystem->remove($dst);
-                }
+            // Remove both cache and stale directories entirely.
+            // Explicit cache clear should wipe everything — no stale fallback.
+            $this->removeAndRecreate($filesystem, $cacheDir);
+            $this->removeAndRecreate($filesystem, $cacheStaleDir);
+            $this->removeAndRecreate($filesystem, $cssCacheDir);
+            $this->removeAndRecreate($filesystem, $cssCacheStaleDir);
+            $this->removeAndRecreate($filesystem, $jsCacheDir);
+            $this->removeAndRecreate($filesystem, $jsCacheStaleDir);
 
-                if (!is_dir($src)) {
-                    return;
-                }
-
-                try {
-                    $filesystem->rename($src, $dst, true);
-                } catch (IOException) {
-                    if (!is_dir($dst)) {
-                        @mkdir($dst, 0o775, true);
-                        $this->fixPermissions($dst);
-                    }
-
-                    $entries = @glob(rtrim($src, '/\\') . '/*') ?: [];
-                    foreach ($entries as $entry) {
-                        if (is_string($entry) && str_ends_with(strtolower($entry), '.lock')) {
-                            continue;
-                        }
-
-                        try {
-                            $filesystem->rename($entry, rtrim($dst, '/\\') . '/' . basename($entry), true);
-                        } catch (IOException) {
-                            try {
-                                $filesystem->remove($entry);
-                            } catch (IOException) {
-                            }
-                        }
-                    }
-                }
-            };
-
-            $rotateDir($filesystem, $cacheDir, $cacheStaleDir);
-            if (!is_dir($cacheDir)) {
-                @mkdir($cacheDir, 0o775, true);
-                $this->fixPermissions($cacheDir);
-            }
-
-            $rotateDir($filesystem, $cssCacheDir, $cssCacheStaleDir);
-            if (!is_dir($cssCacheDir)) {
-                @mkdir($cssCacheDir, 0o775, true);
-                $this->fixPermissions($cssCacheDir);
-            }
-
-            $rotateDir($filesystem, $jsCacheDir, $jsCacheStaleDir);
-            if (!is_dir($jsCacheDir)) {
-                @mkdir($jsCacheDir, 0o775, true);
-                $this->fixPermissions($jsCacheDir);
+            // Always clear Blade view cache
+            $viewsPath = storage_path('app/views/*');
+            $viewFiles = glob($viewsPath);
+            if ($viewFiles) {
+                $filesystem->remove($viewFiles);
             }
 
             if ($full) {
-                $proxiesPath = storage_path('app/proxies/*');
-                $translationsPath = storage_path('app/translations/*');
-                $viewsPath = storage_path('app/views/*');
-                $logsPath = storage_path('logs/*');
-
-                $filesystem->remove(glob($proxiesPath));
-                $filesystem->remove(glob($translationsPath));
-                $filesystem->remove(glob($viewsPath));
-                $filesystem->remove(glob($logsPath));
+                foreach ([
+                    storage_path('app/proxies/*'),
+                    storage_path('app/translations/*'),
+                    storage_path('logs/*'),
+                ] as $pattern) {
+                    $files = glob($pattern);
+                    if ($files) {
+                        $filesystem->remove($files);
+                    }
+                }
             }
 
             $io->success('Flute cache has been deleted successfully.');
@@ -171,5 +100,15 @@ class CacheClearCommand extends Command
                 @chgrp($path, $user['gid']);
             }
         }
+    }
+
+    private function removeAndRecreate(Filesystem $filesystem, string $dir): void
+    {
+        if (is_dir($dir)) {
+            $filesystem->remove($dir);
+        }
+
+        @mkdir($dir, 0o775, true);
+        $this->fixPermissions($dir);
     }
 }

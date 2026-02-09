@@ -27,6 +27,12 @@
     margin-bottom: 0.5rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
+    :root[data-theme=light] & {
+        background: #ffffff !important;
+        border-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
     &::before {
         content: "";
         position: absolute;
@@ -45,6 +51,20 @@
             radial-gradient(circle at 10% 90%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
             radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.9) 1.5px, transparent 1.5px);
         background-size: 100px 100px;
+
+        :root[data-theme=light] & {
+            background-image:
+                radial-gradient(circle at 15% 55%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 85% 15%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 45% 85%, rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 65% 35%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 25% 25%, rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 55% 45%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 90% 10%, rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px);
+            opacity: 0.06;
+        }
     }
 
     &::after {
@@ -73,33 +93,37 @@
             background: var(--success);
             color: #000;
         }
+
     }
 
     &--error {
         --toast-background: var(--error);
 
         .notyf__icon {
-            background: var(--error-light);
+            background: var(--error);
             color: #000;
         }
+
     }
 
     &--warning {
         --toast-background: var(--warning);
 
         .notyf__icon {
-            background: var(--warning-light);
+            background: var(--warning);
             color: #000;
         }
+
     }
 
     &--info {
         --toast-background: var(--info);
 
         .notyf__icon {
-            background: var(--info-light);
+            background: var(--info);
             color: #000;
         }
+
     }
 
     &--dismissible {
@@ -123,7 +147,7 @@
         border-radius: 50%;
         width: 100%;
         height: 100%;
-        background-color: var(--success);
+        background-color: var(--toast-background);
         opacity: 0.07;
         z-index: -1;
         transform: scale(1.8);
@@ -148,6 +172,10 @@
     font-size: var(--p-small);
     font-weight: 500;
     color: #ffffffde;
+
+    :root[data-theme=light] & {
+        color: var(--text-200);
+    }
 }
 
 .notyf__dismiss {
@@ -179,6 +207,10 @@
         height: 1.5px;
         background: #ffffffde;
         border-radius: 1px;
+
+        :root[data-theme=light] & {
+            background: var(--text-400);
+        }
     }
 
     &::before {

@@ -83,7 +83,7 @@ class RichText extends Field
      * @var array
      */
     protected $attributes = [
-        'class' => 'form-control markdown-editor',
+        'class' => 'form-control richtext-editor',
         'value' => null,
         'height' => 300,
         'spellcheck' => false,
@@ -217,15 +217,15 @@ class RichText extends Field
                 break;
             case 'full':
                 $this->toolbar = [
-                    'bold', 'italic', 'strikethrough', 'heading', 'heading-smaller', 'heading-bigger',
+                    'bold', 'italic', 'underline', 'strikethrough', 'heading',
                     '|',
                     'code', 'quote', 'unordered-list', 'ordered-list', 'horizontal-rule',
                     '|',
-                    'link', 'image', 'table',
+                    'text-align', 'text-color', 'highlight',
                     '|',
-                    'preview', 'side-by-side', 'fullscreen',
+                    'link', 'image', 'table', 'youtube',
                     '|',
-                    'guide',
+                    'fullscreen',
                 ];
 
                 break;

@@ -7,6 +7,7 @@ use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Table\Index;
 use Cycle\ORM\Entity\Behavior;
+use DateTimeImmutable;
 
 #[Entity]
 #[Behavior\CreatedAt(
@@ -106,10 +107,10 @@ class NotificationTemplate extends ActiveRecord
     public int $priority = 100;
 
     #[Column(type: "datetime")]
-    public \DateTimeImmutable $createdAt;
+    public DateTimeImmutable $createdAt;
 
     #[Column(type: "datetime", nullable: true)]
-    public ?\DateTimeImmutable $updatedAt = null;
+    public ?DateTimeImmutable $updatedAt = null;
 
     public function getVariables(): array
     {
@@ -213,18 +214,27 @@ class NotificationTemplate extends ActiveRecord
     }
 
     /**
-     * Parse template string with variable substitution
+     * Parse template string with variable substitution.
+     * If the template string is an i18n key, it will be translated first.
      */
     protected function parseTemplate(string $template, array $data): string
     {
-        return preg_replace_callback('/\{(\w+)\}/', function ($matches) use ($data) {
+        if (function_exists('__') && !str_contains($template, ' ') && str_contains($template, '.')) {
+            $translated = __($template);
+            if ($translated !== $template) {
+                $template = $translated;
+            }
+        }
+
+        return preg_replace_callback('/\{(\w+)\}/', static function ($matches) use ($data) {
             $key = $matches[1];
+
             return $data[$key] ?? $matches[0];
         }, $template);
     }
 
     /**
-     * Recursively parse components with variable substitution
+     * Recursively parse components with variable substitution and i18n translation
      */
     protected function parseComponentsRecursive(array $components, array $data): array
     {
@@ -234,7 +244,14 @@ class NotificationTemplate extends ActiveRecord
             if (is_array($value)) {
                 $result[$key] = $this->parseComponentsRecursive($value, $data);
             } elseif (is_string($value)) {
-                $result[$key] = $this->parseTemplate($value, $data);
+                $translated = $value;
+                if (function_exists('__') && !str_contains($value, ' ') && str_contains($value, '.')) {
+                    $t = __($value);
+                    if ($t !== $value) {
+                        $translated = $t;
+                    }
+                }
+                $result[$key] = $this->parseTemplate($translated, $data);
             } else {
                 $result[$key] = $value;
             }

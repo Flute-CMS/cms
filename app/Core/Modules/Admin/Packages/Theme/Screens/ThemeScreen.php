@@ -16,6 +16,7 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Theme;
 use Flute\Core\Theme\ThemeActions;
 use Flute\Core\Theme\ThemeManager;
+use Throwable;
 
 class ThemeScreen extends Screen
 {
@@ -211,6 +212,7 @@ class ThemeScreen extends Screen
     {
         try {
             $this->themeActions->installTheme($this->key);
+            $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.install_success', ['name' => $this->key]), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.install_error', ['message' => $e->getMessage()]), 'error');
@@ -223,6 +225,7 @@ class ThemeScreen extends Screen
     {
         try {
             $this->themeActions->activateTheme($this->key);
+            $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.enable_success', ['name' => $this->key]), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.enable_error', ['message' => $e->getMessage()]), 'error');
@@ -235,6 +238,7 @@ class ThemeScreen extends Screen
     {
         try {
             $this->themeActions->disableTheme($this->key);
+            $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.disable_success', ['name' => $this->key]), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.disable_error', ['message' => $e->getMessage()]), 'error');
@@ -247,6 +251,7 @@ class ThemeScreen extends Screen
     {
         try {
             $this->themeActions->uninstallTheme($this->key);
+            $this->clearThemeCache();
             $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => $this->key]), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-theme.messages.delete_error', ['message' => $e->getMessage()]), 'error');
@@ -270,6 +275,7 @@ class ThemeScreen extends Screen
                 // ignore
             }
         }
+        $this->clearThemeCache();
         $this->loadThemes(true);
         $this->flashMessage(__('admin-theme.messages.delete_success', ['name' => '']), 'success');
     }
@@ -281,5 +287,21 @@ class ThemeScreen extends Screen
         }
 
         $this->themes = $this->themeManager->getAllThemes();
+    }
+
+    /**
+     * Clear all theme-related caches to ensure admin sees fresh data.
+     */
+    private function clearThemeCache(): void
+    {
+        try {
+            cache()->deleteImmediately('themes_list');
+            cache()->deleteImmediately('active_theme');
+            cache()->deleteImmediately('flute.themes.get');
+            cache()->deleteImmediately('flute.themes.json_data');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
+        }
     }
 }

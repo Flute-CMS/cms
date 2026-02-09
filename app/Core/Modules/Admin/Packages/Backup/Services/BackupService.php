@@ -283,7 +283,15 @@ class BackupService
     public function deleteBackup(string $filename, bool $isDirectory = false): bool
     {
         if ($isDirectory) {
+            $filename = str_replace(['..', "\0"], '', $filename);
             $path = $this->backupPath . '/' . $filename;
+            $realPath = realpath($path);
+            $realBackup = realpath($this->backupPath);
+
+            if (!$realPath || !$realBackup || !str_starts_with($realPath, $realBackup)) {
+                throw new Exception(__('admin-backup.errors.backup_not_found'));
+            }
+
             if (!is_dir($path)) {
                 throw new Exception(__('admin-backup.errors.backup_not_found'));
             }
@@ -390,7 +398,21 @@ class BackupService
      */
     protected function restoreFromDirectory(string $relativePath): void
     {
+        $relativePath = str_replace('\\', '/', $relativePath);
+        $relativePath = trim($relativePath, '/');
+
+        if (str_contains($relativePath, '..') || str_contains($relativePath, "\0")) {
+            throw new Exception(__('admin-backup.errors.backup_not_found'));
+        }
+
         $sourcePath = $this->backupPath . '/' . $relativePath;
+
+        $realSourcePath = realpath($sourcePath);
+        $realBackupPath = realpath($this->backupPath);
+
+        if ($realSourcePath === false || $realBackupPath === false || !str_starts_with($realSourcePath, $realBackupPath)) {
+            throw new Exception(__('admin-backup.errors.backup_not_found'));
+        }
 
         if (!is_dir($sourcePath)) {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
@@ -436,6 +458,12 @@ class BackupService
         $type = $parts['type'];
         $name = $parts['name'];
 
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $name)) {
+            $zip->close();
+
+            throw new Exception(__('admin-backup.errors.backup_not_found'));
+        }
+
         $destination = match ($type) {
             'module' => path('app/Modules/' . $name),
             'theme' => path('app/Themes/' . $name),
@@ -468,7 +496,26 @@ class BackupService
             // Cleanup temp
             $this->deleteDirectory($tempDir);
         } else {
-            // For full/cms/modules/themes - extract directly
+            // For full/cms/modules/themes - extract with zip-slip protection
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entryName = $zip->getNameIndex($i);
+
+                if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_starts_with($entryName, '\\')) {
+                    $zip->close();
+
+                    throw new Exception(__('admin-backup.errors.path_traversal_detected'));
+                }
+
+                $fullPath = realpath($destination) . DIRECTORY_SEPARATOR . $entryName;
+                $realDest = realpath($destination);
+
+                if ($realDest && !str_starts_with(dirname($fullPath), $realDest)) {
+                    $zip->close();
+
+                    throw new Exception(__('admin-backup.errors.path_traversal_detected'));
+                }
+            }
+
             $zip->extractTo($destination);
             $zip->close();
         }

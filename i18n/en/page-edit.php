@@ -189,8 +189,26 @@
     // Layout section
     "layout"                => "Layout",
     "max_content_width"     => "Max Content Width",
+    "widget_gap"            => "Widget Gap",
     "sidebar_width"         => "Sidebar Width",
     "content_align"         => "Content Alignment",
     "align_left"            => "Align left",
     "align_center"          => "Align center",
+
+    // Design presets
+    "design_presets"        => "Design Presets",
+    "design_presets_desc"   => "Choose a ready-made design style. All colors, effects and proportions will update instantly.",
+    "choose_design"         => "Choose Style",
+    "design_details"        => "Active Style",
+    "design_keep_colors"    => "Keep current colors",
+
+    // Widget editor (Wix-style)
+    "editing"               => "Editing:",
+    "undo"                  => "Undo",
+    "redo"                  => "Redo",
+    "discard"               => "Discard",
+    "click_to_add"          => "Click to add",
+    "no_widgets_found"      => "No widgets found",
+    "empty_title"           => "No widgets yet",
+    "empty_desc"            => "Drag widgets from the sidebar or click + to add them to the page.",
 ];

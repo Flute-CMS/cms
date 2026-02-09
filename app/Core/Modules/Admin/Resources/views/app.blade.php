@@ -67,7 +67,6 @@
         <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
-        <link rel="stylesheet" href="@asset('assets/css/libs/easymde.min.css')">
 
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
@@ -220,6 +219,7 @@
         @include('admin::partials.search')
         @include('admin::partials.scrollup')
         @include('admin::partials.customization')
+        @include('admin::components.richtext-icons')
     @endif
 
     @if (!request()->htmx()->isHtmxRequest())
@@ -236,7 +236,6 @@
                 {!! $sections['footer'] !!}
             @endif
 
-            @include('admin::components.richtext-icons')
         </footer>
 
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
@@ -251,7 +250,7 @@
         <script src="@asset('assets/js/libs/sortable.js')" defer></script>
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
         <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
-        <script src="@asset('assets/js/libs/easymde.js')" defer></script>
+        <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
         <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
         <script src="@asset('assets/js/libs/pickr.js')" defer></script>
 
@@ -269,7 +268,15 @@
         @at('Core/Modules/Admin/Resources/assets/js/scrollup.js')
         @at('Core/Modules/Admin/Resources/assets/js/select.js')
         @at('Core/Modules/Admin/Resources/assets/js/table-search.js')
-        @at('Core/Modules/Admin/Resources/assets/js/richtext.js')
+        {{-- Richtext editor (TipTap) --}}
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/icons.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/extensions.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/upload.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/toolbar.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/modals.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/bubble-menu.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/table-controls.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/main.js')
         @at('Core/Modules/Admin/Resources/assets/js/customization.js')
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')

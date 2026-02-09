@@ -130,7 +130,7 @@ class UserService
             return $this->usersCache[$route];
         }
 
-        $user = User::query()->where(['uri' => $route])->fetchOne();
+        $user = User::query()->where(['uri' => $route])->load('blocksReceived')->fetchOne();
 
         if ($user) {
             $this->usersCache[$user->id] = $user;
@@ -147,7 +147,7 @@ class UserService
      * @param bool $force Force data refresh from the database.
      * @param array $with Load specified relationships.
      */
-    public function get(int $userId, bool $force = false, array $with = ['roles', 'socialNetworks', 'userDevices', 'actionLogs', 'invoices']): ?User
+    public function get(int $userId, bool $force = false, array $with = ['roles', 'socialNetworks', 'userDevices', 'actionLogs', 'invoices', 'blocksReceived']): ?User
     {
         if (isset($this->usersCache[$userId]) && !$force) {
             return $this->usersCache[$userId];
@@ -304,8 +304,24 @@ class UserService
             throw new UserNotFoundException();
         }
 
+        $balanceUser = User::query()
+            ->forUpdate()
+            ->where(['id' => $balanceUser->id])
+            ->fetchOne();
+
         $balanceUser->balance += $sum;
         transaction($balanceUser)->run();
+
+        if (function_exists('notify')) {
+            try {
+                notify('core.balance_topup', $balanceUser, [
+                    'amount' => number_format($sum, 2),
+                    'balance' => number_format($balanceUser->balance, 2),
+                ]);
+            } catch (Throwable $e) {
+                logs()->error('Notification [core.balance_topup] failed: ' . $e->getMessage());
+            }
+        }
 
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);
@@ -330,6 +346,12 @@ class UserService
         if (!$balanceUser) {
             throw new UserNotFoundException();
         }
+
+        // Re-fetch with row lock to prevent race conditions
+        $balanceUser = User::query()
+            ->forUpdate()
+            ->where(['id' => $balanceUser->id])
+            ->fetchOne();
 
         if ($balanceUser->balance < $sum) {
             $neededSum = $sum - $balanceUser->balance;

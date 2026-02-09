@@ -62,6 +62,7 @@ return [
         "name" => "Page Content",
         "description" => "Main page content from templates",
         "no_content" => "No content available",
+        "editor_hint" => "This block displays the page content. Widgets above and below will appear around it.",
     ],
 
     "no_payments" => "No payments",

@@ -77,7 +77,7 @@ class AdminUsersService
      */
     public function resetPassword(User $user, string $password): void
     {
-        $user->password = password_hash($password, PASSWORD_DEFAULT);
+        $user->setPassword($password);
         $user->save();
 
         $this->clearUserSessions($user);

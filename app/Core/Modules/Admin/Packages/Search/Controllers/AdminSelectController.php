@@ -60,9 +60,10 @@ class AdminSelectController
         }
 
         $searchFields = $config['searchFields'] ?? [];
-        $select->where(static function ($q) use ($searchFields, $query) {
+        $escapedQuery = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query);
+        $select->where(static function ($q) use ($searchFields, $escapedQuery) {
             foreach ($searchFields as $field) {
-                $q->orWhere($field, 'LIKE', "%{$query}%");
+                $q->orWhere($field, 'LIKE', "%{$escapedQuery}%");
             }
         });
 

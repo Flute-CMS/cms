@@ -36,25 +36,20 @@
     <x-modal id="lk-modal" title="{{ __('lk.title') }}" loadUrl="{{ '/lk' }}" :inline="true">
         <x-slot:skeleton>
             <div class="modal__content-loading">
-                <div class="lk-payment-layout">
-                    <div class="lk-payment-main">
-                        <div class="skeleton mb-4" style="height: 40px; width: 60%; border-radius: var(--border05);">
+                <div class="lk-page" style="max-width: 680px; margin: 0 auto;">
+                    <div style="background: var(--secondary); border: 1px solid var(--transp-1); border-radius: 20px; overflow: hidden;">
+                        <div style="padding: var(--space-lg) var(--space-xl);">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <div class="skeleton" style="height: 40px; width: 120px; border-radius: 100px;"></div>
+                                <div class="skeleton" style="height: 40px; width: 100px; border-radius: 100px;"></div>
+                                <div class="skeleton" style="height: 40px; width: 130px; border-radius: 100px;"></div>
+                            </div>
                         </div>
-                        <div class="d-flex mb-4 flex-wrap gap-2">
-                            <div class="skeleton"
-                                style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                            </div>
-                            <div class="skeleton"
-                                style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                            </div>
-                            <div class="skeleton"
-                                style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                            </div>
+                        <div style="height: 1px; background: var(--transp-1); margin: 0 var(--space-xl);"></div>
+                        <div style="padding: var(--space-lg) var(--space-xl);">
+                            <div class="skeleton" style="height: 56px; border-radius: 14px;"></div>
                         </div>
                     </div>
-
-                    <div class="skeleton lk-payment-summary-skeleton"
-                        style="height: 250px; border-radius: var(--border1);"></div>
                 </div>
             </div>
         </x-slot:skeleton>

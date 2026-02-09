@@ -161,7 +161,7 @@ class EncryptService
             throw new DecryptException('Could not decrypt the data.');
         }
 
-        return $serialize ? unserialize($decrypted) : $decrypted;
+        return $serialize ? unserialize($decrypted, ['allowed_classes' => false]) : $decrypted;
     }
 
     /**

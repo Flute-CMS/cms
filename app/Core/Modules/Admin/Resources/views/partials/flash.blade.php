@@ -16,7 +16,7 @@
                 @foreach (flash()->get($type) as $message)
                     <div class="toast-item" data-type="{{ $type }}">
                         <x-alert :type="$type" :withClose="true" :onlyBorders="true">
-                            {!! $message['text'] !!}
+                            {{ $message['text'] }}
                             @if (isset($message['link']))
                                 <a href="{{ $message['link']['href'] }}">{{ $message['link']['text'] }}</a>
                             @endif

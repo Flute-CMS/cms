@@ -65,6 +65,7 @@ class ModuleInstallerService
         $this->client = new Client([
             'timeout' => 30,
             'http_errors' => false,
+            'verify' => true,
         ]);
 
         $this->tempDir = storage_path('app/temp/marketplace');
@@ -144,6 +145,27 @@ class ModuleInstallerService
 
         if (!is_dir($this->moduleExtractPath)) {
             mkdir($this->moduleExtractPath, 0o755, true);
+        }
+
+        // Extract with zip-slip protection
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+
+            if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_starts_with($entryName, '\\')) {
+                $zip->close();
+
+                throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве');
+            }
+
+            $targetPath = $this->moduleExtractPath . '/' . $entryName;
+            $realTarget = realpath(dirname($targetPath)) ?: $this->moduleExtractPath;
+            $realExtract = realpath($this->moduleExtractPath);
+
+            if ($realExtract && !str_starts_with($realTarget, $realExtract)) {
+                $zip->close();
+
+                throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве');
+            }
         }
 
         $zip->extractTo($this->moduleExtractPath);

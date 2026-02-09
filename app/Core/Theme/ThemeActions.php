@@ -80,6 +80,8 @@ class ThemeActions
         if ($event->isPropagationStopped()) {
             return;
         }
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -115,6 +117,8 @@ class ThemeActions
         template()->getTemplateAssets()->clearStyleCache();
 
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -135,6 +139,8 @@ class ThemeActions
 
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
         $this->themeManager->installedThemes[] = $themeName;
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -147,6 +153,8 @@ class ThemeActions
         $this->themeManager->getTheme($themeName);
 
         $this->updateThemeStatus($themeName, ThemeManager::DISABLED);
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -179,6 +187,24 @@ class ThemeActions
         transaction($theme, 'delete')->run();
 
         fs()->remove(BASE_PATH . 'app/Themes/' . $themeName);
+
+        $this->clearThemeRelatedCaches();
+    }
+
+    /**
+     * Clear all theme-related caches to ensure changes are reflected immediately.
+     */
+    protected function clearThemeRelatedCaches(): void
+    {
+        try {
+            cache()->deleteImmediately('themes_list');
+            cache()->deleteImmediately('active_theme');
+            cache()->deleteImmediately('flute.themes.get');
+            cache()->deleteImmediately('flute.themes.json_data');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break theme operations if cache clearing fails
+        }
     }
 
     /**

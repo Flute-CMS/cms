@@ -6,6 +6,7 @@ use Flute\Core\Modules\Profile\Listeners\TemplateListener;
 use Flute\Core\Modules\Profile\Services\ProfileEditTabService;
 use Flute\Core\Modules\Profile\Services\ProfileTabService;
 use Flute\Core\Modules\Profile\Tabs\Edit\MainTab;
+use Flute\Core\Modules\Profile\Tabs\Edit\NotificationsTab;
 use Flute\Core\Modules\Profile\Tabs\Edit\PaymentsTab;
 use Flute\Core\Modules\Profile\Tabs\Edit\SocialTab;
 use Flute\Core\Support\AbstractServiceProvider;
@@ -29,6 +30,7 @@ class ProfileServiceProvider extends AbstractServiceProvider
             $profileEditTab = $container->get(ProfileEditTabService::class);
             $profileEditTab->register(new MainTab());
             $profileEditTab->register(new SocialTab());
+            $profileEditTab->register(new NotificationsTab());
             $profileEditTab->register(new PaymentsTab());
             // ---------------------------
 

@@ -148,8 +148,9 @@ class ProfileSocialBindController extends BaseController
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
         $errorJs = json_encode($error, JSON_UNESCAPED_UNICODE);
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
+        $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", " . $origin . "); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
     }
 
     /**
@@ -159,7 +160,8 @@ class ProfileSocialBindController extends BaseController
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
+        $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', " . $origin . "); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
     }
 }

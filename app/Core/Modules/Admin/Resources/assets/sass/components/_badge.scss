@@ -25,25 +25,45 @@
     &.info {
         background-color: var(--info-light);
         color: var(--info);
+
+        :root[data-theme=light] & {
+            background-color: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+        }
     }
 
     &.error {
         background-color: var(--error-light);
         color: var(--error);
+
+        :root[data-theme=light] & {
+            background-color: rgba(255, 59, 48, 0.1);
+            color: #e53935;
+        }
     }
 
     &.warning {
         background-color: var(--warning-light);
         color: var(--warning);
+
+        :root[data-theme=light] & {
+            background-color: rgba(255, 149, 0, 0.1);
+            color: #e68a00;
+        }
     }
 
     &.success {
         background-color: var(--success-light);
         color: var(--success);
+
+        :root[data-theme=light] & {
+            background-color: rgba(48, 209, 88, 0.1);
+            color: #28a745;
+        }
     }
 
     &.ghost-accent {
-        background-color: var(--accent-transp, rgba(50, 215, 75, 0.12));
+        background-color: color-mix(in srgb, var(--accent) 12%, transparent);
         color: var(--accent);
 
         &[href]:hover,

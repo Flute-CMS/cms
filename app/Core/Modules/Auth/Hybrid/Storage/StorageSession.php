@@ -22,7 +22,7 @@ class StorageSession implements StorageInterface
 
         if (is_array($value) && isset($value['__lateObject'])) {
             try {
-                return unserialize($value['__lateObject']);
+                return unserialize($value['__lateObject'], ['allowed_classes' => false]);
             } catch (Throwable $e) {
                 logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
 

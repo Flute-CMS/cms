@@ -59,13 +59,14 @@ class PageSearchListener implements EventSubscriberInterface
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
         $pages = Page::query()
-            ->where(static function ($query) use ($searchValueLower) {
+            ->where(static function ($query) use ($escapedSearch) {
                 $query
-                    ->orWhere('title', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('route', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('description', 'LIKE', "%{$searchValueLower}%");
+                    ->orWhere('title', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('route', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('description', 'LIKE', "%{$escapedSearch}%");
             })
             ->limit(10)
             ->fetchAll();

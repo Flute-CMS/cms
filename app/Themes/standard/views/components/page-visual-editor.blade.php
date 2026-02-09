@@ -38,6 +38,9 @@
         <button type="button" class="ve__segment active" data-tab="colors" title="{{ __('page-edit.theme_colors') }}">
             <x-icon path="ph.regular.palette" />
         </button>
+        <button type="button" class="ve__segment" data-tab="design" title="{{ __('page-edit.design_presets') }}">
+            <x-icon path="ph.regular.paint-brush-broad" />
+        </button>
         <button type="button" class="ve__segment" data-tab="layout" title="{{ __('page-edit.layout') }}">
             <x-icon path="ph.regular.layout" />
         </button>
@@ -255,6 +258,16 @@
                     </div>
                 </div>
             </section>
+        </div>
+
+        {{-- Design Presets Panel --}}
+        <div class="ve__panel" data-panel="design">
+            <div class="ve__design-grid" id="ve-design-grid"></div>
+
+            <div class="ve__field ve__field--switch" style="margin-top: 4px;">
+                <label class="ve__field-label">{{ __('page-edit.design_keep_colors') }}</label>
+                <x-fields.toggle name="ve-design-keep-colors" id="ve-design-keep-colors" :checked="false" />
+            </div>
         </div>
 
         {{-- Layout Panel --}}
@@ -524,6 +537,18 @@
                     </div>
                     <input type="range" class="ve__range" id="ve-max-width-layout" data-variable="--max-content-width"
                         min="960" max="1600" step="40" value="1200" data-unit="px" />
+                </div>
+
+                <div class="ve__field">
+                    <div class="ve__field-row">
+                        <label class="ve__field-label">
+                            <x-icon path="ph.regular.arrows-out-line-horizontal" />
+                            {{ __('page-edit.widget_gap') }}
+                        </label>
+                        <span class="ve__range-val" id="ve-widget-gap-val">25px</span>
+                    </div>
+                    <input type="range" class="ve__range" id="ve-widget-gap" data-variable="--widget-gap"
+                        min="0" max="40" step="2" value="25" data-unit="px" />
                 </div>
 
                 <div class="ve__field ve__field--switch">

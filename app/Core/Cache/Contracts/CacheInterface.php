@@ -11,4 +11,20 @@ interface CacheInterface
     public function delete(string $key): bool;
 
     public function clear(): bool;
+
+    /**
+     * Register a cache key under a tag for grouped invalidation.
+     */
+    public function tagKey(string $tag, string $key): void;
+
+    /**
+     * Delete all cache keys registered under the given tag.
+     */
+    public function deleteByTag(string $tag): void;
+
+    /**
+     * Delete a cache key immediately, bypassing SWR (stale-while-revalidate).
+     * Unlike delete(), this removes the item from stale cache too.
+     */
+    public function deleteImmediately(string $key): bool;
 }

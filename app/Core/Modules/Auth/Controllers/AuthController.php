@@ -65,9 +65,9 @@ class AuthController extends BaseController
             flash()->add('success', __('auth.confirmation.success'));
 
             return response()->redirect('/');
-        } catch (Exception $e) {
-            return response()->error(404, __('auth.confirmation.verify_old'));
         } catch (AccountNotVerifiedException $e) {
+            return response()->error(404, __('auth.confirmation.verify_old'));
+        } catch (Exception $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
         }
     }

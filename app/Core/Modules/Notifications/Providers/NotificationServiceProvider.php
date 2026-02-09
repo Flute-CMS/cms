@@ -2,8 +2,13 @@
 
 namespace Flute\Core\Modules\Notifications\Providers;
 
+use Flute\Core\Modules\Auth\Events\UserLoggedInEvent;
+use Flute\Core\Modules\Auth\Events\UserRegisteredEvent;
+use Flute\Core\Modules\Auth\Events\UserVerifiedEvent;
+use Flute\Core\Modules\Notifications\Listeners\CoreNotificationListener;
 use Flute\Core\Modules\Notifications\Services\NotificationService;
 use Flute\Core\Modules\Notifications\Services\NotificationTemplateService;
+use Flute\Core\Modules\Payments\Events\PaymentSuccessEvent;
 use Flute\Core\Support\AbstractServiceProvider;
 
 class NotificationServiceProvider extends AbstractServiceProvider
@@ -23,11 +28,22 @@ class NotificationServiceProvider extends AbstractServiceProvider
     {
         if (is_installed()) {
             $container->get(NotificationService::class);
-            $container->get(NotificationTemplateService::class);
+
+            /** @var NotificationTemplateService $templateService */
+            $templateService = $container->get(NotificationTemplateService::class);
+
+            $coreProvider = new CoreNotificationProvider();
+            $templateService->registerProvider($coreProvider);
+            $templateService->registerFromProvider($coreProvider);
 
             $this->loadRoutesFrom(cms_path('Notifications/Routes/notifications.php'));
 
             $this->addNamespace('notifications', cms_path('Modules/Notifications/Resources/views'));
+
+            events()->addDeferredListener(UserRegisteredEvent::NAME, [CoreNotificationListener::class, 'onUserRegistered']);
+            events()->addDeferredListener(UserLoggedInEvent::NAME, [CoreNotificationListener::class, 'onUserLoggedIn']);
+            events()->addDeferredListener(PaymentSuccessEvent::NAME, [CoreNotificationListener::class, 'onPaymentSuccess']);
+            events()->addDeferredListener(UserVerifiedEvent::NAME, [CoreNotificationListener::class, 'onUserVerified']);
         }
     }
 }

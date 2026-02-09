@@ -271,7 +271,7 @@ class AuthenticationService
         }
 
         $verificationToken = VerificationToken::query()
-            ->where(['token' => $token])
+            ->where(['token' => hash('sha256', $token)])
             ->load(['user', 'user.roles'])
             ->fetchOne();
 
@@ -314,7 +314,7 @@ class AuthenticationService
 
         $verificationToken = new VerificationToken();
         $verificationToken->user = $user;
-        $verificationToken->token = $verificationTokenValue;
+        $verificationToken->token = hash('sha256', $verificationTokenValue);
         $verificationToken->expiresAt = $expiresAt->toDateTimeImmutable();
 
         try {
@@ -340,6 +340,7 @@ class AuthenticationService
         }
 
         $this->session->clear();
+        $this->session->migrate(true);
         $this->cookie->remove('remember_token');
 
         user()->clearCurrentUser();
@@ -372,7 +373,7 @@ class AuthenticationService
 
         $passwordResetToken = new PasswordResetToken();
         $passwordResetToken->user = $user;
-        $passwordResetToken->token = $passwordResetTokenValue;
+        $passwordResetToken->token = hash('sha256', $passwordResetTokenValue);
         $passwordResetToken->expiry = $expiresAt->toDateTimeImmutable();
 
         try {
@@ -397,7 +398,7 @@ class AuthenticationService
     {
         // Eager load user and related data to prevent N+1 queries
         $passwordResetToken = PasswordResetToken::query()
-            ->where(['token' => $token])
+            ->where(['token' => hash('sha256', $token)])
             ->load(['user', 'user.roles'])
             ->fetchOne();
 
@@ -431,6 +432,17 @@ class AuthenticationService
         try {
             transaction($passwordResetToken, 'delete')->run();
             transaction($user)->run();
+
+            $existingTokens = RememberToken::findAll(['user_id' => $user->id]);
+            foreach ($existingTokens as $existingToken) {
+                transaction($existingToken, 'delete')->run();
+            }
+
+            if (function_exists('notify')) {
+                notify('core.password_changed', $user, [
+                    'time' => date('d.m.Y H:i'),
+                ]);
+            }
         } catch (Throwable $e) {
             throw $e;
         }
@@ -537,6 +549,9 @@ class AuthenticationService
      */
     protected function setCurrentUser(User $user): void
     {
+        $this->session->migrate(true);
+        $this->session->remove('auth_token');
+
         $this->session->set('user_id', $user->id);
         $this->session->set('just_logged_in_at', time());
 

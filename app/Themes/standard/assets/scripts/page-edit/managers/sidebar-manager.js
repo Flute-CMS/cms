@@ -43,9 +43,9 @@ class SidebarManager {
      * Initialize the sidebar
      */
     initialize() {
-        this.sidebar = document.getElementById('page-edit-sidebar');
+        this.sidebar = document.getElementById('page-edit-sidebar') || document.querySelector('.pe-sidebar');
         this.searchInput = document.getElementById('widget-search');
-        this.categoriesContainer = this.sidebar?.querySelector('.page-edit-sidebar__categories');
+        this.categoriesContainer = this.sidebar?.querySelector('.page-edit-sidebar__categories') || this.sidebar?.querySelector('.pe-sidebar__content');
 
         if (!this.sidebar) {
             this.utils.logError('SidebarManager', 'Sidebar element not found');
@@ -85,7 +85,7 @@ class SidebarManager {
         this.bindOnce(document, 'keydown', this._escapeHandler, 'escape');
 
         // Mobile backdrop click
-        const backdrop = this.sidebar?.querySelector('.page-edit-sidebar__backdrop');
+        const backdrop = this.sidebar?.querySelector('.page-edit-sidebar__backdrop') || document.getElementById('pe-sidebar-overlay');
         if (backdrop) {
             this.bindOnce(backdrop, 'click', () => this.close(), 'backdrop');
         }
@@ -154,7 +154,7 @@ class SidebarManager {
     setupSearch() {
         if (!this.searchInput) return;
 
-        const clearBtn = this.sidebar?.querySelector('.page-edit-sidebar__search-clear');
+        const clearBtn = this.sidebar?.querySelector('.page-edit-sidebar__search-clear') || this.sidebar?.querySelector('.pe-sidebar__search-clear');
 
         if (!this._searchHandler) {
             this._searchHandler = this.utils.debounce((e) => {
@@ -220,57 +220,13 @@ class SidebarManager {
     }
 
     /**
-     * Setup native HTML5 drag-and-drop for sidebar widgets
+     * Setup drag for sidebar widgets.
+     * GridStack handles drag-in via setupDragIn() in the grid controller,
+     * so we only need minimal setup here.
      */
     setupNativeDrag() {
-        const widgets = this.sidebar?.querySelectorAll('.widget-item');
-        if (!widgets) return;
-
-        widgets.forEach(widget => {
-            // Make widget draggable
-            widget.draggable = true;
-
-            // Get default width from data attribute
-            const defaultWidth = widget.dataset.defaultWidth || '6';
-
-            this.bindOnce(widget, 'dragstart', (e) => {
-                const widgetName = widget.dataset.widgetName;
-                if (!widgetName) return;
-
-                // Set data for the drop handler
-                e.dataTransfer.setData('widget-name', widgetName);
-                e.dataTransfer.setData('widget-width', defaultWidth);
-                e.dataTransfer.effectAllowed = 'copy';
-
-                // Visual feedback
-                widget.classList.add('dragging');
-
-                // Create a ghost image
-                const ghost = widget.cloneNode(true);
-                ghost.style.position = 'absolute';
-                ghost.style.top = '-1000px';
-                ghost.style.opacity = '0.8';
-                document.body.appendChild(ghost);
-                e.dataTransfer.setDragImage(ghost, 50, 20);
-
-                // Remove ghost after drag starts
-                setTimeout(() => {
-                    document.body.removeChild(ghost);
-                }, 0);
-
-                this.eventBus.emit(window.FlutePageEdit.events.SIDEBAR_DRAG_START, {
-                    widgetName: widgetName
-                });
-            }, 'dragstart');
-
-            this.bindOnce(widget, 'dragend', () => {
-                widget.classList.remove('dragging');
-
-                this.eventBus.emit(window.FlutePageEdit.events.SIDEBAR_DRAG_END);
-            }, 'dragend');
-        });
-
-        console.info('Native drag-in setup complete');
+        // GridStack handles sidebar drag-in natively via GridStack.setupDragIn()
+        // No native HTML5 drag setup needed
     }
 
     /**

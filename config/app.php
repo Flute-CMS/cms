@@ -43,10 +43,14 @@ return array(
     ],
     'trusted_hosts' => [
     ],
+    'auth_enabled' => true,
+    'profile_enabled' => true,
+    'balance_enabled' => true,
+    'notifications_enabled' => true,
     'session' =>
         array(
             'name' => 'flute_session',
-            'secure' => NULL,
+            'secure' => 'auto',
             'http_only' => true,
             'same_site' => 'Lax',
             'domain' => NULL,

@@ -26,15 +26,28 @@
         border-radius: 0.5rem;
         color: var(--text);
         background-color: transparent;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+
+        :root[data-theme=light] & {
+            background-color: var(--background);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
 
         &:focus-within:not(.input__field-container-readonly):not(.has-error) {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-transp, rgba(50, 215, 75, 0.12));
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+
+            :root[data-theme=light] & {
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+            }
         }
 
         &:hover:not(:focus-within):not(.has-error) {
             border-color: var(--transp-3);
+
+            :root[data-theme=light] & {
+                border-color: rgba(0, 0, 0, 0.25);
+            }
         }
 
         &.has-error {
@@ -45,6 +58,10 @@
         &-readonly {
             background-color: var(--transp-05);
             cursor: not-allowed;
+
+            :root[data-theme=light] & {
+                background-color: #f8f8fa;
+            }
         }
     }
 
@@ -61,7 +78,7 @@
         line-height: 1.5;
 
         &::placeholder {
-            color: var(--text-600);
+            color: var(--text-500);
         }
 
         &[type="color"] {
@@ -461,6 +478,12 @@ input:disabled {
     background-color: var(--transp-05) !important;
     color: var(--text) !important;
     transition: background-color 0.15s ease;
+
+    :root[data-theme=light] & {
+        background-color: #f8f9fa !important;
+        border: 1px dashed rgba(0, 0, 0, 0.15);
+        border-radius: 0.5rem;
+    }
 }
 
 .filepond--drop-label.filepond--drop-label label {

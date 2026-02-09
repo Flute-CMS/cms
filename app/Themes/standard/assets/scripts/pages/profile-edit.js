@@ -241,6 +241,8 @@ $(document).on('click', '[data-connect]', function (e) {
 
     if (!listenerAdded) {
         window.addEventListener('message', function (event) {
+            if (event.origin !== window.location.origin) return;
+
             if (event.data === 'authorization_success') {
                 // notyf.success(event.data);
                 location.reload();

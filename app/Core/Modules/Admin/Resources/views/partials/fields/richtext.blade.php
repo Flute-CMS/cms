@@ -7,11 +7,11 @@
 @endisset
 
 <div @class([
-    'markdown-editor-wrapper',
+    'richtext-editor-wrapper',
     'is-invalid' => $hasError,
 ])>
-    <textarea {{ $attributes }} id="{{ $id ?? $name ?? 'editor-'.uniqid() }}" data-editor="markdown"
-        data-height="{{ $height ?? 300 }}" {!! isset($spellcheck) ? ' data-spellcheck="'.($spellcheck ? 'true' : 'false').'"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="'.$imageUploadEndpoint.'"' : '' !!}>{!! $value !!}</textarea>
+    <textarea {{ $attributes }} id="{{ $id ?? $name ?? 'editor-'.uniqid() }}" data-editor="richtext"
+        data-height="{{ $height ?? 300 }}" {!! isset($spellcheck) ? ' data-spellcheck="'.($spellcheck ? 'true' : 'false').'"' : '' !!}{!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}{!! isset($imageUploadEndpoint) ? ' data-upload-url="'.$imageUploadEndpoint.'"' : '' !!}>{{ $value }}</textarea>
 
     @error($name)
         <span class="input__error">{{ $message }}</span>

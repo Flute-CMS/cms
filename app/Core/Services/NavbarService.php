@@ -10,6 +10,8 @@ class NavbarService
 {
     public const CACHE_KEY = 'flute.navbar.items';
 
+    public const CACHE_TAG = 'navbar';
+
     protected const CACHE_TIME = 24 * 60 * 60;
 
     protected array $cachedNavbarItems;
@@ -35,7 +37,12 @@ class NavbarService
 
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
-        $this->cachedNavbarItems = !is_development() ? cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME) : $this->getDefaultNavbarItems();
+        if (!is_development()) {
+            cache()->tagKey(self::CACHE_TAG, $cacheKey);
+            $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME);
+        } else {
+            $this->cachedNavbarItems = $this->getDefaultNavbarItems();
+        }
     }
 
     /**

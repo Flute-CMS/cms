@@ -536,7 +536,7 @@ abstract class Table extends Layout
      */
     protected function applySearchToSelect(Select|SelectQuery $select, array $columns): Select|SelectQuery
     {
-        $searchQuery = $this->searchQuery;
+        $searchQuery = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $this->searchQuery);
 
         $select->andWhere(static function ($query) use ($columns, $searchQuery) {
             foreach ($columns as $column) {

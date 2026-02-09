@@ -30,6 +30,7 @@ use RuntimeException;
 use stdClass;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Throwable;
 
 class MainSettingsPackageScreen extends Screen
 {
@@ -267,10 +268,6 @@ class MainSettingsPackageScreen extends Screen
             $save = $this->configService->saveSettings($currentTab, request()->input());
 
             if ($save) {
-                // if (function_exists('opcache_reset')) {
-                //     @opcache_reset();
-                // }
-
                 $this->flashMessage(__('admin-main-settings.messages.settings_saved_successfully'));
 
                 $debugAfter = (bool) config('app.debug');
@@ -283,6 +280,10 @@ class MainSettingsPackageScreen extends Screen
                     || $performanceBefore !== $performanceAfter
                 ) {
                     $this->clearCache();
+                } else {
+                    // Always invalidate global layout and navbar caches
+                    // to ensure settings changes are visible immediately
+                    $this->invalidateSettingsCache();
                 }
             }
         } catch (Exception $e) {
@@ -300,18 +301,26 @@ class MainSettingsPackageScreen extends Screen
         $jsCacheStaleDir = public_path('assets/js/cache_stale');
 
         $full = (bool) request()->input('full', false);
-        $cachePaths = [];
+
+        // Views (Blade cache) should always be cleared so admin sees fresh templates
+        $cachePaths = [
+            storage_path('app/views/*'),
+        ];
+
         if (!is_performance() || $full) {
-            $cachePaths = [
-                storage_path('app/views/*'),
+            $cachePaths = array_merge($cachePaths, [
                 storage_path('logs/*'),
                 storage_path('app/proxies/*'),
                 storage_path('app/translations/*'),
-            ];
+            ]);
         }
 
         try {
             $filesystem = fs();
+
+            // Discard any pending SWR tasks so they don't write stale data
+            // back into the freshly cleared cache after response is sent.
+            \Flute\Core\Cache\SWRQueue::flush();
 
             if (function_exists('cache_bump_epoch')) {
                 cache_bump_epoch();
@@ -320,37 +329,34 @@ class MainSettingsPackageScreen extends Screen
                 cache_warmup_mark();
             }
 
-            // Rotate cache directory for SWR: keep previous values in cache_stale.
+            // Remove both cache and stale directories entirely.
+            // Unlike SWR rotation, admin expects to see fresh data immediately,
+            // so we wipe stale too — no stale fallback after explicit clear.
             if (is_dir($cacheStaleDir)) {
                 $filesystem->remove($cacheStaleDir);
             }
             if (is_dir($cacheDir)) {
-                $filesystem->rename($cacheDir, $cacheStaleDir, true);
+                $filesystem->remove($cacheDir);
             }
-            if (!is_dir($cacheDir)) {
-                @mkdir($cacheDir, 0o755, true);
-            }
+            @mkdir($cacheDir, 0o755, true);
+            @mkdir($cacheStaleDir, 0o755, true);
 
-            // Rotate assets cache for SWR (TemplateAssets can serve stale while recompiling).
+            // Same for CSS/JS asset caches
             if (is_dir($cssCacheStaleDir)) {
                 $filesystem->remove($cssCacheStaleDir);
             }
             if (is_dir($cssCacheDir)) {
-                $filesystem->rename($cssCacheDir, $cssCacheStaleDir, true);
+                $filesystem->remove($cssCacheDir);
             }
-            if (!is_dir($cssCacheDir)) {
-                @mkdir($cssCacheDir, 0o755, true);
-            }
+            @mkdir($cssCacheDir, 0o755, true);
 
             if (is_dir($jsCacheStaleDir)) {
                 $filesystem->remove($jsCacheStaleDir);
             }
             if (is_dir($jsCacheDir)) {
-                $filesystem->rename($jsCacheDir, $jsCacheStaleDir, true);
+                $filesystem->remove($jsCacheDir);
             }
-            if (!is_dir($jsCacheDir)) {
-                @mkdir($jsCacheDir, 0o755, true);
-            }
+            @mkdir($jsCacheDir, 0o755, true);
 
             foreach ($cachePaths as $path) {
                 $files = glob($path);
@@ -361,10 +367,7 @@ class MainSettingsPackageScreen extends Screen
 
             $this->clearOpcache();
 
-
-            // if (!$withoutMessage) {
             $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully'));
-            // }
         } catch (IOException $e) {
             logs()->warning($e);
             $this->flashMessage(__('admin-main-settings.messages.cache_cleared_successfully') . ' (' . $e->getMessage() . ')', 'warning');
@@ -1106,6 +1109,7 @@ class MainSettingsPackageScreen extends Screen
 
         try {
             config()->save();
+            cache()->deleteImmediately('profile_tabs_cache');
             $this->flashMessage(__('admin-main-settings.messages.profile_tabs_order_saved'));
             $this->loadProfileTabs();
             $this->invalidateConfig('profile');
@@ -1170,6 +1174,20 @@ class MainSettingsPackageScreen extends Screen
     {
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate(path('config/' . $configName . '.php'), true);
+        }
+    }
+
+    /**
+     * Invalidate caches that depend on main settings (layout, navbar, footer, etc.).
+     */
+    protected function invalidateSettingsCache(): void
+    {
+        try {
+            cache()->deleteImmediately('flute.global.layout');
+            cache()->deleteByTag(\Flute\Core\Services\NavbarService::CACHE_TAG);
+            cache()->deleteByTag(\Flute\Core\Services\FooterService::CACHE_TAG);
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
         }
     }
 
@@ -1338,6 +1356,11 @@ class MainSettingsPackageScreen extends Screen
             Tab::make(__('admin-main-settings.blocks.personal_cabinet_settings'))
                 ->layouts([
                     $this->mainSettingsPersonalCabinetBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.site_mode'))
+                ->icon('ph.bold.toggle-left-bold')
+                ->layouts([
+                    $this->mainSettingsSiteModeBlock(),
                 ]),
         ])
             ->slug('main_settings_sections')
@@ -1637,6 +1660,52 @@ class MainSettingsPackageScreen extends Screen
                     ->value(config('lk.oferta_url'))
             )->label(__('admin-main-settings.labels.oferta_url'))->popover(__('admin-main-settings.popovers.oferta_url'))->small(__('admin-main-settings.examples.oferta_url')),
         ])->title(__('admin-main-settings.blocks.personal_cabinet_settings'))->addClass('mb-2');
+    }
+
+    private function mainSettingsSiteModeBlock()
+    {
+        return LayoutFactory::block([
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    ButtonGroup::make('auth_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.auth_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.auth_enabled'))->popover(__('admin-main-settings.popovers.auth_enabled')),
+                LayoutFactory::field(
+                    ButtonGroup::make('profile_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.profile_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.profile_enabled'))->popover(__('admin-main-settings.popovers.profile_enabled')),
+            ]),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    ButtonGroup::make('balance_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.balance_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.balance_enabled'))->popover(__('admin-main-settings.popovers.balance_enabled')),
+                LayoutFactory::field(
+                    ButtonGroup::make('notifications_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.notifications_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.notifications_enabled'))->popover(__('admin-main-settings.popovers.notifications_enabled')),
+            ]),
+        ])->title(__('admin-main-settings.blocks.site_mode'))->description(__('admin-main-settings.blocks.site_mode_description'))->addClass('mb-2');
     }
 
     private function usersSettingsLayout()

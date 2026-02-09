@@ -47,13 +47,11 @@ class FileSystemAdapterCacheDriver extends AbstractCacheDriver
             return $item->get();
         }
 
-        if ($this->staleCache) {
-            $staleItem = $this->staleCache->getItem($key);
-            if ($staleItem->isHit()) {
-                return $staleItem->get();
-            }
-        }
-
+        // Do NOT fall back to stale cache for plain get().
+        // Stale data is only used by callback() which can queue
+        // SWR revalidation. get() has no revalidation mechanism,
+        // so returning stale here would silently serve outdated
+        // data with no way to refresh it.
         return $default;
     }
 
@@ -64,6 +62,24 @@ class FileSystemAdapterCacheDriver extends AbstractCacheDriver
         $this->saveToStale($key, $value, $ttl);
 
         return $result;
+    }
+
+    /**
+     * Clear both main and stale caches, and discard any pending SWR tasks
+     * so they don't write stale data back after the clear.
+     */
+    public function clear(): bool
+    {
+        SWRQueue::flush();
+
+        if ($this->staleCache) {
+            try {
+                $this->staleCache->clear();
+            } catch (Throwable) {
+            }
+        }
+
+        return parent::clear();
     }
 
     public function delete(string $key): bool
@@ -79,6 +95,48 @@ class FileSystemAdapterCacheDriver extends AbstractCacheDriver
         }
 
         return parent::delete($key);
+    }
+
+    /**
+     * Delete a cache key from both main and stale caches immediately.
+     * Unlike delete(), this does NOT preserve the value in stale cache.
+     * Use this when admin explicitly changes data and must see fresh results.
+     */
+    public function deleteImmediately(string $key): bool
+    {
+        if ($this->staleCache) {
+            try {
+                $this->staleCache->deleteItem($key);
+            } catch (Throwable) {
+            }
+        }
+
+        return parent::delete($key);
+    }
+
+    public function deleteByTag(string $tag): void
+    {
+        $registryKey = '_tag_registry.' . $tag;
+
+        try {
+            $item = $this->cache->getItem($registryKey);
+
+            if ($item->isHit()) {
+                $keys = (array) $item->get();
+
+                foreach ($keys as $cachedKey) {
+                    $this->deleteImmediately($cachedKey);
+                }
+            }
+
+            // Delete registry from both main and stale
+            $this->cache->deleteItem($registryKey);
+            if ($this->staleCache) {
+                $this->staleCache->deleteItem($registryKey);
+            }
+        } catch (Throwable $e) {
+            $this->logger->warning("Failed to delete cache by tag '{$tag}': " . $e->getMessage());
+        }
     }
 
     public function callback(string $key, callable $callback, int $ttl = 0)

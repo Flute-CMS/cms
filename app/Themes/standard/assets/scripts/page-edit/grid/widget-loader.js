@@ -61,6 +61,9 @@ class WidgetLoader {
                 content.style.opacity = '1';
                 content.style.pointerEvents = 'auto';
 
+                // Resize widget to fit loaded content
+                this._resizeWidgetToContent(widgetEl);
+
                 setTimeout(() => {
                     content.style.transition = '';
                 }, this.config.animationDuration / 2);
@@ -215,7 +218,7 @@ class WidgetLoader {
                 const { el } = widgetElements[idx];
                 if (!el || !document.contains(el)) return;
 
-                const content = el.querySelector('.widget-content') || el.querySelector('.grid-stack-item-content');
+                const content = el.querySelector('.widget-content');
                 if (content) {
                     content.style.opacity = '0';
                     content.innerHTML = result.html || '<div class="widget-error">Error loading widget</div>';
@@ -226,6 +229,10 @@ class WidgetLoader {
                         content.style.transition = `opacity ${this.config.animationDuration / 2}ms ease-in-out`;
                         content.style.opacity = '1';
                         content.style.pointerEvents = 'auto';
+
+                        // Resize widget to fit loaded content
+                        this._resizeWidgetToContent(el);
+
                         setTimeout(() => {
                             content.style.transition = '';
                         }, this.config.animationDuration / 2);
@@ -249,7 +256,7 @@ class WidgetLoader {
             // Show error on all widgets
             widgetElements.forEach(({ el }) => {
                 if (el && document.contains(el)) {
-                    const content = el.querySelector('.widget-content') || el.querySelector('.grid-stack-item-content');
+                    const content = el.querySelector('.widget-content');
                     if (content) {
                         content.innerHTML = '<div class="widget-error">Failed to load widgets</div>';
                         content.style.pointerEvents = 'auto';
@@ -265,7 +272,7 @@ class WidgetLoader {
      */
     async refreshWidget(widgetEl) {
         const widgetName = widgetEl.getAttribute('data-widget-name');
-        const content = widgetEl.querySelector('.widget-content') || widgetEl.querySelector('.grid-stack-item-content');
+        const content = widgetEl.querySelector('.widget-content');
         if (!content) return;
 
         const currentSettings = widgetEl.dataset.widgetSettings;
@@ -296,6 +303,9 @@ class WidgetLoader {
 
             content.style.pointerEvents = 'auto';
 
+            // Resize widget to fit refreshed content
+            this._resizeWidgetToContent(widgetEl);
+
             this.editor.gridController?.onGridChange();
 
             this.eventBus.emit(window.FlutePageEdit.events.WIDGET_REFRESHED, {
@@ -308,6 +318,27 @@ class WidgetLoader {
             content.innerHTML = `<div class="widget-error">${this.config.translations.errorLoading}</div>`;
             content.style.pointerEvents = 'auto';
         }
+    }
+
+    /**
+     * Resize widget to fit its content using GridStack's sizeToContent.
+     * Uses a small delay to allow DOM to render.
+     * @param {Element} el - The grid-stack-item element
+     */
+    _resizeWidgetToContent(el) {
+        if (!el) return;
+        const gc = this.editor.gridController;
+        if (!gc?.gsGrid) return;
+
+        // First pass — immediate after DOM paint
+        requestAnimationFrame(() => {
+            try { gc.gsGrid.resizeToContent(el); } catch (_) {}
+        });
+
+        // Second pass — catch images/lazy content that loaded after first paint
+        setTimeout(() => {
+            try { gc.gsGrid.resizeToContent(el); } catch (_) {}
+        }, 500);
     }
 
     /**

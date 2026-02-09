@@ -47,6 +47,10 @@ tr {
         vertical-align: bottom;
         background-color: var(--transp-05);
 
+        :root[data-theme=light] & {
+            background-color: #f8f9fa;
+        }
+
         tr {
             th {
                 border-top: 0;
@@ -188,6 +192,10 @@ tr {
         border-top: 1px solid var(--transp-1);
         padding: 0.75rem 1.25rem;
         background-color: var(--transp-05);
+
+        :root[data-theme=light] & {
+            background-color: #f8f9fa;
+        }
     }
 
     &__columns {
@@ -207,7 +215,7 @@ tr {
 }
 
 tr.row-selected {
-    background: var(--accent-transp, rgba(50, 215, 75, 0.08)) !important;
+    background: color-mix(in srgb, var(--accent) 8%, transparent) !important;
 }
 
 tr.row-selected>td {
@@ -275,6 +283,10 @@ th.selection-col > div {
     transform: translate(-50%, 8px) scale(0.98);
     transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
+
+    :root[data-theme=light] & {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
 
     .bulk-actions-inner {
         display: flex;

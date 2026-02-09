@@ -711,7 +711,6 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
     &__angle-dial-marker {
         position: absolute;
-        top: 50%;
         left: 50%;
         width: 3px;
         height: 45%;
@@ -1802,6 +1801,127 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
     #ve-effect-opacity-wrap {
         margin-top: 10px;
+    }
+
+    // ===== Design Presets =====
+
+    &__design-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    &__design-card {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        background: none;
+        border: 1.5px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+
+        &:hover {
+            border-color: var(--transp-2);
+        }
+
+        &.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent);
+
+            .ve__design-card-name {
+                color: var(--accent);
+            }
+        }
+    }
+
+    &__design-card-preview {
+        width: 100%;
+        aspect-ratio: 5 / 3.5;
+        position: relative;
+        overflow: hidden;
+        border-radius: 8.5px 8.5px 0 0;
+    }
+
+    &__design-card-mockup {
+        position: absolute;
+        inset: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .ve__dcp-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 5px;
+        border: 1px solid;
+        height: 12px;
+
+        i {
+            display: block;
+            height: 3px;
+            border-radius: 1px;
+
+            &:first-child {
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                margin-right: auto;
+            }
+        }
+    }
+
+    .ve__dcp-hero {
+        flex: 1;
+        border: 1px solid;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+
+        b {
+            display: block;
+            height: 3px;
+            border-radius: 1.5px;
+            font-weight: normal;
+        }
+    }
+
+    .ve__dcp-row {
+        display: flex;
+        gap: 3px;
+    }
+
+    .ve__dcp-mini {
+        flex: 1;
+        height: 14px;
+        border: 1px solid;
+    }
+
+    .ve__dcp-footer {
+        height: 6px;
+        border-top: 1px solid;
+        margin-top: auto;
+
+        &--glass {
+            border: 1px solid;
+            margin: auto 8% 0;
+            height: 8px;
+        }
+    }
+
+    &__design-card-name {
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--text-400);
+        padding: 5px 6px 7px;
+        text-align: center;
+        transition: color 0.15s;
+        line-height: 1;
     }
 }
 

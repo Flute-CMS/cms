@@ -9,6 +9,197 @@ const GOOGLE_FONTS = [
     'Playfair Display', 'Merriweather', 'Lora'
 ];
 
+/**
+ * Design Presets - complete visual styles for the theme
+ */
+/**
+ * Design Presets - complete visual styles for the theme
+ * Each preset defines: CSS variables (dark/light), layout attrs (nav, footer, blur)
+ */
+const DESIGN_PRESETS = {
+    default: {
+        name: 'Standard',
+        preview: { bg: '#121214', accent: '#A5FF75', card: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.08)', radius: '16px', glow: '' },
+        layout: { navStyle: 'default', footerType: 'default', navBlur: 'true' },
+        dark: {
+            '--accent': '#A5FF75', '--primary': '#e8e8ed', '--secondary': '#1e1e22', '--background': '#121214', '--text': '#e8e8ed',
+            '--border1': '1rem', '--border05': '0.5rem', '--blur-amount': '10px', '--card-opacity': '0.8', '--glow-intensity': '0', '--transition': '0.2s',
+            '--shadow-small': 'inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015',
+            '--shadow-medium': 'inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015',
+            '--shadow-large': 'inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015'
+        },
+        light: {
+            '--accent': '#34c759', '--primary': '#1d1d1f', '--secondary': '#f5f5f7', '--background': '#ffffff', '--text': '#1d1d1f',
+            '--border1': '1rem', '--border05': '0.5rem', '--blur-amount': '10px', '--card-opacity': '0.8', '--glow-intensity': '0', '--transition': '0.2s',
+            '--shadow-small': 'inset 0 1px 2px #ffffff30, 0 1px 2px #00000030, 0 2px 4px #00000015',
+            '--shadow-medium': 'inset 0 1px 2px #ffffff50, 0 1px 2px #00000030, 0 2px 4px #00000015',
+            '--shadow-large': 'inset 0 1px 2px #ffffff70, 0 1px 2px #00000030, 0 2px 4px #00000015'
+        }
+    },
+
+    vapor: {
+        name: 'Vaporwave',
+        preview: { bg: '#0a0014', accent: '#ff6ec7', card: 'rgba(255,110,199,0.06)', border: 'rgba(255,110,199,0.15)', radius: '20px', glow: 'rgba(255,110,199,0.3)' },
+        layout: { navStyle: 'pill', footerType: 'glass', navBlur: 'true' },
+        dark: {
+            '--accent': '#ff6ec7', '--primary': '#e8d5f5', '--secondary': '#140024', '--background': '#0a0014', '--text': '#e8d5f5',
+            '--border1': '1.25rem', '--border05': '0.625rem', '--blur-amount': '28px', '--card-opacity': '0.4', '--glow-intensity': '0.6', '--transition': '0.35s',
+            '--shadow-small': '0 0 15px rgba(255,110,199,0.12), 0 0 4px rgba(100,80,255,0.08), inset 0 1px 1px rgba(255,255,255,0.06)',
+            '--shadow-medium': '0 0 30px rgba(255,110,199,0.18), 0 0 8px rgba(100,80,255,0.12), inset 0 1px 2px rgba(255,255,255,0.08)',
+            '--shadow-large': '0 0 60px rgba(255,110,199,0.22), 0 0 16px rgba(100,80,255,0.16), inset 0 1px 3px rgba(255,255,255,0.1)'
+        },
+        light: {
+            '--accent': '#d946a8', '--primary': '#2d1040', '--secondary': '#fdf0f8', '--background': '#fff5fc', '--text': '#2d1040',
+            '--border1': '1.25rem', '--border05': '0.625rem', '--blur-amount': '16px', '--card-opacity': '0.65', '--glow-intensity': '0.2', '--transition': '0.35s',
+            '--shadow-small': '0 2px 12px rgba(217,70,168,0.08)', '--shadow-medium': '0 4px 24px rgba(217,70,168,0.12)', '--shadow-large': '0 8px 48px rgba(217,70,168,0.16)'
+        }
+    },
+
+    neon: {
+        name: 'Neon Cyber',
+        preview: { bg: '#02020a', accent: '#00ffaa', card: 'rgba(0,255,170,0.03)', border: 'rgba(0,255,170,0.2)', radius: '2px', glow: 'rgba(0,255,170,0.4)' },
+        layout: { navStyle: 'default', footerType: 'minimal', navBlur: 'false' },
+        dark: {
+            '--accent': '#00ffaa', '--primary': '#d0ffe8', '--secondary': '#08081a', '--background': '#02020a', '--text': '#d0ffe8',
+            '--border1': '0.125rem', '--border05': '0.0625rem', '--blur-amount': '0px', '--card-opacity': '0.95', '--glow-intensity': '0.9', '--transition': '0.1s',
+            '--shadow-small': '0 0 8px rgba(0,255,170,0.2), inset 0 0 12px rgba(0,255,170,0.04), 0 1px 2px rgba(0,0,0,0.6)',
+            '--shadow-medium': '0 0 20px rgba(0,255,170,0.28), inset 0 0 20px rgba(0,255,170,0.06), 0 2px 8px rgba(0,0,0,0.7)',
+            '--shadow-large': '0 0 40px rgba(0,255,170,0.35), inset 0 0 30px rgba(0,255,170,0.08), 0 4px 16px rgba(0,0,0,0.8)'
+        },
+        light: {
+            '--accent': '#00c97a', '--primary': '#021a10', '--secondary': '#f0fff8', '--background': '#fafffe', '--text': '#021a10',
+            '--border1': '0.125rem', '--border05': '0.0625rem', '--blur-amount': '0px', '--card-opacity': '0.98', '--glow-intensity': '0.3', '--transition': '0.1s',
+            '--shadow-small': '0 0 6px rgba(0,201,122,0.12), 0 1px 2px rgba(0,0,0,0.06)',
+            '--shadow-medium': '0 0 14px rgba(0,201,122,0.18), 0 2px 4px rgba(0,0,0,0.08)',
+            '--shadow-large': '0 0 28px rgba(0,201,122,0.24), 0 4px 12px rgba(0,0,0,0.1)'
+        }
+    },
+
+    brutalist: {
+        name: 'Brutalist',
+        preview: { bg: '#f5f5f0', accent: '#ff0000', card: '#ffffff', border: '#000000', radius: '0px', glow: '' },
+        layout: { navStyle: 'default', footerType: 'expanded', navBlur: 'false' },
+        dark: {
+            '--accent': '#ff0000', '--primary': '#ffffff', '--secondary': '#111111', '--background': '#000000', '--text': '#ffffff',
+            '--border1': '0rem', '--border05': '0rem', '--blur-amount': '0px', '--card-opacity': '1', '--glow-intensity': '0', '--transition': '0s',
+            '--shadow-small': '4px 4px 0 #ff0000', '--shadow-medium': '6px 6px 0 #ff0000', '--shadow-large': '10px 10px 0 #ff0000'
+        },
+        light: {
+            '--accent': '#ff0000', '--primary': '#000000', '--secondary': '#f5f5f0', '--background': '#ffffff', '--text': '#000000',
+            '--border1': '0rem', '--border05': '0rem', '--blur-amount': '0px', '--card-opacity': '1', '--glow-intensity': '0', '--transition': '0s',
+            '--shadow-small': '4px 4px 0 #000000', '--shadow-medium': '6px 6px 0 #000000', '--shadow-large': '10px 10px 0 #000000'
+        }
+    },
+
+    obsidian: {
+        name: 'Obsidian',
+        preview: { bg: '#010104', accent: '#8b5cf6', card: 'rgba(139,92,246,0.04)', border: 'rgba(139,92,246,0.12)', radius: '14px', glow: 'rgba(139,92,246,0.25)' },
+        layout: { navStyle: 'pill', footerType: 'centered', navBlur: 'true' },
+        dark: {
+            '--accent': '#8b5cf6', '--primary': '#ede9fe', '--secondary': '#0c0a18', '--background': '#010104', '--text': '#ede9fe',
+            '--border1': '0.875rem', '--border05': '0.4375rem', '--blur-amount': '20px', '--card-opacity': '0.55', '--glow-intensity': '0.45', '--transition': '0.3s',
+            '--shadow-small': '0 2px 10px rgba(139,92,246,0.1), 0 0 20px rgba(139,92,246,0.05), inset 0 1px 1px rgba(255,255,255,0.06)',
+            '--shadow-medium': '0 4px 20px rgba(139,92,246,0.15), 0 0 40px rgba(139,92,246,0.08), inset 0 1px 2px rgba(255,255,255,0.08)',
+            '--shadow-large': '0 8px 40px rgba(139,92,246,0.2), 0 0 80px rgba(139,92,246,0.1), inset 0 1px 3px rgba(255,255,255,0.1)'
+        },
+        light: {
+            '--accent': '#7c3aed', '--primary': '#1e1042', '--secondary': '#f5f3ff', '--background': '#faf8ff', '--text': '#1e1042',
+            '--border1': '0.875rem', '--border05': '0.4375rem', '--blur-amount': '14px', '--card-opacity': '0.7', '--glow-intensity': '0.15', '--transition': '0.3s',
+            '--shadow-small': '0 2px 10px rgba(124,58,237,0.06)', '--shadow-medium': '0 4px 20px rgba(124,58,237,0.1)', '--shadow-large': '0 8px 40px rgba(124,58,237,0.14)'
+        }
+    },
+
+    golden: {
+        name: 'Black & Gold',
+        preview: { bg: '#05050a', accent: '#f5c842', card: 'rgba(245,200,66,0.04)', border: 'rgba(245,200,66,0.15)', radius: '6px', glow: 'rgba(245,200,66,0.2)' },
+        layout: { navStyle: 'default', footerType: 'minimal', navBlur: 'false' },
+        dark: {
+            '--accent': '#f5c842', '--primary': '#faf0d0', '--secondary': '#0c0a06', '--background': '#05050a', '--text': '#faf0d0',
+            '--border1': '0.375rem', '--border05': '0.1875rem', '--blur-amount': '0px', '--card-opacity': '0.9', '--glow-intensity': '0.3', '--transition': '0.2s',
+            '--shadow-small': '0 1px 6px rgba(245,200,66,0.08), inset 0 1px 1px rgba(245,200,66,0.04)',
+            '--shadow-medium': '0 2px 12px rgba(245,200,66,0.12), inset 0 1px 2px rgba(245,200,66,0.06), 0 0 20px rgba(245,200,66,0.04)',
+            '--shadow-large': '0 4px 24px rgba(245,200,66,0.16), inset 0 1px 3px rgba(245,200,66,0.08), 0 0 40px rgba(245,200,66,0.06)'
+        },
+        light: {
+            '--accent': '#c49b20', '--primary': '#1a1608', '--secondary': '#fefce8', '--background': '#fffef5', '--text': '#1a1608',
+            '--border1': '0.375rem', '--border05': '0.1875rem', '--blur-amount': '0px', '--card-opacity': '0.95', '--glow-intensity': '0.1', '--transition': '0.2s',
+            '--shadow-small': '0 1px 6px rgba(196,155,32,0.06)', '--shadow-medium': '0 2px 12px rgba(196,155,32,0.1)', '--shadow-large': '0 4px 24px rgba(196,155,32,0.14)'
+        }
+    },
+
+    coral: {
+        name: 'Coral Reef',
+        preview: { bg: '#080810', accent: '#ff5f6d', card: 'rgba(255,95,109,0.05)', border: 'rgba(255,95,109,0.12)', radius: '1.75rem', glow: 'rgba(255,95,109,0.2)' },
+        layout: { navStyle: 'pill-transparent', footerType: 'glass', navBlur: 'true' },
+        dark: {
+            '--accent': '#ff5f6d', '--primary': '#ffe0e3', '--secondary': '#140a10', '--background': '#080810', '--text': '#ffe0e3',
+            '--border1': '1.75rem', '--border05': '0.875rem', '--blur-amount': '22px', '--card-opacity': '0.45', '--glow-intensity': '0.35', '--transition': '0.4s',
+            '--shadow-small': '0 4px 14px rgba(255,95,109,0.1), inset 0 1px 2px rgba(255,255,255,0.05)',
+            '--shadow-medium': '0 8px 28px rgba(255,95,109,0.14), inset 0 1px 3px rgba(255,255,255,0.07)',
+            '--shadow-large': '0 12px 48px rgba(255,95,109,0.18), inset 0 2px 4px rgba(255,255,255,0.09)'
+        },
+        light: {
+            '--accent': '#e04450', '--primary': '#2d0a10', '--secondary': '#fff1f2', '--background': '#fffafa', '--text': '#2d0a10',
+            '--border1': '1.75rem', '--border05': '0.875rem', '--blur-amount': '16px', '--card-opacity': '0.6', '--glow-intensity': '0.12', '--transition': '0.4s',
+            '--shadow-small': '0 4px 14px rgba(224,68,80,0.06)', '--shadow-medium': '0 8px 28px rgba(224,68,80,0.1)', '--shadow-large': '0 12px 48px rgba(224,68,80,0.14)'
+        }
+    },
+
+    matrix: {
+        name: 'Matrix',
+        preview: { bg: '#000800', accent: '#00ff41', card: 'rgba(0,255,65,0.02)', border: 'rgba(0,255,65,0.08)', radius: '0px', glow: 'rgba(0,255,65,0.35)' },
+        layout: { navStyle: 'default', footerType: 'hidden', navBlur: 'false' },
+        dark: {
+            '--accent': '#00ff41', '--primary': '#80ff80', '--secondary': '#001200', '--background': '#000800', '--text': '#80ff80',
+            '--border1': '0rem', '--border05': '0rem', '--blur-amount': '0px', '--card-opacity': '0.96', '--glow-intensity': '0.8', '--transition': '0.05s',
+            '--shadow-small': '0 0 6px rgba(0,255,65,0.15), 0 0 2px rgba(0,255,65,0.3)',
+            '--shadow-medium': '0 0 14px rgba(0,255,65,0.2), 0 0 4px rgba(0,255,65,0.4)',
+            '--shadow-large': '0 0 30px rgba(0,255,65,0.25), 0 0 8px rgba(0,255,65,0.5)'
+        },
+        light: {
+            '--accent': '#15803d', '--primary': '#022c22', '--secondary': '#f0fdf4', '--background': '#fafff5', '--text': '#022c22',
+            '--border1': '0rem', '--border05': '0rem', '--blur-amount': '0px', '--card-opacity': '0.98', '--glow-intensity': '0.15', '--transition': '0.05s',
+            '--shadow-small': '0 0 4px rgba(21,128,61,0.08)', '--shadow-medium': '0 0 10px rgba(21,128,61,0.12)', '--shadow-large': '0 0 20px rgba(21,128,61,0.16)'
+        }
+    },
+
+    arctic: {
+        name: 'Arctic',
+        preview: { bg: '#060d18', accent: '#38bdf8', card: 'rgba(56,189,248,0.04)', border: 'rgba(56,189,248,0.1)', radius: '12px', glow: 'rgba(56,189,248,0.15)' },
+        layout: { navStyle: 'pill-full', footerType: 'centered', navBlur: 'true' },
+        dark: {
+            '--accent': '#38bdf8', '--primary': '#e0f2fe', '--secondary': '#0a1628', '--background': '#060d18', '--text': '#e0f2fe',
+            '--border1': '0.75rem', '--border05': '0.375rem', '--blur-amount': '14px', '--card-opacity': '0.65', '--glow-intensity': '0.2', '--transition': '0.25s',
+            '--shadow-small': '0 2px 8px rgba(56,189,248,0.08), inset 0 1px 1px rgba(255,255,255,0.05)',
+            '--shadow-medium': '0 4px 20px rgba(56,189,248,0.12), inset 0 1px 2px rgba(255,255,255,0.07)',
+            '--shadow-large': '0 8px 40px rgba(56,189,248,0.16), inset 0 1px 3px rgba(255,255,255,0.09)'
+        },
+        light: {
+            '--accent': '#0284c7', '--primary': '#082f49', '--secondary': '#f0f9ff', '--background': '#fafeff', '--text': '#082f49',
+            '--border1': '0.75rem', '--border05': '0.375rem', '--blur-amount': '10px', '--card-opacity': '0.8', '--glow-intensity': '0.1', '--transition': '0.25s',
+            '--shadow-small': '0 2px 8px rgba(2,132,199,0.06)', '--shadow-medium': '0 4px 20px rgba(2,132,199,0.1)', '--shadow-large': '0 8px 40px rgba(2,132,199,0.14)'
+        }
+    },
+
+    rose: {
+        name: 'Rose Quartz',
+        preview: { bg: '#10060a', accent: '#fb7185', card: 'rgba(251,113,133,0.04)', border: 'rgba(251,113,133,0.1)', radius: '2rem', glow: 'rgba(251,113,133,0.15)' },
+        layout: { navStyle: 'pill', footerType: 'glass', navBlur: 'true' },
+        dark: {
+            '--accent': '#fb7185', '--primary': '#ffe4e8', '--secondary': '#1a0810', '--background': '#10060a', '--text': '#ffe4e8',
+            '--border1': '2rem', '--border05': '1rem', '--blur-amount': '30px', '--card-opacity': '0.35', '--glow-intensity': '0.2', '--transition': '0.45s',
+            '--shadow-small': '0 4px 16px rgba(251,113,133,0.08), inset 0 1px 2px rgba(255,255,255,0.06)',
+            '--shadow-medium': '0 8px 32px rgba(251,113,133,0.12), inset 0 2px 4px rgba(255,255,255,0.08)',
+            '--shadow-large': '0 16px 64px rgba(251,113,133,0.16), inset 0 2px 6px rgba(255,255,255,0.1)'
+        },
+        light: {
+            '--accent': '#e11d48', '--primary': '#3f0520', '--secondary': '#fff1f2', '--background': '#fffbfc', '--text': '#3f0520',
+            '--border1': '2rem', '--border05': '1rem', '--blur-amount': '20px', '--card-opacity': '0.55', '--glow-intensity': '0.08', '--transition': '0.45s',
+            '--shadow-small': '0 4px 16px rgba(225,29,72,0.05)', '--shadow-medium': '0 8px 32px rgba(225,29,72,0.08)', '--shadow-large': '0 16px 64px rgba(225,29,72,0.12)'
+        }
+    }
+};
+
 class VisualEditor {
     constructor() {
         this.root = document.documentElement;
@@ -41,7 +232,9 @@ class VisualEditor {
     }
 
     init() {
+        this.currentDesign = 'default';
         this.cacheElements();
+        this.buildDesignGrid();
         this.bindEvents();
     }
 
@@ -148,6 +341,121 @@ class VisualEditor {
             spacing: 64,
             useAccent: true
         };
+        
+        // Design presets
+        this.designGrid = document.getElementById('ve-design-grid');
+        this.designKeepColorsToggle = document.getElementById('ve-design-keep-colors');
+    }
+
+    /**
+     * Build the design preset cards grid
+     */
+    buildDesignGrid() {
+        if (!this.designGrid) return;
+        this.designGrid.innerHTML = '';
+
+        Object.entries(DESIGN_PRESETS).forEach(([key, preset]) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 've__design-card' + (key === this.currentDesign ? ' active' : '');
+            card.dataset.design = key;
+            card.title = preset.name;
+
+            const p = preset.preview;
+            const lay = preset.layout || {};
+            const r = p.radius;
+            const rSmall = r.replace(/[\d.]+/, m => Math.min(parseFloat(m), 6));
+            const glowStyle = p.glow ? `box-shadow:0 0 40px ${p.glow};` : '';
+
+            // Nav mockup based on navStyle
+            const isPill = (lay.navStyle || '').includes('pill');
+            const navInset = isPill ? 'margin:0 10%;border-radius:20px;' : '';
+
+            // Footer mockup
+            const hasFooter = lay.footerType && lay.footerType !== 'hidden';
+            const isGlassFooter = lay.footerType === 'glass';
+            const footerHtml = hasFooter ? `<div class="ve__dcp-footer${isGlassFooter ? ' ve__dcp-footer--glass' : ''}" style="background:${p.card};border-color:${p.border};border-radius:${isGlassFooter ? rSmall : '0'};"></div>` : '';
+
+            card.innerHTML = `
+                <div class="ve__design-card-preview" style="background:${p.bg};${glowStyle}">
+                    <div class="ve__design-card-mockup">
+                        <div class="ve__dcp-nav" style="background:${p.card};border-color:${p.border};border-radius:${isPill ? '20px' : rSmall};${navInset}">
+                            <i style="background:${p.accent};"></i>
+                            <i style="background:${p.border};width:12px;"></i>
+                            <i style="background:${p.border};width:10px;"></i>
+                        </div>
+                        <div class="ve__dcp-hero" style="background:${p.card};border-color:${p.border};border-radius:${r};">
+                            <b style="background:${p.accent};width:50%;"></b>
+                            <b style="background:${p.border};width:30%;"></b>
+                        </div>
+                        <div class="ve__dcp-row">
+                            <div class="ve__dcp-mini" style="background:${p.card};border-color:${p.border};border-radius:${r};"></div>
+                            <div class="ve__dcp-mini" style="background:${p.card};border-color:${p.border};border-radius:${r};"></div>
+                            <div class="ve__dcp-mini" style="background:${p.card};border-color:${p.border};border-radius:${r};"></div>
+                        </div>
+                        ${footerHtml}
+                    </div>
+                </div>
+                <span class="ve__design-card-name">${preset.name}</span>
+            `;
+
+            card.addEventListener('click', () => this.applyDesignPreset(key));
+            this.designGrid.appendChild(card);
+        });
+    }
+
+    /**
+     * Apply a design preset
+     */
+    applyDesignPreset(presetKey) {
+        const preset = DESIGN_PRESETS[presetKey];
+        if (!preset) return;
+
+        const theme = this.getThemeKey();
+        const values = preset[theme] || preset.dark;
+        const keepColors = this.designKeepColorsToggle?.checked || false;
+
+        // Apply CSS variables
+        Object.entries(values).forEach(([variable, value]) => {
+            if (keepColors && ['--accent', '--primary', '--secondary', '--background', '--text'].includes(variable)) {
+                return;
+            }
+            this.setProperty(variable, value);
+        });
+
+        if (!keepColors) {
+            ['--accent', '--primary', '--secondary', '--background', '--text'].forEach(variable => {
+                if (values[variable]) this.generateShades(variable, values[variable]);
+            });
+        }
+
+        this.updateBorderPreview();
+
+        // Apply layout attributes (nav, footer, blur)
+        if (preset.layout) {
+            const lay = preset.layout;
+            if (lay.navStyle) this.setNavStyle(lay.navStyle);
+            if (lay.footerType) this.setFooterType(lay.footerType);
+
+            if (lay.navBlur !== undefined) {
+                const blur = lay.navBlur === 'true';
+                this.root.setAttribute('data-nav-blur', lay.navBlur);
+                this.setProperty('--nav-blur', lay.navBlur);
+                this.setThemeAttr('nav-blur', lay.navBlur);
+                if (this.navBlurToggle) this.navBlurToggle.checked = blur;
+            }
+        }
+
+        this.currentDesign = presetKey;
+        this.root.setAttribute('data-design-preset', presetKey);
+        this.setThemeAttr('design-preset', presetKey);
+
+        this.designGrid?.querySelectorAll('.ve__design-card').forEach(card => {
+            card.classList.toggle('active', card.dataset.design === presetKey);
+        });
+
+        this.loadCurrentValues();
+        this.recordHistory();
     }
 
     bindEvents() {
@@ -766,6 +1074,14 @@ class VisualEditor {
         if (this.fullwidthLayoutToggle && this.fullwidthToggle) {
             this.fullwidthLayoutToggle.checked = this.fullwidthToggle.checked;
         }
+        
+        // Design preset
+        const designPreset = this.root.getAttribute('data-design-preset') || 'default';
+        this.currentDesign = designPreset;
+        this.designGrid?.querySelectorAll('.ve__design-card').forEach(card => {
+            card.classList.toggle('active', card.dataset.design === designPreset);
+        });
+        // No details panel needed
         
         // Border preview
         this.updateBorderPreview();
@@ -1730,7 +2046,7 @@ class VisualEditor {
             '--transition', '--blur-amount', '--max-content-width', '--card-opacity', '--glow-intensity',
             '--shadow-small', '--shadow-medium', '--shadow-large',
             '--gradient-type', '--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity', '--page-gradient',
-            '--bg-effect', '--bg-effect-opacity', '--container-width',
+            '--bg-effect', '--bg-effect-opacity', '--container-width', '--widget-gap',
             '--nav-style', '--sidebar-style', '--sidebar-position', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
             '--emoji-pattern', '--emoji-tile-width', '--emoji-tile-height', '--emoji-angle', '--emoji-accent-filter'
         ];
@@ -1765,6 +2081,7 @@ class VisualEditor {
         state['_footer-socials'] = this.root.getAttribute('data-footer-socials') || 'true';
         state['_footer-logo'] = this.root.getAttribute('data-footer-logo') || 'true';
         state['_emoji-settings'] = JSON.stringify(this.emojiState);
+        state['_design-preset'] = this.root.getAttribute('data-design-preset') || 'default';
         
         return state;
     }
@@ -1832,7 +2149,7 @@ class VisualEditor {
         // Now apply other state properties
         Object.entries(state).forEach(([key, value]) => {
             // Skip already processed keys
-            if (key.startsWith('--') || key === '_gradient-stops' || key === '_emoji-settings') {
+            if (key.startsWith('--') || key === '_gradient-stops' || key === '_emoji-settings' || key === '_design-preset') {
                 return;
             }
             
@@ -1903,6 +2220,16 @@ class VisualEditor {
                 }
             }
         });
+        
+        // Apply design preset attribute
+        if (state['_design-preset']) {
+            this.currentDesign = state['_design-preset'];
+            this.root.setAttribute('data-design-preset', state['_design-preset']);
+            this.setThemeAttr('design-preset', state['_design-preset']);
+            this.designGrid?.querySelectorAll('.ve__design-card').forEach(card => {
+                card.classList.toggle('active', card.dataset.design === state['_design-preset']);
+            });
+        }
         
         this.loadCurrentValues();
         this.updateGradientPreview();
@@ -2024,6 +2351,9 @@ class VisualEditor {
         // Container width from attribute
         colors['--container-width'] = state['_container-width'] || 'container';
         
+        // Design preset
+        colors['--design-preset'] = state['_design-preset'] || 'default';
+        
         // Navigation and footer settings
         colors['--nav-style'] = state['_nav-style'] || 'default';
         colors['--sidebar-style'] = state['_sidebar-style'] || 'default';
@@ -2053,6 +2383,7 @@ class VisualEditor {
             '--card-opacity': 'card_opacity',
             '--glow-intensity': 'glow_intensity',
             '--max-content-width': 'max_content_width',
+            '--widget-gap': 'widget_gap',
             '--shadow-small': 'shadow_small',
             '--shadow-medium': 'shadow_medium',
             '--shadow-large': 'shadow_large'

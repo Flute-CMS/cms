@@ -28,6 +28,16 @@ final class SWRQueue
         self::$tasks[$id] = $task;
     }
 
+    /**
+     * Discard all queued tasks. Call this when cache is being
+     * explicitly cleared so stale revalidation tasks won't
+     * write outdated data back into the freshly cleared cache.
+     */
+    public static function flush(): void
+    {
+        self::$tasks = [];
+    }
+
     public static function hasTasks(): bool
     {
         return !empty(self::$tasks);

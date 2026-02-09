@@ -1,7 +1,6 @@
 <?php
 
 use Flute\Core\Modules\Translation\Services\TranslationService;
-use Symfony\Component\Translation\Translator;
 
 if (!function_exists('__')) {
     /**

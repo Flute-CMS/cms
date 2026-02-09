@@ -35,6 +35,11 @@
         background-color var(--transition);
     overflow: hidden;
 
+    :root[data-theme=light] & {
+        background-color: #ffffff;
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
     &::before {
         content: '';
         position: absolute;

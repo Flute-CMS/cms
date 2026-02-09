@@ -22,6 +22,7 @@ use Nette\Utils\Random;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Throwable;
 
 class PaymentProcessor
 {
@@ -74,6 +75,14 @@ class PaymentProcessor
         $promo = $event->getPromo();
         $currencyCode = $event->getCurrencyCode();
 
+        if ($amount <= 0) {
+            throw new PaymentException('Payment amount must be positive');
+        }
+
+        if ($amount > 10000000) {
+            throw new PaymentException('Payment amount exceeds maximum limit');
+        }
+
         $invoiceAmount = $amount;
         $user = user()->getCurrentUser();
 
@@ -105,6 +114,18 @@ class PaymentProcessor
         $this->dispatcher->dispatch(new AfterPaymentCreatedEvent($invoice), AfterPaymentCreatedEvent::NAME);
 
         transaction($invoice)->run();
+
+        if (function_exists('notify')) {
+            try {
+                notify('core.invoice_created', $user, [
+                    'amount' => number_format($invoice->originalAmount, 2),
+                    'gateway' => $invoice->gateway,
+                    'transaction_id' => $invoice->transactionId,
+                ]);
+            } catch (Throwable $e) {
+                logs()->error('Notification [core.invoice_created] failed: ' . $e->getMessage());
+            }
+        }
 
         return $invoice;
     }
@@ -157,11 +178,15 @@ class PaymentProcessor
             throw new PaymentException("Invoice is already paid");
         }
 
-        $tolerancePercent = (float) config('lk.amount_tolerance_percent', 5);
-        $toleranceAbs = max(0.02, $invoice->originalAmount * ($tolerancePercent / 100));
+        $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
+        $toleranceAbs = max(0.01, $invoice->originalAmount * ($tolerancePercent / 100));
 
-        if ($verifyAmount !== null && abs($verifyAmount - $invoice->originalAmount) > $toleranceAbs && $invoice->originalAmount > 0) {
-            throw new PaymentException("Amount mismatch: expected {$invoice->originalAmount}, received {$verifyAmount}");
+        if ($invoice->originalAmount > 0) {
+            if ($verifyAmount === null) {
+                logs()->warning("Payment amount verification skipped (null) for transaction {$transactionId}, expected {$invoice->originalAmount}");
+            } elseif (abs($verifyAmount - $invoice->originalAmount) > $toleranceAbs) {
+                throw new PaymentException("Amount mismatch: expected {$invoice->originalAmount}, received {$verifyAmount}");
+            }
         }
 
         $user = user()->get($invoice->user->id);
@@ -320,11 +345,11 @@ class PaymentProcessor
     /**
      * Generates a unique transaction ID.
      *
-     * @return int Unique transaction ID.
+     * @return string Unique transaction ID.
      */
-    protected function generateTransactionId(): int
+    protected function generateTransactionId(): string
     {
-        return (int) Random::generate(12, '0-9');
+        return time() . Random::generate(8, '0-9');
     }
 
     /**

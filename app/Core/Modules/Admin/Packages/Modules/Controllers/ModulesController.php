@@ -240,18 +240,26 @@ class ModulesController extends BaseController
                 break;
             }
 
-            $targetPath = $extractPath . '/' . $entryName;
+            // Normalize and reject path traversal patterns before any filesystem operations
+            $normalizedEntry = str_replace('\\', '/', $entryName);
+            if (str_contains($normalizedEntry, '../') || str_starts_with($normalizedEntry, '/') || str_starts_with($normalizedEntry, '..')) {
+                logs('security')->warning('Zip slip attempt detected (path traversal): ' . $entryName);
+                $success = false;
 
-            $realTarget = realpath(dirname($targetPath));
-            if ($realTarget === false) {
-                $dirToCreate = dirname($targetPath);
-                if (!is_dir($dirToCreate)) {
-                    mkdir($dirToCreate, 0o755, true);
-                }
-                $realTarget = realpath(dirname($targetPath));
+                break;
             }
 
-            if ($realTarget === false || str_starts_with($realTarget, realpath($extractPath)) === false) {
+            $targetPath = $extractPath . '/' . $normalizedEntry;
+
+            $dirToCreate = dirname($targetPath);
+            if (!is_dir($dirToCreate)) {
+                mkdir($dirToCreate, 0o755, true);
+            }
+
+            $realTarget = realpath(dirname($targetPath));
+            $realExtract = realpath($extractPath);
+
+            if ($realTarget === false || $realExtract === false || str_starts_with($realTarget, $realExtract) === false) {
                 logs('security')->warning('Zip slip attempt detected: ' . $entryName);
                 $success = false;
 

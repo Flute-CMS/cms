@@ -161,13 +161,13 @@ class UpdateService
     public function downloadUpdate(string $type, ?string $identifier = null, ?string $version = null): ?string
     {
         if (function_exists('set_time_limit')) {
-            @set_time_limit(0);
+            @set_time_limit(300);
         }
         if (function_exists('ignore_user_abort')) {
             @ignore_user_abort(true);
         }
         if (function_exists('ini_set')) {
-            @ini_set('memory_limit', '-1');
+            @ini_set('memory_limit', '512M');
         }
 
         try {
@@ -197,16 +197,20 @@ class UpdateService
 
             $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
 
-            $client = new Client(['timeout' => 120, 'verify' => !config('app.debug')]);
+            $client = new Client(['timeout' => 120, 'verify' => true]);
 
             $baseUrl = '';
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
                 $baseUrl = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
             }
 
-            // parse ?token
-            $token = explode('?', $downloadUrl)[1];
-            $token = explode('=', $token)[1];
+            // parse ?token safely
+            $parsedDownloadUrl = parse_url($downloadUrl);
+            $queryParams = [];
+            if (isset($parsedDownloadUrl['query'])) {
+                parse_str($parsedDownloadUrl['query'], $queryParams);
+            }
+            $token = $queryParams['token'] ?? '';
 
             $client->request('GET', $baseUrl . str_replace('api/', '', $downloadUrl), [
                 'headers' => [
@@ -266,7 +270,7 @@ class UpdateService
         }
 
         try {
-            $client = new Client(['timeout' => 10, 'verify' => !config('app.debug')]);
+            $client = new Client(['timeout' => 10, 'verify' => true]);
             $apiKey = config('app.flute_key');
 
             if (empty($apiKey)) {

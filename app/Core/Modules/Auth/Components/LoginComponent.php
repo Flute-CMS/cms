@@ -47,6 +47,7 @@ class LoginComponent extends FluteComponent
 
                 $this->redirectTo(url('/'), 1500);
             } catch (TwoFactorRequiredException $e) {
+                session()->set('2fa_pending_user_id', $e->getUser()->id);
                 $this->pendingUserId = $e->getUser()->id;
                 $this->showTwoFactor = true;
             } catch (ValidationException $e) {
@@ -75,13 +76,30 @@ class LoginComponent extends FluteComponent
             return;
         }
 
-        if (!$this->pendingUserId) {
+        try {
+            throttler()->throttle(
+                ['action' => '2fa_verify', 'ip' => request()->getClientIp()],
+                5,
+                300,
+                2
+            );
+        } catch (TooManyRequestsException $e) {
+            toast()->error(__('auth.too_many_requests'))->push();
             $this->showTwoFactor = false;
+            $this->pendingUserId = null;
 
             return;
         }
 
-        $user = User::findByPK($this->pendingUserId);
+        $sessionUserId = session()->get('2fa_pending_user_id');
+        if (!$sessionUserId) {
+            $this->showTwoFactor = false;
+            $this->pendingUserId = null;
+
+            return;
+        }
+
+        $user = User::findByPK($sessionUserId);
 
         if (!$user) {
             toast()->error(__('auth.errors.user_not_found'))->push();
@@ -120,6 +138,7 @@ class LoginComponent extends FluteComponent
         $this->showTwoFactor = false;
         $this->pendingUserId = null;
         $this->twoFactorCode = null;
+        session()->remove('2fa_pending_user_id');
     }
 
     public function render()

@@ -12,6 +12,10 @@
         font-weight: 500;
         line-height: 1.8;
 
+        :root[data-theme=light] & {
+            color: var(--text-400);
+        }
+
         &-required {
             &:after {
                 content: '*';

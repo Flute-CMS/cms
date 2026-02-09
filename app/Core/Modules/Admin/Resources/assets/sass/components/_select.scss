@@ -29,7 +29,12 @@
             border-radius: var(--border05);
             color: var(--text);
             background-color: transparent;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
+
+            :root[data-theme=light] & {
+                background-color: var(--background);
+                border-color: rgba(0, 0, 0, 0.15);
+            }
 
             >select {
                 padding: 0.625rem 0.875rem;
@@ -37,7 +42,11 @@
             }
 
             &:focus-within:not(.has-error) {
-                border-color: var(--primary-300);
+                border-color: var(--accent);
+
+                :root[data-theme=light] & {
+                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+                }
             }
 
             option {
@@ -101,7 +110,12 @@
     min-height: 40px;
     font-size: var(--p);
     color: var(--text);
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    :root[data-theme=light] & {
+        background-color: var(--background);
+        border-color: rgba(0, 0, 0, 0.15);
+    }
 
     &::after {
         content: '';
@@ -151,7 +165,11 @@
 }
 
 .focus .ts-control {
-    border-color: var(--primary-300);
+    border-color: var(--accent);
+
+    :root[data-theme=light] & {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
 }
 
 .ts-wrapper.multi.has-items .ts-control {

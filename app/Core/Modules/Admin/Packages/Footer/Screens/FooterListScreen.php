@@ -576,16 +576,13 @@ class FooterListScreen extends Screen
     }
 
     /**
-     * Clear all cached footer keys matching the cache key prefix.
+     * Clear all cached footer keys (items + socials) and global layout.
      */
     private function clearFooterCache(): void
     {
         try {
-            $pattern = \Flute\Core\Services\FooterService::CACHE_KEY . '*';
-            $keys = cache()->getKeys($pattern);
-            foreach ($keys as $key) {
-                cache()->delete($key);
-            }
+            cache()->deleteByTag(\Flute\Core\Services\FooterService::CACHE_TAG);
+            cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Swallow exceptions to avoid breaking admin UI
         }

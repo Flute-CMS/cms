@@ -140,4 +140,8 @@ main.content {
     opacity: 0.15;
     mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+
+    :root[data-theme=light] & {
+        opacity: 0.08;
+    }
 }

@@ -19,7 +19,7 @@
         </div>
 
         {{-- Balance --}}
-        @if (sizeof(payments()->getAllGateways() ?? 0 > 0))
+        @if (config('app.balance_enabled', true) && sizeof(payments()->getAllGateways() ?? 0 > 0))
             <div class="profile-dropdown__section">
                 <div class="profile-dropdown__balance">
                     <div class="profile-dropdown__balance-left">
@@ -45,14 +45,16 @@
 
         {{-- Menu Items --}}
         <div class="profile-dropdown__section" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
-            <a href="{{ url('profile/' . user()->getUrl()) }}" class="profile-dropdown__item">
-                <x-icon path="ph.regular.user" />
-                <span>@t('def.my_profile')</span>
-            </a>
-            <a href="{{ url('profile/settings') }}" class="profile-dropdown__item">
-                <x-icon path="ph.regular.gear" />
-                <span>@t('def.settings')</span>
-            </a>
+            @if (config('app.profile_enabled', true))
+                <a href="{{ url('profile/' . user()->getUrl()) }}" class="profile-dropdown__item">
+                    <x-icon path="ph.regular.user" />
+                    <span>@t('def.my_profile')</span>
+                </a>
+                <a href="{{ url('profile/settings') }}" class="profile-dropdown__item">
+                    <x-icon path="ph.regular.gear" />
+                    <span>@t('def.settings')</span>
+                </a>
+            @endif
             @can('admin')
                 <a href="{{ url('admin') }}" class="profile-dropdown__item" hx-boost="false">
                     <x-icon path="ph.regular.shield-check" />

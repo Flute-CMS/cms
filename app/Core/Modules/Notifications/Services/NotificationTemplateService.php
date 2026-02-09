@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Notifications\Services;
 use Flute\Core\Database\Entities\Notification;
 use Flute\Core\Database\Entities\NotificationTemplate;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Database\Entities\UserNotificationSetting;
 use Flute\Core\Modules\Notifications\Contracts\NotificationTemplateProviderInterface;
 use InvalidArgumentException;
 use Throwable;
@@ -155,6 +156,15 @@ class NotificationTemplateService
     {
         $template = $this->getByKey($templateKey);
 
+        // If template not found, try syncing providers first (table might have just been created)
+        if (!$template && !empty($this->providers)) {
+            try {
+                $this->syncAllProviders();
+                $template = $this->getByKey($templateKey);
+            } catch (Throwable) {
+            }
+        }
+
         if (!$template) {
             logs()->warning("Notification template not found: {$templateKey}");
 
@@ -170,8 +180,14 @@ class NotificationTemplateService
             $channels = ['inapp'];
         }
 
+        $userSetting = $this->getUserNotificationSetting($user);
+
         foreach ($channels as $channel) {
             if (!$template->hasChannel($channel) && $overrideChannels === null) {
+                continue;
+            }
+
+            if ($userSetting && !$userSetting->isTemplateChannelEnabled($templateKey, $channel)) {
                 continue;
             }
 
@@ -258,17 +274,40 @@ class NotificationTemplateService
 
     /**
      * Register multiple templates from a provider.
+     * Uses cache to avoid DB writes on every request.
      */
     public function registerFromProvider(NotificationTemplateProviderInterface $provider): void
     {
         $module = $provider->getModuleName();
         $templates = $provider->getNotificationTemplates();
 
+        $cacheKey = 'notification.provider.registered.' . md5($module);
+
+        if (!is_development()) {
+            try {
+                $registered = cache()->get($cacheKey);
+                if ($registered === true) {
+                    return;
+                }
+            } catch (Throwable) {
+            }
+        }
+
         foreach ($templates as $templateData) {
             try {
                 $this->registerTemplate($templateData, $module);
             } catch (Throwable $e) {
-                logs()->error("Failed to register template: " . $e->getMessage());
+                logs()->error("Failed to register template [{$templateData['key']}]: " . $e->getMessage());
+
+                return; // If table doesn't exist, stop trying
+            }
+        }
+
+        // Mark provider as registered in cache
+        if (!is_development()) {
+            try {
+                cache()->set($cacheKey, true, 86400); // 24 hours
+            } catch (Throwable) {
             }
         }
     }
@@ -461,7 +500,7 @@ class NotificationTemplateService
             'email' => [
                 'name' => __('admin-notifications.channels.email'),
                 'icon' => 'ph.bold.envelope-bold',
-                'enabled' => function_exists('mailer'),
+                'enabled' => function_exists('email'),
             ],
             'telegram' => [
                 'name' => __('admin-notifications.channels.telegram'),
@@ -512,8 +551,15 @@ class NotificationTemplateService
      */
     protected function sendInApp(NotificationTemplate $template, User $user, array $data): void
     {
+        $freshUser = User::findByPK($user->id);
+        if (!$freshUser) {
+            logs()->warning("Cannot send inapp notification: user #{$user->id} not found");
+
+            return;
+        }
+
         $notification = new Notification();
-        $notification->user = $user;
+        $notification->user = $freshUser;
         $notification->title = $template->getParsedTitle($data);
         $notification->content = $template->getParsedContent($data);
         $notification->icon = $template->icon;
@@ -540,7 +586,14 @@ class NotificationTemplateService
             }
         }
 
-        $notification->save();
+        $notification->saveOrFail();
+
+        if (function_exists('notification')) {
+            try {
+                notification()->refresh();
+            } catch (Throwable) {
+            }
+        }
     }
 
     /**
@@ -548,19 +601,18 @@ class NotificationTemplateService
      */
     protected function sendEmail(NotificationTemplate $template, User $user, array $data): void
     {
-        // Check if mailer is available
-        if (!function_exists('mailer')) {
+        if (!function_exists('email')) {
             return;
         }
 
-        $email = $user->email ?? null;
-        if (!$email) {
+        $userEmail = $user->email ?? null;
+        if (!$userEmail) {
             return;
         }
 
         try {
-            mailer()->send(
-                $email,
+            email()->send(
+                $userEmail,
                 $template->getParsedTitle($data),
                 view('notifications::emails.notification', [
                     'title' => $template->getParsedTitle($data),
@@ -629,6 +681,18 @@ class NotificationTemplateService
         }
 
         return $buttons;
+    }
+
+    /**
+     * Get user notification setting.
+     */
+    protected function getUserNotificationSetting(User $user): ?UserNotificationSetting
+    {
+        try {
+            return UserNotificationSetting::findOne(['user_id' => $user->id]);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**

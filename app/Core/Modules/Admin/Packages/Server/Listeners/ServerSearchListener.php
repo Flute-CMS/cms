@@ -59,13 +59,14 @@ class ServerSearchListener implements EventSubscriberInterface
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
         $servers = Server::query()
-            ->where(static function ($query) use ($searchValueLower) {
+            ->where(static function ($query) use ($escapedSearch) {
                 $query
-                    ->orWhere('name', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('ip', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('mod', 'LIKE', "%{$searchValueLower}%");
+                    ->orWhere('name', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('ip', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('mod', 'LIKE', "%{$escapedSearch}%");
             })
             ->limit(10)
             ->fetchAll();
