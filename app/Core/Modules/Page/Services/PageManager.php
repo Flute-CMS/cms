@@ -697,7 +697,7 @@ class PageManager
     {
         $content = '';
 
-        usort($blocks, function ($a, $b) {
+        usort($blocks, static function ($a, $b) {
             $aGs = json_decode($a->gridstack, true) ?? [];
             $bGs = json_decode($b->gridstack, true) ?? [];
             $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
