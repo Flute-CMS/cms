@@ -32,7 +32,16 @@
 
     <div class="captcha-container mb-3 w-100">
         @if ($type === 'recaptcha_v2')
-            <div class="g-recaptcha w-100" data-sitekey="{{ $siteKey }}"></div>
+            <div id="{{ $instanceId }}" class="g-recaptcha w-100" data-sitekey="{{ $siteKey }}"></div>
+            <script>
+                (function() {
+                    var el = document.getElementById(@json($instanceId));
+                    if (!el || el.childElementCount > 0) return;
+                    if (window.grecaptcha && window.grecaptcha.render) {
+                        try { grecaptcha.render(el, { sitekey: @json($siteKey) }); } catch(e) {}
+                    }
+                })();
+            </script>
         @elseif($type === 'recaptcha_v3')
             <input type="hidden" id="{{ $instanceId }}_token" name="g-recaptcha-response" value="" />
             <script>
@@ -84,9 +93,27 @@
                 })();
             </script>
         @elseif($type === 'hcaptcha')
-            <div class="h-captcha w-100" data-sitekey="{{ $siteKey }}"></div>
+            <div id="{{ $instanceId }}" class="h-captcha w-100" data-sitekey="{{ $siteKey }}"></div>
+            <script>
+                (function() {
+                    var el = document.getElementById(@json($instanceId));
+                    if (!el || el.childElementCount > 0) return;
+                    if (window.hcaptcha && window.hcaptcha.render) {
+                        try { hcaptcha.render(el, { sitekey: @json($siteKey) }); } catch(e) {}
+                    }
+                })();
+            </script>
         @elseif($type === 'turnstile')
-            <div class="cf-turnstile w-100" data-sitekey="{{ $siteKey }}"></div>
+            <div id="{{ $instanceId }}" class="cf-turnstile w-100" data-sitekey="{{ $siteKey }}"></div>
+            <script>
+                (function() {
+                    var el = document.getElementById(@json($instanceId));
+                    if (!el || el.childElementCount > 0) return;
+                    if (window.turnstile && window.turnstile.render) {
+                        try { turnstile.render(el, { sitekey: @json($siteKey) }); } catch(e) {}
+                    }
+                })();
+            </script>
         @endif
     </div>
 @endif
