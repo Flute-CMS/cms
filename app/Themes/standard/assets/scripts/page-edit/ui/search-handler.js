@@ -27,8 +27,11 @@ class SearchHandler {
 
     /**
      * Initialize search handler
+     * Skip when pe-dock is present — main.js handles dock search directly.
      */
     initialize() {
+        if (document.querySelector('.pe-dock')) return;
+
         this.searchInput = document.querySelector(this.config.selectors.searchInput);
 
         if (!this.searchInput) return;
@@ -84,7 +87,7 @@ class SearchHandler {
         const searchTerm = term.toLowerCase().trim();
         this.lastSearchTerm = searchTerm;
 
-        const categories = document.querySelectorAll('.sidebar-category, .pe-sidebar__category');
+        const categories = document.querySelectorAll('.sidebar-category, .pe-dock__category:not([data-category="all"]), .pe-sidebar__category');
 
         categories.forEach(category => {
             const widgets = category.querySelectorAll('.widget-item, .pe-widget-card');
@@ -164,11 +167,11 @@ class SearchHandler {
      * @param {string} searchTerm - Current search term
      */
     updateNoResultsMessage(searchTerm) {
-        const sidebar = document.querySelector('.pe-sidebar') || document.querySelector('.page-edit-sidebar');
+        const sidebar = document.querySelector('.pe-dock') || document.querySelector('.pe-sidebar') || document.querySelector('.page-edit-sidebar');
         if (!sidebar) return;
 
         let noResults = sidebar.querySelector('.search-no-results');
-        const hasResults = document.querySelectorAll('.sidebar-category:not([style*="display: none"]), .pe-sidebar__category:not([style*="display: none"])').length > 0;
+        const hasResults = document.querySelectorAll('.sidebar-category:not([style*="display: none"]), .pe-dock__category:not([style*="display: none"]), .pe-sidebar__category:not([style*="display: none"])').length > 0;
 
         if (searchTerm && !hasResults) {
             if (!noResults) {
@@ -180,7 +183,7 @@ class SearchHandler {
                     </svg>
                     <p>${typeof translate === 'function' ? translate('def.no_results') : 'No results found'}</p>
                 `;
-                (sidebar.querySelector('.pe-sidebar__content') || sidebar.querySelector('.page-edit-sidebar__categories'))?.appendChild(noResults);
+                (sidebar.querySelector('.pe-dock__content') || sidebar.querySelector('.pe-sidebar__content') || sidebar.querySelector('.page-edit-sidebar__categories'))?.appendChild(noResults);
             }
             noResults.style.display = 'flex';
         } else if (noResults) {

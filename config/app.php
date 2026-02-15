@@ -47,6 +47,7 @@ return array(
     'profile_enabled' => true,
     'balance_enabled' => true,
     'notifications_enabled' => true,
+    'notifications_popup_enabled' => true,
     'session' =>
         array(
             'name' => 'flute_session',

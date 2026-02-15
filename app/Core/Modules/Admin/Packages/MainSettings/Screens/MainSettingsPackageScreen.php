@@ -1704,6 +1704,15 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('app.notifications_enabled', true) ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.notifications_enabled'))->popover(__('admin-main-settings.popovers.notifications_enabled')),
+                LayoutFactory::field(
+                    ButtonGroup::make('notifications_popup_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.notifications_popup_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.notifications_popup_enabled'))->popover(__('admin-main-settings.popovers.notifications_popup_enabled')),
             ]),
         ])->title(__('admin-main-settings.blocks.site_mode'))->description(__('admin-main-settings.blocks.site_mode_description'))->addClass('mb-2');
     }

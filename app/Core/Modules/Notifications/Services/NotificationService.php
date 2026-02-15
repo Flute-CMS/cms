@@ -340,6 +340,25 @@ class NotificationService
     }
 
     /**
+     * Get the ID of the newest unread notification.
+     *
+     * @return int|null The ID of the newest unread notification, or null.
+     */
+    public function getNewestUnreadId(): ?int
+    {
+        $note = Notification::query()
+            ->where([
+                'user_id' => user()->id,
+                'viewed' => false,
+            ])
+            ->orderBy('id', 'DESC')
+            ->limit(1)
+            ->fetchOne();
+
+        return $note?->id;
+    }
+
+    /**
      * Count the number of unread notifications for the current user.
      *
      * @return int The number of unread notifications.

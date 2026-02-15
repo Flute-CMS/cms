@@ -318,7 +318,7 @@ class AdminPackageFactory
                 'key' => 'settings-group',
                 'title' => 'admin-menu.settings',
                 'icon' => 'ph.regular.gear',
-                'children' => ['main-settings', 'notifications', 'api-keys', 'socials'],
+                'children' => ['main-settings', 'api-keys', 'socials'],
             ],
             [
                 'key' => 'users-group',
@@ -331,6 +331,12 @@ class AdminPackageFactory
                 'title' => 'admin-menu.content',
                 'icon' => 'ph.regular.article',
                 'children' => ['pages', 'navigation', 'footer'],
+            ],
+            [
+                'key' => 'notifications-group',
+                'title' => 'admin-menu.notifications',
+                'icon' => 'ph.regular.bell',
+                'children' => ['notification-templates', 'notification-broadcast'],
             ],
             ['key' => 'servers'],
             ['section' => 'admin-menu.sections.finance'],

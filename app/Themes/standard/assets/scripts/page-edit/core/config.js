@@ -6,7 +6,7 @@ class PageEditorConfig {
         this.selectors = {
             editBtn: '#page-change-button',
             cancelBtn: '#page-change-cancel',
-            widgetsSidebar: '#page-edit-sidebar, .pe-sidebar',
+            widgetsSidebar: '#page-edit-sidebar, .pe-dock, .pe-sidebar',
             pageEditBtn: '#page-edit-button',
             pageEditFab: '#page-edit-fab',
             fabTrigger: '#page-edit-trigger',

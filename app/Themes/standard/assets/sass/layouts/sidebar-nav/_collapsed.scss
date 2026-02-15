@@ -3,8 +3,13 @@
         width: var(--sidebar-collapsed-width, #{$sidebar-collapsed-width});
 
         .sidebar-nav__header {
-            padding: 0.75rem 0.5rem;
+            padding: var(--space-md) 0.5rem;
             justify-content: center;
+        }
+
+        .sidebar-nav__logo {
+            justify-content: center;
+            flex: none;
         }
 
         .sidebar-nav__logo-text,
@@ -12,8 +17,19 @@
             display: none;
         }
 
+        .sidebar-nav__logo-img {
+            height: 32px;
+        }
+
         .sidebar-nav__toggle {
-            margin: 0;
+            justify-content: center;
+            width: 40px;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        .sidebar-nav__toggle-text {
+            display: none;
         }
 
         .sidebar-nav__section-title {
@@ -41,7 +57,10 @@
             height: 40px;
             min-height: 40px;
             border-radius: 0.5rem;
-            border-color: transparent;
+
+            &::before {
+                display: none !important;
+            }
 
             .sidebar-nav__item-icon {
                 margin: 0;
@@ -59,6 +78,10 @@
             display: none !important;
         }
 
+        .sidebar-nav__footer {
+            align-items: center;
+        }
+
         .sidebar-nav__socials {
             flex-direction: column;
             gap: var(--space-2xs);
@@ -69,35 +92,30 @@
             }
         }
 
-        // Guest block in collapsed mode
+        // Guest block in collapsed mode — accent-outlined icon button
         .sidebar-nav__guest {
-            padding: var(--space-xs);
-            margin-bottom: var(--space-xs);
+            justify-content: center;
+            padding: 0;
+            margin: 0 auto var(--space-2xs);
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            background: color-mix(in srgb, var(--accent) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+
+            &:hover {
+                background: color-mix(in srgb, var(--accent) 15%, transparent);
+                border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+            }
         }
 
         .sidebar-nav__guest-content {
-            gap: 0;
-        }
-
-        .sidebar-nav__guest-icon {
-            width: 28px;
-            height: 28px;
-        }
-
-        .sidebar-nav__guest-text {
             display: none;
         }
 
-        .sidebar-nav__guest-btn {
-            padding: var(--space-2xs);
-            min-width: 0;
-            width: 100%;
-            font-size: 0;
-
-            &::before {
-                content: "→";
-                font-size: 14px;
-            }
+        .sidebar-nav__guest-icon {
+            font-size: 1.25rem;
+            color: var(--accent);
         }
     }
 }

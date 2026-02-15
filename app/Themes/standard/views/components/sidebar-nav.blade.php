@@ -21,21 +21,25 @@
 
     <nav class="sidebar-nav__nav">
         @guest
-            <div class="sidebar-nav__guest">
-                <div class="sidebar-nav__guest-content">
-                    <x-icon path="ph.regular.user-circle" class="sidebar-nav__guest-icon" />
-                    <span class="sidebar-nav__guest-text">{{ __('def.not_logged_in') }}</span>
-                </div>
-                @if (config('auth.only_modal'))
-                    <x-button class="sidebar-nav__guest-btn" size="small" data-modal-open="auth-modal">
-                        {{ __('def.login') }}
-                    </x-button>
-                @else
-                    <x-button class="sidebar-nav__guest-btn" size="small" href="{{ url('login') }}">
-                        {{ __('def.login') }}
-                    </x-button>
-                @endif
-            </div>
+            @if (config('auth.only_modal'))
+                <a class="sidebar-nav__guest" href="#" data-modal-open="auth-modal"
+                    data-tooltip="{{ __('def.login') }}" data-tooltip-placement="right" data-sidebar-tooltip>
+                    <x-icon path="ph.regular.sign-in" class="sidebar-nav__guest-icon" />
+                    <div class="sidebar-nav__guest-content">
+                        <span class="sidebar-nav__guest-text">{{ __('def.not_logged_in') }}</span>
+                        <span class="sidebar-nav__guest-link">{{ __('def.login') }}</span>
+                    </div>
+                </a>
+            @else
+                <a class="sidebar-nav__guest" href="{{ url('login') }}"
+                    data-tooltip="{{ __('def.login') }}" data-tooltip-placement="right" data-sidebar-tooltip>
+                    <x-icon path="ph.regular.sign-in" class="sidebar-nav__guest-icon" />
+                    <div class="sidebar-nav__guest-content">
+                        <span class="sidebar-nav__guest-text">{{ __('def.not_logged_in') }}</span>
+                        <span class="sidebar-nav__guest-link">{{ __('def.login') }}</span>
+                    </div>
+                </a>
+            @endif
         @endguest
 
         <div class="sidebar-nav__section">
@@ -144,7 +148,8 @@
             <div class="sidebar-nav__socials">
                 @foreach (social()->toDisplay() as $key => $icon)
                     <a href="{{ config("social.{$key}.url") }}" target="_blank" rel="noopener noreferrer"
-                        aria-label="{{ $key }}">
+                        aria-label="{{ $key }}" data-tooltip="{{ ucfirst($key) }}" data-tooltip-placement="top"
+                        data-sidebar-tooltip>
                         <x-icon path="{{ $icon }}" />
                     </a>
                 @endforeach
@@ -152,7 +157,7 @@
         @endif
 
         <button type="button" class="sidebar-nav__toggle" id="sidebar-toggle"
-            aria-label="{{ __('def.toggle_sidebar') }}">
+            aria-label="{{ __('def.toggle_sidebar') }}" data-sidebar-tooltip>
             <x-icon path="ph.regular.sidebar-simple" />
             <span class="sidebar-nav__toggle-text">{{ __('def.toggle_sidebar') }}</span>
         </button>

@@ -144,13 +144,14 @@ class PageEditor {
         const sidebar = document.getElementById('page-edit-sidebar');
         if (!sidebar) return;
 
-        const iconBtns = sidebar.querySelectorAll('.pe-sidebar__icon-btn');
-        const categoryPanels = sidebar.querySelectorAll('.pe-sidebar__category');
+        // Support both old (.pe-sidebar__icon-btn) and new (.pe-dock__tab) selectors
+        const tabBtns = sidebar.querySelectorAll('.pe-dock__tab, .pe-sidebar__icon-btn');
+        const categoryPanels = sidebar.querySelectorAll('.pe-dock__category, .pe-sidebar__category');
 
-        iconBtns.forEach(btn => {
+        tabBtns.forEach(btn => {
             this.bindOnce(btn, 'click', () => {
                 const cat = btn.dataset.category;
-                iconBtns.forEach(b => b.classList.remove('active'));
+                tabBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 categoryPanels.forEach(p => p.classList.toggle('active', p.dataset.category === cat));
 
@@ -161,9 +162,9 @@ class PageEditor {
         });
 
         const searchInput = sidebar.querySelector('#widget-search');
-        const searchClear = sidebar.querySelector('.pe-sidebar__search-clear');
-        const searchResults = sidebar.querySelector('.pe-sidebar__search-results');
-        const noResults = sidebar.querySelector('.pe-sidebar__no-results');
+        const searchClear = sidebar.querySelector('.pe-dock__search-clear, .pe-sidebar__search-clear');
+        const searchResults = sidebar.querySelector('.pe-dock__search-results, .pe-sidebar__search-results');
+        const noResults = sidebar.querySelector('.pe-dock__no-results, .pe-sidebar__no-results');
 
         if (searchInput) {
             this.bindOnce(searchInput, 'input', () => {
@@ -177,28 +178,30 @@ class PageEditor {
 
                 categoryPanels.forEach(p => p.style.display = 'none');
                 searchResults.style.display = 'block';
-                searchResults.innerHTML = '';
 
-                const allCards = sidebar.querySelectorAll('.pe-widget-card');
+                const widgetsContainer = searchResults.querySelector('.pe-dock__widgets, .pe-sidebar__widgets');
+                if (widgetsContainer) widgetsContainer.innerHTML = '';
+
+                const allCards = sidebar.querySelectorAll('.pe-dock__category:not([data-category="all"]) .pe-widget-card, .pe-sidebar__category .pe-widget-card');
                 let matchCount = 0;
-                const grid = document.createElement('div');
-                grid.className = 'pe-sidebar__widgets';
 
                 allCards.forEach(card => {
                     const name = card.querySelector('.pe-widget-card__name')?.textContent?.toLowerCase() || '';
                     if (name.includes(q)) {
-                        grid.appendChild(card.cloneNode(true));
+                        if (widgetsContainer) widgetsContainer.appendChild(card.cloneNode(true));
                         matchCount++;
                     }
                 });
 
                 if (matchCount > 0) {
-                    searchResults.appendChild(grid);
-                    noResults.style.display = 'none';
-                    grid.querySelectorAll('.pe-widget-card').forEach(card => this._attachCardEvents(card));
+                    if (noResults) noResults.style.display = 'none';
+                    if (widgetsContainer) {
+                        widgetsContainer.querySelectorAll('.pe-widget-card').forEach(card => this._attachCardEvents(card));
+                    }
+                    // Re-register drag-in so cloned cards are draggable
+                    if (this.gridController?.refreshDragIn) this.gridController.refreshDragIn();
                 } else {
-                    noResults.style.display = 'flex';
-                    searchResults.appendChild(noResults);
+                    if (noResults) noResults.style.display = 'flex';
                 }
             }, 'search-input');
         }
@@ -248,17 +251,17 @@ class PageEditor {
     }
 
     _resetSidebarSearch(sidebar) {
-        const categoryPanels = sidebar.querySelectorAll('.pe-sidebar__category');
-        const searchResults = sidebar.querySelector('.pe-sidebar__search-results');
-        const noResults = sidebar.querySelector('.pe-sidebar__no-results');
-        const activeIcon = sidebar.querySelector('.pe-sidebar__icon-btn.active');
+        const categoryPanels = sidebar.querySelectorAll('.pe-dock__category, .pe-sidebar__category');
+        const searchResults = sidebar.querySelector('.pe-dock__search-results, .pe-sidebar__search-results');
+        const noResults = sidebar.querySelector('.pe-dock__no-results, .pe-sidebar__no-results');
+        const activeTab = sidebar.querySelector('.pe-dock__tab.active, .pe-sidebar__icon-btn.active');
 
         if (searchResults) searchResults.style.display = 'none';
         if (noResults) noResults.style.display = 'none';
 
         categoryPanels.forEach(p => {
             p.style.display = '';
-            if (activeIcon) p.classList.toggle('active', p.dataset.category === activeIcon.dataset.category);
+            if (activeTab) p.classList.toggle('active', p.dataset.category === activeTab.dataset.category);
         });
     }
 

@@ -10,6 +10,45 @@ $(document).ready(function () {
         toggleMenuTooltips(false);
     }
 
+    // --- Collapsible sections ---
+    function getSectionState() {
+        try {
+            var raw = localStorage.getItem('sidebar-sections');
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveSectionState(state) {
+        try {
+            localStorage.setItem('sidebar-sections', JSON.stringify(state));
+        } catch (e) { }
+    }
+
+    function initSectionCollapse() {
+        var state = getSectionState();
+        $('.sidebar__section[data-section-id]').each(function () {
+            var id = $(this).attr('data-section-id');
+            if (state[id] === true) {
+                $(this).addClass('collapsed');
+            }
+        });
+    }
+
+    initSectionCollapse();
+
+    $(document).on('click', '.sidebar__section-toggle', function (e) {
+        e.preventDefault();
+        var $section = $(this).closest('.sidebar__section');
+        var id = $section.attr('data-section-id');
+        $section.toggleClass('collapsed');
+
+        var state = getSectionState();
+        state[id] = $section.hasClass('collapsed');
+        saveSectionState(state);
+    });
+
     // Toggle tooltips for menu items based on sidebar state
     function toggleMenuTooltips(show) {
         $('.sidebar .menu-item[data-tooltip-text]').each(function () {
@@ -268,6 +307,7 @@ $(document).ready(function () {
                         }
                         updateIndicator();
                         toggleMenuTooltips(wasCollapsed);
+                        initSectionCollapse();
                     }
                 }
             })

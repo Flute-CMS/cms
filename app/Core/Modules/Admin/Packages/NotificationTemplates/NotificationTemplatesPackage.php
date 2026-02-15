@@ -39,11 +39,17 @@ class NotificationTemplatesPackage extends AbstractAdminPackage
     {
         return [
             [
-                'key' => 'notifications',
+                'key' => 'notification-templates',
                 'title' => __('admin-notifications.menu.templates'),
                 'icon' => 'ph.regular.bell-ringing',
                 'url' => url('/admin/notification-templates'),
                 'badge' => $this->getTemplatesCount(),
+            ],
+            [
+                'key' => 'notification-broadcast',
+                'title' => __('admin-notifications.menu.broadcast'),
+                'icon' => 'ph.regular.megaphone',
+                'url' => url('/admin/notification-broadcast'),
             ],
         ];
     }

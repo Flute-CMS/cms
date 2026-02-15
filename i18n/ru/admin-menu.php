@@ -13,4 +13,5 @@ return [
     'content' => 'Контент',
     'finance' => 'Финансы',
     'system' => 'Информация',
+    'notifications' => 'Уведомления',
 ];

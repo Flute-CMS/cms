@@ -1,5 +1,4 @@
 html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
-    // Устанавливаем CSS переменную на уровне html для использования в body, header, footer
     --sidebar-width: var(--sidebar-mini-width, #{$sidebar-mini-width});
 
     .sidebar-nav {
@@ -9,7 +8,6 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
     .sidebar-nav__header {
         justify-content: center;
         padding: var(--space-md) var(--space-xs);
-        min-height: 73px;
     }
 
     .sidebar-nav__logo {

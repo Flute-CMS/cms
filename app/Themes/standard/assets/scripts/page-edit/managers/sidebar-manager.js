@@ -43,9 +43,9 @@ class SidebarManager {
      * Initialize the sidebar
      */
     initialize() {
-        this.sidebar = document.getElementById('page-edit-sidebar') || document.querySelector('.pe-sidebar');
+        this.sidebar = document.getElementById('page-edit-sidebar') || document.querySelector('.pe-dock') || document.querySelector('.pe-sidebar');
         this.searchInput = document.getElementById('widget-search');
-        this.categoriesContainer = this.sidebar?.querySelector('.page-edit-sidebar__categories') || this.sidebar?.querySelector('.pe-sidebar__content');
+        this.categoriesContainer = this.sidebar?.querySelector('.pe-dock__content') || this.sidebar?.querySelector('.page-edit-sidebar__categories') || this.sidebar?.querySelector('.pe-sidebar__content');
 
         if (!this.sidebar) {
             this.utils.logError('SidebarManager', 'Sidebar element not found');

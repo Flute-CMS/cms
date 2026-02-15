@@ -16,96 +16,104 @@
     $firstCategory = array_key_first($allCategories);
 @endphp
 
-<aside class="pe-sidebar" id="page-edit-sidebar">
-    {{-- Vertical category icon strip --}}
-    <div class="pe-sidebar__icons">
-        @foreach ($allCategories as $category => $widgets)
-            <button class="pe-sidebar__icon-btn {{ $loop->first ? 'active' : '' }}"
-                    type="button"
-                    data-category="{{ $category }}"
-                    data-tooltip="{{ __("page.categories.$category") }}"
-                    data-tooltip-pos="right">
-                <x-icon :path="$categoryIcons[$category] ?? 'ph.regular.squares-four'" />
-            </button>
-        @endforeach
-    </div>
-
-    {{-- Main panel --}}
-    <div class="pe-sidebar__panel">
-        {{-- Header: title + search --}}
-        <div class="pe-sidebar__header">
-            <div class="pe-sidebar__header-top">
-                <h4 class="pe-sidebar__title">{{ __('page.widgets') }}</h4>
-                <button class="pe-sidebar__close" type="button" id="pe-sidebar-close" aria-label="Close">
-                    <x-icon path="ph.regular.x" />
-                </button>
-            </div>
-            <div class="pe-sidebar__search">
+<aside class="pe-dock" id="page-edit-sidebar">
+    <div class="pe-dock__container">
+        {{-- Top: search bar --}}
+        <div class="pe-dock__header">
+            <div class="pe-dock__search">
                 <x-icon path="ph.regular.magnifying-glass" />
                 <input type="text"
                        id="widget-search"
                        placeholder="{{ __('def.search') }}..."
                        autocomplete="off">
-                <button class="pe-sidebar__search-clear" type="button" aria-label="Clear">
+                <button class="pe-dock__search-clear" type="button" aria-label="Clear">
                     <x-icon path="ph.regular.x" />
                 </button>
             </div>
         </div>
 
-        {{-- Scrollable widget list --}}
-        <div class="pe-sidebar__content">
-            @foreach ($allCategories as $category => $widgets)
-                <div class="pe-sidebar__category {{ $loop->first ? 'active' : '' }}" data-category="{{ $category }}">
-                    <div class="pe-sidebar__category-header">
+        {{-- Bottom: categories left + widgets right --}}
+        <div class="pe-dock__body">
+            <div class="pe-dock__nav">
+                @php $totalWidgets = array_sum(array_map('count', $allCategories)); @endphp
+                <button class="pe-dock__tab active"
+                        type="button"
+                        data-category="all">
+                    <x-icon path="ph.regular.stack" />
+                    <span class="pe-dock__tab-label">{{ __('def.all') }}</span>
+                    <span class="pe-dock__tab-count">{{ $totalWidgets }}</span>
+                </button>
+                @foreach ($allCategories as $category => $widgets)
+                    <button class="pe-dock__tab"
+                            type="button"
+                            data-category="{{ $category }}">
                         <x-icon :path="$categoryIcons[$category] ?? 'ph.regular.squares-four'" />
-                        <span>{{ __("page.categories.$category") }}</span>
-                        <span class="pe-sidebar__count">{{ count($widgets) }}</span>
+                        <span class="pe-dock__tab-label">{{ __("page.categories.$category") }}</span>
+                        <span class="pe-dock__tab-count">{{ count($widgets) }}</span>
+                    </button>
+                @endforeach
+            </div>
+
+            <div class="pe-dock__main">
+                <div class="pe-dock__content">
+                    {{-- "All" category — all widgets --}}
+                    <div class="pe-dock__category active" data-category="all">
+                        <div class="pe-dock__widgets">
+                            @foreach ($allCategories as $category => $widgets)
+                                @foreach ($widgets as $key => $widget)
+                                    <div class="pe-widget-card grid-stack-item"
+                                         data-widget-name="{{ $key }}"
+                                         data-default-width="{{ $widget->getDefaultWidth() }}"
+                                         data-tooltip="{{ __($widget->getName()) }}"
+                                         data-tooltip-placement="top"
+                                         @if ($widget->hasSettings()) data-has-settings="true" @endif
+                                         gs-w="{{ $widget->getDefaultWidth() }}"
+                                         gs-h="4">
+                                        <div class="pe-widget-card__icon">
+                                            <x-icon :path="$widget->getIcon()" />
+                                        </div>
+                                        <span class="pe-widget-card__name">{{ __($widget->getName()) }}</span>
+                                    </div>
+                                @endforeach
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="pe-sidebar__widgets">
-                        @foreach ($widgets as $key => $widget)
-                            <div class="pe-widget-card grid-stack-item"
-                                 data-widget-name="{{ $key }}"
-                                 data-default-width="{{ $widget->getDefaultWidth() }}"
-                                 @if ($widget->hasSettings()) data-has-settings="true" @endif
-                                 gs-w="{{ $widget->getDefaultWidth() }}"
-                                 gs-h="1">
-                                <div class="pe-widget-card__icon">
-                                    <x-icon :path="$widget->getIcon()" />
-                                </div>
-                                <div class="pe-widget-card__info">
-                                    <span class="pe-widget-card__name">{{ __($widget->getName()) }}</span>
-                                </div>
-                                <button class="pe-widget-card__add"
-                                        type="button"
-                                        data-tooltip="{{ __('page-edit.click_to_add') }}"
-                                        data-tooltip-pos="left">
-                                    <x-icon path="ph.regular.plus" />
-                                </button>
+
+                    @foreach ($allCategories as $category => $widgets)
+                        <div class="pe-dock__category" data-category="{{ $category }}">
+                            <div class="pe-dock__widgets">
+                                @foreach ($widgets as $key => $widget)
+                                    <div class="pe-widget-card grid-stack-item"
+                                         data-widget-name="{{ $key }}"
+                                         data-default-width="{{ $widget->getDefaultWidth() }}"
+                                         data-tooltip="{{ __($widget->getName()) }}"
+                                         data-tooltip-placement="top"
+                                         @if ($widget->hasSettings()) data-has-settings="true" @endif
+                                         gs-w="{{ $widget->getDefaultWidth() }}"
+                                         gs-h="4">
+                                        <div class="pe-widget-card__icon">
+                                            <x-icon :path="$widget->getIcon()" />
+                                        </div>
+                                        <span class="pe-widget-card__name">{{ __($widget->getName()) }}</span>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endforeach
+                        </div>
+                    @endforeach
+
+                    <div class="pe-dock__search-results" style="display:none;">
+                        <div class="pe-dock__widgets"></div>
+                        <p class="pe-dock__no-results" style="display:none;">
+                            <x-icon path="ph.regular.magnifying-glass" />
+                            <span>{{ __('page-edit.no_widgets_found') }}</span>
+                        </p>
                     </div>
                 </div>
-            @endforeach
-
-            {{-- Search results (hidden by default) --}}
-            <div class="pe-sidebar__search-results" style="display:none;">
-                <p class="pe-sidebar__no-results" style="display:none;">
-                    <x-icon path="ph.regular.magnifying-glass" />
-                    <span>{{ __('page-edit.no_widgets_found') }}</span>
-                </p>
             </div>
-        </div>
-
-        {{-- Footer tip --}}
-        <div class="pe-sidebar__footer">
-            <p class="pe-sidebar__tip">
-                <x-icon path="ph.regular.hand-grabbing" />
-                <span>{{ __('page.drag_widget_tip') }}</span>
-            </p>
         </div>
     </div>
 
-    {{-- Quick inserter popover (used by inline "+" buttons) --}}
+    {{-- Quick inserter popover --}}
     <div class="pe-quick-inserter" id="pe-quick-inserter" style="display:none;">
         <div class="pe-quick-inserter__search">
             <x-icon path="ph.regular.magnifying-glass" />

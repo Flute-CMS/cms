@@ -67,6 +67,7 @@ class MainSettingsPackageService
                 'profile_enabled' => 'app.profile_enabled',
                 'balance_enabled' => 'app.balance_enabled',
                 'notifications_enabled' => 'app.notifications_enabled',
+                'notifications_popup_enabled' => 'app.notifications_popup_enabled',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'app.share',
@@ -205,6 +206,7 @@ class MainSettingsPackageService
                 'profile_enabled',
                 'balance_enabled',
                 'notifications_enabled',
+                'notifications_popup_enabled',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share',
@@ -301,6 +303,7 @@ class MainSettingsPackageService
                 'profile_enabled' => 'boolean',
                 'balance_enabled' => 'boolean',
                 'notifications_enabled' => 'boolean',
+                'notifications_popup_enabled' => 'boolean',
             ],
             $this->tabSlugs['additional_settings'] => [
                 'share' => 'boolean',

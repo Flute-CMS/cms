@@ -1,5 +1,5 @@
 <div class="pe-topbar" id="page-edit-nav">
-    <div class="pe-topbar__inner">
+    <div class="pe-topbar__inner container  ">
         {{-- Left: Back + title + undo/redo --}}
         <div class="pe-topbar__left">
             <button class="pe-topbar__back" id="page-change-cancel" type="button" data-tooltip="{{ __('def.cancel') }}">

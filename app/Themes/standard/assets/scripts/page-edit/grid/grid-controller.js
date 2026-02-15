@@ -118,25 +118,31 @@ class DragDropController {
 
     _setupSidebarDragIn() {
         if (this._dragInReady || typeof GridStack === 'undefined') return;
+        this._refreshDragIn();
+        this._dragInReady = true;
+    }
 
+    /**
+     * (Re-)register all .pe-widget-card elements for GridStack drag-in.
+     * Called on init and after search results are populated.
+     */
+    refreshDragIn() {
+        this._refreshDragIn();
+    }
+
+    _refreshDragIn() {
         try {
-            // Collect sidebar cards and build widget definitions for each
-            const cards = document.querySelectorAll('.pe-sidebar .pe-widget-card');
+            const selector = '.pe-dock .pe-widget-card, .pe-sidebar .pe-widget-card';
+            const cards = document.querySelectorAll(selector);
             if (!cards.length) return;
 
             const widgets = [];
             cards.forEach(card => {
                 const w = parseInt(card.getAttribute('gs-w')) || 6;
-                widgets.push({ w, h: 1, sizeToContent: true });
+                widgets.push({ w, h: 4, sizeToContent: true });
             });
 
-            GridStack.setupDragIn(
-                '.pe-sidebar .pe-widget-card',
-                { appendTo: 'body', helper: 'clone' },
-                widgets
-            );
-
-            this._dragInReady = true;
+            GridStack.setupDragIn(selector, { appendTo: 'body', helper: 'clone' }, widgets);
         } catch (err) {
             this.utils.logError('setupDragIn', err);
         }

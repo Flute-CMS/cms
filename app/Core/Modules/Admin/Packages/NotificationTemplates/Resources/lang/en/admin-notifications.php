@@ -2,7 +2,32 @@
 
 return [
     'menu' => [
-        'templates' => 'Notification Templates',
+        'templates' => 'Templates',
+        'broadcast' => 'Broadcast',
+    ],
+
+    'broadcast' => [
+        'title' => 'Notification Broadcast',
+        'description' => 'Send notifications to users',
+        'target' => 'Recipients',
+        'target_all' => 'All users',
+        'target_roles' => 'By roles',
+        'target_users' => 'Specific users',
+        'roles' => 'Roles',
+        'users' => 'Users',
+        'notification_title' => 'Title',
+        'notification_content' => 'Content',
+        'notification_icon' => 'Icon',
+        'notification_url' => 'URL (optional)',
+        'confirm_send' => 'Send notification to selected recipients?',
+        'sent' => 'Notification sent to :count users',
+        'no_recipients' => 'No recipients found for selected criteria',
+        'blocks' => [
+            'recipients' => 'Recipients',
+            'recipients_description' => 'Choose who will receive the notification',
+            'content' => 'Notification',
+            'content_description' => 'Configure the notification message',
+        ],
     ],
 
     'title' => [

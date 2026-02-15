@@ -478,6 +478,7 @@ class NotificationManager {
         this.initCustomEvents();
         this.initAutoMarkRead();
         this.initDropdown();
+        this.initPopupNotifications();
     }
 
     updateNotificationDot() {
@@ -558,33 +559,41 @@ class NotificationManager {
 
     initAutoMarkRead() {
         document.addEventListener("click", (e) => {
-            const item = e.target.closest(".notification-item.unread");
+            const item = e.target.closest(".notification-item");
             if (!item) return;
 
-            // Don't mark read if clicking delete or button
-            if (e.target.closest(".notification-delete") || e.target.closest(".notification-btn")) {
+            // Don't process if clicking delete, file link, or action button
+            if (e.target.closest(".notification-delete") || e.target.closest(".notification-btn") || e.target.closest(".notification-file-link")) {
                 return;
             }
 
             const id = item.getAttribute("data-id");
-            if (!id) return;
 
-            item.classList.remove("unread");
-            item.classList.add("viewed");
-            const dot = item.querySelector(".notification-unread-indicator");
-            if (dot) dot.remove();
+            // Mark as read if unread
+            if (id && item.classList.contains("unread")) {
+                item.classList.remove("unread");
+                item.classList.add("viewed");
+                const dot = item.querySelector(".notification-unread-indicator");
+                if (dot) dot.remove();
 
-            fetch(u(`api/notifications/${id}`), {
-                method: "PUT",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "X-CSRF-Token": document
-                        .querySelector('meta[name="csrf-token"]')
-                        .getAttribute("content"),
-                },
-            }).catch(() => { });
+                fetch(u(`api/notifications/${id}`), {
+                    method: "PUT",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRF-Token": document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute("content"),
+                    },
+                }).catch(() => { });
 
-            this.updateBadges();
+                this.updateBadges();
+            }
+
+            // Navigate if has URL
+            const url = item.getAttribute("data-url");
+            if (url) {
+                window.location.href = url;
+            }
         });
     }
 
@@ -650,6 +659,8 @@ class NotificationManager {
             const btn = e.target.closest("[data-notification-handler]");
             if (!btn) return;
 
+            e.preventDefault();
+            e.stopPropagation();
             const handler = btn.getAttribute("data-notification-handler");
             if (handler) {
                 try {
@@ -972,7 +983,7 @@ class NotificationManager {
 
         setTimeout(() => {
             const allCount = document.querySelectorAll("[data-notification-list='all'] .notification-item").length;
-            const unreadCount = document.querySelectorAll("[data-notification-list='unread'] .notification-item").length;
+            const unreadCount = document.querySelectorAll("[data-notification-list='unread'] .notification-item.unread").length;
 
             const allBadge = document.querySelector("[data-notification-count-all]");
             const unreadBadge = document.querySelector("[data-notification-count-unread]");
@@ -998,6 +1009,196 @@ class NotificationManager {
                 list.appendChild(p);
             }
         });
+    }
+
+    initPopupNotifications() {
+        const dot = document.getElementById('notification-dot');
+        if (!dot) return;
+
+        this.popupEnabled = dot.dataset.popupEnabled === 'true';
+        if (!this.popupEnabled) return;
+
+        this.knownIds = new Set();
+        this.lastNewestId = null;
+        this.popupFirstPoll = true;
+        this.popupContainer = null;
+
+        document.body.addEventListener('notificationPoll', (e) => {
+            const { hasUnread, newestId } = e.detail;
+
+            if (!hasUnread || newestId == null) {
+                this.lastNewestId = null;
+                this.popupFirstPoll = false;
+                return;
+            }
+
+            if (this.popupFirstPoll) {
+                this.popupFirstPoll = false;
+                this.lastNewestId = newestId;
+                this.prefillKnownIds();
+                return;
+            }
+
+            if (newestId !== this.lastNewestId) {
+                this.lastNewestId = newestId;
+                this.fetchAndShowPopups();
+            }
+        });
+    }
+
+    prefillKnownIds() {
+        fetch(u('api/notifications/unread'), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                const items = data.result || {};
+                const flat = Object.values(items).flat();
+                for (const n of flat) {
+                    this.knownIds.add(n.id);
+                }
+            })
+            .catch(() => {});
+    }
+
+    fetchAndShowPopups() {
+        fetch(u('api/notifications/unread'), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                const items = data.result || {};
+                const flat = Object.values(items).flat();
+
+                for (const n of flat) {
+                    if (!this.knownIds.has(n.id)) {
+                        this.knownIds.add(n.id);
+                        this.showNotificationPopup(n);
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+
+    getPopupContainer() {
+        if (!this.popupContainer || !document.body.contains(this.popupContainer)) {
+            this.popupContainer = document.createElement('div');
+            this.popupContainer.className = 'notification-popups';
+            document.body.appendChild(this.popupContainer);
+        }
+        return this.popupContainer;
+    }
+
+    showNotificationPopup(notification) {
+        const container = this.getPopupContainer();
+
+        const popup = document.createElement('div');
+        popup.className = 'notification-popup';
+        popup.setAttribute('data-popup-id', notification.id);
+        popup.setAttribute('role', 'status');
+        popup.setAttribute('aria-live', 'polite');
+
+        // Icon
+        let iconHtml;
+        if (notification.icon && (notification.icon.startsWith('http://') || notification.icon.startsWith('https://'))) {
+            iconHtml = `<img src="${notification.icon}" alt="" loading="lazy">`;
+        } else {
+            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,224a8,8,0,0,1-8,8H96a8,8,0,1,1,0-16h64A8,8,0,0,1,168,224Zm53.85-32A15.8,15.8,0,0,1,208,200H48a16,16,0,0,1-8.84-29.35l5.18-3.47A48.23,48.23,0,0,0,65.11,132V104a63,63,0,0,1,126,0v28a48.28,48.28,0,0,0,20.77,35.18l5.18,3.47A15.84,15.84,0,0,1,221.85,192Z"/></svg>`;
+        }
+
+        // Content
+        let contentHtml = '';
+        if (notification.content) {
+            const text = notification.content.length > 100
+                ? notification.content.substring(0, 100) + '...'
+                : notification.content;
+            contentHtml = `<p class="notification-popup__text">${this.escapeHtml(text)}</p>`;
+        }
+
+        popup.innerHTML = `
+            <div class="notification-popup__icon">${iconHtml}</div>
+            <div class="notification-popup__body">
+                <span class="notification-popup__title">${this.escapeHtml(notification.title || '')}</span>
+                ${contentHtml}
+            </div>
+            <button class="notification-popup__close" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>
+            </button>
+            <div class="notification-popup__progress"></div>
+        `;
+
+        container.appendChild(popup);
+
+        requestAnimationFrame(() => {
+            popup.classList.add('is-visible');
+        });
+
+        // Hover pause — a11y: don't dismiss while user interacts
+        popup.addEventListener('mouseenter', () => {
+            popup._hovered = true;
+            clearTimeout(popup._dismissTimer);
+            const progress = popup.querySelector('.notification-popup__progress');
+            if (progress) progress.style.animationPlayState = 'paused';
+        });
+
+        popup.addEventListener('mouseleave', () => {
+            popup._hovered = false;
+            const progress = popup.querySelector('.notification-popup__progress');
+            if (progress) progress.style.animationPlayState = 'running';
+            popup._dismissTimer = setTimeout(() => {
+                this.dismissPopup(popup, notification.id);
+            }, 3000);
+        });
+
+        // Close button
+        popup.querySelector('.notification-popup__close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dismissPopup(popup, notification.id);
+        });
+
+        // Click → navigate
+        popup.addEventListener('click', () => {
+            if (notification.url && notification.type !== 'button') {
+                window.location.href = u(notification.url);
+            }
+            this.dismissPopup(popup, notification.id);
+        });
+
+        // Auto-dismiss after 6s
+        popup._dismissTimer = setTimeout(() => {
+            this.dismissPopup(popup, notification.id);
+        }, 6000);
+    }
+
+    dismissPopup(popup, id) {
+        if (popup._dismissed) return;
+        popup._dismissed = true;
+
+        clearTimeout(popup._dismissTimer);
+        popup.classList.remove('is-visible');
+        popup.classList.add('is-hiding');
+
+        // Mark as read
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (id && csrfToken) {
+            fetch(u(`api/notifications/${id}`), {
+                method: 'PUT',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken,
+                },
+            }).catch(() => {});
+        }
+
+        setTimeout(() => {
+            popup.remove();
+        }, 300);
+    }
+
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 }
 

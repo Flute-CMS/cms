@@ -2,7 +2,32 @@
 
 return [
     'menu' => [
-        'templates' => 'Шаблоны уведомлений',
+        'templates' => 'Шаблоны',
+        'broadcast' => 'Рассылка',
+    ],
+
+    'broadcast' => [
+        'title' => 'Рассылка уведомлений',
+        'description' => 'Отправка уведомлений пользователям',
+        'target' => 'Получатели',
+        'target_all' => 'Все пользователи',
+        'target_roles' => 'По ролям',
+        'target_users' => 'Конкретные пользователи',
+        'roles' => 'Роли',
+        'users' => 'Пользователи',
+        'notification_title' => 'Заголовок',
+        'notification_content' => 'Содержимое',
+        'notification_icon' => 'Иконка',
+        'notification_url' => 'URL (необязательно)',
+        'confirm_send' => 'Отправить уведомление выбранным получателям?',
+        'sent' => 'Уведомление отправлено :count пользователям',
+        'no_recipients' => 'Не найдено получателей по выбранным критериям',
+        'blocks' => [
+            'recipients' => 'Получатели',
+            'recipients_description' => 'Выберите, кто получит уведомление',
+            'content' => 'Уведомление',
+            'content_description' => 'Настройте сообщение уведомления',
+        ],
     ],
 
     'title' => [

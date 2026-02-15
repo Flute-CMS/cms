@@ -37,13 +37,18 @@
                 @if (!empty($section['items']))
                     <div class="sidebar__section" data-section-id="{{ $sectionIndex }}">
                         @if (!empty($section['title']))
-                            <div class="sidebar__section-title">{{ $section['title'] }}</div>
+                            <button class="sidebar__section-toggle" data-section-toggle="{{ $sectionIndex }}">
+                                <span class="sidebar__section-title">{{ $section['title'] }}</span>
+                                <x-icon path="ph.bold.caret-down-bold" class="sidebar__section-chevron" />
+                            </button>
                         @endif
-                        <ul class="sidebar__menu">
-                            @foreach ($section['items'] as $item)
-                                <x-menu-item :item="$item" />
-                            @endforeach
-                        </ul>
+                        <div class="sidebar__menu">
+                            <ul class="sidebar__menu-list">
+                                @foreach ($section['items'] as $item)
+                                    <x-menu-item :item="$item" />
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
                 @endif
             @endforeach

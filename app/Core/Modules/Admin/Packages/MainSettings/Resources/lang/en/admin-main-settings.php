@@ -25,6 +25,7 @@ return [
         'profile_enabled' => 'User Profiles',
         'balance_enabled' => 'Balance & Payments',
         'notifications_enabled' => 'Notifications',
+        'notifications_popup_enabled' => 'Popup Notifications',
         'site_mode_preset' => 'Preset',
         'debug' => 'Debug Mode',
         'debug_ips' => 'Debug IP Addresses',
@@ -347,6 +348,7 @@ return [
         'profile_enabled' => 'Show user profile pages and profile settings.',
         'balance_enabled' => 'Show balance section, top-up button, and personal cabinet.',
         'notifications_enabled' => 'Show notification bell and notification panel.',
+        'notifications_popup_enabled' => 'Show popup notifications when new notifications are received.',
         'site_mode_preset' => 'Quick selection of predefined feature sets.',
     ],
 

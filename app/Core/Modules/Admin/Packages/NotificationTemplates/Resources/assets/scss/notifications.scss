@@ -397,4 +397,19 @@
         font-weight: 500;
         color: var(--background);
     }
+
+    &__url {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-500);
+        word-break: break-all;
+
+        i {
+            flex-shrink: 0;
+            font-size: 0.625rem;
+        }
+    }
 }

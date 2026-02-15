@@ -11,10 +11,14 @@
             hx-swap="none"
             data-disable-loading-states
             data-noprogress
+            data-popup-enabled="{{ config('app.notifications_popup_enabled', true) ? 'true' : 'false' }}"
             hx-on::after-request="
                 try {
                     const data = JSON.parse(event.detail.xhr.responseText);
                     this.classList.toggle('active', data.hasUnread === true);
+                    document.body.dispatchEvent(new CustomEvent('notificationPoll', {
+                        detail: { hasUnread: data.hasUnread, newestId: data.newestId }
+                    }));
                 } catch(e) {}
             "
             class="{{ notification()->hasUnread() ? 'active' : '' }}"

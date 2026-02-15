@@ -239,7 +239,8 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
             flex-direction: row;
             gap: 0.625rem;
             text-align: left;
-            padding: 0.5rem 0.625rem;
+            padding: 0 0.75rem;
+            height: 36px;
             min-height: 36px;
             justify-content: flex-start;
         }

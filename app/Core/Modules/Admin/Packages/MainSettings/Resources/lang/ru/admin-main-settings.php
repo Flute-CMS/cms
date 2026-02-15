@@ -25,6 +25,7 @@ return [
         'profile_enabled' => 'Профили пользователей',
         'balance_enabled' => 'Баланс и платежи',
         'notifications_enabled' => 'Уведомления',
+        'notifications_popup_enabled' => 'Всплывающие уведомления',
         'site_mode_preset' => 'Пресет',
         'debug' => 'Режим отладки',
         'debug_ips' => 'IP-адреса для отладки',
@@ -340,6 +341,7 @@ return [
         'profile_enabled' => 'Показывать страницы профиля и настройки профиля.',
         'balance_enabled' => 'Показывать блок баланса, кнопку пополнения и личный кабинет.',
         'notifications_enabled' => 'Показывать колокольчик уведомлений и панель уведомлений.',
+        'notifications_popup_enabled' => 'Показывать всплывающие уведомления при получении новых.',
         'site_mode_preset' => 'Быстрый выбор предустановленных наборов функций.',
     ],
     'examples' => [

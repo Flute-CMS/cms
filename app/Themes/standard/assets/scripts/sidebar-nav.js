@@ -420,19 +420,18 @@ class SidebarNav {
 
     updateTooltips() {
         const items = this.sidebar.querySelectorAll('.sidebar-nav__item');
-        // Don't show tooltips on mobile or in mini mode
-        const shouldShowTooltips = this.isCollapsed && !this.isMini && !this.isMobile();
+        const isCompact = (this.isCollapsed || this.isMini) && !this.isMobile();
 
         items.forEach(item => {
             const text = item.querySelector('.sidebar-nav__item-text')?.textContent?.trim();
             if (!text) return;
 
-            if (shouldShowTooltips) {
+            if (isCompact) {
                 if (!item.hasAttribute('data-original-tooltip')) {
                     item.setAttribute('data-original-tooltip', item.getAttribute('data-tooltip') || '');
                 }
                 item.setAttribute('data-tooltip', text);
-                item.setAttribute('data-tooltip-position', 'right');
+                item.setAttribute('data-tooltip-placement', 'right');
             } else {
                 const originalTooltip = item.getAttribute('data-original-tooltip');
                 if (originalTooltip) {
@@ -440,8 +439,32 @@ class SidebarNav {
                 } else {
                     item.removeAttribute('data-tooltip');
                 }
-                item.removeAttribute('data-tooltip-position');
+                item.removeAttribute('data-tooltip-placement');
                 item.removeAttribute('data-original-tooltip');
+            }
+        });
+
+        // Update footer/guest tooltips position in collapsed/mini mode
+        const sidebarTooltips = this.sidebar.querySelectorAll('[data-sidebar-tooltip]');
+        sidebarTooltips.forEach(el => {
+            const isGuestOrToggle = el.id === 'sidebar-toggle' || el.classList.contains('sidebar-nav__guest');
+
+            if (isCompact) {
+                // In compact mode: restore tooltip from original or aria-label
+                if (isGuestOrToggle && !el.getAttribute('data-tooltip')) {
+                    el.setAttribute('data-tooltip', el.getAttribute('data-original-sidebar-tooltip') || el.getAttribute('aria-label') || '');
+                }
+                el.setAttribute('data-tooltip-placement', 'right');
+            } else {
+                // In expanded mode: hide tooltip on elements that have visible text
+                if (isGuestOrToggle) {
+                    if (!el.hasAttribute('data-original-sidebar-tooltip')) {
+                        el.setAttribute('data-original-sidebar-tooltip', el.getAttribute('data-tooltip') || '');
+                    }
+                    el.removeAttribute('data-tooltip');
+                } else {
+                    el.setAttribute('data-tooltip-placement', 'top');
+                }
             }
         });
     }
