@@ -328,7 +328,7 @@ class SocialService implements SocialServiceInterface
         $userSocialNetwork->linkedAt = new DateTimeImmutable();
 
         if ($socialNetwork->key === 'Discord' && !empty($userSocialNetwork->value)) {
-            $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+            $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
         }
 
         try {
@@ -419,7 +419,7 @@ class SocialService implements SocialServiceInterface
 
             // Normalize Discord profile URL (historical compatibility + consistent behavior)
             if ($social['entity']->key === 'Discord' && !empty($userSocialNetwork->value)) {
-                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+                $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
             }
 
             if ($token) {
@@ -444,7 +444,7 @@ class SocialService implements SocialServiceInterface
 
             // Normalize Discord profile URL (historical compatibility + consistent behavior)
             if ($social['entity']->key === 'Discord' && !empty($userSocialNetwork->value)) {
-                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
+                $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
             }
 
             if ($token) {
@@ -568,6 +568,7 @@ class SocialService implements SocialServiceInterface
             'Hybridauth\\Provider\\Vkontakte' => $hybridPath . DIRECTORY_SEPARATOR . 'Vkontakte.php',
             'Hybridauth\\Provider\\Yandex' => $hybridPath . DIRECTORY_SEPARATOR . 'Yandex.php',
             'Hybridauth\\Provider\\HttpsSteam' => $hybridPath . DIRECTORY_SEPARATOR . 'HttpsSteam.php',
+            'Hybridauth\\Provider\\Telegram' => $hybridPath . DIRECTORY_SEPARATOR . 'Telegram.php',
         ]);
 
         $loader->register();
@@ -668,7 +669,7 @@ class SocialService implements SocialServiceInterface
         if ($providerKey === 'Vkontakte') {
             $settings['scope'] ??= 'email';
             $settings['fields'] ??= 'photo_max,screen_name';
-            $settings['version'] ??= '5.131';
+            $settings['version'] ??= '5.199';
         }
 
         return $settings;

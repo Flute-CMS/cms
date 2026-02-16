@@ -212,7 +212,7 @@
                                                     @php
                                                         $socialUrl = $social->url;
                                                         if ($social->socialNetwork?->key === 'Discord' && !empty($social->value)) {
-                                                            $socialUrl = 'https://discordapp.com/users/' . $social->value;
+                                                            $socialUrl = 'https://discord.com/users/' . $social->value;
                                                         }
                                                     @endphp
                                                     <li class="profile__socials-item-wrapper">

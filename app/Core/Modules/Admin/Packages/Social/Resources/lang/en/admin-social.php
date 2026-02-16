@@ -90,7 +90,7 @@ return [
         'steam_error' => 'No STEAM API key set. Please configure it in <a href="/admin/main-settings" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">settings</a>.',
         'telegram' => 'For Telegram setup see <a href="https://docs.flute-cms.com/social-auth/telegram" target="_blank">documentation</a>.',
         'telegram_token' => 'Bot Token',
-        'telegram_token_placeholder' => '1234546',
+        'telegram_token_placeholder' => '123456789:ABCdEfGhIjK-LmNoPqRsTuVwXyZ',
         'telegram_bot_name' => 'Bot Name',
         'telegram_bot_name_placeholder' => 'e.g.: MyAwesomeBot',
         'twitch' => 'For Twitch setup, create an app at <a href="https://dev.twitch.tv/console/apps" target="_blank">Twitch Developer Console</a> and get Client ID and Client Secret.',

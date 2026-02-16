@@ -602,12 +602,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             if (empty($this->themeData)) {
                 $this->fallbackToDefaultTheme();
             }
-
-            app()->setTheme($this->currentTheme);
         } catch (Exception $e) {
             logs('templates')->error("Failed to initialize theme: " . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
+
+        app()->setTheme($this->currentTheme);
     }
 
     /**
@@ -619,8 +619,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         try {
             $this->themeManager->setTheme($defaultTheme);
-            $this->currentTheme = $this->themeManager->getCurrentTheme();
-            $this->themeData = $this->themeManager->getThemeData($this->currentTheme) ?? [];
+            $this->currentTheme = $defaultTheme;
+            $this->themeData = $this->themeManager->getThemeData($defaultTheme) ?? [];
             logs('templates')->warning("Fallback to default theme '{$defaultTheme}' due to invalid current theme.");
         } catch (Exception $e) {
             throw new RuntimeException("Default theme '{$defaultTheme}' is not available. " . $e->getMessage());

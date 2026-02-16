@@ -328,9 +328,17 @@ class ThemeManager
         $this->disabledThemes = collect();
         $this->notInstalledThemes = collect();
 
-        $themesInDB = is_installed()
-            ? $this->getAssocThemes()
-            : [];
+        $ormAvailable = true;
+
+        try {
+            $themesInDB = is_installed()
+                ? $this->getAssocThemes()
+                : [];
+        } catch (\Throwable $e) {
+            logs('templates')->warning("Could not load themes from database, using filesystem only: " . $e->getMessage());
+            $themesInDB = [];
+            $ormAvailable = false;
+        }
 
         foreach ($this->themesData as $themeName => $themeData) {
             // Prevent installer cycle bugs.
@@ -338,6 +346,16 @@ class ThemeManager
                 $this->setTheme($themeName);
 
                 break;
+            }
+
+            // When ORM is unavailable, skip database operations and use default theme from filesystem
+            if (!$ormAvailable) {
+                if ($themeName === self::DEFAULT_THEME) {
+                    $this->setTheme($themeName);
+                    $this->isSafeLoading = true;
+                }
+
+                continue;
             }
 
             if (!array_key_exists($themeName, $themesInDB)) {

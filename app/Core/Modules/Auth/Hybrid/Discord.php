@@ -26,22 +26,22 @@ class Discord extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected $apiBaseUrl = 'https://discordapp.com/api/';
+    protected $apiBaseUrl = 'https://discord.com/api/';
 
     /**
      * {@inheritdoc}
      */
-    protected $authorizeUrl = 'https://discordapp.com/api/oauth2/authorize';
+    protected $authorizeUrl = 'https://discord.com/api/oauth2/authorize';
 
     /**
      * {@inheritdoc}
      */
-    protected $accessTokenUrl = 'https://discordapp.com/api/oauth2/token';
+    protected $accessTokenUrl = 'https://discord.com/api/oauth2/token';
 
     /**
      * {@inheritdoc}
      */
-    protected $apiDocumentation = 'https://discordapp.com/developers/docs/topics/oauth2';
+    protected $apiDocumentation = 'https://discord.com/developers/docs/topics/oauth2';
 
     /**
      * {@inheritdoc}
@@ -58,7 +58,8 @@ class Discord extends OAuth2
 
         $displayName = $data->get('username') ?: $data->get('login');
 
-        if ($discriminator = $data->get('discriminator')) {
+        $discriminator = $data->get('discriminator');
+        if ($discriminator && $discriminator !== '0') {
             $displayName .= "#{$discriminator}";
         }
 
@@ -67,7 +68,7 @@ class Discord extends OAuth2
         $userProfile->identifier = $data->get('id');
         $userProfile->displayName = $displayName;
         $userProfile->email = $data->get('email');
-        $userProfile->profileURL = 'https://discordapp.com/users/'.$userProfile->identifier;
+        $userProfile->profileURL = 'https://discord.com/users/'.$userProfile->identifier;
 
         if ($data->get('verified')) {
             $userProfile->emailVerified = $data->get('email');

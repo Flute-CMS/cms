@@ -24,7 +24,7 @@
                                 @php
                                     $socialUrl = $userNetwork->url;
                                     if ($network->key === 'Discord' && !empty($userNetwork->value)) {
-                                        $socialUrl = 'https://discordapp.com/users/' . $userNetwork->value;
+                                        $socialUrl = 'https://discord.com/users/' . $userNetwork->value;
                                     }
                                 @endphp
                                 <x-link

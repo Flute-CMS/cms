@@ -711,6 +711,12 @@ class PageEditor {
             const content = window.currentEditedWidgetEl.querySelector('.widget-content');
             if (content) content.innerHTML = json.html;
             window.currentEditedWidgetEl.dataset.widgetSettings = JSON.stringify(json.settings);
+
+            // Resize widget to fit new content after settings change
+            this.widgetLoader._resizeWidgetToContent(window.currentEditedWidgetEl);
+
+            this.hasUnsavedChanges = true;
+            this.updateSaveButtonState();
             this.history.push();
             this.saveToLocalStorage();
             if (this.rightSidebarDialog) this.rightSidebarDialog.hide();

@@ -23,7 +23,7 @@ use Hybridauth\User;
  *       'keys' => ['id' => '', 'secret' => ''],
  *       'scope' => 'email',
  *       'fields' => 'photo_max,screen_name',
- *       'version' => '5.131',
+ *       'version' => '5.199',
  *   ];
  *
  *   $adapter = new Hybridauth\Provider\Vkontakte($config);
@@ -61,7 +61,7 @@ class Vkontakte extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected $apiDocumentation = 'https://dev.vk.com/api/overview';
+    protected $apiDocumentation = 'https://dev.vk.com/ru/api/getting-started';
 
     /**
      * {@inheritdoc}
@@ -80,7 +80,7 @@ class Vkontakte extends OAuth2
      *
      * @var string
      */
-    protected $apiVersion = '5.131';
+    protected $apiVersion = '5.199';
 
     /**
      * Profile fields to request.
@@ -154,7 +154,7 @@ class Vkontakte extends OAuth2
     {
         parent::initialize();
 
-        $this->apiVersion = $this->config->get('version') ?: '5.131';
+        $this->apiVersion = $this->config->get('version') ?: '5.199';
         $this->fields = $this->config->get('fields') ?: 'photo_max,screen_name';
 
         $this->AuthorizeUrlParameters += [

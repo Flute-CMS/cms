@@ -10,6 +10,13 @@ class WidgetLoader {
 
         this.pendingOperations = 0;
         this.widgetButtonsCache = {};
+
+        /** @type {ResizeObserver|null} */
+        this._resizeObserver = null;
+        /** @type {WeakMap<Element, number>} debounce timers per widget */
+        this._resizeDebounceTimers = new WeakMap();
+        /** @type {WeakSet<Element>} widgets currently being resized (loop guard) */
+        this._resizingWidgets = new WeakSet();
     }
 
     /**
@@ -71,6 +78,9 @@ class WidgetLoader {
 
             // Add toolbar
             this.editor.widgetToolbar.addToolbar(widgetEl, buttonsResponse);
+
+            // Start monitoring content height changes
+            this.observeWidgetContent(widgetEl);
 
             this.eventBus.emit(window.FlutePageEdit.events.WIDGET_INITIALIZED, {
                 widgetName,
@@ -243,6 +253,9 @@ class WidgetLoader {
                 const buttons = this.widgetButtonsCache[widgetElements[idx].widgetName] || [];
                 this.editor.widgetToolbar.addToolbar(el, buttons);
 
+                // Start monitoring content height changes
+                this.observeWidgetContent(el);
+
                 this.eventBus.emit(window.FlutePageEdit.events.WIDGET_INITIALIZED, {
                     widgetName: widgetElements[idx].widgetName,
                     widgetElement: el,
@@ -330,6 +343,8 @@ class WidgetLoader {
         const gc = this.editor.gridController;
         if (!gc?.gsGrid) return;
 
+        this._resizingWidgets.add(el);
+
         // First pass — immediate after DOM paint
         requestAnimationFrame(() => {
             try { gc.gsGrid.resizeToContent(el); } catch (_) {}
@@ -338,7 +353,63 @@ class WidgetLoader {
         // Second pass — catch images/lazy content that loaded after first paint
         setTimeout(() => {
             try { gc.gsGrid.resizeToContent(el); } catch (_) {}
+            this._resizingWidgets.delete(el);
         }, 500);
+    }
+
+    /* ──────────────────────── ResizeObserver ──────────────────── */
+
+    /**
+     * Lazily create a single ResizeObserver that monitors all widget-content
+     * elements and triggers GridStack.resizeToContent when their height changes.
+     */
+    _ensureResizeObserver() {
+        if (this._resizeObserver) return;
+
+        const debounceMs = this.config.heightCalculation?.debounceMs || 50;
+
+        this._resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const contentEl = entry.target;
+                const widgetEl = contentEl.closest('.grid-stack-item');
+                if (!widgetEl) continue;
+
+                // Skip if we are in the middle of a manual resize
+                if (this._resizingWidgets.has(widgetEl)) continue;
+
+                // Debounce per widget
+                const existing = this._resizeDebounceTimers.get(widgetEl);
+                if (existing) clearTimeout(existing);
+
+                this._resizeDebounceTimers.set(widgetEl, setTimeout(() => {
+                    this._resizeDebounceTimers.delete(widgetEl);
+                    const gc = this.editor.gridController;
+                    if (!gc?.gsGrid || !document.body.contains(widgetEl)) return;
+                    try { gc.gsGrid.resizeToContent(widgetEl); } catch (_) {}
+                }, debounceMs));
+            }
+        });
+    }
+
+    /**
+     * Start observing a widget's .widget-content for size changes.
+     * @param {Element} widgetEl - The grid-stack-item element
+     */
+    observeWidgetContent(widgetEl) {
+        if (!widgetEl) return;
+        this._ensureResizeObserver();
+        const content = widgetEl.querySelector('.widget-content');
+        if (content) this._resizeObserver.observe(content);
+    }
+
+    /**
+     * Stop observing a widget's content.
+     * @param {Element} widgetEl - The grid-stack-item element
+     */
+    unobserveWidgetContent(widgetEl) {
+        if (!this._resizeObserver || !widgetEl) return;
+        const content = widgetEl.querySelector('.widget-content');
+        if (content) this._resizeObserver.unobserve(content);
     }
 
     /**
@@ -350,10 +421,14 @@ class WidgetLoader {
     }
 
     /**
-     * Clear buttons cache
+     * Clear buttons cache and disconnect observer
      */
     clearCache() {
         this.widgetButtonsCache = {};
+        if (this._resizeObserver) {
+            this._resizeObserver.disconnect();
+            this._resizeObserver = null;
+        }
     }
 }
 

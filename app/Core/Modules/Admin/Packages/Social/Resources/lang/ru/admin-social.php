@@ -90,7 +90,7 @@ return [
         'steam_error' => 'У вас не установлен STEAM API ключ. Установите его в <a href="/admin/main-settings" yoyo:ignore hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true" class="ms-0">настройках</a>.',
         'telegram' => 'О том, как настроить авторизацию через Telegram, можно узнать в <a class="ms-0" href="https://docs.flute-cms.com/social-auth/telegram" target="_blank">документации</a>',
         'telegram_token' => 'Токен бота',
-        'telegram_token_placeholder' => '1234546',
+        'telegram_token_placeholder' => '123456789:ABCdEfGhIjK-LmNoPqRsTuVwXyZ',
         'telegram_bot_name' => 'Имя бота',
         'telegram_bot_name_placeholder' => 'Например: MyAwesomeBot',
         'twitch' => 'Для настройки Twitch создайте приложение на <a class="ms-0" href="https://dev.twitch.tv/console/apps" target="_blank">Twitch Developer Console</a> и получите Client ID и Client Secret.',
