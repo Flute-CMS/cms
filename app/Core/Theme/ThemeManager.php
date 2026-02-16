@@ -8,6 +8,7 @@ use Flute\Core\Theme\Events\ThemeChangedEvent;
 use Flute\Core\Theme\Events\ThemesInitialized;
 use Illuminate\Support\Collection;
 use RuntimeException;
+use Throwable;
 
 class ThemeManager
 {
@@ -334,7 +335,7 @@ class ThemeManager
             $themesInDB = is_installed()
                 ? $this->getAssocThemes()
                 : [];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             logs('templates')->warning("Could not load themes from database, using filesystem only: " . $e->getMessage());
             $themesInDB = [];
             $ormAvailable = false;
