@@ -3,7 +3,7 @@
         @empty(!$image)
             <div class="col-md-4">
                 <div class="h-100" style="display: contents">
-                    <img src="{{ $image }}" class="img-fluid img-card">
+                    <img src="{{ $image }}" class="img-fluid img-card" alt="{{ $title ?? '' }}" loading="lazy">
                 </div>
             </div>
         @endempty

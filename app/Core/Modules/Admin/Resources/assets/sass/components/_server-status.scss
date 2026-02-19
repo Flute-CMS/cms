@@ -1,0 +1,76 @@
+.server-status-card {
+    border-radius: var(--border1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--transp-1);
+}
+
+.server-status-online {
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border-color: color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.server-status-offline {
+    background: color-mix(in srgb, var(--error) 10%, transparent);
+    border-color: color-mix(in srgb, var(--error) 30%, transparent);
+}
+
+.server-status-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.server-status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    &.online {
+        background-color: var(--success);
+        box-shadow: 0 0 8px var(--success);
+    }
+
+    &.offline {
+        background-color: var(--error);
+    }
+}
+
+.server-status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.server-status-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.server-status-key {
+    color: var(--text-600);
+}
+
+.server-status-value {
+    font-weight: 500;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60%;
+}
+
+.server-status-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--error);
+    font-size: 0.875rem;
+
+    span {
+        word-break: break-word;
+    }
+}

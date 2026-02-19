@@ -62,13 +62,13 @@
                                 <div class="navbar__content-logo">
                                     <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
                                         aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                        <img src="{{ asset(config('app.logo')) }}" loading="lazy"
-                                            alt="{{ config('app.name') }}" itemprop="logo">
+                                    <img src="{{ asset(config('app.logo')) }}"
+                                        alt="{{ config('app.name') }}" itemprop="logo">
                                     </a>
                                     <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
                                         aria-label="{{ config('app.name') }} - Home" itemprop="url">
-                                        <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}"
-                                            loading="lazy" alt="{{ config('app.name') }}" itemprop="logo">
+                                    <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}"
+                                        alt="{{ config('app.name') }}" itemprop="logo">
                                     </a>
                                 </div>
                                 <div class="navbar__separator"></div>
@@ -90,7 +90,7 @@
                                         @foreach (navbar()->all() as $item)
                                             @if (count($item['children']) === 0)
                                                 <a href="{{ url($item['url']) }}"
-                                                    @if ($item['new_tab']) target="_blank" @endif
+                                                    @if ($item['new_tab']) target="_blank" rel="noopener" @endif
                                                     class="navbar-dropdown__item {{ active($item['url']) }}"
                                                     itemprop="url">
                                                     @if ($item['icon'])
@@ -153,7 +153,7 @@
                                                                                         class="navbar-dropdown__sublinks">
                                                                                         @foreach ($child['children'] as $subChild)
                                                                                             <a href="{{ url($subChild['url']) }}"
-                                                                                                @if ($subChild['new_tab']) target="_blank" @endif
+                                                                                                @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
                                                                                                 class="navbar-dropdown__sublink">
                                                                                                 {{ __($subChild['title']) }}
                                                                                             </a>
@@ -165,7 +165,7 @@
                                                                     @else
                                                                         {{-- Regular link without children --}}
                                                                         <a href="{{ url($child['url']) }}"
-                                                                            @if ($child['new_tab']) target="_blank" @endif
+                                                                            @if ($child['new_tab']) target="_blank" rel="noopener" @endif
                                                                             class="navbar-dropdown__menu-link">
                                                                             @if ($child['icon'])
                                                                                 <span

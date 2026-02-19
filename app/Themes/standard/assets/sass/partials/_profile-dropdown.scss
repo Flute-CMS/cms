@@ -1,5 +1,5 @@
-// Profile Dropdown - Clean Minimal Design
-// =========================================
+// Profile Dropdown — Premium SaaS Layout
+// =======================================
 
 .navbar__profile-wrapper {
     position: relative;
@@ -21,40 +21,50 @@
     @include transition(all);
 
     img {
-        width: 100%;
-        height: 100%;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         object-fit: cover;
+        display: block;
     }
 
     &:hover,
     &[aria-expanded="true"] {
         opacity: 0.8;
     }
+
+    &:active {
+        transform: scale(0.92);
+    }
 }
 
-// Profile Dropdown Panel
+// ─── Panel ───────────────────────────────
 .profile-dropdown {
     position: fixed;
-    width: 240px;
+    width: 272px;
     background: var(--blurred-background);
-    backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+    backdrop-filter: blur(48px) saturate(180%);
+    -webkit-backdrop-filter: blur(48px) saturate(180%);
     border: 1px solid var(--transp-1);
-    border-radius: var(--border1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border-radius: 14px;
+    box-shadow:
+        0 0 0 0.5px var(--transp-05),
+        0 8px 40px rgba(0, 0, 0, 0.18);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px);
+    transform: scale(0.97) translateY(-4px);
     transform-origin: top right;
-    transition: opacity 0.2s ease-out, visibility 0.2s ease-out, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+        opacity 0.2s cubic-bezier(0.2, 0, 0, 1),
+        visibility 0.2s cubic-bezier(0.2, 0, 0, 1),
+        transform 0.2s cubic-bezier(0.2, 0, 0, 1);
     pointer-events: none;
     overflow: hidden;
-    z-index: 9999;
+    z-index: 500;
 
     &[data-placement^="top"] {
         transform-origin: bottom right;
-        transform: translateY(8px);
+        transform: scale(0.97) translateY(4px);
     }
 
     &[data-placement="bottom-start"],
@@ -64,33 +74,64 @@
 
     &[data-placement="top-start"] {
         transform-origin: bottom left;
-        transform: translateY(8px);
+        transform: scale(0.97) translateY(4px);
     }
 
     &.is-open {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0) scale(1);
+        transform: scale(1) translateY(0);
         pointer-events: auto;
     }
 
-    // User Section
-    &__user {
+    // ─── Hero ────────────────────────────
+    &__hero {
+        position: relative;
+        padding: 14px 14px 12px;
+        overflow: hidden;
+
+        // Banner as background
+        &[style*="--banner"] {
+            padding-top: 52px;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 64px;
+                background: var(--banner) center / cover no-repeat;
+            }
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 64px;
+                background: linear-gradient(to bottom, transparent 20%, var(--blurred-background) 100%);
+            }
+        }
+    }
+
+    &__identity {
+        position: relative;
+        z-index: 1;
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
+        gap: 10px;
     }
 
     &__avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
         flex-shrink: 0;
-
-        img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        display: block;
+        box-shadow: 0 0 0 2px var(--blurred-background);
     }
 
     &__info {
@@ -101,172 +142,341 @@
     }
 
     &__name {
-        font-size: var(--p-small);
+        font-size: 14px;
         font-weight: 600;
         color: var(--text);
-        line-height: 1.3;
+        line-height: 1.25;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    &__meta {
-        font-size: 11px;
+    &__sub {
+        font-size: 12px;
         color: var(--text-500);
-        line-height: 1.2;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    // Section dividers
-    &__section {
-        border-top: 1px solid var(--transp-1);
+    // ─── Quick Actions Grid ──────────────
+    &__actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        gap: 4px;
+        padding: 6px;
+        position: relative;
 
-        &--footer {
-            form {
-                width: 100%;
-            }
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 14px;
+            right: 14px;
+            height: 1px;
+            background: var(--transp-1);
         }
     }
 
-    // Balance row
-    &__balance {
+    &__action {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        padding: var(--space-sm) var(--space-md);
-        color: var(--text-300);
-        font-size: var(--small);
-    }
-
-    &__balance-left {
-        display: flex;
-        align-items: center;
-        gap: var(--space-xs);
-
-        svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-500);
-        }
-    }
-
-    &__balance-right {
-        display: flex;
-        align-items: center;
-        gap: var(--space-xs);
-    }
-
-    &__balance-amount {
-        font-weight: 600;
-        color: var(--text);
-        font-size: var(--p-small);
-        font-variant-numeric: tabular-nums;
-    }
-
-    &__balance-btn {
-        @extend .flex-center;
-        width: 22px;
-        height: 22px;
-        background: var(--accent);
-        border: none;
-        border-radius: 6px;
-        color: var(--background);
-        cursor: pointer;
-        @include transition(all);
-        text-decoration: none;
-
-        svg {
-            width: 11px;
-            height: 11px;
-        }
-
-        &:hover {
-            opacity: 0.85;
-        }
-    }
-
-    // Menu Items
-    &__item {
-        display: flex;
-        align-items: center;
-        gap: var(--space-sm);
-        width: 100%;
-        padding: var(--space-xs) var(--space-md);
-        background: transparent;
-        border: none;
-        color: var(--text-300);
-        font-size: var(--p-small);
-        font-weight: 500;
+        gap: 6px;
+        padding: 10px 4px;
+        border-radius: 10px;
         text-decoration: none;
         cursor: pointer;
         @include transition(all);
-        text-align: left;
-
-        svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-500);
-            flex-shrink: 0;
-            @include transition(color);
-        }
 
         &:hover {
             background: var(--transp-05);
-            color: var(--text);
 
-            svg {
-                color: var(--text-300);
+            .profile-dropdown__action-icon {
+                background: var(--transp-1);
+                color: var(--text);
             }
         }
 
-        &--danger {
-            color: var(--error);
-
-            svg {
-                color: var(--error);
-            }
-
-            &:hover {
-                background: var(--error-light);
-                color: var(--error);
-
-                svg {
-                    color: var(--error);
-                }
-            }
+        &:active {
+            transform: scale(0.95);
         }
     }
 
-    // Mobile Responsive
+    &__action-icon {
+        @extend .flex-center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--transp-05);
+        color: var(--text-400);
+        @include transition(all);
+
+        svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+    }
+
+    &__action-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-400);
+        line-height: 1.2;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    // ─── Sections ────────────────────────
+    &__section {
+        padding: 6px;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 14px;
+            right: 14px;
+            height: 1px;
+            background: var(--transp-1);
+        }
+    }
+
+    // ─── Balance Row ─────────────────────
+    &__balance {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 8px;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        text-decoration: none;
+        cursor: pointer;
+        @include transition(all);
+
+        &:hover {
+            background: var(--transp-05);
+
+            .profile-dropdown__balance-topup {
+                opacity: 1;
+                background: var(--accent);
+                color: var(--background);
+            }
+        }
+
+        &:active {
+            background: var(--transp-1);
+        }
+    }
+
+    &__balance-icon {
+        @extend .flex-center;
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+
+        svg {
+            color: var(--text-700);
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+    }
+
+    &__balance-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-300);
+        min-width: 0;
+    }
+
+    &__balance-amount {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    &__balance-topup {
+        @extend .flex-center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--transp-1);
+        color: var(--text-400);
+        flex-shrink: 0;
+        opacity: 0.6;
+        @include transition(all);
+
+        svg {
+            width: 10px;
+            height: 10px;
+            flex-shrink: 0;
+        }
+    }
+
+    // ─── Footer / Logout ─────────────────
+    &__footer {
+        padding: 4px 6px 6px;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 14px;
+            right: 14px;
+            height: 1px;
+            background: var(--transp-1);
+        }
+
+        form {
+            width: 100%;
+        }
+    }
+
+    &__logout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 7px 8px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: var(--text-500);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        @include transition(all);
+
+        svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            background: var(--error-light);
+            color: var(--error);
+        }
+    }
+
+    // ─── Mobile ──────────────────────────
     @include media(mobile) {
         top: auto !important;
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
         width: 100%;
-        max-height: 70vh;
-        border-radius: var(--border1) var(--border1) 0 0;
+        max-height: 75vh;
+        border-radius: 16px 16px 0 0;
         transform: translateY(100%);
         transform-origin: bottom center;
+
+        &::after {
+            content: '';
+            display: block;
+            width: 36px;
+            height: 4px;
+            background: var(--transp-3);
+            border-radius: 2px;
+            margin: 8px auto 0;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
 
         &.is-open {
             transform: translateY(0);
         }
 
-        &__user {
-            padding: var(--space-md);
+        &__hero {
+            padding: 24px 16px 14px;
+
+            &[style*="--banner"] {
+                padding-top: 60px;
+
+                &::before {
+                    height: 80px;
+                }
+
+                &::after {
+                    height: 80px;
+                }
+            }
         }
 
-        &__avatar img {
-            width: 44px;
-            height: 44px;
+        &__avatar {
+            width: 46px;
+            height: 46px;
+        }
+
+        &__name {
+            font-size: 16px;
+        }
+
+        &__actions {
+            padding: 4px 8px;
+        }
+
+        &__action {
+            padding: 12px 4px;
+        }
+
+        &__action-icon {
+            width: 40px;
+            height: 40px;
+
+            svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        &__action-label {
+            font-size: 12px;
         }
 
         &__section {
-            padding: var(--space-xs) 0;
+            padding: 4px 8px;
+
+            &::before {
+                left: 16px;
+                right: 16px;
+            }
         }
 
-        &__item {
-            padding: var(--space-sm) var(--space-md);
+        &__footer {
+            padding: 4px 8px 8px;
+
+            &::before {
+                left: 16px;
+                right: 16px;
+            }
+        }
+
+        &__logout {
+            padding: 10px;
+            font-size: 14px;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
         }
     }
 }

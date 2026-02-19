@@ -56,3 +56,19 @@ html[data-nav-style="sidebar"] .breadcrumb {
     font-weight: 500;
     color: var(--primary-400);
 }
+
+// Truncate last breadcrumb item (e.g. long article titles)
+.breadcrumb-links li:last-child .breadcrumb-text {
+    max-width: 28ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include media(tablet) {
+        max-width: 20ch;
+    }
+
+    @include media(mobile) {
+        max-width: 14ch;
+    }
+}

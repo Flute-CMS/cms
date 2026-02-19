@@ -106,6 +106,7 @@ return [
     'sidebar_mode_full' => 'Completo com fundos',
     'minimal' => 'Mínimo',
     'full' => 'Completo',
+    'sidebar_contained' => 'Layout contido',
     'sidebar_position' => 'Posição dos Itens',
     'sidebar_position_top' => 'Itens alinhados ao topo',
     'sidebar_position_center' => 'Itens centralizados verticalmente',
@@ -171,4 +172,24 @@ return [
     'content_align' => 'Alinhamento do Conteúdo',
     'align_left' => 'Alinhar à esquerda',
     'align_center' => 'Alinhar ao centro',
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Caminhos ocultos",
+    "excluded_paths_desc"   => "O widget não será exibido nesses caminhos",
+    "excluded_paths_hint"   => "Exemplos: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/caminho/para/ocultar",
+    "add_path"              => "Adicionar",
 ];

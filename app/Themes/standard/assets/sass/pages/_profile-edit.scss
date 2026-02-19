@@ -368,6 +368,12 @@
             display: flex;
             justify-content: flex-end;
         }
+
+        &--full-width {
+            .profile-edit__card-content {
+                padding: 0;
+            }
+        }
     }
 
     // Socials tab

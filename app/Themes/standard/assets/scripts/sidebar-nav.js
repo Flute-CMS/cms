@@ -9,8 +9,9 @@ class SidebarNav {
         if (!this.sidebar) return;
 
         this.isMini = document.documentElement.getAttribute('data-sidebar-style') === 'mini';
-        // Don't use collapsed state in mini mode - they are mutually exclusive
-        this.isCollapsed = !this.isMini && document.documentElement.getAttribute('data-sidebar-collapsed') === 'true';
+        this.isContained = document.documentElement.getAttribute('data-sidebar-contained') === 'true';
+        // Don't use collapsed state in mini mode (unless contained) - they are mutually exclusive
+        this.isCollapsed = (this.isContained || !this.isMini) && document.documentElement.getAttribute('data-sidebar-collapsed') === 'true';
         this.isMobileOpen = false;
 
         this.floatingContainer = null;
@@ -19,11 +20,15 @@ class SidebarNav {
         this.floatingCleanup = null;
         this.hideTimeout = null;
 
+        this.hoverZone = null;
+        this.hoverPreviewTimeout = null;
+        this.hoverPreviewActive = false;
+
         this.init();
     }
 
     isMobile() {
-        return window.innerWidth <= 991;
+        return window.innerWidth <= 768;
     }
 
     init() {
@@ -43,7 +48,12 @@ class SidebarNav {
     }
 
     bindEvents() {
+        this.containedToggle = document.getElementById('sidebar-contained-toggle');
+        this.containedCollapse = document.getElementById('sidebar-contained-collapse');
+
         this.toggleBtn?.addEventListener('click', () => this.toggle());
+        this.containedToggle?.addEventListener('click', () => this.toggle());
+        this.containedCollapse?.addEventListener('click', () => this.toggle());
         this.mobileToggle?.addEventListener('click', () => this.toggleMobile());
         this.mobileCloseBtn?.addEventListener('click', () => this.closeMobile());
         this.overlay?.addEventListener('click', () => this.closeMobile());
@@ -86,13 +96,42 @@ class SidebarNav {
         this.sidebar.querySelector('.sidebar-nav__nav')?.addEventListener('scroll', () => {
             this.hideFloatingDropdown();
         });
+
+        // Hover preview for contained+collapsed mode
+        this.hoverZone = document.getElementById('sidebar-hover-zone');
+
+        if (this.hoverZone) {
+            this.hoverZone.addEventListener('mouseenter', () => {
+                if (this.isContained && this.isCollapsed && !this.isMobile()) {
+                    this.showHoverPreview();
+                }
+            });
+
+            this.hoverZone.addEventListener('mouseleave', (e) => {
+                if (this.sidebar.contains(e.relatedTarget)) return;
+                this.scheduleHideHoverPreview();
+            });
+        }
+
+        this.sidebar.addEventListener('mouseenter', () => {
+            if (this.hoverPreviewActive) {
+                clearTimeout(this.hoverPreviewTimeout);
+            }
+        });
+
+        this.sidebar.addEventListener('mouseleave', (e) => {
+            if (!this.hoverPreviewActive) return;
+            if (this.hoverZone && this.hoverZone.contains(e.relatedTarget)) return;
+            if (this.currentFloatingElement && this.currentFloatingElement.contains(e.relatedTarget)) return;
+            this.scheduleHideHoverPreview();
+        });
     }
 
     shouldUseFloatingDropdown() {
-        if (window.innerWidth <= 991) {
+        if (this.isMobile()) {
             return false;
         }
-        return this.isCollapsed || this.isMini;
+        return this.isCollapsed || this.isMini || this.isContained;
     }
 
     initDropdowns() {
@@ -187,15 +226,25 @@ class SidebarNav {
         this.floatingContainer.appendChild(floatingDropdown);
         floatingDropdown.style.pointerEvents = 'auto';
 
+        if (window.htmx) {
+            htmx.process(floatingDropdown);
+        }
+
         floatingDropdown.addEventListener('mouseenter', () => {
             clearTimeout(this.hideTimeout);
+            if (this.hoverPreviewActive) {
+                clearTimeout(this.hoverPreviewTimeout);
+            }
         });
 
         floatingDropdown.addEventListener('mouseleave', (e) => {
-            if (e.relatedTarget && dropdown.contains(e.relatedTarget)) {
+            if (e.relatedTarget && this.sidebar.contains(e.relatedTarget)) {
                 return;
             }
             this.scheduleHide();
+            if (this.hoverPreviewActive) {
+                this.scheduleHideHoverPreview();
+            }
         });
 
         const { computePosition, offset, flip, shift, autoUpdate } = window.FloatingUIDOM;
@@ -306,6 +355,32 @@ class SidebarNav {
         }, 200);
     }
 
+    showHoverPreview() {
+        clearTimeout(this.hoverPreviewTimeout);
+        this.hoverPreviewActive = true;
+        this.sidebar.classList.add('is-hover-open');
+        this.sidebar.classList.remove('is-collapsed');
+        if (this.containedToggle) this.containedToggle.style.display = 'none';
+        this.updateTooltips();
+    }
+
+    hideHoverPreview() {
+        clearTimeout(this.hoverPreviewTimeout);
+        this.hoverPreviewActive = false;
+        this.hideFloatingDropdown();
+        this.sidebar.classList.remove('is-hover-open');
+        if (this.isCollapsed && !this.isMobile() && !this.isMini) {
+            this.sidebar.classList.add('is-collapsed');
+        }
+        if (this.containedToggle) this.containedToggle.style.display = '';
+        this.updateTooltips();
+    }
+
+    scheduleHideHoverPreview() {
+        clearTimeout(this.hoverPreviewTimeout);
+        this.hoverPreviewTimeout = setTimeout(() => this.hideHoverPreview(), 200);
+    }
+
     hideFloatingDropdown() {
         clearTimeout(this.hideTimeout);
 
@@ -386,9 +461,10 @@ class SidebarNav {
     }
 
     toggle() {
-        // Don't toggle in mini mode - mini mode has its own behavior
-        if (this.isMini) return;
+        // Don't toggle in mini mode unless contained (contained overrides mini behavior)
+        if (this.isMini && !this.isContained) return;
 
+        this.hideHoverPreview();
         this.isCollapsed = !this.isCollapsed;
         this.updateState();
         this.saveToCookie();
@@ -415,12 +491,17 @@ class SidebarNav {
         const shouldCollapse = this.isCollapsed && !this.isMobile() && !this.isMini;
         this.sidebar.classList.toggle('is-collapsed', shouldCollapse);
         document.documentElement.setAttribute('data-sidebar-collapsed', this.isCollapsed ? 'true' : 'false');
+
+        if (this.isMobile() || !this.isCollapsed) {
+            this.hideHoverPreview();
+        }
+
         this.updateTooltips();
     }
 
     updateTooltips() {
         const items = this.sidebar.querySelectorAll('.sidebar-nav__item');
-        const isCompact = (this.isCollapsed || this.isMini) && !this.isMobile();
+        const isCompact = this.isCollapsed && !this.isMini && !this.isMobile() && !this.hoverPreviewActive;
 
         items.forEach(item => {
             const text = item.querySelector('.sidebar-nav__item-text')?.textContent?.trim();
@@ -482,6 +563,7 @@ class SidebarNav {
     }
 
     destroy() {
+        this.hideHoverPreview();
         this.hideFloatingDropdown();
         if (this.floatingContainer) {
             this.floatingContainer.remove();

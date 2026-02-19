@@ -33,6 +33,7 @@ class PageEditorConfig {
             delete: iconsTpl?.querySelector('[data-icon="delete"]')?.innerHTML || '',
             refresh: iconsTpl?.querySelector('[data-icon="refresh"]')?.innerHTML || '',
             drag: iconsTpl?.querySelector('[data-icon="drag"]')?.innerHTML || '',
+            excludedPaths: iconsTpl?.querySelector('[data-icon="excluded-paths"]')?.innerHTML || '',
             ...options.icons
         };
 

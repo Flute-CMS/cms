@@ -20,7 +20,7 @@
             <select id="{{ $id }}" name="{{ $name }}{{ $multiple ? '[]' : '' }}" class="select__field"
                 @if ($multiple) multiple @endif @if ($required) required @endif
                 @if ($disabled) disabled @endif data-select data-mode="{{ $mode }}"
-                data-max-items="{{ $maxItems }}" data-plugins="{!! $plugins !!}"
+                data-max-items="{{ $maxItems }}" data-plugins="{{ $plugins }}"
                 data-hide-selected="{{ $attributes->get('data-hide-selected', 'false') }}"
                 placeholder="{{ $placeholder }}"
                 data-allow-add="{{ $attributes->get('data-allow-add') }}"
@@ -30,7 +30,7 @@
                 @if ($mode === 'async') data-search-url="{{ $attributes->get('data-search-url') }}"
                         data-search-min-length="{{ $attributes->get('data-search-min-length') }}"
                         data-search-delay="{{ $attributes->get('data-search-delay') }}"
-                        data-search-fields="{!! $attributes->get('data-search-fields') !!}"
+                        data-search-fields="{{ $attributes->get('data-search-fields') }}"
                         data-entity="{{ $attributes->get('data-entity') }}"
                         data-display-field="{{ $attributes->get('data-display-field') }}"
                         data-value-field="{{ $attributes->get('data-value-field') }}"

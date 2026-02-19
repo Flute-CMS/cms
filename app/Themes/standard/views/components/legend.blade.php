@@ -7,9 +7,9 @@
                 <div class="legend-text">
                     <h1>
                         @if($icon)
-                            <div class="legend-icon">
+                            <span class="legend-icon">
                                 <x-icon path="{{ $icon }}" />
-                            </div>
+                            </span>
                         @endif
                         {{ $title }}
                     </h1>

@@ -315,6 +315,9 @@ class PageManager
                 $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
                 WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
+                $excludedPathsRaw = $block->getExcludedPaths();
+                $excludedPaths = $excludedPathsRaw ? (json_decode($excludedPathsRaw, true) ?? []) : [];
+
                 $layout[] = [
                     'id' => $block->getId(),
                     'widgetName' => $widgetName,
@@ -322,6 +325,7 @@ class PageManager
                     'gridstack' => json_decode($block->gridstack, true),
                     'content' => $widgetContent,
                     'isSystem' => $widgetName === 'Content',
+                    'excludedPaths' => $excludedPaths,
                 ];
             } catch (Exception $e) {
                 $this->logger->error("Failed to retrieve global layout widget: " . $e->getMessage());
@@ -352,6 +356,15 @@ class PageManager
             throw new RuntimeException(__('page.global_layout_requires_content'));
         }
 
+        // Sort layout by gridstack y-position so sortOrder matches visual order
+        usort($layout, static function ($a, $b) {
+            $ay = $a['gridstack']['y'] ?? 0;
+            $by = $b['gridstack']['y'] ?? 0;
+            $cmp = $ay <=> $by;
+
+            return $cmp !== 0 ? $cmp : (($a['gridstack']['x'] ?? 0) <=> ($b['gridstack']['x'] ?? 0));
+        });
+
         // Delete all existing global blocks
         $existingBlocks = GlobalPageBlock::findAll();
         foreach ($existingBlocks as $block) {
@@ -378,6 +391,13 @@ class PageManager
                     'minW' => $item['gridstack']['minW'] ?? 4,
                 ])
                 : Json::encode(['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0, 'minW' => 4]);
+
+            $excludedPaths = $item['excludedPaths'] ?? [];
+            if (!empty($excludedPaths) && is_array($excludedPaths)) {
+                $block->setExcludedPaths(Json::encode(array_values(array_filter(array_map('trim', $excludedPaths)))));
+            } else {
+                $block->setExcludedPaths(null);
+            }
 
             $block->saveOrFail();
         }
@@ -428,6 +448,15 @@ class PageManager
         }
 
         $page->removeAllBlocks();
+
+        // Sort layout by gridstack y-position so block order matches visual order
+        usort($layout, static function ($a, $b) {
+            $ay = $a['gridstack']['y'] ?? 0;
+            $by = $b['gridstack']['y'] ?? 0;
+            $cmp = $ay <=> $by;
+
+            return $cmp !== 0 ? $cmp : (($a['gridstack']['x'] ?? 0) <=> ($b['gridstack']['x'] ?? 0));
+        });
 
         foreach ($layout as $item) {
             $widgetName = $item['widgetName'] ?? '';
@@ -656,7 +685,21 @@ class PageManager
             $localContent = $this->renderBlocksAsGrid($this->currentPage->getBlocks(), false);
         }
 
+        $currentPath = $this->request->getPathInfo();
+
+        usort($globalBlocks, static function ($a, $b) {
+            $aGs = json_decode($a->gridstack, true) ?? [];
+            $bGs = json_decode($b->gridstack, true) ?? [];
+            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
+
+            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+        });
+
         foreach ($globalBlocks as $block) {
+            if ($this->isBlockExcludedForPath($block, $currentPath)) {
+                continue;
+            }
+
             $style = $this->getBlockGridStyle($block);
             $widgetName = $block->getWidget();
 
@@ -967,5 +1010,60 @@ class PageManager
         } catch (Exception $e) {
             return true;
         }
+    }
+
+    /**
+     * Checks whether a global block is excluded for the given path.
+     */
+    private function isBlockExcludedForPath(GlobalPageBlock $block, string $currentPath): bool
+    {
+        $raw = $block->getExcludedPaths();
+        if (!$raw) {
+            return false;
+        }
+
+        $patterns = json_decode($raw, true);
+        if (!is_array($patterns)) {
+            return false;
+        }
+
+        foreach ($patterns as $pattern) {
+            $pattern = trim($pattern);
+            if ($pattern !== '' && $this->pathMatchesPattern($currentPath, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Matches a URL path against a wildcard pattern.
+     *
+     * Supported syntax:
+     *  - Exact: /about
+     *  - Single-segment wildcard: /user/* (matches /user/123, not /user/123/profile)
+     *  - Multi-segment wildcard: /user/** (matches /user/123/profile)
+     *  - Single-char wildcard: /page-? (matches /page-1, /page-a)
+     */
+    private function pathMatchesPattern(string $path, string $pattern): bool
+    {
+        // Exact match shortcut
+        if ($pattern === $path) {
+            return true;
+        }
+
+        // Convert pattern to regex:
+        // ** → matches any characters including /
+        // *  → matches any characters except /
+        // ?  → matches exactly one character (not /)
+        $quoted = preg_quote($pattern, '#');
+        $regex = str_replace(
+            ['\*\*', '\*', '\?'],
+            ['.*', '[^/]*', '[^/]'],
+            $quoted
+        );
+
+        return (bool) preg_match('#^' . $regex . '$#', $path);
     }
 }

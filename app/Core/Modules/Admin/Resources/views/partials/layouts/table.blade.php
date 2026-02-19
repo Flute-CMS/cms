@@ -1,19 +1,12 @@
 @empty(!$title)
-    <fieldset>
-        <div class="col mb-2 p-0">
-            <legend class="text-black text-black">
-                <h4>
-                    {{ $title }}
-                </h4>
-
-                @if (!empty($description))
-                    <small class="d-block text-muted mb-0 text-balance">
-                        {!! __($description ?? '') !!}
-                    </small>
-                @endif
-            </legend>
-        </div>
-    </fieldset>
+    <div class="mb-3">
+        <h4 style="margin: 0; font-weight: 600; font-size: 1.125rem">{{ $title }}</h4>
+        @if (!empty($description))
+            <p class="text-muted mb-0" style="font-size: 0.8125rem; margin-top: 0.25rem">
+                {!! __($description ?? '') !!}
+            </p>
+        @endif
+    </div>
 @endempty
 
 <div class="d-flex flex-between align-center flex-md-row flex-column mb-3 flex-row gap-3">
@@ -23,13 +16,13 @@
 
     <div class="d-flex justify-content-end ms-auto gap-2">
         @if ($exportable ?? false)
-            <div class="dropdown" data-dropdown>
-                <button type="button" class="btn btn-outline-primary" data-dropdown-toggle>
-                    <x-icon path="ph.regular.export" />
-                    <span>{{ __('admin.export.title') }}</span>
-                    <x-icon path="ph.regular.caret-down" class="ms-1" />
-                </button>
-                <div class="dropdown-menu dropdown-menu-end">
+            <button type="button" class="btn btn-outline-primary" data-dropdown-open="export-{{ $tableId }}">
+                <x-icon path="ph.regular.export" />
+                <span>{{ __('admin.export.title') }}</span>
+                <x-icon path="ph.regular.caret-down" class="ms-1" />
+            </button>
+            <div data-dropdown="export-{{ $tableId }}">
+                <div>
                     <a href="{{ url()->withGet()->addParams(['export' => 'csv', 'table' => $tableId])->get() }}"
                        class="dropdown-item">
                         <x-icon path="ph.regular.file-csv" />

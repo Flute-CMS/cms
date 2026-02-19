@@ -187,7 +187,7 @@ class NotificationService
         $notification->title = $title;
         $notification->content = $content;
         $notification->type = 'button';
-        $notification->extra_data = ['buttons' => $buttons];
+        $notification->setExtraData(['buttons' => $buttons]);
         $notification->icon = $icon;
         $this->create($notification);
     }

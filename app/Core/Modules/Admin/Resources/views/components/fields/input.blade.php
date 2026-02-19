@@ -47,13 +47,15 @@
                     {{ $hasError ? 'aria-invalid=true' : '' }} @if ($multiple) multiple @endif
                     {{ $attributes->merge(['class' => 'filepond input__field']) }} />
             @elseif ($type === 'color')
-                <div class="color-input-container" style="display:flex;align-items:center;gap:.5em;width:100%">
-                    <div class="pickr pickr-trigger" role="button" tabindex="0"
-                        aria-label="{{ __('def.select_color') }}" data-input-id="{{ $inputId }}"></div>
+                <div class="color-inline-header">
+                    <div class="color-inline-swatch" data-input-id="{{ $inputId }}"
+                        style="--swatch-color: {{ $value ?: '#42445A' }}"></div>
 
                     <input type="text" name="{{ $name }}" id="{{ $inputId }}"
                         value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
                         data-color="{{ $value ?: '#42445A' }}"
+                        data-color-inline="true"
+                        placeholder="#000000"
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-color']) }} />
                 </div>
@@ -66,7 +68,8 @@
                     {{ $attributes->merge(['class' => 'input__field input__field-datetime']) }} />
             @elseif ($type === 'icon')
                 <div class="icon-input-container">
-                    <div class="icon-input-preview">
+                    <div class="icon-input-preview" role="button" tabindex="0"
+                        aria-label="{{ __('def.select_icon') }}">
                         @if ($value)
                             {!! app(\Flute\Core\Modules\Icons\Services\IconFinder::class)->loadFile($value) !!}
                         @endif
@@ -75,11 +78,11 @@
                     <input type="text" name="{{ $name }}" id="{{ $inputId }}"
                         value="{{ $value }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
                         data-icon-picker="true" data-icon-packs='@json($iconPacks)'
+                        placeholder="{{ __('def.select_icon') }}"
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-icon']) }} />
 
-                    <button type="button" class="input__icon-picker-btn icon-hover"
-                        style="width: 30px; height: 30px; font-size: var(--p); padding: 0;"
+                    <button type="button" class="input__icon-picker-btn"
                         aria-label="{{ __('def.select_icon') }}">
                         <x-icon path="ph.regular.magnifying-glass" />
                     </button>
@@ -114,6 +117,10 @@
                 </datalist>
             @endif
         </div>
+
+        @if ($type === 'color')
+            <div class="color-inline-picker" data-input-id="{{ $inputId }}"></div>
+        @endif
 
         @error($name)
             <span class="input__error">{{ $message }}</span>

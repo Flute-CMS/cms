@@ -117,6 +117,7 @@ return [
     "sidebar_mode_full"     => "Полный с фонами",
     "minimal"               => "Минимал",
     "full"                  => "Полный",
+    "sidebar_contained"     => "Контейнерный режим",
     "sidebar_position"      => "Положение пунктов",
     "sidebar_position_top"  => "Пункты сверху",
     "sidebar_position_center" => "Пункты по центру",
@@ -212,4 +213,24 @@ return [
     "no_widgets_found"      => "Виджеты не найдены",
     "empty_title"           => "Виджетов пока нет",
     "empty_desc"            => "Перетащите виджеты из панели или нажмите + для добавления на страницу.",
+
+    // Скрытые пути (видимость глобальных виджетов)
+    "excluded_paths"        => "Скрытые пути",
+    "excluded_paths_desc"   => "Виджет не будет отображаться на этих путях",
+    "excluded_paths_hint"   => "Примеры: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/путь/для/скрытия",
+    "add_path"              => "Добавить",
+
+    // Загрузка изображений (визуальный редактор)
+    "bg_image"              => "Фоновое изображение",
+    "bg_image_dark"         => "Тёмная тема",
+    "bg_image_light_label"  => "Светлая тема",
+    "site_logo"             => "Логотип сайта",
+    "logo_dark"             => "Тёмная тема",
+    "logo_light_label"      => "Светлая тема",
+    "upload"                => "Загрузить",
+    "delete_image"          => "Удалить",
+    "upload_success"        => "Изображение загружено",
+    "upload_error"          => "Ошибка загрузки",
+    "delete_success"        => "Изображение удалено",
 ];

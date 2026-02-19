@@ -108,7 +108,7 @@ $nav-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
             }
 
             &.dropdown-item {
-                p {
+                .navbar__items-item-trigger {
                     @extend .flex-row, .align-center;
                     cursor: pointer;
                     gap: inherit;

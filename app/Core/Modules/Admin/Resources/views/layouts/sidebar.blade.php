@@ -4,12 +4,12 @@
 ]) hx-boost="true" hx-target="#main" hx-swap="morph:outerHTML transition:true">
     <div class="sidebar__header" hx-boost="false">
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-dark">
-            <img src="{{ asset(config('app.logo')) }}" alt="{{ __('def.home') }}" loading="lazy">
-            <p>{{ config('app.name') }}</p>
+            <img src="{{ asset(config('app.logo')) }}" alt="{{ __('def.home') }}">
+            <span>{{ config('app.name') }}</span>
         </a>
         <a href="{{ url('/') }}" class="sidebar__logo sidebar__logo-light">
-            <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('def.home') }}" loading="lazy">
-            <p>{{ config('app.name') }}</p>
+            <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ __('def.home') }}">
+            <span>{{ config('app.name') }}</span>
         </a>
         <button class="sidebar__toggle" data-tooltip="{{ __('def.toggle_sidebar') }}" data-tooltip-placement="right">
             <x-icon path="ph.regular.sidebar-simple" />
@@ -35,7 +35,9 @@
 
             @foreach ($menuSections as $sectionIndex => $section)
                 @if (!empty($section['items']))
-                    <div class="sidebar__section" data-section-id="{{ $sectionIndex }}">
+                    <div class="sidebar__section" data-section-id="{{ $sectionIndex }}"
+                        data-section-key="{{ $section['_section_key'] ?? '' }}"
+                    >
                         @if (!empty($section['title']))
                             <button class="sidebar__section-toggle" data-section-toggle="{{ $sectionIndex }}">
                                 <span class="sidebar__section-title">{{ $section['title'] }}</span>
@@ -43,7 +45,7 @@
                             </button>
                         @endif
                         <div class="sidebar__menu">
-                            <ul class="sidebar__menu-list">
+                            <ul class="sidebar__menu-list" data-sidebar-sortable>
                                 @foreach ($section['items'] as $item)
                                     <x-menu-item :item="$item" />
                                 @endforeach

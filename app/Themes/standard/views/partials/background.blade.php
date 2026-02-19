@@ -2,7 +2,8 @@
     @push('styles')
         <style>
             @if (config('app.bg_image'))
-                html[data-theme="dark"] body {
+                html[data-theme="dark"] body,
+                html[data-theme="dark"] .content-frame {
                     background-image: url(@asset(config('app.bg_image')));
                     background-repeat: no-repeat;
                     background-attachment: fixed;
@@ -12,7 +13,8 @@
             @endif
 
             @if (config('app.bg_image_light'))
-                html[data-theme="light"] body {
+                html[data-theme="light"] body,
+                html[data-theme="light"] .content-frame {
                     background-image: url(@asset(config('app.bg_image_light')));
                     background-repeat: no-repeat;
                     background-attachment: fixed;

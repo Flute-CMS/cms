@@ -23,19 +23,45 @@
             <div class="notification-text">{!! markdown()->parse($notification->content) !!}</div>
         @endif
 
-        @if ($notification->type === 'button' && !empty($notification->extra_data['buttons']))
+        @php $extraData = $notification->getExtraData(); @endphp
+        @if ($notification->type === 'button' && !empty($extraData['buttons']))
             <div class="notification-buttons">
-                @foreach ($notification->extra_data['buttons'] as $button)
-                    <a href="{{ url($button['url'] ?? '#') }}"
-                       class="notification-btn notification-btn--{{ $button['type'] ?? 'primary' }}"
-                       @if (!empty($button['handler'])) data-notification-handler="{{ $button['handler'] }}" @endif
-                       @if (($button['target'] ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
-                        {{ __($button['label'] ?? $button['text'] ?? '') }}
-                    </a>
+                @foreach ($extraData['buttons'] as $button)
+                    @php
+                        $btnStyle = $button['style'] ?? $button['type'] ?? 'primary';
+                        $btnAction = $button['action'] ?? 'navigate';
+                        $btnLabel = __($button['label'] ?? $button['text'] ?? '');
+                        $btnUrl = url($button['url'] ?? '#');
+                    @endphp
+                    @if ($btnAction === 'api')
+                        @php $btnMethod = strtolower($button['method'] ?? 'post'); @endphp
+                        <button type="button"
+                            class="notification-btn notification-btn--{{ $btnStyle }}"
+                            @if ($btnMethod === 'delete') hx-delete="{{ $btnUrl }}"
+                            @elseif ($btnMethod === 'put') hx-put="{{ $btnUrl }}"
+                            @else hx-post="{{ $btnUrl }}"
+                            @endif
+                            hx-swap="none"
+                            hx-on:htmx:after-request="if(event.detail.successful){this.closest('.notification-item').style.height=this.closest('.notification-item').offsetHeight+'px';this.closest('.notification-item').style.transition='opacity 0.25s,height 0.25s 0.1s';this.closest('.notification-item').style.opacity='0';this.closest('.notification-item').style.height='0';this.closest('.notification-item').style.overflow='hidden';setTimeout(()=>this.closest('.notification-item')?.remove(),400);}">
+                            {{ $btnLabel }}
+                        </button>
+                    @elseif ($btnAction === 'dismiss')
+                        <button type="button"
+                            class="notification-btn notification-btn--{{ $btnStyle }}"
+                            onclick="this.closest('.notification-item').style.opacity='0';setTimeout(()=>this.closest('.notification-item')?.remove(),250)">
+                            {{ $btnLabel }}
+                        </button>
+                    @else
+                        <a href="{{ $btnUrl }}"
+                            class="notification-btn notification-btn--{{ $btnStyle }}"
+                            @if (($button['target'] ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
+                            {{ $btnLabel }}
+                        </a>
+                    @endif
                 @endforeach
             </div>
         @elseif ($notification->type === 'file' && !empty($notification->url))
-            <a href="{{ url($notification->url) }}" class="notification-file-link" target="_blank">
+            <a href="{{ url($notification->url) }}" class="notification-file-link" target="_blank" rel="noopener">
                 <x-icon path="ph.regular.file-arrow-down" />
                 @t('def.download_file')
             </a>

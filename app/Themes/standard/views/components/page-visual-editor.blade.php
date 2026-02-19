@@ -247,6 +247,98 @@
                 </div>
             </section>
 
+            @can('admin.boss')
+            {{-- Background Image Upload --}}
+            <section class="ve__section">
+                <h4 class="ve__section-title">{{ __('page-edit.bg_image') }}</h4>
+                <div class="ve__upload-row">
+                    <div class="ve__upload-slot" data-upload-type="bg_image">
+                        <label class="ve__upload-slot-inner">
+                            <div class="ve__upload-slot-preview" id="ve-bg-image-preview">
+                                @if(config('app.bg_image'))
+                                    <img src="{{ asset(config('app.bg_image')) }}" alt="" />
+                                @endif
+                            </div>
+                            <div class="ve__upload-slot-overlay">
+                                <x-icon path="ph.regular.camera" />
+                            </div>
+                            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden data-upload="bg_image" />
+                        </label>
+                        <div class="ve__upload-slot-footer">
+                            <span class="ve__upload-slot-label">{{ __('page-edit.bg_image_dark') }}</span>
+                            <button type="button" class="ve__upload-slot-delete" data-delete="bg_image" @if(!config('app.bg_image')) hidden @endif>
+                                <x-icon path="ph.regular.x" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ve__upload-slot" data-upload-type="bg_image_light">
+                        <label class="ve__upload-slot-inner">
+                            <div class="ve__upload-slot-preview" id="ve-bg-image-light-preview">
+                                @if(config('app.bg_image_light'))
+                                    <img src="{{ asset(config('app.bg_image_light')) }}" alt="" />
+                                @endif
+                            </div>
+                            <div class="ve__upload-slot-overlay">
+                                <x-icon path="ph.regular.camera" />
+                            </div>
+                            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden data-upload="bg_image_light" />
+                        </label>
+                        <div class="ve__upload-slot-footer">
+                            <span class="ve__upload-slot-label">{{ __('page-edit.bg_image_light_label') }}</span>
+                            <button type="button" class="ve__upload-slot-delete" data-delete="bg_image_light" @if(!config('app.bg_image_light')) hidden @endif>
+                                <x-icon path="ph.regular.x" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {{-- Logo Upload --}}
+            <section class="ve__section">
+                <h4 class="ve__section-title">{{ __('page-edit.site_logo') }}</h4>
+                <div class="ve__upload-row">
+                    <div class="ve__upload-slot ve__upload-slot--logo" data-upload-type="logo">
+                        <label class="ve__upload-slot-inner">
+                            <div class="ve__upload-slot-preview" id="ve-logo-preview">
+                                @if(config('app.logo') && !str_ends_with(config('app.logo'), 'logo.svg'))
+                                    <img src="{{ asset(config('app.logo')) }}" alt="" />
+                                @endif
+                            </div>
+                            <div class="ve__upload-slot-overlay">
+                                <x-icon path="ph.regular.camera" />
+                            </div>
+                            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden data-upload="logo" />
+                        </label>
+                        <div class="ve__upload-slot-footer">
+                            <span class="ve__upload-slot-label">{{ __('page-edit.logo_dark') }}</span>
+                            <button type="button" class="ve__upload-slot-delete" data-delete="logo" @if(!config('app.logo') || str_ends_with(config('app.logo'), 'logo.svg')) hidden @endif>
+                                <x-icon path="ph.regular.x" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ve__upload-slot ve__upload-slot--logo" data-upload-type="logo_light">
+                        <label class="ve__upload-slot-inner">
+                            <div class="ve__upload-slot-preview" id="ve-logo-light-preview">
+                                @if(config('app.logo_light') && !str_ends_with(config('app.logo_light'), 'logo-light.svg'))
+                                    <img src="{{ asset(config('app.logo_light')) }}" alt="" />
+                                @endif
+                            </div>
+                            <div class="ve__upload-slot-overlay">
+                                <x-icon path="ph.regular.camera" />
+                            </div>
+                            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" hidden data-upload="logo_light" />
+                        </label>
+                        <div class="ve__upload-slot-footer">
+                            <span class="ve__upload-slot-label">{{ __('page-edit.logo_light_label') }}</span>
+                            <button type="button" class="ve__upload-slot-delete" data-delete="logo_light" @if(!config('app.logo_light') || str_ends_with(config('app.logo_light'), 'logo-light.svg')) hidden @endif>
+                                <x-icon path="ph.regular.x" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            @endcan
+
             <section class="ve__section">
                 <h4 class="ve__section-title">{{ __('page-edit.border_radius') }}</h4>
                 <div class="ve__row">
@@ -364,6 +456,12 @@
                             </div>
                             <span class="ve__option-label">{{ __('page-edit.sidebar_mini') }}</span>
                         </button>
+                    </div>
+
+                    {{-- Sidebar contained layout toggle --}}
+                    <div class="ve__field ve__field--switch" id="ve-sidebar-contained-wrap" style="margin-top: var(--space-md);">
+                        <label class="ve__field-label">{{ __('page-edit.sidebar_contained') }}</label>
+                        <x-fields.toggle name="ve-sidebar-contained" id="ve-sidebar-contained" :checked="false" />
                     </div>
 
                     {{-- Sidebar mode selector (only for default style) --}}

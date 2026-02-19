@@ -30,13 +30,23 @@ class UserActionLog extends ActiveRecord
     public ?string $message = null;
 
     #[Column(type: "json", nullable: true)]
-    public ?array $data = null;
+    public ?string $data = null;
 
     #[Column(type: "string", nullable: true)]
     public ?string $level = null;
 
     #[Column(type: "datetime")]
     public DateTimeImmutable $createdAt;
+
+    public function getData(): ?array
+    {
+        return $this->data ? json_decode($this->data, true) : null;
+    }
+
+    public function setData(?array $data): void
+    {
+        $this->data = $data ? json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+    }
 
     public function __construct()
     {

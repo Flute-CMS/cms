@@ -19,19 +19,13 @@
                 }
             @endphp
 
-            @if ($isActiveSortColumn)
-                <span class="sort-indicator">
-                    @if ($direction === 'asc')
-                        <x-icon path="ph.regular.arrow-up" />
-                    @else
-                        <x-icon path="ph.regular.arrow-down" />
-                    @endif
-                </span>
-            @else
-                <span class="sort-indicator">
-                    <x-icon path="ph.regular.arrows-down-up" />
-                </span>
-            @endif
+            <span class="sort-indicator" @if (!$isActiveSortColumn) style="opacity: 0" @endif>
+                @if ($isActiveSortColumn && $direction === 'desc')
+                    <x-icon path="ph.regular.arrow-down" />
+                @else
+                    <x-icon path="ph.regular.arrow-up" />
+                @endif
+            </span>
         </a>
     </th>
 @else

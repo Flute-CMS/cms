@@ -204,6 +204,7 @@
     "and" => "And",
     "enter_value" => "Enter value",
     "online" => "Online",
+    "approved" => "Verified",
     "was_in_hour" => "Was online about an hour ago",
     "was_in_online" => "Was online :time",
     "user" => "User",

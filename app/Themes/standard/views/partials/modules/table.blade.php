@@ -91,12 +91,12 @@
                     <tr>
                         <td colspan="{{ count($columns) }}">
                             <div class="py-5 text-center">
-                                <h1 class="flex-center text-muted mb-1">
+                                <div class="flex-center text-muted mb-1" style="font-size: var(--h1);">
                                     <x-icon path="ph.regular.smiley-sad" width="50" height="50" />
-                                </h1>
-                                <h3>
+                                </div>
+                                <h2>
                                     {!! __('def.no_results_found') !!}
-                                </h3>
+                                </h2>
                                 <p class="text-muted flex-center text-balance text-center">
                                     {!! __('def.import_or_create') !!}
                                 </p>

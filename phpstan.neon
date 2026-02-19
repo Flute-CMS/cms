@@ -23,5 +23,5 @@ parameters:
         # Ignore magic methods from Cycle ORM and admin platform
         - '#Call to an undefined method Flute\\Admin\\Platform\\Field::#'
         - '#Call to an undefined static method Flute\\Core\\Router\\Router::screen\(\)#'
-        - '#Access to an undefined property .+::\$(?!trans_choice)#'
+        - '#Access to an undefined property .+::\$(?!__)#'
         # But DO NOT ignore undefined functions - we want to catch those!

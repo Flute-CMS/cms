@@ -35,6 +35,18 @@ class WidgetToolbar {
                            widgetEl.getAttribute('data-has-settings') === 'true';
                 }
             },
+            excludedPaths: {
+                icon: this.config.icons.excludedPaths,
+                tooltipKey: 'page-edit.excluded_paths',
+                order: 30,
+                onClick: (widgetEl) => {
+                    this.editor.openExcludedPathsEditor(widgetEl);
+                },
+                shouldShow: (widgetEl) => {
+                    return widgetEl.getAttribute('data-widget-name') !== 'Content'
+                        && this.editor.scope === 'global';
+                }
+            },
             delete: {
                 icon: this.config.icons.delete,
                 tooltipKey: 'def.delete_widget',

@@ -71,6 +71,11 @@
                                     </x-button>
                                 @endif
 
+                                @stack('profile_actions')
+                                @if (isset($sections['profile_actions']))
+                                    {!! $sections['profile_actions'] !!}
+                                @endif
+
                                 @if (user()->can('admin.users') && user()->can($user) && $user->id !== user()->id)
                                     <div class="profile__admin-actions">
                                         <button type="button" class="profile__admin-actions-trigger"
@@ -103,8 +108,10 @@
                                             </button>
                                             <button type="button" class="profile__admin-dropdown-item profile__admin-dropdown-item--warning"
                                                 hx-post="{{ url('api/profile/' . $user->id . '/clear-sessions') }}"
+                                                hx-trigger="confirmed"
                                                 hx-swap="none"
-                                                hx-confirm="{{ __('profile.admin_actions.clear_sessions_confirm') }}"
+                                                hx-flute-confirm="{{ __('profile.admin_actions.clear_sessions_confirm') }}"
+                                                hx-flute-confirm-type="warning"
                                                 hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
                                                 <x-icon path="ph.regular.sign-out" />
                                                 <span>@t('profile.admin_actions.clear_sessions')</span>
@@ -113,8 +120,10 @@
                                             @if ($user->isBlocked())
                                                 <button type="button" class="profile__admin-dropdown-item profile__admin-dropdown-item--success"
                                                     hx-post="{{ url('api/profile/' . $user->id . '/unban') }}"
+                                                    hx-trigger="confirmed"
                                                     hx-swap="none"
-                                                    hx-confirm="{{ __('profile.admin_actions.unban_confirm') }}"
+                                                    hx-flute-confirm="{{ __('profile.admin_actions.unban_confirm') }}"
+                                                    hx-flute-confirm-type="success"
                                                     hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
                                                     <x-icon path="ph.regular.lock-open" />
                                                     <span>@t('profile.admin_actions.unban_user')</span>
@@ -154,7 +163,34 @@
                                 </div>
 
                                 <h1 class="profile__hero-name" data-profile-name="{{ $user->name }}" itemprop="name">
-                                    {{ $user->name }}
+                                    <span class="profile__hero-name-row">
+                                        {{ $user->name }}
+                                        @auth
+                                            @if (user()->can('admin.boss'))
+                                                <button type="button"
+                                                    class="verified-badge {{ $user->approved ? '' : 'verified-badge--ghosted' }}"
+                                                    data-tooltip="{{ $user->approved ? __('profile.admin_actions.unapprove_user') : __('profile.admin_actions.approve_user') }}"
+                                                    hx-flute-confirm="{{ $user->approved ? __('profile.admin_actions.unapprove_confirm') : __('profile.admin_actions.approve_confirm') }}"
+                                                    hx-flute-confirm-type="{{ $user->approved ? 'warning' : 'success' }}"
+                                                    hx-post="{{ url('api/profile/' . $user->id . '/toggle-approved') }}"
+                                                    hx-trigger="confirmed"
+                                                    hx-swap="none"
+                                                    hx-on::after-request="if(event.detail.successful) { setTimeout(() => location.reload(), 300); }">
+                                                    <x-icon path="ph.bold.seal-check-bold" />
+                                                </button>
+                                            @elseif ($user->approved)
+                                                <span class="verified-badge" data-tooltip="{{ __('def.approved') }}">
+                                                    <x-icon path="ph.bold.seal-check-bold" />
+                                                </span>
+                                            @endif
+                                        @else
+                                            @if ($user->approved)
+                                                <span class="verified-badge" data-tooltip="{{ __('def.approved') }}">
+                                                    <x-icon path="ph.bold.seal-check-bold" />
+                                                </span>
+                                            @endif
+                                        @endauth
+                                    </span>
                                     @if ($user->isOnline())
                                         <span class="profile__status profile__status--online"
                                             data-profile-status="{{ __('def.online') }}"
@@ -164,18 +200,11 @@
 
                                 @if (sizeof($user->roles))
                                     <div class="profile__roles" itemprop="jobTitle">
-                                        <ul class="profile__roles-list" role="list">
+                                        <div class="role-badges" role="list">
                                             @foreach ($user->roles as $role)
-                                                <li class="profile__role">
-                                                    <span class="profile__role-square"
-                                                        style="background: {{ $role->color }}" aria-hidden="true">
-                                                    </span>
-                                                    <span class="profile__role-name">
-                                                        {{ $role->name }}
-                                                    </span>
-                                                </li>
+                                                <x-role-badge :role="$role" mode="full" />
                                             @endforeach
-                                        </ul>
+                                        </div>
 
                                         @if (isset($sections['profile_roles']))
                                             {!! $sections['profile_roles'] !!}

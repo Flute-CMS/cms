@@ -133,21 +133,37 @@ class NavbarService
             ->orderBy('position', 'asc')
             ->fetchAll();
 
-        $tree = $this->buildTree($allItems, null, $ignoreAuth);
-
-        return $tree;
+        return $this->buildTree($allItems, $ignoreAuth);
     }
 
-    protected function buildTree(array $items, ?int $parentId = null, bool $ignoreAuth = false): array
+    protected function buildTree(array $items, bool $ignoreAuth = false): array
     {
-        $tree = [];
+        $byParent = [];
 
         foreach ($items as $item) {
-            if (($parentId === null) === ($item->parent === null) && ($parentId === null || ($item->parent && $item->parent->id === $parentId)) && ($ignoreAuth || $this->hasAccess($item))) {
-                $formatted = $this->format->format($item);
-                $formatted['children'] = $this->buildTree($items, $item->id, $ignoreAuth);
-                $tree[] = $formatted;
+            if (!$ignoreAuth && !$this->hasAccess($item)) {
+                continue;
             }
+
+            $parentId = $item->parent ? $item->parent->id : 0;
+            $byParent[$parentId][] = $item;
+        }
+
+        return $this->buildSubtree($byParent, 0, $ignoreAuth);
+    }
+
+    protected function buildSubtree(array &$byParent, int $parentId, bool $ignoreAuth): array
+    {
+        if (!isset($byParent[$parentId])) {
+            return [];
+        }
+
+        $tree = [];
+
+        foreach ($byParent[$parentId] as $item) {
+            $formatted = $this->format->format($item);
+            $formatted['children'] = $this->buildSubtree($byParent, $item->id, $ignoreAuth);
+            $tree[] = $formatted;
         }
 
         usort($tree, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));

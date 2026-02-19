@@ -62,6 +62,9 @@ class User extends ActiveRecord
     public bool $verified = false;
 
     #[Column(type: "boolean", default: false)]
+    public bool $approved = false;
+
+    #[Column(type: "boolean", default: false)]
     public bool $hidden = false;
 
     #[Column(type: "boolean", default: false)]
@@ -184,13 +187,11 @@ class User extends ActiveRecord
 
         foreach ($this->roles as $role) {
             foreach ($role->permissions as $permission) {
-                if (! in_array($permission, $permissions)) {
-                    $permissions[] = $permission;
-                }
+                $permissions[$permission->id] = $permission;
             }
         }
 
-        return $permissions;
+        return array_values($permissions);
     }
 
     public function getSocialNetwork(string $socialNetworkName) : ?UserSocialNetwork

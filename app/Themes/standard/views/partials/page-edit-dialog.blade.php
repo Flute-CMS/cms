@@ -22,3 +22,31 @@
         </div>
     </div>
 </aside>
+
+{{-- Excluded Paths editor template (used by JS for global widgets) --}}
+<template id="pe-excluded-paths-tpl">
+    <div class="pe-excluded-paths">
+        <div class="pe-excluded-paths__header">
+            <h4 class="pe-excluded-paths__title">@t('page-edit.excluded_paths')</h4>
+            <p class="pe-excluded-paths__desc">@t('page-edit.excluded_paths_desc')</p>
+        </div>
+        <div class="pe-excluded-paths__list"></div>
+        <div class="pe-excluded-paths__add">
+            <input type="text" class="pe-excluded-paths__input"
+                placeholder="@t('page-edit.excluded_paths_placeholder')"
+                autocomplete="off" spellcheck="false" />
+            <button type="button" class="pe-excluded-paths__add-btn">
+                @t('page-edit.add_path')
+            </button>
+        </div>
+        <p class="pe-excluded-paths__hint">@t('page-edit.excluded_paths_hint')</p>
+    </div>
+
+    {{-- Tag template (cloned per path) --}}
+    <template class="pe-excluded-paths__tag-tpl">
+        <div class="pe-excluded-paths__tag">
+            <span class="pe-excluded-paths__tag-text"></span>
+            <button type="button" class="pe-excluded-paths__tag-remove">&times;</button>
+        </div>
+    </template>
+</template>

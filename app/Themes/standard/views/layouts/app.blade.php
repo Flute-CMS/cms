@@ -9,10 +9,11 @@
     $_sidebarMode = $_themeColors['--sidebar-mode'] ?? 'full';
     $_sidebarPosition = $_themeColors['--sidebar-position'] ?? 'top';
     $_sidebarCollapsed = cookie()->get('sidebar_collapsed', 'false');
+    $_sidebarContained = $_themeColors['--sidebar-contained'] ?? 'false';
     $_designPreset = $_themeColors['--design-preset'] ?? 'default';
 @endphp
 <html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
-    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}" data-design-preset="{{ $_designPreset }}">
+    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}" data-sidebar-contained="{{ $_sidebarContained }}" data-design-preset="{{ $_designPreset }}">
 
 <head hx-head="append">
     @php
@@ -191,22 +192,24 @@
     @endif
 
     @if (!$isPartialRequest)
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
         <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        <link rel="preload" href="@asset('animate')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="@asset('animate')" type='text/css'></noscript>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
-        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
 
         @at(tt('assets/sass/app.scss'))
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/response-targets.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer></script>
+        <script src="@asset('assets/js/htmx/response-targets.js')" defer></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer></script>
 
-
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer></script>
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif
@@ -259,6 +262,12 @@
     @if (!$isPartialRequest)
         {{-- Always render sidebar-nav, visibility controlled by CSS based on data-nav-style --}}
         <x-sidebar-nav />
+        <div class="content-frame" id="content-frame"></div>
+        <div class="frame-blur" id="frame-blur"></div>
+        <button type="button" class="sidebar-contained-toggle" id="sidebar-contained-toggle"
+            aria-label="{{ __('def.toggle_sidebar') }}">
+            <x-icon path="ph.regular.sidebar-simple" />
+        </button>
     @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.header')
@@ -293,9 +302,10 @@
         @include('flute::partials.widgets')
 
         @php
+            $pageBlocks = page()->getBlocks();
             $hasContentWidget = false;
-            if (!empty(page()->getBlocks())) {
-                foreach (page()->getBlocks() as $block) {
+            if (!empty($pageBlocks)) {
+                foreach ($pageBlocks as $block) {
                     if ($block->getWidget() === 'Content') {
                         $hasContentWidget = true;
                         break;
@@ -304,7 +314,7 @@
             }
         @endphp
 
-        @if (empty(page()->getBlocks()) || !$hasContentWidget)
+        @if (empty($pageBlocks) || !$hasContentWidget)
             @stack('content')
 
             @if (isset($sections['content']))
@@ -323,13 +333,7 @@
         {!! $sections['content-after'] !!}
     @endif
 
-    @php
-        try {
-            echo view('flute::partials.confirmation')->render();
-        } catch (\Throwable $e) {
-            logs()->error('Layout partial error (confirmation): ' . $e->getMessage(), ['exception' => $e]);
-        }
-    @endphp
+    @includeIf('flute::partials.confirmation')
 
     @if (!$isPartialRequest)
         <div id="alerts-container">
@@ -340,29 +344,11 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.right-sidebar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (right-sidebar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
-        @php
-            try {
-                echo view('flute::components.tab-bar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (tab-bar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
+        @includeIf('flute::components.right-sidebar')
+        @includeIf('flute::components.tab-bar')
 
         @can('admin.pages')
-            @php
-                try {
-                    echo view('flute::components.page-edit')->render();
-                } catch (\Throwable $e) {
-                    logs()->error('Layout component error (page-edit): ' . $e->getMessage(), ['exception' => $e]);
-                }
-            @endphp
+            @includeIf('flute::components.page-edit')
             @include('flute::partials.page-edit-dialog')
             @include('flute::partials.page-seo-dialog')
         @endcan
@@ -377,13 +363,7 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.user-card')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (user-card): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
+        @includeIf('flute::components.user-card')
 
         @include('flute::components.richtext-icons')
     @endif
@@ -391,7 +371,7 @@
     @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
 
     @if (!$isPartialRequest)
-        <footer>
+        <div class="footer-scripts">
             @php
                 if (is_debug()) {
                     Tracy\Debugger::renderLoader();
@@ -403,11 +383,11 @@
             @if (isset($sections['footer']))
                 {!! $sections['footer'] !!}
             @endif
-        </footer>
+        </div>
 
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
-        <script src="@asset('jquery')"></script>
+        <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
         <script src="@asset('assets/js/libs/filepond-image-preview.js')" defer></script>
         <script src="@asset('assets/js/libs/filepond-validate.js')" defer></script>
@@ -436,8 +416,8 @@
         @at(tt('assets/scripts/tom-select.js'))
 
         @can('admin.pages')
-            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')">
-            <script src="@asset('assets/js/libs/gridstack-all.js')"></script>
+            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')" media="print" onload="this.media='all'">
+            <script src="@asset('assets/js/libs/gridstack-all.js')" defer></script>
 
             {{-- Page Edit modular scripts --}}
             @at(tt('assets/scripts/page-edit/core/namespace.js'))

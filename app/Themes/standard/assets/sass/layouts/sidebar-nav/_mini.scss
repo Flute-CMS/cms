@@ -72,7 +72,7 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
         line-height: 1.2;
         letter-spacing: -0.02em;
         max-width: 100%;
-        flex: 0;
+        flex: 0 0 auto;
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;

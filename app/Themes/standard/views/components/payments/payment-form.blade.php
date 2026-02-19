@@ -106,6 +106,6 @@
 
         <p class="lk-footnote">{{ __('lk.gateway_disclaimer') }}</p>
 
-        <script src="@asset('assets/js/lk-payment.js')"></script>
+        <script src="@asset('assets/js/lk-payment.js')" defer></script>
     @endif
 </div>

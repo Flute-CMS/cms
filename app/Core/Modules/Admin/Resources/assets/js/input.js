@@ -1,6 +1,5 @@
 $(document).ready(function () {
 	let iconPicker = null;
-	let cleanup = null;
 	const iconPacksData = {};
 	const categorizedPacks = {};
 	const lastCategoryByInput = new WeakMap();
@@ -29,189 +28,125 @@ $(document).ready(function () {
 	}
 
 	function initColorPickers(root = document) {
-		console.log("initColorPickers", root, window.Pickr);
 		if (!window.Pickr) {
 			setTimeout(() => initColorPickers(root), 100);
 			return;
 		}
 
-		const triggers = (root || document).querySelectorAll(".pickr-trigger");
-		console.log("Found triggers:", triggers.length);
+		const containers = (root || document).querySelectorAll(".color-inline-picker");
 
-		triggers.forEach((trigger) => {
-			if (trigger._pickr) return;
-			if (!trigger.isConnected || !trigger.parentNode) return;
+		containers.forEach((container) => {
+			if (container._pickrInit) return;
+			if (!container.isConnected) return;
 
-			const inputId = trigger.getAttribute("data-input-id");
+			const inputId = container.getAttribute("data-input-id");
 			const input = document.getElementById(inputId);
-			if (!input || !input.isConnected || !input.parentNode) {
-				console.log("Input not found for trigger:", inputId);
-				return;
+			if (!input || !input.isConnected) return;
+
+			container._pickrInit = true;
+
+			const seed = (input.value || input.dataset.color || "#42445A").trim();
+
+			// Destroy existing instance if any
+			const existing = pickrByInputId.get(inputId);
+			if (existing) {
+				try { existing.destroyAndRemove?.(); } catch (_) {
+					try { existing.destroy(); } catch (_2) {}
+				}
+				pickrByInputId.delete(inputId);
 			}
 
-			console.log("Creating Pickr for input:", inputId);
-
-			const seed = (
-				input.value ||
-				input.dataset.color ||
-				"#42445A"
-			).trim();
+			// Create a hidden trigger element inside the inline container
+			const trigger = document.createElement("div");
+			trigger.className = "pickr-inline-trigger";
+			container.appendChild(trigger);
 
 			try {
-				if (!trigger.isConnected || !trigger.parentNode) return;
-
-				const existing = pickrByInputId.get(inputId);
-				if (existing) {
-					try {
-						existing.destroyAndRemove?.();
-					} catch (e) {
-						try {
-							existing.destroy();
-						} catch (e2) {}
-					}
-					pickrByInputId.delete(inputId);
-				}
-
-                const createInstance = () => {
-					if (!trigger.isConnected || !trigger.parentNode) return;
-					const pickr = Pickr.create({
-						el: trigger,
-						theme: "nano",
-						default: seed,
-						useAsButton: false,
-						comparison: false,
-						position: "bottom-start",
-						lockOpacity: false,
-						swatches: [
-							"#000000",
-							"#FFFFFF",
-							"#FF453A",
-							"#FF9F0A",
-							"#FFD60A",
-							"#34C759",
-							"#30D158",
-							"#64D2FF",
-							"#0A84FF",
-							"#BF5AF2",
-							"#FF375F",
-							"#8E8E93",
-						],
-						components: {
-							preview: false,
-							opacity: true,
-							hue: true,
-							interaction: {
-								input: false,
-								cancel: false,
-								clear: false,
-								save: false,
-							},
+				const pickr = Pickr.create({
+					el: trigger,
+					theme: "nano",
+					container: container,
+					default: seed,
+					inline: true,
+					showAlways: true,
+					useAsButton: false,
+					comparison: false,
+					lockOpacity: false,
+					swatches: [
+						"#000000", "#FFFFFF",
+						"#FF453A", "#FF9F0A", "#FFD60A",
+						"#34C759", "#64D2FF", "#0A84FF",
+						"#5856D6", "#BF5AF2", "#FF375F",
+						"#8E8E93",
+					],
+					components: {
+						preview: false,
+						opacity: true,
+						hue: true,
+						interaction: {
+							input: false,
+							cancel: false,
+							clear: false,
+							save: false,
 						},
-					});
+					},
+				});
 
-					trigger._pickr = pickr;
-					pickrByInputId.set(inputId, pickr);
-					console.log("Pickr created successfully for:", inputId);
+				pickrByInputId.set(inputId, pickr);
 
-                    // listeners will call ensurePickr and then show, defined below
+				// Update swatch indicator
+				const swatch = container.parentElement.querySelector('.color-inline-swatch[data-input-id="' + inputId + '"]');
 
-					const setInputSafely = (val) => {
-						input._colorSyncingFromPickr = true;
-						input.value = val;
-						input.dispatchEvent(
-							new Event("input", { bubbles: true })
-						);
-						input.dispatchEvent(
-							new Event("change", { bubbles: true })
-						);
-						setTimeout(() => {
-							input._colorSyncingFromPickr = false;
-						}, 0);
-					};
-
-					// Instant apply without confirmation (no save/cancel/clear)
-					pickr.on("change", (color) => {
-						const hex = color ? color.toHEXA().toString() : "";
-						// live preview of button
-						trigger.style.setProperty(
-							"--pcr-color",
-							hex || "transparent"
-						);
-						// live update of underlying input
-						setInputSafely(hex);
-					});
-
-					// Sync from input to pickr (manual paste / typing)
-					const syncFromInput = () => {
-						if (input._colorSyncingFromPickr) return;
-						const val = (input.value || "").trim();
-						if (!val) return;
-						try {
-							// Avoid redundant set if same as current
-							const current = pickr.getColor();
-							const curHex = current
-								? current.toHEXA().toString()
-								: "";
-							if (curHex.toLowerCase() !== val.toLowerCase()) {
-								pickr.setColor(val);
-							}
-						} catch (e) {}
-					};
-					input.addEventListener("input", syncFromInput);
-
-					input.addEventListener("paste", (e) => {
-						const text = (
-							e.clipboardData || window.clipboardData
-						).getData("text");
-						if (!text) return;
-						const normalized = normalizeColor(text);
-						if (normalized) {
-							e.preventDefault();
-							input._colorSyncingFromPickr = true;
-							input.value = normalized;
-							try {
-								pickr.setColor(normalized);
-							} catch (err) {}
-							input.dispatchEvent(
-								new Event("input", { bubbles: true })
-							);
-							input.dispatchEvent(
-								new Event("change", { bubbles: true })
-							);
-							setTimeout(() => {
-								input._colorSyncingFromPickr = false;
-							}, 0);
-						}
-					});
-
-					try {
-						pickr.setColor(seed);
-					} catch (e) {}
-					trigger.style.setProperty("--pcr-color", seed);
+				const setInputSafely = (val) => {
+					input._colorSyncingFromPickr = true;
+					input.value = val;
+					if (swatch) swatch.style.setProperty("--swatch-color", val || "transparent");
+					input.dispatchEvent(new Event("input", { bubbles: true }));
+					input.dispatchEvent(new Event("change", { bubbles: true }));
+					setTimeout(() => { input._colorSyncingFromPickr = false; }, 0);
 				};
 
-                const ensurePickr = () => {
-                    if (trigger._pickr || pickrByInputId.get(inputId)) return trigger._pickr || pickrByInputId.get(inputId);
-                    try { createInstance(); } catch (_) { setTimeout(() => { try { createInstance(); } catch (_) {} }, 0); }
-                    return trigger._pickr || pickrByInputId.get(inputId);
-                };
+				pickr.on("change", (color) => {
+					const hex = color ? color.toHEXA().toString() : "";
+					setInputSafely(hex);
+				});
 
-                if (!trigger.dataset.pickrListenersAttached) {
-                    const onIntent = (e) => {
-                        if (e && e.type === 'keydown' && !(e.key === 'Enter' || e.key === ' ')) return;
-                        const inst = ensurePickr();
-                        try { inst && inst.show && inst.show(); } catch (_) {}
-                    };
-                    trigger.addEventListener('click', onIntent);
-                    trigger.addEventListener('keydown', onIntent);
-                    input.addEventListener('focus', onIntent);
-                    input.addEventListener('click', onIntent);
-                    trigger.dataset.pickrListenersAttached = '1';
-                }
+				// Sync from input to pickr (manual typing/paste)
+				const syncFromInput = () => {
+					if (input._colorSyncingFromPickr) return;
+					const val = (input.value || "").trim();
+					if (!val) return;
+					try {
+						const current = pickr.getColor();
+						const curHex = current ? current.toHEXA().toString() : "";
+						if (curHex.toLowerCase() !== val.toLowerCase()) {
+							pickr.setColor(val);
+						}
+						if (swatch) swatch.style.setProperty("--swatch-color", val);
+					} catch (_) {}
+				};
+				input.addEventListener("input", syncFromInput);
 
-                ensurePickr();
+				input.addEventListener("paste", (e) => {
+					const text = (e.clipboardData || window.clipboardData).getData("text");
+					if (!text) return;
+					const normalized = normalizeColor(text);
+					if (normalized) {
+						e.preventDefault();
+						input._colorSyncingFromPickr = true;
+						input.value = normalized;
+						try { pickr.setColor(normalized); } catch (_) {}
+						if (swatch) swatch.style.setProperty("--swatch-color", normalized);
+						input.dispatchEvent(new Event("input", { bubbles: true }));
+						input.dispatchEvent(new Event("change", { bubbles: true }));
+						setTimeout(() => { input._colorSyncingFromPickr = false; }, 0);
+					}
+				});
+
+				try { pickr.setColor(seed); } catch (_) {}
+				if (swatch) swatch.style.setProperty("--swatch-color", seed);
 			} catch (error) {
-				console.error("Failed to create Pickr:", error);
+				console.error("Failed to create inline Pickr:", error);
 			}
 		});
 	}
@@ -244,25 +179,19 @@ $(document).ready(function () {
 		const el = evt && evt.target ? evt.target : null;
 		if (!el) return;
 		const candidates = [];
-		if (el.matches && el.matches(".pickr-trigger")) candidates.push(el);
+		if (el.matches && el.matches(".color-inline-picker")) candidates.push(el);
 		if (el.querySelectorAll)
-			candidates.push(...el.querySelectorAll(".pickr-trigger"));
-		candidates.forEach((trigger) => {
-			const inputId = trigger.getAttribute("data-input-id");
-			const instance =
-				trigger._pickr ||
-				(inputId ? pickrByInputId.get(inputId) : null);
+			candidates.push(...el.querySelectorAll(".color-inline-picker"));
+		candidates.forEach((container) => {
+			const inputId = container.getAttribute("data-input-id");
+			const instance = inputId ? pickrByInputId.get(inputId) : null;
 			if (instance) {
-				try {
-					instance.destroyAndRemove?.();
-				} catch (e) {
-					try {
-						instance.destroy();
-					} catch (e2) {}
+				try { instance.destroyAndRemove?.(); } catch (_) {
+					try { instance.destroy(); } catch (_2) {}
 				}
 			}
 			if (inputId) pickrByInputId.delete(inputId);
-			delete trigger._pickr;
+			delete container._pickrInit;
 		});
 	});
 
@@ -342,37 +271,33 @@ $(document).ready(function () {
 				iconPicker.className = "icon-picker";
 
 				iconPicker.innerHTML = `
-                    <div class="icon-picker__header">
-                        <div class="icon-picker__search">
-                            <input type="text" placeholder="Поиск иконок..." class="icon-picker__search-input">
+                    <div class="icon-picker__backdrop"></div>
+                    <div class="icon-picker__dialog">
+                        <div class="icon-picker__header">
+                            <div class="icon-picker__search">
+                                <svg class="icon-picker__search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <input type="text" placeholder="${translate('def.search')}..." class="icon-picker__search-input">
+                            </div>
+                            <button type="button" class="icon-picker__close" aria-label="Close">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
                         </div>
-                        <button type="button" class="icon-picker__close" aria-label="Закрыть">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="icon-picker__body">
-                        <div class="icon-picker__categories"></div>
-                        <div class="icon-picker__styles"></div>
-                        <div class="icon-picker__content"></div>
-                        <div class="icon-picker__pagination" style="display: none;">
-                            <button class="icon-picker__pagination-prev" disabled>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                            <span class="icon-picker__pagination-info">1 / 10</span>
-                            <button class="icon-picker__pagination-next">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
+                        <div class="icon-picker__body">
+                            <div class="icon-picker__categories"></div>
+                            <div class="icon-picker__styles"></div>
+                            <div class="icon-picker__content"></div>
                         </div>
                     </div>
                 `;
 
 				document.body.appendChild(iconPicker);
+
+				const backdrop = iconPicker.querySelector(".icon-picker__backdrop");
+				backdrop.addEventListener("click", hideIconPicker);
 
 				const searchInput = iconPicker.querySelector(
 					".icon-picker__search-input"
@@ -448,17 +373,7 @@ $(document).ready(function () {
 				);
 				closeButton.addEventListener("click", hideIconPicker);
 
-				document.addEventListener("click", function (e) {
-					if (
-						iconPicker.classList.contains("active") &&
-						!iconPicker.contains(e.target) &&
-						!e.target.classList.contains("input__field-icon") &&
-						!e.target.closest(".icon-input-preview") &&
-						!e.target.classList.contains("input__icon-picker-btn")
-					) {
-						hideIconPicker();
-					}
-				});
+				// Backdrop click handles closing — no need for document click listener
 
 				iconPicker.addEventListener("keydown", function (e) {
 					if (e.key === "Escape") {
@@ -474,85 +389,83 @@ $(document).ready(function () {
 					}
 				});
 
-				const prevBtn = iconPicker.querySelector(
-					".icon-picker__pagination-prev"
-				);
-				const nextBtn = iconPicker.querySelector(
-					".icon-picker__pagination-next"
-				);
-
-				prevBtn.addEventListener("click", function () {
-					const activeTab = iconPicker.querySelector(
-						".icon-picker__tab.active"
-					);
-					if (!activeTab) return;
-					const packName = activeTab.dataset.pack;
-					const activeStyle = iconPicker.querySelector(
-						".icon-picker__style.active"
-					);
-					const styleName = activeStyle
-						? activeStyle.dataset.style
-						: null;
-					const cacheKey = getCacheKey(packName, styleName);
-					if (!iconPacksData[cacheKey]) return;
-					const packData = iconPacksData[cacheKey];
-					const currentPage = packData.searching
-						? packData.currentPageSearch
-						: packData.currentPage;
-					if (currentPage <= 1) return;
-					if (packData.searching) {
-						packData.currentPageSearch = currentPage - 1;
-						renderSearchResults(
-							packName,
-							packData.searchQuery,
-							styleName
-						);
-					} else {
-						packData.currentPage = currentPage - 1;
-						renderIconsForPack(packName, null, styleName);
+				// Event delegation for icon clicks
+				const contentEl = iconPicker.querySelector(".icon-picker__content");
+				contentEl.addEventListener("click", function (e) {
+					const iconEl = e.target.closest(".icon-picker__icon");
+					if (iconEl && iconEl.dataset.iconPath) {
+						selectIcon(iconEl.dataset.iconPath);
 					}
 				});
 
-				nextBtn.addEventListener("click", function () {
-					const activeTab = iconPicker.querySelector(
-						".icon-picker__tab.active"
-					);
-					if (!activeTab) return;
+				// Infinite scroll
+				let isLoadingMore = false;
+				contentEl.addEventListener("scroll", function () {
+					if (isLoadingMore) return;
+					const threshold = 100;
+					if (contentEl.scrollTop + contentEl.clientHeight >= contentEl.scrollHeight - threshold) {
+						isLoadingMore = true;
+						loadNextPage().finally(() => {
+							isLoadingMore = false;
+						});
+					}
+				});
+
+				function loadNextPage() {
+					const activeTab = iconPicker.querySelector(".icon-picker__tab.active");
+					if (!activeTab) return Promise.resolve();
 					const packName = activeTab.dataset.pack;
-					const activeStyle = iconPicker.querySelector(
-						".icon-picker__style.active"
-					);
-					const styleName = activeStyle
-						? activeStyle.dataset.style
-						: null;
+					const activeStyle = iconPicker.querySelector(".icon-picker__style.active");
+					const styleName = activeStyle ? activeStyle.dataset.style : null;
 					const cacheKey = getCacheKey(packName, styleName);
-					if (!iconPacksData[cacheKey]) return;
 					const packData = iconPacksData[cacheKey];
+					if (!packData) return Promise.resolve();
+
 					if (packData.searching) {
-						const currentPage = packData.currentPageSearch;
-						const totalPages = packData.totalPagesSearch;
-						if (currentPage >= totalPages) return;
+						const currentPage = packData.currentPageSearch || 1;
+						const totalPages = packData.totalPagesSearch || 1;
+						if (currentPage >= totalPages) return Promise.resolve();
 						packData.currentPageSearch = currentPage + 1;
-						renderSearchResults(
-							packName,
-							packData.searchQuery,
-							styleName
-						);
+						appendSearchResults(packName, styleName);
+						return Promise.resolve();
 					} else {
-						const currentPage = packData.currentPage;
-						const totalPages = packData.totalPages;
-						if (currentPage >= totalPages) return;
-						packData.currentPage = currentPage + 1;
-						renderIconsForPack(packName, null, styleName);
+						const currentPage = packData.currentPage || 1;
+						const totalPages = packData.totalPages || 1;
+						if (currentPage >= totalPages) return Promise.resolve();
+						const nextPage = currentPage + 1;
+						packData.currentPage = nextPage;
+						if (packData.hasPage[nextPage]) {
+							appendIconsForPage(packName, nextPage, styleName);
+							return Promise.resolve();
+						}
+						return loadAndAppendPage(packName, nextPage, styleName);
 					}
+				}
+
+				// Auto-fill: keep loading pages until scrollbar appears or no more pages
+				function fillUntilScrollable() {
+					requestAnimationFrame(() => {
+						if (contentEl.scrollHeight <= contentEl.clientHeight && !isLoadingMore) {
+							isLoadingMore = true;
+							loadNextPage().then(() => {
+								isLoadingMore = false;
+								fillUntilScrollable();
+							}).catch(() => {
+								isLoadingMore = false;
+							});
+						}
+					});
+				}
+
+				// Observe content changes to trigger auto-fill
+				const fillObserver = new MutationObserver(() => {
+					fillUntilScrollable();
 				});
+				fillObserver.observe(contentEl, { childList: true });
 			}
 
-			iconPicker.style.display = "none";
 			iconPicker.currentInput = input;
-
 			iconPicker.classList.remove("active");
-			iconPicker.style.pointerEvents = "none";
 
 			const categoriesContainer = iconPicker.querySelector(
 				".icon-picker__categories"
@@ -574,16 +487,8 @@ $(document).ready(function () {
 						});
 						createCategories();
 						iconPicker.classList.add("active");
-						iconPicker.style.pointerEvents = "auto";
+						document.body.style.overflow = "hidden";
 						positionPicker(input);
-						setTimeout(() => {
-							const searchInput = iconPicker.querySelector(
-								".icon-picker__search-input"
-							);
-							if (searchInput) {
-								searchInput.dispatchEvent(new Event("input"));
-							}
-						}, 0);
 					})
 					.catch((error) => {
 						console.error(
@@ -595,22 +500,15 @@ $(document).ready(function () {
 						).innerHTML =
 							'<div class="icon-picker__error">Не удалось загрузить пакеты иконок</div>';
 						iconPicker.classList.add("active");
-						iconPicker.style.pointerEvents = "auto";
+						document.body.style.overflow = "hidden";
+
 						positionPicker(input);
 					});
 			} else {
 				createCategories();
 				iconPicker.classList.add("active");
-				iconPicker.style.pointerEvents = "auto";
+				document.body.style.overflow = "hidden";
 				positionPicker(input);
-				setTimeout(() => {
-					const searchInput = iconPicker.querySelector(
-						".icon-picker__search-input"
-					);
-					if (searchInput) {
-						searchInput.dispatchEvent(new Event("input"));
-					}
-				}, 0);
 			}
 		}
 
@@ -644,8 +542,8 @@ $(document).ready(function () {
 						iconPicker.currentInput,
 						this.dataset.category
 					);
-					resetSearch();
 					createTabsForCategory(this.dataset.category);
+					reapplySearch();
 				});
 
 				categoriesContainer.appendChild(categoryEl);
@@ -683,7 +581,6 @@ $(document).ready(function () {
 					tabs.forEach((t) => t.classList.remove("active"));
 					this.classList.add("active");
 					const packPrefix = this.dataset.pack;
-					resetSearch();
 
 					const pack = categorizedPacks[category].find(
 						(p) => p.prefix === packPrefix
@@ -696,7 +593,7 @@ $(document).ready(function () {
 						stylesContainer.style.display = "none";
 					}
 
-					loadIconsForPack(packPrefix);
+					reapplySearch();
 				});
 
 				stylesContainer.appendChild(tab);
@@ -727,9 +624,8 @@ $(document).ready(function () {
 						s.classList.remove("active");
 					});
 				this.classList.add("active");
-				resetSearch();
 
-				loadIconsForPack(packPrefix);
+				reapplySearch();
 			});
 			stylesContainer.appendChild(allStyle);
 
@@ -747,9 +643,8 @@ $(document).ready(function () {
 							s.classList.remove("active");
 						});
 					this.classList.add("active");
-					resetSearch();
 
-					loadIconsForPack(packPrefix, style);
+					reapplySearch();
 				});
 
 				stylesContainer.appendChild(styleEl);
@@ -757,66 +652,21 @@ $(document).ready(function () {
 		}
 
 		function positionPicker(input) {
-			if (cleanup) {
-				cleanup();
-				cleanup = null;
-			}
-
-			iconPicker.style.display = "flex";
-
-			const { computePosition, autoUpdate, offset, flip, shift } =
-				window.FloatingUIDOM;
-
-			const update = () => {
-				computePosition(input, iconPicker, {
-					placement: "bottom-start",
-					middleware: [
-						offset(8),
-						flip({ padding: 16 }),
-						shift({ padding: 16 }),
-					],
-				}).then(({ x, y }) => {
-					Object.assign(iconPicker.style, {
-						left: `${x}px`,
-						top: `${y}px`,
-					});
-					requestAnimationFrame(() => {
-						if (iconPicker.classList.contains("active")) {
-							const searchInput = iconPicker.querySelector(
-								".icon-picker__search-input"
-							);
-							if (
-								searchInput &&
-								document.activeElement !== searchInput
-							) {
-								searchInput.focus({ preventScroll: true });
-							}
-						}
-					});
-				});
-			};
-
-			cleanup = autoUpdate(input, iconPicker, update);
-			update();
-
-			setTimeout(() => {
-				resetSearch();
-			}, 0);
+			// Modal is centered via CSS — no positioning needed
+			requestAnimationFrame(() => {
+				const searchInput = iconPicker.querySelector(
+					".icon-picker__search-input"
+				);
+				if (searchInput && document.activeElement !== searchInput) {
+					searchInput.focus({ preventScroll: true });
+				}
+			});
 		}
 
 		function hideIconPicker() {
 			if (iconPicker) {
 				iconPicker.classList.remove("active");
-				iconPicker.style.pointerEvents = "none";
-
-				if (cleanup) {
-					cleanup();
-					cleanup = null;
-				}
-
-				setTimeout(() => {
-					resetSearch();
-				}, 300);
+				document.body.style.overflow = "";
 			}
 		}
 
@@ -854,7 +704,7 @@ $(document).ready(function () {
 							currentPage: 1,
 							totalPages: 1,
 							icons: [],
-							limit: 50,
+							limit: 150,
 							hasPage: {},
 						};
 					}
@@ -896,102 +746,44 @@ $(document).ready(function () {
 			const contentContainer = iconPicker.querySelector(
 				".icon-picker__content"
 			);
-			const pagination = iconPicker.querySelector(
-				".icon-picker__pagination"
-			);
-			const paginationInfo = pagination.querySelector(
-				".icon-picker__pagination-info"
-			);
-			const prevBtn = pagination.querySelector(
-				".icon-picker__pagination-prev"
-			);
-			const nextBtn = pagination.querySelector(
-				".icon-picker__pagination-next"
-			);
 
 			contentContainer.innerHTML = "";
+			contentContainer.scrollTop = 0;
 
-			const start = (packData.currentPageSearch - 1) * packData.limit;
-			const end = Math.min(
-				start + packData.limit,
-				packData.searchResults.length
-			);
-			const iconsToDisplay = packData.searchResults.slice(start, end);
+			packData.currentPageSearch = 1;
+
+			const iconsToDisplay = packData.searchResults.slice(0, packData.limit);
 
 			if (iconsToDisplay.length === 0) {
 				contentContainer.innerHTML =
 					'<div class="icon-picker__empty">Ничего не найдено</div>';
-				pagination.style.display = "none";
 				return;
 			}
 
-			if (packData.totalPagesSearch > 1) {
-				pagination.style.display = "flex";
-				paginationInfo.textContent = `${packData.currentPageSearch} / ${packData.totalPagesSearch}`;
-				prevBtn.disabled = packData.currentPageSearch <= 1;
-				nextBtn.disabled =
-					packData.currentPageSearch >= packData.totalPagesSearch;
-			} else {
-				pagination.style.display = "none";
-			}
+			appendIconElements(contentContainer, iconsToDisplay);
+		}
 
-			const iconsFragment = document.createDocumentFragment();
-			iconsToDisplay.forEach((icon) => {
-				const iconElement = document.createElement("div");
-				iconElement.className = "icon-picker__icon";
-				iconElement.dataset.iconPath = icon.path;
-				iconElement.title = icon.displayName;
-				iconElement.innerHTML = icon.svg;
-				if (
-					iconPicker.currentInput &&
-					iconPicker.currentInput.value === icon.path
-				) {
-					iconElement.classList.add("active");
-				}
-				iconElement.addEventListener("click", function () {
-					selectIcon(this.dataset.iconPath);
-				});
-				iconsFragment.appendChild(iconElement);
-			});
+		function appendSearchResults(packPrefix, styleName = null) {
+			const cacheKey = getCacheKey(packPrefix, styleName);
+			const packData = iconPacksData[cacheKey];
+			if (!packData || !packData.searchResults) return;
 
-			contentContainer.appendChild(iconsFragment);
+			const contentContainer = iconPicker.querySelector(
+				".icon-picker__content"
+			);
 
-			if (cleanup) {
-				cleanup();
-				const { computePosition, autoUpdate, offset, flip, shift } =
-					window.FloatingUIDOM;
-				const update = () => {
-					computePosition(iconPicker.currentInput, iconPicker, {
-						placement: "bottom-start",
-						middleware: [
-							offset(8),
-							flip({ padding: 16 }),
-							shift({ padding: 16 }),
-						],
-					}).then(({ x, y }) => {
-						Object.assign(iconPicker.style, {
-							left: `${x}px`,
-							top: `${y}px`,
-						});
-					});
-				};
-				cleanup = autoUpdate(
-					iconPicker.currentInput,
-					iconPicker,
-					update
-				);
-			}
+			const page = packData.currentPageSearch || 1;
+			const start = (page - 1) * packData.limit;
+			const end = Math.min(start + packData.limit, packData.searchResults.length);
+			const iconsToDisplay = packData.searchResults.slice(start, end);
+
+			appendIconElements(contentContainer, iconsToDisplay);
 		}
 
 		function loadIconsForPack(packPrefix, styleName = null) {
 			const contentContainer = iconPicker.querySelector(
 				".icon-picker__content"
 			);
-			const pagination = iconPicker.querySelector(
-				".icon-picker__pagination"
-			);
-			pagination.style.display = "none";
-
 			contentContainer.innerHTML = createSkeletonLoader();
 
 			const cacheKey = getCacheKey(packPrefix, styleName);
@@ -1015,7 +807,7 @@ $(document).ready(function () {
 				totalPages: 1,
 				icons: [],
 				searchResults: [],
-				limit: 50,
+				limit: 150,
 				hasPage: { 1: false },
 			};
 
@@ -1065,20 +857,9 @@ $(document).ready(function () {
 			const contentContainer = iconPicker.querySelector(
 				".icon-picker__content"
 			);
-			const pagination = iconPicker.querySelector(
-				".icon-picker__pagination"
-			);
-			const paginationInfo = pagination.querySelector(
-				".icon-picker__pagination-info"
-			);
-			const prevBtn = pagination.querySelector(
-				".icon-picker__pagination-prev"
-			);
-			const nextBtn = pagination.querySelector(
-				".icon-picker__pagination-next"
-			);
 
 			contentContainer.innerHTML = "";
+			contentContainer.scrollTop = 0;
 
 			if (searchText && searchText.length >= 2) {
 				searchIcons(packPrefix, searchText, styleName);
@@ -1090,28 +871,15 @@ $(document).ready(function () {
 				packData.searchQuery = null;
 			}
 
-			if (
-				packData.currentPage > 1 &&
-				!packData.hasPage[packData.currentPage]
-			) {
-				loadPageForPack(packPrefix, packData.currentPage, styleName);
+			// Reset to page 1 for fresh render
+			packData.currentPage = 1;
+
+			if (!packData.hasPage[1]) {
+				loadPageForPack(packPrefix, 1, styleName);
 				return;
 			}
 
-			const start = (packData.currentPage - 1) * packData.limit;
-			const iconsToDisplay = packData.icons.slice(
-				start,
-				start + packData.limit
-			);
-
-			if (packData.totalPages > 1) {
-				pagination.style.display = "flex";
-				paginationInfo.textContent = `${packData.currentPage} / ${packData.totalPages}`;
-				prevBtn.disabled = packData.currentPage <= 1;
-				nextBtn.disabled = packData.currentPage >= packData.totalPages;
-			} else {
-				pagination.style.display = "none";
-			}
+			const iconsToDisplay = packData.icons.slice(0, packData.limit);
 
 			if (iconsToDisplay.length === 0) {
 				contentContainer.innerHTML =
@@ -1119,66 +887,59 @@ $(document).ready(function () {
 				return;
 			}
 
-			const iconsFragment = document.createDocumentFragment();
-			iconsToDisplay.forEach((icon) => {
-				const iconElement = document.createElement("div");
-				iconElement.className = "icon-picker__icon";
-				iconElement.dataset.iconPath = icon.path;
-				iconElement.title = icon.displayName;
-				iconElement.innerHTML = icon.svg;
-				if (
-					iconPicker.currentInput &&
-					iconPicker.currentInput.value === icon.path
-				) {
-					iconElement.classList.add("active");
-				}
-				iconElement.addEventListener("click", function () {
-					selectIcon(this.dataset.iconPath);
-				});
-				iconsFragment.appendChild(iconElement);
-			});
+			appendIconElements(contentContainer, iconsToDisplay);
+		}
 
-			contentContainer.appendChild(iconsFragment);
+		function appendIconsForPage(packPrefix, page, styleName = null) {
+			const cacheKey = getCacheKey(packPrefix, styleName);
+			const packData = iconPacksData[cacheKey];
+			if (!packData) return;
 
-			if (cleanup) {
-				cleanup();
-				const { computePosition, autoUpdate, offset, flip, shift } =
-					window.FloatingUIDOM;
-				const update = () => {
-					computePosition(iconPicker.currentInput, iconPicker, {
-						placement: "bottom-start",
-						middleware: [
-							offset(8),
-							flip({ padding: 16 }),
-							shift({ padding: 16 }),
-						],
-					}).then(({ x, y }) => {
-						Object.assign(iconPicker.style, {
-							left: `${x}px`,
-							top: `${y}px`,
-						});
-					});
-				};
-				cleanup = autoUpdate(
-					iconPicker.currentInput,
-					iconPicker,
-					update
-				);
+			const contentContainer = iconPicker.querySelector(
+				".icon-picker__content"
+			);
+
+			const start = (page - 1) * packData.limit;
+			const iconsToDisplay = packData.icons.slice(start, start + packData.limit).filter(Boolean);
+
+			appendIconElements(contentContainer, iconsToDisplay);
+		}
+
+		function escapeAttr(str) {
+			return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+		}
+
+		function appendIconElements(container, icons) {
+			const currentValue = iconPicker.currentInput ? iconPicker.currentInput.value : "";
+			const html = icons.map((icon) => {
+				const cls = "icon-picker__icon" + (icon.path === currentValue ? " active" : "");
+				return `<div class="${cls}" data-icon-path="${escapeAttr(icon.path)}" title="${escapeAttr(icon.displayName)}">${icon.svg}</div>`;
+			}).join("");
+
+			const temp = document.createElement("div");
+			temp.innerHTML = html;
+			const fragment = document.createDocumentFragment();
+			while (temp.firstChild) {
+				fragment.appendChild(temp.firstChild);
 			}
+			container.appendChild(fragment);
 		}
 
 		function loadPageForPack(packPrefix, page, styleName = null) {
 			const contentContainer = iconPicker.querySelector(
 				".icon-picker__content"
 			);
-			contentContainer.innerHTML = createSkeletonLoader();
-
 			const cacheKey = getCacheKey(packPrefix, styleName);
 			const packData = iconPacksData[cacheKey];
 			if (!packData) return;
 
 			if (!packData.hasPage) {
 				packData.hasPage = {};
+			}
+
+			// If first page and container is empty, show skeleton
+			if (page === 1 && contentContainer.children.length === 0) {
+				contentContainer.innerHTML = createSkeletonLoader();
 			}
 
 			if (
@@ -1188,7 +949,11 @@ $(document).ready(function () {
 			) {
 				iconPacksData[cacheKey] = { ...iconCache[cacheKey] };
 				packData.hasPage[page] = true;
-				renderIconsForPack(packPrefix, null, styleName);
+				if (page === 1) {
+					renderIconsForPack(packPrefix, null, styleName);
+				} else {
+					appendIconsForPage(packPrefix, page, styleName);
+				}
 				return;
 			}
 
@@ -1222,15 +987,71 @@ $(document).ready(function () {
 					iconCache[cacheKey] = { ...packData };
 					saveIconCache();
 
-					renderIconsForPack(packPrefix, null, styleName);
+					if (page === 1) {
+						renderIconsForPack(packPrefix, null, styleName);
+					} else {
+						appendIconsForPage(packPrefix, page, styleName);
+					}
 				})
 				.catch((error) => {
 					console.error(
 						`Ошибка при загрузке страницы ${page} иконок для пакета ${packPrefix}:`,
 						error
 					);
-					contentContainer.innerHTML =
-						'<div class="icon-picker__error">Не удалось загрузить иконки</div>';
+				});
+		}
+
+		function loadAndAppendPage(packPrefix, page, styleName = null) {
+			const cacheKey = getCacheKey(packPrefix, styleName);
+			const packData = iconPacksData[cacheKey];
+			if (!packData) return Promise.resolve();
+
+			if (!packData.hasPage) {
+				packData.hasPage = {};
+			}
+
+			if (packData.hasPage[page]) {
+				appendIconsForPage(packPrefix, page, styleName);
+				return Promise.resolve();
+			}
+
+			let url = `admin/api/icons/batch-render?prefix=${packPrefix}&limit=${packData.limit}&page=${page}`;
+			if (styleName) {
+				url += `&category=${styleName}`;
+			}
+
+			return fetch(u(url))
+				.then((response) => response.json())
+				.then((data) => {
+					const newIcons = data.icons.map((icon) => ({
+						path: icon.path,
+						svg: icon.svg,
+						displayName: icon.displayName,
+					}));
+
+					packData.hasPage[page] = true;
+
+					const start = (page - 1) * packData.limit;
+					const end = start + packData.limit;
+
+					if (packData.icons.length < end) {
+						packData.icons.length = end;
+					}
+
+					for (let i = 0; i < newIcons.length; i++) {
+						packData.icons[start + i] = newIcons[i];
+					}
+
+					iconCache[cacheKey] = { ...packData };
+					saveIconCache();
+
+					appendIconsForPage(packPrefix, page, styleName);
+				})
+				.catch((error) => {
+					console.error(
+						`Ошибка при загрузке страницы ${page}:`,
+						error
+					);
 				});
 		}
 
@@ -1300,12 +1121,36 @@ $(document).ready(function () {
 				});
 		}
 
-		function resetSearch() {
+		function reapplySearch() {
 			const searchInput = iconPicker.querySelector(
 				".icon-picker__search-input"
 			);
-			if (searchInput) {
-				searchInput.value = "";
+			const searchText = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+			const activePackTab = iconPicker.querySelector(".icon-picker__tab.active");
+			const activeStyle = iconPicker.querySelector(".icon-picker__style.active");
+			const styleName = activeStyle ? activeStyle.dataset.style : null;
+			let packName = null;
+
+			if (activePackTab) {
+				packName = activePackTab.dataset.pack;
+			} else {
+				const firstCategoryElem = iconPicker.querySelector(".icon-picker__category.active");
+				if (firstCategoryElem) {
+					const categoryKey = firstCategoryElem.dataset.category;
+					const packsInCategory = categorizedPacks[categoryKey];
+					if (packsInCategory && packsInCategory.length > 0) {
+						packName = packsInCategory[0].prefix;
+					}
+				}
+			}
+
+			if (!packName) return;
+
+			if (searchText.length >= 2) {
+				searchIcons(packName, searchText, styleName || undefined);
+			} else {
+				loadIconsForPack(packName, styleName || undefined);
 			}
 		}
 

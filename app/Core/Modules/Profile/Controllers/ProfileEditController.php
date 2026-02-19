@@ -26,7 +26,7 @@ class ProfileEditController extends BaseController
             ->add(__('def.profile') . " - {$user->name}", url("profile/{$user->getUrl()}"))
             ->add(__('def.settings'), url('profile/settings'));
 
-        $tabs = $profileTabService->getTabs();
+        $tabs = $profileTabService->getTabs($user);
 
         if ($this->path === 'full') {
             return view('flute::pages.profile.edit-full', [

@@ -116,6 +116,7 @@ return [
     'sidebar_mode_full' => 'Fonlar bilan toʻliq',
     'minimal' => 'Minimal',
     'full' => 'Toʻliq',
+    'sidebar_contained' => 'Konteyner rejimi',
     'sidebar_position' => 'Elementlar Pozitsiyasi',
     'sidebar_position_top' => 'Elementlar yuqoriga tekislangan',
     'sidebar_position_center' => 'Elementlar vertikal markazlashtirilgan',
@@ -181,4 +182,24 @@ return [
     'content_align' => 'Kontent Tekislash',
     'align_left' => 'Chapga tekislash',
     'align_center' => 'Markazga tekislash',
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Yashirin yo'llar",
+    "excluded_paths_desc"   => "Vidjet bu yo'llarda ko'rsatilmaydi",
+    "excluded_paths_hint"   => "Misollar: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/yashirish/uchun/yol",
+    "add_path"              => "Qo'shish",
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
 ];

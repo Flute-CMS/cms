@@ -86,47 +86,18 @@ class FooterService
      */
     protected function getDefaultItems(): array
     {
-        $footerItems = $this->getAllFooterItems();
-        $tree = $this->buildTree($footerItems);
+        $footerItems = FooterItem::query()
+            ->load(['children', 'children.children'])
+            ->orderBy('position', 'asc')
+            ->where(['parent_id' => null])
+            ->fetchAll();
 
         $formattedItems = [];
-        foreach ($tree as $item) {
+        foreach ($footerItems as $item) {
             $formattedItems[] = $this->format($item);
         }
 
-        usort($formattedItems, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
-
         return $formattedItems;
-    }
-
-    protected function getAllFooterItems(): array
-    {
-        $footerItems = FooterItem::query()
-            ->load(['children', 'children.children', 'parent'])
-            ->orderBy('position', 'asc')
-            ->where([
-                'parent_id' => null,
-            ])->fetchAll();
-
-        return $footerItems;
-    }
-
-    protected function buildTree(array $items, ?int $parentId = null): array
-    {
-        $tree = [];
-
-        foreach ($items as $item) {
-            if ($item->parent && $item->parent->id === $parentId) {
-                $item->children = $this->buildTree($items, $item->id);
-                $tree[] = $item;
-            } else {
-                $tree[] = $item;
-            }
-        }
-
-        usort($tree, static fn ($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
-
-        return $tree;
     }
 
     /**

@@ -116,6 +116,7 @@ return [
     'sidebar_mode_full' => 'Plný s pozadím',
     'minimal' => 'Minimální',
     'full' => 'Plný',
+    'sidebar_contained' => 'Kontejnerový režim',
     'sidebar_position' => 'Pozice položek',
     'sidebar_position_top' => 'Položky zarovnané nahoru',
     'sidebar_position_center' => 'Položky vycentrované vertikálně',
@@ -181,4 +182,24 @@ return [
     'content_align' => 'Zarovnání obsahu',
     'align_left' => 'Zarovnat doleva',
     'align_center' => 'Zarovnat na střed',
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Skryté cesty",
+    "excluded_paths_desc"   => "Widget se na těchto cestách nezobrazí",
+    "excluded_paths_hint"   => "Příklady: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/cesta/ke/skrytí",
+    "add_path"              => "Přidat",
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
 ];

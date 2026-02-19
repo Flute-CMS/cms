@@ -731,6 +731,20 @@ class UserEditScreen extends Screen
                         ->label(__('admin-users.fields.hidden.label'))
                         ->popover(__('admin-users.fields.hidden.help')),
                 ]),
+
+                ...user()->can('admin.boss') ? [
+                    LayoutFactory::field(
+                        ButtonGroup::make('approved')
+                            ->options([
+                                '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                                '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.seal-check-bold'],
+                            ])
+                            ->value(($this->user?->approved ?? false) ? '1' : '0')
+                            ->color('accent')
+                    )
+                        ->label(__('admin-users.fields.approved.label'))
+                        ->popover(__('admin-users.fields.approved.help')),
+                ] : [],
             ])
                 ->title(__('admin-users.sections.main_info')),
 

@@ -115,6 +115,7 @@
     "sidebar_mode_full"     => "Full with backgrounds",
     "minimal"               => "Minimal",
     "full"                  => "Full",
+    "sidebar_contained"     => "Contained layout",
     "sidebar_position"      => "Items Position",
     "sidebar_position_top"  => "Items aligned to top",
     "sidebar_position_center" => "Items centered vertically",
@@ -211,4 +212,24 @@
     "no_widgets_found"      => "No widgets found",
     "empty_title"           => "No widgets yet",
     "empty_desc"            => "Drag widgets from the sidebar or click + to add them to the page.",
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Hidden paths",
+    "excluded_paths_desc"   => "The widget won't be shown on these paths",
+    "excluded_paths_hint"   => "Examples: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/path/to/exclude",
+    "add_path"              => "Add",
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
 ];

@@ -4,12 +4,12 @@
     border: 1px solid var(--transp-1);
     border-radius: var(--border1);
     box-shadow: var(--shadow-small);
-    overflow: hidden;
     @include transition(box-shadow, transform);
 
     &-img-top {
         width: 100%;
         height: auto;
+        border-radius: var(--border1) var(--border1) 0 0;
     }
 
     &-header {
@@ -31,23 +31,4 @@
     }
 
     &-footer { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--transp-1); }
-}
-
-.card {
-    &::before {
-        content: '';
-        position: absolute;
-        inset: -1px;
-        border-radius: inherit;
-        background: linear-gradient(135deg, var(--accent), var(--primary));
-        opacity: calc(var(--glow-intensity, 0) * 0.3);
-        z-index: -1;
-        filter: blur(20px);
-        transition: opacity var(--transition);
-        pointer-events: none;
-    }
-    
-    &:hover::before {
-        opacity: calc(var(--glow-intensity, 0) * 0.5);
-    }
 }

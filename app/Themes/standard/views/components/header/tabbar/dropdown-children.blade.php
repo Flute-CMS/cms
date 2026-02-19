@@ -22,7 +22,7 @@
             </div>
         </div>
     @else
-        <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" @endif
+        <a href="{{ url($child['url']) }}" @if ($child['new_tab']) target="_blank" rel="noopener" @endif
             class="tabbar__modal-item" itemprop="url" style="@if($level > 0) padding-left: {{ $level * 16 }}px; @endif">
             @if ($child['icon'])
                 <x-icon path="{{ $child['icon'] }}" />

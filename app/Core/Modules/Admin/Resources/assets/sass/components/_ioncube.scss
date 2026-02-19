@@ -1,0 +1,130 @@
+.ioncube-missing-notice {
+    font-size: 12px;
+    line-height: 1.5;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    &__meta {
+        font-size: 11px;
+        opacity: 0.7;
+        font-weight: 400;
+    }
+
+    &__desc {
+        margin-top: 4px;
+        opacity: 0.85;
+    }
+
+    &__error {
+        margin-top: 8px;
+        padding: 6px 10px;
+        background: rgba(239, 68, 68, 0.15);
+        border-radius: 6px;
+        color: #f87171;
+        font-size: 11px;
+    }
+
+    &__success {
+        margin-top: 8px;
+        padding: 6px 10px;
+        background: rgba(34, 197, 94, 0.15);
+        border-radius: 6px;
+        color: #4ade80;
+        font-size: 11px;
+
+        code {
+            display: block;
+            margin-top: 4px;
+            font-size: 10px;
+            opacity: 0.8;
+        }
+    }
+
+    &__details {
+        margin-top: 12px;
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            opacity: 0.9;
+            user-select: none;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__steps {
+        margin-top: 10px;
+        padding-left: 4px;
+
+        > a {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: var(--accent-color, #f59e0b);
+        }
+
+        .step {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+
+            &__num {
+                flex-shrink: 0;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                font-size: 10px;
+                font-weight: 600;
+            }
+
+            &__content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            &__title {
+                font-weight: 500;
+                font-size: 11px;
+            }
+
+            &__hint {
+                font-size: 10px;
+                opacity: 0.7;
+                margin-top: 2px;
+            }
+
+            pre {
+                margin: 4px 0 0;
+                padding: 6px 8px;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 4px;
+                font-size: 10px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+        }
+    }
+
+    &__actions {
+        margin-top: 12px;
+
+        .btn {
+            font-size: 11px;
+            gap: 6px;
+        }
+    }
+}

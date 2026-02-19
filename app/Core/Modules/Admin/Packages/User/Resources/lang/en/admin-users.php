@@ -86,6 +86,10 @@ return [
             'label' => 'Verified',
             'help' => 'Check if the user has been verified',
         ],
+        'approved' => [
+            'label' => 'Approved',
+            'help' => 'Approved users get a verification badge on their profile',
+        ],
         'hidden' => [
             'label' => 'Hidden Profile',
             'help' => 'Check if the user’s profile should be hidden',
@@ -204,6 +208,7 @@ return [
         'paid' => 'Paid',
         'unpaid' => 'Unpaid',
         'verified' => 'Verified',
+        'approved' => 'Approved',
         'hidden' => 'Hidden',
         'blocked' => 'Blocked',
         'visible' => 'Visible',

@@ -107,7 +107,6 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
     }
 
     .flute_header {
-        left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
 
         @media (max-width: 768px) {
             left: 0 !important;
@@ -133,6 +132,37 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
 
         .flute_footer {
             margin-left: 0 !important;
+        }
+    }
+}
+
+// ── Non-fixed sidebar (scrolls with page) ──
+// Contained mode always stays fixed (layout requires it)
+html[data-nav-style="sidebar"][data-nav-fixed="false"]:not([data-sidebar-contained="true"]) {
+    .sidebar-nav {
+        position: absolute;
+        height: 100vh;
+    }
+
+    .flute_header {
+        position: relative;
+        left: auto;
+    }
+}
+
+html[data-nav-style="sidebar"][data-sidebar-style="mini"][data-nav-fixed="false"]:not([data-sidebar-contained="true"]) {
+    .sidebar-nav {
+        position: absolute;
+        height: 100vh;
+    }
+}
+
+@media (max-width: 768px) {
+    // On mobile sidebar is always fixed (off-canvas drawer)
+    html[data-nav-style="sidebar"][data-nav-fixed="false"] {
+        .sidebar-nav {
+            position: fixed;
+            height: auto;
         }
     }
 }

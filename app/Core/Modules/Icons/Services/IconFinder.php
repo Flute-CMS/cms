@@ -14,6 +14,11 @@ class IconFinder
     private static array $fileContentCache = [];
 
     /**
+     * In-request cache for directory scan results (icon lists).
+     */
+    private static array $iconListCache = [];
+
+    /**
      */
     private Collection $directories;
 
@@ -107,45 +112,46 @@ class IconFinder
      */
     public function getIconsInPackage(string $prefix, ?string $category = null): array
     {
-        $icons = [];
+        $cacheKey = $prefix . '|' . ($category ?? '*');
+
+        if (isset(self::$iconListCache[$cacheKey])) {
+            return self::$iconListCache[$cacheKey];
+        }
+
         $dir = $this->directories->get($prefix);
 
         if (!$dir) {
-            return $icons;
+            return [];
         }
+
+        $icons = [];
 
         try {
             if ($category) {
                 $categoryDir = $dir . DIRECTORY_SEPARATOR . $category;
                 if (is_dir($categoryDir)) {
-                    $files = $this->scanDirectory($categoryDir);
-                    foreach ($files as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
-                            $relativePath = str_replace($categoryDir . DIRECTORY_SEPARATOR, '', $file);
-                            $iconName = pathinfo($relativePath, PATHINFO_FILENAME);
-                            $icons[] = $category . '.' . $iconName;
-                        }
+                    $pattern = $categoryDir . DIRECTORY_SEPARATOR . '*.svg';
+                    foreach (glob($pattern) as $file) {
+                        $icons[] = $category . '.' . pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
             } else {
-                $files = $this->scanDirectory($dir);
-                foreach ($files as $file) {
-                    if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
-                        $relativePath = str_replace($dir . DIRECTORY_SEPARATOR, '', $file);
-                        $iconName = pathinfo($relativePath, PATHINFO_FILENAME);
-                        $pathParts = explode(DIRECTORY_SEPARATOR, $relativePath);
-
-                        if (count($pathParts) > 1) {
-                            $categoryName = $pathParts[0];
-                            $icons[] = $categoryName . '.' . $iconName;
-                        } else {
-                            $icons[] = $iconName;
-                        }
+                // First-level SVGs
+                foreach (glob($dir . DIRECTORY_SEPARATOR . '*.svg') as $file) {
+                    $icons[] = pathinfo($file, PATHINFO_FILENAME);
+                }
+                // Category subdirectories
+                foreach (glob($dir . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) as $catDir) {
+                    $categoryName = basename($catDir);
+                    foreach (glob($catDir . DIRECTORY_SEPARATOR . '*.svg') as $file) {
+                        $icons[] = $categoryName . '.' . pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
             }
         } catch (Exception $e) {
         }
+
+        self::$iconListCache[$cacheKey] = $icons;
 
         return $icons;
     }

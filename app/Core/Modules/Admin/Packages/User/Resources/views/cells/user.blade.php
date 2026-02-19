@@ -9,10 +9,14 @@
         <span>
             {{ $user->name }}
         </span>
-        @if ($user->verified || $user->hidden || $user->isBlocked())
+        @if ($user->verified || $user->approved || $user->hidden || $user->isBlocked())
             <div class="d-flex align-items-center gap-1">
                 @if ($user->verified)
                     <span class="badge success">{{ __('admin-users.status.verified') }}</span>
+                @endif
+
+                @if ($user->approved)
+                    <span class="badge primary">{{ __('admin-users.status.approved') }}</span>
                 @endif
 
                 @if ($user->hidden)

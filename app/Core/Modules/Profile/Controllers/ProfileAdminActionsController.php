@@ -295,6 +295,34 @@ class ProfileAdminActionsController extends BaseController
         }
     }
 
+    public function toggleApproved(FluteRequest $request, int $id)
+    {
+        if (!user()->can('admin.boss')) {
+            return $this->error(__('def.no_permission'), 403);
+        }
+
+        $targetUser = User::findByPK($id);
+
+        if (!$targetUser) {
+            return $this->error(__('def.user_not_found'), 404);
+        }
+
+        try {
+            $targetUser->approved = !$targetUser->approved;
+            $targetUser->save();
+
+            $message = $targetUser->approved
+                ? __('profile.admin_actions.user_approved')
+                : __('profile.admin_actions.user_unapproved');
+
+            $this->toast($message, 'success');
+
+            return $this->success($message);
+        } catch (Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
     /**
      * Parse datetime string from datetime-local input.
      * The input comes in format Y-m-d\TH:i without timezone info.

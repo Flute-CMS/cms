@@ -52,6 +52,10 @@ return [
             'placeholder' => 'ph.regular... or <svg...',
             'help' => 'Icon associated with the role',
         ],
+        'show_icon' => [
+            'label' => 'Show as icon',
+            'help' => 'Show icon instead of name in compact views (user card, mini-profile)',
+        ],
     ],
     'messages' => [
         'created' => 'Role created successfully.',

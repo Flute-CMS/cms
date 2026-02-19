@@ -34,6 +34,9 @@ class Role extends ActiveRecord
     #[Column(type: "integer", default: 0)]
     public int $priority = 0;
 
+    #[Column(type: "boolean", default: false)]
+    public bool $showIcon = false;
+
     #[ManyToMany(target: "Permission", through: "RolePermission")]
     public array $permissions = [];
 

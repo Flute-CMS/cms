@@ -327,6 +327,10 @@ class AdminUsersService
         $user->verified = isset($data['verified']) ? filter_var($data['verified'], FILTER_VALIDATE_BOOLEAN) : false;
         $user->hidden = isset($data['hidden']) ? filter_var($data['hidden'], FILTER_VALIDATE_BOOLEAN) : false;
 
+        if (isset($data['approved']) && user()->can('admin.boss')) {
+            $user->approved = filter_var($data['approved'], FILTER_VALIDATE_BOOLEAN);
+        }
+
         $user->save();
     }
 }

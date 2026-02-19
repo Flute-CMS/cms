@@ -30,7 +30,7 @@
 
     @if ($performanceData['hasData'])
         @push('head')
-            <script src="{{ asset('assets/js/libs/apex-charts.js') }}"></script>
+            <script src="{{ asset('assets/js/libs/apex-charts.js') }}" defer></script>
         @endpush
 
         <section class="about-system__panel about-system__panel--full">
@@ -124,7 +124,7 @@
                 <div class="about-system__grid-item">
                     <div class="about-system__grid-label">{{ __('admin-about-system.labels.author') }}</div>
                     <div class="about-system__grid-value">
-                        <a href="https://github.com/FlamesONE" target="_blank">
+                        <a href="https://github.com/FlamesONE" target="_blank" rel="noopener">
                             {{ explode(' <', $systemInfo['author'])[0] ?? $systemInfo['author'] }}
                         </a>
                     </div>
@@ -133,7 +133,7 @@
                 <div class="about-system__grid-item">
                     <div class="about-system__grid-label">{{ __('admin-about-system.labels.project_link') }}</div>
                     <div class="about-system__grid-value">
-                        <a href="{{ $systemInfo['project_link'] }}" target="_blank">GitHub</a>
+                        <a href="{{ $systemInfo['project_link'] }}" target="_blank" rel="noopener">GitHub</a>
                     </div>
                 </div>
 

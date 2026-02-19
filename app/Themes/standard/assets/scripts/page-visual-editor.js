@@ -215,7 +215,8 @@ class VisualEditor {
         this.loadedFonts = new Set(['Manrope']);
         this.initialStates = {};
         this.themeData = window.__themeCustomization || {};
-        
+        this.pendingUploads = {};
+
         this.gradientState = {
             type: 'none',
             angle: 135,
@@ -236,6 +237,7 @@ class VisualEditor {
         this.cacheElements();
         this.buildDesignGrid();
         this.bindEvents();
+        this.bindUploadEvents();
     }
 
     cacheElements() {
@@ -306,6 +308,9 @@ class VisualEditor {
         // Sidebar position section and cards
         this.sidebarPositionSection = document.getElementById('ve-sidebar-position');
         this.sidebarPositionCards = this.editor.querySelectorAll('[data-sidebar-position]');
+        // Sidebar contained toggle
+        this.sidebarContainedToggle = document.getElementById('ve-sidebar-contained');
+        this.sidebarContainedWrap = document.getElementById('ve-sidebar-contained-wrap');
         // Footer type cards
         this.footerTypeCards = this.editor.querySelectorAll('[data-footer-type]');
         
@@ -707,7 +712,13 @@ class VisualEditor {
                 this.recordHistory();
             });
         });
-        
+
+        // Sidebar contained toggle
+        this.sidebarContainedToggle?.addEventListener('change', (e) => {
+            this.setSidebarContained(e.target.checked);
+            this.recordHistory();
+        });
+
         // Navigation fixed toggle
         this.navFixedToggle?.addEventListener('change', (e) => {
             this.handleNavFixedToggle(e.target.checked);
@@ -993,17 +1004,17 @@ class VisualEditor {
         if (this.sidebarStylesSection) {
             this.sidebarStylesSection.hidden = navStyle !== 'sidebar';
         }
-        
-        // Show/hide nav fixed toggle (hide for sidebar)
+
+        // Show/hide nav fixed toggle
         const navFixedWrap = document.getElementById('ve-nav-fixed-wrap');
         if (navFixedWrap) {
-            navFixedWrap.hidden = navStyle === 'sidebar';
+            navFixedWrap.hidden = false;
         }
-        
+
         // Show/hide nav blur toggle (hide for sidebar)
         const navBlurWrap = document.getElementById('ve-nav-blur-wrap');
         if (navBlurWrap) {
-            navBlurWrap.hidden = navStyle === 'sidebar';
+            navBlurWrap.hidden = false;
         }
 
         // Sidebar style
@@ -1033,7 +1044,12 @@ class VisualEditor {
         this.sidebarPositionCards.forEach(card => {
             card.classList.toggle('active', card.dataset.sidebarPosition === sidebarPosition);
         });
-        
+
+        // Sidebar contained
+        if (this.sidebarContainedToggle) {
+            this.sidebarContainedToggle.checked = this.root.getAttribute('data-sidebar-contained') === 'true';
+        }
+
         // Navigation fixed toggle
         if (this.navFixedToggle) {
             const isFixed = this.root.getAttribute('data-nav-fixed') !== 'false';
@@ -1182,7 +1198,7 @@ class VisualEditor {
         this.generateShades(variable, hex);
         
         if (['--accent', '--primary', '--background'].includes(variable)) {
-            this.updateBackgroundPreview();
+            this.updateGradientPreview();
         }
     }
 
@@ -1847,15 +1863,19 @@ class VisualEditor {
         if (this.sidebarStylesSection) {
             this.sidebarStylesSection.hidden = style !== 'sidebar';
         }
-        
+
+        if (this.sidebarContainedWrap) {
+            this.sidebarContainedWrap.hidden = style !== 'sidebar';
+        }
+
         const navFixedWrap = document.getElementById('ve-nav-fixed-wrap');
         if (navFixedWrap) {
-            navFixedWrap.hidden = style === 'sidebar';
+            navFixedWrap.hidden = false;
         }
         
         const navBlurWrap = document.getElementById('ve-nav-blur-wrap');
         if (navBlurWrap) {
-            navBlurWrap.hidden = style === 'sidebar';
+            navBlurWrap.hidden = false;
         }
 
         // Show/hide sidebar element dynamically
@@ -1977,7 +1997,32 @@ class VisualEditor {
             card.classList.toggle('active', card.dataset.sidebarPosition === position);
         });
     }
-    
+
+    // Sidebar contained layout toggle
+    setSidebarContained(contained) {
+        const value = contained ? 'true' : 'false';
+        this.root.setAttribute('data-sidebar-contained', value);
+        this.setProperty('--sidebar-contained', value);
+        this.setThemeAttr('sidebar-contained', value);
+
+        if (this.sidebarContainedToggle) {
+            this.sidebarContainedToggle.checked = contained;
+        }
+
+        // Reset collapsed state to avoid visual glitches
+        this.root.setAttribute('data-sidebar-collapsed', 'false');
+        const sidebar = document.getElementById('sidebar-nav');
+        if (sidebar) {
+            sidebar.classList.remove('is-collapsed');
+        }
+        document.cookie = 'sidebar_collapsed=false;path=/;SameSite=Lax';
+        if (window.sidebarNav) {
+            window.sidebarNav.isCollapsed = false;
+            window.sidebarNav.isContained = contained;
+            window.sidebarNav.updateState?.();
+        }
+    }
+
     // Navigation fixed toggle
     handleNavFixedToggle(fixed) {
         this.root.setAttribute('data-nav-fixed', fixed ? 'true' : 'false');
@@ -2047,7 +2092,7 @@ class VisualEditor {
             '--shadow-small', '--shadow-medium', '--shadow-large',
             '--gradient-type', '--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity', '--page-gradient',
             '--bg-effect', '--bg-effect-opacity', '--container-width', '--widget-gap',
-            '--nav-style', '--sidebar-style', '--sidebar-position', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
+            '--nav-style', '--sidebar-style', '--sidebar-position', '--sidebar-contained', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
             '--emoji-pattern', '--emoji-tile-width', '--emoji-tile-height', '--emoji-angle', '--emoji-accent-filter'
         ];
         
@@ -2074,6 +2119,7 @@ class VisualEditor {
         state['_sidebar-style'] = this.root.getAttribute('data-sidebar-style') || 'default';
         state['_sidebar-mode'] = this.root.getAttribute('data-sidebar-mode') || 'full';
         state['_sidebar-position'] = this.root.getAttribute('data-sidebar-position') || 'top';
+        state['_sidebar-contained'] = this.root.getAttribute('data-sidebar-contained') || 'false';
         state['_nav-fixed'] = this.root.getAttribute('data-nav-fixed') || 'true';
         state['_nav-blur'] = this.root.getAttribute('data-nav-blur') || 'true';
         state['_nav-socials'] = this.root.getAttribute('data-nav-socials') || 'true';
@@ -2097,7 +2143,7 @@ class VisualEditor {
             '--shadow-small', '--shadow-medium', '--shadow-large',
             '--gradient-type', '--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity', '--page-gradient',
             '--bg-effect', '--bg-effect-opacity', '--container-width',
-            '--nav-style', '--sidebar-style', '--sidebar-position', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
+            '--nav-style', '--sidebar-style', '--sidebar-position', '--sidebar-contained', '--nav-fixed', '--nav-blur', '--nav-socials', '--hover-scale', '--footer-type', '--footer-socials', '--footer-logo',
             '--emoji-pattern', '--emoji-tile-width', '--emoji-tile-height', '--emoji-angle', '--emoji-accent-filter'
         ];
         
@@ -2174,6 +2220,8 @@ class VisualEditor {
                 this.setSidebarMode(value);
             } else if (key === '_sidebar-position') {
                 this.setSidebarPosition(value);
+            } else if (key === '_sidebar-contained') {
+                this.setSidebarContained(value === 'true');
             } else if (key === '_nav-fixed') {
                 const isFixed = value === 'true';
                 this.root.setAttribute('data-nav-fixed', value);
@@ -2310,7 +2358,168 @@ class VisualEditor {
         }
     }
 
+    /**
+     * Apply image preview directly on the live page without uploading.
+     * Pass null as objectUrl to revert/clear.
+     */
+    applyImagePreview(type, objectUrl) {
+        if (type === 'bg_image' || type === 'bg_image_light') {
+            const theme = type === 'bg_image' ? 'dark' : 'light';
+            const styleId = `ve-bg-${theme}-preview`;
+            let styleEl = document.getElementById(styleId);
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = styleId;
+                document.head.appendChild(styleEl);
+            }
+            if (objectUrl) {
+                styleEl.textContent = `html[data-theme="${theme}"] body { background-image: url("${objectUrl}") !important; background-repeat: no-repeat; background-attachment: fixed; background-position: center center; background-size: cover; }`;
+            } else {
+                styleEl.textContent = `html[data-theme="${theme}"] body { background-image: none !important; }`;
+            }
+        } else if (type === 'logo' || type === 'logo_light') {
+            const isDark = type === 'logo';
+            const selector = isDark
+                ? '.navbar__logo-dark img, .sidebar-nav__logo-img--dark, .footer__logo-dark img'
+                : '.navbar__logo-light img, .sidebar-nav__logo-img--light, .footer__logo-light img';
+
+            document.querySelectorAll(selector).forEach(img => {
+                if (objectUrl) {
+                    if (!img.dataset.vePrevSrc) img.dataset.vePrevSrc = img.src;
+                    img.src = objectUrl;
+                } else if (img.dataset.vePrevSrc) {
+                    img.src = img.dataset.vePrevSrc;
+                    delete img.dataset.vePrevSrc;
+                }
+            });
+        }
+    }
+
     // Save - collect all changed settings
+    bindUploadEvents() {
+        // File upload inputs — show local preview immediately, defer actual upload to Save
+        this.editor.querySelectorAll('input[data-upload]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const type = input.dataset.upload;
+
+                // Revoke previous pending object URL to avoid memory leaks
+                if (this.pendingUploads[type]?.objectUrl) {
+                    URL.revokeObjectURL(this.pendingUploads[type].objectUrl);
+                }
+
+                const objectUrl = URL.createObjectURL(file);
+
+                // Show local preview immediately (no upload yet)
+                const previewId = 've-' + type.replace(/_/g, '-') + '-preview';
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.innerHTML = `<img src="${objectUrl}" alt="" />`;
+                }
+
+                // Apply live preview on the actual page
+                this.applyImagePreview(type, objectUrl);
+
+                // Store pending upload for save()
+                this.pendingUploads[type] = { file, objectUrl };
+
+                // Reveal delete button
+                const deleteBtn = this.editor.querySelector(`[data-delete="${type}"]`);
+                if (deleteBtn) deleteBtn.hidden = false;
+
+                input.value = '';
+            });
+        });
+
+        // Delete buttons
+        this.editor.querySelectorAll('[data-delete]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.delete;
+
+                // If pending (not yet uploaded) — remove locally only
+                if (this.pendingUploads[type]) {
+                    URL.revokeObjectURL(this.pendingUploads[type].objectUrl);
+                    delete this.pendingUploads[type];
+
+                    const previewId = 've-' + type.replace(/_/g, '-') + '-preview';
+                    const preview = document.getElementById(previewId);
+                    if (preview) preview.innerHTML = '';
+                    btn.hidden = true;
+
+                    // Revert live page preview
+                    this.applyImagePreview(type, null);
+                } else {
+                    this.deleteSiteImage(type);
+                }
+            });
+        });
+    }
+
+    async uploadSiteImage(type, file) {
+        const formData = new FormData();
+        formData.append('type', type);
+        formData.append('image', file);
+
+        try {
+            const response = await fetch(u('api/pages/upload-site-image'), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const previewId = 've-' + type.replace(/_/g, '-') + '-preview';
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.innerHTML = `<img src="${data.url}" alt="" />`;
+                }
+
+                const deleteBtn = this.editor.querySelector(`button[data-delete="${type}"]`);
+                if (deleteBtn) deleteBtn.hidden = false;
+            } else {
+                if (typeof notyf !== 'undefined') notyf.error(data.error || translate('page-edit.upload_error'));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            if (typeof notyf !== 'undefined') notyf.error(translate('page-edit.upload_error'));
+        }
+    }
+
+    async deleteSiteImage(type) {
+        try {
+            const response = await fetch(u('api/pages/delete-site-image'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ type })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const previewId = 've-' + type.replace(/_/g, '-') + '-preview';
+                const preview = document.getElementById(previewId);
+                if (preview) preview.innerHTML = '';
+
+                const deleteBtn = this.editor.querySelector(`button[data-delete="${type}"]`);
+                if (deleteBtn) deleteBtn.hidden = true;
+
+                this.applyImagePreview(type, null);
+            } else {
+                if (typeof notyf !== 'undefined') notyf.error(data.error || 'Error');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+        }
+    }
+
     async save() {
         const theme = this.getThemeKey();
         const state = this.captureState();
@@ -2359,6 +2568,7 @@ class VisualEditor {
         colors['--sidebar-style'] = state['_sidebar-style'] || 'default';
         colors['--sidebar-mode'] = state['_sidebar-mode'] || 'full';
         colors['--sidebar-position'] = state['_sidebar-position'] || 'top';
+        colors['--sidebar-contained'] = state['_sidebar-contained'] || 'false';
         colors['--nav-fixed'] = state['_nav-fixed'] || 'true';
         colors['--nav-blur'] = state['_nav-blur'] || 'true';
         colors['--nav-socials'] = state['_nav-socials'] || 'true';
@@ -2397,7 +2607,16 @@ class VisualEditor {
         
         this.saveBtn.disabled = true;
         this.saveBtn.classList.add('saving');
-        
+
+        // Upload any pending images before saving theme settings
+        if (Object.keys(this.pendingUploads).length > 0) {
+            for (const [type, { file, objectUrl }] of Object.entries(this.pendingUploads)) {
+                await this.uploadSiteImage(type, file);
+                URL.revokeObjectURL(objectUrl);
+            }
+            this.pendingUploads = {};
+        }
+
         try {
             const response = await fetch(u('api/pages/save-theme'), {
                 method: 'POST',

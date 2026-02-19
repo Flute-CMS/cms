@@ -157,6 +157,13 @@
         gap: 2px;
     }
 
+    &-name-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+    }
+
     &-name {
         font-size: var(--h6);
         font-weight: 700;

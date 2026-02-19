@@ -34,6 +34,9 @@ class GlobalPageBlock extends ActiveRecord
     #[Column(type: "integer", default: 0)]
     public int $sortOrder = 0;
 
+    #[Column(type: "json", nullable: true)]
+    public ?string $excludedPaths = null;
+
     #[ManyToMany(target: "Permission", through: "GlobalPageBlockPermission")]
     public array $permissions = [];
 
@@ -76,6 +79,16 @@ class GlobalPageBlock extends ActiveRecord
     public function setSortOrder(int $sortOrder): void
     {
         $this->sortOrder = $sortOrder;
+    }
+
+    public function getExcludedPaths(): ?string
+    {
+        return $this->excludedPaths;
+    }
+
+    public function setExcludedPaths(?string $excludedPaths): void
+    {
+        $this->excludedPaths = $excludedPaths;
     }
 
     /**

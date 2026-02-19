@@ -1027,6 +1027,138 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
         }
     }
 
+    // Upload slots
+    &__upload-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    &__upload-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        &--logo .ve__upload-slot-inner {
+            aspect-ratio: 5 / 2;
+
+            .ve__upload-slot-preview img {
+                object-fit: contain;
+                padding: 8px;
+            }
+        }
+    }
+
+    &__upload-slot-inner {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px dashed var(--transp-2);
+        background: var(--transp-02);
+        overflow: hidden;
+        transition: border-color 0.15s;
+
+        &:has(img) {
+            border-style: solid;
+            border-color: var(--transp-1);
+        }
+
+        &:hover {
+            border-color: var(--transp-3);
+        }
+
+        &:not(:has(img)) .ve__upload-slot-overlay {
+            opacity: 0.3;
+            color: var(--text-400);
+        }
+
+        &:hover .ve__upload-slot-overlay {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        &:has(img):not(:hover) .ve__upload-slot-overlay {
+            opacity: 0;
+        }
+    }
+
+    &__upload-slot-preview {
+        position: absolute;
+        inset: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &__upload-slot-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.15s, background 0.15s, color 0.15s;
+        pointer-events: none;
+
+        svg {
+            width: 18px;
+            height: 18px;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+        }
+    }
+
+    &__upload-slot-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2px;
+    }
+
+    &__upload-slot-label {
+        font-size: 10px;
+        color: var(--text-500);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__upload-slot-delete {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-600);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+
+        svg {
+            width: 11px;
+            height: 11px;
+        }
+
+        &:hover {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
     // Row layout
     &__row {
         display: flex;
@@ -1930,12 +2062,6 @@ $ve-ease: cubic-bezier(0.4, 0, 0.2, 1);
     body.ve-open {
         margin-right: $ve-w;
         transition: margin-right 0.3s $ve-ease;
-
-        // Fixed navbar should also shift with the body
-        .flute_header {
-            right: $ve-w;
-            transition: right 0.3s $ve-ease;
-        }
     }
 }
 

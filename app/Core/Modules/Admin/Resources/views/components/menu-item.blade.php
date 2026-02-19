@@ -2,12 +2,14 @@
 
 @php
     $title = $item['title'] ?? '';
+    $itemKey = $item['key'] ?? ($item['_config_key'] ?? '');
 @endphp
 
 @if (isset($item['type']) && $item['type'] === 'header')
     <li class="sidebar__menu-header">{{ $title }}</li>
 @else
-    <li class="sidebar__menu-item @if (! empty($item['children'])) sub-menu @endif">
+    <li class="sidebar__menu-item @if (! empty($item['children'])) sub-menu @endif"
+        @if ($itemKey) data-item-key="{{ $itemKey }}" @endif>
         <a href="{{ $item['url'] ?? '#' }}" class="menu-item" data-tooltip="{{ $title }}" data-tooltip-placement="right">
             <span class="menu-icon">
                 <x-icon :path="$item['icon'] ?? 'ph.regular.circle'" />

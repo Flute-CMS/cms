@@ -462,6 +462,27 @@
                 opacity: 0.9;
             }
         }
+
+        &--outline {
+            background: transparent;
+            color: var(--text-300);
+            border: 1px solid var(--transp-2);
+
+            &:hover {
+                background: var(--transp-1);
+                border-color: var(--transp-3);
+            }
+        }
+
+        // Ensure <button> elements look the same as <a> elements
+        &[type="button"] {
+            border: none;
+            outline: none;
+
+            &.notification-btn--outline {
+                border: 1px solid var(--transp-2);
+            }
+        }
     }
 
     &-file {

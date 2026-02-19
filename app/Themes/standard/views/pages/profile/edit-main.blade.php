@@ -50,18 +50,21 @@
             <div class="col-lg-9 col-md-7">
                 @fragment('profile-edit-card')
                     @if ($activeTab)
-                        <div class="profile-edit__card mt-2" id="tab-content">
-                            <div class="profile-edit__card-header">
-                                @php
-                                    $firstTab = $activeTab->first();
-                                @endphp
+                        @php
+                            $firstTab = $activeTab->first();
+                            $isFullWidth = $firstTab->isFullWidth();
+                        @endphp
 
-                                <h3>{{ $firstTab->getTitle() }}</h3>
+                        <div class="profile-edit__card mt-2 @if ($isFullWidth) profile-edit__card--full-width @endif" id="tab-content">
+                            @if (!$isFullWidth)
+                                <div class="profile-edit__card-header">
+                                    <h3>{{ $firstTab->getTitle() }}</h3>
 
-                                @if ($desc = $firstTab->getDescription())
-                                    <p>{{ $desc }}</p>
-                                @endif
-                            </div>
+                                    @if ($desc = $firstTab->getDescription())
+                                        <p>{{ $desc }}</p>
+                                    @endif
+                                </div>
+                            @endif
 
                             <div class="profile-edit__card-content">
                                 {!! $activeTabContent !!}

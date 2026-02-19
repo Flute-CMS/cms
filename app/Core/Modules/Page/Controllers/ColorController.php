@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Page\Controllers;
 
 use Exception;
 use Flute\Core\Support\BaseController;
+use Flute\Core\Support\FileUploader;
 use Flute\Core\Support\FluteRequest;
 use Flute\Core\Theme\ThemeActions;
 use Flute\Core\Validator\FluteValidator;
@@ -337,6 +338,87 @@ class ColorController extends BaseController
                 'success' => false,
                 'error' => $message,
             ], 500);
+        }
+    }
+
+    /**
+     * Uploads a site image (background or logo) and saves to config.
+     *
+     * @param FluteRequest $fluteRequest The incoming request with image file and type.
+     */
+    public function uploadSiteImage(FluteRequest $fluteRequest)
+    {
+        $allowedTypes = ['bg_image', 'bg_image_light', 'logo', 'logo_light'];
+        $type = $fluteRequest->input('type');
+
+        if (!in_array($type, $allowedTypes, true)) {
+            return $this->json(['error' => 'Invalid image type.'], 422);
+        }
+
+        $file = $fluteRequest->files->get('image');
+
+        if (!$file || !$file->isValid()) {
+            return $this->json(['error' => 'No valid file uploaded.'], 422);
+        }
+
+        try {
+            /** @var FileUploader $uploader */
+            $uploader = app(FileUploader::class);
+            $path = $uploader->uploadImage($file, 10);
+
+            config()->set("app.{$type}", $path);
+            config()->save();
+
+            $this->toast(__('page-edit.upload_success'), 'success');
+
+            return $this->json([
+                'success' => true,
+                'url' => asset($path),
+                'path' => $path,
+            ]);
+        } catch (Exception $e) {
+            logs('templates')->error("Failed to upload site image ({$type}): " . $e->getMessage());
+            $message = is_debug() ? $e->getMessage() : __('page-edit.upload_error');
+
+            return $this->json(['error' => $message], 500);
+        }
+    }
+
+    /**
+     * Deletes (clears) a site image from config.
+     *
+     * @param FluteRequest $fluteRequest The incoming request with image type.
+     */
+    public function deleteSiteImage(FluteRequest $fluteRequest)
+    {
+        $allowedTypes = ['bg_image', 'bg_image_light', 'logo', 'logo_light'];
+        $type = $fluteRequest->input('type');
+
+        if (!in_array($type, $allowedTypes, true)) {
+            return $this->json(['error' => 'Invalid image type.'], 422);
+        }
+
+        try {
+            $defaults = [
+                'logo' => 'assets/img/logo.svg',
+                'logo_light' => 'assets/img/logo-light.svg',
+                'bg_image' => '',
+                'bg_image_light' => '',
+            ];
+
+            config()->set("app.{$type}", $defaults[$type]);
+            config()->save();
+
+            $this->toast(__('page-edit.delete_success'), 'success');
+
+            return $this->json([
+                'success' => true,
+                'default' => $defaults[$type],
+            ]);
+        } catch (Exception $e) {
+            logs('templates')->error("Failed to delete site image ({$type}): " . $e->getMessage());
+
+            return $this->json(['error' => 'Failed to delete image.'], 500);
         }
     }
 }

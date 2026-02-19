@@ -1542,3 +1542,134 @@ body.page-edit-mode {
 .pe-sidebar-overlay {
     display: none;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Excluded Paths Editor
+// ═══════════════════════════════════════════════════════════════════════════
+
+.pe-excluded-paths {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__title {
+        font-size: var(--p);
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    &__desc {
+        font-size: var(--p-small);
+        color: var(--text-300);
+        margin: 0;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 0;
+    }
+
+    &__tag {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-xs);
+        padding: 6px 10px;
+        background: var(--transp-1);
+        border: 1px solid var(--transp-2);
+        border-radius: var(--border05);
+        font-size: var(--p-small);
+        color: var(--text);
+
+        &-text {
+            font-family: monospace;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        &-remove {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-300);
+            border-radius: 50%;
+            font-size: 16px;
+            line-height: 1;
+            transition: color var(--transition), background var(--transition);
+
+            &:hover {
+                color: var(--danger, #ef4444);
+                background: color-mix(in srgb, var(--danger, #ef4444) 10%, transparent);
+            }
+        }
+    }
+
+    &__add {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    &__input {
+        flex: 1;
+        height: 36px;
+        padding: 0 10px;
+        background: var(--transp-1);
+        border: 1px solid var(--transp-2);
+        border-radius: var(--border05);
+        color: var(--text);
+        font-size: var(--p-small);
+        font-family: monospace;
+        transition: border-color var(--transition);
+
+        &::placeholder {
+            color: var(--text-300);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+    }
+
+    &__add-btn {
+        flex-shrink: 0;
+        height: 36px;
+        padding: 0 14px;
+        background: var(--accent);
+        color: var(--background);
+        border: none;
+        border-radius: var(--border05);
+        font-size: var(--p-small);
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity var(--transition);
+        white-space: nowrap;
+
+        &:hover {
+            opacity: 0.85;
+        }
+    }
+
+    &__hint {
+        font-size: var(--p-small);
+        color: var(--text-300);
+        margin: 0;
+        line-height: 1.4;
+    }
+}

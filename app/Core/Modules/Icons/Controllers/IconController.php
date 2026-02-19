@@ -7,6 +7,7 @@ use Flute\Core\Router\Annotations\Get;
 use Flute\Core\Router\Annotations\Route;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Route("admin/api/icons", middleware: ['can:admin'])]
@@ -50,7 +51,7 @@ class IconController extends BaseController
 
         usort($result, static fn ($a, $b) => strcmp($a['category'], $b['category']));
 
-        return $this->json($result);
+        return $this->jsonCached($result, 86400);
     }
 
     /**
@@ -193,23 +194,21 @@ class IconController extends BaseController
 
         $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $matchingIcons);
 
-        $paths = array_slice($paths, 0, min(count($paths), 500));
+        $paths = array_slice($paths, 0, 300);
 
         foreach ($paths as $path) {
             $svg = $this->iconFinder->loadFile($path);
 
             if ($svg) {
-                $displayName = $this->getDisplayNameFromPath($path);
-
                 $result['icons'][] = [
                     'path' => $path,
                     'svg' => $svg,
-                    'displayName' => $displayName,
+                    'displayName' => $this->getDisplayNameFromPath($path),
                 ];
             }
         }
 
-        return $this->json($result);
+        return $this->jsonCached($result);
     }
 
     /**
@@ -223,8 +222,8 @@ class IconController extends BaseController
         $paths = $request->input('paths', []);
         $prefix = $request->input('prefix');
         $category = $request->input('category');
-        $limit = (int)$request->input('limit', 50);
-        $page = (int)$request->input('page', 1);
+        $limit = min((int) $request->input('limit', 150), 300);
+        $page = max((int) $request->input('page', 1), 1);
 
         if ($prefix) {
             $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
@@ -240,7 +239,7 @@ class IconController extends BaseController
                 'page' => $page,
                 'limit' => $limit,
                 'total' => $total,
-                'totalPages' => ceil($total / $limit),
+                'totalPages' => (int) ceil($total / $limit),
                 'icons' => [],
             ];
         } else {
@@ -250,28 +249,26 @@ class IconController extends BaseController
                 ], 400);
             }
 
+            $paths = array_slice($paths, 0, 300);
+
             $result = [
                 'icons' => [],
             ];
         }
 
-        $paths = array_slice($paths, 0, min(count($paths), 200));
-
         foreach ($paths as $path) {
             $svg = $this->iconFinder->loadFile($path);
 
             if ($svg) {
-                $displayName = $this->getDisplayNameFromPath($path);
-
                 $result['icons'][] = [
                     'path' => $path,
                     'svg' => $svg,
-                    'displayName' => $displayName,
+                    'displayName' => $this->getDisplayNameFromPath($path),
                 ];
             }
         }
 
-        return $this->json($result);
+        return $this->jsonCached($result);
     }
 
     /**
@@ -314,6 +311,16 @@ class IconController extends BaseController
         }
 
         return ucfirst(str_replace('-', ' ', end($parts)));
+    }
 
+    /**
+     * Return JSON response with browser cache headers.
+     */
+    protected function jsonCached(array $data, int $maxAge = 3600): JsonResponse
+    {
+        $response = new JsonResponse($data);
+        $response->headers->set('Cache-Control', "public, max-age={$maxAge}");
+
+        return $response;
     }
 }

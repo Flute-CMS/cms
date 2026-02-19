@@ -60,6 +60,14 @@ router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/p
 
     $router->get('seo', [PageController::class, 'seo'])
         ->name('pages.seo');
+
+    $router->post('upload-site-image', [ColorController::class, 'uploadSiteImage'])
+        ->middleware('can:admin.boss')
+        ->name('pages.uploadSiteImage');
+
+    $router->post('delete-site-image', [ColorController::class, 'deleteSiteImage'])
+        ->middleware('can:admin.boss')
+        ->name('pages.deleteSiteImage');
 });
 
 router()->get('offline', [PageController::class, 'offline'])

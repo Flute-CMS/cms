@@ -1,0 +1,342 @@
+$contained-gap: 10px;
+
+// Hover trigger zone for contained+collapsed mode
+.sidebar-hover-zone {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: $contained-gap * 2;
+    z-index: 52;
+    pointer-events: auto;
+}
+
+.content-frame {
+    display: none;
+}
+
+.frame-blur {
+    display: none;
+}
+
+.sidebar-contained-toggle {
+    display: none;
+    position: fixed;
+    left: calc(var(--sidebar-width, #{$sidebar-width}) + 14px);
+    top: 24px;
+    z-index: 56;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border05, 0.5rem);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
+    color: var(--text-400);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, left 0.3s $sidebar-ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--text) 12%, transparent);
+        color: var(--text);
+    }
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// Reusable mask mixin: 4 gradient strips forming a frame
+// $left-width — width of the left strip (sidebar area)
+@mixin frame-blur-mask($left-width) {
+    -webkit-mask:
+        linear-gradient(#000 0 0) 0 0 / 100% #{$contained-gap} no-repeat,
+        linear-gradient(#000 0 0) 0 100% / 100% #{$contained-gap} no-repeat,
+        linear-gradient(#000 0 0) 0 0 / #{$left-width} 100% no-repeat,
+        linear-gradient(#000 0 0) 100% 0 / #{$contained-gap} 100% no-repeat;
+    mask:
+        linear-gradient(#000 0 0) 0 0 / 100% #{$contained-gap} no-repeat,
+        linear-gradient(#000 0 0) 0 100% / 100% #{$contained-gap} no-repeat,
+        linear-gradient(#000 0 0) 0 0 / #{$left-width} 100% no-repeat,
+        linear-gradient(#000 0 0) 100% 0 / #{$contained-gap} 100% no-repeat;
+}
+
+// ─── Desktop only ────────────────────────────────────────────
+@media (min-width: 769px) {
+    html[data-nav-style="sidebar"][data-sidebar-contained="true"] {
+        // Base background
+        background: var(--secondary);
+
+        body {
+            // Use background-color (not shorthand) to preserve gradient & custom bg-image
+            background-color: transparent;
+            padding-top: $contained-gap;
+            padding-right: $contained-gap;
+            padding-bottom: $contained-gap;
+            padding-left: var(--sidebar-width, #{$sidebar-width});
+            transition: padding 0.3s $sidebar-ease;
+
+            // Corner mask — covers content that bleeds past the rounded frame corners.
+            // box-shadow fills everything OUTSIDE the border-radius with --secondary.
+            &::before {
+                content: '';
+                position: fixed;
+                top: $contained-gap;
+                right: $contained-gap;
+                bottom: $contained-gap;
+                left: var(--sidebar-width, #{$sidebar-width});
+                border-radius: var(--border1, 1rem);
+                pointer-events: none;
+                z-index: 2;
+                box-shadow: 0 0 0 200vmax var(--secondary);
+                transition: left 0.3s $sidebar-ease;
+            }
+        }
+
+        // Content frame — base bg for content area
+        // z-index: -2 so bg effects (z:-1) render on top
+        // Carries gradient + bg-image so they appear rounded within the frame
+        .content-frame {
+            display: block;
+            position: fixed;
+            top: $contained-gap;
+            right: $contained-gap;
+            bottom: $contained-gap;
+            left: var(--sidebar-width, #{$sidebar-width});
+            background-color: var(--background);
+            background-image: var(--page-gradient, none);
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            border-radius: var(--border1, 1rem);
+            z-index: -2;
+            pointer-events: none;
+            transition: left 0.3s $sidebar-ease;
+        }
+
+        // ── Frame blur overlay ──
+        .frame-blur {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: 48;
+            pointer-events: none;
+            backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+            background: color-mix(in srgb, var(--secondary) 65%, transparent);
+            @include frame-blur-mask(var(--sidebar-width, #{$sidebar-width}));
+        }
+
+        // Sidebar — monolith with frame, no gaps, no rounding
+        .sidebar-nav {
+            top: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: 0;
+            border-right: none;
+            background-color: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s $sidebar-ease,
+                        opacity 0.2s ease,
+                        box-shadow 0.3s ease;
+        }
+
+        // Header — clean, no border, no shadow
+        .flute_header {
+            z-index: 55;
+            background: transparent;
+
+            .navbar {
+                background: transparent;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                border: none;
+                box-shadow: none;
+            }
+        }
+
+        // Content above the frame panel
+        #main {
+            position: relative;
+            z-index: 1;
+        }
+
+        .flute_footer {
+            position: relative;
+            z-index: 1;
+            margin-left: 0;
+        }
+
+        // ── Toggle button logic (standard sidebar) ──
+        .sidebar-nav__contained-collapse {
+            display: flex;
+        }
+
+        .sidebar-contained-toggle {
+            display: none;
+        }
+
+        .sidebar-nav__toggle {
+            display: none;
+        }
+
+        // ── Non-fixed header ──
+        &[data-nav-fixed="false"] {
+            .flute_header {
+                position: relative;
+                left: auto;
+            }
+        }
+
+        // ── Collapsed — fully hide sidebar ──
+        &[data-sidebar-collapsed="true"] {
+            body {
+                padding-left: $contained-gap;
+
+                &::before {
+                    left: $contained-gap;
+                }
+            }
+
+            .content-frame {
+                left: $contained-gap;
+            }
+
+            .frame-blur {
+                @include frame-blur-mask($contained-gap);
+            }
+
+            .sidebar-nav {
+                transform: translateX(-100%);
+                opacity: 0;
+                pointer-events: none;
+
+                &.is-collapsed {
+                    width: var(--sidebar-width, #{$sidebar-width});
+                }
+
+                // Hover preview — slides in as overlay without affecting layout
+                &.is-hover-open {
+                    transform: translateX(0);
+                    opacity: 1;
+                    pointer-events: auto;
+                    background-color: var(--blurred-background);
+                    backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+                    -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+                    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.1);
+                    border-right: 1px solid var(--sidebar-border);
+                    z-index: 56;
+
+                    .sidebar-nav__contained-collapse {
+                        display: none;
+                    }
+                }
+            }
+
+            .flute_header {
+                left: 0;
+            }
+
+            .flute_footer {
+                margin-left: 0;
+            }
+
+            .sidebar-contained-toggle {
+                display: flex;
+                left: calc(#{$contained-gap} + 14px);
+            }
+
+            // Show hover zone trigger
+            .sidebar-hover-zone {
+                display: block;
+            }
+        }
+    }
+
+    // ── Mini sidebar + contained ──
+    html[data-nav-style="sidebar"][data-sidebar-style="mini"][data-sidebar-contained="true"] {
+        body {
+            padding-left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
+
+            &::before {
+                left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
+            }
+        }
+
+        .content-frame {
+            left: var(--sidebar-width, #{$sidebar-mini-width});
+        }
+
+        .frame-blur {
+            @include frame-blur-mask(var(--sidebar-width, #{$sidebar-mini-width}));
+        }
+
+        .flute_footer {
+            margin-left: 0 !important;
+        }
+
+        // Mini: only external toggle, no internal
+        .sidebar-nav__contained-collapse {
+            display: none !important;
+        }
+
+        .sidebar-contained-toggle {
+            display: flex;
+            left: calc(var(--sidebar-width, #{$sidebar-mini-width}) + 14px);
+        }
+
+        &[data-sidebar-collapsed="true"] {
+            body {
+                padding-left: $contained-gap !important;
+
+                &::before {
+                    left: $contained-gap !important;
+                }
+            }
+
+            .content-frame {
+                left: $contained-gap;
+            }
+
+            .frame-blur {
+                @include frame-blur-mask($contained-gap);
+            }
+
+            .flute_header {
+                left: 0 !important;
+            }
+
+            .flute_footer {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-contained-toggle {
+                left: calc(#{$contained-gap} + 14px);
+            }
+        }
+    }
+}
+
+// ─── Mobile — disable contained mode ─────────────────────────
+@media (max-width: 768px) {
+    html[data-nav-style="sidebar"][data-sidebar-contained="true"] {
+        background: var(--background);
+
+        .content-frame {
+            display: none;
+        }
+
+        .frame-blur {
+            display: none !important;
+        }
+
+        .sidebar-contained-toggle {
+            display: none !important;
+        }
+    }
+}

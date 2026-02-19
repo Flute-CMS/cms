@@ -7,6 +7,6 @@
         <x-icon path="ph.regular.arrow-up-right" class="welcome-step__button-icon" />
     </div>
     <div class="welcome-step__author">
-        Made with ❤️ by <a href="https://github.com/flamesONE" target="_blank">Flames</a>
+        Made with ❤️ by <a href="https://github.com/flamesONE" target="_blank" rel="noopener">Flames</a>
     </div>
 </div>

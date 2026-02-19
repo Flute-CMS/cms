@@ -122,6 +122,12 @@
             flex-wrap: wrap;
             flex-direction: column;
             gap: var(--space-2xs);
+
+            &-row {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
         }
 
         &-meta {

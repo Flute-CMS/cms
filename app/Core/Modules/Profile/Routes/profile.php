@@ -36,6 +36,10 @@ $router->group(['prefix' => 'api/profile/', 'middleware' => ['auth', 'can:admin.
     $group->post('{id}/toggle-verified', [ProfileAdminActionsController::class, 'toggleVerified']);
 });
 
+$router->group(['prefix' => 'api/profile/', 'middleware' => ['auth', 'can:admin.boss', 'csrf']], static function (RouterInterface $group) {
+    $group->post('{id}/toggle-approved', [ProfileAdminActionsController::class, 'toggleApproved']);
+});
+
 $router->get('/profile/{id}', [ProfileIndexController::class, 'index'])->middleware([UserExistsMiddleware::class, 'site_mode:profile']);
 $router->get('/profile/{id}/mini', [ProfileIndexController::class, 'mini'])->middleware('site_mode:profile');
 

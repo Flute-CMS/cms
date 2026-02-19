@@ -176,9 +176,30 @@ return [
     'sidebar_mode_minimal' => 'Мінімальний без фонів',
     'sidebar_mode_full' => 'Повний з фонами',
     'full' => 'Повний',
+    'sidebar_contained' => 'Контейнерний режим',
     'sidebar_position' => 'Позиція елементів',
     'sidebar_position_top' => 'Елементи вирівняні зверху',
     'sidebar_position_center' => 'Елементи вирівняні по центру вертикально',
     'position_top' => 'Зверху',
     'position_center' => 'Центр',
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Приховані шляхи",
+    "excluded_paths_desc"   => "Віджет не відображатиметься на цих шляхах",
+    "excluded_paths_hint"   => "Приклади: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/шлях/для/приховання",
+    "add_path"              => "Додати",
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
 ];

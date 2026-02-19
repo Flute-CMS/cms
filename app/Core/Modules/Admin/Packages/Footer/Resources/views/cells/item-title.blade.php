@@ -6,7 +6,7 @@
     <div class="d-flex flex-column">
         <span>{{ $footerItem->title }}</span>
         @if ($footerItem->url)
-            <a href="{{ url($footerItem->url) }}" target="_blank"
+            <a href="{{ url($footerItem->url) }}" target="_blank" rel="noopener"
                 class="d-flex text-muted text-small hover-accent">{{ $footerItem->url }}</a>
         @endif
     </div>

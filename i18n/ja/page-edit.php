@@ -106,6 +106,7 @@ return [
     'sidebar_mode_full' => '背景付きフル',
     'minimal' => 'ミニマル',
     'full' => 'フル',
+    'sidebar_contained' => 'コンテナモード',
     'sidebar_position' => 'アイテムの位置',
     'sidebar_position_top' => 'アイテムを上部に配置',
     'sidebar_position_center' => 'アイテムを垂直方向に中央配置',
@@ -171,4 +172,24 @@ return [
     'content_align' => 'コンテンツの配置',
     'align_left' => '左揃え',
     'align_center' => '中央揃え',
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "非表示パス",
+    "excluded_paths_desc"   => "これらのパスではウィジェットが表示されません",
+    "excluded_paths_hint"   => "例: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/非表示にするパス",
+    "add_path"              => "追加",
 ];

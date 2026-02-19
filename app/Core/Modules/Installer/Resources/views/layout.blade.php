@@ -60,13 +60,13 @@
 
         @at(path('app/Core/Modules/Installer/Resources/assets/sass/installer.scss'))
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer></script>
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif
@@ -120,7 +120,7 @@
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
         <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
-        <script src="@asset('jquery')"></script>
+        <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
         <script src="@asset('assets/js/libs/notyf.js')" defer></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>

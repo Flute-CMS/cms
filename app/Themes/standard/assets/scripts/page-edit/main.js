@@ -338,6 +338,7 @@ class PageEditor {
             }
 
             this.gridController.updateEmptyState();
+            this.refreshAllToolbars();
             this.eventBus.emit(window.FlutePageEdit.events.SCOPE_CHANGED, { scope: newScope });
         } catch (err) {
             this.utils.logError('switchScope', err);
@@ -762,6 +763,128 @@ class PageEditor {
         if (this.hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; }
     }
 
+    /**
+     * Open excluded paths editor for a global widget.
+     * Uses <template id="pe-excluded-paths-tpl"> from blade.
+     */
+    openExcludedPathsEditor(widgetEl) {
+        const widgetName = widgetEl.getAttribute('data-widget-name');
+        if (!widgetName || widgetName === 'Content') return;
+
+        const tpl = document.getElementById('pe-excluded-paths-tpl');
+        if (!tpl) return;
+
+        window.currentExcludedPathsWidgetEl = widgetEl;
+
+        const rightSidebar = document.getElementById('page-edit-dialog');
+        const sidebarContent = document.getElementById('page-edit-dialog-content');
+        if (!rightSidebar || !sidebarContent) return;
+
+        if (!this.rightSidebarDialog) {
+            this.rightSidebarDialog = new A11yDialog(rightSidebar);
+            this.rightSidebarDialog.on('hide', () => { window.currentEditedWidgetEl = null; });
+        }
+
+        // Register per-session cleanup for excluded paths
+        const onHide = () => {
+            this._cleanupExcludedPaths();
+            window.currentExcludedPathsWidgetEl = null;
+            this.rightSidebarDialog.off('hide', onHide);
+        };
+        this.rightSidebarDialog.on('hide', onHide);
+
+        // Clone template into sidebar content
+        sidebarContent.innerHTML = '';
+        sidebarContent.appendChild(tpl.content.cloneNode(true));
+
+        // Fill current paths
+        let currentPaths = [];
+        try { currentPaths = JSON.parse(widgetEl.dataset.excludedPaths || '[]'); } catch (_) {}
+
+        const list = sidebarContent.querySelector('.pe-excluded-paths__list');
+        const tagTpl = sidebarContent.querySelector('.pe-excluded-paths__tag-tpl');
+
+        currentPaths.forEach(p => this._addExcludedPathTag(list, tagTpl, p));
+
+        // Setup add
+        const input = sidebarContent.querySelector('.pe-excluded-paths__input');
+        const addBtn = sidebarContent.querySelector('.pe-excluded-paths__add-btn');
+
+        const addPath = () => {
+            const val = input.value.trim();
+            if (!val) return;
+            const existing = this._getExcludedPaths(list);
+            if (existing.includes(val)) { input.value = ''; return; }
+            this._addExcludedPathTag(list, tagTpl, val);
+            input.value = '';
+            input.focus();
+        };
+
+        addBtn.addEventListener('click', addPath);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addPath(); }
+        });
+
+        list.addEventListener('click', (e) => {
+            const btn = e.target.closest('.pe-excluded-paths__tag-remove');
+            if (btn) btn.closest('.pe-excluded-paths__tag')?.remove();
+        });
+
+        // Reconfigure the sidebar Save button for excluded-paths mode
+        const saveBtn = document.getElementById('widget-settings-save-btn');
+        if (saveBtn) {
+            saveBtn.removeAttribute('hx-post');
+            saveBtn.removeAttribute('hx-vals');
+            htmx.process(saveBtn);
+
+            this._epSaveHandler = () => {
+                const paths = this._getExcludedPaths(list);
+                widgetEl.dataset.excludedPaths = JSON.stringify(paths);
+                this.hasUnsavedChanges = true;
+                this.updateSaveButtonState();
+                this.history?.push();
+                this.saveToLocalStorage();
+                if (this.rightSidebarDialog) this.rightSidebarDialog.hide();
+            };
+            saveBtn.addEventListener('click', this._epSaveHandler);
+        }
+
+        this.rightSidebarDialog.show();
+    }
+
+    _addExcludedPathTag(list, tagTpl, path) {
+        if (!tagTpl) return;
+        const clone = tagTpl.content.cloneNode(true);
+        clone.querySelector('.pe-excluded-paths__tag-text').textContent = path;
+        list.appendChild(clone);
+    }
+
+    _getExcludedPaths(list) {
+        return Array.from(list.querySelectorAll('.pe-excluded-paths__tag-text'))
+            .map(el => el.textContent.trim()).filter(Boolean);
+    }
+
+    _cleanupExcludedPaths() {
+        window.currentExcludedPathsWidgetEl = null;
+        const saveBtn = document.getElementById('widget-settings-save-btn');
+        if (saveBtn && this._epSaveHandler) {
+            saveBtn.removeEventListener('click', this._epSaveHandler);
+            this._epSaveHandler = null;
+        }
+    }
+
+    /**
+     * Refresh all widget toolbars (used on scope change to show/hide scope-specific buttons).
+     */
+    refreshAllToolbars() {
+        const items = this.gridController?.getItems() || [];
+        items.forEach(el => {
+            this.widgetToolbar.removeToolbar(el);
+            const buttons = this.widgetLoader?.widgetButtonsCache?.[el.getAttribute('data-widget-name')] || [];
+            this.widgetToolbar.addToolbar(el, buttons);
+        });
+    }
+
     updateUndoRedoButtons() {
         if (this.elements.undoBtn) this.elements.undoBtn.disabled = !this.history.canUndo();
         if (this.elements.redoBtn) this.elements.redoBtn.disabled = !this.history.canRedo();
@@ -811,7 +934,7 @@ function initializePageEditor() {
         };
     } catch (err) {
         console.error('Failed to initialize page editor:', err);
-        window.toggleEditMode = () => alert('Page editor failed to initialize. Please refresh.');
+        window.toggleEditMode = () => showNotyfError('Page editor failed to initialize. Please refresh.');
     }
 }
 

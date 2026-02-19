@@ -29,19 +29,26 @@
                         @if ($primaryRole)
                             <div class="user-mini-profile-rank">
                                 <span class="user-mini-profile-rank-label">{{ __('def.role') }}</span>
-                                <div class="user-mini-profile-rank-badge"
-                                    style="--role-color: {{ $primaryRole->color }}">
-                                    <span class="user-mini-profile-rank-dot"></span>
-                                    <span>{{ $primaryRole->name }}</span>
-                                </div>
+                                <x-role-badge :role="$primaryRole" mode="full" size="small" />
                             </div>
                         @endif
                     </div>
 
                     <div class="user-mini-profile-info">
-                        <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-name">
-                            {{ $user->name }}
-                        </a>
+                        <div class="user-mini-profile-name-row">
+                            <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-name">
+                                {{ $user->name }}
+                            </a>
+                            @if ($user->approved)
+                                <span class="verified-badge verified-badge--small" data-tooltip="{{ __('def.approved') }}">
+                                    <x-icon path="ph.bold.seal-check-bold" />
+                                </span>
+                            @elseif (user()->can('admin.boss'))
+                                <span class="verified-badge verified-badge--small verified-badge--ghosted" data-tooltip="{{ __('profile.admin_actions.approve_user') }}">
+                                    <x-icon path="ph.bold.seal-check-bold" />
+                                </span>
+                            @endif
+                        </div>
                         <div class="user-mini-profile-presence">
                             <span class="user-mini-profile-presence-dot {{ $user->isOnline() ? 'online' : '' }}"></span>
                             <span>{{ $user->isOnline() ? __('def.online') : __('def.not_online') }}</span>
@@ -50,26 +57,26 @@
 
                     @if (count($roles) > 1)
                         <div class="user-mini-profile-roles">
-                            @foreach ($roles->slice(1, 3) as $role)
-                                <div class="user-mini-profile-role" style="--role-color: {{ $role->color }}">
-                                    <span class="user-mini-profile-role-square"></span>
-                                    <span>{{ $role->name }}</span>
-                                </div>
+                            @php $extraRoles = array_slice($roles, 1, 4); @endphp
+                            @foreach ($extraRoles as $role)
+                                <x-role-badge :role="$role" size="small" />
                             @endforeach
-                            @if (count($roles) > 4)
-                                <div class="user-mini-profile-role" data-tooltip="#user_roles_{{ $user->id }}">
-                                    <span>+{{ count($roles) - 4 }}</span>
-                                </div>
-                                <div id="user_roles_{{ $user->id }}" class="d-none">
+
+                            @if (count($roles) > 5)
+                                <span class="role-badges__overflow" data-tooltip="#mp_roles_{{ $user->id }}">
+                                    +{{ count($roles) - 5 }}
+                                </span>
+                                <div id="mp_roles_{{ $user->id }}" class="d-none">
                                     <ul class="user-roles-list">
-                                        @foreach ($roles->slice(4) as $role)
+                                        @for ($i = 5; $i < count($roles); $i++)
+                                            @php $role = $roles[$i]; @endphp
                                             <li>
-                                                <div class="user-mini-profile-role" style="--role-color: {{ $role->color }}">
-                                                    <span class="user-mini-profile-role-square"></span>
-                                                    <span>{{ $role->name }}</span>
+                                                <div class="user-card-role">
+                                                    <span class="user-card-role-square" style="background: {{ $role->color }}"></span>
+                                                    <span class="user-card-role-name">{{ $role->name }}</span>
                                                 </div>
                                             </li>
-                                        @endforeach
+                                        @endfor
                                     </ul>
                                 </div>
                             @endif
@@ -188,7 +195,7 @@
                 @endphp
                 <div class="guest-profile-actions" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
                     <x-button href="{{ url('social/'.$key) }}" class="guest-profile-action" type="accent" hx-boost="false">
-                        <x-icon path="{!! $icon !!}" />
+                        <x-icon path="{{ $icon }}" />
                         <span>{{ __('auth.social.auth_via', [':social' => $key]) }}</span>
                     </x-button>
                 </div>
@@ -215,7 +222,7 @@
                         @foreach ($socialNetworks as $key => $item)
                             <a href="{{ url('social/'.$key) }}" class="guest-profile-social-btn"
                                 data-tooltip="{{ $item['entity']->key }}">
-                                <x-icon path="{!! $item['entity']->icon !!}" />
+                                <x-icon path="{{ $item['entity']->icon }}" />
                             </a>
                         @endforeach
                     </div>

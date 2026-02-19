@@ -106,6 +106,7 @@ return [
     'sidebar_mode_full' => 'Пълна с фонове',
     'minimal' => 'Минимална',
     'full' => 'Пълна',
+    'sidebar_contained' => 'Контейнерен режим',
     'sidebar_position' => 'Позиция на елементите',
     'sidebar_position_top' => 'Елементи подравнени отгоре',
     'sidebar_position_center' => 'Елементи центрирани вертикално',
@@ -171,4 +172,24 @@ return [
     'content_align' => 'Подравняване на съдържанието',
     'align_left' => 'Подравняване вляво',
     'align_center' => 'Подравняване в центъра',
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Скрити пътища",
+    "excluded_paths_desc"   => "Уиджетът няма да се показва на тези пътища",
+    "excluded_paths_hint"   => "Примери: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/път/за/скриване",
+    "add_path"              => "Добави",
 ];

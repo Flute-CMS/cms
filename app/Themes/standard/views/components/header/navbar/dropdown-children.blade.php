@@ -23,20 +23,20 @@
         </div>
     @else
         <a href="{{ url($child['url']) }}" 
-           @if ($child['new_tab']) target="_blank" @endif
+           @if ($child['new_tab']) target="_blank" rel="noopener" @endif
            class="navbar__dropdown-item" 
            itemprop="url">
             @if ($child['icon'])
-                <div class="navbar__dropdown-item-icon">
+                <span class="navbar__dropdown-item-icon">
                     <x-icon path="{{ $child['icon'] }}" />
-                </div>
+                </span>
             @endif
-            <div class="navbar__dropdown-item-content">
-                <div class="navbar__dropdown-item-title" itemprop="name">{{ __($child['title']) }}</div>
+            <span class="navbar__dropdown-item-content">
+                <span class="navbar__dropdown-item-title" itemprop="name">{{ __($child['title']) }}</span>
                 @if (!empty($child['description']))
-                    <div class="navbar__dropdown-item-description">{{ __($child['description']) }}</div>
+                    <span class="navbar__dropdown-item-description">{{ __($child['description']) }}</span>
                 @endif
-            </div>
+            </span>
         </a>
     @endif
 @endforeach

@@ -63,21 +63,26 @@
     @endif
 
     @if (!request()->htmx()->isHtmxRequest())
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
         <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        <link rel="preload" href="@asset('animate')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript>
+            <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        </noscript>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
-        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
 
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer></script>
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif
@@ -168,7 +173,7 @@
             <p>
                 © {{ date('Y') }} Flute. Version: <strong>{{ app()->getVersion() }}</strong>.
             </p>
-            <p>Developed by <a class="hover-accent" href="https://github.com/FlamesONE" target="_blank">Flames</a> with
+            <p>Developed by <a class="hover-accent" href="https://github.com/FlamesONE" target="_blank" rel="noopener">Flames</a> with
                 <span class="secret-confetti cursor-pointer" id="secret-confetti">❤️</span>.
             </p>
             @php
@@ -184,7 +189,7 @@
                 }
             @endphp
             <small class="text-muted mt-3">Booted in <strong
-                    data-tooltip="{!! implode("\n", $times) !!}">{{ $executionTime }}</strong> seconds
+                    data-tooltip="{!! implode('&#10;', array_map('e', $times)) !!}">{{ $executionTime }}</strong> seconds
 
                 @if ($executionTime > 1)
                     <x-popover content="{!! __('admin.performance_info') !!}" />
@@ -223,7 +228,7 @@
     @endif
 
     @if (!request()->htmx()->isHtmxRequest())
-        <footer>
+        <div class="footer-scripts">
             @php
                 if (is_debug()) {
                     Tracy\Debugger::renderLoader();
@@ -236,7 +241,7 @@
                 {!! $sections['footer'] !!}
             @endif
 
-        </footer>
+        </div>
 
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
@@ -262,6 +267,7 @@
         @at('Core/Modules/Admin/Resources/assets/js/selection.js')
         @at('Core/Modules/Admin/Resources/assets/js/script.js')
         @at('Core/Modules/Admin/Resources/assets/js/sidebar.js')
+        @at('Core/Modules/Admin/Resources/assets/js/sidebar-sort.js')
         @at('Core/Modules/Admin/Resources/assets/js/sortable.js')
         @at('Core/Modules/Admin/Resources/assets/js/search.js')
         @at('Core/Modules/Admin/Resources/assets/js/secret.js')

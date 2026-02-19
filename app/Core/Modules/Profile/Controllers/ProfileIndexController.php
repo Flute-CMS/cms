@@ -61,7 +61,7 @@ class ProfileIndexController extends BaseController
             ->add(__('def.home'), url('/'))
             ->add(__('def.profile') . " - {$user->name}");
 
-        $tabs = $profileTabService->getTabs();
+        $tabs = $profileTabService->getTabs($user);
 
         $profileTabService->cacheTabsForAdmin();
 

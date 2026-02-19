@@ -33,9 +33,13 @@ class ProfileEditTabService
      *
      * @return Collection|ProfileTab[]
      */
-    public function getTabs(): Collection
+    public function getTabs(?User $user = null): Collection
     {
-        return $this->tabs
+        $tabs = $user !== null
+            ? $this->tabs->filter(static fn (ProfileTab $tab) => $tab->canView($user))
+            : $this->tabs;
+
+        return $tabs
             ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
             ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
             ->map(static function (Collection $group) {
@@ -46,6 +50,7 @@ class ProfileEditTabService
                     'description' => $highestPriorityTab->getDescription(),
                     'title' => $highestPriorityTab->getTitle(),
                     'icon' => $highestPriorityTab->getIcon(),
+                    'isFullWidth' => $highestPriorityTab->isFullWidth(),
                 ];
             })
             ->values();
@@ -61,7 +66,21 @@ class ProfileEditTabService
         $content = '';
 
         foreach ($tabs as $tab) {
-            $content .= $tab->getContent($user);
+            if ($styles = $tab->getStyles()) {
+                template()->addStyle($styles);
+            }
+
+            if ($scripts = $tab->getScripts()) {
+                template()->addScript($scripts);
+            }
+
+            $tabContent = $tab->getContent($user);
+
+            if ($layout = $tab->getLayout()) {
+                $tabContent = view($layout, ['content' => $tabContent])->render();
+            }
+
+            $content .= $tabContent;
         }
 
         return $content;

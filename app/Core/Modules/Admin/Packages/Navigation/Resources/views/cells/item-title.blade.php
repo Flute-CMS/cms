@@ -18,7 +18,7 @@
             @endif
         </span>
         @if ($navbarItem->url)
-            <a href="{{ url($navbarItem->url) }}" target="_blank"
+            <a href="{{ url($navbarItem->url) }}" target="_blank" rel="noopener"
                 class="d-flex text-muted text-small hover-accent">{{ $navbarItem->url }}</a>
         @endif
     </div>

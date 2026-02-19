@@ -200,6 +200,7 @@ class AdminPackageFactory
                 }
                 $currentSection = [
                     'title' => __($configItem['section']),
+                    '_section_key' => $configItem['section'],
                     'items' => [],
                 ];
 
@@ -228,16 +229,17 @@ class AdminPackageFactory
                 // If only 1 child - show it directly without nesting
                 if (count($children) === 1) {
                     $menuItem = $children[0];
-                    // Use group icon if child doesn't have one
                     if (empty($menuItem['icon']) && isset($configItem['icon'])) {
                         $menuItem['icon'] = $configItem['icon'];
                     }
+                    $menuItem['_config_key'] = $key;
                 } else {
                     $menuItem = [
                         'title' => __($configItem['title']),
                         'icon' => $configItem['icon'] ?? 'ph.regular.folder',
                         'url' => '#',
                         'children' => $children,
+                        '_config_key' => $key,
                     ];
                 }
 
@@ -251,12 +253,14 @@ class AdminPackageFactory
                     if (isset($configItem['icon'])) {
                         $menuItem['icon'] = $configItem['icon'];
                     }
+                    $menuItem['_config_key'] = $key;
                     unset($registeredItems[$key]);
                 } elseif (isset($configItem['url'])) {
                     $menuItem = [
                         'title' => __($configItem['title']),
                         'icon' => $configItem['icon'] ?? 'ph.regular.circle',
                         'url' => url($configItem['url']),
+                        '_config_key' => $key,
                     ];
                 }
 
@@ -297,19 +301,7 @@ class AdminPackageFactory
         return $this->menuItemsCache;
     }
 
-    protected function addToSection(array &$result, ?array &$currentSection, array $menuItem): void
-    {
-        if ($currentSection !== null) {
-            $currentSection['items'][] = $menuItem;
-        } else {
-            if (!isset($result['__main__'])) {
-                $result['__main__'] = ['title' => null, 'items' => []];
-            }
-            $result['__main__']['items'][] = $menuItem;
-        }
-    }
-
-    protected function getDefaultMenuConfig(): array
+    public function getDefaultMenuConfig(): array
     {
         return [
             ['key' => 'dashboard'],
@@ -358,6 +350,18 @@ class AdminPackageFactory
                 'children' => ['logs', 'updates', 'about'],
             ],
         ];
+    }
+
+    protected function addToSection(array &$result, ?array &$currentSection, array $menuItem): void
+    {
+        if ($currentSection !== null) {
+            $currentSection['items'][] = $menuItem;
+        } else {
+            if (!isset($result['__main__'])) {
+                $result['__main__'] = ['title' => null, '_section_key' => '', 'items' => []];
+            }
+            $result['__main__']['items'][] = $menuItem;
+        }
     }
 
     protected function getModuleNameFromPackage(AdminPackageInterface $package): ?string

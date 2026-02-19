@@ -106,6 +106,7 @@ return [
     'sidebar_mode_full' => 'Full med bakgrunder',
     'minimal' => 'Minimal',
     'full' => 'Full',
+    'sidebar_contained' => 'Inkapslad layout',
     'sidebar_position' => 'Objektposition',
     'sidebar_position_top' => 'Objekt justerade till toppen',
     'sidebar_position_center' => 'Objekt centrerade vertikalt',
@@ -171,4 +172,24 @@ return [
     'content_align' => 'Innehållsjustering',
     'align_left' => 'Vänsterjustera',
     'align_center' => 'Centrera',
+
+    // Image upload (visual editor)
+    "bg_image"              => "Background Image",
+    "bg_image_dark"         => "Dark Theme",
+    "bg_image_light_label"  => "Light Theme",
+    "site_logo"             => "Site Logo",
+    "logo_dark"             => "Dark Theme",
+    "logo_light_label"      => "Light Theme",
+    "upload"                => "Upload",
+    "delete_image"          => "Delete",
+    "upload_success"        => "Image uploaded",
+    "upload_error"          => "Upload failed",
+    "delete_success"        => "Image deleted",
+
+    // Excluded paths (global widget visibility)
+    "excluded_paths"        => "Dolda sökvägar",
+    "excluded_paths_desc"   => "Widgeten visas inte på dessa sökvägar",
+    "excluded_paths_hint"   => "Exempel: /about, /user/*, /news/**",
+    "excluded_paths_placeholder" => "/sökväg/att/dölja",
+    "add_path"              => "Lägg till",
 ];

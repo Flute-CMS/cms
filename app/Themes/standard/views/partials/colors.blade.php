@@ -416,7 +416,7 @@
 
         if ($headingValue && $headingValue !== 'inherit') {
             $headingName = $extractFontName($headingValue);
-            if ($headingName && !in_array($headingName, $fontsToLoad, true)) {
+            if ($headingName && $headingName !== 'Manrope' && !in_array($headingName, $fontsToLoad, true)) {
                 $fontsToLoad[] = $headingName;
             }
         }
@@ -436,10 +436,11 @@
 @endif
 
 @if(!empty($fontsToLoad))
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     @foreach($fontsToLoad as $font)
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ urlencode($font) }}:wght@400;500;600;700;800&display=swap">
+        <link rel="preload" href="https://fonts.googleapis.com/css2?family={{ urlencode($font) }}:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ urlencode($font) }}:wght@400;500;600;700;800&display=swap"></noscript>
     @endforeach
 @endif
 

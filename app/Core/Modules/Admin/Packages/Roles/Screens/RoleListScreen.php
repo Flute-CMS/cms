@@ -5,6 +5,7 @@ namespace Flute\Admin\Packages\Roles\Screens;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Sight;
@@ -134,6 +135,18 @@ class RoleListScreen extends Screen
                 ->small(__('admin-roles.fields.icon.help')),
 
             LayoutFactory::field(
+                ButtonGroup::make('show_icon')
+                    ->options([
+                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value('0')
+                    ->color('accent')
+            )
+                ->label(__('admin-roles.fields.show_icon.label'))
+                ->small(__('admin-roles.fields.show_icon.help')),
+
+            LayoutFactory::field(
                 Input::make('color')
                     ->type('color')
             )
@@ -185,6 +198,7 @@ class RoleListScreen extends Screen
         $role->name = $data['name'];
         $role->color = $data['color'] ?? null;
         $role->icon = $data['icon'] ?? null;
+        $role->showIcon = isset($data['show_icon']) && filter_var($data['show_icon'], FILTER_VALIDATE_BOOLEAN);
         $role->priority = 0;
 
         $role->save();
@@ -259,6 +273,18 @@ class RoleListScreen extends Screen
                 ->small(__('admin-roles.fields.icon.help')),
 
             LayoutFactory::field(
+                ButtonGroup::make('show_icon')
+                    ->options([
+                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value($role->showIcon ? '1' : '0')
+                    ->color('accent')
+            )
+                ->label(__('admin-roles.fields.show_icon.label'))
+                ->small(__('admin-roles.fields.show_icon.help')),
+
+            LayoutFactory::field(
                 Input::make('color')
                     ->type('color')
                     ->value($role->color)
@@ -318,6 +344,7 @@ class RoleListScreen extends Screen
         $role->name = $data['name'];
         $role->icon = $data['icon'] ?? null;
         $role->color = $data['color'] ?? null;
+        $role->showIcon = isset($data['show_icon']) && filter_var($data['show_icon'], FILTER_VALIDATE_BOOLEAN);
 
         $role->save();
 

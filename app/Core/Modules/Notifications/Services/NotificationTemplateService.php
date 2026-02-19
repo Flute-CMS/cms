@@ -565,24 +565,24 @@ class NotificationTemplateService
         $notification->icon = $template->icon;
 
         $components = $template->getComponents();
+        $parsedComponents = !empty($components) ? $template->getParsedComponents($data) : [];
 
-        // Determine notification type based on components
         if ($components && $this->hasButtons($components)) {
             $notification->type = 'button';
-            $notification->extra_data = [
-                'buttons' => $this->extractButtons($template->getParsedComponents($data)),
-                'components' => $template->getParsedComponents($data),
+            $notification->setExtraData([
+                'buttons' => $this->extractButtons($parsedComponents),
+                'components' => $parsedComponents,
                 'layout' => $template->layout,
                 'template_key' => $template->key,
-            ];
+            ]);
         } else {
             $notification->type = 'text';
             if ($components) {
-                $notification->extra_data = [
-                    'components' => $template->getParsedComponents($data),
+                $notification->setExtraData([
+                    'components' => $parsedComponents,
                     'layout' => $template->layout,
                     'template_key' => $template->key,
-                ];
+                ]);
             }
         }
 
