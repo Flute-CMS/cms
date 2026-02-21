@@ -76,13 +76,13 @@
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
-        <script src="@asset('assets/js/htmx/core.js')" defer></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
+        <script src="@asset('assets/js/htmx/core.js')"></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
 
-        <script src="@asset('assets/js/htmx/head.js')" defer></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')" defer></script>
+        <script src="@asset('assets/js/htmx/head.js')"></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')" defer></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif

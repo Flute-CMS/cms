@@ -12,7 +12,9 @@
     $_designPreset = $_themeColors['--design-preset'] ?? 'default';
 @endphp
 <html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
-    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}" data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}" data-design-preset="{{ $_designPreset }}">
+    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}"
+    data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}"
+    data-design-preset="{{ $_designPreset }}">
 
 <head hx-head="append">
     @php
@@ -49,7 +51,8 @@
     <meta name="view-transition" content="same-origin">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() ? 'true' : 'false' }}">
-    <meta name="state-token" content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
+    <meta name="state-token"
+        content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
     <meta name="google" content="notranslate" />
     <meta name="default-theme" content="{{ config('app.default_theme', 'dark') }}">
     <meta name="change-theme" content="{{ config('app.change_theme', true) ? 'true' : 'false' }}">
@@ -119,14 +122,14 @@
 
         @at(tt('assets/sass/app.scss'))
 
-        <script src="@asset('assets/js/htmx/core.js')" defer></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
+        <script src="@asset('assets/js/htmx/core.js')"></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
 
-        <script src="@asset('assets/js/htmx/head.js')" defer></script>
-        <script src="@asset('assets/js/htmx/response-targets.js')" defer></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')" defer></script>
+        <script src="@asset('assets/js/htmx/head.js')"></script>
+        <script src="@asset('assets/js/htmx/response-targets.js')"></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')" defer></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
 
         @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
     @endif
