@@ -13,6 +13,8 @@
     var form = document.getElementById('lk-form');
     if (!form) return;
 
+    var isPage = cfg.mode === 'page';
+
     // ── State ──────────────────────────────────────────────
     var state = {
         currency: '',
@@ -35,11 +37,6 @@
     var promoBadge = root.querySelector('[data-lk-promo-badge]');
     var submitBtn = document.getElementById('lk-submit');
     var agreeCheckbox = document.getElementById('lk-agree');
-
-    var sectionAmount = root.querySelector('[data-lk-section="amount"]');
-    var sectionAmountDiv = root.querySelector('[data-lk-section="amount-divider"]');
-    var sectionCheckout = root.querySelector('[data-lk-section="checkout"]');
-    var sectionCheckoutDiv = root.querySelector('[data-lk-section="checkout-divider"]');
 
     // ── Helpers ────────────────────────────────────────────
     function csrfToken() {
@@ -79,7 +76,7 @@
         presets.forEach(function (val) {
             var btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'lk-amount__preset' + (state.amount === val ? ' is-active' : '');
+            btn.className = 'lk-preset' + (state.amount === val ? ' is-active' : '');
             btn.setAttribute('data-amount', val);
             btn.textContent = val.toLocaleString();
             btn.addEventListener('click', function () {
@@ -87,7 +84,6 @@
                 amountInput.value = val;
                 renderPresets();
                 recalculate();
-                revealCheckout();
             });
             presetsWrap.appendChild(btn);
         });
@@ -97,12 +93,15 @@
     function updateHint() {
         if (!hintEl) return;
         var min = getEffectiveMin();
-        var tpl = cfg.i18n.min_amount_info || '';
-        hintEl.textContent = tpl.replace(':amount', min).replace(':currency', state.currency);
+        if (min > 0) {
+            var tpl = cfg.i18n.min_amount_info || '';
+            hintEl.textContent = tpl.replace(':amount', min).replace(':currency', state.currency);
+        } else {
+            hintEl.textContent = '';
+        }
     }
 
     function getEffectiveMin() {
-        // Gateway-specific min
         var gwData = getGatewayData();
         if (gwData && gwData.minimum_amount) {
             return Number(gwData.minimum_amount);
@@ -127,7 +126,6 @@
             var code = g.getAttribute('data-lk-gateways');
             if (code === cur) {
                 show(g);
-                // Enable radios
                 g.querySelectorAll('input[type="radio"]').forEach(function (r) { r.disabled = false; });
             } else {
                 hide(g);
@@ -169,8 +167,6 @@
 
         updateHint();
         renderPresets();
-        revealAmount();
-        hideCheckout();
         recalculate();
     }
 
@@ -179,7 +175,6 @@
         state.gateway = gw;
         updateHint();
         recalculate();
-        revealAmount();
     }
 
     // ── Receipt calculation ────────────────────────────────
@@ -254,29 +249,6 @@
         updateSubmitState();
     }
 
-    // ── Section reveal ─────────────────────────────────────
-    function revealAmount() {
-        if (state.gateway) {
-            show(sectionAmountDiv);
-            show(sectionAmount);
-        } else {
-            hide(sectionAmountDiv);
-            hide(sectionAmount);
-        }
-    }
-
-    function revealCheckout() {
-        if (state.amount > 0 && state.gateway) {
-            show(sectionCheckoutDiv);
-            show(sectionCheckout);
-        }
-    }
-
-    function hideCheckout() {
-        hide(sectionCheckoutDiv);
-        hide(sectionCheckout);
-    }
-
     // ── Submit state ───────────────────────────────────────
     function updateSubmitState() {
         if (!submitBtn) return;
@@ -339,11 +311,11 @@
         if (!promoBadge) return;
         if (s === 'valid') {
             promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
-            promoBadge.className = 'lk-promo__badge is-valid';
+            promoBadge.className = 'lk-promo-field__badge is-valid';
             show(promoBadge);
         } else if (s === 'invalid') {
             promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M208.49 191.51a12 12 0 0 1-17 17L128 145l-63.51 63.49a12 12 0 0 1-17-17L111 128L47.51 64.49a12 12 0 0 1 17-17L128 111l63.51-63.49a12 12 0 0 1 17 17L145 128Z"/></svg>';
-            promoBadge.className = 'lk-promo__badge is-invalid';
+            promoBadge.className = 'lk-promo-field__badge is-invalid';
             show(promoBadge);
         } else {
             hide(promoBadge);
@@ -400,7 +372,7 @@
         submitBtn.disabled = on;
         submitBtn.classList.toggle('is-loading', on);
         var text = submitBtn.querySelector('[data-lk-btn-text]');
-        var loader = submitBtn.querySelector('.lk-pay-btn__loader');
+        var loader = submitBtn.querySelector('.lk-submit__loader');
         if (text) text.style.opacity = on ? '0' : '1';
         if (loader) {
             loader.style.display = on ? '' : 'none';
@@ -430,7 +402,6 @@
             state.amount = val;
             renderPresets();
             recalculate();
-            if (val > 0) revealCheckout();
         }, 300);
 
         amountInput.addEventListener('input', onAmountInput);
@@ -469,7 +440,6 @@
                 state.gateway = checkedGw.value;
             }
         }
-        // Also check hidden gateway
         var hiddenGw = root.querySelector('[data-lk-gateway-hidden="' + state.currency + '"]');
         if (hiddenGw && !state.gateway) {
             state.gateway = hiddenGw.value;
@@ -477,7 +447,6 @@
 
         updateHint();
         renderPresets();
-        revealAmount();
         updateSubmitState();
     }
 

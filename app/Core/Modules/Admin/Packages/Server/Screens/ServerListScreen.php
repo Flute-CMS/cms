@@ -54,8 +54,14 @@ class ServerListScreen extends Screen
 
     public function layout(): array
     {
-        return [
-            $this->getServerFilters(),
+        $layouts = [];
+
+        if ($this->shouldShowCronWarning()) {
+            $layouts[] = LayoutFactory::view('admin-server::components.cron-warning');
+        }
+
+        $layouts[] = $this->getServerFilters();
+        $layouts[] =
             LayoutFactory::table('servers', [
                 TD::selection('id'),
                 TD::make('mod')
@@ -131,8 +137,9 @@ class ServerListScreen extends Screen
                         ->type(Color::OUTLINE_DANGER)
                         ->confirm(__('admin.confirms.delete_selected'))
                         ->method('bulkDelete'),
-                ]),
-        ];
+                ]);
+
+        return $layouts;
     }
 
     public function delete(): void
@@ -212,5 +219,22 @@ class ServerListScreen extends Screen
             ->status('status', __('admin.filters.status_label'), 'all')
             ->select('mod', __('admin-server.fields.mod.label'), $modOptions)
             ->compact();
+    }
+
+    private function shouldShowCronWarning(): bool
+    {
+        if (!config('app.cron_mode')) {
+            return false;
+        }
+
+        $logFile = BASE_PATH . '/storage/logs/cron.log';
+
+        if (!file_exists($logFile)) {
+            return true;
+        }
+
+        $lastModified = filemtime($logFile);
+
+        return (time() - $lastModified) > 3600;
     }
 }

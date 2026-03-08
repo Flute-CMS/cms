@@ -429,10 +429,10 @@
 
         &--primary {
             background: var(--primary);
-            color: #fff;
+            color: var(--primary-900);
 
             &:hover {
-                background: var(--primary-hover);
+                background: var(--primary-200);
             }
         }
 
@@ -677,4 +677,23 @@
 @keyframes popup-progress {
     from { transform: scaleX(1); }
     to { transform: scaleX(0); }
+}
+
+// ─── Dropdown Backdrop (mobile) ─────────
+.dropdown-backdrop {
+    display: none;
+
+    @include media(mobile) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 499;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+
+        &.is-visible {
+            opacity: 1;
+        }
+    }
 }

@@ -235,6 +235,19 @@ return [
         'connection_no_response' => 'Server is not responding to queries.',
     ],
 
+    'cron_warning' => [
+        'title' => 'Cron is not configured!',
+        'description' => 'Cron mode is enabled, but there are no execution logs for the last hour. Without a configured cron, servers will not be displayed correctly on the site.',
+        'setup_button' => 'How to set up',
+        'modal_title' => 'Cron Setup',
+        'modal_description' => 'Cron is required to periodically query servers and update their status. Without it, server information (online status, players, map) will not be updated.',
+        'step_crontab' => 'Open the crontab editor:',
+        'step_add_line' => 'Add the following line:',
+        'step_windows' => 'Create a task in Task Scheduler via command prompt (as administrator):',
+        'verify_title' => 'Verification',
+        'verify_description' => 'To verify, run the command manually:',
+    ],
+
     'confirms' => [
         'delete_server' => 'Are you sure you want to delete this server? This action cannot be undone.',
     ],

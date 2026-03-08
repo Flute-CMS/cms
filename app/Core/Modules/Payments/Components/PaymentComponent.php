@@ -34,6 +34,8 @@ class PaymentComponent extends FluteComponent
 
     public bool $agree = false;
 
+    public bool $isModal = false;
+
     public bool $promoIsValid = true;
 
     public array $promoDetails = [];
@@ -191,7 +193,11 @@ class PaymentComponent extends FluteComponent
 
     public function render()
     {
-        return $this->view('flute::components.payments.payment-form');
+        $view = $this->isModal
+            ? 'flute::components.payments.payment-form-modal'
+            : 'flute::components.payments.payment-form';
+
+        return $this->view($view);
     }
 
     public function getEffectiveMinimumAmount(): float

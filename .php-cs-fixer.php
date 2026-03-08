@@ -18,7 +18,7 @@ $config = new Config();
 return $config
     ->setCacheFile(__DIR__ . '/.php-cs-fixer.cache')
     ->setRiskyAllowed(true)
-    ->setParallelConfig(new ParallelConfig())
+    ->setParallelConfig(new ParallelConfig(maxProcesses: 8, filesPerProcess: 20, processTimeout: 120))
     ->setIndent('    ')
     ->setLineEnding("\n")
     ->setRules([

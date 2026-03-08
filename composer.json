@@ -122,11 +122,14 @@
 			"@php vendor/bin/phpstan analyse --memory-limit=2G"
 		],
 		"test-fix": [
-			"@php vendor/bin/php-cs-fixer fix"
+			"Composer\\Config::disableProcessTimeout",
+			"@php vendor/bin/php-cs-fixer fix --show-progress=dots"
 		],
+		"fix": "@php vendor/bin/php-cs-fixer fix --show-progress=dots",
+		"fix-fast": "bash -c \"git diff --name-only --diff-filter=d HEAD -- '*.php' | grep -v blade.php | grep -v Database/Entities | xargs -r php vendor/bin/php-cs-fixer fix --path-mode=intersection --show-progress=dots\"",
 		"analyse": "@php vendor/bin/phpstan analyse --memory-limit=2G",
-		"format": "vendor/bin/php-cs-fixer fix",
-		"format-check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+		"format": "vendor/bin/php-cs-fixer fix --show-progress=dots",
+		"format-check": "vendor/bin/php-cs-fixer fix --dry-run --diff --show-progress=dots",
 		"optimize": [
 			"php flute cache:clear"
 		],
@@ -141,6 +144,7 @@
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"preferred-install": "dist",
+		"process-timeout": 600,
 		"allow-plugins": {
 			"php-http/discovery": true,
 			"wikimedia/composer-merge-plugin": true

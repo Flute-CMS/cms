@@ -1,0 +1,703 @@
+// ============================================================
+// Payment Form Component
+// Used by @yoyo('payment-form') — both page & modal variants
+// ============================================================
+
+// Root
+.lk-page {
+    width: 100%;
+}
+
+// Form card wrapper
+.lk-form-card {
+    overflow: hidden;
+}
+
+.lk-form-page {
+    display: flex;
+    flex-direction: column;
+
+    &__row {
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    &__divider {
+        height: 1px;
+        background: var(--transp-1);
+    }
+
+    &__label {
+        display: block;
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-500);
+        margin-bottom: var(--space-sm);
+    }
+
+    &__footer {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+}
+
+// Footnote
+.lk-footnote {
+    margin-top: var(--space-xs);
+    padding: 0 var(--space-2xs);
+    font-size: 11px;
+    color: var(--text-600);
+    line-height: 1.5;
+}
+
+// Empty state
+.lk-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--space-xl) * 3) var(--space-xl);
+    text-align: center;
+
+    &__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--border05);
+        background: var(--transp-05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: var(--space-lg);
+        color: var(--text-600);
+        svg { width: 22px; height: 22px; }
+    }
+
+    &__title {
+        font-size: var(--h5);
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--space-2xs);
+    }
+
+    &__text {
+        font-size: var(--p-small);
+        color: var(--text-500);
+        max-width: 300px;
+        line-height: 1.5;
+    }
+}
+
+// ==============================================================
+// Currency — segmented control
+// ==============================================================
+
+.lk-currency-bar {
+    display: flex;
+    background: var(--transp-05);
+    border-radius: var(--border05);
+    padding: 3px;
+    gap: 2px;
+
+    &__item {
+        flex: 1;
+        position: relative;
+
+        input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+
+            &:checked ~ label {
+                background: var(--background);
+                color: var(--text);
+                box-shadow: var(--shadow-small);
+            }
+
+            &:focus-visible ~ label {
+                box-shadow: 0 0 0 2px var(--accent);
+            }
+        }
+
+        label {
+            display: block;
+            padding: 6px 0;
+            border-radius: calc(var(--border05) - 2px);
+            font-size: var(--p-small);
+            font-weight: 600;
+            color: var(--text-500);
+            cursor: pointer;
+            @include transition(all);
+            text-align: center;
+            user-select: none;
+
+            &:hover { color: var(--text-200); }
+        }
+    }
+}
+
+// ==============================================================
+// Amount input + presets
+// ==============================================================
+
+.lk-amount-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    border: 1px solid var(--transp-2);
+    border-radius: var(--border05);
+    padding: 0 var(--space-md);
+    background: var(--transp-02);
+    @include transition(border-color, background-color);
+
+    &:focus-within {
+        border-color: var(--primary-300);
+        background: transparent;
+    }
+
+    input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-size: var(--h6);
+        font-weight: 600;
+        color: var(--text);
+        padding: var(--space-sm) 0;
+        min-width: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+
+        &::placeholder {
+            color: var(--text-700);
+            font-weight: 400;
+        }
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+    }
+
+    &__currency {
+        font-weight: 500;
+        color: var(--text-500);
+        font-size: var(--p-small);
+        flex-shrink: 0;
+    }
+}
+
+.lk-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: var(--space-xs);
+}
+
+.lk-preset {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--transp-1);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-500);
+    cursor: pointer;
+    @include transition(all);
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+
+    &:hover {
+        border-color: var(--transp-3);
+        color: var(--text-200);
+        background: var(--transp-03);
+    }
+
+    &.is-active {
+        background: var(--text);
+        color: var(--background);
+        border-color: var(--text);
+    }
+}
+
+.lk-amount-hint {
+    font-size: 11px;
+    color: var(--text-600);
+    margin-top: var(--space-2xs);
+    &:empty { display: none; }
+}
+
+// ==============================================================
+// Gateway grid (page) — border-radius: 7px only here
+// ==============================================================
+
+.lk-gw-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+
+    &.is-single {
+        grid-template-columns: 1fr;
+        .lk-gw-card { cursor: default; }
+    }
+}
+
+.lk-gw-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: var(--transp-03);
+    cursor: pointer;
+    @include transition(all);
+    position: relative;
+
+    &:hover { background: var(--transp-05); }
+
+    &:has(input:checked) {
+        border-color: var(--accent);
+        background: var(--transp-05);
+        .lk-gw-card__name { color: var(--text); }
+    }
+
+    &:has(input:focus-visible) {
+        box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__img {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--background);
+        border: 1px solid var(--transp-1);
+
+        img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+        svg { width: 16px; height: 16px; color: var(--text-500); }
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+    }
+
+    &__name {
+        font-weight: 500;
+        font-size: var(--p-small);
+        color: var(--text-300);
+        @include transition(color);
+    }
+
+    &__fee {
+        font-size: 11px;
+        color: var(--text-500);
+        font-weight: 500;
+    }
+
+    &__bonus {
+        color: var(--success);
+        font-weight: 600;
+    }
+}
+
+.lk-gateways-empty {
+    padding: var(--space-md);
+    border-radius: var(--border05);
+    color: var(--error);
+    background: var(--error-light);
+    text-align: center;
+    font-size: var(--p-small);
+    font-weight: 500;
+    grid-column: 1 / -1;
+}
+
+// ==============================================================
+// Promo, receipt, terms, submit
+// ==============================================================
+
+.lk-promo-details {
+    summary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        font-size: var(--p-small);
+        font-weight: 500;
+        color: var(--text-500);
+        cursor: pointer;
+        user-select: none;
+        list-style: none;
+        @include transition(color);
+
+        &::-webkit-details-marker { display: none; }
+
+        &::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-right: 1.5px solid currentColor;
+            border-bottom: 1.5px solid currentColor;
+            transform: rotate(-45deg);
+            @include transition(transform);
+            flex-shrink: 0;
+        }
+
+        &:hover { color: var(--text); }
+        svg { width: 15px; height: 15px; }
+    }
+
+    &[open] summary::after {
+        transform: rotate(45deg);
+    }
+}
+
+.lk-promo-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border05);
+    padding: 0 var(--space-md);
+    background: var(--transp-02);
+    @include transition(all);
+
+    &:focus-within { border-color: var(--primary-300); }
+
+    &.is-valid {
+        border-color: var(--success);
+        background: var(--success-light);
+    }
+
+    &.is-invalid {
+        border-color: var(--error);
+        background: var(--error-light);
+    }
+
+    input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-size: var(--p-small);
+        font-weight: 500;
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: var(--space-xs) 0;
+        min-width: 0;
+
+        &::placeholder {
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: 400;
+            color: var(--text-600);
+        }
+    }
+
+    &__badge {
+        flex-shrink: 0;
+        svg { width: 14px; height: 14px; }
+        &.is-valid { color: var(--success); }
+        &.is-invalid { color: var(--error); }
+    }
+}
+
+.lk-receipt {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--transp-02);
+    border-top: 1px solid var(--transp-1);
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-2xs) 0;
+        font-size: var(--small);
+        color: var(--text-300);
+
+        & + & { border-top: 1px solid var(--transp-05); }
+
+        span:first-child {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2xs);
+            svg { width: 12px; height: 12px; color: var(--text-600); cursor: help; }
+        }
+
+        span:last-child {
+            font-weight: 600;
+            color: var(--text-200);
+            font-variant-numeric: tabular-nums;
+        }
+
+        &--dim {
+            font-size: var(--small);
+            color: var(--text-500);
+            span:last-child { color: var(--text-400); }
+        }
+
+        &--green {
+            span, span:last-child { color: var(--success); }
+        }
+    }
+
+    &__total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: var(--space-xs);
+        margin-top: var(--space-2xs);
+        border-top: 1px solid var(--transp-1);
+
+        span:first-child {
+            font-weight: 600;
+            font-size: var(--p-small);
+            color: var(--text);
+        }
+
+        span:last-child {
+            font-size: var(--h6);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+}
+
+.lk-summary { @extend .lk-receipt; }
+
+.lk-terms {
+    label {
+        font-size: var(--small);
+        color: var(--text-400);
+        line-height: 1.6;
+    }
+}
+
+.lk-submit {
+    width: 100%;
+    height: 42px;
+    border-radius: var(--border05);
+    font-size: var(--p-small);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    position: relative;
+    overflow: hidden;
+
+    svg { width: 15px; height: 15px; }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    &.is-loading { pointer-events: none; }
+
+    &__loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 18px;
+        height: 18px;
+        margin: -9px 0 0 -9px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: lk-spin 0.7s linear infinite;
+    }
+}
+
+@keyframes lk-spin {
+    to { transform: rotate(360deg); }
+}
+
+// ==============================================================
+// Modal variant — compact
+// ==============================================================
+
+.lk-modal-form {
+    max-width: 480px;
+    margin: 0 auto;
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .lk-submit { height: 44px; }
+}
+
+.lk-custom-amount {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border05);
+    padding: 0 var(--space-md);
+    @include transition(border-color);
+
+    &:focus-within { border-color: var(--primary-300); }
+
+    input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-size: var(--p);
+        font-weight: 500;
+        color: var(--text);
+        padding: var(--space-sm) 0;
+        min-width: 0;
+        font-variant-numeric: tabular-nums;
+
+        &::placeholder { color: var(--text-600); font-weight: 400; }
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button { -webkit-appearance: none; }
+    }
+
+    &__currency {
+        font-weight: 500;
+        color: var(--text-500);
+        font-size: var(--p);
+        flex-shrink: 0;
+    }
+}
+
+.lk-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xs);
+}
+
+.lk-gateways {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+
+    &.is-single .lk-gateway-card label { cursor: default; }
+}
+
+.lk-gateway-card {
+    position: relative;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+
+        &:checked ~ label {
+            border-color: var(--accent);
+            background: var(--transp-05);
+            .lk-gateway-card__name { color: var(--text); }
+        }
+
+        &:focus-visible ~ label {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 7px;
+        border: 1px solid var(--transp-1);
+        background: var(--transp-02);
+        cursor: pointer;
+        @include transition(all);
+        white-space: nowrap;
+
+        &:hover {
+            border-color: var(--transp-3);
+            background: var(--transp-05);
+        }
+    }
+
+    &__img {
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--background);
+        border: 1px solid var(--transp-05);
+
+        img { width: 100%; height: 100%; object-fit: contain; }
+        svg { width: 14px; height: 14px; color: var(--text-500); }
+    }
+
+    &__name {
+        font-weight: 600;
+        font-size: var(--p-small);
+        color: var(--text-300);
+        @include transition(color);
+    }
+
+    &__bonus {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--success);
+        background: var(--success-light);
+        padding: 2px 6px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    &__fee {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-500);
+        flex-shrink: 0;
+    }
+}
+
+// ==============================================================
+// Responsive
+// ==============================================================
+
+@media (max-width: 640px) {
+    .lk-gw-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .lk-form-page__row {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .lk-receipt {
+        padding: var(--space-sm) var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .lk-modal-form .lk-presets {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

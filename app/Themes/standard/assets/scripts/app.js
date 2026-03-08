@@ -558,6 +558,67 @@ class NotificationManager {
     }
 
     initAutoMarkRead() {
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const item = entry.target;
+                    const id = item.getAttribute("data-id");
+
+                    if (id && item.classList.contains("unread")) {
+                        item.classList.remove("unread");
+                        item.classList.add("viewed");
+                        const dot = item.querySelector(".notification-unread-indicator");
+                        if (dot) dot.remove();
+
+                        fetch(u(`api/notifications/${id}`), {
+                            method: "PUT",
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest",
+                                "X-CSRF-Token": document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    ?.getAttribute("content"),
+                            },
+                        }).catch(() => { });
+
+                        this.updateBadges();
+                        observer.unobserve(item);
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const observeUnreadItems = () => {
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                observer.observe(item);
+            });
+        };
+
+        observeUnreadItems();
+
+        const mutationObserver = new MutationObserver((mutations) => {
+            let hasNewItems = false;
+            mutations.forEach(mutation => {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.classList.contains('notification-item') || node.querySelector('.notification-item')) {
+                                hasNewItems = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (hasNewItems) {
+                observeUnreadItems();
+            }
+        });
+
+        mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Click handler for navigation
         document.addEventListener("click", (e) => {
             const item = e.target.closest(".notification-item");
             if (!item) return;
@@ -565,28 +626,6 @@ class NotificationManager {
             // Don't process if clicking delete, file link, or action button
             if (e.target.closest(".notification-delete") || e.target.closest(".notification-btn") || e.target.closest(".notification-file-link")) {
                 return;
-            }
-
-            const id = item.getAttribute("data-id");
-
-            // Mark as read if unread
-            if (id && item.classList.contains("unread")) {
-                item.classList.remove("unread");
-                item.classList.add("viewed");
-                const dot = item.querySelector(".notification-unread-indicator");
-                if (dot) dot.remove();
-
-                fetch(u(`api/notifications/${id}`), {
-                    method: "PUT",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRF-Token": document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute("content"),
-                    },
-                }).catch(() => { });
-
-                this.updateBadges();
             }
 
             // Navigate if has URL
@@ -719,10 +758,12 @@ class NotificationManager {
             if (profileToggle) {
                 profileToggle.setAttribute("aria-expanded", "false");
             }
+            this.removeBackdrop();
         }
 
         // Move to body for proper backdrop-filter
         this.moveToBody();
+        this.showBackdrop();
 
         this.toggle.setAttribute("aria-expanded", "true");
         this.isOpen = true;
@@ -820,6 +861,7 @@ class NotificationManager {
             this.toggle.setAttribute("aria-expanded", "false");
         }
         this.isOpen = false;
+        this.removeBackdrop();
 
         // Return to original parent after animation
         setTimeout(() => {
@@ -827,6 +869,24 @@ class NotificationManager {
                 this.restoreToParent();
             }
         }, 200);
+    }
+
+    showBackdrop() {
+        if (window.innerWidth > 768) return;
+        this.removeBackdrop();
+        this.backdrop = document.createElement("div");
+        this.backdrop.className = "dropdown-backdrop";
+        this.backdrop.addEventListener("click", () => this.closeDropdown());
+        document.body.appendChild(this.backdrop);
+        requestAnimationFrame(() => this.backdrop && this.backdrop.classList.add("is-visible"));
+    }
+
+    removeBackdrop() {
+        if (!this.backdrop) return;
+        this.backdrop.classList.remove("is-visible");
+        const el = this.backdrop;
+        this.backdrop = null;
+        setTimeout(() => el.remove(), 200);
     }
 
     switchTab(tabName) {
@@ -990,6 +1050,11 @@ class NotificationManager {
 
             if (allBadge) allBadge.textContent = allCount;
             if (unreadBadge) unreadBadge.textContent = unreadCount;
+
+            const dot = document.getElementById("notification-dot");
+            if (dot && unreadCount === 0) {
+                dot.classList.remove("active");
+            }
         }, 150);
     }
 
@@ -1953,11 +2018,11 @@ class ThemeManager {
 
     updateIcons(theme) {
         if (theme === "dark") {
-            this.sunIcon.hide(100);
-            this.moonIcon.show(100);
+            $(".sun-icon").hide(100);
+            $(".moon-icon").show(100);
         } else {
-            this.moonIcon.hide(100);
-            this.sunIcon.show(100);
+            $(".moon-icon").hide(100);
+            $(".sun-icon").show(100);
         }
     }
 
@@ -2571,10 +2636,12 @@ class ProfileDropdownManager {
             if (notifToggle) {
                 notifToggle.setAttribute("aria-expanded", "false");
             }
+            this.removeBackdrop();
         }
 
         // Move to body for proper backdrop-filter
         this.moveToBody();
+        this.showBackdrop();
 
         this.toggle.setAttribute("aria-expanded", "true");
         this.isOpen = true;
@@ -2597,6 +2664,24 @@ class ProfileDropdownManager {
         if (this.dropdown.parentElement === document.body) {
             this.originalParent.appendChild(this.dropdown);
         }
+    }
+
+    showBackdrop() {
+        if (window.innerWidth > 768) return;
+        this.removeBackdrop();
+        this.backdrop = document.createElement("div");
+        this.backdrop.className = "dropdown-backdrop";
+        this.backdrop.addEventListener("click", () => this.closeDropdown());
+        document.body.appendChild(this.backdrop);
+        requestAnimationFrame(() => this.backdrop && this.backdrop.classList.add("is-visible"));
+    }
+
+    removeBackdrop() {
+        if (!this.backdrop) return;
+        this.backdrop.classList.remove("is-visible");
+        const el = this.backdrop;
+        this.backdrop = null;
+        setTimeout(() => el.remove(), 200);
     }
 
     positionDropdown(onPositioned) {
@@ -2671,6 +2756,7 @@ class ProfileDropdownManager {
             this.toggle.setAttribute("aria-expanded", "false");
         }
         this.isOpen = false;
+        this.removeBackdrop();
 
         // Return to original parent after animation
         setTimeout(() => {

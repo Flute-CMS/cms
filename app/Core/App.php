@@ -157,11 +157,11 @@ final class App
     public function debug(bool $debug = true): void
     {
         if (function_exists("ini_set")) {
-            ini_set("display_errors", (string) $debug);
-            ini_set("display_startup_errors", (string) $debug);
+            ini_set("display_errors", $debug ? "1" : "0");
+            ini_set("display_startup_errors", $debug ? "1" : "0");
         }
 
-        error_reporting(E_ALL);
+        error_reporting($debug ? E_ALL : E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
         // We add debug mode to the container
         $this->bind("debug", (string) $debug);

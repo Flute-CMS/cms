@@ -476,7 +476,7 @@ class EditPaymentGatewayScreen extends Screen
             'description' => ['nullable', 'string', 'max-str-len:500'],
             'fee' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
             'bonus' => ['nullable', 'numeric', 'gte:0', 'lte:100'],
-            'minimum_amount' => ['nullable', 'numeric', 'gte:0'],
+            'minimum_amount' => ['nullable', 'gte:0'],
             'enabled' => ['sometimes', 'boolean'],
             'image' => ['nullable', 'image', 'max-file-size:10'],
             'currencies' => ['required', 'array'],

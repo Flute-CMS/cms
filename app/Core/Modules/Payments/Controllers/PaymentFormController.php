@@ -132,13 +132,13 @@ class PaymentFormController extends BaseController
                 payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
 
                 return $this->json([
-                    'redirect' => url('/lk/success'),
+                    'redirect' => url('/lk/success')->get(),
                     'message' => __('lk.success'),
                 ]);
             }
 
             return $this->json([
-                'redirect' => url("/payment/{$invoice->transactionId}"),
+                'redirect' => url("/payment/{$invoice->transactionId}")->get(),
                 'message' => __('lk.redirect'),
             ]);
         } catch (PaymentPromoException $e) {

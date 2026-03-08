@@ -2,84 +2,68 @@
 
 namespace Hybridauth\Provider;
 
-use Hybridauth\Adapter\AbstractAdapter;
-use Hybridauth\Adapter\AdapterInterface;
-use Hybridauth\Data\Collection;
-use Hybridauth\Exception\InvalidApplicationCredentialsException;
-use Hybridauth\Exception\InvalidAuthorizationCodeException;
+use Hybridauth\Adapter\OAuth2;
+use Hybridauth\Exception\InvalidAccessTokenException;
 use Hybridauth\Exception\UnexpectedApiResponseException;
-use Hybridauth\HttpClient\Util;
-use Hybridauth\User\Profile;
+use Hybridauth\User;
+use OpenSSLAsymmetricKey;
 
 /**
- * Telegram provider adapter using redirect-based OAuth flow.
+ * Telegram OAuth 2.0 / OpenID Connect provider adapter.
  *
- * Uses https://oauth.telegram.org/auth for authentication instead of
- * the deprecated widget-based approach with exit().
+ * Uses the new OAuth 2.0 Authorization Code Flow with PKCE.
+ * Validates id_token RS256 signature using Telegram's JWKS endpoint via OpenSSL.
+ *
+ * @see https://core.telegram.org/bots/telegram-login
  *
  * Config:
- *   'keys' => ['id' => 'bot_username', 'secret' => 'bot_token']
+ *   'keys' => ['id' => 'client_id (numeric bot ID)', 'secret' => 'client_secret (from BotFather)']
  */
-class Telegram extends AbstractAdapter implements AdapterInterface
+class Telegram extends OAuth2
 {
-    protected $botId = '';
+    protected const JWKS_URL = 'https://oauth.telegram.org/.well-known/jwks.json';
 
-    protected $botSecret = '';
+    protected const EXPECTED_ISSUER = 'https://oauth.telegram.org';
 
-    protected $callbackUrl = '';
+    protected $scope = 'openid profile';
 
-    protected $apiDocumentation = 'https://core.telegram.org/widgets/login';
+    protected $apiBaseUrl = 'https://oauth.telegram.org/';
 
-    /**
-     * {@inheritdoc}
-     */
-    public function authenticate()
-    {
-        $this->logger->info(sprintf('%s::authenticate()', get_class($this)));
+    protected $authorizeUrl = 'https://oauth.telegram.org/auth';
 
-        if ($this->isCallbackWithAuthData()) {
-            $this->authenticateCheckError();
-            $this->authenticateFinish();
-        } else {
-            $this->authenticateBegin();
-        }
+    protected $accessTokenUrl = 'https://oauth.telegram.org/token';
 
-        return null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isConnected()
-    {
-        $authData = $this->getStoredData('auth_data');
-
-        return !empty($authData);
-    }
+    protected $apiDocumentation = 'https://core.telegram.org/bots/telegram-login';
 
     /**
      * {@inheritdoc}
      */
     public function getUserProfile()
     {
-        $data = new Collection($this->getStoredData('auth_data'));
+        $claims = $this->getStoredData('id_token_claims');
 
-        if (!$data->exists('id')) {
+        if (!is_array($claims) || empty($claims['sub'])) {
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new Profile();
+        $userProfile = new User\Profile();
 
-        $userProfile->identifier = $data->get('id');
-        $userProfile->firstName = $data->get('first_name');
-        $userProfile->lastName = $data->get('last_name');
-        $userProfile->displayName = $data->get('username')
-            ?: trim($data->get('first_name') . ' ' . $data->get('last_name'));
-        $userProfile->photoURL = $data->get('photo_url');
+        $userProfile->identifier = $claims['sub'];
+        $userProfile->displayName = $claims['name'] ?? null;
+        $userProfile->photoURL = $claims['picture'] ?? null;
+        $userProfile->phone = $claims['phone_number'] ?? null;
 
-        $username = $data->get('username');
+        $username = $claims['preferred_username'] ?? null;
         if (!empty($username)) {
             $userProfile->profileURL = "https://t.me/{$username}";
+        }
+
+        if (empty($userProfile->displayName)) {
+            $parts = array_filter([
+                $claims['first_name'] ?? null,
+                $claims['last_name'] ?? null,
+            ]);
+            $userProfile->displayName = implode(' ', $parts) ?: $username;
         }
 
         return $userProfile;
@@ -88,151 +72,252 @@ class Telegram extends AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function initialize()
     {
-        $this->botId = $this->config->filter('keys')->get('id');
-        $this->botSecret = $this->config->filter('keys')->get('secret');
-        $this->callbackUrl = $this->config->get('callback');
+        parent::initialize();
 
-        if (!$this->botId || !$this->botSecret) {
-            throw new InvalidApplicationCredentialsException(
-                'Your application id is required in order to connect to ' . $this->providerId
-            );
+        if (!$this->getStoredData('code_verifier')) {
+            $codeVerifier = $this->generateCodeVerifier();
+            $this->storeData('code_verifier', $codeVerifier);
         }
+
+        $codeVerifier = $this->getStoredData('code_verifier');
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+        $this->AuthorizeUrlParameters['code_challenge'] = $codeChallenge;
+        $this->AuthorizeUrlParameters['code_challenge_method'] = 'S256';
+
+        $this->tokenExchangeHeaders = [
+            'Authorization' => 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
+        ];
+
+        unset($this->tokenExchangeParameters['client_id'], $this->tokenExchangeParameters['client_secret']);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function initialize()
+    protected function exchangeCodeForAccessToken($code)
     {
-    }
+        $this->tokenExchangeParameters['code'] = $code;
 
-    /**
-     * Check whether the current request is a callback with Telegram auth data.
-     */
-    protected function isCallbackWithAuthData(): bool
-    {
-        return !empty($this->filterInput(INPUT_GET, 'hash'))
-            && !empty($this->filterInput(INPUT_GET, 'auth_date'));
-    }
+        $codeVerifier = $this->getStoredData('code_verifier');
+        if ($codeVerifier) {
+            $this->tokenExchangeParameters['code_verifier'] = $codeVerifier;
+        }
 
-    /**
-     * Redirect user to Telegram OAuth page.
-     */
-    protected function authenticateBegin()
-    {
-        $botNumericId = $this->extractBotNumericId();
-        $origin = $this->getOrigin();
-
-        $params = [
-            'bot_id' => $botNumericId,
-            'origin' => $origin,
-            'request_access' => 'write',
-            'return_to' => $this->callbackUrl,
-        ];
-
-        $authUrl = 'https://oauth.telegram.org/auth?' . http_build_query($params);
-
-        $this->logger->debug(
-            sprintf('%s::authenticateBegin(), redirecting user to: %s', get_class($this), $authUrl)
+        $response = $this->httpClient->request(
+            $this->accessTokenUrl,
+            $this->tokenExchangeMethod,
+            $this->tokenExchangeParameters,
+            $this->tokenExchangeHeaders
         );
 
-        Util::redirect($authUrl);
+        $this->validateApiResponse('Unable to exchange code for API access token');
+
+        return $response;
     }
 
     /**
-     * Validate the hash from Telegram callback data.
-     *
-     * @see https://core.telegram.org/widgets/login#checking-authorization
+     * {@inheritdoc}
      */
-    protected function authenticateCheckError()
+    protected function validateAccessTokenExchange($response)
     {
-        $authData = $this->parseAuthData();
-        $checkHash = $authData['hash'];
-        unset($authData['hash']);
+        $collection = parent::validateAccessTokenExchange($response);
 
-        $dataCheckArr = [];
-        foreach ($authData as $key => $value) {
-            if ($value !== null && $value !== '') {
-                $dataCheckArr[] = $key . '=' . $value;
+        $idToken = $collection->get('id_token');
+        if (!$idToken) {
+            throw new InvalidAccessTokenException('Provider returned no id_token.');
+        }
+
+        $claims = $this->verifyAndDecodeIdToken($idToken);
+        $this->storeData('id_token_claims', $claims);
+
+        return $collection;
+    }
+
+    /**
+     * Verify the id_token RS256 signature using Telegram's JWKS and validate claims.
+     *
+     * @throws InvalidAccessTokenException
+     */
+    protected function verifyAndDecodeIdToken(string $idToken): array
+    {
+        $parts = explode('.', $idToken);
+        if (count($parts) !== 3) {
+            throw new InvalidAccessTokenException('Malformed id_token.');
+        }
+
+        [$headerB64, $payloadB64, $signatureB64] = $parts;
+
+        $header = json_decode($this->base64UrlDecode($headerB64), true);
+        if (!is_array($header) || ($header['alg'] ?? null) !== 'RS256') {
+            throw new InvalidAccessTokenException('Unsupported id_token algorithm.');
+        }
+
+        $kid = $header['kid'] ?? null;
+        $publicKey = $this->fetchJwksPublicKey($kid);
+
+        $signature = $this->base64UrlDecode($signatureB64);
+        $data = $headerB64 . '.' . $payloadB64;
+
+        $valid = openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256);
+        if ($valid !== 1) {
+            throw new InvalidAccessTokenException('id_token signature verification failed.');
+        }
+
+        $decoded = json_decode($this->base64UrlDecode($payloadB64), true);
+        if (!is_array($decoded)) {
+            throw new InvalidAccessTokenException('Unable to decode id_token payload.');
+        }
+
+        if (($decoded['iss'] ?? null) !== static::EXPECTED_ISSUER) {
+            throw new InvalidAccessTokenException(
+                'id_token issuer mismatch: expected ' . static::EXPECTED_ISSUER
+            );
+        }
+
+        if (($decoded['aud'] ?? null) !== $this->clientId) {
+            throw new InvalidAccessTokenException(
+                'id_token audience mismatch: expected ' . $this->clientId
+            );
+        }
+
+        if (isset($decoded['exp']) && (int) $decoded['exp'] < time()) {
+            throw new InvalidAccessTokenException('id_token has expired.');
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Fetch the RSA public key from Telegram's JWKS endpoint.
+     *
+     * @throws InvalidAccessTokenException
+     */
+    protected function fetchJwksPublicKey(?string $kid): OpenSSLAsymmetricKey
+    {
+        $jwksJson = $this->httpClient->request(static::JWKS_URL);
+        $jwks = json_decode($jwksJson, true);
+
+        if (!is_array($jwks) || empty($jwks['keys'])) {
+            throw new InvalidAccessTokenException('Unable to fetch Telegram JWKS keys.');
+        }
+
+        $jwk = null;
+        foreach ($jwks['keys'] as $key) {
+            if ($kid !== null && ($key['kid'] ?? null) === $kid) {
+                $jwk = $key;
+
+                break;
             }
         }
-        sort($dataCheckArr);
 
-        $dataCheckString = implode("\n", $dataCheckArr);
-        $secretKey = hash('sha256', $this->botSecret, true);
-        $hash = hash_hmac('sha256', $dataCheckString, $secretKey);
-
-        if (!hash_equals($hash, $checkHash)) {
-            throw new InvalidAuthorizationCodeException(
-                sprintf('Provider returned an error: %s', 'Data is NOT from Telegram')
-            );
+        if (!$jwk) {
+            $jwk = $jwks['keys'][0];
         }
 
-        if ((time() - (int) $authData['auth_date']) > 86400) {
-            throw new InvalidAuthorizationCodeException(
-                sprintf('Provider returned an error: %s', 'Data is outdated')
-            );
+        if (($jwk['kty'] ?? null) !== 'RSA' || empty($jwk['n']) || empty($jwk['e'])) {
+            throw new InvalidAccessTokenException('Invalid JWK key in Telegram JWKS.');
         }
+
+        $pem = $this->rsaJwkToPem($jwk['n'], $jwk['e']);
+        $key = openssl_pkey_get_public($pem);
+
+        if (!$key) {
+            throw new InvalidAccessTokenException('Failed to parse RSA public key from JWKS.');
+        }
+
+        return $key;
     }
 
     /**
-     * Store auth data after successful validation.
+     * Convert RSA JWK modulus and exponent to PEM format.
      */
-    protected function authenticateFinish()
+    protected function rsaJwkToPem(string $n, string $e): string
     {
-        $this->logger->debug(
-            sprintf('%s::authenticateFinish(), callback url:', get_class($this)),
-            [Util::getCurrentUrl(true)]
+        $modulus = $this->base64UrlDecode($n);
+        $exponent = $this->base64UrlDecode($e);
+
+        $modulus = ltrim($modulus, "\x00");
+        if (ord($modulus[0]) > 0x7f) {
+            $modulus = "\x00" . $modulus;
+        }
+
+        $components = $this->asn1Sequence(
+            $this->asn1Sequence(
+                $this->asn1ObjectIdentifier("\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01") // rsaEncryption
+                . "\x05\x00" // NULL
+            )
+            . $this->asn1BitString(
+                $this->asn1Sequence(
+                    $this->asn1UnsignedInteger($modulus)
+                    . $this->asn1UnsignedInteger($exponent)
+                )
+            )
         );
 
-        $this->storeData('auth_data', $this->parseAuthData());
-
-        $this->initialize();
+        return "-----BEGIN PUBLIC KEY-----\n"
+            . chunk_split(base64_encode($components), 64, "\n")
+            . "-----END PUBLIC KEY-----\n";
     }
 
     /**
-     * Parse auth data from GET parameters.
+     * Generate a cryptographically random code verifier for PKCE.
      */
-    protected function parseAuthData(): array
+    protected function generateCodeVerifier(): string
     {
-        return [
-            'id' => $this->filterInput(INPUT_GET, 'id'),
-            'first_name' => $this->filterInput(INPUT_GET, 'first_name'),
-            'last_name' => $this->filterInput(INPUT_GET, 'last_name'),
-            'username' => $this->filterInput(INPUT_GET, 'username'),
-            'photo_url' => $this->filterInput(INPUT_GET, 'photo_url'),
-            'auth_date' => $this->filterInput(INPUT_GET, 'auth_date'),
-            'hash' => $this->filterInput(INPUT_GET, 'hash'),
-        ];
+        return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
     }
 
     /**
-     * Extract the numeric bot ID from the bot token.
-     * Token format: "123456789:ABCDEF..."
+     * Decode a base64url-encoded string.
      */
-    protected function extractBotNumericId(): string
+    protected function base64UrlDecode(string $input): string
     {
-        $parts = explode(':', $this->botSecret);
+        $decoded = base64_decode(strtr($input, '-_', '+/'));
 
-        if (count($parts) >= 2 && is_numeric($parts[0])) {
-            return $parts[0];
+        if ($decoded === false) {
+            return '';
         }
 
-        return $this->botId;
+        return $decoded;
     }
 
-    /**
-     * Get the origin (scheme + host) from the callback URL.
-     */
-    protected function getOrigin(): string
+    protected function asn1Length(string $data): string
     {
-        $parsed = parse_url($this->callbackUrl);
+        $len = strlen($data);
+        if ($len < 0x80) {
+            return chr($len);
+        }
 
-        $scheme = $parsed['scheme'] ?? 'https';
-        $host = $parsed['host'] ?? '';
+        $lenBytes = '';
+        $temp = $len;
+        while ($temp > 0) {
+            $lenBytes = chr($temp & 0xff) . $lenBytes;
+            $temp >>= 8;
+        }
 
-        return $scheme . '://' . $host;
+        return chr(0x80 | strlen($lenBytes)) . $lenBytes;
+    }
+
+    protected function asn1Sequence(string $data): string
+    {
+        return "\x30" . $this->asn1Length($data) . $data;
+    }
+
+    protected function asn1UnsignedInteger(string $data): string
+    {
+        return "\x02" . $this->asn1Length($data) . $data;
+    }
+
+    protected function asn1BitString(string $data): string
+    {
+        return "\x03" . $this->asn1Length("\x00" . $data) . "\x00" . $data;
+    }
+
+    protected function asn1ObjectIdentifier(string $oid): string
+    {
+        return "\x06" . $this->asn1Length($oid) . $oid;
     }
 }

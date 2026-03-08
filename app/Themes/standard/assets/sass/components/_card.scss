@@ -1,6 +1,7 @@
 .card {
     @extend .blur-bg;
 
+    background-color: var(--blurred-background);
     border: 1px solid var(--transp-1);
     border-radius: var(--border1);
     box-shadow: var(--shadow-small);

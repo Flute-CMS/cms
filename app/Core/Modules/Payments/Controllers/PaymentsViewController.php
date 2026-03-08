@@ -14,8 +14,18 @@ class PaymentsViewController extends BaseController
     {
         $isModal = $fluteRequest->isOnlyHtmx() && config('lk.only_modal');
 
+        $recentInvoices = [];
+        if (!$isModal) {
+            $recentInvoices = PaymentInvoice::query()
+                ->where('user_id', user()->id)
+                ->orderBy('created_at', 'DESC')
+                ->limit(10)
+                ->fetchAll();
+        }
+
         return view('flute::pages.lk.index', [
             'isModal' => $isModal,
+            'recentInvoices' => $recentInvoices,
         ])->fragmentIf($isModal, 'lk-card');
     }
 

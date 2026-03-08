@@ -68,4 +68,7 @@
     "gateway_fee"             => "Gateway fee",
     "gateway_fee_tooltip"     => "The fee is charged by the payment system, not our service",
     "gateway_bonus"           => "Bonus",
+    "your_balance"            => "Your balance",
+    "history_title"           => "Recent transactions",
+    "no_history"              => "No transactions yet",
 ];

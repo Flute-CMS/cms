@@ -1,0 +1,40 @@
+.cron-warning__desc {
+    margin: 4px 0 var(--space-sm);
+}
+
+.cron-setup {
+    &__intro {
+        margin-bottom: var(--space-md);
+        line-height: 1.6;
+        color: var(--text-300);
+    }
+
+    &__heading {
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-xs);
+        font-size: var(--p);
+        font-weight: 600;
+    }
+
+    &__label {
+        margin-bottom: 4px;
+        font-size: var(--p-small);
+        color: var(--text-300);
+    }
+
+    &__code {
+        margin: 4px 0 var(--space-md);
+        padding: var(--space-sm);
+        background: var(--transp-05);
+        border: 1px solid var(--transp-1);
+        border-radius: var(--border05);
+        font-size: var(--p-small);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+
+        &--last {
+            margin-bottom: 0;
+        }
+    }
+}

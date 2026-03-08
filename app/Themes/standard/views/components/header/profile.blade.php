@@ -7,19 +7,17 @@
     </button>
 
     <div class="profile-dropdown" data-profile-dropdown aria-hidden="true" hx-boost="false">
-        {{-- Hero Card --}}
+        {{-- Hero: Banner + Avatar + Name --}}
         <div class="profile-dropdown__hero" @if(user()->banner) style="--banner: url('{{ url(user()->banner) }}')" @endif>
-            <div class="profile-dropdown__identity">
-                <img class="profile-dropdown__avatar" src="{{ url(user()->avatar) }}" alt="{{ user()->name }}" loading="lazy">
-                <div class="profile-dropdown__info">
-                    <span class="profile-dropdown__name">{{ user()->name }}</span>
-                    @if (user()->login)
-                        <span class="profile-dropdown__sub">{{ '@' . user()->login }}</span>
-                    @elseif (user()->email)
-                        <span class="profile-dropdown__sub">{{ user()->email }}</span>
-                    @endif
-                </div>
+            <div class="profile-dropdown__hero-avatar">
+                <img src="{{ url(user()->avatar) }}" alt="{{ user()->name }}" loading="lazy">
             </div>
+            <span class="profile-dropdown__hero-name">{{ user()->name }}</span>
+            @if (user()->login)
+                <span class="profile-dropdown__hero-sub">{{ '@' . user()->login }}</span>
+            @elseif (user()->email)
+                <span class="profile-dropdown__hero-sub">{{ user()->email }}</span>
+            @endif
         </div>
 
         {{-- Balance --}}
@@ -51,44 +49,57 @@
             </div>
         @endif
 
-        {{-- Quick Actions Grid --}}
-        <div class="profile-dropdown__actions" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+        {{-- Menu Grid --}}
+        <div class="profile-dropdown__menu" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
             @if (config('app.profile_enabled', true))
-                <a href="{{ url('profile/' . user()->getUrl()) }}" class="profile-dropdown__action">
-                    <span class="profile-dropdown__action-icon">
-                        <x-icon path="ph.regular.user" />
+                <a href="{{ url('profile/' . user()->getUrl()) }}" class="profile-dropdown__menu-item">
+                    <span class="profile-dropdown__menu-icon">
+                        <x-icon path="ph.regular.user-circle" />
                     </span>
-                    <span class="profile-dropdown__action-label">@t('def.my_profile')</span>
-                </a>
-                <a href="{{ url('profile/settings') }}" class="profile-dropdown__action">
-                    <span class="profile-dropdown__action-icon">
-                        <x-icon path="ph.regular.gear" />
-                    </span>
-                    <span class="profile-dropdown__action-label">@t('def.settings')</span>
+                    <span class="profile-dropdown__menu-label">@t('def.my_profile')</span>
                 </a>
             @endif
+
             @can('admin')
-                <a href="{{ url('admin') }}" class="profile-dropdown__action" hx-boost="false">
-                    <span class="profile-dropdown__action-icon">
-                        <x-icon path="ph.regular.shield-check" />
+                <a href="{{ url('admin') }}" class="profile-dropdown__menu-item" hx-boost="false">
+                    <span class="profile-dropdown__menu-icon">
+                        <x-icon path="ph.regular.shield-checkered" />
                     </span>
-                    <span class="profile-dropdown__action-label">@t('def.admin_panel')</span>
+                    <span class="profile-dropdown__menu-label">@t('def.admin_panel')</span>
                 </a>
             @endcan
+
+            {{-- Extension point: modules push items here as profile-dropdown__menu-item --}}
+            @stack('profile-dropdown')
         </div>
 
-        {{-- Stack for additional items --}}
-        @stack('profile-dropdown')
-
-        {{-- Logout --}}
+        {{-- Footer: Settings + Theme + Logout --}}
         <div class="profile-dropdown__footer">
-            <form action="{{ url('logout') }}" method="POST" hx-boost="false">
-                @csrf
-                <button type="submit" class="profile-dropdown__logout">
-                    <x-icon path="ph.regular.sign-out" />
-                    <span>@t('def.logout')</span>
-                </button>
-            </form>
+            @if (config('app.profile_enabled', true))
+                <a href="{{ url('profile/settings') }}" class="profile-dropdown__footer-settings" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
+                    <x-icon path="ph.regular.gear" />
+                    <span>@t('def.settings')</span>
+                </a>
+            @endif
+
+            <div class="profile-dropdown__footer-actions">
+                {{-- Stack for extra footer buttons --}}
+                @stack('profile-dropdown-footer')
+
+                @if(config('app.change_theme'))
+                    <button class="profile-dropdown__footer-btn" data-tooltip="@t('def.change_theme')" data-tooltip-placement="top" onclick="document.querySelector('#theme-toggle')?.click()">
+                        <x-icon path="ph.regular.sun" class="sun-icon" @style(['display: none' => cookie()->get('theme', 'dark') === 'dark']) />
+                        <x-icon path="ph.regular.moon" class="moon-icon" @style(['display: none' => cookie()->get('theme', 'dark') === 'light']) />
+                    </button>
+                @endif
+
+                <form action="{{ url('logout') }}" method="POST" hx-boost="false">
+                    @csrf
+                    <button type="submit" class="profile-dropdown__footer-btn profile-dropdown__footer-btn--danger" data-tooltip="@t('def.logout')" data-tooltip-placement="top">
+                        <x-icon path="ph.regular.sign-out" />
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </li>

@@ -1,6 +1,3 @@
-// Profile Dropdown — Premium SaaS Layout
-// =======================================
-
 .navbar__profile-wrapper {
     position: relative;
     display: flex;
@@ -84,15 +81,18 @@
         pointer-events: auto;
     }
 
-    // ─── Hero ────────────────────────────
     &__hero {
         position: relative;
-        padding: 14px 14px 12px;
-        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 14px 12px;
+        gap: 6px;
+        background: var(--transp-05);
 
-        // Banner as background
         &[style*="--banner"] {
-            padding-top: 52px;
+            padding-top: 30px;
+            background: none;
 
             &::before {
                 content: '';
@@ -100,7 +100,7 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                height: 64px;
+                bottom: 0;
                 background: var(--banner) center / cover no-repeat;
             }
 
@@ -110,126 +110,52 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                height: 64px;
-                background: linear-gradient(to bottom, transparent 20%, var(--blurred-background) 100%);
+                bottom: 0;
+                background: linear-gradient(to bottom, transparent 0%, var(--blurred-background) 65%);
             }
         }
     }
 
-    &__identity {
+    &__hero-avatar {
         position: relative;
         z-index: 1;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    &__avatar {
-        width: 38px;
-        height: 38px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
-        object-fit: cover;
+        overflow: hidden;
+        box-shadow: 0 0 0 3px var(--blurred-background);
         flex-shrink: 0;
-        display: block;
-        box-shadow: 0 0 0 2px var(--blurred-background);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
     }
 
-    &__info {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-        flex: 1;
-    }
-
-    &__name {
-        font-size: 14px;
+    &__hero-name {
+        position: relative;
+        z-index: 1;
+        font-size: 15px;
         font-weight: 600;
         color: var(--text);
         line-height: 1.25;
+        text-align: center;
+        max-width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    &__sub {
+    &__hero-sub {
+        position: relative;
+        z-index: 1;
         font-size: 12px;
         color: var(--text-500);
         line-height: 1.25;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    // ─── Quick Actions Grid ──────────────
-    &__actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-        gap: 4px;
-        padding: 6px;
-        position: relative;
-
-        &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 14px;
-            right: 14px;
-            height: 1px;
-            background: var(--transp-1);
-        }
-    }
-
-    &__action {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 10px 4px;
-        border-radius: 10px;
-        text-decoration: none;
-        cursor: pointer;
-        @include transition(all);
-
-        &:hover {
-            background: var(--transp-05);
-
-            .profile-dropdown__action-icon {
-                background: var(--transp-1);
-                color: var(--text);
-            }
-        }
-
-        &:active {
-            transform: scale(0.95);
-        }
-    }
-
-    &__action-icon {
-        @extend .flex-center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: var(--transp-05);
-        color: var(--text-400);
-        @include transition(all);
-
-        svg {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-    }
-
-    &__action-label {
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-400);
-        line-height: 1.2;
         text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        margin-top: -4px;
     }
 
     // ─── Sections ────────────────────────
@@ -325,8 +251,79 @@
         }
     }
 
-    // ─── Footer / Logout ─────────────────
+    // ─── Menu Grid (2 columns) ──────────
+    &__menu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        padding: 6px;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 14px;
+            right: 14px;
+            height: 1px;
+            background: var(--transp-1);
+        }
+    }
+
+    &__menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        text-decoration: none;
+        cursor: pointer;
+        @include transition(all);
+
+        &:hover {
+            background: var(--transp-05);
+
+            .profile-dropdown__menu-icon {
+                color: var(--text);
+            }
+        }
+
+        &:active {
+            transform: scale(0.97);
+        }
+    }
+
+    &__menu-icon {
+        @extend .flex-center;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        color: var(--text-500);
+        @include transition(color);
+
+        svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+    }
+
+    &__menu-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-300);
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    // ─── Footer Bar ─────────────────────
     &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 4px 6px 6px;
         position: relative;
 
@@ -339,37 +336,67 @@
             height: 1px;
             background: var(--transp-1);
         }
-
-        form {
-            width: 100%;
-        }
     }
 
-    &__logout {
+    &__footer-settings {
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 6px;
-        width: 100%;
-        padding: 7px 8px;
-        background: transparent;
-        border: none;
+        padding: 7px 10px;
         border-radius: 8px;
-        color: var(--text-500);
+        text-decoration: none;
+        color: var(--text-400);
         font-size: 12px;
         font-weight: 500;
-        cursor: pointer;
         @include transition(all);
 
         svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             flex-shrink: 0;
         }
 
         &:hover {
-            background: var(--error-light);
-            color: var(--error);
+            background: var(--transp-05);
+            color: var(--text);
+        }
+    }
+
+    &__footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    &__footer-btn {
+        @extend .flex-center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: var(--text-500);
+        cursor: pointer;
+        text-decoration: none;
+        @include transition(all);
+
+        svg {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            background: var(--transp-05);
+            color: var(--text);
+        }
+
+        &--danger {
+            &:hover {
+                background: var(--error-light);
+                color: var(--error);
+            }
         }
     }
 
@@ -380,7 +407,8 @@
         left: 0 !important;
         right: 0 !important;
         width: 100%;
-        max-height: 75vh;
+        max-height: 80vh;
+        overflow-y: auto;
         border-radius: 16px 16px 0 0;
         transform: translateY(100%);
         transform-origin: bottom center;
@@ -408,47 +436,17 @@
             padding: 24px 16px 14px;
 
             &[style*="--banner"] {
-                padding-top: 60px;
-
-                &::before {
-                    height: 80px;
-                }
-
-                &::after {
-                    height: 80px;
-                }
+                padding-top: 80px;
             }
         }
 
-        &__avatar {
-            width: 46px;
-            height: 46px;
+        &__hero-avatar {
+            width: 64px;
+            height: 64px;
         }
 
-        &__name {
-            font-size: 16px;
-        }
-
-        &__actions {
-            padding: 4px 8px;
-        }
-
-        &__action {
-            padding: 12px 4px;
-        }
-
-        &__action-icon {
-            width: 40px;
-            height: 40px;
-
-            svg {
-                width: 20px;
-                height: 20px;
-            }
-        }
-
-        &__action-label {
-            font-size: 12px;
+        &__hero-name {
+            font-size: 17px;
         }
 
         &__section {
@@ -460,6 +458,28 @@
             }
         }
 
+        &__menu {
+            padding: 4px 8px;
+
+            &::before {
+                left: 16px;
+                right: 16px;
+            }
+        }
+
+        &__menu-item {
+            padding: 10px;
+        }
+
+        &__menu-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        &__menu-label {
+            font-size: 13px;
+        }
+
         &__footer {
             padding: 4px 8px 8px;
 
@@ -469,13 +489,18 @@
             }
         }
 
-        &__logout {
-            padding: 10px;
-            font-size: 14px;
+        &__footer-settings {
+            padding: 9px 12px;
+            font-size: 13px;
+        }
+
+        &__footer-btn {
+            width: 40px;
+            height: 40px;
 
             svg {
-                width: 16px;
-                height: 16px;
+                width: 20px;
+                height: 20px;
             }
         }
     }

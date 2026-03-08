@@ -3,9 +3,12 @@ includes:
 
 parameters:
     level: 3
+    tmpDir: storage/app/temp/phpstan
     paths:
         - app/Core
         - app/Modules
+    parallel:
+        maximumNumberOfProcesses: 8
     excludePaths:
         - app/Core/Database/Entities
         - app/Modules/*/vendor

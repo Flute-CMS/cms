@@ -36,20 +36,19 @@
     <x-modal id="lk-modal" title="{{ __('lk.title') }}" loadUrl="{{ '/lk' }}" :inline="true">
         <x-slot:skeleton>
             <div class="modal__content-loading">
-                <div class="lk-page" style="max-width: 680px; margin: 0 auto;">
-                    <div style="background: var(--secondary); border: 1px solid var(--transp-1); border-radius: 20px; overflow: hidden;">
-                        <div style="padding: var(--space-lg) var(--space-xl);">
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <div class="skeleton" style="height: 40px; width: 120px; border-radius: 100px;"></div>
-                                <div class="skeleton" style="height: 40px; width: 100px; border-radius: 100px;"></div>
-                                <div class="skeleton" style="height: 40px; width: 130px; border-radius: 100px;"></div>
-                            </div>
-                        </div>
-                        <div style="height: 1px; background: var(--transp-1); margin: 0 var(--space-xl);"></div>
-                        <div style="padding: var(--space-lg) var(--space-xl);">
-                            <div class="skeleton" style="height: 56px; border-radius: 14px;"></div>
-                        </div>
+                <div class="lk-modal-form" style="max-width: 480px; margin: 0 auto;">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>
+                        <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>
+                        <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>
+                        <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>
                     </div>
+                    <div class="skeleton mb-3" style="height: 42px; border-radius: var(--border05);"></div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <div class="skeleton" style="height: 42px; width: 120px; border-radius: 7px;"></div>
+                        <div class="skeleton" style="height: 42px; width: 100px; border-radius: 7px;"></div>
+                    </div>
+                    <div class="skeleton" style="height: 44px; border-radius: var(--border05);"></div>
                 </div>
             </div>
         </x-slot:skeleton>
