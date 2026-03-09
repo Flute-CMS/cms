@@ -344,7 +344,7 @@ class EditPaymentGatewayScreen extends Screen
                     }
                 }
 
-                $gateway->additional = json_encode(['keys' => $settings]);
+                $gateway->setSettings($settings);
 
                 $gateway->saveOrFail();
 

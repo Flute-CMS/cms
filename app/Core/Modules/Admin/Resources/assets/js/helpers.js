@@ -163,43 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
     fileInputs.forEach((input) => initializeFilePondElement(input));
 });
 
-// htmx:load - triggered for each new element added to DOM
-document.body.addEventListener('htmx:load', function (evt) {
-    const swappedContent = evt.detail.elt;
-    if (swappedContent) {
-        if (swappedContent.matches && swappedContent.matches('input.filepond')) {
-            initializeFilePondElement(swappedContent);
-        } else if (swappedContent.querySelectorAll) {
-            const newFileInputs = swappedContent.querySelectorAll('input.filepond');
-            newFileInputs.forEach((input) => initializeFilePondElement(input));
-        }
-    }
-});
-
-// htmx:afterSwap - triggered after any swap operation (including yoyo)
-document.body.addEventListener('htmx:afterSwap', function (evt) {
-    const swappedContent = evt.detail.elt;
-    if (swappedContent) {
-        setTimeout(() => {
-            if (swappedContent.matches && swappedContent.matches('input.filepond')) {
-                initializeFilePondElement(swappedContent);
-            } else if (swappedContent.querySelectorAll) {
-                const newFileInputs = swappedContent.querySelectorAll('input.filepond');
-                newFileInputs.forEach((input) => initializeFilePondElement(input));
-            }
-        }, 10);
-    }
-});
-
-// htmx:afterSettle - triggered after swap and settle are complete
-document.body.addEventListener('htmx:afterSettle', function (evt) {
-    // Reinitialize any remaining uninitialized FilePond inputs
-    document.querySelectorAll('input.filepond').forEach((input) => {
-        if (!input.filepond) {
-            initializeFilePondElement(input);
-        }
-    });
-});
+// FilePond re-initialization after HTMX swaps is handled by the central
+// htmx:afterSettle handler in tabs.js → reinitializeComponents → initFilePonds.
 
 
 let _enforcingLanguages = false;

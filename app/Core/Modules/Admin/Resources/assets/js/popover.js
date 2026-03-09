@@ -1,63 +1,43 @@
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
     const showDelay = 150;
     const hideDelay = 150;
     let showTimeout;
     let hideTimeout;
     let currentPopoverTrigger = null;
 
-    const initializePopovers = () => {
-        const popoverTriggers = document.querySelectorAll(
-            '[data-popover-trigger="true"]',
-        );
-
-        popoverTriggers.forEach((trigger) => {
-            trigger.removeEventListener('mouseenter', onMouseEnter);
-            trigger.removeEventListener('mouseleave', onMouseLeave);
-            trigger.removeEventListener('focus', onFocus);
-            trigger.removeEventListener('blur', onBlur);
-            trigger.removeEventListener('keydown', onKeyDown);
-
-            trigger.addEventListener('mouseenter', onMouseEnter);
-            trigger.addEventListener('mouseleave', onMouseLeave);
-            trigger.addEventListener('focus', onFocus);
-            trigger.addEventListener('blur', onBlur);
-            trigger.addEventListener('keydown', onKeyDown);
-        });
-    };
-
-    const onMouseEnter = (event) => {
+    function onMouseEnter(event) {
         const trigger = event.currentTarget;
         clearTimeout(hideTimeout);
         showTimeout = setTimeout(() => {
             showPopover(trigger);
         }, showDelay);
-    };
+    }
 
-    const onMouseLeave = (event) => {
+    function onMouseLeave(event) {
         const trigger = event.currentTarget;
         clearTimeout(showTimeout);
         hideTimeout = setTimeout(() => {
             hidePopover(trigger);
         }, hideDelay);
-    };
+    }
 
-    const onFocus = (event) => {
+    function onFocus(event) {
         const trigger = event.currentTarget;
         clearTimeout(hideTimeout);
         showTimeout = setTimeout(() => {
             showPopover(trigger);
         }, showDelay);
-    };
+    }
 
-    const onBlur = (event) => {
+    function onBlur(event) {
         const trigger = event.currentTarget;
         clearTimeout(showTimeout);
         hideTimeout = setTimeout(() => {
             hidePopover(trigger);
         }, hideDelay);
-    };
+    }
 
-    const onKeyDown = (event) => {
+    function onKeyDown(event) {
         const trigger = event.currentTarget;
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -67,9 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPopover(trigger);
             }
         }
-    };
+    }
 
-    const showPopover = (trigger) => {
+    function showPopover(trigger) {
         if (currentPopoverTrigger && currentPopoverTrigger !== trigger) {
             hidePopover(currentPopoverTrigger);
         }
@@ -142,9 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, hideDelay);
             });
         });
-    };
+    }
 
-    const hidePopover = (trigger) => {
+    function hidePopover(trigger) {
         const popover = trigger._popover;
         if (popover) {
             popover.classList.remove('visible');
@@ -157,11 +137,28 @@ document.addEventListener('DOMContentLoaded', () => {
             trigger._popover = null;
             currentPopoverTrigger = null;
         }
-    };
+    }
 
-    initializePopovers();
+    function initializePopovers(root) {
+        const scope = (root instanceof Element) ? root : document;
+        const triggers = scope.querySelectorAll('[data-popover-trigger="true"]');
 
-    document.body.addEventListener('htmx:afterSwap', () => {
+        triggers.forEach((trigger) => {
+            if (trigger._popoverBound) return;
+            trigger._popoverBound = true;
+
+            trigger.addEventListener('mouseenter', onMouseEnter);
+            trigger.addEventListener('mouseleave', onMouseLeave);
+            trigger.addEventListener('focus', onFocus);
+            trigger.addEventListener('blur', onBlur);
+            trigger.addEventListener('keydown', onKeyDown);
+        });
+    }
+
+    window.initializePopovers = initializePopovers;
+
+    document.addEventListener('DOMContentLoaded', () => {
         initializePopovers();
     });
-});
+
+})();

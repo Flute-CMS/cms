@@ -18,7 +18,6 @@ use Flute\Core\Modules\Payments\Events\PaymentFailedEvent;
 use Flute\Core\Modules\Payments\Events\PaymentSuccessEvent;
 use Flute\Core\Modules\Payments\Exceptions\PaymentException;
 use Flute\Core\Modules\Payments\Factories\GatewayFactory;
-use Nette\Utils\Random;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -160,7 +159,8 @@ class PaymentProcessor
     }
 
     /**
-     * Sets the invoice as paid.
+     * Sets the invoice as paid within a single database transaction
+     * to prevent race conditions (double-spend).
      *
      * @param string $transactionId Transaction ID.
      *
@@ -168,70 +168,102 @@ class PaymentProcessor
      */
     public function setInvoiceAsPaid(string $transactionId, ?float $verifyAmount = null): void
     {
-        $invoice = PaymentInvoice::query()->forUpdate()->where(['transactionId' => $transactionId])->fetchOne();
+        $database = db();
 
-        if (!$invoice) {
-            throw new PaymentException("Invoice wasn't found");
-        }
+        $database->begin();
 
-        if ($invoice->isPaid) {
-            throw new PaymentException("Invoice is already paid");
-        }
+        try {
+            $invoice = PaymentInvoice::query()->forUpdate()->where(['transactionId' => $transactionId])->fetchOne();
 
-        $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
-        $toleranceAbs = max(0.01, $invoice->originalAmount * ($tolerancePercent / 100));
+            if (!$invoice) {
+                $database->rollback();
 
-        if ($invoice->originalAmount > 0) {
-            if ($verifyAmount === null) {
-                logs()->warning("Payment amount verification skipped (null) for transaction {$transactionId}, expected {$invoice->originalAmount}");
-            } elseif (abs($verifyAmount - $invoice->originalAmount) > $toleranceAbs) {
-                throw new PaymentException("Amount mismatch: expected {$invoice->originalAmount}, received {$verifyAmount}");
+                throw new PaymentException("Invoice wasn't found");
             }
+
+            if ($invoice->isPaid) {
+                $database->rollback();
+
+                throw new PaymentException("Invoice is already paid");
+            }
+
+            $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
+
+            // Use post-conversion amount for verification when currency conversion was applied
+            $expectedAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
+
+            $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
+            $gatewayFee = ($gateway && $gateway->fee > 0) ? $gateway->fee : 0;
+            $effectiveTolerance = max($tolerancePercent, $gatewayFee);
+            $toleranceAbs = max(0.01, $expectedAmount * ($effectiveTolerance / 100));
+
+            if ($expectedAmount > 0) {
+                if ($verifyAmount === null) {
+                    logs()->warning("Payment amount verification skipped (null) for transaction {$transactionId}, expected {$expectedAmount}");
+                } elseif (abs($verifyAmount - $expectedAmount) > $toleranceAbs) {
+                    $database->rollback();
+
+                    throw new PaymentException("Amount mismatch: expected {$expectedAmount}, received {$verifyAmount}");
+                }
+            }
+
+            $user = user()->get($invoice->user->id);
+
+            $promo = $invoice->promoCode;
+            $amount = $invoice->amount;
+
+            $promoBonus = 0;
+            $gatewayBonus = 0;
+
+            if ($promo) {
+                $promoData = payments()->promo()->validate($promo->code, $user->id, $invoice->originalAmount, true);
+                $promoBonus = $this->calculatePromoBonus($promoData, $invoice->originalAmount);
+            }
+
+            if ($gateway && $gateway->bonus > 0) {
+                $gatewayBonus = round(($amount * $gateway->bonus) / 100, 2);
+            }
+
+            $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
+            $invoice->isPaid = true;
+            $invoice->paidAt = new DateTimeImmutable();
+            transaction($invoice)->run();
+
+            $totalAmount = $amount + $promoBonus + $gatewayBonus;
+
+            if ($promo) {
+                $this->recordPromoUsage($promo, $user, $invoice);
+            }
+
+            // topup within the same DB transaction
+            $balanceUser = User::query()
+                ->forUpdate()
+                ->where(['id' => $user->id])
+                ->fetchOne();
+
+            $balanceUser->balance += $totalAmount;
+            transaction($balanceUser)->run();
+
+            $database->commit();
+
+            // Notifications outside transaction
+            if (function_exists('notify')) {
+                try {
+                    notify('core.balance_topup', $balanceUser, [
+                        'amount' => number_format($totalAmount, 2),
+                        'balance' => number_format($balanceUser->balance, 2),
+                    ]);
+                } catch (Throwable $e) {
+                    logs()->error('Notification [core.balance_topup] failed: ' . $e->getMessage());
+                }
+            }
+        } catch (PaymentException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $database->rollback();
+
+            throw new PaymentException('Payment processing failed: ' . $e->getMessage());
         }
-
-        $user = user()->get($invoice->user->id);
-
-        $promo = $invoice->promoCode;
-        $amount = $invoice->amount;
-
-        $promoBonus = 0;
-        $gatewayBonus = 0;
-
-        if ($promo) {
-            $promoData = payments()->promo()->validate($promo->code, $user->id, $invoice->originalAmount);
-            $promoBonus = $this->calculatePromoBonus($promoData, $invoice->originalAmount);
-        }
-
-        // Calculate gateway bonus
-        $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
-        if ($gateway && $gateway->bonus > 0) {
-            $gatewayBonus = round(($amount * $gateway->bonus) / 100, 2);
-        }
-
-        $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
-        $invoice->isPaid = true;
-        $invoice->paidAt = new DateTimeImmutable();
-        transaction($invoice)->run();
-
-        $totalAmount = $amount + $promoBonus + $gatewayBonus;
-
-        if ($promo) {
-            $this->recordPromoUsage($promo, $user, $invoice);
-        }
-
-        user()->topup($totalAmount, $user);
-    }
-
-    /**
-     * Marks the invoice as paid.
-     *
-     * @param PaymentInvoice $invoice Invoice to mark as paid.
-     */
-    public function markInvoiceAsPaid(PaymentInvoice $invoice): void
-    {
-        $invoice->isPaid = true;
-        $invoice->paidAt = new DateTimeImmutable();
-        transaction($invoice)->run();
     }
 
     /**
@@ -343,13 +375,13 @@ class PaymentProcessor
     }
 
     /**
-     * Generates a unique transaction ID.
+     * Generates a cryptographically secure unique transaction ID.
      *
      * @return string Unique transaction ID.
      */
     protected function generateTransactionId(): string
     {
-        return time() . Random::generate(8, '0-9');
+        return bin2hex(random_bytes(16));
     }
 
     /**
@@ -442,7 +474,7 @@ class PaymentProcessor
     {
         $transactionId = $response->getTransactionId();
 
-        $paidAmount = method_exists($response, 'getAmount') ? $response->getAmount() : null;
+        $paidAmount = method_exists($response, 'getAmount') ? (float) $response->getAmount() : null;
 
         $this->setInvoiceAsPaid($transactionId, $paidAmount);
     }

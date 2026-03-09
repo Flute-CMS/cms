@@ -37,6 +37,7 @@ app/Modules
 .claude
 phpstan-baseline.neon
 tools/tiptap-build/node_modules/
+/storage/composer/
 /storage/backup/
 /storage/app/temp/
 /public/meta.json

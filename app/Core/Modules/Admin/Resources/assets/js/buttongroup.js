@@ -19,4 +19,3 @@ function initButtonGroups(container = document) {
 }
 
 document.addEventListener('DOMContentLoaded', () => initButtonGroups());
-htmx.onLoad((el) => initButtonGroups(el));

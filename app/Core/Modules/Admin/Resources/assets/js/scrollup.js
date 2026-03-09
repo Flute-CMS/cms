@@ -43,9 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         scrollTimeout = setTimeout(() => {
-            const shouldShow = window.scrollY > showOffset;
-            console.log(showOffset, window.scrollY, shouldShow);
-            scrollUpButton?.classList.toggle('is-visible', shouldShow);
+            scrollUpButton?.classList.toggle('is-visible', window.scrollY > showOffset);
         }, 100);
     });
 

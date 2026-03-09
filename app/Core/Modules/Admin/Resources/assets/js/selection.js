@@ -95,13 +95,20 @@ function initSelectionForTable(table) {
         updateBulkUI();
     });
 
+    // Restore checked state for existing rows.
     const checkboxes = table.querySelectorAll('tbody input[name="selected[]"]');
     checkboxes.forEach(cb => {
-        const id = String(cb.value);
-        cb.checked = new Set(getSelection()).has(id);
+        cb.checked = new Set(getSelection()).has(String(cb.value));
         setRowHighlight(cb);
+    });
 
-        cb.addEventListener("change", () => {
+    // Event delegation — works for dynamically added rows (pagination, HTMX).
+    if (!table._selectionDelegated) {
+        table._selectionDelegated = true;
+        table.addEventListener("change", (e) => {
+            const cb = e.target.closest('tbody input[name="selected[]"]');
+            if (!cb) return;
+            const id = String(cb.value);
             const selectedIds = new Set(getSelection());
             if (cb.checked) {
                 selectedIds.add(id);
@@ -112,7 +119,7 @@ function initSelectionForTable(table) {
             setRowHighlight(cb);
             updateBulkUI();
         });
-    });
+    }
 
     const clearBtn = bulkBar?.querySelector('.bulk-clear-btn');
     if (clearBtn) {

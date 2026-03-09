@@ -84,9 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeA11yDialog();
 });
 
-document.body.addEventListener('htmx:afterSwap', (evt) => {
-    initializeA11yDialog(evt.target);
-});
+// Modal re-initialization after HTMX swaps is handled by the central
+// htmx:afterSettle handler in tabs.js → reinitializeComponents → initModalsInContainer.
 
 document.body.addEventListener('htmx:beforeSwap', () => {
     unlockBodyScroll();
@@ -267,18 +266,19 @@ function onModalHide(modalElement) {
             modalElement.classList.remove('fullscreen');
             removeDragEvents(modalElement);
         }
+    }
 
-        const observer = modalElement._observer;
-        if (observer) {
-            observer.disconnect();
-            delete modalElement._observer;
-        }
+    // Clean up observer and resize handler (both mobile and desktop).
+    const observer = modalElement._observer;
+    if (observer) {
+        observer.disconnect();
+        delete modalElement._observer;
+    }
 
-        const resizeHandler = modalElement._resizeHandler;
-        if (resizeHandler) {
-            window.removeEventListener('resize', resizeHandler);
-            delete modalElement._resizeHandler;
-        }
+    const resizeHandler = modalElement._resizeHandler;
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        delete modalElement._resizeHandler;
     }
 
     if (modalElement.hasAttribute('data-remove-on-close')) {
@@ -528,7 +528,7 @@ function observeModalRemoval(modalElement) {
 
     const removalObserver = new MutationObserver(() => {
         if (!document.body.contains(modalElement)) {
-            unlockBodyScroll();
+            cleanupModal(modalElement);
             removalObserver.disconnect();
         }
     });
@@ -538,3 +538,35 @@ function observeModalRemoval(modalElement) {
         subtree: true,
     });
 }
+
+function cleanupModal(modalElement) {
+    unlockBodyScroll();
+
+    if (modalElement._observer) {
+        modalElement._observer.disconnect();
+        delete modalElement._observer;
+    }
+    if (modalElement._resizeHandler) {
+        window.removeEventListener('resize', modalElement._resizeHandler);
+        delete modalElement._resizeHandler;
+    }
+    if (modalElement._dragHandlers) {
+        removeDragEvents(modalElement);
+    }
+    if (modalElement.dialogInstance) {
+        modalElement.dialogInstance = null;
+    }
+}
+
+// Clean up modals before HTMX removes them from the DOM.
+document.body.addEventListener('htmx:beforeCleanupElement', function (evt) {
+    const el = evt.target;
+    if (!el) return;
+
+    const modals = [];
+    if (el.matches && el.matches('.modal, .right_sidebar')) modals.push(el);
+    if (el.querySelectorAll) {
+        modals.push(...el.querySelectorAll('.modal, .right_sidebar'));
+    }
+    modals.forEach(cleanupModal);
+});

@@ -69,9 +69,27 @@ class PaymentComponent extends FluteComponent
                     throw new PaymentException(__('lk.min_amount', ['sum' => $minAmount]));
                 }
 
+                // Recalculate amountToPay server-side to prevent client state manipulation
+                $serverAmount = (float) $this->amount;
+                $serverAmountToPay = $serverAmount;
+
+                if (!empty($this->promoCode)) {
+                    try {
+                        $promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $serverAmount);
+                        if ($promoDetails['type'] === 'percentage') {
+                            $discount = ($serverAmountToPay * $promoDetails['value']) / 100;
+                            $serverAmountToPay = round(max(0, $serverAmountToPay - $discount), 2);
+                        }
+                    } catch (\Flute\Core\Modules\Payments\Exceptions\PaymentPromoException $e) {
+                        $this->inputError('promoCode', $e->getMessage());
+
+                        return;
+                    }
+                }
+
                 $invoice = payments()->processor()->createInvoice(
                     $this->gateway,
-                    $this->amountToPay,
+                    $serverAmountToPay,
                     (string) $this->promoCode,
                     $this->currency
                 );

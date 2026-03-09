@@ -55,4 +55,3 @@ function resetFilters(filtersEl) {
 }
 
 document.addEventListener('DOMContentLoaded', () => initFilters());
-htmx.onLoad((el) => initFilters(el));

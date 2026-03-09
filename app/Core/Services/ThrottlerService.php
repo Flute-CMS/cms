@@ -44,10 +44,6 @@ class ThrottlerService
         ?int  $cost = null,
         ?bool $force = null
     ): float {
-        if (is_debug()) {
-            return 100;
-        }
-
         $force = $force !== null && (bool) $force;
 
         if (!$this->throttling && !$force) {

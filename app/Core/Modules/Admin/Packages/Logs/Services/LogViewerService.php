@@ -5,7 +5,6 @@ namespace Flute\Admin\Packages\Logs\Services;
 use Exception;
 use FilesystemIterator;
 use Flute\Core\Services\LoggerService;
-use SplFileObject;
 
 class LogViewerService
 {
@@ -161,8 +160,6 @@ class LogViewerService
                 $modified = $file->getMTime();
                 $fileName = $file->getFilename();
 
-                $levelStats = $this->getLogLevelStats($fileName);
-
                 $result[$fileName] = [
                     'name' => $fileName,
                     'path' => $file->getPathname(),
@@ -170,7 +167,6 @@ class LogViewerService
                     'size_bytes' => $size,
                     'modified' => date(default_date_format(), $modified),
                     'modified_timestamp' => $modified,
-                    'level_stats' => $levelStats,
                     'is_active' => $this->isActiveLogFile($fileName),
                 ];
             }
@@ -226,7 +222,7 @@ class LogViewerService
     }
 
     /**
-     * Read last lines from file
+     * Read last lines from file efficiently by reading from the end
      */
     protected function readLastLines(string $filePath, int $lines): string
     {
@@ -234,23 +230,59 @@ class LogViewerService
             return '';
         }
 
-        $file = new SplFileObject($filePath, 'r');
-        $file->seek(PHP_INT_MAX);
-        $totalLines = $file->key();
+        $fileSize = filesize($filePath);
 
-        if ($totalLines <= $lines) {
+        if ($fileSize === 0) {
+            return '';
+        }
+
+        // For small files, just read the whole thing
+        if ($fileSize < 65536) {
             return file_get_contents($filePath);
         }
 
-        $startLine = max(0, $totalLines - $lines);
-        $file->seek($startLine);
+        // Read chunks from the end of file until we have enough lines
+        $handle = fopen($filePath, 'r');
 
-        $content = '';
-        while (!$file->eof()) {
-            $content .= $file->fgets();
+        if ($handle === false) {
+            return '';
         }
 
-        return $content;
+        $chunkSize = 8192;
+        $buffer = '';
+        $lineCount = 0;
+        $offset = $fileSize;
+
+        while ($offset > 0 && $lineCount < $lines + 1) {
+            $readSize = min($chunkSize, $offset);
+            $offset -= $readSize;
+            fseek($handle, $offset);
+            $chunk = fread($handle, $readSize);
+            $buffer = $chunk . $buffer;
+            $lineCount = substr_count($buffer, "\n");
+        }
+
+        fclose($handle);
+
+        // If we have more lines than needed, trim from the start
+        if ($lineCount > $lines) {
+            $pos = 0;
+            $skip = $lineCount - $lines;
+
+            for ($i = 0; $i < $skip; $i++) {
+                $pos = strpos($buffer, "\n", $pos);
+
+                if ($pos === false) {
+                    break;
+                }
+
+                $pos++;
+            }
+
+            $buffer = substr($buffer, $pos);
+        }
+
+        return $buffer;
     }
 
     /**
@@ -353,9 +385,7 @@ class LogViewerService
                 'full_message' => trim($message),
                 'severity' => $this->getLevelSeverity($level),
                 'file_info' => $fileInfo,
-                'code_context' => $fileInfo['file_path'] && $fileInfo['line_number']
-                    ? $this->getFileContext($fileInfo['file_path'], $fileInfo['line_number'], 20)
-                    : [],
+                'code_context' => [],
             ];
         }
 
@@ -432,15 +462,24 @@ class LogViewerService
             return $this->logCache[$cacheKey]['data'];
         }
 
-        $entries = $this->getLogContent($logFile, 200);
+        $logPath = path('storage/logs/' . $logFile);
+
+        if (!file_exists($logPath)) {
+            return [];
+        }
+
+        $content = $this->readLastLines($logPath, 200);
         $stats = [];
 
-        foreach ($entries as $entry) {
-            $level = $entry['level'];
-            if (!isset($stats[$level])) {
-                $stats[$level] = 0;
+        $levels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
+
+        if (preg_match_all('/\] \w+\.(\w+):/i', $content, $matches)) {
+            foreach ($matches[1] as $level) {
+                $level = strtolower($level);
+                if (in_array($level, $levels, true)) {
+                    $stats[$level] = ($stats[$level] ?? 0) + 1;
+                }
             }
-            $stats[$level]++;
         }
 
         $this->cacheLogData($cacheKey, $stats);

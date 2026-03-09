@@ -223,140 +223,134 @@ function updateUrlQueryParam(key, value) {
     }
 }
 
-function onTabActivated(tabContentEl) {
-    if (!tabContentEl) return;
+// Dedup: prevent the same container from being re-initialized multiple times
+// within the same animation frame (e.g. afterSwap + click handler + component hooks).
+const _reinitScheduled = new WeakSet();
 
-    // Re-init/refresh RichText editor (EasyMDE/CodeMirror) when tab becomes visible.
-    if (!window.fluteRichTextEditor) {
-        const tries = parseInt(tabContentEl.dataset.richtextInitTries || '0', 10);
-        if (tries < 10) {
-            tabContentEl.dataset.richtextInitTries = String(tries + 1);
-            setTimeout(() => onTabActivated(tabContentEl), 120);
-        }
-    } else {
-        try {
-            const textareas = tabContentEl.querySelectorAll(
-                '[data-editor="markdown"]',
-            );
-            if (textareas.length) {
-                window.fluteRichTextEditor.initialize(textareas);
+function reinitializeComponents(container) {
+    if (!container) return;
+    if (_reinitScheduled.has(container)) return;
+    _reinitScheduled.add(container);
 
-                textareas.forEach((textarea) => {
-                    if (!textarea.id) return;
-                    const instance =
-                        window.fluteRichTextEditor.instances &&
-                        window.fluteRichTextEditor.instances[textarea.id];
-                    if (instance && instance.codemirror) {
-                        try {
-                            instance.codemirror.refresh();
-                        } catch (e) {
-                            // ignore
-                        }
-                        // Refresh again after layout settles / transitions end
-                        try {
-                            requestAnimationFrame(() => {
-                                try {
-                                    instance.codemirror.refresh();
-                                } catch (e) {
-                                    // ignore
-                                }
-                            });
-                        } catch (e) {
-                            // ignore
-                        }
-                        setTimeout(() => {
-                            try {
-                                instance.codemirror.refresh();
-                            } catch (e) {
-                                // ignore
-                            }
-                        }, 80);
-                    }
-                });
-            }
-        } catch (e) {
-            // ignore
-        }
-    }
+    requestAnimationFrame(() => {
+        _reinitScheduled.delete(container);
+        if (!document.body.contains(container)) return;
 
-    if (typeof initializeFilePondElement === 'function') {
-        try {
-            const filePondInputs = tabContentEl.querySelectorAll('input.filepond');
-            filePondInputs.forEach((input) => {
-                if (!input.filepond) {
-                    initializeFilePondElement(input);
-                }
-            });
-        } catch (e) {
-            // ignore
-        }
-    }
+        initRichTextEditors(container);
+        initFilePonds(container);
+        initSelects(container);
+        initPopovers(container);
+        initColorPickersInContainer(container);
+        initIconPickersInContainer(container);
+        initButtonGroupsInContainer(container);
+        initModalsInContainer(container);
+        initFiltersInContainer(container);
 
-    scheduleSelectInit(tabContentEl);
-
-    // Optional UI inits used across admin.
-    if (window.initColorPickers) {
-        try {
-            window.initColorPickers(tabContentEl);
-        } catch (e) {
-            // ignore
+        if (typeof htmx !== 'undefined') {
+            try { htmx.process(container); } catch (_) { }
         }
-    }
-    if (window.initIconPickers) {
-        try {
-            window.initIconPickers(tabContentEl);
-        } catch (e) {
-            // ignore
-        }
-    }
-    if (typeof initButtonGroups === 'function') {
-        try {
-            initButtonGroups(tabContentEl);
-        } catch (e) {
-            // ignore
-        }
-    }
-
-    try {
-        const popoverTriggers = tabContentEl.querySelectorAll('[data-popover-trigger="true"]');
-        popoverTriggers.forEach((trigger) => {
-        });
-    } catch (e) {
-        // ignore
-    }
+    });
 }
 
-function scheduleSelectInit(tabContentEl) {
-    if (!tabContentEl) return;
-    if (!tabContentEl.querySelector('[data-select]')) return;
+// Global accessor so other scripts can trigger re-initialization.
+window.reinitDynamicComponents = reinitializeComponents;
 
-    const tries = parseInt(tabContentEl.dataset.selectInitTries || '0', 10);
-    if (tries >= 6) return;
-    tabContentEl.dataset.selectInitTries = String(tries + 1);
+function initRichTextEditors(container) {
+    if (!window.fluteRichTextEditor) return;
 
-    const attemptInit = () => {
-        if (!window.Select) return false;
-        try {
-            window.Select.init();
-            return true;
-        } catch (_) {
-            return false;
-        }
-    };
+    try {
+        const textareas = container.querySelectorAll('[data-editor="markdown"]');
+        if (!textareas.length) return;
 
-    const ok = attemptInit();
-    if (ok) {
-        try {
-            requestAnimationFrame(() => {
-                attemptInit();
-            });
-        } catch (_) { }
+        window.fluteRichTextEditor.initialize(textareas);
+
+        textareas.forEach((textarea) => {
+            if (!textarea.id) return;
+            const instance =
+                window.fluteRichTextEditor.instances &&
+                window.fluteRichTextEditor.instances[textarea.id];
+            if (instance && instance.codemirror) {
+                try { instance.codemirror.refresh(); } catch (_) { }
+                requestAnimationFrame(() => {
+                    try { instance.codemirror.refresh(); } catch (_) { }
+                });
+                setTimeout(() => {
+                    try { instance.codemirror.refresh(); } catch (_) { }
+                }, 80);
+            }
+        });
+    } catch (_) { }
+}
+
+function initFilePonds(container) {
+    if (typeof initializeFilePondElement !== 'function') return;
+
+    try {
+        container.querySelectorAll('input.filepond').forEach((input) => {
+            if (!input.filepond) {
+                initializeFilePondElement(input);
+            }
+        });
+    } catch (_) { }
+}
+
+function initSelects(container) {
+    if (!container.querySelector('[data-select]')) return;
+
+    if (window.Select) {
+        try { window.Select.init(container); } catch (_) { }
         return;
     }
 
-    setTimeout(() => {
-        scheduleSelectInit(tabContentEl);
-    }, 120);
+    // Select class not yet instantiated — wait for DOMContentLoaded to finish.
+    const tryInit = () => {
+        if (window.Select) {
+            try { window.Select.init(container); } catch (_) { }
+        }
+    };
+    // Single retry after a short delay is enough — Select initializes on DOMContentLoaded.
+    setTimeout(tryInit, 200);
+}
+
+function initPopovers(container) {
+    if (typeof window.initializePopovers === 'function') {
+        try { window.initializePopovers(container); } catch (_) { }
+    }
+}
+
+function initColorPickersInContainer(container) {
+    if (typeof window.initColorPickers === 'function') {
+        try { window.initColorPickers(container); } catch (_) { }
+    }
+}
+
+function initIconPickersInContainer(container) {
+    if (typeof window.initIconPickers === 'function') {
+        try { window.initIconPickers(container); } catch (_) { }
+    }
+}
+
+function initButtonGroupsInContainer(container) {
+    if (typeof initButtonGroups === 'function') {
+        try { initButtonGroups(container); } catch (_) { }
+    }
+}
+
+function initModalsInContainer(container) {
+    if (typeof initializeA11yDialog === 'function') {
+        try { initializeA11yDialog(container); } catch (_) { }
+    }
+}
+
+function initFiltersInContainer(container) {
+    if (typeof initFilters === 'function') {
+        try { initFilters(container); } catch (_) { }
+    }
+}
+
+function onTabActivated(tabContentEl) {
+    if (!tabContentEl) return;
+    reinitializeComponents(tabContentEl);
 }
 
 function getTabsContentContainer(container) {
@@ -616,20 +610,15 @@ if (typeof htmx !== 'undefined') {
             const selected = doc.querySelector(hxSelect);
 
             if (selected) {
-                // Replace the whole tab pane (outerHTML) so classes/attrs update.
                 targetEl.outerHTML = selected.outerHTML;
 
                 const newTarget = document.querySelector(hxTarget);
                 if (newTarget) {
-                    try {
-                        newTarget.classList.remove('lazy-content');
-                    } catch (_) { }
+                    try { newTarget.classList.remove('lazy-content'); } catch (_) { }
+                    try { newTarget.setAttribute('data-tab-loaded', '1'); } catch (_) { }
 
-                    try {
-                        htmx.process(newTarget);
-                    } catch (_) { }
+                    reinitializeComponents(newTarget);
 
-                    // Re-sync tab UI
                     try {
                         const tabsContainer = newTarget.closest('.tabs-container');
                         if (tabsContainer) {
@@ -729,8 +718,6 @@ htmx.on('htmx:afterSwap', function (event) {
             ? event.detail.target
             : event.target;
 
-    // For `outerHTML` swaps `event.detail.target` can be a stale (disconnected) element.
-    // Resolve to a live node when possible so class/style changes actually apply.
     try {
         if (swappedElement && swappedElement.id) {
             const live = document.getElementById(swappedElement.id);
@@ -741,6 +728,7 @@ htmx.on('htmx:afterSwap', function (event) {
     if (swappedElement.classList.contains('tabs-container')) {
         updateUnderline(swappedElement);
         initializeTabContents(swappedElement);
+        reinitializeComponents(swappedElement);
         return;
     }
 
@@ -749,8 +737,6 @@ htmx.on('htmx:afterSwap', function (event) {
         initializeTabContents(container);
     });
 
-    // When swapping tab panes via `outerHTML`, the swap target may be the parent,
-    // while the real pane is determined by the triggering tab link.
     let tabContentEl = null;
     if (swappedElement && swappedElement.classList && swappedElement.classList.contains('tab-content')) {
         tabContentEl = swappedElement;
@@ -779,10 +765,13 @@ htmx.on('htmx:afterSwap', function (event) {
         const headingLink = document.querySelector(
             `.tabs-nav a[data-tab-id="${tabId}"]`,
         );
-        if (!headingLink) return;
+        if (!headingLink) {
+            // Not a tab context — just reinit the swapped element.
+            reinitializeComponents(swappedElement);
+            return;
+        }
 
         const tabsContainer = headingLink.closest('.tabs-container');
-        // Race-guard: if user already clicked another tab, don't re-activate old response.
         try {
             const lastTabId = tabsContainer?.dataset?.lastTabId;
             if (lastTabId && lastTabId !== tabId) {
@@ -811,8 +800,12 @@ htmx.on('htmx:afterSwap', function (event) {
             initializeNestedTabs(contentEl, new WeakSet());
 
             contentEl.classList.remove('lazy-content');
+            // onTabActivated calls reinitializeComponents — no separate call needed.
             onTabActivated(contentEl);
         }
+    } else {
+        // Non-tab swap — reinitialize components in the swapped area.
+        reinitializeComponents(swappedElement);
     }
 
     setTimeout(() => {
@@ -911,20 +904,6 @@ document.addEventListener('click', function (e) {
 
             initializeNestedTabs(targetTab, new WeakSet());
             onTabActivated(targetTab);
-
-            if (targetTab.classList.contains('lazy-content') && link.hasAttribute('hx-get')) {
-                if (typeof htmx !== 'undefined') {
-                    htmx.on('htmx:afterSwap', function handler(evt) {
-                        if (evt.detail.target === targetTab) {
-                            setTimeout(() => {
-                                initializeNestedTabs(targetTab, new WeakSet());
-                                onTabActivated(targetTab);
-                            }, 100);
-                            htmx.off('htmx:afterSwap', handler);
-                        }
-                    });
-                }
-            }
         }
     }
 
@@ -948,3 +927,20 @@ window.addEventListener('resize', function () {
         updateUnderline(container);
     });
 });
+
+// ── Central component re-initialization for ALL HTMX swaps ──
+// This single handler replaces individual htmx listeners that were previously
+// scattered across popover.js, select.js, and input.js.  Using afterSettle
+// (fires after DOM is fully updated) ensures the elements are ready.
+if (typeof htmx !== 'undefined') {
+    htmx.on('htmx:afterSettle', function (event) {
+        const target = event.detail && event.detail.target
+            ? event.detail.target
+            : event.target;
+        if (!target) return;
+
+        // The dedup WeakSet inside reinitializeComponents prevents double work
+        // when the afterSwap handler above already scheduled an init.
+        reinitializeComponents(target);
+    });
+}

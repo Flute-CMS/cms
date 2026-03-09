@@ -9,15 +9,6 @@ $(document).ready(function () {
 	initColorPickers();
 	initIconPickers();
 
-	document.body.addEventListener("htmx:afterSettle", function (e) {
-		initColorPickers(e && e.target ? e.target : document);
-		initIconPickers();
-	});
-
-	document.body.addEventListener("htmx:afterSwap", function (e) {
-		initColorPickers(e && e.target ? e.target : document);
-		initIconPickers();
-	});
 
 	function getIconCache() {
 		try {
@@ -151,10 +142,15 @@ $(document).ready(function () {
 		});
 	}
 
-	// Expose for on-demand init (e.g., when modal opens)
 	window.initColorPickers = function (root) {
 		try {
 			initColorPickers(root || document);
+		} catch (e) {}
+	};
+
+	window.initIconPickers = function (root) {
+		try {
+			initIconPickers(root || document);
 		} catch (e) {}
 	};
 
@@ -211,8 +207,9 @@ $(document).ready(function () {
 		}
 	}
 
-	function initIconPickers() {
-		const iconInputs = document.querySelectorAll(".input__field-icon");
+	function initIconPickers(root) {
+		const scope = (root instanceof Element) ? root : document;
+		const iconInputs = scope.querySelectorAll(".input__field-icon");
 
 		if (!iconInputs.length) return;
 

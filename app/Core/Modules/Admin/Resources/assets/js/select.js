@@ -38,7 +38,6 @@ class Select {
                 } else {
                     this.applyPlaceholder(select, existingInstance);
                     existingInstance.sync();
-                    console.log('[Select] Skip - already in instances:', select.name);
                     return;
                 }
             }
@@ -47,15 +46,12 @@ class Select {
                 if (this.isInstanceStale(select, select.tomselect)) {
                     this.destroyInstance(select, select.tomselect);
                 } else {
-                    console.log('[Select] Skip - has tomselect property:', select.name);
                     select.tomselect.sync();
                     this.instances.set(select, select.tomselect);
                     this.applyPlaceholder(select, select.tomselect);
                     return;
                 }
             }
-
-            console.log('[Select] Initializing:', select.name, select);
 
             const config = this.getConfig(select);
             const instance = new TomSelect(select, config);
@@ -584,22 +580,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.Select = new Select();
 });
 
-let reinitTimeout = null;
-function reinitSelects(target = document) {
-    if (reinitTimeout) clearTimeout(reinitTimeout);
-    reinitTimeout = setTimeout(() => {
-        if (window.Select) {
-            const hasSelect = target.matches?.('[data-select]') || target.querySelector?.('[data-select]');
-            if (!hasSelect) return;
-            console.log('[Select] reinitSelects called, found selects:', target.querySelectorAll?.('[data-select]')?.length ?? 0);
-            window.Select.init(target);
-        }
-    }, 50);
-}
-
-['htmx:afterSettle'].forEach(eventName => {
-    document.body.addEventListener(eventName, (e) => {
-        console.log('[Select] Event:', eventName, e.target);
-        reinitSelects(e.target);
-    });
-});

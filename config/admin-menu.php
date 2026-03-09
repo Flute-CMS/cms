@@ -57,10 +57,11 @@ return [
 
     // System
     ['section' => 'admin-menu.sections.system'],
+    ['key' => 'updates'],
     [
         'key' => 'system-group',
         'title' => 'admin-menu.system',
         'icon' => 'ph.regular.info',
-        'children' => ['logs', 'backups', 'updates', 'about'],
+        'children' => ['logs', 'about'],
     ],
 ];

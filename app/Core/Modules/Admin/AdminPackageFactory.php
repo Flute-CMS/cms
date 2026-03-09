@@ -343,11 +343,12 @@ class AdminPackageFactory
             ['key' => 'themes'],
             ['key' => 'marketplace'],
             ['section' => 'admin-menu.sections.system'],
+            ['key' => 'updates'],
             [
                 'key' => 'system-group',
                 'title' => 'admin-menu.system',
                 'icon' => 'ph.regular.info',
-                'children' => ['logs', 'updates', 'about'],
+                'children' => ['logs', 'about'],
             ],
         ];
     }

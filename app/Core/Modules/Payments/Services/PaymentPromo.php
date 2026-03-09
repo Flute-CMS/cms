@@ -20,13 +20,15 @@ class PaymentPromo
      *
      * @throws PaymentPromoException
      */
-    public function validate(?string $code, int $userId = 0, float $amount = 0): array
+    public function validate(?string $code, int $userId = 0, float $amount = 0, bool $lock = false): array
     {
         if (empty($code)) {
             throw new PaymentPromoException(__('lk.promo_is_empty'));
         }
 
-        $promoCode = $this->get($code);
+        $promoCode = $lock
+            ? PromoCode::query()->forUpdate()->where(['code' => $code])->fetchOne()
+            : $this->get($code);
 
         if ($promoCode === null) {
             throw new PaymentPromoException(__('lk.promo_not_found'));
@@ -37,7 +39,11 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_expired'));
         }
 
-        if ($promoCode->max_usages !== null && sizeof($promoCode->usages) >= $promoCode->max_usages) {
+        $totalUsages = PromoCodeUsage::query()
+            ->where('promoCode_id', $promoCode->id)
+            ->count();
+
+        if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
             throw new PaymentPromoException(__('lk.promo_limit'));
         }
 
