@@ -5,22 +5,37 @@
 @endsection
 
 @push('content')
-    <div class="h-100 container mt-5">
-        <section class="status-container success">
-            <header class="status-header">
-                <h1>{{ __('lk.success.success_payment') }}</h1>
-            </header>
+    <div class="container">
+        <div class="status-page">
+            <div class="status-icon success">
+                <x-icon path="ph.bold.check-bold" />
+            </div>
 
-            <p class="status-text">{{ __('lk.success.success_payment_desc') }}</p>
+            <h1 class="status-title">{{ __('lk.success.success_payment') }}</h1>
+            <p class="status-desc">{{ __('lk.success.success_payment_desc') }}</p>
 
-            <x-button href="{{ url('/') }}" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true"
-                type="outline-accent">
-                <x-icon path="ph.regular.arrow-left" />
-                {{ __('def.back_home') }}
-            </x-button>
+            <div class="status-hints">
+                <div class="status-hint">
+                    <x-icon path="ph.regular.lightning" />
+                    <span>{{ __('lk.success.tip_available') }}</span>
+                </div>
+                <div class="status-hint">
+                    <x-icon path="ph.regular.wallet" />
+                    <span>{{ __('lk.success.tip_balance') }}</span>
+                </div>
+            </div>
 
-            <x-icon path="ph.bold.check-circle-bold" class="status-icon" />
-        </section>
+            <div class="status-actions">
+                <x-button href="{{ url('/') }}" hx-boost="true" hx-target="#main"
+                    hx-swap="outerHTML transition:true" type="accent">
+                    {{ __('def.back_home') }}
+                </x-button>
+                <x-button href="{{ url('/lk') }}" hx-boost="true" hx-target="#main"
+                    hx-swap="outerHTML transition:true" type="outline-primary" size="small">
+                    {{ __('lk.success.top_up_again') }}
+                </x-button>
+            </div>
+        </div>
     </div>
 
     @if (config('lk.pay_in_new_window'))

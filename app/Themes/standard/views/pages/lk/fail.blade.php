@@ -5,22 +5,41 @@
 @endsection
 
 @push('content')
-    <div class="h-100 container mt-5">
-        <section class="status-container error">
-            <header class="status-header">
-                <h1>{{ __('lk.error.fail_payment') }}</h1>
-            </header>
+    <div class="container">
+        <div class="status-page">
+            <div class="status-icon error">
+                <x-icon path="ph.bold.x-bold" />
+            </div>
 
-            <p class="status-text">{{ __('lk.error.fail_payment_desc') }}</p>
+            <h1 class="status-title">{{ __('lk.error.fail_payment') }}</h1>
+            <p class="status-desc">{{ __('lk.error.fail_payment_desc') }}</p>
 
-            <x-button href="{{ url('/') }}" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true"
-                type="outline-accent">
-                <x-icon path="ph.regular.arrow-left" />
-                {{ __('def.back_home') }}
-            </x-button>
+            <div class="status-hints">
+                <div class="status-hint">
+                    <x-icon path="ph.regular.arrows-clockwise" />
+                    <span>{{ __('lk.error.tip_retry') }}</span>
+                </div>
+                <div class="status-hint">
+                    <x-icon path="ph.regular.credit-card" />
+                    <span>{{ __('lk.error.tip_check') }}</span>
+                </div>
+                <div class="status-hint">
+                    <x-icon path="ph.regular.headset" />
+                    <span>{{ __('lk.error.tip_support') }}</span>
+                </div>
+            </div>
 
-            <x-icon path="ph.bold.x-circle-bold" class="status-icon" />
-        </section>
+            <div class="status-actions">
+                <x-button href="{{ url('/lk') }}" hx-boost="true" hx-target="#main"
+                    hx-swap="outerHTML transition:true" type="accent">
+                    {{ __('lk.error.try_again') }}
+                </x-button>
+                <x-button href="{{ url('/') }}" hx-boost="true" hx-target="#main"
+                    hx-swap="outerHTML transition:true" type="outline-primary" size="small">
+                    {{ __('def.back_home') }}
+                </x-button>
+            </div>
+        </div>
     </div>
 
     @if (config('lk.pay_in_new_window'))
