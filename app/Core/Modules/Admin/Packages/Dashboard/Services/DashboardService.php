@@ -779,19 +779,24 @@ class DashboardService
         $mainTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.main'));
         $paymentsTabSlug = \Illuminate\Support\Str::slug(__('admin-dashboard.tabs.payments'));
 
-        if ($currentTab === $paymentsTabSlug) {
+        $showPayments = user()->can('admin.gateways') || user()->can('admin.boss');
+
+        if ($showPayments && $currentTab === $paymentsTabSlug) {
             $mainTab = $this->getMainTabPlaceholder();
             $paymentsTab = $this->getPaymentsTab();
         } elseif ($currentTab === null || $currentTab === $mainTabSlug) {
             $mainTab = $this->getMainTab();
-            $paymentsTab = $this->getPaymentsTabPlaceholder();
+            $paymentsTab = $showPayments ? $this->getPaymentsTabPlaceholder() : null;
         } else {
             $mainTab = $this->getMainTabPlaceholder();
-            $paymentsTab = $this->getPaymentsTabPlaceholder();
+            $paymentsTab = $showPayments ? $this->getPaymentsTabPlaceholder() : null;
         }
 
         $this->addTab($mainTab['tab'], $mainTab['vars']);
-        $this->addTab($paymentsTab['tab'], $paymentsTab['vars']);
+
+        if ($paymentsTab !== null) {
+            $this->addTab($paymentsTab['tab'], $paymentsTab['vars']);
+        }
     }
 
     /**

@@ -138,7 +138,7 @@ class EditPaymentGatewayScreen extends Screen
                                 ->required()
                                 ->value($this->gateway->name ?? '')
                                 ->placeholder(__('admin-payment.fields.name.placeholder'))
-                        )->label(__('admin-payment.fields.name.label'))->required(),
+                        )->label(__('admin-payment.fields.name.label'))->required()->small(__('admin-payment.fields.name.help')),
 
                         LayoutFactory::field(
                             Input::make('image')
@@ -212,19 +212,19 @@ class EditPaymentGatewayScreen extends Screen
                                 ->type('text')
                                 ->value(url('api/lk/handle/' . $this->gateway->adapter))
                                 ->readonly()
-                        )->label(__('admin-payment.fields.handle_url.label')),
+                        )->label(__('admin-payment.fields.handle_url.label'))->small(__('admin-payment.fields.handle_url.help')),
                         LayoutFactory::field(
                             Input::make('success_url')
                                 ->type('text')
                                 ->value(url('lk/success'))
                                 ->readonly()
-                        )->label(__('admin-payment.fields.success_url.label')),
+                        )->label(__('admin-payment.fields.success_url.label'))->small(__('admin-payment.fields.success_url.help')),
                         LayoutFactory::field(
                             Input::make('fail_url')
                                 ->type('text')
                                 ->value(url('lk/fail'))
                                 ->readonly()
-                        )->label(__('admin-payment.fields.fail_url.label')),
+                        )->label(__('admin-payment.fields.fail_url.label'))->small(__('admin-payment.fields.fail_url.help')),
                     ])->setVisible(!empty($this->gateway->adapter)),
                 ]),
 
@@ -401,7 +401,7 @@ class EditPaymentGatewayScreen extends Screen
                     ->yoyo()
                     ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
                     ->required()
-            )->label(__('admin-payment.fields.payment_system.label'))->required(),
+            )->label(__('admin-payment.fields.payment_system.label'))->required()->small(__('admin-payment.fields.payment_system.help')),
         ];
 
         if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {

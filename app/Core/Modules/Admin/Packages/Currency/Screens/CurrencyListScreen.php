@@ -82,6 +82,12 @@ class CurrencyListScreen extends Screen
                             ])
                     ),
             ])
+                ->empty('ph.regular.coins', __('admin-currency.empty.title'), __('admin-currency.empty.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-currency.buttons.add'))
+                        ->icon('ph.bold.plus-bold')
+                        ->modal('createCurrencyModal')
+                )
                 ->searchable(['code'])
                 ->bulkActions([
                     Button::make(__('admin.bulk.delete_selected'))

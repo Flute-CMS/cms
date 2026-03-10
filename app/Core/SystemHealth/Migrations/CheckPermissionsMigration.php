@@ -19,6 +19,7 @@ class CheckPermissionsMigration
         ['admin.templates', 'permissions.admin.templates'],
         ['admin.roles', 'permissions.admin.roles'],
         ['admin.users', 'permissions.admin.users'],
+        ['admin.users.view', 'permissions.admin.users.view'],
         ['admin.pages', 'permissions.admin.pages'],
         ['admin.socials', 'permissions.admin.socials'],
         ['admin.notifications', 'permissions.admin.notifications'],

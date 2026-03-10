@@ -119,6 +119,26 @@ abstract class Cell
     }
 
     /**
+     * Check if the cell has a render callback.
+     */
+    public function hasRender(): bool
+    {
+        return $this->render !== null;
+    }
+
+    /**
+     * Get the rendered value for a given source (public wrapper for handler).
+     *
+     * @param Repository|\Cycle\ORM\EntityProxyInterface $source
+     *
+     * @return mixed
+     */
+    public function renderValue($source, ?object $loop = null)
+    {
+        return $this->handler($source, $loop);
+    }
+
+    /**
      * @throws ReflectionException
      */
     protected function getNameParameterExpected(string $component, array $params = []): ?string

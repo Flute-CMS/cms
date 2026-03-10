@@ -91,4 +91,13 @@ return [
         'social_deleted' => 'Social network deleted successfully.',
         'social_not_found' => 'Social network not found.',
     ],
+
+    'empty' => [
+        'title' => 'No footer items',
+        'sub' => 'Create items to display in the site footer',
+        'socials' => [
+            'title' => 'No social links',
+            'sub' => 'Add links to your social networks',
+        ],
+    ],
 ];

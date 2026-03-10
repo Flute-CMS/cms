@@ -98,6 +98,81 @@ return [
         'payments' => 'Payments',
     ],
 
+    'attention' => [
+        'updates' => ':count update(s) available',
+        'debug' => 'Debug mode is enabled',
+        'cron' => 'Server auto-refresh is not running',
+    ],
+
+    'checklist' => [
+        'items' => [
+            'logo' => [
+                'title' => 'Upload your logo',
+                'desc' => 'Replace the default logo with your brand',
+            ],
+            'smtp' => [
+                'title' => 'Configure email',
+                'desc' => 'SMTP for notifications and password resets',
+            ],
+            'social' => [
+                'title' => 'Add social login',
+                'desc' => 'Steam, Discord or other auth providers',
+            ],
+            'server' => [
+                'title' => 'Add a game server',
+                'desc' => 'Stats, online status and server monitoring',
+            ],
+            'currency' => [
+                'title' => 'Add a currency',
+                'desc' => 'Required before setting up payment gateways',
+            ],
+            'payment' => [
+                'title' => 'Set up payments',
+                'desc' => 'Accept donations and purchases',
+            ],
+        ],
+    ],
+
+    'onboarding' => [
+        'next' => 'Next',
+        'prev' => 'Back',
+        'finish' => 'Got it!',
+        'welcome' => [
+            'title' => 'Welcome to Flute!',
+            'text' => 'Let\'s take a quick tour of the admin panel so you know where everything is.',
+        ],
+        'sidebar' => [
+            'title' => 'Navigation',
+            'text' => 'The sidebar is your main navigation. All sections — servers, modules, themes, users — are accessible from here.',
+        ],
+        'search' => [
+            'title' => 'Quick Search',
+            'text' => 'Press <kbd>Ctrl+K</kbd> to instantly search across settings, pages and modules.',
+        ],
+        'settings' => [
+            'title' => 'Settings',
+            'text' => 'Site name, mail, auth providers, localization — all general settings are grouped here.',
+        ],
+        'servers' => [
+            'title' => 'Servers',
+            'text' => 'Connect game servers for online monitoring, stats and management.',
+        ],
+        'marketplace' => [
+            'title' => 'Marketplace',
+            'text' => 'Install modules and themes from the marketplace in one click — extend functionality without code.',
+        ],
+        'checklist' => [
+            'title' => 'Setup Checklist',
+            'text' => 'Follow this checklist to finish the initial configuration. Items turn green once completed.',
+        ],
+        'done' => [
+            'title' => 'You\'re all set!',
+            'text' => 'Start with the checklist on the dashboard and explore at your own pace. You can always find help in the documentation.',
+        ],
+        'restart' => 'Take a tour',
+        'restart_success' => 'Tour will start on next page load',
+    ],
+
     'ioncube' => [
         'perf_title' => 'Do this to significantly boost performance',
         'perf_desc' => 'ionCube scans module code on every request. Specify the full modules directory path in encoded_paths to avoid unnecessary scanning and speed up the panel and site.',

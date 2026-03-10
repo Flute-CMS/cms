@@ -6,9 +6,10 @@
     $plugins = $attributes->get('data-plugins', '[]');
     $placeholder = $attributes->get('placeholder', '');
     $options = $options ?? [];
+    $isAllowEmpty = !empty($allowEmpty ?? false);
 
     $value = request()->input($name, $value);
-    
+
     if ($multiple && !is_array($value) && !empty($value)) {
         $value = [$value];
     }
@@ -24,6 +25,7 @@
                 data-hide-selected="{{ $attributes->get('data-hide-selected', 'false') }}"
                 placeholder="{{ $placeholder }}"
                 data-allow-add="{{ $attributes->get('data-allow-add') }}"
+                @if ($isAllowEmpty) data-allow-empty="true" @endif
                 data-searchable="{{ $attributes->get('data-searchable', 'auto') }}"
                 data-search-threshold="{{ $attributes->get('data-search-threshold', '6') }}"
                 data-initial-value="{{ json_encode($value) }}"
@@ -40,15 +42,15 @@
                 @if ($attributes->get('renderNoResults')) data-render-no-results="{{ $attributes->get('renderNoResults') }}" @endif>
 
                 @if ($mode === 'static')
-                    @if (!$multiple && $placeholder)
+                    @if (!$multiple && ($placeholder || $isAllowEmpty))
                         <option value="">{{ $placeholder }}</option>
                     @endif
                     @foreach ($options as $optionValue => $optionLabel)
                         <option value="{{ $optionValue }}"
-                            @if ($multiple && is_array($value)) 
+                            @if ($multiple && is_array($value))
                                 {{ in_array((string) $optionValue, array_map('strval', $value)) ? 'selected' : '' }}
                             @else
-                                {{ (string) $optionValue === (string) $value ? 'selected' : '' }} 
+                                {{ (string) $optionValue === (string) $value ? 'selected' : '' }}
                             @endif>
                             {{ $optionLabel }}
                         </option>

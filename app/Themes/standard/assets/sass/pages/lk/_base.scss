@@ -36,12 +36,12 @@
 }
 
 // ==============================================================
-// Layout grid
+// Layout
 // ==============================================================
 
 .lk-layout {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 1fr 300px;
     gap: var(--space-lg);
     align-items: start;
 }
@@ -52,10 +52,12 @@
     gap: var(--space-sm);
     position: sticky;
     top: calc(var(--space-xl) + 60px);
+    order: 2;
 }
 
 .lk-main {
     min-width: 0;
+    order: 1;
 }
 
 // ==============================================================
@@ -63,17 +65,23 @@
 // ==============================================================
 
 .lk-balance {
-    padding: var(--space-md) var(--space-lg);
+    background: var(--background);
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border1);
+    padding: var(--space-lg);
+
+    &__top {
+        margin-bottom: var(--space-xs);
+    }
 
     &__label {
         font-size: var(--small);
         color: var(--text-600);
         font-weight: 500;
-        margin-bottom: 4px;
     }
 
     &__amount {
-        font-size: var(--h4);
+        font-size: var(--h3);
         font-weight: 700;
         color: var(--text);
         letter-spacing: -0.03em;
@@ -95,6 +103,22 @@
 // ==============================================================
 
 .lk-history {
+    background: var(--background);
+    border: 1px solid var(--transp-1);
+    border-radius: var(--border1);
+    overflow: hidden;
+
+    &__head {
+        padding: var(--space-md) var(--space-lg);
+        border-bottom: 1px solid var(--transp-05);
+    }
+
+    &__title {
+        font-size: var(--p-small);
+        font-weight: 600;
+        color: var(--text);
+    }
+
     &__list {
         display: flex;
         flex-direction: column;
@@ -104,8 +128,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: var(--space-xs);
-        padding: var(--space-xs) var(--space-md);
+        gap: var(--space-sm);
+        padding: var(--space-sm) var(--space-lg);
 
         & + & {
             border-top: 1px solid var(--transp-05);
@@ -115,51 +139,56 @@
     &__left {
         display: flex;
         align-items: center;
-        gap: var(--space-xs);
+        gap: var(--space-sm);
         min-width: 0;
     }
 
-    &__status {
-        width: 24px;
-        height: 24px;
+    &__dot {
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         flex-shrink: 0;
 
-        svg { width: 11px; height: 11px; }
-
-        &.is-paid {
-            background: var(--success-light);
-            color: var(--success);
-        }
-
-        &.is-pending {
-            background: var(--transp-05);
-            color: var(--text-600);
-        }
+        &.is-paid { background: var(--success); }
+        &.is-pending { background: var(--text-700); }
     }
 
     &__info {
         display: flex;
         flex-direction: column;
+        gap: 2px;
         min-width: 0;
     }
 
     &__gateway {
         font-size: var(--small);
-        font-weight: 500;
+        font-weight: 600;
         color: var(--text-200);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    &__date {
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         font-size: 11px;
-        color: var(--text-600);
         line-height: 1.3;
+    }
+
+    &__status {
+        font-weight: 500;
+        &.is-paid { color: var(--success); }
+        &.is-pending { color: var(--text-600); }
+    }
+
+    &__sep {
+        color: var(--text-700);
+    }
+
+    &__date {
+        color: var(--text-600);
     }
 
     &__amount {
@@ -177,11 +206,12 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: var(--space-xs);
-        padding: var(--space-lg) var(--space-md);
+        padding: var(--space-xl) var(--space-md);
         color: var(--text-600);
 
-        svg { width: 20px; height: 20px; opacity: 0.4; }
+        svg { width: 24px; height: 24px; opacity: 0.5; }
         span { font-size: var(--small); }
     }
 }
@@ -197,9 +227,14 @@
 
     .lk-sidebar {
         position: static;
+        order: -1;
         flex-direction: row;
 
         > * { flex: 1; min-width: 0; }
+    }
+
+    .lk-main {
+        order: 2;
     }
 }
 

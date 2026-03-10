@@ -15,17 +15,26 @@ class PaymentsViewController extends BaseController
         $isModal = $fluteRequest->isOnlyHtmx() && config('lk.only_modal');
 
         $recentInvoices = [];
+        $gatewayNames = [];
         if (!$isModal) {
             $recentInvoices = PaymentInvoice::query()
                 ->where('user_id', user()->id)
                 ->orderBy('created_at', 'DESC')
                 ->limit(10)
                 ->fetchAll();
+
+            $adapters = array_unique(array_map(fn ($i) => $i->gateway, $recentInvoices));
+            if ($adapters) {
+                foreach (PaymentGateway::query()->where('adapter', 'IN', $adapters)->fetchAll() as $gw) {
+                    $gatewayNames[$gw->adapter] = $gw->name;
+                }
+            }
         }
 
         return view('flute::pages.lk.index', [
             'isModal' => $isModal,
             'recentInvoices' => $recentInvoices,
+            'gatewayNames' => $gatewayNames,
         ])->fragmentIf($isModal, 'lk-card');
     }
 

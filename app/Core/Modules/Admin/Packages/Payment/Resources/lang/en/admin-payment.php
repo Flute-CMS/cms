@@ -66,22 +66,26 @@ return [
         'name' => [
             'label' => 'Name',
             'placeholder' => 'Payment gateway name',
+            'help' => 'Display name shown to users on the payment page',
         ],
         'method' => [
             'label' => 'Method',
             'placeholder' => 'Enter method',
         ],
         'handle_url' => [
-            'label' => 'Handle URL',
+            'label' => 'Webhook URL',
             'placeholder' => 'Enter handle URL',
+            'help' => 'URL for receiving payment notifications from the provider',
         ],
         'success_url' => [
             'label' => 'Success URL',
             'placeholder' => 'Enter success URL',
+            'help' => 'User is redirected here after successful payment',
         ],
         'fail_url' => [
             'label' => 'Fail URL',
             'placeholder' => 'Enter fail URL',
+            'help' => 'User is redirected here if payment fails',
         ],
         'image' => [
             'label' => 'Image',
@@ -118,6 +122,7 @@ return [
         'payment_system' => [
             'label' => 'Payment System',
             'placeholder' => 'Select payment system',
+            'help' => 'Payment provider module. Install modules from Marketplace to add more options',
         ],
         'promo' => [
             'total_usages' => 'Total Usages',
@@ -230,6 +235,21 @@ return [
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
     ],
+    'empty' => [
+        'gateways' => [
+            'title' => 'No payment gateways',
+            'sub' => 'Add a gateway to accept payments',
+        ],
+        'invoices' => [
+            'title' => 'No invoices yet',
+            'sub' => 'Invoices will appear here when users make payments',
+        ],
+        'promo_codes' => [
+            'title' => 'No promo codes',
+            'sub' => 'Create promo codes to offer discounts',
+        ],
+    ],
+
     'no_drivers' => [
         'title' => 'No payment gateways found',
         'description' => 'Please install the necessary modules to integrate payment systems.',

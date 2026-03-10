@@ -62,7 +62,7 @@ class ProfileRedirectController extends BaseController
             return $this->error(__('def.user_not_found'), 404);
         }
 
-        if ($user->hidden === true && !user()->can('admin.users') && $user->id !== user()->id) {
+        if ($user->hidden === true && !user()->can('admin.users') && !user()->can('admin.users.view') && $user->id !== user()->id) {
             return $this->error(__('profile.profile_hidden'));
         }
 

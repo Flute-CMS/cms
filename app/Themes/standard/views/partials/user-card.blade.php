@@ -5,7 +5,7 @@
     $socialNetworks = $user->socialNetworks;
     $unhiddenSocialNetworks = [];
     foreach ($socialNetworks as $network) {
-        if (((bool) $network->hidden !== true || user()->can('admin.users')) && !empty($network->url)) {
+        if (((bool) $network->hidden !== true || user()->can('admin.users') || user()->can('admin.users.view')) && !empty($network->url)) {
             $unhiddenSocialNetworks[] = $network;
         }
     }

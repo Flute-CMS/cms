@@ -107,6 +107,8 @@ class BackupScreen extends Screen
             ]),
 
             LayoutFactory::table('backups', [
+                TD::selection('filename'),
+
                 TD::make('type', __('admin-backup.table.type'))
                     ->render(static function (array $backup) {
                         $badges = [
@@ -193,6 +195,13 @@ class BackupScreen extends Screen
                         ->type(Color::OUTLINE_PRIMARY)
                         ->size('small')
                         ->method('refreshBackups'),
+                ])
+                ->bulkActions([
+                    Button::make(__('admin.bulk.delete_selected'))
+                        ->icon('ph.bold.trash-bold')
+                        ->type(Color::OUTLINE_DANGER)
+                        ->confirm(__('admin.confirms.delete_selected'))
+                        ->method('bulkDeleteBackups'),
                 ]),
         ];
     }
@@ -340,6 +349,38 @@ class BackupScreen extends Screen
             $this->flashMessage(__('admin-backup.messages.backup_deleted'), 'success');
         } catch (Exception $e) {
             $this->flashMessage(__('admin-backup.messages.delete_error', ['message' => $e->getMessage()]), 'error');
+        }
+
+        $this->loadBackups();
+    }
+
+    public function bulkDeleteBackups(): void
+    {
+        $filenames = request()->input('selected', []);
+
+        if (empty($filenames)) {
+            return;
+        }
+
+        $backupIndex = [];
+        foreach ($this->backups as $backup) {
+            $backupIndex[$backup['filename']] = $backup['is_directory'];
+        }
+
+        $deleted = 0;
+        foreach ($filenames as $filename) {
+            $isDirectory = $backupIndex[$filename] ?? false;
+
+            try {
+                $this->backupService->deleteBackup($filename, $isDirectory);
+                $deleted++;
+            } catch (Exception $e) {
+                logs()->warning("Bulk delete backup failed for {$filename}: " . $e->getMessage());
+            }
+        }
+
+        if ($deleted > 0) {
+            $this->flashMessage(__('admin-backup.messages.backup_deleted') . " ({$deleted})", 'success');
         }
 
         $this->loadBackups();

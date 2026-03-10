@@ -638,6 +638,14 @@ $(document).ready(function () {
         }
     });
 
+    $(document).on('change', 'select', function () {
+        var wrapper = $(this).closest('.field--select, .select-wrapper');
+        if (wrapper.length) {
+            wrapper.find('.has-error').removeClass('has-error');
+            wrapper.find('.select__error, .input__error').hide();
+        }
+    });
+
     $(document).on('keypress', 'input[data-numeric="true"]', function (e) {
         const withDots = $(this).data('with-dots');
         const charCode = e.which || e.keyCode;
@@ -691,4 +699,51 @@ document.body.addEventListener('change', function (e) {
 });
 
 // Button group toggle is handled by buttongroup.js + central htmx:afterSettle handler in tabs.js
+
+// Scroll to first validation error after Yoyo re-render
+(function () {
+    function scrollToFirstError(root) {
+        var errorField = (root || document).querySelector('.has-error, .input__error, .select__error, .textarea__error');
+        if (!errorField) return;
+
+        var container = errorField.closest('.input-wrapper, .field, .form-field');
+        var target = container || errorField;
+
+        var modal = target.closest('[data-a11y-dialog]');
+        if (modal) {
+            var scrollable = modal.querySelector('.modal-body, [data-a11y-dialog-content]') || modal;
+            var offset = target.offsetTop - scrollable.offsetTop - 20;
+            scrollable.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+        } else {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        target.classList.add('field-shake');
+        setTimeout(function () { target.classList.remove('field-shake'); }, 600);
+    }
+
+    document.body.addEventListener('htmx:afterSettle', function (e) {
+        setTimeout(function () { scrollToFirstError(e.detail.target); }, 80);
+    });
+})();
+
+// Sticky command bar detection
+(function () {
+    function initStickyObserver() {
+        const sentinel = document.querySelector('.base-legend-sentinel');
+        const legend = document.querySelector('.base-legend');
+        if (!sentinel || !legend) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                legend.classList.toggle('is-stuck', !entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+        observer.observe(sentinel);
+    }
+
+    initStickyObserver();
+    document.body.addEventListener('htmx:afterSettle', initStickyObserver);
+})();
 

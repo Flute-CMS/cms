@@ -49,7 +49,7 @@
         "clear_selection" => "Clear",
     ],
     "confirms" => [
-        "delete_selected" => "Delete selected items?",
+        "delete_selected" => "Delete {count} selected items?",
     ],
     "export" => [
         "title" => "Export",

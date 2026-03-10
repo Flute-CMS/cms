@@ -110,12 +110,14 @@ return [
         'test_mail_sent' => 'テストメールが送信されました。',
     ],
     'tabs' => [
-        'main_settings' => 'メイン設定',
+        'main_settings' => '一般',
         'databases' => 'データベース',
         'users' => 'ユーザー',
         'mail' => 'メール',
         'localization' => 'ローカリゼーション',
         'additional_settings' => '追加設定',
+        'advanced' => '詳細設定',
+        'site' => 'サイト',
     ],
     'blocks' => [
         'main_settings' => 'メイン設定',
@@ -133,5 +135,11 @@ return [
         'two_factor_settings' => '二要素認証',
         'localization_settings' => 'ローカリゼーション設定',
         'seo' => 'SEO設定',
+        'branding' => 'ブランディング',
+        'features' => '機能',
+        'features_description' => 'サイト機能を有効または無効にします。ランディングページやショーケースの作成に便利です。',
+        'performance' => 'パフォーマンス',
+        'performance_description' => 'パフォーマンス最適化とバックグラウンドタスク。',
+        'misc_settings' => 'その他',
     ],
 ];

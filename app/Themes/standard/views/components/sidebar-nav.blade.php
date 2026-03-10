@@ -147,13 +147,13 @@
     </nav>
 
     <div class="sidebar-nav__footer">
-        @if (sizeof(social()->toDisplay()) > 0)
+        @if (!empty(footer()->socials()->all()))
             <div class="sidebar-nav__socials">
-                @foreach (social()->toDisplay() as $key => $icon)
-                    <a href="{{ config("social.{$key}.url") }}" target="_blank" rel="noopener noreferrer"
-                        aria-label="{{ $key }}" data-tooltip="{{ ucfirst($key) }}" data-tooltip-placement="top"
+                @foreach (footer()->socials()->all() as $social)
+                    <a href="{{ $social->url }}" target="_blank" rel="noopener noreferrer"
+                        aria-label="@t($social->name)" data-tooltip="@t($social->name)" data-tooltip-placement="top"
                         data-sidebar-tooltip>
-                        <x-icon path="{{ $icon }}" />
+                        <x-icon path="{{ $social->icon }}" />
                     </a>
                 @endforeach
             </div>

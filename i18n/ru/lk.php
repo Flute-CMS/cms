@@ -78,4 +78,6 @@
     "your_balance" => "Ваш баланс",
     "history_title" => "Последние операции",
     "no_history" => "Операций пока нет",
+    "status_paid" => "Оплачено",
+    "status_pending" => "Ожидание",
 ];

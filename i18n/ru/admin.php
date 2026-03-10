@@ -49,7 +49,7 @@
         "clear_selection" => "Сбросить",
     ],
     "confirms" => [
-        "delete_selected" => "Удалить выбранные элементы?",
+        "delete_selected" => "Удалить выбранные элементы ({count})?",
     ],
     "export" => [
         "title" => "Экспорт",

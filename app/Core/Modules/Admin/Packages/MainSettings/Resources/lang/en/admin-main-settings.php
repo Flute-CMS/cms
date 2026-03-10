@@ -255,12 +255,14 @@ return [
     ],
 
     'tabs' => [
-        'main_settings' => 'Main Settings',
+        'main_settings' => 'General',
         'databases' => 'Databases',
         'users' => 'Users',
         'mail' => 'Mail',
         'localization' => 'Localization',
         'additional_settings' => 'Additional Settings',
+        'advanced' => 'Advanced',
+        'site' => 'Site',
     ],
 
     'blocks' => [
@@ -287,6 +289,12 @@ return [
         'seo' => 'SEO Settings',
         'profile_tabs_order' => 'Profile Tabs Order',
         'profile_tabs_order_description' => 'Drag tabs to change their display order in user profile.',
+        'branding' => 'Branding',
+        'features' => 'Features',
+        'features_description' => 'Enable or disable site features. Useful for creating landing pages or showcases.',
+        'performance' => 'Performance',
+        'performance_description' => 'Performance optimization and background tasks.',
+        'misc_settings' => 'Miscellaneous',
     ],
 
     'popovers' => [

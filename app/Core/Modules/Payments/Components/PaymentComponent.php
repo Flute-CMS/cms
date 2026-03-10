@@ -69,7 +69,6 @@ class PaymentComponent extends FluteComponent
                     throw new PaymentException(__('lk.min_amount', ['sum' => $minAmount]));
                 }
 
-                // Recalculate amountToPay server-side to prevent client state manipulation
                 $serverAmount = (float) $this->amount;
                 $serverAmountToPay = $serverAmount;
 
@@ -174,6 +173,11 @@ class PaymentComponent extends FluteComponent
         }
 
         if (empty($this->promoCode)) {
+            if ($this->gatewayFee > 0) {
+                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
+                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
+            }
+
             return;
         }
 
@@ -194,6 +198,11 @@ class PaymentComponent extends FluteComponent
 
                     break;
             }
+
+            if ($this->gatewayFee > 0) {
+                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
+                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
+            }
         } catch (PaymentPromoException $e) {
             $this->inputError('promoCode', __($e->getMessage()));
             $this->promoIsValid = false;
@@ -211,11 +220,13 @@ class PaymentComponent extends FluteComponent
 
     public function render()
     {
-        $view = $this->isModal
+        $viewName = $this->isModal
             ? 'flute::components.payments.payment-form-modal'
             : 'flute::components.payments.payment-form';
 
-        return $this->view($view);
+        return $this->view($viewName, [
+            'gatewayFields' => $this->collectAllGatewayFields($viewName),
+        ]);
     }
 
     public function getEffectiveMinimumAmount(): float
@@ -230,6 +241,41 @@ class PaymentComponent extends FluteComponent
 
         // Fall back to currency minimum
         return (float) ($this->currencyMinimumAmounts[$this->currency] ?? 0);
+    }
+
+    /**
+     * Pre-render additional fields for ALL gateways by triggering View Composers.
+     * Modules register View::composer on the payment form view and conditionally
+     * inject 'additionalFields' based on $view->gateway.
+     */
+    protected function collectAllGatewayFields(string $viewName): array
+    {
+        $fields = [];
+        $seen = [];
+
+        foreach ($this->currencyGateways as $gateways) {
+            foreach ($gateways as $adapter => $data) {
+                if (isset($seen[$adapter])) {
+                    continue;
+                }
+                $seen[$adapter] = true;
+
+                try {
+                    $factory = view();
+                    $probe = $factory->make($viewName, ['gateway' => $adapter]);
+                    $factory->callComposer($probe);
+
+                    $html = $probe->getData()['additionalFields'] ?? null;
+                    if ($html) {
+                        $fields[$adapter] = $html;
+                    }
+                } catch (Exception $e) {
+                    // Skip gateways that fail to render fields
+                }
+            }
+        }
+
+        return $fields;
     }
 
     protected function validateCurrencyGateways(): void
@@ -312,6 +358,8 @@ class PaymentComponent extends FluteComponent
 
             if ($this->gatewayFee > 0) {
                 $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
+                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
+                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
 
             if ($this->gatewayBonus > 0) {

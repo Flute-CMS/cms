@@ -82,7 +82,8 @@ class FooterListScreen extends Screen
                                     ->type(Color::PRIMARY),
                             ])
                             ->title(__('admin-footer.sections.main_links.title'))
-                            ->description(__('admin-footer.sections.main_links.description')),
+                            ->description(__('admin-footer.sections.main_links.description'))
+                            ->empty('ph.regular.text-columns', __('admin-footer.empty.title'), __('admin-footer.empty.sub')),
                     ]),
                 Tab::make(__('admin-footer.tabs.social'))
                     ->badge(sizeof($this->socials))
@@ -111,6 +112,13 @@ class FooterListScreen extends Screen
                                             ->fullWidth(),
                                     ])),
                         ])
+                            ->empty('ph.regular.share-network', __('admin-footer.empty.socials.title'), __('admin-footer.empty.socials.sub'))
+                            ->emptyButton(
+                                Button::make(__('def.create'))
+                                    ->icon('ph.bold.plus-bold')
+                                    ->modal('createFooterSocialModal')
+                                    ->type(Color::PRIMARY)
+                            )
                             ->searchable()
                             ->title(__('admin-footer.sections.social_links.title'))
                             ->description(__('admin-footer.sections.social_links.description'))

@@ -1,9 +1,4 @@
 function initSelectionForTable(table) {
-    if (table.dataset.selectionInitialized) {
-        return;
-    }
-    table.dataset.selectionInitialized = "true";
-
     const tableId = table.id;
     const selectAll = document.querySelector(`#select-all-${tableId}`);
     if (!selectAll) return;
@@ -76,7 +71,10 @@ function initSelectionForTable(table) {
         }
     };
 
-    selectAll.addEventListener("change", () => {
+    if (selectAll._selectionBound) {
+        selectAll.removeEventListener("change", selectAll._selectionBound);
+    }
+    selectAll._selectionBound = () => {
         const selectedIds = new Set(getSelection());
         const checkboxes = table.querySelectorAll('tbody input[name="selected[]"]');
 
@@ -93,16 +91,15 @@ function initSelectionForTable(table) {
 
         saveSelection(Array.from(selectedIds));
         updateBulkUI();
-    });
+    };
+    selectAll.addEventListener("change", selectAll._selectionBound);
 
-    // Restore checked state for existing rows.
     const checkboxes = table.querySelectorAll('tbody input[name="selected[]"]');
     checkboxes.forEach(cb => {
         cb.checked = new Set(getSelection()).has(String(cb.value));
         setRowHighlight(cb);
     });
 
-    // Event delegation — works for dynamically added rows (pagination, HTMX).
     if (!table._selectionDelegated) {
         table._selectionDelegated = true;
         table.addEventListener("change", (e) => {
@@ -253,6 +250,9 @@ document.addEventListener('htmx:afterRequest', () => {
 
 document.addEventListener("htmx:afterSettle", (evt) => {
     updateAllBulkBars();
+
+    const root = evt.detail.target || document;
+    root.querySelectorAll('table[id]').forEach(initSelectionForTable);
 
     const target = evt.detail.target;
     if (target && target.id === 'main') {

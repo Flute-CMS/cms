@@ -414,6 +414,11 @@ class Select extends Field implements ComplexFieldConcern
         // Expose allowAdd flag to template via data attribute
         $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
 
+        // Propagate allowEmpty to template
+        if ($this->get('allowEmpty') || $this->getConfig('allowEmpty')) {
+            $this->set('allowEmpty', true);
+        }
+
         // UI search behavior: true|false|auto
         $uiSearch = $this->getConfig('uiSearch', null);
         $this->set('data-searchable', $uiSearch === null ? 'auto' : ($uiSearch ? 'true' : 'false'));

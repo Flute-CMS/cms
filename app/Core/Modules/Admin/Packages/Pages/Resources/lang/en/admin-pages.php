@@ -116,6 +116,11 @@ return [
         'no_permission.delete' => 'You do not have permission to delete pages.',
     ],
 
+    'empty' => [
+        'title' => 'No pages yet',
+        'sub' => 'Create your first custom page',
+    ],
+
     'confirms' => [
         'delete_page' => 'Are you sure you want to delete this page? This action cannot be undone.',
     ],

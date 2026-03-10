@@ -6,6 +6,8 @@ use DateTimeInterface;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Repository;
 use Illuminate\Support\Collection;
+use Stringable;
+use Throwable;
 
 class TableExportService
 {
@@ -22,21 +24,21 @@ class TableExportService
 
         $safeFilename = $this->sanitizeFilename($filename);
 
+        $this->cleanOutputBuffers();
+
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 
         $output = fopen('php://output', 'w');
 
-        // Add BOM for UTF-8 Excel compatibility
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-        // Write headers
         $headers = $exportColumns->map(fn (TD $column) => $this->cleanText($column->getTitle()))->toArray();
         fputcsv($output, $headers, ';');
 
-        // Write data rows
         foreach ($rows as $row) {
             $rowData = $this->extractRowData($row, $exportColumns);
             fputcsv($output, $rowData, ';');
@@ -59,24 +61,25 @@ class TableExportService
 
         $safeFilename = $this->sanitizeFilename($filename);
 
+        $this->cleanOutputBuffers();
+
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 
         echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
         echo '<head><meta charset="UTF-8"></head>';
         echo '<body>';
         echo '<table border="1">';
 
-        // Write headers
         echo '<tr>';
         foreach ($exportColumns as $column) {
             echo '<th style="background-color:#f0f0f0;font-weight:bold;">' . htmlspecialchars($this->cleanText($column->getTitle())) . '</th>';
         }
         echo '</tr>';
 
-        // Write data rows
         foreach ($rows as $row) {
             echo '<tr>';
             $rowData = $this->extractRowData($row, $exportColumns);
@@ -99,17 +102,11 @@ class TableExportService
         return $columns->filter(static function (TD $column) {
             $name = strtolower($column->getName());
 
-            // Exclude selection columns
             if ($column->isSelectionColumn()) {
                 return false;
             }
 
-            // Exclude actions columns
-            return !($name === 'actions' || str_contains($name, 'action'))
-
-
-
-            ;
+            return !($name === 'actions' || str_contains($name, 'action'));
         });
     }
 
@@ -133,9 +130,18 @@ class TableExportService
      */
     protected function getColumnValue($row, TD $column): string
     {
+        if ($column->hasRender()) {
+            try {
+                $rendered = $column->renderValue($row);
+
+                return $this->formatValue($rendered);
+            } catch (Throwable $e) {
+                // Fall through to direct property access
+            }
+        }
+
         $name = $column->getName();
 
-        // Handle nested properties (e.g., 'user.name')
         if (str_contains($name, '.')) {
             $parts = explode('.', $name);
             $value = $row;
@@ -144,7 +150,13 @@ class TableExportService
                 if (is_array($value)) {
                     $value = $value[$part] ?? null;
                 } elseif (is_object($value)) {
-                    $value = $value->{$part} ?? null;
+                    try {
+                        $value = $value->{$part} ?? null;
+                    } catch (Throwable $e) {
+                        $value = null;
+
+                        break;
+                    }
                 } else {
                     $value = null;
 
@@ -155,13 +167,16 @@ class TableExportService
             return $this->formatValue($value);
         }
 
-        // Direct property access
         if ($row instanceof Repository) {
             $value = $row->getContent($name);
         } elseif (is_array($row)) {
             $value = $row[$name] ?? '';
         } elseif (is_object($row)) {
-            $value = $row->{$name} ?? '';
+            try {
+                $value = $row->{$name} ?? '';
+            } catch (Throwable $e) {
+                $value = '';
+            }
         } else {
             $value = '';
         }
@@ -186,8 +201,20 @@ class TableExportService
             return $value->format('d.m.Y H:i:s');
         }
 
-        if (is_array($value) || is_object($value)) {
-            if (is_object($value) && method_exists($value, '__toString')) {
+        if (is_array($value)) {
+            return json_encode($value, JSON_UNESCAPED_UNICODE);
+        }
+
+        if (is_object($value)) {
+            if ($value instanceof \Illuminate\Contracts\View\View || $value instanceof \Illuminate\View\View) {
+                return strip_tags((string) $value->render());
+            }
+
+            if ($value instanceof \Illuminate\Contracts\Support\Renderable) {
+                return strip_tags((string) $value->render());
+            }
+
+            if ($value instanceof Stringable || method_exists($value, '__toString')) {
                 return (string) $value;
             }
 
@@ -219,21 +246,29 @@ class TableExportService
             return '';
         }
 
-        // Decode HTML entities
+        $text = (string) $text;
+
         $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        // Strip HTML tags
         $text = strip_tags($text);
 
-        // Normalize whitespace
         $text = preg_replace('/\s+/', ' ', $text);
         $text = trim($text);
 
-        // Prevent CSV formula injection
         if (isset($text[0]) && in_array($text[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
             $text = "'" . $text;
         }
 
         return $text;
+    }
+
+    /**
+     * Discard all output buffers to prevent HTML leaking into export files.
+     */
+    protected function cleanOutputBuffers(): void
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
     }
 }

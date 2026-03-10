@@ -11,6 +11,7 @@
     "admin.templates"      => "Shablonlarni boshqarish ruxsati. Foydalanuvchi saytda kontentni koʻrsatish uchun ishlatiladigan shablonlarni yaratishi, tahrirlashi va oʻchirishi mumkin.",
     "admin.roles"          => "Foydalanuvchi rollarini boshqarish ruxsati. Foydalanuvchi rollarni yaratishi, tahrirlashi va oʻchirishi, hamda ularni boshqa foydalanuvchilarga tayinlashi mumkin.",
     "admin.users"          => "Foydalanuvchilarni boshqarish ruxsati. Foydalanuvchi foydalanuvchi hisoblarini yaratishi, tahrirlashi va oʻchirishi, shuningdek ularning kirishini boshqarishi mumkin.",
+    "admin.users.view"     => "Foydalanuvchi profillarini, jumladan yashirin profillarni koʻrish ruxsati. Tahrirlash yoki boshqarish huquqlarini bermaydi.",
     "admin.pages"          => "Sahifalarni boshqarish ruxsati. Foydalanuvchi saytda statik sahifalarni yaratishi, tahrirlashi va oʻchirishi mumkin.",
     "admin.socials"        => "Ijtimoiy tarmoqlarni boshqarish ruxsati. Foydalanuvchi ijtimoiy tarmoq havolalarini qoʻshishi, tahrirlashi va oʻchirishi mumkin.",
     "admin.notifications"  => "Foydalanuvchi bildirishnomalari yaratish ruxsati. Foydalanuvchi platform foydalanuvchilariga turli bildirishnomalar va ogohlantirishlar yuborishi mumkin.",

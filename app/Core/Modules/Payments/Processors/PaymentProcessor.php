@@ -192,10 +192,14 @@ class PaymentProcessor
             // Use post-conversion amount for verification when currency conversion was applied
             $expectedAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
 
-            $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
+            // Gateway receives fee-inclusive amount, so adjust expected for verification
             $gatewayFee = ($gateway && $gateway->fee > 0) ? $gateway->fee : 0;
-            $effectiveTolerance = max($tolerancePercent, $gatewayFee);
-            $toleranceAbs = max(0.01, $expectedAmount * ($effectiveTolerance / 100));
+            if ($gatewayFee > 0) {
+                $expectedAmount = round($expectedAmount + ($expectedAmount * $gatewayFee / 100), 2);
+            }
+
+            $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
+            $toleranceAbs = max(0.01, $expectedAmount * ($tolerancePercent / 100));
 
             if ($expectedAmount > 0) {
                 if ($verifyAmount === null) {
@@ -322,18 +326,23 @@ class PaymentProcessor
     {
         $gateway = $this->gatewayFactory->create($gatewayEntity);
 
+        $gatewayAmount = $invoice->originalAmount;
+        if ($gatewayEntity->fee > 0) {
+            $gatewayAmount = round($gatewayAmount + ($gatewayAmount * $gatewayEntity->fee / 100), 2);
+        }
+
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional, \Nette\Utils\Json::FORCE_ARRAY);
 
         foreach ($additional as $key => $val) {
             $additional[$key] = str_replace(
                 ["{{amount}}", "{{transactionId}}", "{{currency}}"],
-                [$invoice->originalAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
+                [$gatewayAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
                 $val
             );
         }
 
         $paymentData = array_merge([
-            'amount' => $invoice->originalAmount,
+            'amount' => $gatewayAmount,
             'transactionId' => (string) $invoice->transactionId,
             'cancelUrl' => url('/lk/fail')->get(),
             'returnUrl' => url('/lk/success')->get(),

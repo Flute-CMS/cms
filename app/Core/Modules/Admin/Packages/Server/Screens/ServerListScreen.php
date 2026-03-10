@@ -82,6 +82,11 @@ class ServerListScreen extends Screen
                     ->render(static fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
                     ->popover(__('admin-server.fields.enabled.help')),
 
+                TD::make('dbconnections')
+                    ->title(__('admin-server.tabs.db_connections'))
+                    ->render(static fn (Server $server) => view('admin-server::cells.connections', compact('server')))
+                    ->width('200px'),
+
                 TD::make('createdAt')
                     ->title(__('admin-server.fields.created_at'))
                     ->asComponent(DateTime::class)
@@ -115,6 +120,12 @@ class ServerListScreen extends Screen
                             ])
                     ),
             ])
+                ->empty('ph.regular.game-controller', __('admin-server.empty.title'), __('admin-server.empty.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-server.buttons.add'))
+                        ->icon('ph.bold.plus-bold')
+                        ->redirect(url('/admin/servers/add'))
+                )
                 ->searchable(['name', 'ip', 'port'])
                 ->commands([
                     Button::make(__('admin-server.buttons.add'))

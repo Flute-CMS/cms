@@ -20,6 +20,7 @@
     @section('description', (string) __($screenDescription ?? ''))
 
     @if ($screenName || $screenDescription || ! empty($screenCommandBar))
+        <div class="base-legend-sentinel"></div>
         <legend class="base-legend">
             <div>
                 <h4>{{ __($screenName ?? '') }} @if ($screenPopover)

@@ -136,6 +136,7 @@ class PaymentInvoiceScreen extends Screen
                     ->render(fn (PaymentInvoice $invoice) => $this->invoiceActionsDropdown($invoice))
                     ->width('100px'),
             ])
+                ->empty('ph.regular.receipt', __('admin-payment.empty.invoices.title'), __('admin-payment.empty.invoices.sub'))
                 ->searchable([
                     'id',
                     'gateway',

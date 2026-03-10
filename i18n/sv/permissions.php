@@ -11,6 +11,7 @@
     "admin.templates"      => "Behörighet att hantera mallar. Användaren kan skapa, redigera och ta bort mallar som används för att visa innehåll på webbplatsen.",
     "admin.roles"          => "Behörighet att hantera användarroller. Användaren kan skapa, redigera och ta bort roller, och tilldela dem till andra användare.",
     "admin.users"          => "Behörighet att hantera användare. Användaren kan skapa, redigera och ta bort användarkonton, samt hantera deras åtkomst.",
+    "admin.users.view"     => "Behörighet att visa användarprofiler, inklusive dolda. Ger inte rättigheter att redigera eller hantera.",
     "admin.pages"          => "Behörighet att hantera sidor. Användaren kan skapa, redigera och ta bort statiska sidor på webbplatsen.",
     "admin.socials"        => "Behörighet att hantera sociala nätverk. Användaren kan lägga till, redigera och ta bort sociala nätverkslänkar.",
     "admin.notifications"  => "Behörighet att skapa användaraviseringar. Användaren kan skicka olika aviseringar och varningar till plattformsanvändare.",

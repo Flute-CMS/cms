@@ -97,6 +97,14 @@ abstract class Table extends Layout
      */
     protected $exportFilename = 'export';
 
+    protected ?string $emptyIcon = null;
+
+    protected ?string $emptyText = null;
+
+    protected ?string $emptySub = null;
+
+    protected ?Action $emptyAction = null;
+
     /**
      * Callback for processing each row before display.
      *
@@ -205,6 +213,7 @@ abstract class Table extends Layout
             'iconNotFound' => $this->iconNotFound(),
             'textNotFound' => $this->textNotFound(),
             'subNotFound' => $this->subNotFound(),
+            'buttonNotFound' => $this->buttonNotFound(),
             'searchable' => $this->isSearchable(),
             'searchValue' => $this->searchQuery,
             'compact' => $this->isCompact(),
@@ -386,6 +395,22 @@ abstract class Table extends Layout
         return $this;
     }
 
+    public function empty(string $icon, string $text, string $sub = ''): self
+    {
+        $this->emptyIcon = $icon;
+        $this->emptyText = $text;
+        $this->emptySub = $sub;
+
+        return $this;
+    }
+
+    public function emptyButton(Action $action): self
+    {
+        $this->emptyAction = $action;
+
+        return $this;
+    }
+
     protected function commandBar(): array
     {
         return $this->commandBar;
@@ -417,17 +442,22 @@ abstract class Table extends Layout
 
     protected function iconNotFound(): string
     {
-        return 'ph.regular.smiley-x-eyes';
+        return $this->emptyIcon ?? 'ph.regular.smiley-x-eyes';
     }
 
     protected function textNotFound(): string
     {
-        return __('def.no_results_found');
+        return $this->emptyText ?? __('def.no_results_found');
     }
 
     protected function subNotFound(): string
     {
-        return __('def.import_or_create');
+        return $this->emptySub ?? __('def.import_or_create');
+    }
+
+    protected function buttonNotFound(): ?Action
+    {
+        return $this->emptyAction;
     }
 
     /**

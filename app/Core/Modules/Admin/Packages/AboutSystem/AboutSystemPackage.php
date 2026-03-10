@@ -21,7 +21,7 @@ class AboutSystemPackage extends AbstractAdminPackage
 
     public function getPermissions(): array
     {
-        return ['admin'];
+        return ['admin', 'admin.system'];
     }
 
     public function getPriority(): int

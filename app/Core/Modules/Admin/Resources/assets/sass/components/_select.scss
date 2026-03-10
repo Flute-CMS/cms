@@ -19,6 +19,7 @@
         &.has-error .ts-control,
         &.has-error .select__field {
             border-color: var(--error);
+            box-shadow: 0 0 0 3px var(--error-light);
         }
 
         &--native {
@@ -79,8 +80,10 @@
 
     &__error {
         color: var(--error);
-        font-size: var(--small);
-        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-top: 0.375rem;
+        animation: fadeIn 0.2s ease;
     }
 }
 
@@ -303,6 +306,8 @@
 .plugin-dropdown_input .items-placeholder {
     border: 0 !important;
     width: 100%;
+    color: var(--text-400);
+    pointer-events: none;
 }
 
 .plugin-dropdown_input.has-items .items-placeholder,
@@ -330,8 +335,41 @@
     }
 }
 
-.ts-wrapper.single .clear-button {
+.ts-control > .clear-button {
+    position: absolute;
+    right: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 2;
+    padding: 2px;
+    border: none;
+    background: none;
+    color: var(--text-400);
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.ts-wrapper:hover > .ts-control > .clear-button,
+.ts-control > .clear-button:focus {
+    opacity: 0.6;
+    pointer-events: auto;
+}
+
+.ts-control > .clear-button:hover {
+    opacity: 1;
+    color: var(--text);
+}
+
+.ts-wrapper.single:not([data-allow-empty="true"]) > .ts-control > .clear-button {
     display: none !important;
+}
+
+.ts-wrapper.single[data-allow-empty="true"].has-items > .ts-control {
+    padding-right: 2.75rem !important;
 }
 
 .ts-no-results {

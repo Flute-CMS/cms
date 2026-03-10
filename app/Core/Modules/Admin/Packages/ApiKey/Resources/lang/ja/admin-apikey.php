@@ -44,4 +44,11 @@ return [
         'delete_success' => 'APIキーが正常に削除されました。',
         'delete_error' => 'APIキーの削除エラー: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'APIモジュールが必要です',
+        'description' => 'APIキーはリクエストの認証を可能にしますが、APIが動作するにはマーケットプレイスからAPIモジュールをインストールする必要があります。',
+        'install_module' => 'モジュールをインストール',
+        'documentation' => 'ドキュメント',
+    ],
 ];

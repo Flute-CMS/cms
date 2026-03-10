@@ -15,7 +15,7 @@ return [
 
     'tabs' => [
         'main' => 'Main',
-        'db_connections' => 'DB Integrations',
+        'db_connections' => 'Plugins & Stats',
     ],
 
     'fields' => [
@@ -26,14 +26,17 @@ return [
         'ip' => [
             'label' => 'IP Address',
             'placeholder' => '127.0.0.1',
+            'help' => 'Server IP without port (e.g. 192.168.1.1)',
         ],
         'port' => [
             'label' => 'Port',
             'placeholder' => '27015',
+            'help' => 'Game server port (1–65535)',
         ],
         'mod' => [
             'label' => 'Game',
             'placeholder' => 'Select game',
+            'help' => 'Cannot be changed after creation',
         ],
         'rcon' => [
             'label' => 'RCON Password',
@@ -48,22 +51,27 @@ return [
         'ranks' => [
             'label' => 'Rank Pack',
             'placeholder' => 'Select rank pack',
+            'help' => 'Rank icon set displayed for players',
         ],
         'ranks_format' => [
             'label' => 'Rank File Format',
             'placeholder' => 'Select rank file format',
+            'help' => 'Image format of rank icons in the selected pack',
         ],
         'ranks_premier' => [
             'label' => 'Premier Ranks',
             'placeholder' => 'Should the server use premier ranks',
+            'help' => 'CS2 Premier rating system instead of classic ranks',
         ],
         'query_port' => [
             'label' => 'Query Port',
             'placeholder' => 'Optional. If empty, uses connection port',
+            'help' => 'Port for server status queries. Leave empty to use main port',
         ],
         'rcon_port' => [
             'label' => 'RCON Port',
             'placeholder' => 'Optional. If empty, uses connection port',
+            'help' => 'Port for RCON commands. Leave empty to use main port',
         ],
         'enabled' => [
             'label' => 'Enabled',
@@ -84,17 +92,17 @@ return [
     ],
 
     'db_connection' => [
-        'title' => 'DB Integrations',
+        'title' => 'Plugins & Stats',
         'fields' => [
             'mod' => [
-                'label' => 'Integration',
-                'placeholder' => 'Select integration',
-                'help' => 'Choose an integration (stats, bans, VIP, etc.).',
+                'label' => 'Data type',
+                'placeholder' => 'Select type',
+                'help' => 'What data to connect: stats, bans, VIP, etc.',
             ],
             'dbname' => [
-                'label' => 'Connection',
-                'placeholder' => 'Select connection',
-                'help' => 'Created in Settings → Databases.',
+                'label' => 'Database',
+                'placeholder' => 'Select database',
+                'help' => 'Connections are created in Settings → Databases.',
             ],
             'driver' => [
                 'label' => 'Driver',
@@ -117,17 +125,23 @@ return [
             ],
         ],
         'add' => [
-            'title' => 'Add DB Integration',
-            'button' => 'Add Integration',
+            'title' => 'Connect plugin data',
+            'button' => 'Connect',
+            'description' => 'Select what type of data you want to display on the site, and specify the database where the plugin stores it.',
         ],
         'edit' => [
-            'title' => 'Edit DB Integration',
+            'title' => 'Edit connection',
+        ],
+        'steps' => [
+            'select_type' => 'Select data type',
+            'select_db' => 'Select database',
+            'configure' => 'Configure',
         ],
         'create_db' => [
-            'title' => 'No database connections',
-            'description' => 'Create a connection first to link an integration.',
-            'note' => 'The connection will be available after saving.',
-            'button' => 'Create Connection',
+            'title' => 'No databases',
+            'description' => 'Add a database first to connect plugin data.',
+            'note' => 'The database will be available after saving.',
+            'button' => 'Add database',
         ],
         'delete' => [
             'confirm' => 'Are you sure you want to delete this connection?',
@@ -196,10 +210,10 @@ return [
             'placeholder' => 'Enter JSON settings',
         ],
         'custom_alert' => [
-            'title' => 'Warning!',
-            'description' => 'Entering custom settings requires caution! If you are unsure, do not add custom settings!',
+            'title' => 'For advanced users',
+            'description' => 'Custom settings are for non-standard plugins. Only use this if you know the settings format for the plugin you need.',
         ],
-        'custom' => 'Custom',
+        'custom' => 'Other',
     ],
 
     'buttons' => [
@@ -236,16 +250,25 @@ return [
     ],
 
     'cron_warning' => [
-        'title' => 'Cron is not configured!',
-        'description' => 'Cron mode is enabled, but there are no execution logs for the last hour. Without a configured cron, servers will not be displayed correctly on the site.',
-        'setup_button' => 'How to set up',
-        'modal_title' => 'Cron Setup',
-        'modal_description' => 'Cron is required to periodically query servers and update their status. Without it, server information (online status, players, map) will not be updated.',
-        'step_crontab' => 'Open the crontab editor:',
-        'step_add_line' => 'Add the following line:',
-        'step_windows' => 'Create a task in Task Scheduler via command prompt (as administrator):',
+        'title' => 'Server auto-refresh is not configured',
+        'description' => 'Server information (online status, players, map) is not updating automatically. Set up a background task so data refreshes every minute.',
+        'setup_button' => 'Setup instructions',
+        'modal_title' => 'Server auto-refresh setup',
+        'modal_description' => 'To automatically update server status, you need to configure a background task (cron job). Without it, online status, map and player count will not refresh.',
+        'step_crontab' => 'Open the task editor:',
+        'step_add_line' => 'Add this line (updates every minute):',
+        'step_windows' => 'Create a task via command prompt (as administrator):',
         'verify_title' => 'Verification',
         'verify_description' => 'To verify, run the command manually:',
+    ],
+
+    'empty' => [
+        'title' => 'No servers yet',
+        'sub' => 'Add your first game server to start monitoring',
+        'db_connections' => [
+            'title' => 'No plugins connected',
+            'sub' => 'Connect stats, bans, VIP or other plugin data',
+        ],
     ],
 
     'confirms' => [

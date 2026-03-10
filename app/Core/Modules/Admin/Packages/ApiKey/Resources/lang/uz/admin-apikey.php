@@ -44,4 +44,11 @@ return [
         'delete_success' => 'API kalit muvaffaqiyatli oʻchirildi.',
         'delete_error' => 'API kalitni oʻchirishda xatolik: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'API moduli kerak',
+        'description' => 'API kalitlari so\'rovlarni autentifikatsiya qilish imkonini beradi, lekin API ishlashi uchun marketpleydan API modulini o\'rnatish kerak.',
+        'install_module' => 'Modulni o\'rnatish',
+        'documentation' => 'Hujjatlar',
+    ],
 ];

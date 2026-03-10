@@ -110,12 +110,14 @@ return [
         'test_mail_sent' => 'Тестовий email відправлено.',
     ],
     'tabs' => [
-        'main_settings' => 'Головні налаштування',
+        'main_settings' => 'Загальні',
         'databases' => 'Бази даних',
         'users' => 'Користувачі',
         'mail' => 'Пошта',
         'localization' => 'Локалізація',
         'additional_settings' => 'Додаткові налаштування',
+        'advanced' => 'Розширені',
+        'site' => 'Сайт',
     ],
     'blocks' => [
         'main_settings' => 'Головні налаштування',
@@ -133,5 +135,11 @@ return [
         'two_factor_settings' => 'Двофакторна автентифікація',
         'localization_settings' => 'Налаштування локалізації',
         'seo' => 'SEO налаштування',
+        'branding' => 'Брендинг',
+        'features' => 'Функції',
+        'features_description' => 'Увімкніть або вимкніть функції сайту. Корисно для створення лендингів або вітрин.',
+        'performance' => 'Продуктивність',
+        'performance_description' => 'Оптимізація продуктивності та фонові завдання.',
+        'misc_settings' => 'Різне',
     ],
 ];

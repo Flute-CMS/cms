@@ -79,7 +79,10 @@ class NavigationListScreen extends Screen
                                     ->fullWidth(),
                             ])
                     ),
-            ])->maxLevels(levels: 3)->onSortEnd('updateNavbarItemPositions'),
+            ])
+                ->maxLevels(levels: 3)
+                ->onSortEnd('updateNavbarItemPositions')
+                ->empty('ph.regular.list', __('admin-navigation.empty.title'), __('admin-navigation.empty.sub')),
         ];
     }
 

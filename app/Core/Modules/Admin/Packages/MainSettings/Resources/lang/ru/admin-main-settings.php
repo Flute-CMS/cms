@@ -250,12 +250,14 @@ return [
         'admin_panel' => 'Админ-панель',
     ],
     'tabs' => [
-        'main_settings' => 'Основные настройки',
+        'main_settings' => 'Общие',
         'databases' => 'Базы данных',
         'users' => 'Пользователи',
         'mail' => 'Почта',
         'localization' => 'Локализация',
         'additional_settings' => 'Дополнительные настройки',
+        'advanced' => 'Расширенные',
+        'site' => 'Сайт',
     ],
     'blocks' => [
         'main_settings' => 'Основные настройки',
@@ -281,6 +283,12 @@ return [
         'seo' => 'Настройки SEO',
         'profile_tabs_order' => 'Порядок вкладок профиля',
         'profile_tabs_order_description' => 'Перетащите вкладки для изменения их порядка отображения в профиле пользователя.',
+        'branding' => 'Брендинг',
+        'features' => 'Функции',
+        'features_description' => 'Включайте или отключайте функции сайта. Полезно для создания лендингов или витрин.',
+        'performance' => 'Производительность',
+        'performance_description' => 'Оптимизация производительности и фоновые задачи.',
+        'misc_settings' => 'Разное',
     ],
     'popovers' => [
         'steam_api' => 'Этот ключ необходим для получения информации из Steam. Получить его можно <a target="_blank" href="https://steamcommunity.com/dev/apikey">здесь</a>.',

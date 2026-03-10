@@ -116,6 +116,12 @@ class PaymentGatewayScreen extends Screen
                     ->render(fn (PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
                     ->width('100px'),
             ])
+                ->empty('ph.regular.credit-card', __('admin-payment.empty.gateways.title'), __('admin-payment.empty.gateways.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-payment.buttons.add_gateway'))
+                        ->icon('ph.bold.plus-bold')
+                        ->redirect(url('/admin/payment/gateways/add'))
+                )
                 ->searchable([
                     'name',
                     'adapter',

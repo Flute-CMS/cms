@@ -11,6 +11,7 @@
     "admin.templates"      => "Permissão para gerenciar templates. O usuário pode criar, editar e excluir templates usados para exibir conteúdo no site.",
     "admin.roles"          => "Permissão para gerenciar cargos/funções de usuários. O usuário pode criar, editar e excluir funções, além de atribuí-las a outros usuários.",
     "admin.users"          => "Permissão para gerenciar usuários. O usuário pode criar, editar e excluir contas, bem como gerenciar seus acessos.",
+    "admin.users.view"     => "Permissão para visualizar perfis de usuários, incluindo ocultos. Não concede direitos de edição ou gerenciamento.",
     "admin.pages"          => "Permissão para gerenciar páginas. O usuário pode criar, editar e excluir páginas estáticas no site.",
     "admin.socials"        => "Permissão para gerenciar redes sociais. O usuário pode adicionar, editar e excluir links de redes sociais.",
     "admin.notifications"  => "Permissão para criar notificações para usuários. O usuário pode enviar várias notificações e alertas para os usuários da plataforma.",

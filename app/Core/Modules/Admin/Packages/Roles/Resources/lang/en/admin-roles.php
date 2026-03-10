@@ -65,4 +65,8 @@ return [
         'invalid_sort' => 'Invalid sort data.',
         'no_permissions' => 'Please select at least one permission.',
     ],
+    'empty' => [
+        'title' => 'No roles created',
+        'sub' => 'Create roles to manage user permissions',
+    ],
 ];

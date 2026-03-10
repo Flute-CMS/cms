@@ -42,6 +42,8 @@ class ApiKeyScreen extends Screen
     public function layout(): array
     {
         return [
+            LayoutFactory::view('admin-api::components.api-info-alert'),
+
             LayoutFactory::table('apiKeys', [
                 TD::selection('id'),
                 TD::make('id', 'ID')
@@ -91,6 +93,13 @@ class ApiKeyScreen extends Screen
                                 ->fullWidth(),
                         ])),
             ])
+                ->empty('ph.regular.key', __('admin-apikey.empty.title'), __('admin-apikey.empty.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-apikey.buttons.add'))
+                        ->icon('ph.regular.plus')
+                        ->type(Color::PRIMARY)
+                        ->modal('addApiKeyModal')
+                )
                 ->searchable(['key', 'id'])
                 ->bulkActions([
                     Button::make(__('admin.bulk.delete_selected'))

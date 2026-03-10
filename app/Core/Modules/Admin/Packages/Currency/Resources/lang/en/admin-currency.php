@@ -65,6 +65,11 @@ return [
         'no_permission.delete' => 'You do not have permission to delete currencies.',
     ],
 
+    'empty' => [
+        'title' => 'No currencies yet',
+        'sub' => 'Create your first currency to start accepting payments',
+    ],
+
     'confirms' => [
         'delete_currency' => 'Are you sure you want to delete this currency? This action cannot be undone.',
         'set_default' => 'Are you sure you want to set this currency as default? All rates will be recalculated.',

@@ -100,6 +100,12 @@ class PageListScreen extends Screen
                             ])
                     ),
             ])
+                ->empty('ph.regular.file-text', __('admin-pages.empty.title'), __('admin-pages.empty.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-pages.buttons.add'))
+                        ->icon('ph.bold.plus-bold')
+                        ->redirect(url('/admin/pages/add'))
+                )
                 ->searchable(['title', 'route', 'description'])
                 ->bulkActions([
                     Button::make(__('admin.bulk.delete_selected'))

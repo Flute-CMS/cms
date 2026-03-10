@@ -21,4 +21,11 @@ return [
     ],
     'confirms' => [    ],
     'messages' => [    ],
+
+    'info_alert' => [
+        'title' => 'Módulo API necessário',
+        'description' => 'As chaves API permitem autenticar solicitações, mas o módulo API deve ser instalado do marketplace para que a API funcione.',
+        'install_module' => 'Instalar módulo',
+        'documentation' => 'Documentação',
+    ],
 ];

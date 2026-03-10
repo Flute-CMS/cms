@@ -40,7 +40,6 @@
                 <option value="" @if (empty($value) || !isset($options[$value])) selected @endif disabled>
                     {{ $placeholder ?: __('def.select_option') }}</option>
             @endif
-            <!-- DEBUG SELECT: value_type="{{ gettype($value) }}" value_json="{{ json_encode($value) }}" raw_value="{{ is_string($value) || is_numeric($value) ? $value : '?' }}" -->
             @foreach ($options as $key => $option)
                 <option value="{{ $key }}"
                     @if (is_array($value)) @if (in_array($key, $value)) selected

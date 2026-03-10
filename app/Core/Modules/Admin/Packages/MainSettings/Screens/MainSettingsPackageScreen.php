@@ -90,34 +90,46 @@ class MainSettingsPackageScreen extends Screen
         return [
             LayoutFactory::tabs([
                 Tab::make(__('admin-main-settings.tabs.main_settings'))
+                    ->slug('general')
                     ->icon('ph.bold.gear-bold')
                     ->layouts([
                         $this->mainSettingsLayout(),
                     ]),
                 Tab::make(__('admin-main-settings.tabs.databases'))
+                    ->slug('databases')
                     ->icon('ph.bold.cloud-bold')
                     ->layouts([
                         DatabaseSettingsLayout::class,
                     ]),
                 Tab::make(__('admin-main-settings.tabs.users'))
+                    ->slug('users')
                     ->icon('ph.bold.user-circle-bold')
                     ->layouts([
                         $this->usersSettingsLayout(),
                     ]),
+                Tab::make(__('admin-main-settings.tabs.site'))
+                    ->slug('site')
+                    ->icon('ph.bold.browser-bold')
+                    ->layouts([
+                        $this->siteSettingsLayout(),
+                    ]),
                 Tab::make(__('admin-main-settings.tabs.mail'))
+                    ->slug('mail')
                     ->icon('ph.bold.envelope-bold')
                     ->layouts([
                         $this->mailSettingsLayout(),
                     ]),
                 Tab::make(__('admin-main-settings.tabs.localization'))
+                    ->slug('localization')
                     ->icon('ph.bold.translate-bold')
                     ->layouts([
                         $this->localizationSettingsLayout(),
                     ]),
-                Tab::make(__('admin-main-settings.tabs.additional_settings'))
-                    ->icon('ph.bold.gear-fine-bold')
+                Tab::make(__('admin-main-settings.tabs.advanced'))
+                    ->slug('advanced')
+                    ->icon('ph.bold.sliders-bold')
                     ->layouts([
-                        $this->additionalSettingsLayout(),
+                        $this->advancedSettingsLayout(),
                     ]),
             ])
                 ->slug('settings')
@@ -1332,6 +1344,7 @@ class MainSettingsPackageScreen extends Screen
     {
         return LayoutFactory::tabs([
             Tab::make(__('admin-main-settings.blocks.main_settings'))
+                ->slug('main')
                 ->layouts([
                     LayoutFactory::split([
                         $this->mainSettingsMainBlock(),
@@ -1339,28 +1352,15 @@ class MainSettingsPackageScreen extends Screen
                     ])->ratio('60/40'),
                 ]),
             Tab::make(__('admin-main-settings.blocks.seo'))
+                ->slug('seo')
                 ->layouts([
                     $this->mainSettingsSeoBlock(),
                 ]),
-            Tab::make(__('admin-main-settings.blocks.optimization_security'))
+            Tab::make(__('admin-main-settings.blocks.branding'))
+                ->slug('branding')
+                ->icon('ph.bold.paint-brush-bold')
                 ->layouts([
-                    $this->mainSettingsOptimizationSecurityBlock(),
-                ]),
-            Tab::make(__('admin-main-settings.blocks.debug_settings'))
-                ->layouts([
-                    LayoutFactory::split([
-                        $this->mainSettingsDebugBlock(),
-                        $this->mainSettingsDevelopmentBlock(),
-                    ])->ratio('60/40'),
-                ]),
-            Tab::make(__('admin-main-settings.blocks.personal_cabinet_settings'))
-                ->layouts([
-                    $this->mainSettingsPersonalCabinetBlock(),
-                ]),
-            Tab::make(__('admin-main-settings.blocks.site_mode'))
-                ->icon('ph.bold.toggle-left-bold')
-                ->layouts([
-                    $this->mainSettingsSiteModeBlock(),
+                    $this->additionalSettingsImagesBlock(),
                 ]),
         ])
             ->slug('main_settings_sections')
@@ -1505,29 +1505,9 @@ class MainSettingsPackageScreen extends Screen
         ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo'));
     }
 
-    private function mainSettingsDevelopmentBlock()
-    {
-        return LayoutFactory::block([
-            LayoutFactory::field(
-                ButtonGroup::make('development_mode')
-                    ->options([
-                        '0' => [
-                            'label' => __('admin-main-settings.options.mode.production'),
-                            'icon' => 'ph.bold.rocket-bold',
-                        ],
-                        '1' => [
-                            'label' => __('admin-main-settings.options.mode.development'),
-                            'icon' => 'ph.bold.wrench-bold',
-                        ],
-                    ])
-                    ->value(config('app.development_mode') ? '1' : '0')
-                    ->color('accent')
-                    ->fullWidth()
-            )->label(__('admin-main-settings.labels.site_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
-        ])->title(__('admin-main-settings.blocks.development_settings'))->addClass('mb-2');
-    }
 
-    private function mainSettingsOptimizationSecurityBlock()
+
+    private function advancedPerformanceBlock()
     {
         return LayoutFactory::block([
             LayoutFactory::columns([
@@ -1553,15 +1533,6 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::view('admin-main-settings::cron')->setVisible(boolval(config('app.cron_mode'))),
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    ButtonGroup::make('csrf_enabled')
-                        ->options([
-                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
-                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.shield-check-bold'],
-                        ])
-                        ->value(config('app.csrf_enabled') ? '1' : '0')
-                        ->color('accent')
-                )->label(__('admin-main-settings.labels.csrf_enabled'))->popover(__('admin-main-settings.popovers.csrf_enabled')),
-                LayoutFactory::field(
                     ButtonGroup::make('convert_to_webp')
                         ->options([
                             '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
@@ -1570,6 +1541,24 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('app.convert_to_webp') ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.convert_to_webp'))->popover(__('admin-main-settings.popovers.convert_to_webp')),
+                LayoutFactory::field(
+                    ButtonGroup::make('minify')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.file-zip-bold'],
+                        ])
+                        ->value(config('assets.minify') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
+                LayoutFactory::field(
+                    ButtonGroup::make('autoprefix')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.browsers-bold'],
+                        ])
+                        ->value(config('assets.autoprefix', false) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
             ]),
             LayoutFactory::columns([
                 LayoutFactory::field(
@@ -1592,29 +1581,55 @@ class MainSettingsPackageScreen extends Screen
                 )->label(__('admin-main-settings.labels.auto_update'))
                     ->setVisible(config('app.cron_mode'))
                     ->popover(__('admin-main-settings.popovers.auto_update')),
+                LayoutFactory::field(
+                    ButtonGroup::make('csrf_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.shield-check-bold'],
+                        ])
+                        ->value(config('app.csrf_enabled') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.csrf_enabled'))->popover(__('admin-main-settings.popovers.csrf_enabled')),
             ]),
-        ])->title(__('admin-main-settings.blocks.optimization_security'))->addClass('mb-2')->description(__('admin-main-settings.blocks.optimization_security_description'));
+        ])->title(__('admin-main-settings.blocks.performance'))->addClass('mb-2')->description(__('admin-main-settings.blocks.performance_description'));
     }
 
-    private function mainSettingsDebugBlock()
+    private function advancedDebugBlock()
     {
         return LayoutFactory::block([
-            LayoutFactory::field(
-                ButtonGroup::make('debug')
-                    ->options([
-                        '0' => [
-                            'label' => __('admin-main-settings.options.debug.off'),
-                            'icon' => 'ph.bold.eye-slash-bold',
-                        ],
-                        '1' => [
-                            'label' => __('admin-main-settings.options.debug.on'),
-                            'icon' => 'ph.bold.bug-bold',
-                        ],
-                    ])
-                    ->value((is_development() || config('app.debug')) ? '1' : '0')
-                    ->disabled(is_development())
-                    ->color('accent')
-            )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
+            LayoutFactory::columns([
+                LayoutFactory::field(
+                    ButtonGroup::make('debug')
+                        ->options([
+                            '0' => [
+                                'label' => __('admin-main-settings.options.debug.off'),
+                                'icon' => 'ph.bold.eye-slash-bold',
+                            ],
+                            '1' => [
+                                'label' => __('admin-main-settings.options.debug.on'),
+                                'icon' => 'ph.bold.bug-bold',
+                            ],
+                        ])
+                        ->value((is_development() || config('app.debug')) ? '1' : '0')
+                        ->disabled(is_development())
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.debug'))->popover(__('admin-main-settings.popovers.debug')),
+                LayoutFactory::field(
+                    ButtonGroup::make('development_mode')
+                        ->options([
+                            '0' => [
+                                'label' => __('admin-main-settings.options.mode.production'),
+                                'icon' => 'ph.bold.rocket-bold',
+                            ],
+                            '1' => [
+                                'label' => __('admin-main-settings.options.mode.development'),
+                                'icon' => 'ph.bold.wrench-bold',
+                            ],
+                        ])
+                        ->value(config('app.development_mode') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.site_mode'))->popover(__('admin-main-settings.popovers.development_mode')),
+            ]),
             LayoutFactory::field(
                 Input::make('debug_ips')
                     ->type('text')
@@ -1644,7 +1659,7 @@ class MainSettingsPackageScreen extends Screen
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.oferta_view')),
                 LayoutFactory::field(
-                    ButtonGroup::make('only_modal')
+                    ButtonGroup::make('lk_only_modal')
                         ->options([
                             '0' => ['label' => __('admin-main-settings.options.lk.page'), 'icon' => 'ph.bold.browser-bold'],
                             '1' => ['label' => __('admin-main-settings.options.lk.modal'), 'icon' => 'ph.bold.frame-corners-bold'],
@@ -1714,7 +1729,7 @@ class MainSettingsPackageScreen extends Screen
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.notifications_popup_enabled'))->popover(__('admin-main-settings.popovers.notifications_popup_enabled')),
             ]),
-        ])->title(__('admin-main-settings.blocks.site_mode'))->description(__('admin-main-settings.blocks.site_mode_description'))->addClass('mb-2');
+        ])->title(__('admin-main-settings.blocks.features'))->description(__('admin-main-settings.blocks.features_description'))->addClass('mb-2');
     }
 
     private function usersSettingsLayout()
@@ -1736,13 +1751,30 @@ class MainSettingsPackageScreen extends Screen
             Tab::make(__('admin-main-settings.blocks.profile_settings'))
                 ->layouts([
                     $this->usersProfileBlock(),
-                ]),
-            Tab::make(__('admin-main-settings.blocks.profile_tabs_order'))
-                ->layouts([
                     $this->usersProfileTabsOrderBlock(),
                 ]),
         ])
             ->slug('users_settings_sections')
+            ->pills()
+            ->sticky(false)
+            ->lazyload(false);
+    }
+
+    private function siteSettingsLayout()
+    {
+        return LayoutFactory::tabs([
+            Tab::make(__('admin-main-settings.blocks.features'))
+                ->icon('ph.bold.toggle-left-bold')
+                ->layouts([
+                    $this->mainSettingsSiteModeBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.personal_cabinet_settings'))
+                ->icon('ph.bold.wallet-bold')
+                ->layouts([
+                    $this->mainSettingsPersonalCabinetBlock(),
+                ]),
+        ])
+            ->slug('site_settings_sections')
             ->pills()
             ->sticky(false)
             ->lazyload(false);
@@ -2156,19 +2188,26 @@ class MainSettingsPackageScreen extends Screen
         ]);
     }
 
-    private function additionalSettingsLayout()
+    private function advancedSettingsLayout()
     {
         return LayoutFactory::tabs([
-            Tab::make(__('admin-main-settings.tabs.additional_settings'))
+            Tab::make(__('admin-main-settings.blocks.performance'))
+                ->icon('ph.bold.lightning-bold')
+                ->layouts([
+                    $this->advancedPerformanceBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.debug_settings'))
+                ->icon('ph.bold.bug-bold')
+                ->layouts([
+                    $this->advancedDebugBlock(),
+                ]),
+            Tab::make(__('admin-main-settings.blocks.misc_settings'))
+                ->icon('ph.bold.dots-three-bold')
                 ->layouts([
                     $this->additionalSettingsGeneralBlock(),
                 ]),
-            Tab::make(__('admin-main-settings.blocks.image_settings'))
-                ->layouts([
-                    $this->additionalSettingsImagesBlock(),
-                ]),
         ])
-            ->slug('additional_settings_sections')
+            ->slug('advanced_settings_sections')
             ->pills()
             ->sticky(false)
             ->lazyload(false);
@@ -2196,8 +2235,6 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('app.flute_copyright') ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.copyright'))->small(__('admin-main-settings.labels.copyright_description')),
-            ]),
-            LayoutFactory::columns([
                 LayoutFactory::field(
                     ButtonGroup::make('discord_link_roles')
                         ->options([
@@ -2207,26 +2244,8 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('app.discord_link_roles') ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.discord_link_roles'))->small(__('admin-main-settings.labels.discord_link_roles_description')),
-                LayoutFactory::field(
-                    ButtonGroup::make('minify')
-                        ->options([
-                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
-                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.file-zip-bold'],
-                        ])
-                        ->value(config('assets.minify') ? '1' : '0')
-                        ->color('accent')
-                )->label(__('admin-main-settings.labels.minify'))->small(__('admin-main-settings.labels.minify_description')),
-                LayoutFactory::field(
-                    ButtonGroup::make('autoprefix')
-                        ->options([
-                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
-                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.browsers-bold'],
-                        ])
-                        ->value(config('assets.autoprefix', false) ? '1' : '0')
-                        ->color('accent')
-                )->label(__('admin-main-settings.labels.autoprefix'))->small(__('admin-main-settings.labels.autoprefix_description')),
             ]),
-        ])->title(__('admin-main-settings.tabs.additional_settings'))->addClass('mb-3');
+        ])->title(__('admin-main-settings.blocks.misc_settings'))->addClass('mb-3');
     }
 
     private function additionalSettingsImagesBlock()

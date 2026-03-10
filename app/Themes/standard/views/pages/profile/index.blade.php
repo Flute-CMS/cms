@@ -237,7 +237,7 @@
                                     <nav class="profile__socials" aria-label="{{ __('profile.social_networks') }}">
                                         <ul class="profile__socials-list" role="list">
                                             @foreach ($user->socialNetworks as $social)
-                                                @if (!$social->hidden || (user()->isLoggedIn() && (user()->can('admin.users') || user()->id === $row->id)))
+                                                @if (!$social->hidden || (user()->isLoggedIn() && (user()->can('admin.users') || user()->can('admin.users.view') || user()->id === $row->id)))
                                                     @php
                                                         $socialUrl = $social->url;
                                                         if ($social->socialNetwork?->key === 'Discord' && !empty($social->value)) {

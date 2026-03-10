@@ -121,6 +121,12 @@ class PromoCodeScreen extends Screen
                     ->render(fn (PromoCode $code) => $this->promoCodeActionsDropdown($code))
                     ->width('100px'),
             ])
+                ->empty('ph.regular.ticket', __('admin-payment.empty.promo_codes.title'), __('admin-payment.empty.promo_codes.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-payment.buttons.add_promo'))
+                        ->icon('ph.bold.plus-bold')
+                        ->modal('addPromoCodeModal')
+                )
                 ->searchable([
                     'code',
                     'type',

@@ -36,7 +36,11 @@ class SidebarSearchListener
                 self::searchInMenuItems($item['items'], $searchValue, $event);
             }
 
-            if (empty($item['url'])) {
+            if (!empty($item['children'])) {
+                self::searchInMenuItems($item['children'], $searchValue, $event);
+            }
+
+            if (empty($item['url']) || $item['url'] === '#') {
                 continue;
             }
 

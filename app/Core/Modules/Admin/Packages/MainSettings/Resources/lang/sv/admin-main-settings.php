@@ -110,12 +110,14 @@ return [
         'test_mail_sent' => 'Test-e-post skickad.',
     ],
     'tabs' => [
-        'main_settings' => 'Huvudinställningar',
+        'main_settings' => 'Allmänt',
         'databases' => 'Databaser',
         'users' => 'Användare',
         'mail' => 'E-post',
         'localization' => 'Lokalisering',
         'additional_settings' => 'Ytterligare inställningar',
+        'advanced' => 'Avancerat',
+        'site' => 'Webbplats',
     ],
     'blocks' => [
         'main_settings' => 'Huvudinställningar',
@@ -133,5 +135,11 @@ return [
         'two_factor_settings' => 'Tvåfaktorsautentisering',
         'localization_settings' => 'Lokaliseringsinställningar',
         'seo' => 'SEO-inställningar',
+        'branding' => 'Varumärke',
+        'features' => 'Funktioner',
+        'features_description' => 'Aktivera eller inaktivera webbplatsfunktioner. Användbart för att skapa landningssidor eller visningssidor.',
+        'performance' => 'Prestanda',
+        'performance_description' => 'Prestandaoptimering och bakgrundsuppgifter.',
+        'misc_settings' => 'Övrigt',
     ],
 ];

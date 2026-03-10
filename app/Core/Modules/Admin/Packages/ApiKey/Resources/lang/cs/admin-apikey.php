@@ -44,4 +44,11 @@ return [
         'delete_success' => 'API klíč byl úspěšně smazán.',
         'delete_error' => 'Chyba při mazání API klíče: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'Je vyžadován modul API',
+        'description' => 'API klíče umožňují autentizaci požadavků, ale pro fungování API je nutné nainstalovat modul API z marketplace.',
+        'install_module' => 'Nainstalovat modul',
+        'documentation' => 'Dokumentace',
+    ],
 ];

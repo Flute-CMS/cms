@@ -44,4 +44,11 @@ return [
         'delete_success' => 'API-nyckel borttagen framgångsrikt.',
         'delete_error' => 'Fel vid borttagning av API-nyckel: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'API-modul krävs',
+        'description' => 'API-nycklar gör det möjligt att autentisera förfrågningar, men API-modulen måste installeras från marknadsplatsen för att API:et ska fungera.',
+        'install_module' => 'Installera modul',
+        'documentation' => 'Dokumentation',
+    ],
 ];

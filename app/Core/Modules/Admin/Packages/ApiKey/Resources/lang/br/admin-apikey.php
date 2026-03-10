@@ -44,4 +44,11 @@ return [
         'delete_success' => 'Chave API excluída com sucesso.',
         'delete_error' => 'Erro ao excluir chave API: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'Módulo API necessário',
+        'description' => 'As chaves API permitem autenticar requisições, mas o módulo API deve ser instalado do marketplace para que a API funcione.',
+        'install_module' => 'Instalar módulo',
+        'documentation' => 'Documentação',
+    ],
 ];

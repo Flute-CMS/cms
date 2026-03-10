@@ -267,9 +267,10 @@ abstract class Screen extends FluteComponent implements ScreenInterface
             return;
         }
 
-        $exportService = new TableExportService();
         $exportData = $table->getExportData($repository);
         $filename = $table->getExportFilename() . '_' . date('Y-m-d_H-i-s');
+
+        $exportService = new TableExportService();
 
         if ($format === 'csv') {
             $exportService->exportCsv($exportData['rows'], $exportData['columns'], $filename . '.csv');

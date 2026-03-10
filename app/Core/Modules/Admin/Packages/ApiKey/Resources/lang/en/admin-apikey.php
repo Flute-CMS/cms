@@ -44,4 +44,16 @@ return [
         'delete_success' => 'API key deleted successfully.',
         'delete_error' => 'Error deleting API key: :message',
     ],
+
+    'empty' => [
+        'title' => 'No API keys',
+        'sub' => 'Create an API key to integrate with external services',
+    ],
+
+    'info_alert' => [
+        'title' => 'API module required',
+        'description' => 'API keys allow you to authenticate requests, but the API module must be installed from the marketplace for the API to work.',
+        'install_module' => 'Install module',
+        'documentation' => 'Documentation',
+    ],
 ];

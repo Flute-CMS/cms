@@ -97,18 +97,25 @@
                 @empty
                     <tr>
                         <td colspan="{{ count($columns) }}">
-                            <div class="py-4 text-center">
+                            <div class="table-empty-state">
                                 @isset($iconNotFound)
-                                    <h1 class="flex-center text-muted mb-1">
+                                    <div class="table-empty-state__icon">
                                         <x-icon :path="$iconNotFound" />
-                                    </h1>
+                                    </div>
                                 @endisset
-                                <h3>
+                                <h3 class="table-empty-state__title">
                                     {!! $textNotFound !!}
                                 </h3>
-                                <p class="text-muted flex-center text-balance">
-                                    {!! $subNotFound !!}
-                                </p>
+                                @if (!empty($subNotFound))
+                                    <p class="table-empty-state__sub">
+                                        {!! $subNotFound !!}
+                                    </p>
+                                @endif
+                                @if ($buttonNotFound)
+                                    <div class="mt-2">
+                                        {!! $buttonNotFound !!}
+                                    </div>
+                                @endif
                             </div>
                         </td>
                     </tr>

@@ -39,9 +39,18 @@ class ConfirmationManager {
             event.preventDefault();
 
             const $triggerElement = $(event.currentTarget);
-            const confirmMessage = $triggerElement.attr('hx-flute-confirm');
+            let confirmMessage = $triggerElement.attr('hx-flute-confirm');
             const confirmType =
                 $triggerElement.attr('hx-flute-confirm-type') || 'error';
+
+            // Replace {count} placeholder with bulk selection count
+            if (confirmMessage && confirmMessage.includes('{count}')) {
+                const bulkBar = $triggerElement.closest('[data-bulk-table]');
+                const count = bulkBar.length
+                    ? bulkBar.find('.bulk-selected-count').text() || '0'
+                    : '0';
+                confirmMessage = confirmMessage.replace('{count}', count);
+            }
             const actionKey = $triggerElement.attr('hx-flute-action-key');
             const withoutTrigger = $triggerElement.attr(
                 'hx-flute-without-trigger',

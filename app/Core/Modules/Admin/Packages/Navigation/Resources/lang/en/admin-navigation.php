@@ -75,4 +75,8 @@ return [
         'item_deleted' => 'Navigation item deleted successfully.',
         'item_not_found' => 'Navigation item not found.',
     ],
+    'empty' => [
+        'title' => 'No navigation items',
+        'sub' => 'Create items to build the site navigation',
+    ],
 ];

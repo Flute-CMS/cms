@@ -110,12 +110,14 @@ return [
         'test_mail_sent' => 'Testovací email byl odeslán.',
     ],
     'tabs' => [
-        'main_settings' => 'Hlavní nastavení',
+        'main_settings' => 'Obecné',
         'databases' => 'Databáze',
         'users' => 'Uživatelé',
         'mail' => 'Mail',
         'localization' => 'Lokalizace',
         'additional_settings' => 'Dodatečná nastavení',
+        'advanced' => 'Pokročilé',
+        'site' => 'Web',
     ],
     'blocks' => [
         'main_settings' => 'Hlavní nastavení',
@@ -133,5 +135,11 @@ return [
         'two_factor_settings' => 'Dvoufaktorová autentizace',
         'localization_settings' => 'Nastavení lokalizace',
         'seo' => 'SEO nastavení',
+        'branding' => 'Branding',
+        'features' => 'Funkce',
+        'features_description' => 'Zapněte nebo vypněte funkce webu. Užitečné pro vytváření landing pages nebo výstavních stránek.',
+        'performance' => 'Výkon',
+        'performance_description' => 'Optimalizace výkonu a úlohy na pozadí.',
+        'misc_settings' => 'Různé',
     ],
 ];

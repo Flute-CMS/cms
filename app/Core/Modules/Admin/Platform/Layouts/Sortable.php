@@ -67,6 +67,12 @@ abstract class Sortable extends Layout
      */
     protected int $maxLevels = 2;
 
+    protected ?string $emptyIcon = null;
+
+    protected ?string $emptyText = null;
+
+    protected ?string $emptySub = null;
+
     /**
      * @return Factory|\Illuminate\View\View|null
      */
@@ -165,6 +171,15 @@ abstract class Sortable extends Layout
         return $this;
     }
 
+    public function empty(string $icon, string $text, string $sub = ''): self
+    {
+        $this->emptyIcon = $icon;
+        $this->emptyText = $text;
+        $this->emptySub = $sub;
+
+        return $this;
+    }
+
     /**
      * @return array
      */
@@ -172,16 +187,16 @@ abstract class Sortable extends Layout
 
     protected function iconNotFound(): string
     {
-        return 'ph.bold.smiley-melting-bold';
+        return $this->emptyIcon ?? 'ph.bold.smiley-melting-bold';
     }
 
     protected function textNotFound(): string
     {
-        return __('def.no_results_found');
+        return $this->emptyText ?? __('def.no_results_found');
     }
 
     protected function subNotFound(): string
     {
-        return __('def.import_or_create');
+        return $this->emptySub ?? __('def.import_or_create');
     }
 }

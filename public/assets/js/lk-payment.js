@@ -115,6 +115,21 @@
         return gws[state.gateway] || null;
     }
 
+    // ── Gateway-specific fields ─────────────────────────────
+    function updateGatewayFields(gw) {
+        var containers = root.querySelectorAll('[data-lk-gw-fields]');
+        containers.forEach(function (el) {
+            var isMatch = el.getAttribute('data-lk-gw-fields') === gw;
+            if (isMatch) {
+                show(el);
+                el.querySelectorAll('input, select, textarea').forEach(function (i) { i.disabled = false; });
+            } else {
+                hide(el);
+                el.querySelectorAll('input, select, textarea').forEach(function (i) { i.disabled = true; });
+            }
+        });
+    }
+
     // ── Currency switching ─────────────────────────────────
     function onCurrencyChange(cur) {
         if (cur === state.currency) return;
@@ -165,6 +180,7 @@
         state.amount = 0;
         if (amountInput) amountInput.value = '';
 
+        updateGatewayFields(state.gateway);
         updateHint();
         renderPresets();
         recalculate();
@@ -173,6 +189,7 @@
     // ── Gateway switching ──────────────────────────────────
     function onGatewayChange(gw) {
         state.gateway = gw;
+        updateGatewayFields(gw);
         updateHint();
         recalculate();
     }
@@ -192,7 +209,6 @@
 
         var amount = state.amount;
         var amountToReceive = amount * exchangeRate;
-        var feeAmount = fee > 0 ? Math.round((amount * fee) / 100 * 100) / 100 : 0;
         var bonusAmount = bonus > 0 ? Math.round((amountToReceive * bonus) / 100 * 100) / 100 : 0;
         amountToReceive += bonusAmount;
 
@@ -216,6 +232,10 @@
             }
         }
 
+        // Apply gateway fee on top of amountToPay (buyer covers the commission)
+        var feeOnPay = fee > 0 ? Math.round((amountToPay * fee) / 100 * 100) / 100 : 0;
+        var totalToPay = amountToPay + feeOnPay;
+
         // Build receipt HTML
         var html = '';
         html += '<div class="lk-receipt__row">';
@@ -226,7 +246,7 @@
         if (fee > 0) {
             html += '<div class="lk-receipt__row lk-receipt__row--dim">';
             html += '<span>' + cfg.i18n.gateway_fee + '</span>';
-            html += '<span>' + fee + '% (~' + formatNumber(feeAmount, 0) + ' ' + state.currency + ')</span>';
+            html += '<span>' + fee + '% (+' + formatNumber(feeOnPay, 0) + ' ' + state.currency + ')</span>';
             html += '</div>';
         }
 
@@ -238,6 +258,13 @@
         }
 
         html += promoHtml;
+
+        if (fee > 0) {
+            html += '<div class="lk-receipt__total">';
+            html += '<span>' + cfg.i18n.to_pay + '</span>';
+            html += '<span>' + formatNumber(totalToPay) + ' ' + state.currency + '</span>';
+            html += '</div>';
+        }
 
         html += '<div class="lk-receipt__total">';
         html += '<span>' + cfg.i18n.you_will_receive + '</span>';
@@ -311,15 +338,44 @@
         if (!promoBadge) return;
         if (s === 'valid') {
             promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
-            promoBadge.className = 'lk-promo-field__badge is-valid';
+            promoBadge.className = 'lk-promo__badge is-valid';
             show(promoBadge);
         } else if (s === 'invalid') {
             promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M208.49 191.51a12 12 0 0 1-17 17L128 145l-63.51 63.49a12 12 0 0 1-17-17L111 128L47.51 64.49a12 12 0 0 1 17-17L128 111l63.51-63.49a12 12 0 0 1 17 17L145 128Z"/></svg>';
-            promoBadge.className = 'lk-promo-field__badge is-invalid';
+            promoBadge.className = 'lk-promo__badge is-invalid';
             show(promoBadge);
         } else {
             hide(promoBadge);
         }
+    }
+
+    // ── Collect additional form fields ─────────────────────
+    function collectFormData() {
+        var data = {
+            gateway: state.gateway,
+            currency: state.currency,
+            amount: state.amount,
+            promoCode: state.promoCode,
+            agree: state.agree
+        };
+
+        // Collect all additional inputs from gateway-specific fields
+        var activeContainer = root.querySelector('[data-lk-gw-fields="' + state.gateway + '"]');
+        if (activeContainer) {
+            activeContainer.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])').forEach(function (el) {
+                if (el.name && el.name !== 'gateway' && el.name !== 'currency' && el.name !== 'amount' && el.name !== 'promoCode' && el.name !== 'agree') {
+                    if (el.type === 'checkbox') {
+                        data[el.name] = el.checked;
+                    } else if (el.type === 'radio') {
+                        if (el.checked) data[el.name] = el.value;
+                    } else {
+                        data[el.name] = el.value;
+                    }
+                }
+            });
+        }
+
+        return data;
     }
 
     // ── Form submit ────────────────────────────────────────
@@ -336,13 +392,7 @@
                 'X-CSRF-Token': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({
-                gateway: state.gateway,
-                currency: state.currency,
-                amount: state.amount,
-                promoCode: state.promoCode,
-                agree: state.agree
-            })
+            body: JSON.stringify(collectFormData())
         })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (res) {
@@ -444,6 +494,14 @@
         if (hiddenGw && !state.gateway) {
             state.gateway = hiddenGw.value;
         }
+
+        // Read actual checkbox state from DOM (handles pre-checked state)
+        if (agreeCheckbox) {
+            state.agree = agreeCheckbox.checked;
+        }
+
+        // Disable inputs in hidden gateway field containers
+        updateGatewayFields(state.gateway);
 
         updateHint();
         renderPresets();

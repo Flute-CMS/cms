@@ -127,10 +127,24 @@ class ServerEditScreen extends Screen
         $databaseOptions = $this->getDatabaseOptions();
         $availableDrivers = $this->getAvailableDrivers();
         $selectedDriver = request()->input('custom_mod');
+        $selectedDb = request()->input('dbname', '');
+
+        $currentStep = 1;
+        if ($selectedDriver) {
+            $currentStep = 2;
+        }
+        if ($selectedDriver && $selectedDb) {
+            $currentStep = 3;
+        }
 
         $fields = [];
 
-        if (empty($databaseOptions)) {
+        $fields[] = LayoutFactory::view('admin-server::db-connections.steps-header', [
+            'currentStep' => $currentStep,
+            'description' => $currentStep === 1 ? __('admin-server.db_connection.add.description') : null,
+        ]);
+
+        if (empty($databaseOptions) && !$selectedDriver) {
             $fields[] = LayoutFactory::view('admin-server::db-connections.empty');
         }
 
@@ -146,40 +160,36 @@ class ServerEditScreen extends Screen
             ->small(__('admin-server.db_connection.fields.mod.help'))
             ->required();
 
-        $fields[] = LayoutFactory::field(
-            Select::make('dbname')
-                ->options($databaseOptions)
-                ->allowEmpty()
-                ->value(request()->input('dbname', ''))
-                ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
-        )
-            ->label(__('admin-server.db_connection.fields.dbname.label'))
-            ->small(__('admin-server.db_connection.fields.dbname.help'))
-            ->required();
-
-        $fields[] = LayoutFactory::rows([
-            Button::make(__('admin-server.db_connection.create_db.button'))
-                ->type(Color::OUTLINE_SECONDARY)
-                ->icon('ph.bold.database-bold')
-                ->modal('addDatabaseModal')
-                ->size('small')
-                ->fullWidth(),
-        ]);
-
         if ($selectedDriver) {
-            $driverView = $this->getDriverView($selectedDriver);
+            $dbHelpParts = [__('admin-server.db_connection.fields.dbname.help')];
 
-            if (view()->exists($driverView)) {
-                $fields[] = LayoutFactory::view($driverView, [
-                    'settings' => [],
-                    'driverName' => $selectedDriver,
-                ]);
+            $fields[] = LayoutFactory::field(
+                Select::make('dbname')
+                    ->options($databaseOptions)
+                    ->allowEmpty()
+                    ->yoyo()
+                    ->value($selectedDb)
+                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
+            )
+                ->label(__('admin-server.db_connection.fields.dbname.label'))
+                ->small(implode(' ', $dbHelpParts))
+                ->required();
+
+            if ($selectedDb) {
+                $driverView = $this->getDriverView($selectedDriver);
+
+                if (view()->exists($driverView)) {
+                    $fields[] = LayoutFactory::view($driverView, [
+                        'settings' => [],
+                        'driverName' => $selectedDriver,
+                    ]);
+                }
             }
         }
 
         return LayoutFactory::modal($parameters, $fields)
             ->title(__('admin-server.db_connection.add.title'))
-            ->applyButton(__('admin-server.buttons.add'))
+            ->applyButton(__('admin-server.db_connection.add.button'))
             ->method('addDbConnection');
     }
 
@@ -226,16 +236,7 @@ class ServerEditScreen extends Screen
                 ->label(__('admin-server.db_connection.fields.dbname.label'))
                 ->small(__('admin-server.db_connection.fields.dbname.help'))
                 ->required(),
-            LayoutFactory::rows([
-                Button::make(__('admin-server.db_connection.create_db.button'))
-                    ->type(Color::OUTLINE_SECONDARY)
-                    ->icon('ph.bold.database-bold')
-                    ->modal('addDatabaseModal')
-                    ->size('small')
-                    ->fullWidth(),
-            ]),
         ];
-
 
         if ($selectedDriver) {
             $driverView = $this->getDriverView($selectedDriver);
@@ -911,6 +912,25 @@ class ServerEditScreen extends Screen
     /**
      * Макет вкладки "Основные".
      */
+    private function buildModField(bool $canEditServer)
+    {
+        $field = LayoutFactory::field(
+            Select::make('mod')
+                ->options($this->serversService->getListGames())
+                ->value($this->server?->mod ?? null)
+                ->placeholder(__('admin-server.fields.mod.placeholder'))
+                ->disabled(!$canEditServer || $this->serverId)
+        )
+            ->label(__('admin-server.fields.mod.label'))
+            ->required();
+
+        if ($this->serverId) {
+            $field->small(__('admin-server.fields.mod.help'));
+        }
+
+        return $field;
+    }
+
     private function mainTabLayout()
     {
         $canEditServer = user()->can('admin.servers');
@@ -943,6 +963,7 @@ class ServerEditScreen extends Screen
                         ->placeholder(__('admin-server.fields.ip.placeholder'))
                 )
                     ->label(__('admin-server.fields.ip.label'))
+                    ->small(__('admin-server.fields.ip.help'))
                     ->required(),
             ]),
 
@@ -957,15 +978,7 @@ class ServerEditScreen extends Screen
                     ->label(__('admin-server.fields.port.label'))
                     ->required(),
 
-                LayoutFactory::field(
-                    Select::make('mod')
-                        ->options($this->serversService->getListGames())
-                        ->value($this->server?->mod ?? null)
-                        ->placeholder(__('admin-server.fields.mod.placeholder'))
-                        ->disabled(!$canEditServer || $this->serverId)
-                )
-                    ->label(__('admin-server.fields.mod.label'))
-                    ->required(),
+                $this->buildModField($canEditServer),
             ]),
 
             LayoutFactory::split([
@@ -998,6 +1011,7 @@ class ServerEditScreen extends Screen
                         ->placeholder(__('admin-server.fields.ranks.placeholder'))
                 )
                     ->label(__('admin-server.fields.ranks.label'))
+                    ->small(__('admin-server.fields.ranks.help'))
                     ->required(),
 
                 LayoutFactory::field(
@@ -1007,6 +1021,7 @@ class ServerEditScreen extends Screen
                         ->placeholder(__('admin-server.fields.ranks_format.placeholder'))
                 )
                     ->label(__('admin-server.fields.ranks_format.label'))
+                    ->small(__('admin-server.fields.ranks_format.help'))
                     ->required(),
 
                 LayoutFactory::field(
@@ -1018,7 +1033,8 @@ class ServerEditScreen extends Screen
                         ->value(($this->server?->ranks_premier ?? false) ? '1' : '0')
                         ->color('accent')
                 )
-                    ->label(__('admin-server.fields.ranks_premier.label')),
+                    ->label(__('admin-server.fields.ranks_premier.label'))
+                    ->small(__('admin-server.fields.ranks_premier.help')),
 
             ]),
 
@@ -1030,7 +1046,7 @@ class ServerEditScreen extends Screen
                         ->disabled(!$canEditServer)
                         ->placeholder('27015')
                 )
-                    ->small(__('admin-server.fields.query_port.placeholder'))
+                    ->small(__('admin-server.fields.query_port.help'))
                     ->label(__('admin-server.fields.query_port.label')),
 
                 LayoutFactory::field(
@@ -1040,7 +1056,7 @@ class ServerEditScreen extends Screen
                         ->disabled(!$canEditServer)
                         ->placeholder('27015')
                 )
-                    ->small(__('admin-server.fields.rcon_port.placeholder'))
+                    ->small(__('admin-server.fields.rcon_port.help'))
                     ->label(__('admin-server.fields.rcon_port.label')),
             ]),
 
@@ -1136,6 +1152,13 @@ class ServerEditScreen extends Screen
                 ->render(fn (DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
                 ->width('100px'),
         ])
+            ->empty('ph.regular.plugs-connected', __('admin-server.empty.db_connections.title'), __('admin-server.empty.db_connections.sub'))
+            ->emptyButton(
+                Button::make(__('admin-server.db_connection.add.button'))
+                    ->type(Color::OUTLINE_PRIMARY)
+                    ->icon('ph.bold.plus-bold')
+                    ->modal('addDbConnectionModal')
+            )
             ->searchable([
                 'mod',
                 'dbname',

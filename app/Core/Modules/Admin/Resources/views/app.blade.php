@@ -72,7 +72,6 @@
         </noscript>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
-
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
@@ -288,6 +287,12 @@
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
         @at('Core/Modules/Admin/Resources/assets/js/buttongroup.js')
         @at('Core/Modules/Admin/Resources/assets/js/filters.js')
+
+        @if (!cookie()->get('admin_onboarding_done'))
+            @include('admin-dashboard::components.onboarding')
+            <script src="@asset('assets/js/libs/shepherd.js')"></script>
+            <script src="@at('Core/Modules/Admin/Resources/assets/js/onboarding.js', true)"></script>
+        @endif
 
         @include('admin::partials.toasts')
 

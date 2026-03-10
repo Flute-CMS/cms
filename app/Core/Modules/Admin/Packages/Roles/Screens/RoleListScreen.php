@@ -75,7 +75,9 @@ class RoleListScreen extends Screen
                                     ->fullWidth(),
                             ])
                     ),
-            ])->onSortEnd('saveRolePriority'),
+            ])
+                ->onSortEnd('saveRolePriority')
+                ->empty('ph.regular.shield', __('admin-roles.empty.title'), __('admin-roles.empty.sub')),
         ];
     }
 

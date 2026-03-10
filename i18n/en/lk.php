@@ -78,4 +78,6 @@
     "your_balance"            => "Your balance",
     "history_title"           => "Recent transactions",
     "no_history"              => "No transactions yet",
+    "status_paid"             => "Paid",
+    "status_pending"          => "Pending",
 ];
