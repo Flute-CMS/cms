@@ -23,7 +23,7 @@ class PaymentsViewController extends BaseController
                 ->limit(10)
                 ->fetchAll();
 
-            $adapters = array_unique(array_map(fn ($i) => $i->gateway, $recentInvoices));
+            $adapters = array_unique(array_map(static fn ($i) => $i->gateway, $recentInvoices));
             if ($adapters) {
                 foreach (PaymentGateway::query()->where('adapter', 'IN', $adapters)->fetchAll() as $gw) {
                     $gatewayNames[$gw->adapter] = $gw->name;

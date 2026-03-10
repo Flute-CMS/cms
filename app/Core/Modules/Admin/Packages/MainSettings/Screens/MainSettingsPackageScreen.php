@@ -1505,8 +1505,6 @@ class MainSettingsPackageScreen extends Screen
         ])->title(__('admin-main-settings.blocks.seo'))->addClass('mb-2')->popover(__('admin-main-settings.popovers.seo'));
     }
 
-
-
     private function advancedPerformanceBlock()
     {
         return LayoutFactory::block([
