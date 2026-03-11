@@ -17,6 +17,12 @@ class PaymentFormController extends BaseController
         try {
             $this->throttle('lk_validate_promo');
 
+            logs()->debug('payments.form.validate_promo.start', [
+                'is_ajax' => $request->isAjax(),
+                'accept' => $request->headers->get('Accept'),
+                'content_type' => $request->headers->get('Content-Type'),
+            ]);
+
             $code = $request->input('promoCode');
             $amount = (float) $request->input('amount', 0);
 
@@ -46,6 +52,13 @@ class PaymentFormController extends BaseController
         try {
             $this->throttle('lk_purchase');
 
+            logs()->debug('payments.form.purchase.start', [
+                'is_ajax' => $request->isAjax(),
+                'accept' => $request->headers->get('Accept'),
+                'content_type' => $request->headers->get('Content-Type'),
+                'keys' => array_keys((array) $request->input()),
+            ]);
+
             $gateway = $request->input('gateway');
             $currency = $request->input('currency');
             $amount = $request->input('amount');
@@ -70,10 +83,21 @@ class PaymentFormController extends BaseController
             ]);
 
             if (!$valid) {
+                logs()->warning('payments.form.purchase.validation_failed', [
+                    'gateway' => $gateway,
+                    'currency' => $currency,
+                    'amount' => $amount,
+                ]);
+
                 return $this->json(['error' => __('def.unknown_error')], 422);
             }
 
             if (config('lk.oferta_view') && !$agree) {
+                logs()->warning('payments.form.purchase.agreement_required', [
+                    'gateway' => $gateway,
+                    'currency' => $currency,
+                ]);
+
                 return $this->json(['error' => __('lk.agree_terms')], 422);
             }
 
@@ -101,6 +125,13 @@ class PaymentFormController extends BaseController
             }
 
             if ($amount < $minAmount) {
+                logs()->warning('payments.form.purchase.min_amount_failed', [
+                    'gateway' => $gateway,
+                    'currency' => $currency,
+                    'amount' => $amount,
+                    'min_amount' => $minAmount,
+                ]);
+
                 return $this->json(['error' => __('lk.min_amount', ['sum' => $minAmount])], 422);
             }
 
@@ -127,6 +158,14 @@ class PaymentFormController extends BaseController
                 $currency
             );
 
+            logs()->info('payments.form.purchase.invoice_created', [
+                'gateway' => $gateway,
+                'currency' => $currency,
+                'amount' => $amount,
+                'amount_to_pay' => $amountToPay,
+                'transaction_id' => $invoice->transactionId,
+            ]);
+
             // If invoice amount is zero (promo covered full sum)
             if ($invoice->amount <= 0) {
                 payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
@@ -142,6 +181,10 @@ class PaymentFormController extends BaseController
                 'message' => __('lk.redirect'),
             ]);
         } catch (PaymentPromoException $e) {
+            logs()->warning('payments.form.purchase.promo_failed', [
+                'error' => $e->getMessage(),
+            ]);
+
             return $this->json(['error' => $e->getMessage(), 'field' => 'promoCode'], 422);
         } catch (ValidationException $e) {
             $messages = [];
@@ -149,8 +192,16 @@ class PaymentFormController extends BaseController
                 $messages[] = __($error->code, $error->variables);
             }
 
+            logs()->warning('payments.form.purchase.schema_validation_failed', [
+                'messages' => $messages,
+            ]);
+
             return $this->json(['error' => implode(', ', $messages)], 422);
         } catch (PaymentException $e) {
+            logs()->warning('payments.form.purchase.payment_failed', [
+                'error' => $e->getMessage(),
+            ]);
+
             return $this->json(['error' => $e->getMessage(), 'field' => 'amount'], 422);
         } catch (Exception $e) {
             logs()->error($e);

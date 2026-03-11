@@ -35,7 +35,9 @@ class FluteRequest extends Request
      */
     public function expectsJson(): bool
     {
-        return $this->headers->get('Accept') === 'application/json';
+        $accept = (string) $this->headers->get('Accept', '');
+
+        return stripos($accept, 'application/json') !== false;
     }
 
     /**
@@ -43,7 +45,9 @@ class FluteRequest extends Request
      */
     public function isJson(): bool
     {
-        return $this->headers->get('Content-Type') === 'application/json';
+        $contentType = (string) $this->headers->get('Content-Type', '');
+
+        return stripos($contentType, 'application/json') === 0;
     }
 
     /**

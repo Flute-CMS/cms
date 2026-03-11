@@ -18,11 +18,24 @@ class PaymentsApiController extends BaseController
 
             $this->throttle('payments.webhook');
 
+            logs()->debug('payments.webhook.incoming', [
+                'gateway' => $gateway,
+                'keys' => array_keys((array) $request->input()),
+            ]);
+
             payments()->processor()->handlePayment($gateway);
+
+            logs()->info('payments.webhook.processed', [
+                'gateway' => $gateway,
+            ]);
 
             return $this->success('1');
         } catch (Exception $e) {
-            logs()->warning($e);
+            logs()->warning('payments.webhook.failed', [
+                'gateway' => $gateway,
+                'error' => $e->getMessage(),
+                'keys' => array_keys((array) $request->input()),
+            ]);
 
             if (is_debug()) {
                 throw $e;

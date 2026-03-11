@@ -44,6 +44,138 @@
         return meta ? meta.content : '';
     }
 
+    function resolveUrl(path) {
+        if (typeof u === 'function') {
+            return u(path);
+        }
+
+        var baseMeta = document.querySelector('meta[name="site_url"]');
+        var base = baseMeta ? baseMeta.content : window.location.origin;
+        base = String(base || '').replace(/\/+$/, '');
+        path = String(path || '').replace(/^\/+/, '');
+
+        return base + '/' + path;
+    }
+
+    function tryParseJson(text) {
+        if (!text) {
+            return {};
+        }
+
+        var normalized = String(text).replace(/^\uFEFF/, '').trim();
+        if (!normalized) {
+            return {};
+        }
+
+        return JSON.parse(normalized);
+    }
+
+    function extractJsonCandidate(text) {
+        var normalized = String(text || '').replace(/^\uFEFF/, '').trim();
+        if (!normalized) {
+            return '';
+        }
+
+        var start = normalized.search(/[\{\[]/);
+        if (start === -1) {
+            return '';
+        }
+
+        var openChar = normalized.charAt(start);
+        var closeChar = openChar === '{' ? '}' : ']';
+        var depth = 0;
+        var inString = false;
+        var isEscaped = false;
+
+        for (var i = start; i < normalized.length; i++) {
+            var ch = normalized.charAt(i);
+
+            if (inString) {
+                if (isEscaped) {
+                    isEscaped = false;
+                    continue;
+                }
+
+                if (ch === '\\') {
+                    isEscaped = true;
+                    continue;
+                }
+
+                if (ch === '"') {
+                    inString = false;
+                }
+
+                continue;
+            }
+
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (ch === openChar) {
+                depth++;
+                continue;
+            }
+
+            if (ch === closeChar) {
+                depth--;
+                if (depth === 0) {
+                    return normalized.slice(start, i + 1);
+                }
+            }
+        }
+
+        return '';
+    }
+
+    function parseJsonResponse(response) {
+        return response.text().then(function (text) {
+            var data = {};
+
+            if (text) {
+                try {
+                    data = tryParseJson(text);
+                } catch (e) {
+                    var candidate = extractJsonCandidate(text);
+
+                    if (candidate) {
+                        try {
+                            data = JSON.parse(candidate);
+
+                            console.warn('Payment API response contained extra output after JSON payload.', {
+                                status: response.status,
+                                redirected: response.redirected,
+                                url: response.url
+                            });
+
+                            return { ok: response.ok, status: response.status, data: data };
+                        } catch (nestedError) {
+                        }
+                    }
+
+                    var compactText = String(text || '').replace(/\s+/g, ' ').trim();
+                    var preview = compactText.slice(0, 180);
+                    if (preview) {
+                        console.error('Payment API non-JSON response:', preview, {
+                            status: response.status,
+                            redirected: response.redirected,
+                            url: response.url
+                        });
+                    }
+
+                    var fallbackMessage = response.ok
+                        ? ('Server returned invalid response' + (preview ? ': ' + preview : ''))
+                        : ('HTTP ' + response.status);
+
+                    throw new Error(fallbackMessage);
+                }
+            }
+
+            return { ok: response.ok, status: response.status, data: data };
+        });
+    }
+
     function formatNumber(n, decimals) {
         if (decimals === undefined) decimals = 2;
         return Number(n).toLocaleString(undefined, {
@@ -232,9 +364,10 @@
             }
         }
 
-        // Apply gateway fee on top of amountToPay (buyer covers the commission)
-        var feeOnPay = fee > 0 ? Math.round((amountToPay * fee) / 100 * 100) / 100 : 0;
-        var totalToPay = amountToPay + feeOnPay;
+        // Keep the site-side amount stable. The provider may add its own
+        // commission on the payment page, but that should not alter the
+        // amount sent from the site.
+        var totalToPay = amountToPay;
 
         // Build receipt HTML
         var html = '';
@@ -242,13 +375,6 @@
         html += '<span>' + cfg.i18n.base_amount + '</span>';
         html += '<span>' + formatNumber(amount) + ' ' + state.currency + '</span>';
         html += '</div>';
-
-        if (fee > 0) {
-            html += '<div class="lk-receipt__row lk-receipt__row--dim">';
-            html += '<span>' + cfg.i18n.gateway_fee + '</span>';
-            html += '<span>' + fee + '% (+' + formatNumber(feeOnPay, 0) + ' ' + state.currency + ')</span>';
-            html += '</div>';
-        }
 
         if (bonus > 0) {
             html += '<div class="lk-receipt__row lk-receipt__row--green">';
@@ -300,20 +426,24 @@
             return;
         }
 
-        fetch(u('api/lk/validate-promo'), {
+        fetch(resolveUrl('api/lk/validate-promo'), {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ promoCode: code, amount: state.amount })
         })
-        .then(function (r) { return r.json(); })
+        .then(parseJsonResponse)
         .then(function (data) {
-            if (data.valid) {
+            var payload = data.data || {};
+
+            if (payload.valid) {
                 state.promoValid = true;
-                state.promoDetails = { type: data.type, value: data.value };
+                state.promoDetails = { type: payload.type, value: payload.value };
                 setPromoState('valid');
             } else {
                 state.promoValid = false;
@@ -385,16 +515,18 @@
 
         setLoading(true);
 
-        fetch(u('api/lk/purchase'), {
+        fetch(resolveUrl('api/lk/purchase'), {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify(collectFormData())
         })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(parseJsonResponse)
         .then(function (res) {
             if (res.ok && res.data.redirect) {
                 if (typeof notyf !== 'undefined' && res.data.message) {
@@ -409,10 +541,10 @@
                 }
             }
         })
-        .catch(function () {
+        .catch(function (error) {
             setLoading(false);
             if (typeof notyf !== 'undefined') {
-                notyf.open({ type: 'error', message: 'Network error' });
+                notyf.open({ type: 'error', message: error && error.message ? error.message : 'Network error' });
             }
         });
     }
