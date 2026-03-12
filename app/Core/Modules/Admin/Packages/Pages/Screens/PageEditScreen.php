@@ -162,7 +162,7 @@ class PageEditScreen extends Screen
         $block = PageBlock::findByPK($blockId);
 
         if (!$block) {
-            $this->flashMessage(__('admin-pages.messages.block_not_found'), 'danger');
+            $this->flashMessage(__('admin-pages.messages.block_not_found'), 'error');
 
             return;
         }

@@ -1,51 +1,77 @@
-.step-indicators {
+.step-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin: 2rem 0;
-    animation: fadeInUp 0.8s ease-out 0.5s both;
+    gap: 0;
 
     &__item {
-        position: relative;
-        height: 6px;
-        background-color: var(--secondary);
-        border-radius: 3px;
-        cursor: pointer;
-        overflow: hidden;
-        transition: width 0.4s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-        &::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 0;
-            background-color: var(--accent);
-            border-radius: 3px;
+    &__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--installer-surface3);
+        border: 1.5px solid var(--installer-border);
+        transition: all 0.3s var(--ease-out);
+        flex-shrink: 0;
+    }
+
+    &__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--installer-muted);
+        white-space: nowrap;
+        transition: color 0.3s;
+
+        @media (max-width: 768px) {
+            display: none;
+        }
+    }
+
+    &__line {
+        width: 20px;
+        height: 1px;
+        background: var(--installer-border);
+        margin: 0 8px;
+        flex-shrink: 0;
+        transition: background 0.3s;
+
+        @media (max-width: 768px) {
+            width: 12px;
+            margin: 0 6px;
+        }
+    }
+
+    // ── Active ──
+    .step-nav__item.is-active {
+        .step-nav__dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(165, 255, 117, 0.25);
         }
 
-        &--active {
-            width: 60px;
-            cursor: default;
+        .step-nav__label {
+            color: var(--installer-text);
+        }
+    }
 
-            &::after {
-                width: 100%;
-            }
+    // ── Done ──
+    .step-nav__item.is-done {
+        .step-nav__dot {
+            background: rgba(165, 255, 117, 0.2);
+            border-color: rgba(165, 255, 117, 0.35);
         }
 
-        &--completed {
-            width: 30px;
-            background-color: var(--accent);
+        .step-nav__label {
+            color: var(--installer-muted-light);
         }
 
-        &--upcoming {
-            width: 30px;
-        }
-
-        &:hover {
-            background-color: var(--secondary-700);
+        // Line after done item
+        + .step-nav__line {
+            background: rgba(165, 255, 117, 0.15);
         }
     }
 }

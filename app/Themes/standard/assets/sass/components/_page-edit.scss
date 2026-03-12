@@ -271,10 +271,6 @@ body.page-edit-mode {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Bottom Dock — Glass bar: search on top, categories left + widgets right
-// ═══════════════════════════════════════════════════════════════════════════
-
 .pe-dock {
     position: fixed;
     bottom: 0;
@@ -313,7 +309,7 @@ body.page-edit-mode {
         -webkit-backdrop-filter: blur(36px) saturate(1.5);
     }
 
-    // ── Header: search spanning full width ────────────────────────────
+    // ── Header: search + horizontal chips ─────────────────────────────
     &__header {
         flex-shrink: 0;
         padding: 8px 10px 0;
@@ -395,71 +391,34 @@ body.page-edit-mode {
         }
     }
 
-    // ── Body: categories left + widgets right ─────────────────────────
-    &__body {
+    // ── Horizontal category chips ─────────────────────────────────────
+    &__chips {
         display: flex;
-        flex: 1;
-        min-height: 0;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding-bottom: 8px;
     }
 
-    // ── Left: vertical category nav ───────────────────────────────────
-    &__nav {
-        display: flex;
-        flex-direction: column;
-        gap: 1px;
-        padding: 6px;
-        border-right: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
-        min-width: 138px;
-        max-width: 160px;
-        max-height: 200px;
-        overflow-y: auto;
-        flex-shrink: 0;
-
-        scrollbar-width: thin;
-        scrollbar-color: color-mix(in srgb, var(--text) 8%, transparent) transparent;
-
-        &::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: color-mix(in srgb, var(--text) 8%, transparent);
-            border-radius: 3px;
-        }
-    }
-
-    &__tab {
+    &__chip {
         display: flex;
         align-items: center;
-        gap: 7px;
-        padding: 6px 10px;
-        border: none;
+        gap: 5px;
+        padding: 4px 10px;
+        border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
         background: transparent;
         color: var(--text-500);
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 500;
         cursor: pointer;
-        border-radius: 8px;
-        transition: background 0.15s ease, color 0.15s ease;
+        border-radius: 20px;
+        transition: all 0.15s ease;
         white-space: nowrap;
-        text-align: left;
-        width: 100%;
+        flex-shrink: 0;
 
         svg {
-            width: 14px;
-            height: 14px;
+            width: 13px;
+            height: 13px;
             flex-shrink: 0;
-        }
-
-        &-label {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         &-count {
@@ -467,31 +426,30 @@ body.page-edit-mode {
             font-weight: 600;
             color: var(--text-600);
             font-variant-numeric: tabular-nums;
-            flex-shrink: 0;
         }
 
         &:hover {
             background: color-mix(in srgb, var(--text) 5%, transparent);
+            border-color: color-mix(in srgb, var(--text) 10%, transparent);
             color: var(--text-300);
         }
 
         &.active {
-            background: color-mix(in srgb, var(--text) 7%, transparent);
-            color: var(--text);
-            font-weight: 600;
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+            color: var(--accent);
 
-            .pe-dock__tab-count {
-                color: var(--text-400);
+            .pe-dock__chip-count {
+                color: color-mix(in srgb, var(--accent) 70%, transparent);
             }
         }
     }
 
-    // ── Right: widget area ────────────────────────────────────────────
-    &__main {
-        flex: 1;
-        min-width: 0;
+    // ── Body: full width widget area ──────────────────────────────────
+    &__body {
         display: flex;
-        flex-direction: column;
+        flex: 1;
+        min-height: 0;
     }
 
     // ── Widget area ───────────────────────────────────────────────────
@@ -514,7 +472,7 @@ body.page-edit-mode {
         flex-wrap: wrap;
         gap: 6px;
         overflow-y: auto;
-        max-height: 200px;
+        max-height: 220px;
         padding-right: 4px;
 
         scrollbar-width: thin;
@@ -532,6 +490,41 @@ body.page-edit-mode {
             background: color-mix(in srgb, var(--text) 8%, transparent);
             border-radius: 3px;
         }
+    }
+
+    // ── Groups (category headers in "All" view) ───────────────────────
+    &__group {
+        width: 100%;
+
+        & + & {
+            margin-top: 6px;
+            padding-top: 8px;
+            border-top: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
+        }
+    }
+
+    &__group-title {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0 2px 6px;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--text-500);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+
+        svg {
+            width: 12px;
+            height: 12px;
+            opacity: 0.6;
+        }
+    }
+
+    &__group-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     // ── Search results ─────────────────────────────────────────────────
@@ -648,20 +641,15 @@ body.page-edit-mode {
         display: none;
     }
 
-    // GridStack drag-in overrides
     .pe-dock &.grid-stack-item {
         position: relative !important;
-        width: 82px !important;
+        width: 86px !important;
         height: 72px !important;
         top: auto !important;
         left: auto !important;
         padding: 10px 6px 8px !important;
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Quick Inserter Popover
-// ═══════════════════════════════════════════════════════════════════════════
 
 .pe-quick-inserter {
     position: fixed;
@@ -920,8 +908,9 @@ body.page-edit-mode {
         overflow: visible !important;
         padding: var(--pe-widget-gap, 8px) !important;
 
-        // Hover state
-        &:hover:not(.ui-draggable-dragging):not(.ui-resizable-resizing) {
+        // Hover state — show toolbar when hovering the widget or the toolbar itself
+        &:hover:not(.ui-draggable-dragging):not(.ui-resizable-resizing),
+        &.toolbar-hover:not(.ui-draggable-dragging):not(.ui-resizable-resizing) {
             >.grid-stack-item-content {
                 border-color: var(--transp-3);
             }
@@ -1057,6 +1046,16 @@ body.page-edit-mode {
     pointer-events: none;
     transition: opacity 0.15s ease, transform 0.15s ease;
     white-space: nowrap;
+
+    // Invisible bridge between toolbar and widget content to prevent hover gap
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -8px;
+        height: 8px;
+    }
 
     &__name {
         font-size: 10.5px;
@@ -1487,49 +1486,36 @@ body.page-edit-mode {
             max-width: 100%;
         }
 
-        &__body {
-            flex-direction: column;
+        &__chips {
+            gap: 3px;
         }
 
-        &__nav {
-            flex-direction: row;
-            border-right: none;
-            border-bottom: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
-            max-width: 100%;
-            min-width: 0;
-            max-height: none;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 4px 6px;
-            scrollbar-width: none;
-
-            &::-webkit-scrollbar {
-                display: none;
-            }
+        &__chip {
+            padding: 3px 8px;
+            font-size: 11px;
         }
 
-        &__tab {
-            width: auto;
-            flex-shrink: 0;
-        }
-
-        &__tab-count {
+        &__chip-count {
             display: none;
         }
 
         &__widgets {
-            max-height: 140px;
+            max-height: 160px;
+        }
+
+        &__group-title {
+            font-size: 10px;
         }
     }
 
     .pe-widget-card {
-        width: 68px;
-        height: 62px;
+        width: 72px;
+        height: 64px;
         padding: 8px 4px 6px;
 
         .pe-dock &.grid-stack-item {
-            width: 68px !important;
-            height: 62px !important;
+            width: 72px !important;
+            height: 64px !important;
             padding: 8px 4px 6px !important;
         }
     }

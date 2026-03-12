@@ -8,10 +8,10 @@
     @endif
     @if (!empty($item['description']))
         <div class="navbar__items-item-content">
-            <span itemprop="name">{{ __($item['title']) }}</span>
-            <small class="navbar__items-item-description">{{ __($item['description']) }}</small>
+            <span itemprop="name">{{ transValue($item['title']) }}</span>
+            <small class="navbar__items-item-description">{{ transValue($item['description']) }}</small>
         </div>
     @else
-        <span itemprop="name">{{ __($item['title']) }}</span>
+        <span itemprop="name">{{ transValue($item['title']) }}</span>
     @endif
 </a>

@@ -1,36 +1,40 @@
 @props([
     'steps' => [],
-    'currentStep' => 0
+    'currentStep' => 0,
 ])
 
-@if($currentStep > 0)
-    <div class="step-indicators">
-        @foreach ($steps as $index => $step)
-        @php
-            $itemClass = 'step-indicators__item';
-            
-            if ($index < $currentStep) {
-                $itemClass .= ' step-indicators__item--completed';
-            } elseif ($index === $currentStep) {
-                $itemClass .= ' step-indicators__item--active';
-            } else {
-                $itemClass .= ' step-indicators__item--upcoming';
-            }
-        @endphp
-        
-        <div 
-            class="{{ $itemClass }}" 
-            data-step="{{ $step['id'] ?? $index }}" 
+@php
+    $stepLabels = [
+        1 => __('install.step_labels.check'),
+        2 => __('install.step_labels.database'),
+        3 => __('install.step_labels.account'),
+        4 => __('install.step_labels.languages'),
+        5 => __('install.step_labels.modules'),
+        6 => __('install.step_labels.launch'),
+    ];
+@endphp
 
-            @if($index < $step)
-                hx-get="{{ route('installer.step', ['id' => $step['id'] ?? $index]) }}"
-                hx-target="main"
-                hx-push-url="true"
-                hx-trigger="click"
+@if ($currentStep > 0)
+    <div class="step-nav">
+        @foreach ($steps as $index => $stepName)
+            @php
+                if ($index < $currentStep) {
+                    $state = 'is-done';
+                } elseif ($index === $currentStep) {
+                    $state = 'is-active';
+                } else {
+                    $state = '';
+                }
+            @endphp
+
+            <div class="step-nav__item {{ $state }}">
+                <span class="step-nav__dot"></span>
+                <span class="step-nav__label">{{ $stepLabels[$index] ?? '' }}</span>
+            </div>
+
+            @if (!$loop->last)
+                <span class="step-nav__line"></span>
             @endif
-
-            title="{{ $step['title'] ?? 'Step ' . ($index + 1) }}"
-            ></div>
         @endforeach
     </div>
 @endif

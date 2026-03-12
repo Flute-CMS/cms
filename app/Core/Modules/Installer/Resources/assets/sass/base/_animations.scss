@@ -1,57 +1,140 @@
-@keyframes fadeIn {
+// ── Step panel slide in from right ────────────────────────
+@keyframes fadeSlideIn {
     from {
         opacity: 0;
+        transform: translateX(40px);
     }
-
     to {
         opacity: 1;
+        transform: translateX(0);
     }
 }
 
-@keyframes fadeInBackground {
+// ── Step panel slide out to left ─────────────────────────
+@keyframes fadeSlideOut {
     from {
-        opacity: 0;
+        opacity: 1;
+        transform: translateX(0);
     }
-
     to {
-        opacity: 0.07;
+        opacity: 0;
+        transform: translateX(-40px);
     }
 }
 
-@keyframes fadeInDown {
+// ── Left panel context slide up ───────────────────────────
+@keyframes fadeSlideUp {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(12px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
+// ── Simple fade in ────────────────────────────────────────
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+// ── Fade in + up (for elements) ───────────────────────────
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
+// ── Fade in + down ────────────────────────────────────────
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
     }
-
-    100% {
-        transform: rotate(360deg);
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.base-animation {
-    animation: fadeIn 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) 0.3s both;
+// ── Staggered check items ─────────────────────────────────
+@keyframes checkIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ── Pulse for status dots ─────────────────────────────────
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.9);
+    }
+}
+
+// ── Loading spinner ───────────────────────────────────────
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+// ── Shimmer / skeleton ────────────────────────────────────
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+// ── Noise texture subtle drift ────────────────────────────
+@keyframes noiseDrift {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-10%, -10%); }
+}
+
+// ── Scale in (for cards/elements) ─────────────────────────
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+// ── Utility classes ─────────────────────────────────────────
+.anim-fade-slide-in {
+    animation: fadeSlideIn 0.45s var(--ease-out) both;
+}
+
+.anim-fade-slide-up {
+    animation: fadeSlideUp 0.4s var(--ease-out) both;
+}
+
+.anim-fade-in {
+    animation: fadeIn 0.35s var(--ease-out) both;
+}
+
+.anim-scale-in {
+    animation: scaleIn 0.4s var(--ease-out) both;
 }

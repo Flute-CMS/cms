@@ -85,7 +85,7 @@ class RoleListScreen extends Screen
     {
         $sortableResult = json_decode(request()->input('sortableResult', '[]'), true);
         if (!$sortableResult) {
-            $this->flashMessage(__('admin-roles.messages.invalid_sort'), 'danger');
+            $this->flashMessage(__('admin-roles.messages.invalid_sort'), 'error');
 
             return;
         }
@@ -234,7 +234,7 @@ class RoleListScreen extends Screen
         $role = Role::findByPK($roleId);
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }
@@ -311,7 +311,7 @@ class RoleListScreen extends Screen
         $role = Role::findByPK($roleId);
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }
@@ -380,7 +380,7 @@ class RoleListScreen extends Screen
         $role = Role::findByPK($roleId);
 
         if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }

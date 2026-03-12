@@ -88,24 +88,13 @@ html[data-bg-effect="cross"] body::before {
     inset: 0;
     pointer-events: none;
     z-index: -1;
-    background-image: 
+    background-image:
+        radial-gradient(circle at center, var(--text-500) 2px, transparent 2px),
         linear-gradient(var(--text-600) 1px, transparent 1px),
         linear-gradient(90deg, var(--text-600) 1px, transparent 1px);
     background-size: 48px 48px;
-    background-position: -1px -1px;
+    background-position: 23px 23px, -1px -1px, -1px -1px;
     opacity: var(--bg-effect-opacity);
-}
-
-html[data-bg-effect="cross"] body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-    background-image: radial-gradient(circle at center, var(--text-500) 2px, transparent 2px);
-    background-size: 48px 48px;
-    background-position: 23px 23px;
-    opacity: calc(var(--bg-effect-opacity) * 0.8);
 }
 
 // Diagonal lines pattern

@@ -7,11 +7,11 @@
         @endif
         @if (!empty($item['description']))
             <span class="navbar__items-item-content">
-                <span>{{ __($item['title']) }}</span>
-                <small class="navbar__items-item-description">{{ __($item['description']) }}</small>
+                <span>{{ transValue($item['title']) }}</span>
+                <small class="navbar__items-item-description">{{ transValue($item['description']) }}</small>
             </span>
         @else
-            {{ __($item['title']) }}
+            {{ transValue($item['title']) }}
         @endif
         <x-icon class="navbar__items-item-icon-dropdown" path="ph.bold.caret-down-bold" />
     </span>
@@ -34,9 +34,9 @@
                                 </span>
                             @endif
                             <span class="navbar__dropdown-item-content">
-                                <span class="navbar__dropdown-item-title" itemprop="name">{{ __($child['title']) }}</span>
+                                <span class="navbar__dropdown-item-title" itemprop="name">{{ transValue($child['title']) }}</span>
                                 @if (!empty($child['description']))
-                                    <small class="navbar__dropdown-item-description">{{ __($child['description']) }}</small>
+                                    <small class="navbar__dropdown-item-description">{{ transValue($child['description']) }}</small>
                                 @endif
                             </span>
                         </a>
@@ -47,7 +47,7 @@
                                     <a href="{{ url($subChild['url']) }}" 
                                        @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
                                        class="navbar__dropdown-sublink">
-                                        {{ __($subChild['title']) }}
+                                        {{ transValue($subChild['title']) }}
                                     </a>
                                     @if ($lIdx < count($child['children']) - 1)
                                         <span class="navbar__dropdown-sublink-separator">•</span>

@@ -1,0 +1,194 @@
+.finish-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--installer-bg);
+    overflow: hidden;
+
+    // Soft radial glow
+    &::before {
+        content: '';
+        position: absolute;
+        width: 700px;
+        height: 700px;
+        border-radius: 50%;
+        background: radial-gradient(
+            circle,
+            rgba(165, 255, 117, 0.07) 0%,
+            rgba(165, 255, 117, 0.02) 35%,
+            transparent 65%
+        );
+        pointer-events: none;
+        animation: finishPulse 5s ease-in-out infinite;
+    }
+
+    #confettiCanvas {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    &__content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    &__logo {
+        margin-bottom: 36px;
+        opacity: 0;
+        animation: finishFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+
+        img {
+            height: 26px;
+            width: auto;
+            opacity: 0.4;
+        }
+    }
+
+    // ── Animated checkmark icon ──
+    &__icon {
+        margin-bottom: 28px;
+        opacity: 0;
+        animation: finishScaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
+
+        svg {
+            width: 72px;
+            height: 72px;
+            color: var(--accent);
+            filter: drop-shadow(0 0 24px rgba(165, 255, 117, 0.35));
+        }
+
+        .finish-circle {
+            stroke-dasharray: 760;
+            stroke-dashoffset: 760;
+            animation: drawCircle 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.7s forwards;
+        }
+
+        .finish-check {
+            stroke-dasharray: 120;
+            stroke-dashoffset: 120;
+            animation: drawCheck 0.4s cubic-bezier(0.65, 0, 0.35, 1) 1.3s forwards;
+        }
+    }
+
+    &__heading {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--installer-text);
+        letter-spacing: -0.03em;
+        margin-bottom: 10px;
+        line-height: 1.2;
+        opacity: 0;
+        animation: finishFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
+    }
+
+    &__text {
+        font-size: 15px;
+        color: var(--installer-muted);
+        line-height: 1.6;
+        max-width: 400px;
+        margin-bottom: 44px;
+        opacity: 0;
+        animation: finishFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+    }
+
+    &__progress {
+        width: 220px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        opacity: 0;
+        animation: finishFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+    }
+
+    &__progress-bar {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--accent), rgba(165, 255, 117, 0.6));
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(165, 255, 117, 0.4);
+    }
+
+    &__redirect {
+        font-size: 12px;
+        color: var(--installer-muted);
+        letter-spacing: 0.03em;
+        opacity: 0;
+        animation: finishFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
+    }
+
+    &__footer {
+        position: absolute;
+        bottom: 28px;
+        z-index: 2;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.12);
+        letter-spacing: 0.02em;
+        opacity: 0;
+        animation: finishFadeIn 1s ease 2s forwards;
+    }
+}
+
+// ── Keyframes ──
+
+@keyframes finishFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes finishFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes finishScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.4);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes finishPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.6;
+    }
+}
+
+@keyframes drawCircle {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes drawCheck {
+    to {
+        stroke-dashoffset: 0;
+    }
+}

@@ -144,8 +144,8 @@ class PageEditor {
         const sidebar = document.getElementById('page-edit-sidebar');
         if (!sidebar) return;
 
-        // Support both old (.pe-sidebar__icon-btn) and new (.pe-dock__tab) selectors
-        const tabBtns = sidebar.querySelectorAll('.pe-dock__tab, .pe-sidebar__icon-btn');
+        // Support chips, old tabs, and legacy sidebar selectors
+        const tabBtns = sidebar.querySelectorAll('.pe-dock__chip, .pe-dock__tab, .pe-sidebar__icon-btn');
         const categoryPanels = sidebar.querySelectorAll('.pe-dock__category, .pe-sidebar__category');
 
         tabBtns.forEach(btn => {
@@ -254,7 +254,7 @@ class PageEditor {
         const categoryPanels = sidebar.querySelectorAll('.pe-dock__category, .pe-sidebar__category');
         const searchResults = sidebar.querySelector('.pe-dock__search-results, .pe-sidebar__search-results');
         const noResults = sidebar.querySelector('.pe-dock__no-results, .pe-sidebar__no-results');
-        const activeTab = sidebar.querySelector('.pe-dock__tab.active, .pe-sidebar__icon-btn.active');
+        const activeTab = sidebar.querySelector('.pe-dock__chip.active, .pe-dock__tab.active, .pe-sidebar__icon-btn.active');
 
         if (searchResults) searchResults.style.display = 'none';
         if (noResults) noResults.style.display = 'none';

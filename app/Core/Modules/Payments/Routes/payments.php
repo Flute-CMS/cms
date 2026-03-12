@@ -16,8 +16,15 @@ $router->group(['middleware' => ['auth', 'site_mode:balance']], static function 
 });
 
 $router->group(['prefix' => '/lk', 'middleware' => ['site_mode:balance']], static function (RouterInterface $router) {
-    $router->get("/success", [PaymentsViewController::class, "paymentSuccess"]);
-    $router->get("/fail", [PaymentsViewController::class, "paymentFail"]);
+
+    $router->get('/lk/success', [PaymentsViewController::class, 'paymentSuccess']);
+    $router->post('/lk/success', [PaymentsViewController::class, 'paymentSuccess']);
+    $router->get('/lk/fail', [PaymentsViewController::class, 'paymentFail']);
+    $router->post('/lk/fail', [PaymentsViewController::class, 'paymentFail']);
+    $router->get('/ik/success', [PaymentsViewController::class, 'paymentSuccess']);
+    $router->post('/ik/success', [PaymentsViewController::class, 'paymentSuccess']);
+    $router->get('/ik/fail', [PaymentsViewController::class, 'paymentFail']);
+    $router->post('/ik/fail', [PaymentsViewController::class, 'paymentFail']);
 });
 
 $router->post('/api/lk/handle/{gateway}', [PaymentsApiController::class, 'handle']);

@@ -186,30 +186,6 @@ window.FluteRichText.Modals = class {
         });
     }
 
-    showTranslation(editor) {
-        var ref = this._openTemplate('tiptap-modal-translation-tpl');
-        if (!ref) return;
-        var modal = ref.modal;
-        var close = ref.close;
-        var input = modal.querySelector('[data-field="key"]');
-
-        setTimeout(function () { input && input.focus(); }, 100);
-
-        var insertBtn = modal.querySelector('[data-modal-action="insert"]');
-        if (insertBtn) insertBtn.addEventListener('click', function () {
-            var key = input.value.trim();
-            if (key) editor.chain().focus().insertContent('{{ __("' + key + '") }}').run();
-            close();
-        });
-
-        var cancelBtn = modal.querySelector('[data-modal-action="cancel"]');
-        if (cancelBtn) cancelBtn.addEventListener('click', close);
-
-        if (input) input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); insertBtn && insertBtn.click(); }
-            if (e.key === 'Escape') close();
-        });
-    }
 
     showImageAlt(editor) {
         var ref = this._openTemplate('tiptap-modal-image-alt-tpl');

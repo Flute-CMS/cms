@@ -2,14 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Providers;
 
-use Flute\Core\Modules\Installer\Components\AdminUserComponent;
-use Flute\Core\Modules\Installer\Components\DatabaseComponent;
-use Flute\Core\Modules\Installer\Components\FluteKeyComponent;
-use Flute\Core\Modules\Installer\Components\LanguageComponent;
-use Flute\Core\Modules\Installer\Components\RequirementsComponent;
-use Flute\Core\Modules\Installer\Components\SiteInfoComponent;
-use Flute\Core\Modules\Installer\Components\SiteSettingsComponent;
-use Flute\Core\Modules\Installer\Components\WelcomeComponent;
 use Flute\Core\Modules\Installer\Services\InstallerConfig;
 use Flute\Core\Modules\Installer\Services\InstallerView;
 use Flute\Core\Modules\Installer\Services\SystemConfiguration;
@@ -49,17 +41,6 @@ class InstallerServiceProvider extends AbstractServiceProvider
 
             $this->registerViewComponents($template);
             $this->registerRoutes();
-
-            $this->registerComponents([
-                'installer.welcome' => WelcomeComponent::class,
-                'installer.language' => LanguageComponent::class,
-                'installer.requirements' => RequirementsComponent::class,
-                'installer.flute_key' => FluteKeyComponent::class,
-                'installer.database' => DatabaseComponent::class,
-                'installer.admin' => AdminUserComponent::class,
-                'installer.site_info' => SiteInfoComponent::class,
-                'installer.site_settings' => SiteSettingsComponent::class,
-            ]);
 
             $template->addNamespace('installer', path('app/Core/Modules/Installer/Resources/views'));
             $template->getTemplateAssets()->getCompiler()->setImportPaths(path('app/Core/Modules/Installer/Resources/assets/sass'));

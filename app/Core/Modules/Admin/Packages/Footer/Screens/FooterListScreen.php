@@ -10,6 +10,7 @@ use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Fields\TranslatableInput;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -141,7 +142,7 @@ class FooterListScreen extends Screen
     {
         $sortableResult = json_decode(request()->input('sortableResult'), true);
         if (!$sortableResult) {
-            $this->flashMessage(__('admin-footer.messages.invalid_sort_data'), 'danger');
+            $this->flashMessage(__('admin-footer.messages.invalid_sort_data'), 'error');
 
             return;
         }
@@ -162,7 +163,7 @@ class FooterListScreen extends Screen
     {
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.title.placeholder'))
             )
@@ -204,8 +205,14 @@ class FooterListScreen extends Screen
     {
         $data = request()->input();
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
+
+            return;
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
+            'title' => ['required', 'string'],
             'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
@@ -253,7 +260,7 @@ class FooterListScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.title.placeholder'))
                     ->value($footerItem->title)
@@ -307,8 +314,14 @@ class FooterListScreen extends Screen
             return;
         }
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
+
+            return;
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
+            'title' => ['required', 'string'],
             'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);

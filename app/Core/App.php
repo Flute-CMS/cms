@@ -3,7 +3,7 @@
 /**
  * @author Flames <xenozf@gmail.com>
  *
- * @copyright 2025 Flute
+ * @copyright 2026 Flute
  */
 
 namespace Flute\Core;
@@ -49,7 +49,7 @@ final class App
     /**
      * @var string
      */
-    public const VERSION = "0.1.9.1";
+    public const VERSION = "1.0.0";
 
     /**
      * Set the base path of the application

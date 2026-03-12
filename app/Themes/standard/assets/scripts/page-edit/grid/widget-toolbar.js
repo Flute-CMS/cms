@@ -139,6 +139,14 @@ class WidgetToolbar {
                 });
             });
 
+            // Keep toolbar visible when hovering over it (it may overflow the grid-stack-item box)
+            toolbar.addEventListener('mouseenter', () => {
+                container.classList.add('toolbar-hover');
+            });
+            toolbar.addEventListener('mouseleave', () => {
+                container.classList.remove('toolbar-hover');
+            });
+
             container.appendChild(toolbar);
 
         } catch (err) {
@@ -178,6 +186,7 @@ class WidgetToolbar {
     }
 
     removeToolbar(widgetEl) {
+        widgetEl?.classList.remove('toolbar-hover');
         widgetEl?.querySelector(':scope > .widget-toolbar')?.remove();
     }
 

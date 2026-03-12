@@ -7,10 +7,10 @@
     }
 
     &__prefix {
-        font-size: var(--small);
-        font-weight: 500;
-        color: var(--text-200);
-        margin-bottom: 0.375rem;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--installer-text-secondary);
+        margin-bottom: 6px;
         text-align: left;
     }
 
@@ -20,7 +20,7 @@
 
         &.has-error .ts-control,
         &.has-error .select__field {
-            border-color: var(--error);
+            border-color: var(--installer-error);
         }
     }
 
@@ -38,9 +38,9 @@
     }
 
     &__error {
-        color: var(--error);
-        font-size: var(--small);
-        margin-top: 0.25rem;
+        color: var(--installer-error);
+        font-size: 12px;
+        margin-top: 4px;
     }
 }
 
@@ -55,34 +55,41 @@
 }
 
 .ts-control {
-    padding: 0.5rem 0.75rem;
+    padding: 10px 0;
     padding-right: 2rem !important;
     width: 100%;
     min-width: 100%;
     box-sizing: border-box;
     position: relative;
-    background: var(--transp-05);
-    border: 1px solid var(--transp-1);
-    border-radius: var(--border05);
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--installer-border2);
+    border-radius: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    min-height: 40px;
-    font-size: var(--p);
-    color: var(--text);
-    transition: border-color 0.15s;
+    min-height: 42px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--installer-text);
+    transition:
+        border-color 0.2s var(--ease-out),
+        box-shadow 0.2s var(--ease-out);
 
     &::after {
         content: '';
         position: absolute;
-        right: 0.75rem;
+        right: 14px;
         top: 50%;
-        transform: translateY(-50%);
-        border: solid var(--text-400);
+        border: solid var(--installer-muted);
         border-width: 0 1.5px 1.5px 0;
         padding: 2.5px;
         transform: translateY(-60%) rotate(45deg);
-        transition: transform 0.15s;
+        transition: transform 0.2s var(--ease-out);
+    }
+
+    &:hover {
+        border-color: var(--installer-border-hover);
     }
 
     > input {
@@ -92,11 +99,11 @@
         border: 0 !important;
         background: none !important;
         outline: none !important;
-        color: var(--text);
+        color: var(--installer-text);
         font-size: inherit;
 
         &::placeholder {
-            color: var(--text-400);
+            color: var(--installer-muted);
         }
     }
 }
@@ -106,29 +113,31 @@
 }
 
 .focus .ts-control {
-    border-color: var(--transp-5);
+    border-color: var(--accent);
+    box-shadow: 0 2px 0 0 rgba(165, 255, 117, 0.3);
 }
 
 .ts-wrapper.multi.has-items .ts-control {
-    padding: 0.25rem 0.5rem;
+    padding: 6px 10px;
     padding-right: 2rem !important;
 }
 
 .ts-wrapper.multi .ts-control > div {
-    margin: 0.125rem;
-    padding: 0.1875rem 0.5rem;
-    background: var(--transp-1);
-    color: var(--text);
-    border-radius: var(--border05);
-    font-size: var(--small);
+    margin: 2px;
+    padding: 3px 8px;
+    background: var(--installer-surface3);
+    color: var(--installer-text);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
 
     &.active {
-        background: var(--transp-2);
+        background: rgba(165, 255, 117, 0.08);
+        color: var(--accent);
     }
 }
 
 .disabled .ts-control {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: default;
 }
 
@@ -139,37 +148,37 @@
     width: 100%;
     min-width: 100%;
     z-index: 1000;
-    border: 1px solid var(--transp-1);
-    background-color: var(--background);
-    border-radius: var(--border1);
-    margin-top: 0.25rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--installer-border2);
+    background-color: var(--installer-surface2);
+    border-radius: var(--radius-lg);
+    margin-top: 4px;
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
-    animation: tsOpen 0.12s ease-out;
+    animation: tsOpen 0.15s var(--ease-out);
     box-sizing: border-box;
 }
 
 .ts-dropdown-content {
     max-height: 240px;
     overflow-y: auto;
-    padding: 0.25rem;
+    padding: 4px;
 
     &::-webkit-scrollbar {
         width: 4px;
     }
 
     &::-webkit-scrollbar-thumb {
-        background: var(--transp-2);
+        background: var(--scrollbar-thumb);
         border-radius: 2px;
     }
 }
 
 .ts-dropdown .option,
 .ts-dropdown .ts-opt {
-    padding: 0.5rem 0.625rem;
-    border-radius: var(--border05);
-    font-size: var(--p);
-    color: var(--text);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--installer-text);
     cursor: pointer;
     transition: background-color 0.1s;
     white-space: nowrap;
@@ -178,27 +187,29 @@
 }
 
 .ts-dropdown .active {
-    background: var(--transp-1);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .ts-dropdown .ts-empty {
-    padding: 0.75rem;
+    padding: 12px;
     text-align: center;
-    color: var(--text-400);
-    font-size: var(--small);
+    color: var(--installer-muted);
+    font-size: 12px;
 }
 
 .ts-dropdown .optgroup-header {
-    padding: 0.5rem 0.625rem 0.25rem;
-    font-size: var(--small);
-    color: var(--text-400);
-    font-weight: 500;
+    padding: 8px 10px 4px;
+    font-size: 11px;
+    color: var(--installer-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .ts-dropdown .create {
-    padding: 0.5rem 0.625rem;
-    color: var(--primary);
-    font-size: var(--p);
+    padding: 8px 10px;
+    color: var(--accent);
+    font-size: 14px;
 }
 
 .ts-hidden-accessible {
@@ -213,16 +224,16 @@
 
 .plugin-dropdown_input .dropdown-input {
     width: 100%;
-    padding: 0.5rem 0.625rem;
+    padding: 8px 10px;
     border: 0;
-    border-bottom: 1px solid var(--transp-1);
+    border-bottom: 1px solid var(--installer-border);
     background: transparent;
-    color: var(--text);
-    font-size: var(--p);
+    color: var(--installer-text);
+    font-size: 14px;
     outline: none;
 
     &::placeholder {
-        color: var(--text-400);
+        color: var(--installer-muted);
     }
 }
 
@@ -246,8 +257,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0 0.25rem;
-    margin-left: 0.25rem;
+    padding: 0 4px;
+    margin-left: 4px;
     opacity: 0.4;
     transition: opacity 0.1s;
 
@@ -261,10 +272,10 @@
 }
 
 .ts-no-results {
-    padding: 0.75rem;
+    padding: 12px;
     text-align: center;
-    color: var(--text-400);
-    font-size: var(--small);
+    color: var(--installer-muted);
+    font-size: 12px;
     font-weight: 500;
 }
 

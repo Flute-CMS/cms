@@ -78,9 +78,7 @@ $contained-gap: 10px;
             padding-left: var(--sidebar-width, #{$sidebar-width});
             transition: padding 0.3s $sidebar-ease;
 
-            // Corner mask — covers content that bleeds past the rounded frame corners.
-            // box-shadow fills everything OUTSIDE the border-radius with --secondary.
-            &::before {
+            &::after {
                 content: '';
                 position: fixed;
                 top: $contained-gap;
@@ -198,7 +196,7 @@ $contained-gap: 10px;
             body {
                 padding-left: $contained-gap;
 
-                &::before {
+                &::after {
                     left: $contained-gap;
                 }
             }
@@ -263,7 +261,7 @@ $contained-gap: 10px;
         body {
             padding-left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
 
-            &::before {
+            &::after {
                 left: var(--sidebar-width, #{$sidebar-mini-width}) !important;
             }
         }
@@ -294,7 +292,7 @@ $contained-gap: 10px;
             body {
                 padding-left: $contained-gap !important;
 
-                &::before {
+                &::after {
                     left: $contained-gap !important;
                 }
             }

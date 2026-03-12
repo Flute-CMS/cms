@@ -69,7 +69,6 @@ window.FluteRichText.ToolbarBuilder = class {
                     'superscript',
                     'subscript',
                     'inline-code',
-                    'translation',
                     'clear',
                 ],
             },
@@ -203,7 +202,6 @@ window.FluteRichText.ToolbarBuilder = class {
             'image': 'image',
             'table': 'table',
             'fullscreen': 'fullscreen',
-            'translation': 'translation',
             'clear': 'clear',
             'align-left': 'align_left',
             'align-center': 'align_center',
@@ -236,7 +234,6 @@ window.FluteRichText.ToolbarBuilder = class {
             'image': 'Image',
             'table': 'Table',
             'fullscreen': 'Fullscreen',
-            'translation': 'Translation Key',
             'clear': 'Clear Formatting',
             'align-left': 'Align Left',
             'align-center': 'Align Center',
@@ -296,7 +293,6 @@ window.FluteRichText.ToolbarBuilder = class {
             case 'image': ctx.uploader.trigger(editor, ctx.toolbar, ctx.uploadUrl); break;
             case 'table': ctx.modals.showTable(editor); break;
             case 'youtube': ctx.modals.showYoutube(editor); break;
-            case 'translation': ctx.modals.showTranslation(editor); break;
             case 'fullscreen': ctx.toggleFullscreen(); break;
             case 'add-col-after': editor.chain().focus().addColumnAfter().run(); break;
             case 'add-row-after': editor.chain().focus().addRowAfter().run(); break;

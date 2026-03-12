@@ -10,9 +10,9 @@
                     </div>
                 @endif
                 <div class="navbar__dropdown-item-content">
-                    <div class="navbar__dropdown-item-title">{{ __($child['title']) }}</div>
+                    <div class="navbar__dropdown-item-title">{{ transValue($child['title']) }}</div>
                     @if (!empty($child['description']))
-                        <div class="navbar__dropdown-item-description">{{ __($child['description']) }}</div>
+                        <div class="navbar__dropdown-item-description">{{ transValue($child['description']) }}</div>
                     @endif
                 </div>
                 <x-icon class="navbar__dropdown-submenu-arrow" path="ph.bold.caret-right-bold" />
@@ -32,9 +32,9 @@
                 </span>
             @endif
             <span class="navbar__dropdown-item-content">
-                <span class="navbar__dropdown-item-title" itemprop="name">{{ __($child['title']) }}</span>
+                <span class="navbar__dropdown-item-title" itemprop="name">{{ transValue($child['title']) }}</span>
                 @if (!empty($child['description']))
-                    <span class="navbar__dropdown-item-description">{{ __($child['description']) }}</span>
+                    <span class="navbar__dropdown-item-description">{{ transValue($child['description']) }}</span>
                 @endif
             </span>
         </a>

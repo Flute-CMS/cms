@@ -9,11 +9,11 @@
                 @endif
                 @if (!empty($child['description']))
                     <div class="tabbar__modal-item-content">
-                        <span>{{ __($child['title']) }}</span>
-                        <small class="tabbar__modal-item-description">{{ __($child['description']) }}</small>
+                        <span>{{ transValue($child['title']) }}</span>
+                        <small class="tabbar__modal-item-description">{{ transValue($child['description']) }}</small>
                     </div>
                 @else
-                    <span>{{ __($child['title']) }}</span>
+                    <span>{{ transValue($child['title']) }}</span>
                 @endif
                 <x-icon class="tabbar__modal-submenu-arrow" path="ph.bold.caret-down-bold" />
             </button>
@@ -29,11 +29,11 @@
             @endif
             @if (!empty($child['description']))
                 <div class="tabbar__modal-item-content">
-                    <span itemprop="name">{{ __($child['title']) }}</span>
-                    <small class="tabbar__modal-item-description">{{ __($child['description']) }}</small>
+                    <span itemprop="name">{{ transValue($child['title']) }}</span>
+                    <small class="tabbar__modal-item-description">{{ transValue($child['description']) }}</small>
                 </div>
             @else
-                <span itemprop="name">{{ __($child['title']) }}</span>
+                <span itemprop="name">{{ transValue($child['title']) }}</span>
             @endif
         </a>
     @endif

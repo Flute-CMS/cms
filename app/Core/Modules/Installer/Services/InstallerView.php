@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Installer\Services;
 
-use Flute\Core\Support\FluteRequest;
 use Flute\Core\Template\Template;
 
 /**
@@ -10,29 +9,21 @@ use Flute\Core\Template\Template;
  */
 class InstallerView
 {
-    /**
-     * @var Template
-     */
-    protected $template;
+    protected Template $template;
+    protected InstallerConfig $installerConfig;
 
     /**
-     * @var InstallerConfig
+     * Step number to view name mapping
      */
-    protected $installerConfig;
-
-    protected array $components = [
-        1 => 'installer.language',
-        2 => 'installer.requirements',
-        3 => 'installer.flute_key',
-        4 => 'installer.database',
-        5 => 'installer.admin',
-        6 => 'installer.site_info',
-        7 => 'installer.site_settings',
+    protected array $stepViews = [
+        1 => 'installer::yoyo.system-check',
+        2 => 'installer::yoyo.database',
+        3 => 'installer::yoyo.account-site',
+        4 => 'installer::yoyo.languages',
+        5 => 'installer::yoyo.modules',
+        6 => 'installer::yoyo.launch',
     ];
 
-    /**
-     * InstallerView constructor.
-     */
     public function __construct(Template $template, InstallerConfig $installerConfig)
     {
         $this->template = $template;
@@ -40,11 +31,9 @@ class InstallerView
     }
 
     /**
-     * Render an installer view
-     *
-     * @return string
+     * Render the installer layout with given data
      */
-    public function render(array $data = [], ?int $currentStep = null)
+    public function render(array $data = [], ?int $currentStep = null): string
     {
         $step = $this->installerConfig->getCurrentStep();
         $totalSteps = $this->installerConfig->getTotalSteps();
@@ -52,32 +41,29 @@ class InstallerView
         $defaultData = [
             'currentStep' => $currentStep,
             'step' => $step,
-            'steps' => $this->components,
+            'steps' => $this->stepViews,
             'totalSteps' => $totalSteps,
             'progress' => ($step / $totalSteps) * 100,
             'params' => $this->installerConfig->getParams(),
         ];
 
-        return view("installer::layout", array_merge($defaultData, $data));
+        return view('installer::layout', array_merge($defaultData, $data))->render();
     }
 
     /**
      * Render a step view
-     *
-     * @return string
      */
-    public function renderStep(int $step, FluteRequest $request, array $data = [])
+    public function renderStep(int $step, array $data = []): string
     {
-        $currentStep = $this->installerConfig->getCurrentStep();
+        $viewName = $this->stepViews[$step] ?? null;
 
-        if ($step > $currentStep && $step == $currentStep + 1) {
-            $this->installerConfig->setCurrentStep($step);
-            config()->save();
+        if ($viewName === null) {
+            return '';
         }
 
-        return $this->render(array_merge([
-            'request' => $request,
-            'component' => $this->components[$step],
-        ], $data), $step);
+        return $this->render([
+            'stepView' => $viewName,
+            'stepData' => $data,
+        ], $step);
     }
 }

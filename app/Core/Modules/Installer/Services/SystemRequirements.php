@@ -113,6 +113,20 @@ class SystemRequirements
     }
 
     /**
+     * Check ionCube loader status (optional, for paid modules)
+     */
+    public function checkIonCubeLoader(): array
+    {
+        $loaded = extension_loaded('ionCube Loader');
+
+        return [
+            'name' => 'ionCube Loader',
+            'status' => $loaded,
+            'current' => $loaded ? __('install.requirements.installed') : __('install.requirements.not_installed'),
+        ];
+    }
+
+    /**
      * Check if all requirements are met
      */
     public function allRequirementsMet(): bool

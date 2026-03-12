@@ -524,9 +524,9 @@ class Router implements RouterInterface
                     $parameters = $dynamicMatcher->match($request->getPathInfo());
                     $response = $runMatched($parameters);
                 } catch (Exception $dynamicE) {
-                    if (is_debug()) {
-                        throw $dynamicE;
-                    }
+                    // if (is_debug()) {
+                    //     throw $dynamicE;
+                    // }
 
                     $response = response()->error(404, __('def.page_not_found'));
                     $response->setStatusCode(404);

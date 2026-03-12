@@ -8,31 +8,31 @@
                         @if (isset($item['icon']) && !empty($item['icon']))
                             <x-icon path="{{ $item['icon'] }}" aria-hidden="true" />
                         @endif
-                        {!! __($item['title']) !!}
+                        {!! transValue($item['title']) !!}
                     </a>
                 @else
                     <span itemprop="name">
                         @if (isset($item['icon']) && !empty($item['icon']))
                             <x-icon path="{{ $item['icon'] }}" aria-hidden="true" />
                         @endif
-                        {!! __($item['title']) !!}
+                        {!! transValue($item['title']) !!}
                     </span>
                 @endif
             </h6>
 
-            <nav aria-label="{{ __($item['title']) }} navigation">
+            <nav aria-label="{{ transValue($item['title']) }} navigation">
                 <ul class="footer__items">
                     @foreach ($item['children'] as $child_item)
                         <li class="footer__items-item" itemprop="itemListElement" itemscope
                             itemtype="https://schema.org/SiteNavigationElement">
                             <a href="{{ $child_item['url'] }}"
                                 @if ($child_item['new_tab']) target="_blank" rel="noopener" @endif itemprop="url"
-                                aria-label="{!! __($child_item['title']) !!}">
+                                aria-label="{!! transValue($child_item['title']) !!}">
                                 <x-icon path="ph.bold.arrow-up-right-bold" aria-hidden="true" class="footer__items-item-goto" />
                                 @if (!empty($child_item['icon']))
                                     <x-icon path="{{ $child_item['icon'] }}"/>
                                 @endif
-                                <span itemprop="name">{!! __($child_item['title']) !!}</span>
+                                <span itemprop="name">{!! transValue($child_item['title']) !!}</span>
                             </a>
                         </li>
                     @endforeach

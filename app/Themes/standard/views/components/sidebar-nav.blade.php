@@ -56,7 +56,7 @@
                                     <x-icon path="{{ $item['icon'] }}" />
                                 </span>
                             @endif
-                            <span class="sidebar-nav__item-text">{{ __($item['title']) }}</span>
+                            <span class="sidebar-nav__item-text">{{ transValue($item['title']) }}</span>
                         </a>
                     @else
                         <div class="sidebar-nav__dropdown" data-sidebar-dropdown>
@@ -66,7 +66,7 @@
                                         <x-icon path="{{ $item['icon'] }}" />
                                     </span>
                                 @endif
-                                <span class="sidebar-nav__item-text">{{ __($item['title']) }}</span>
+                                <span class="sidebar-nav__item-text">{{ transValue($item['title']) }}</span>
                                 <span class="sidebar-nav__item-chevron">
                                     <x-icon path="ph.bold.caret-down-bold" />
                                 </span>
@@ -78,12 +78,12 @@
                                         @if (!empty($child['children']) && count($child['children']) > 0)
                                             <div class="sidebar-nav__subgroup">
                                                 <span
-                                                    class="sidebar-nav__subgroup-title">{{ __($child['title']) }}</span>
+                                                    class="sidebar-nav__subgroup-title">{{ transValue($child['title']) }}</span>
                                                 @foreach ($child['children'] as $subChild)
                                                     <a href="{{ url($subChild['url']) }}"
                                                         @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
                                                         class="sidebar-nav__subitem {{ active($subChild['url']) }}">
-                                                        {{ __($subChild['title']) }}
+                                                        {{ transValue($subChild['title']) }}
                                                     </a>
                                                 @endforeach
                                             </div>
@@ -96,7 +96,7 @@
                                                         <x-icon path="{{ $child['icon'] }}" />
                                                     </span>
                                                 @endif
-                                                {{ __($child['title']) }}
+                                                {{ transValue($child['title']) }}
                                             </a>
                                         @endif
                                     @endforeach
@@ -104,12 +104,12 @@
                             </div>
 
                             <div class="sidebar-nav__mini-dropdown">
-                                <div class="sidebar-nav__mini-dropdown__title">{{ __($item['title']) }}</div>
+                                <div class="sidebar-nav__mini-dropdown__title">{{ transValue($item['title']) }}</div>
                                 @foreach ($item['children'] as $child)
                                     @if (!empty($child['children']) && count($child['children']) > 0)
                                         <div class="sidebar-nav__mini-dropdown__group">
                                             <div class="sidebar-nav__mini-dropdown__group-title">
-                                                {{ __($child['title']) }}</div>
+                                                {{ transValue($child['title']) }}</div>
                                             @foreach ($child['children'] as $subChild)
                                                 <a href="{{ url($subChild['url']) }}"
                                                     @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
@@ -117,7 +117,7 @@
                                                     @if ($subChild['icon'])
                                                         <x-icon path="{{ $subChild['icon'] }}" />
                                                     @endif
-                                                    {{ __($subChild['title']) }}
+                                                    {{ transValue($subChild['title']) }}
                                                 </a>
                                             @endforeach
                                         </div>
@@ -128,7 +128,7 @@
                                             @if ($child['icon'])
                                                 <x-icon path="{{ $child['icon'] }}" />
                                             @endif
-                                            {{ __($child['title']) }}
+                                            {{ transValue($child['title']) }}
                                         </a>
                                     @endif
                                 @endforeach

@@ -9,15 +9,17 @@
     $_sidebarMode = $_themeColors['--sidebar-mode'] ?? 'full';
     $_sidebarPosition = $_themeColors['--sidebar-position'] ?? 'top';
     $_sidebarCollapsed = cookie()->get('sidebar_collapsed', 'false');
+    $_sidebarContained = $_themeColors['--sidebar-contained'] ?? 'false';
     $_designPreset = $_themeColors['--design-preset'] ?? 'default';
 @endphp
 <html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
     data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}"
     data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}"
-    data-design-preset="{{ $_designPreset }}">
+    data-sidebar-contained="{{ $_sidebarContained }}" data-design-preset="{{ $_designPreset }}">
 
 <head hx-head="append">
     @php
+        // --- Title ---
         $_final_title = '';
         if (\Illuminate\Support\Facades\View::hasSection('title')) {
             $_final_title = trim(\Illuminate\Support\Facades\View::yieldContent('title'));
@@ -27,11 +29,14 @@
         }
         $_final_title = __($_final_title);
 
+        // --- Description ---
         $_final_description = config('app.description');
         $_final_description = __($_final_description);
 
+        // --- HX Detect ---
         $isPartialRequest = request()->htmx()->isHtmxRequest() || request()->htmx()->isBoosted();
 
+        // --- Theme colors ---
         $__colors = app('flute.view.manager')->getColors();
         $lightThemeBg = $__colors['light']['--background'] ?? '#ffffff';
         $darkThemeBg = $__colors['dark']['--background'] ?? '#1c1c1e';
@@ -116,8 +121,14 @@
     @endif
 
     @if (!$isPartialRequest)
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
         <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        <link rel="preload" href="@asset('animate')" as="style"
+            onload="this.onload=null;this.rel='stylesheet'">
+        <noscript>
+            <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        </noscript>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
 
         @at(tt('assets/sass/app.scss'))
@@ -175,6 +186,12 @@
     @if (!$isPartialRequest)
         {{-- Always render sidebar-nav, visibility controlled by CSS based on data-nav-style --}}
         <x-sidebar-nav />
+        <div class="content-frame" id="content-frame"></div>
+        <div class="frame-blur" id="frame-blur"></div>
+        <button type="button" class="sidebar-contained-toggle" id="sidebar-contained-toggle"
+            aria-label="{{ __('def.toggle_sidebar') }}">
+            <x-icon path="ph.regular.sidebar-simple" />
+        </button>
     @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.header')
@@ -197,6 +214,8 @@
         {!! $sections['content-after'] !!}
     @endif
 
+    @includeIf('flute::partials.confirmation')
+
     @if (!$isPartialRequest)
         <div id="alerts-container">
             @stack('toast-container')
@@ -206,20 +225,8 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.right-sidebar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (right-sidebar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
-        @php
-            try {
-                echo view('flute::components.tab-bar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (tab-bar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
+        @includeIf('flute::components.right-sidebar')
+        @includeIf('flute::components.tab-bar')
 
         <div id="modals">
             @include('flute::partials.default-modals')
@@ -231,13 +238,7 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.user-card')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (user-card): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
+        @includeIf('flute::components.user-card')
     @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
@@ -274,6 +275,7 @@
         @at(tt('assets/scripts/tabs.js'))
         @at(tt('assets/scripts/tom-select.js'))
 
+        {{-- Always load sidebar-nav script, it handles visibility check internally --}}
         @at(tt(path: 'assets/scripts/sidebar-nav.js'))
 
         @at(tt('assets/scripts/app.js'))

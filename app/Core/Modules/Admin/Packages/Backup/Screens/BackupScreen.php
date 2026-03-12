@@ -116,7 +116,7 @@ class BackupScreen extends Screen
                             'theme' => ['class' => 'info', 'label' => __('admin-backup.types.theme')],
                             'modules' => ['class' => 'success', 'label' => __('admin-backup.types.modules')],
                             'themes' => ['class' => 'warning', 'label' => __('admin-backup.types.themes')],
-                            'cms' => ['class' => 'danger', 'label' => __('admin-backup.types.cms')],
+                            'cms' => ['class' => 'error', 'label' => __('admin-backup.types.cms')],
                             'full' => ['class' => 'accent', 'label' => __('admin-backup.types.full')],
                             'vendor' => ['class' => 'accent', 'label' => __('admin-backup.types.vendor')],
                             'composer' => ['class' => 'warning', 'label' => __('admin-backup.types.composer')],

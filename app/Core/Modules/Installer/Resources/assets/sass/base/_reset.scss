@@ -2,19 +2,34 @@
 *::before,
 *::after {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-* {
-    margin: 0;
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-size: 100%;
+    height: 100%;
 }
 
 body {
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-body);
+    color: var(--installer-text);
+    background-color: var(--installer-bg);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+
+    &.no-scroll {
+        overflow: hidden;
+    }
 }
 
 img,
 picture,
+svg,
 video,
 canvas {
     display: block;
@@ -28,10 +43,17 @@ select {
     font: inherit;
     outline: none;
     border: none;
+    color: inherit;
 }
 
 button {
-    padding: 0;
+    cursor: pointer;
+    background: none;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
 p,
@@ -42,4 +64,34 @@ h4,
 h5,
 h6 {
     overflow-wrap: break-word;
+    margin: 0;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+::selection {
+    background-color: rgba(165, 255, 117, 0.15);
+    color: #fff;
+}
+
+// ── Scrollbar ─────────────────────────────────────────────
+::-webkit-scrollbar {
+    width: var(--scrollbar-w);
+    height: var(--scrollbar-w);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 100px;
+
+    &:hover {
+        background: var(--scrollbar-thumb-hover);
+    }
 }

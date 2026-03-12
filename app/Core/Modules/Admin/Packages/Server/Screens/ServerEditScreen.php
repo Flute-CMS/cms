@@ -202,7 +202,7 @@ class ServerEditScreen extends Screen
         $connection = DatabaseConnection::findByPK($connectionId);
 
         if (!$connection) {
-            $this->flashMessage(__('admin-server.messages.connection_not_found'), 'danger');
+            $this->flashMessage(__('admin-server.messages.connection_not_found'), 'error');
 
             return;
         }

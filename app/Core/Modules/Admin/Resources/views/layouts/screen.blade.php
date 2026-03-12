@@ -2,10 +2,6 @@
 
 @push('content')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Yoyo.url = '{{ url($slug) }}';
-        });
-
         if (window.Yoyo) {
             Yoyo.url = '{{ url($slug) }}';
         }

@@ -286,6 +286,7 @@
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
         @at('Core/Modules/Admin/Resources/assets/js/buttongroup.js')
+        @at('Core/Modules/Admin/Resources/assets/js/translatable.js')
         @at('Core/Modules/Admin/Resources/assets/js/filters.js')
 
         @if (!cookie()->get('admin_onboarding_done'))

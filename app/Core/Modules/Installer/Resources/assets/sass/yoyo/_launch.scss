@@ -1,0 +1,526 @@
+.launch-step {
+    position: relative;
+
+    // ── Sub-page transitions ─────────────────────────────────
+    .launch-page {
+        &.is-exiting {
+            animation: fadeSlideOut 0.2s var(--ease-out) both;
+        }
+
+        &.is-entering {
+            animation: fadeSlideIn 0.3s var(--ease-out) both;
+        }
+
+        &.is-exiting-reverse {
+            animation: launchSlideOutRight 0.2s var(--ease-out) both;
+        }
+
+        &.is-entering-reverse {
+            animation: launchSlideInLeft 0.3s var(--ease-out) both;
+        }
+    }
+
+    // ── Section blocks ───────────────────────────────────────
+    .launch-section {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+
+        &__header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--installer-text);
+
+            svg {
+                width: 18px;
+                height: 18px;
+                color: var(--installer-muted-light);
+            }
+        }
+    }
+
+    // ── Option card grid (selectable cards) ──────────────────
+    .option-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .option-card {
+        cursor: pointer;
+
+        input[type="checkbox"],
+        input[type="hidden"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        &__body {
+            position: relative;
+            padding: 14px 16px;
+            border: 1px solid var(--installer-border);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s var(--ease-smooth);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+
+            &:hover {
+                border-color: var(--installer-border2);
+                background: rgba(255, 255, 255, 0.01);
+            }
+
+            &--row {
+                flex-direction: row;
+                align-items: center;
+                gap: 14px;
+                height: auto;
+            }
+        }
+
+        &__icon {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            &--blue {
+                background: rgba(96, 165, 250, 0.08);
+                color: #60a5fa;
+            }
+
+            &--green {
+                background: rgba(52, 211, 153, 0.08);
+                color: #34d399;
+            }
+
+            &--purple {
+                background: rgba(167, 139, 250, 0.08);
+                color: #a78bfa;
+            }
+
+            &--amber {
+                background: rgba(251, 191, 36, 0.08);
+                color: #fbbf24;
+            }
+
+            &--red {
+                background: rgba(248, 113, 113, 0.08);
+                color: #f87171;
+            }
+
+            &--teal {
+                background: rgba(45, 212, 191, 0.08);
+                color: #2dd4bf;
+            }
+
+            &--orange {
+                background: rgba(251, 146, 60, 0.08);
+                color: #fb923c;
+            }
+
+            &--yellow {
+                background: rgba(250, 204, 21, 0.08);
+                color: #facc15;
+            }
+
+            &--accent {
+                background: var(--accent-dim);
+                color: var(--accent);
+            }
+        }
+
+        // CSS-only checkmark circle
+        &__check {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid var(--installer-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s var(--ease-smooth);
+            flex-shrink: 0;
+
+            &::after {
+                content: '';
+                display: block;
+                width: 8px;
+                height: 5px;
+                border-left: 2px solid #0a0a0c;
+                border-bottom: 2px solid #0a0a0c;
+                transform: rotate(-45deg) translate(0.5px, -0.5px);
+                opacity: 0;
+                transition: opacity 0.15s;
+            }
+        }
+
+        // Row variant — check on the right, not absolute
+        &__body--row &__check {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin-left: auto;
+        }
+
+        &__info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        &__title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--installer-text);
+            line-height: 1.3;
+        }
+
+        &__desc {
+            font-size: 12px;
+            color: var(--installer-muted);
+            line-height: 1.5;
+        }
+
+        // Checked state
+        input[type="checkbox"]:checked ~ .option-card__body {
+            border-color: rgba(165, 255, 117, 0.25);
+            background: rgba(165, 255, 117, 0.03);
+
+            .option-card__check {
+                background: var(--accent);
+                border-color: var(--accent);
+
+                &::after {
+                    opacity: 1;
+                }
+            }
+        }
+
+        // Single card (full width, outside grid)
+        &--single {
+            display: block;
+
+            input[type="checkbox"],
+            input[type="hidden"] {
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+    }
+
+    // ── Theme picker ────────────────────────────────────────
+    .theme-picker {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+
+        @media (max-width: 480px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .theme-pick {
+        cursor: pointer;
+
+        input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        &__preview {
+            border: 1.5px solid var(--installer-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 150px;
+            transition: all 0.2s var(--ease-smooth);
+
+            &:hover {
+                border-color: var(--installer-border2);
+            }
+        }
+
+        &__header {
+            display: flex;
+            gap: 4px;
+            padding: 4px 6px;
+
+            span {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+            }
+        }
+
+        &__body {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+        }
+
+        &__sidebar {
+            width: 30%;
+            border-radius: 4px;
+            padding: 6px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        &__nav {
+            height: 4px;
+            border-radius: 2px;
+            width: 75%;
+
+            &--on {
+                width: 85%;
+            }
+        }
+
+        &__main {
+            flex: 1;
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        &__line {
+            height: 4px;
+            border-radius: 2px;
+            width: 70%;
+
+            &--sm {
+                width: 40%;
+            }
+        }
+
+        &__block {
+            margin-top: auto;
+            height: 14px;
+            border-radius: 3px;
+            width: 50%;
+        }
+
+        // ── Dark colors ──
+        &__preview--dark {
+            background: #111114;
+
+            .theme-pick__header span {
+                &:nth-child(1) { background: #ff5f57; }
+                &:nth-child(2) { background: #febc2e; }
+                &:nth-child(3) { background: #28c840; }
+            }
+
+            .theme-pick__sidebar { background: rgba(255, 255, 255, 0.04); }
+            .theme-pick__nav { background: rgba(255, 255, 255, 0.06); }
+            .theme-pick__nav--on { background: rgba(165, 255, 117, 0.18); }
+            .theme-pick__main { background: rgba(255, 255, 255, 0.025); }
+            .theme-pick__line { background: rgba(255, 255, 255, 0.07); }
+            .theme-pick__block { background: rgba(255, 255, 255, 0.05); }
+        }
+
+        // ── Light colors ──
+        &__preview--light {
+            background: #f0f0f2;
+
+            .theme-pick__header span {
+                &:nth-child(1) { background: #ff5f57; }
+                &:nth-child(2) { background: #febc2e; }
+                &:nth-child(3) { background: #28c840; }
+            }
+
+            .theme-pick__sidebar { background: rgba(0, 0, 0, 0.05); }
+            .theme-pick__nav { background: rgba(0, 0, 0, 0.07); }
+            .theme-pick__nav--on { background: rgba(59, 130, 246, 0.25); }
+            .theme-pick__main { background: rgba(0, 0, 0, 0.035); }
+            .theme-pick__line { background: rgba(0, 0, 0, 0.09); }
+            .theme-pick__block { background: rgba(0, 0, 0, 0.06); }
+        }
+
+        // ── Label below preview ──
+        &__label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 4px 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--installer-muted);
+            transition: color 0.2s;
+        }
+
+        &__dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--installer-border2);
+            flex-shrink: 0;
+            transition: all 0.2s var(--ease-smooth);
+            position: relative;
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 2px;
+                border-radius: 50%;
+                background: transparent;
+                transition: background 0.15s;
+            }
+        }
+
+        // ── Selected ──
+        input:checked ~ .theme-pick__preview {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(165, 255, 117, 0.12);
+        }
+
+        input:checked ~ .theme-pick__label {
+            color: var(--installer-text);
+
+            .theme-pick__dot {
+                border-color: var(--accent);
+
+                &::after {
+                    background: var(--accent);
+                }
+            }
+        }
+    }
+
+    // ── Radio cards ──────────────────────────────────────────
+    .radio-grid {
+        display: grid;
+        gap: 10px;
+
+        &--2 {
+            grid-template-columns: 1fr 1fr;
+
+            @media (max-width: 640px) {
+                grid-template-columns: 1fr;
+            }
+        }
+    }
+
+    .radio-card {
+        cursor: pointer;
+
+        input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        &__body {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--installer-border);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s var(--ease-smooth);
+
+            &:hover {
+                border-color: var(--installer-border2);
+            }
+        }
+
+        &__dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--installer-border2);
+            flex-shrink: 0;
+            transition: all 0.15s var(--ease-smooth);
+            position: relative;
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 2px;
+                border-radius: 50%;
+                background: transparent;
+                transition: background 0.15s;
+            }
+        }
+
+        &__text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+
+            strong {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--installer-text);
+            }
+
+            span {
+                font-size: 12px;
+                color: var(--installer-muted);
+            }
+        }
+
+        input:checked + .radio-card__body {
+            border-color: rgba(165, 255, 117, 0.25);
+
+            .radio-card__dot {
+                border-color: var(--accent);
+
+                &::after {
+                    background: var(--accent);
+                }
+            }
+        }
+    }
+}
+
+// ── Sub-page slide animations ────────────────────────────
+@keyframes launchSlideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+}
+
+@keyframes launchSlideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

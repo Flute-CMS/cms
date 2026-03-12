@@ -188,7 +188,7 @@ document.addEventListener('htmx:beforeSwap', (evt) => {
     });
 });
 
-htmx.onLoad(() => {
+document.addEventListener('htmx:afterSwap', () => {
     if (window.InstallerSelect) {
         window.InstallerSelect.init();
     }

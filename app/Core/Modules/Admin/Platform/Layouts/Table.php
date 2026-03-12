@@ -325,6 +325,14 @@ abstract class Table extends Layout
     }
 
     /**
+     * Get the data source target key.
+     */
+    public function getTarget(): string
+    {
+        return $this->target ?? 'default';
+    }
+
+    /**
      * Check if export is enabled.
      */
     public function isExportable(): bool

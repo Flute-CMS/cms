@@ -148,11 +148,19 @@ class PaymentProcessor
             throw new PaymentException("Gateway wasn't found");
         }
 
+        logs()->debug('payments.processor.handle.start', [
+            'gateway' => $gatewayName,
+            'keys' => array_keys((array) request()->input()),
+        ]);
+
         $gateway = $this->gatewayFactory->create($gatewayEntity);
         $response = $this->completePayment($gateway, request()->input());
 
         if ($response->isSuccessful()) {
             $this->processSuccessfulPayment($response);
+            logs()->info('payments.processor.handle.success', [
+                'gateway' => $gatewayName,
+            ]);
         } else {
             $this->processFailedPayment($response);
         }
@@ -204,10 +212,22 @@ class PaymentProcessor
             if ($expectedAmount > 0) {
                 if ($verifyAmount === null) {
                     logs()->warning("Payment amount verification skipped (null) for transaction {$transactionId}, expected {$expectedAmount}");
-                } elseif (abs($verifyAmount - $expectedAmount) > $toleranceAbs) {
-                    $database->rollback();
+                } else {
+                    $minAllowed = max(0.0, $expectedAmount - $toleranceAbs);
 
-                    throw new PaymentException("Amount mismatch: expected {$expectedAmount}, received {$verifyAmount}");
+                    if ($verifyAmount < $minAllowed) {
+                        $database->rollback();
+
+                        throw new PaymentException("Amount too low: expected at least {$minAllowed}, received {$verifyAmount}");
+                    }
+
+                    if (abs($verifyAmount - $expectedAmount) > $toleranceAbs) {
+                        logs()->info('payments.amount.difference', [
+                            'transaction_id' => $transactionId,
+                            'expected' => $expectedAmount,
+                            'received' => $verifyAmount,
+                        ]);
+                    }
                 }
             }
 
@@ -326,7 +346,7 @@ class PaymentProcessor
     {
         $gateway = $this->gatewayFactory->create($gatewayEntity);
 
-        $gatewayAmount = $invoice->originalAmount;
+        $gatewayAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
         if ($gatewayEntity->fee > 0) {
             $gatewayAmount = round($gatewayAmount + ($gatewayAmount * $gatewayEntity->fee / 100), 2);
         }
@@ -377,7 +397,20 @@ class PaymentProcessor
         $this->dispatcher->dispatch(new AfterGatewayResponseEvent($invoice, $response), AfterGatewayResponseEvent::NAME);
 
         if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
-            $response->redirect();
+            // Some gateways use POST-redirect (form submission) instead of simple 302.
+            // Detect this and let Omnipay handle it natively when needed.
+            if ($response->getRedirectMethod() !== 'GET') {
+                $response->redirect();
+
+                return null;
+            }
+
+            $redirectUrl = $response->getRedirectUrl();
+            if (empty($redirectUrl)) {
+                throw new PaymentException('Gateway returned empty redirect URL');
+            }
+
+            return response()->redirect($redirectUrl);
         } else {
             throw new PaymentException($response->getMessage() ?? ($response->getData()['message'] ?? 'Unknown error'));
         }
@@ -451,6 +484,18 @@ class PaymentProcessor
                     $input['transactionReference'] = $input['paymentID'];
                 } elseif (isset($input['PAYMENTID'])) {
                     $input['transactionReference'] = $input['PAYMENTID'];
+                } elseif (isset($input['transaction_id'])) {
+                    $input['transactionReference'] = $input['transaction_id'];
+                } elseif (isset($input['transactionId'])) {
+                    $input['transactionReference'] = $input['transactionId'];
+                } elseif (isset($input['order_id'])) {
+                    $input['transactionReference'] = $input['order_id'];
+                } elseif (isset($input['orderId'])) {
+                    $input['transactionReference'] = $input['orderId'];
+                } elseif (isset($input['invoice_id'])) {
+                    $input['transactionReference'] = $input['invoice_id'];
+                } elseif (isset($input['invoiceId'])) {
+                    $input['transactionReference'] = $input['invoiceId'];
                 }
             }
             if (!isset($input['payerId'])) {
@@ -481,11 +526,132 @@ class PaymentProcessor
      */
     protected function processSuccessfulPayment($response): void
     {
-        $transactionId = $response->getTransactionId();
+        $transactionId = trim((string) $response->getTransactionId());
 
-        $paidAmount = method_exists($response, 'getAmount') ? (float) $response->getAmount() : null;
+        if ($transactionId === '') {
+            $responseData = method_exists($response, 'getData') ? (array) $response->getData() : [];
+            $transactionId = $this->resolveTransactionId(request()->input(), $responseData);
+        }
+
+        if ($transactionId === '') {
+            throw new PaymentException('Unable to resolve transaction id from callback payload');
+        }
+
+        $paidAmount = null;
+        if (method_exists($response, 'getAmount')) {
+            $rawAmount = $response->getAmount();
+            if ($rawAmount !== null && is_scalar($rawAmount)) {
+                $normalized = str_replace(',', '.', (string) $rawAmount);
+                if (preg_match('/-?\d+(?:\.\d+)?/', $normalized, $matches)) {
+                    $paidAmount = (float) $matches[0];
+                }
+            }
+        }
 
         $this->setInvoiceAsPaid($transactionId, $paidAmount);
+    }
+
+    /**
+     * Resolve internal invoice transaction id from request/response payload.
+     */
+    private function resolveTransactionId(array $input, array $responseData = []): string
+    {
+        $candidateKeys = [
+            'transactionId',
+            'transaction_id',
+            'transactionReference',
+            'transaction_reference',
+            'order_id',
+            'orderId',
+            'merchant_order_id',
+            'merchantOrderId',
+            'invoice',
+            'invoice_id',
+            'invoiceId',
+            'inv_id',
+            'payment_id',
+            'paymentId',
+        ];
+
+        $sources = [$input, $responseData];
+
+        foreach ($sources as $source) {
+            foreach ($candidateKeys as $key) {
+                if (!array_key_exists($key, $source)) {
+                    continue;
+                }
+
+                $value = $source[$key];
+                if (!is_scalar($value)) {
+                    continue;
+                }
+
+                $candidate = trim((string) $value);
+                if ($candidate === '') {
+                    continue;
+                }
+
+                if (PaymentInvoice::findOne(['transactionId' => $candidate])) {
+                    return $candidate;
+                }
+
+                if (preg_match('/\d{8,}/', $candidate, $matches)) {
+                    $digitsCandidate = $matches[0];
+                    if (PaymentInvoice::findOne(['transactionId' => $digitsCandidate])) {
+                        return $digitsCandidate;
+                    }
+                }
+            }
+
+            foreach ($source as $value) {
+                $resolved = $this->resolveTransactionIdFromValue($value);
+                if ($resolved !== '') {
+                    return $resolved;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Best-effort recursive extraction for unknown gateway payload shapes.
+     */
+    private function resolveTransactionIdFromValue($value): string
+    {
+        if (is_array($value)) {
+            foreach ($value as $nested) {
+                $resolved = $this->resolveTransactionIdFromValue($nested);
+                if ($resolved !== '') {
+                    return $resolved;
+                }
+            }
+
+            return '';
+        }
+
+        if (!is_scalar($value)) {
+            return '';
+        }
+
+        $text = trim((string) $value);
+        if ($text === '') {
+            return '';
+        }
+
+        if (PaymentInvoice::findOne(['transactionId' => $text])) {
+            return $text;
+        }
+
+        if (preg_match_all('/\d{8,}/', $text, $matches)) {
+            foreach ($matches[0] as $digitsCandidate) {
+                if (PaymentInvoice::findOne(['transactionId' => $digitsCandidate])) {
+                    return $digitsCandidate;
+                }
+            }
+        }
+
+        return '';
     }
 
     /**

@@ -203,6 +203,7 @@ class PaymentComponent extends FluteComponent
                 $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
                 $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
+
         } catch (PaymentPromoException $e) {
             $this->inputError('promoCode', __($e->getMessage()));
             $this->promoIsValid = false;
@@ -358,8 +359,6 @@ class PaymentComponent extends FluteComponent
 
             if ($this->gatewayFee > 0) {
                 $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
-                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
-                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
 
             if ($this->gatewayBonus > 0) {

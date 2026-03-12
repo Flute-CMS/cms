@@ -418,6 +418,7 @@
         @at(tt('assets/scripts/richtext/bubble-menu.js'))
         @at(tt('assets/scripts/richtext/table-controls.js'))
         @at(tt('assets/scripts/richtext/main.js'))
+        @at(tt('assets/scripts/translatable.js'))
         @at(tt('assets/scripts/otp-input.js'))
         @at(tt('assets/scripts/tom-select.js'))
 

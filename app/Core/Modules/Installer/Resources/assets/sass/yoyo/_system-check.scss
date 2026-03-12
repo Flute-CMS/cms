@@ -1,0 +1,248 @@
+.system-check-step {
+    display: flex;
+    flex-direction: column;
+}
+
+// ── Status bar ─────────────────────────────────────────────
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+
+    &--ok {
+        background: rgba(165, 255, 117, 0.04);
+        border: 1px solid rgba(165, 255, 117, 0.12);
+    }
+
+    &--fail {
+        background: rgba(248, 113, 113, 0.04);
+        border: 1px solid rgba(248, 113, 113, 0.12);
+    }
+
+    &__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        animation: statusPulse 2.5s infinite;
+    }
+
+    &--ok &__dot {
+        background: var(--accent);
+    }
+
+    &--fail &__dot {
+        background: var(--installer-error);
+    }
+
+    &__text {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &--ok &__text {
+        color: var(--accent);
+    }
+
+    &--fail &__text {
+        color: var(--installer-error);
+    }
+
+    &__count {
+        margin-left: auto;
+        font-size: 12px;
+        font-family: var(--font-mono);
+    }
+
+    &--ok &__count {
+        color: rgba(165, 255, 117, 0.5);
+    }
+
+    &--fail &__count {
+        color: rgba(248, 113, 113, 0.5);
+    }
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+// ── Summary check rows ────────────────────────────────────
+.check-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 16px;
+}
+
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    transition: background 0.1s;
+    animation: checkRowIn 0.35s var(--ease-out) both;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    &__icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &--ok {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        &--fail {
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--installer-error);
+        }
+    }
+
+    &__label {
+        font-size: 14px;
+        color: var(--installer-text);
+        font-weight: 500;
+    }
+
+    &__value {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: rgba(165, 255, 117, 0.65);
+    }
+
+    &__hint {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--installer-muted);
+    }
+
+    &__value + &__hint {
+        margin-left: 0;
+    }
+
+    &:nth-child(1) { animation-delay: 0.05s; }
+    &:nth-child(2) { animation-delay: 0.1s; }
+    &:nth-child(3) { animation-delay: 0.15s; }
+}
+
+@keyframes checkRowIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+// ── Expand button ─────────────────────────────────────────
+.expand-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--installer-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    padding: 0;
+    margin-bottom: 16px;
+    transition: color 0.15s;
+
+    &:hover {
+        color: var(--installer-muted-light);
+    }
+
+    svg {
+        transition: transform 0.2s var(--ease-out);
+
+        &.open {
+            transform: rotate(90deg);
+        }
+    }
+}
+
+// ── Detail grid (expanded checks) ─────────────────────────
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 16px;
+    padding-left: 8px;
+    margin-bottom: 16px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+    color: var(--installer-muted);
+}
+
+.detail-check {
+    &--ok {
+        color: var(--accent);
+    }
+
+    &--fail {
+        color: var(--installer-error);
+    }
+}
+
+// ── ionCube Loader section ────────────────────────────────
+.check-ioncube {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    margin-top: 8px;
+
+    &--ok {
+        background: rgba(165, 255, 117, 0.03);
+        border: 1px solid rgba(165, 255, 117, 0.1);
+    }
+
+    &--warn {
+        background: rgba(251, 191, 36, 0.03);
+        border: 1px solid rgba(251, 191, 36, 0.1);
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    &--ok &__icon {
+        color: var(--accent);
+    }
+
+    &--warn &__icon {
+        color: var(--installer-warning);
+    }
+
+    &__text {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    &--ok &__text {
+        color: var(--accent);
+    }
+
+    &--warn &__text {
+        color: rgba(251, 191, 36, 0.75);
+    }
+}

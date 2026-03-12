@@ -5,10 +5,10 @@
     <x-icon path="{{ $item['icon'] }}" />
 
     <span itemprop="name">
-        {{ __($item['title']) }}
+        {{ transValue($item['title']) }}
         @if (!empty($item['description']))
             <small class="tabbar__item-description" style="display: block; font-size: 0.75em; opacity: 0.7; margin-top: 2px;">
-                {{ __($item['description']) }}
+                {{ transValue($item['description']) }}
             </small>
         @endif
     </span>

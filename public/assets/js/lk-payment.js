@@ -34,7 +34,8 @@
     var receiptEl = root.querySelector('[data-lk-receipt]');
     var promoInput = document.getElementById('lk-promo');
     var promoWrap = root.querySelector('[data-lk-promo]');
-    var promoBadge = root.querySelector('[data-lk-promo-badge]');
+    var promoBtn = root.querySelector('[data-lk-promo-btn]');
+    var promoMsgEl = root.querySelector('[data-lk-promo-msg]');
     var submitBtn = document.getElementById('lk-submit');
     var agreeCheckbox = document.getElementById('lk-agree');
 
@@ -42,6 +43,138 @@
     function csrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
         return meta ? meta.content : '';
+    }
+
+    function resolveUrl(path) {
+        if (typeof u === 'function') {
+            return u(path);
+        }
+
+        var baseMeta = document.querySelector('meta[name="site_url"]');
+        var base = baseMeta ? baseMeta.content : window.location.origin;
+        base = String(base || '').replace(/\/+$/, '');
+        path = String(path || '').replace(/^\/+/, '');
+
+        return base + '/' + path;
+    }
+
+    function tryParseJson(text) {
+        if (!text) {
+            return {};
+        }
+
+        var normalized = String(text).replace(/^\uFEFF/, '').trim();
+        if (!normalized) {
+            return {};
+        }
+
+        return JSON.parse(normalized);
+    }
+
+    function extractJsonCandidate(text) {
+        var normalized = String(text || '').replace(/^\uFEFF/, '').trim();
+        if (!normalized) {
+            return '';
+        }
+
+        var start = normalized.search(/[\{\[]/);
+        if (start === -1) {
+            return '';
+        }
+
+        var openChar = normalized.charAt(start);
+        var closeChar = openChar === '{' ? '}' : ']';
+        var depth = 0;
+        var inString = false;
+        var isEscaped = false;
+
+        for (var i = start; i < normalized.length; i++) {
+            var ch = normalized.charAt(i);
+
+            if (inString) {
+                if (isEscaped) {
+                    isEscaped = false;
+                    continue;
+                }
+
+                if (ch === '\\') {
+                    isEscaped = true;
+                    continue;
+                }
+
+                if (ch === '"') {
+                    inString = false;
+                }
+
+                continue;
+            }
+
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (ch === openChar) {
+                depth++;
+                continue;
+            }
+
+            if (ch === closeChar) {
+                depth--;
+                if (depth === 0) {
+                    return normalized.slice(start, i + 1);
+                }
+            }
+        }
+
+        return '';
+    }
+
+    function parseJsonResponse(response) {
+        return response.text().then(function (text) {
+            var data = {};
+
+            if (text) {
+                try {
+                    data = tryParseJson(text);
+                } catch (e) {
+                    var candidate = extractJsonCandidate(text);
+
+                    if (candidate) {
+                        try {
+                            data = JSON.parse(candidate);
+
+                            console.warn('Payment API response contained extra output after JSON payload.', {
+                                status: response.status,
+                                redirected: response.redirected,
+                                url: response.url
+                            });
+
+                            return { ok: response.ok, status: response.status, data: data };
+                        } catch (nestedError) {
+                        }
+                    }
+
+                    var compactText = String(text || '').replace(/\s+/g, ' ').trim();
+                    var preview = compactText.slice(0, 180);
+                    if (preview) {
+                        console.error('Payment API non-JSON response:', preview, {
+                            status: response.status,
+                            redirected: response.redirected,
+                            url: response.url
+                        });
+                    }
+
+                    var fallbackMessage = response.ok
+                        ? ('Server returned invalid response' + (preview ? ': ' + preview : ''))
+                        : ('HTTP ' + response.status);
+
+                    throw new Error(fallbackMessage);
+                }
+            }
+
+            return { ok: response.ok, status: response.status, data: data };
+        });
     }
 
     function formatNumber(n, decimals) {
@@ -64,6 +197,31 @@
         };
     }
 
+    // ── Templates ────────────────────────────────────────────
+    function tpl(name) {
+        var t = root.querySelector('[data-lk-tpl="' + name + '"]');
+        return t ? t.content.cloneNode(true).firstElementChild : null;
+    }
+
+    function appendReceiptRow(type, label, value) {
+        var row = tpl(type);
+        if (!row) {
+            row = document.createElement('div');
+            row.className = type === 'receipt-total' ? 'lk-receipt__total'
+                : type === 'receipt-row-green' ? 'lk-receipt__row lk-receipt__row--green'
+                : 'lk-receipt__row';
+            var s1 = document.createElement('span');
+            var s2 = document.createElement('span');
+            row.appendChild(s1);
+            row.appendChild(s2);
+        }
+        var labelEl = row.querySelector('[data-label]') || row.children[0];
+        var valueEl = row.querySelector('[data-value]') || row.children[1];
+        if (labelEl) labelEl.textContent = label;
+        if (valueEl) valueEl.textContent = value;
+        receiptEl.appendChild(row);
+    }
+
     // ── Presets ────────────────────────────────────────────
     function getPresets(cur) {
         return cfg.presets[cur] || cfg.presets._default || [500, 1000, 2500, 5000];
@@ -74,9 +232,13 @@
         var presets = getPresets(state.currency);
         presetsWrap.innerHTML = '';
         presets.forEach(function (val) {
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'lk-preset' + (state.amount === val ? ' is-active' : '');
+            var btn = tpl('preset');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'lk-preset';
+            }
+            btn.classList.toggle('is-active', state.amount === val);
             btn.setAttribute('data-amount', val);
             btn.textContent = val.toLocaleString();
             btn.addEventListener('click', function () {
@@ -215,63 +377,44 @@
         var amountToPay = amount;
 
         // Promo
-        var promoHtml = '';
         if (state.promoValid && state.promoDetails) {
             var p = state.promoDetails;
             if (p.type === 'amount') {
                 amountToReceive += p.value;
-                promoHtml = '<div class="lk-receipt__row lk-receipt__row--green">' +
-                    '<span>' + cfg.i18n.bonus + '</span>' +
-                    '<span>+' + p.value + ' ' + state.currency + '</span></div>';
             } else if (p.type === 'percentage') {
                 var discount = (amountToPay * p.value) / 100;
                 amountToPay = Math.max(0, amountToPay - discount);
-                promoHtml = '<div class="lk-receipt__row lk-receipt__row--green">' +
-                    '<span>' + cfg.i18n.discount + '</span>' +
-                    '<span>-' + p.value + '%</span></div>';
             }
         }
 
-        // Apply gateway fee on top of amountToPay (buyer covers the commission)
-        var feeOnPay = fee > 0 ? Math.round((amountToPay * fee) / 100 * 100) / 100 : 0;
-        var totalToPay = amountToPay + feeOnPay;
+        var feeAmount = fee > 0 ? Math.round((amountToPay * fee) / 100 * 100) / 100 : 0;
+        var totalToPay = amountToPay + feeAmount;
 
-        // Build receipt HTML
-        var html = '';
-        html += '<div class="lk-receipt__row">';
-        html += '<span>' + cfg.i18n.base_amount + '</span>';
-        html += '<span>' + formatNumber(amount) + ' ' + state.currency + '</span>';
-        html += '</div>';
+        // Build receipt via templates
+        receiptEl.innerHTML = '';
 
-        if (fee > 0) {
-            html += '<div class="lk-receipt__row lk-receipt__row--dim">';
-            html += '<span>' + cfg.i18n.gateway_fee + '</span>';
-            html += '<span>' + fee + '% (+' + formatNumber(feeOnPay, 0) + ' ' + state.currency + ')</span>';
-            html += '</div>';
-        }
+        appendReceiptRow('receipt-row', cfg.i18n.base_amount, formatNumber(amount) + ' ' + state.currency);
+        appendReceiptRow('receipt-row', cfg.i18n.select_gateway, gwData ? gwData.name : '—');
 
         if (bonus > 0) {
-            html += '<div class="lk-receipt__row lk-receipt__row--green">';
-            html += '<span>' + cfg.i18n.gateway_bonus + ' (+' + bonus + '%)</span>';
-            html += '<span>+' + formatNumber(bonusAmount, 0) + ' ' + cfg.currencyView + '</span>';
-            html += '</div>';
+            appendReceiptRow('receipt-row-green', cfg.i18n.gateway_bonus + ' (+' + bonus + '%)', '+' + formatNumber(bonusAmount, 0) + ' ' + cfg.currencyView);
         }
 
-        html += promoHtml;
+        if (state.promoValid && state.promoDetails) {
+            var p = state.promoDetails;
+            if (p.type === 'amount') {
+                appendReceiptRow('receipt-row-green', cfg.i18n.bonus, '+' + p.value + ' ' + state.currency);
+            } else if (p.type === 'percentage') {
+                appendReceiptRow('receipt-row-green', cfg.i18n.discount, '-' + p.value + '%');
+            }
+        }
 
         if (fee > 0) {
-            html += '<div class="lk-receipt__total">';
-            html += '<span>' + cfg.i18n.to_pay + '</span>';
-            html += '<span>' + formatNumber(totalToPay) + ' ' + state.currency + '</span>';
-            html += '</div>';
+            appendReceiptRow('receipt-row', cfg.i18n.gateway_fee, '+' + formatNumber(feeAmount) + ' ' + state.currency);
         }
 
-        html += '<div class="lk-receipt__total">';
-        html += '<span>' + cfg.i18n.you_will_receive + '</span>';
-        html += '<span>' + formatNumber(amountToReceive) + ' ' + cfg.currencyView + '</span>';
-        html += '</div>';
-
-        receiptEl.innerHTML = html;
+        appendReceiptRow('receipt-row-green', cfg.i18n.you_will_receive, formatNumber(amountToReceive) + ' ' + cfg.currencyView);
+        appendReceiptRow('receipt-total', cfg.i18n.to_pay, formatNumber(totalToPay) + ' ' + state.currency);
         show(receiptEl);
         updateSubmitState();
     }
@@ -288,7 +431,7 @@
     }
 
     // ── Promo validation ───────────────────────────────────
-    var validatePromoDebounced = debounce(function () {
+    function validatePromo() {
         var code = (promoInput.value || '').trim();
         state.promoCode = code;
 
@@ -300,25 +443,32 @@
             return;
         }
 
-        fetch(u('api/lk/validate-promo'), {
+        fetch(resolveUrl('api/lk/validate-promo'), {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ promoCode: code, amount: state.amount })
         })
-        .then(function (r) { return r.json(); })
+        .then(parseJsonResponse)
         .then(function (data) {
-            if (data.valid) {
+            var payload = data.data || {};
+
+            if (payload.valid) {
                 state.promoValid = true;
-                state.promoDetails = { type: data.type, value: data.value };
-                setPromoState('valid');
+                state.promoDetails = { type: payload.type, value: payload.value };
+                var successMsg = payload.type === 'percentage'
+                    ? (cfg.i18n.promo_applied_discount || 'Скидка') + ' -' + payload.value + '%'
+                    : (cfg.i18n.promo_applied_bonus || 'Бонус') + ' +' + payload.value;
+                setPromoState('valid', successMsg);
             } else {
                 state.promoValid = false;
                 state.promoDetails = null;
-                setPromoState('invalid');
+                setPromoState('invalid', payload.message || cfg.i18n.promo_invalid || 'Промокод недействителен');
             }
             recalculate();
         })
@@ -328,25 +478,60 @@
             setPromoState('');
             recalculate();
         });
-    }, 600);
+    }
 
-    function setPromoState(s) {
-        if (!promoWrap) return;
-        promoWrap.classList.toggle('is-valid', s === 'valid');
-        promoWrap.classList.toggle('is-invalid', s === 'invalid');
+    function clearPromo() {
+        if (promoInput) promoInput.value = '';
+        state.promoCode = '';
+        state.promoValid = false;
+        state.promoDetails = null;
+        setPromoState('');
+        updatePromoBtn();
+        recalculate();
+    }
 
-        if (!promoBadge) return;
-        if (s === 'valid') {
-            promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
-            promoBadge.className = 'lk-promo__badge is-valid';
-            show(promoBadge);
-        } else if (s === 'invalid') {
-            promoBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256"><path fill="currentColor" d="M208.49 191.51a12 12 0 0 1-17 17L128 145l-63.51 63.49a12 12 0 0 1-17-17L111 128L47.51 64.49a12 12 0 0 1 17-17L128 111l63.51-63.49a12 12 0 0 1 17 17L145 128Z"/></svg>';
-            promoBadge.className = 'lk-promo__badge is-invalid';
-            show(promoBadge);
+    function updatePromoBtn() {
+        if (!promoBtn) return;
+        var code = (promoInput ? promoInput.value : '').trim();
+        if (code || state.promoValid) {
+            show(promoBtn);
+            promoBtn.classList.toggle('is-applied', state.promoValid);
+            promoBtn.textContent = state.promoValid
+                ? (promoBtn.getAttribute('data-label-clear') || 'Clear')
+                : (promoBtn.getAttribute('data-label-apply') || 'Apply');
         } else {
-            hide(promoBadge);
+            hide(promoBtn);
         }
+    }
+
+    function setPromoState(s, message) {
+        if (!promoWrap) return;
+
+        var fieldEl = promoWrap.querySelector('.lk-promo__field');
+        if (fieldEl) {
+            fieldEl.classList.toggle('is-valid', s === 'valid');
+            fieldEl.classList.toggle('has-error', s === 'invalid');
+        }
+
+        if (promoMsgEl) {
+            promoMsgEl.className = 'lk-promo__message';
+            if (s && message) {
+                promoMsgEl.classList.add('lk-promo__message--' + s);
+                promoMsgEl.textContent = message;
+            } else {
+                promoMsgEl.textContent = '';
+            }
+        }
+
+        updatePromoBtn();
+    }
+
+    // ── Agree checkbox ──────────────────────────────────────
+    if (agreeCheckbox) {
+        agreeCheckbox.addEventListener('change', function () {
+            state.agree = this.checked;
+            updateSubmitState();
+        });
     }
 
     // ── Collect additional form fields ─────────────────────
@@ -383,49 +568,79 @@
         e.preventDefault();
         if (submitBtn.disabled) return;
 
-        setLoading(true);
+        // Optimistic: show redirect overlay immediately
+        showRedirectOverlay();
 
-        fetch(u('api/lk/purchase'), {
+        fetch(resolveUrl('api/lk/purchase'), {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify(collectFormData())
         })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(parseJsonResponse)
         .then(function (res) {
             if (res.ok && res.data.redirect) {
-                if (typeof notyf !== 'undefined' && res.data.message) {
-                    notyf.open({ type: 'success', message: res.data.message });
-                }
                 window.location.href = res.data.redirect;
             } else {
-                setLoading(false);
+                hideRedirectOverlay();
                 var msg = res.data.error || 'Error';
                 if (typeof notyf !== 'undefined') {
                     notyf.open({ type: 'error', message: msg });
                 }
             }
         })
-        .catch(function () {
-            setLoading(false);
+        .catch(function (error) {
+            hideRedirectOverlay();
             if (typeof notyf !== 'undefined') {
-                notyf.open({ type: 'error', message: 'Network error' });
+                notyf.open({ type: 'error', message: error && error.message ? error.message : 'Network error' });
             }
         });
     }
 
-    function setLoading(on) {
-        if (!submitBtn) return;
-        submitBtn.disabled = on;
-        submitBtn.classList.toggle('is-loading', on);
-        var text = submitBtn.querySelector('[data-lk-btn-text]');
-        var loader = submitBtn.querySelector('.lk-submit__loader');
-        if (text) text.style.opacity = on ? '0' : '1';
-        if (loader) {
-            loader.style.display = on ? '' : 'none';
+    // ── Redirect overlay ────────────────────────────────────
+    var redirectOverlay = null;
+
+    // Yoyo wraps the component — we need to remove it from DOM to stop re-renders
+    var yoyoWrap = root.closest('[id^="yoyo"]') || root.parentNode;
+    var yoyoParent = null;
+    var yoyoAnchor = null;
+
+    function showRedirectOverlay() {
+        var t = root.querySelector('[data-lk-tpl="redirect"]');
+        if (t) {
+            redirectOverlay = t.content.cloneNode(true).firstElementChild;
+        } else {
+            redirectOverlay = document.createElement('div');
+            redirectOverlay.className = 'lk-redirect-overlay';
+            redirectOverlay.innerHTML =
+                '<div class="lk-redirect-overlay__spinner"></div>' +
+                '<p class="lk-redirect-overlay__text">' + (cfg.i18n.redirecting || 'Redirecting…') + '</p>';
+        }
+
+        // Remember position, remove Yoyo element entirely so HTMX can't swap it
+        yoyoParent = yoyoWrap.parentNode;
+        yoyoAnchor = yoyoWrap.nextSibling;
+        yoyoParent.insertBefore(redirectOverlay, yoyoWrap);
+        yoyoParent.removeChild(yoyoWrap);
+    }
+
+    function hideRedirectOverlay() {
+        // Restore Yoyo element
+        if (yoyoParent && yoyoWrap) {
+            if (yoyoAnchor) {
+                yoyoParent.insertBefore(yoyoWrap, yoyoAnchor);
+            } else {
+                yoyoParent.appendChild(yoyoWrap);
+            }
+        }
+        if (redirectOverlay && redirectOverlay.parentNode) {
+            redirectOverlay.parentNode.removeChild(redirectOverlay);
+            redirectOverlay = null;
         }
     }
 
@@ -457,16 +672,39 @@
         amountInput.addEventListener('input', onAmountInput);
     }
 
-    // Promo input
+    // Promo input — show/hide button on typing, reset state when cleared
     if (promoInput) {
-        promoInput.addEventListener('input', validatePromoDebounced);
+        promoInput.addEventListener('input', function () {
+            var code = promoInput.value.trim();
+            if (!code && (state.promoValid || state.promoCode)) {
+                state.promoCode = '';
+                state.promoValid = false;
+                state.promoDetails = null;
+                setPromoState('');
+                recalculate();
+            }
+            updatePromoBtn();
+        });
+        promoInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (state.promoValid) {
+                    clearPromo();
+                } else {
+                    validatePromo();
+                }
+            }
+        });
     }
 
-    // Agree checkbox
-    if (agreeCheckbox) {
-        agreeCheckbox.addEventListener('change', function () {
-            state.agree = this.checked;
-            updateSubmitState();
+    // Promo apply/clear button
+    if (promoBtn) {
+        promoBtn.addEventListener('click', function () {
+            if (state.promoValid) {
+                clearPromo();
+            } else {
+                validatePromo();
+            }
         });
     }
 
@@ -495,7 +733,7 @@
             state.gateway = hiddenGw.value;
         }
 
-        // Read actual checkbox state from DOM (handles pre-checked state)
+        // Read actual checkbox state from DOM
         if (agreeCheckbox) {
             state.agree = agreeCheckbox.checked;
         }

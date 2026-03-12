@@ -36,7 +36,7 @@
     <x-modal id="lk-modal" title="{{ __('lk.title') }}" loadUrl="{{ '/lk' }}" :inline="true">
         <x-slot:skeleton>
             <div class="modal__content-loading">
-                <div class="lk-modal-form" style="max-width: 480px; margin: 0 auto;">
+                <div class="lk-modal-wrap" style="max-width: 480px; margin: 0 auto;">
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>
                         <div class="skeleton" style="height: 38px; flex: 1; border-radius: var(--border05);"></div>

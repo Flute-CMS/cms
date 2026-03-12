@@ -97,7 +97,7 @@
                                                         <x-icon class="navbar-dropdown__item-icon"
                                                             path="{{ $item['icon'] }}" />
                                                     @endif
-                                                    <span itemprop="name">{{ __($item['title']) }}</span>
+                                                    <span itemprop="name">{{ transValue($item['title']) }}</span>
                                                 </a>
                                             @else
                                                 <button class="navbar-dropdown__item navbar-dropdown__trigger"
@@ -106,7 +106,7 @@
                                                         <x-icon class="navbar-dropdown__item-icon"
                                                             path="{{ $item['icon'] }}" />
                                                     @endif
-                                                    <span>{{ __($item['title']) }}</span>
+                                                    <span>{{ transValue($item['title']) }}</span>
                                                     <x-icon class="navbar-dropdown__chevron"
                                                         path="ph.bold.caret-down-bold" />
                                                 </button>
@@ -148,14 +148,14 @@
                                                                                 <div
                                                                                     class="navbar-dropdown__menu-group-content">
                                                                                     <span
-                                                                                        class="navbar-dropdown__menu-title">{{ __($child['title']) }}</span>
+                                                                                        class="navbar-dropdown__menu-title">{{ transValue($child['title']) }}</span>
                                                                                     <div
                                                                                         class="navbar-dropdown__sublinks">
                                                                                         @foreach ($child['children'] as $subChild)
                                                                                             <a href="{{ url($subChild['url']) }}"
                                                                                                 @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
                                                                                                 class="navbar-dropdown__sublink">
-                                                                                                {{ __($subChild['title']) }}
+                                                                                                {{ transValue($subChild['title']) }}
                                                                                             </a>
                                                                                         @endforeach
                                                                                     </div>
@@ -176,10 +176,10 @@
                                                                             @endif
                                                                             <span class="navbar-dropdown__menu-text">
                                                                                 <span
-                                                                                    class="navbar-dropdown__menu-title">{{ __($child['title']) }}</span>
+                                                                                    class="navbar-dropdown__menu-title">{{ transValue($child['title']) }}</span>
                                                                                 @if (!empty($child['description']))
                                                                                     <span
-                                                                                        class="navbar-dropdown__menu-desc">{{ __($child['description']) }}</span>
+                                                                                        class="navbar-dropdown__menu-desc">{{ transValue($child['description']) }}</span>
                                                                                 @endif
                                                                             </span>
                                                                         </a>

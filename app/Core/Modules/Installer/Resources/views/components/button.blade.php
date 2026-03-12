@@ -1,65 +1,33 @@
 @props([
     'type' => 'button',
     'variant' => 'primary',
-    'loading' => false,
     'disabled' => false,
     'class' => '',
     'href' => null,
-    'hxPost' => null,
-    'hxGet' => null,
-    'hxTarget' => null
+    'size' => null,
 ])
 
 @php
-    $classes = 'installer-button';
-    
-    if ($variant === 'secondary') {
-        $classes .= ' installer-button--secondary';
+    $classes = 'btn';
+    $classes .= ' btn--' . $variant;
+
+    if ($size) {
+        $classes .= ' btn--' . $size;
     }
 
-    if ($variant === 'primary') {
-        $classes .= ' installer-button--primary';
-    }
-    
-    if ($loading) {
-        $classes .= ' installer-button--loading';
-    }
-    
     if ($class) {
         $classes .= ' ' . $class;
-    }
-    
-    $attributes = $attributes->merge([
-        'class' => $classes,
-        'type' => $href ? null : $type,
-        'disabled' => $disabled
-    ]);
-    
-    if ($hxPost) {
-        $attributes = $attributes->merge(['hx-post' => $hxPost]);
-    }
-    
-    if ($hxGet) {
-        $attributes = $attributes->merge(['hx-get' => $hxGet]);
-    }
-    
-    if ($hxTarget) {
-        $attributes = $attributes->merge(['hx-target' => $hxTarget]);
     }
 @endphp
 
 @if ($href)
-    <a href="{{ $href }}" {{ $attributes }}>
-        @if ($loading)
-            <span class="installer-button__spinner"></span>
-        @endif
-        {{ $slot }}
+    <a href="{{ $href }}" class="{{ $classes }}" {{ $attributes }}>
+        <span class="btn__spinner"></span>
+        <span class="btn__label">{{ $slot }}</span>
     </a>
 @else
-    <button {{ $attributes }}>
-        @if ($loading)
-            <span class="installer-button__spinner"></span>
-        @endif
-        {{ $slot }}
+    <button type="{{ $type }}" class="{{ $classes }}" @if ($disabled) disabled @endif {{ $attributes }}>
+        <span class="btn__spinner"></span>
+        <span class="btn__label">{{ $slot }}</span>
     </button>
 @endif

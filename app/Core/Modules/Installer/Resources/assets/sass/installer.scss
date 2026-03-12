@@ -1,16 +1,114 @@
 @import 'base';
 
+// Components
 @import 'components/button';
 @import 'components/input';
 @import 'components/select';
 @import 'components/step-indicators';
 @import 'components/toggle';
 
+// Step views
 @import 'yoyo/welcome';
-@import 'yoyo/language';
-@import 'yoyo/requirements';
-@import 'yoyo/flute-key';
+@import 'yoyo/system-check';
 @import 'yoyo/database';
-@import 'yoyo/admin-user';
-@import 'yoyo/site-info';
-@import 'yoyo/site-settings';
+@import 'yoyo/account-site';
+@import 'yoyo/launch';
+@import 'yoyo/languages';
+@import 'yoyo/modules';
+@import 'yoyo/finish';
+
+// ── Right panel contextual content ──────────────────────────
+
+.lp-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--installer-text);
+    line-height: 1.35;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+}
+
+.lp-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--installer-muted);
+    margin-bottom: 0;
+}
+
+.lp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px;
+    margin-bottom: 0;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--installer-muted-light);
+        line-height: 1.5;
+
+        &::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+            margin-top: 6px;
+            opacity: 0.6;
+        }
+    }
+}
+
+.lp-card {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--installer-border);
+    border-radius: var(--radius-md);
+    margin-top: 10px;
+    margin-bottom: 0;
+
+    &__title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--installer-text-secondary);
+        margin-bottom: 2px;
+    }
+
+    &__text {
+        font-size: 11px;
+        color: var(--installer-muted);
+        line-height: 1.5;
+    }
+}
+
+.lp-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--installer-warning-bg);
+    border: 1px solid rgba(251, 191, 36, 0.12);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+
+    &__icon {
+        flex-shrink: 0;
+        color: var(--installer-warning);
+        margin-top: 1px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &__text {
+        font-size: 12px;
+        color: var(--installer-warning);
+        line-height: 1.5;
+    }
+}

@@ -267,7 +267,7 @@ class UserEditScreen extends Screen
 
         $user = rep(User::class)->findByPK($userId);
         if (!$user) {
-            $this->flashMessage(__('admin-users.messages.user_not_found'), 'danger');
+            $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
 
             return;
         }
@@ -370,7 +370,7 @@ class UserEditScreen extends Screen
         $network = rep(UserSocialNetwork::class)->findByPK($networkId);
 
         if (!$network) {
-            $this->flashMessage(__('admin-users.messages.social_not_found'), 'danger');
+            $this->flashMessage(__('admin-users.messages.social_not_found'), 'error');
 
             return;
         }

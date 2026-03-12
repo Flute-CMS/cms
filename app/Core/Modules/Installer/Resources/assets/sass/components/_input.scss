@@ -1,60 +1,275 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+
+    &__label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--installer-text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .required {
+            color: var(--accent);
+            font-weight: 700;
+        }
+    }
+
+    &__input:not(.ts-wrapper) {
+        width: 100%;
+        padding: 10px 0;
+        background-color: transparent;
+        border: none;
+        border-bottom: 1.5px solid var(--installer-border2);
+        border-radius: 0;
+        color: var(--installer-text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.5;
+        transition:
+            border-color 0.2s var(--ease-out),
+            box-shadow 0.2s var(--ease-out);
+
+        &::placeholder {
+            color: var(--installer-muted);
+        }
+
+        &:hover:not(:focus):not(:disabled) {
+            border-color: var(--installer-border-hover);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 2px 0 0 rgba(165, 255, 117, 0.3);
+        }
+    }
+
+    &__input--mono {
+        font-family: var(--font-body);
+        font-size: 15px;
+    }
+
+    textarea.field__input {
+        resize: vertical;
+        min-height: 80px;
+        border: 1.5px solid var(--installer-border2);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba(165, 255, 117, 0.08);
+        }
+    }
+
+    &__hint {
+        font-size: 12px;
+        color: var(--installer-muted);
+        line-height: 1.4;
+    }
+
+    &__error {
+        font-size: 12px;
+        color: var(--installer-error);
+        animation: fadeIn 0.2s var(--ease-out);
+        line-height: 1.4;
+    }
+
+    // Error state
+    &.has-error {
+        .field__input {
+            border-color: var(--installer-error);
+
+            &:focus {
+                box-shadow: 0 2px 0 0 rgba(248, 113, 113, 0.3);
+            }
+        }
+
+        .field__label {
+            color: var(--installer-error);
+        }
+    }
+}
+
+// ── Legacy input wrapper ────────────────────────────────────
 .input-wrapper {
     position: relative;
     width: 100%;
+    margin-bottom: 18px;
 
     .input__label {
         display: block;
-        margin-bottom: 0.3em;
-        font-weight: 500;
+        margin-bottom: 6px;
+        font-weight: 600;
         text-align: left;
-        transition: color var(--transition);
-        font-size: var(--p);
-        color: var(--text-200);
+        font-size: 13px;
+        color: var(--installer-text-secondary);
     }
 
     input,
     textarea {
         width: 100%;
-        padding: 0.5rem 0.85rem;
-        border: 1px solid var(--transp-1);
-        border-radius: 0.5rem;
-        color: var(--text);
-        font-size: var(--p);
-        transition: border-color var(--transition);
-        background-color: var(--transp-05);
+        padding: 10px 0;
+        border: none;
+        border-bottom: 1.5px solid var(--installer-border2);
+        border-radius: 0;
+        color: var(--installer-text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s var(--ease-out);
+        background: transparent;
+
+        &:hover:not(:focus) {
+            border-color: var(--installer-border-hover);
+        }
 
         &:focus {
-            outline: none;
-            border-color: var(--transp-5);
+            border-color: var(--accent);
+            box-shadow: 0 2px 0 0 rgba(165, 255, 117, 0.3);
         }
 
         &::placeholder {
-            color: var(--text-600);
+            color: var(--installer-muted);
         }
     }
 
     .installer-input__required {
-        color: var(--error);
+        color: var(--accent);
     }
 
     .installer-input__error {
-        color: var(--error);
-        font-size: var(--small);
-        animation: fadeIn 0.3s ease-out;
-        line-height: 1.2;
+        color: var(--installer-error);
+        font-size: 12px;
+        animation: fadeIn 0.2s var(--ease-out);
+        line-height: 1.3;
+        margin-top: 4px;
     }
 
     &.has-error {
         input {
-            border-color: var(--error);
+            border-color: var(--installer-error);
         }
 
         .input__label {
-            color: var(--error);
+            color: var(--installer-error);
         }
     }
 }
 
-.form-text {
-    @extend .text-muted;
+// ── Radio cards ───────────────────────────────────────────
+.radio-card {
+    cursor: pointer;
+
+    input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__body {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--installer-border);
+        border-radius: var(--radius-lg);
+        background: transparent;
+        transition: all 0.2s var(--ease-out);
+
+        &:hover {
+            border-color: var(--installer-border2);
+            background: rgba(255, 255, 255, 0.02);
+        }
+    }
+
+    &__dot {
+        margin-left: auto;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+        transition: all 0.2s var(--ease-out);
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg,
+        img {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    &__text {
+        flex: 1;
+        min-width: 0;
+
+        strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--installer-text);
+            line-height: 1.3;
+        }
+
+        span {
+            display: block;
+            font-size: 11px;
+            color: var(--installer-muted);
+        }
+    }
+
+    input:checked + .radio-card__body {
+        border-color: var(--accent);
+        background: rgba(165, 255, 117, 0.03);
+        box-shadow: 0 0 0 1px rgba(165, 255, 117, 0.12);
+
+        .radio-card__dot {
+            background: var(--accent);
+            box-shadow: 0 0 6px rgba(165, 255, 117, 0.3);
+        }
+    }
+
+    &--center {
+        .radio-card__body {
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .radio-card__dot {
+            margin-left: 0;
+        }
+    }
+}
+
+// ── Radio card grid ───────────────────────────────────────
+.radio-grid {
+    display: grid;
+    gap: 10px;
+
+    &--2 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    &--3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 640px) {
+        &--2,
+        &--3 {
+            grid-template-columns: 1fr;
+        }
+    }
 }

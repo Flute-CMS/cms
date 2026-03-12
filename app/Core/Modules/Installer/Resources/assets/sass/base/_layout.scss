@@ -1,220 +1,465 @@
-.installer {
-    position: fixed;
-    top: 0;
-    left: 0;
+
+.installer-welcome {
     width: 100%;
-    height: 100vh;
-    min-height: 100svh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--installer-bg);
+    color: var(--installer-text);
+    overflow-x: hidden;
+}
+
+// ── Main wrapper ──────────────────────────────────────────
+.installer-app {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background-color: var(--installer-bg);
+    color: var(--installer-text);
+}
+
+// ── Top navbar ────────────────────────────────────────────
+.installer-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    flex-shrink: 0;
+    z-index: 10;
+
+    @media (max-width: 640px) {
+        padding: 14px 20px;
+    }
+}
+
+.installer-navbar__left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.installer-navbar__logo {
+    height: 22px;
+    width: auto;
+}
+
+.installer-navbar__center {
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text);
+}
+
+.installer-navbar__right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.installer-navbar__version {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--installer-muted);
+    letter-spacing: 0.02em;
+}
+
+// ── Main area (content + aside) ──────────────────────────
+.installer-main {
+    flex: 1;
+    display: flex;
     overflow: hidden;
-    padding: 2rem;
+    padding: 0 16px 16px;
+    gap: 16px;
 
-    &.isStep {
-        &::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 90% 10%, var(--accent) 0%, transparent 35%),
-                radial-gradient(circle at 10% 90%, var(--primary) 0%, transparent 35%);
-            opacity: 0.15;
-            z-index: 0;
-            animation: fadeInBackground 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) 0.3s both;
-        }
-    }
-
-    &__header {
-        @extend .d-flex, .flex-column, .align-center, .justify-center;
-        position: relative;
-        z-index: 1;
-        animation: fadeIn 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) 0.3s both;
-        text-align: center;
-        margin-bottom: 2rem;
-
-        h1 {
-            margin-top: 1rem;
-            color: var(--accent);
-            font-size: var(--h2);
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
-
-        p {
-            @extend .text-muted;
-            margin-bottom: .5rem;
-            text-align: center;
-            color: var(--text-200);
-            font-size: var(--p);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            max-width: 210px;
-            height: auto;
-            animation: fadeInDown 1s cubic-bezier(0.25, 0.1, 0.25, 1.0) 0.3s both;
-        }
-    }
-
-    &__container {
-        @extend .d-flex, .flex-column, .align-center, .justify-center;
-
-        position: relative;
-        z-index: 1;
-        width: 600px;
-        text-align: center;
-        animation: fadeIn 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) 0.3s both;
-
-        >div {
-            width: 100%;
-        }
-
-        @include media(mobile) {
-            width: 100%;
-        }
-    }
-
-    &__footer {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 600px;
-        text-align: center;
-        padding-bottom: 2rem;
+    @media (max-width: 1023px) {
+        padding: 0;
     }
 }
 
-.installer-content-container {
+// ── Left: open content area ──────────────────────────────
+.installer-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 16px 40px;
+
+    @media (max-width: 640px) {
+        padding: 20px 20px 32px;
+    }
+}
+
+.installer-content__inner {
     width: 100%;
-    max-width: 800px;
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
-.tabs-minimal {
-    &__nav {
-        display: flex;
-        border-bottom: 1px solid var(--transp-1);
-        margin-bottom: 1rem;
-        gap: 1.5rem;
+// ── Right: contained card ────────────────────────────────
+.installer-aside {
+    flex-shrink: 0;
+    width: 400px;
+
+    @media (min-width: 1440px) {
+        width: 500px;
+    }
+
+    @media (max-width: 1023px) {
+        display: none;
     }
 }
 
-.tab-minimal {
-    @extend .d-flex, .align-center, .justify-center, .gap-1;
-
-    padding: 0.75rem 0;
-    font-weight: 500;
-    color: var(--text-400);
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
+.installer-aside__card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 36px;
+    gap: 40px;
+    background: var(--installer-surface);
+    border: 1px solid var(--installer-border);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
     position: relative;
-    transition: all 0.2s ease;
-    font-size: var(--p);
+
+    // Subtle inner glow
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 70% 50% at 60% 20%, rgba(165, 255, 117, 0.04) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 60% at 30% 80%, rgba(96, 165, 250, 0.03) 0%, transparent 60%);
+        pointer-events: none;
+    }
+}
+
+// ── Aside context ────────────────────────────────────────
+.installer-aside__context {
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideUp 0.5s var(--ease-out) both;
+}
+
+.aside-step-num {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.04);
+    margin-bottom: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+.aside-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--installer-text);
+    line-height: 1.3;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+}
+
+.aside-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--installer-muted);
+}
+
+// ── Decorative icons ─────────────────────────────────────
+.installer-aside__deco {
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.8s var(--ease-out) 0.2s both;
+}
+
+.deco-icons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.deco-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+
+    svg {
+        width: 26px;
+        height: 26px;
+        color: rgba(255, 255, 255, 0.08);
+    }
+
+    &--accent svg {
+        color: rgba(165, 255, 117, 0.12);
+    }
+}
+
+// ── Aside footer ─────────────────────────────────────────
+.installer-aside__footer {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    color: var(--installer-muted);
+}
+
+// ── Step content area ─────────────────────────────────────
+.step-panel {
+    animation: fadeSlideIn 0.35s var(--ease-out) both;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.step-header {
+    margin-bottom: 32px;
+
+    &__icon {
+        display: flex;
+        margin-bottom: 20px;
+
+        svg {
+            width: 50px;
+            height: 50px;
+            opacity: .1;
+        }
+    }
+
+    h1 {
+        margin-bottom: 8px;
+    }
+
+    p,
+    .step-subtitle {
+        font-size: 14px;
+        color: var(--installer-muted);
+        line-height: 1.6;
+    }
+}
+
+.step-body {
+    flex: 1;
+}
+
+.step-footer {
+    padding-top: 32px;
+    margin-top: auto;
+}
+
+// ── Form actions row ──────────────────────────────────────
+.installer-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+// ── Alert / notification ──────────────────────────────────
+.alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 13px;
+    animation: fadeInDown 0.3s var(--ease-out);
+    margin-bottom: 16px;
+    line-height: 1.5;
+
+    &--danger {
+        border: 1px solid rgba(248, 113, 113, 0.12);
+        color: var(--installer-error);
+        background-color: var(--installer-error-bg);
+    }
+
+    &--success {
+        border: 1px solid rgba(52, 211, 153, 0.12);
+        color: var(--installer-success);
+        background-color: var(--installer-success-bg);
+    }
+
+    &--warning {
+        border: 1px solid rgba(251, 191, 36, 0.12);
+        color: var(--installer-warning);
+        background-color: var(--installer-warning-bg);
+    }
+}
+
+// ── Section divider ───────────────────────────────────────
+.divider {
+    width: 100%;
+    height: 1px;
+    background: var(--installer-border);
+    margin: 28px 0;
+    border: none;
+}
+
+// ── Tooltip trigger (? button) ────────────────────────────
+.tooltip-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--installer-surface3);
+    border: 1px solid var(--installer-border2);
+    color: var(--installer-muted);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: help;
+    transition: all 0.15s;
+    flex-shrink: 0;
 
     &:hover {
-        color: var(--text-200);
-    }
-
-    &.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
+        color: var(--installer-text);
+        border-color: var(--installer-border-hover);
+        background: var(--installer-surface-hover);
     }
 }
 
-.tab-minimal-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
+// ── Floating tooltip ────────────────────────────────────
+.installer-tooltip {
+    position: absolute;
+    z-index: 10000;
+    background: var(--installer-surface3);
+    border: 1px solid var(--installer-border2);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--installer-muted-light);
+    max-width: 260px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
 
-    &.active {
+    &.show {
+        opacity: 1;
+    }
+}
+
+// ── Collapsible ───────────────────────────────────────────
+.collapse-box {
+    border: 1px solid var(--installer-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.collapse-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: none;
+    color: var(--installer-muted-light);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-body);
+    border: none;
+    transition: color 0.15s;
+
+    &:hover {
+        color: var(--installer-text);
+    }
+
+    &__left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__badge {
+        font-size: 11px;
+        color: var(--installer-muted);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    > svg {
+        width: 14px;
+        height: 14px;
+        color: var(--installer-muted);
+        transition: transform 0.25s var(--ease-out);
+    }
+
+    &.is-open > svg {
+        transform: rotate(180deg);
+    }
+}
+
+.collapse-content {
+    display: none;
+    padding: 0 16px 16px;
+
+    &.is-open {
         display: block;
     }
 }
 
-.installer-form__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: .5rem;
-}
-
-.alert {
-    border-radius: var(--border05);
-    padding: 0.75rem 1rem;
-    font-weight: 500;
-    font-size: var(--p-small);
-    animation: fadeInDown 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin-bottom: 1rem;
-
-    --success-rgb: 142, 202, 230;
-    --error-rgb: 239, 150, 150;
-    --warning-rgb: 255, 233, 186;
-    --info-rgb: 230, 236, 240;
-
-    &--danger {
-        border: 1px solid var(--error-light);
-        color: var(--error);
-        background-color: rgba(var(--error-rgb), 0.05);
-    }
-
-    &--success {
-        border: 1px solid var(--success-light);
-        color: var(--success);
-        background-color: rgba(var(--success-rgb), 0.05);
-    }
-
-    &--warning {
-        border: 1px solid var(--warning-light);
-        color: var(--warning);
-        background-color: rgba(var(--warning-rgb), 0.05);
-    }
-
-    &--info {
-        border: 1px solid var(--primary-light);
-        color: var(--primary);
-        background-color: rgba(var(--primary-rgb), 0.05);
-    }
-}
-
-// Common info card
+// ── Info card ─────────────────────────────────────────────
 .info-card {
     display: flex;
     align-items: flex-start;
-    padding: 0.75rem;
-    background-color: var(--transp-05);
-    border-radius: 3px;
-    border-left: 2px solid var(--primary);
-    margin-bottom: 1rem;
-    gap: 0.75rem;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent);
+    gap: 12px;
+    margin-bottom: 16px;
 
     &__icon {
         flex-shrink: 0;
-        color: var(--primary);
+        color: var(--accent);
+        margin-top: 2px;
 
         svg {
-            width: 1.25rem;
-            height: 1.25rem;
+            width: 18px;
+            height: 18px;
         }
     }
 
     &__content {
         h4 {
-            font-size: var(--p);
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 4px;
         }
 
         p {
-            font-size: var(--small);
-            color: var(--text-200);
-            margin: 0;
+            font-size: 12px;
+            color: var(--installer-muted-light);
             line-height: 1.5;
+        }
+    }
+}
+
+// ── Form group row ────────────────────────────────────────
+.form-group {
+    margin-bottom: 16px;
+
+    &-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
         }
     }
 }

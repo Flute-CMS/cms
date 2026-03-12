@@ -197,12 +197,17 @@ return [
     "align_left"            => "По левому краю",
     "align_center"          => "По центру",
 
-    // Дизайн-пресеты
-    "design_presets"        => "Дизайн-пресеты",
-    "design_presets_desc"   => "Выберите готовый стиль оформления. Все цвета, эффекты и пропорции обновятся мгновенно.",
-    "choose_design"         => "Выбрать стиль",
-    "design_details"        => "Активный стиль",
-    "design_keep_colors"    => "Сохранить текущие цвета",
+    // Цветовые пресеты
+    "color_presets"         => "Быстрая палитра",
+    "color_presets_dark"    => "Тёмные палитры",
+    "color_presets_light"   => "Светлые палитры",
+
+    // Секции аккордеона
+    "detailed_settings"     => "Детальная настройка",
+    "background_section"    => "Фон",
+    "nav_and_footer"        => "Навигация и футер",
+    "spacing_and_layout"    => "Размеры и отступы",
+    "effects_section"       => "Эффекты и анимации",
 
     // Редактор виджетов (Wix-стиль)
     "editing"               => "Редактирование:",

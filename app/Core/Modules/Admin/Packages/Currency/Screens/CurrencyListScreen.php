@@ -225,7 +225,7 @@ class CurrencyListScreen extends Screen
         $currencyId = $parameters->get('currency');
         $currency = Currency::findByPK($currencyId);
         if (!$currency) {
-            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'error');
 
             return;
         }
@@ -292,7 +292,7 @@ class CurrencyListScreen extends Screen
 
         $currency = Currency::findByPK($currencyId);
         if (!$currency) {
-            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'error');
 
             return;
         }
@@ -361,7 +361,7 @@ class CurrencyListScreen extends Screen
 
         $currency = Currency::findByPK($id);
         if (!$currency) {
-            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'danger');
+            $this->flashMessage(__('admin-currency.messages.currency_not_found'), 'error');
 
             return;
         }

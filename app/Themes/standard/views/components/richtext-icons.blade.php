@@ -88,7 +88,6 @@
         'image',
         'table',
         'fullscreen',
-        'translation',
         'clear',
         'highlight',
         'youtube',
@@ -129,8 +128,6 @@
         'title',
         'link_title',
         'open_in_new_tab',
-        'translation_key',
-        'translation_key_placeholder',
         'image_alt_text',
         'describe_image',
         'insert_image',
@@ -233,33 +230,6 @@
                     <div class="input__field-container">
                         <input type="url" class="input__field" data-field="url"
                             placeholder="https://youtube.com/watch?v=...">
-                    </div>
-                </div>
-            </div>
-            <footer class="modal__footer">
-                <button type="button" class="btn btn-outline-primary btn-small w-100"
-                    data-modal-action="cancel">{{ __('editor.cancel') }}</button>
-                <button type="button" class="btn btn-primary btn-small w-100"
-                    data-modal-action="insert">{{ __('editor.insert') }}</button>
-            </footer>
-        </div>
-    </div>
-</template>
-
-{{-- Translation key modal --}}
-<template id="tiptap-modal-translation-tpl">
-    <div class="modal modal--sm" role="dialog" aria-hidden="true" data-a11y-dialog>
-        <div class="modal__overlay" tabindex="-1" data-a11y-dialog-hide></div>
-        <div class="modal__container" role="document">
-            <header class="modal__header">
-                <h4 class="modal__title">{{ __('editor.translation_key') }}</h4>
-                <button class="modal__close" data-a11y-dialog-hide></button>
-            </header>
-            <div class="modal__content">
-                <div class="form__group">
-                    <label class="form__label">{{ __('editor.translation_key_placeholder') }}</label>
-                    <div class="input__field-container">
-                        <input type="text" class="input__field" data-field="key" placeholder="def.welcome">
                     </div>
                 </div>
             </div>

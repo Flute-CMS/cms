@@ -108,7 +108,7 @@ class AdminPanel
                         'screen' => $screenString,
                         'slug' => $url,
                     ]);
-                })->middleware('can:admin');
+                })->middleware(['can:admin', 'csrf']);
             });
         }
     }

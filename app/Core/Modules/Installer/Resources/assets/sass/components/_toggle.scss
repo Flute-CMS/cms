@@ -1,8 +1,105 @@
+// ── Toggle row (setting with label + toggle) ──────────────
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--installer-surface2);
+    border: 1px solid var(--installer-border);
+    border-radius: var(--radius-lg);
+    transition: border-color 0.15s var(--ease-smooth);
+    margin-bottom: 10px;
+
+    &:hover {
+        border-color: var(--installer-border2);
+    }
+
+    &__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--installer-text);
+        line-height: 1.3;
+    }
+
+    &__desc {
+        font-size: 12px;
+        color: var(--installer-muted);
+        line-height: 1.4;
+        margin-top: 2px;
+    }
+}
+
+// ── Toggle track ──────────────────────────────────────────
+.toggle-track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition:
+        background-color var(--duration-slow) var(--ease-out),
+        border-color var(--duration-slow);
+    flex-shrink: 0;
+
+    input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+// ── Toggle thumb ──────────────────────────────────────────
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transition:
+        transform var(--duration-slow) var(--ease-spring),
+        background-color var(--duration-slow),
+        box-shadow var(--duration-slow);
+    pointer-events: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+// ── Checked state ─────────────────────────────────────────
+.toggle-track input:checked {
+    & ~ .toggle-thumb {
+        transform: translateX(20px);
+        background: #000;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 6px rgba(165, 255, 117, 0.2);
+    }
+}
+
+.toggle-track:has(input:checked) {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+// ── Disabled ──────────────────────────────────────────────
+.toggle-track:has(input:disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+// ── Legacy toggle-switch compat ───────────────────────────
 .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 46px;
-    height: 26px;
+    width: 44px;
+    height: 24px;
     cursor: pointer;
 
     &__input {
@@ -10,41 +107,42 @@
         width: 0;
         height: 0;
 
-        &:checked+.toggle-switch__slider {
-            background-color: var(--primary);
+        &:checked + .toggle-switch__slider {
+            background-color: var(--accent);
+            border-color: var(--accent);
 
-            &:before {
+            &::before {
                 transform: translateX(20px);
-                background-color: var(--primary-900);
+                background-color: #fff;
+                box-shadow: 0 0 6px rgba(165, 255, 117, 0.25);
             }
         }
 
-        &:disabled+.toggle-switch__slider {
-            opacity: 0.5;
+        &:disabled + .toggle-switch__slider {
+            opacity: 0.4;
             cursor: not-allowed;
         }
     }
 
     &__slider {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: var(--transp-1);
-        border-radius: 26px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        inset: 0;
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        transition: all var(--duration-slow) var(--ease-out);
 
-        &:before {
+        &::before {
             content: '';
             position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--primary);
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--duration-slow) var(--ease-spring);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
     }
 }

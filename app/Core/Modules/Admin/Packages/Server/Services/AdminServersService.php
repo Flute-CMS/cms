@@ -92,7 +92,7 @@ class AdminServersService
         $server->mod = $data['mod'];
         $server->rcon = $data['rcon'] ?? null;
         $server->display_ip = $data['display_ip'] ?? null;
-        $server->enabled = $data['enabled'] === 'true';
+        $server->enabled = filter_var($data['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $server->ranks = $data['ranks'] ?? 'default';
         $server->ranks_format = $data['ranks_format'] ?? 'webp';
         $server->ranks_premier = filter_var($data['ranks_premier'] ?? false, FILTER_VALIDATE_BOOLEAN);

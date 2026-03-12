@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Sight;
+use Flute\Admin\Platform\Fields\TranslatableInput;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -93,7 +94,7 @@ class NavigationListScreen extends Screen
     {
         $sortableResult = json_decode(request()->input('sortableResult'), true);
         if (!$sortableResult) {
-            $this->flashMessage(__('admin-navigation.messages.invalid_sort_data'), 'danger');
+            $this->flashMessage(__('admin-navigation.messages.invalid_sort_data'), 'error');
 
             return;
         }
@@ -127,7 +128,7 @@ class NavigationListScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.title.placeholder'))
             )
@@ -136,7 +137,7 @@ class NavigationListScreen extends Screen
                 ->small(__('admin-navigation.modal.item.fields.title.help')),
 
             LayoutFactory::field(
-                Input::make('description')
+                TranslatableInput::make('description')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
             )
@@ -210,9 +211,15 @@ class NavigationListScreen extends Screen
     {
         $data = request()->input();
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
+
+            return;
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
-            'description' => ['nullable', 'string', 'max-str-len:500'],
+            'title' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
             'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],
@@ -309,7 +316,7 @@ class NavigationListScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.title.placeholder'))
                     ->value($navbarItem->title)
@@ -319,7 +326,7 @@ class NavigationListScreen extends Screen
                 ->small(__('admin-navigation.modal.item.fields.title.help')),
 
             LayoutFactory::field(
-                Input::make('description')
+                TranslatableInput::make('description')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
                     ->value($navbarItem->description)
@@ -405,9 +412,15 @@ class NavigationListScreen extends Screen
             return;
         }
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
+
+            return;
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
-            'description' => ['nullable', 'string', 'max-str-len:500'],
+            'title' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
             'icon' => ['nullable', 'string'],
             'visibility_auth' => ['required', 'in:all,guests,logged_in'],

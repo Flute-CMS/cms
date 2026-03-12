@@ -51,6 +51,10 @@
             'preset_amounts' => __('lk.preset_amounts'),
             'select_currency' => __('lk.select_currency'),
             'select_gateway' => __('lk.select_gateway'),
+            'promo_applied_discount' => __('lk.promo_applied_discount'),
+            'promo_applied_bonus' => __('lk.promo_applied_bonus'),
+            'promo_invalid' => __('lk.promo_invalid'),
+            'redirecting' => __('lk.redirecting'),
         ],
     ];
 @endphp
@@ -64,150 +68,230 @@
         </div>
     @else
         <form id="lk-form" class="lk-form" aria-label="{{ __('lk.payment_form') }}">
+            <div class="lk-grid">
+                {{-- ── Left column: Steps ── --}}
+                <div class="lk-grid__main">
 
-            {{-- Step 1: Amount --}}
-            <div class="lk-section">
-                <div class="lk-section__head">
-                    <span class="lk-section__num">1</span>
-                    <span class="lk-section__title">{{ __('lk.top_up_amount') }}</span>
-                </div>
+                    {{-- Step 1: Amount --}}
+                    <section class="lk-card">
+                        <div class="lk-card__head">
+                            <div class="lk-card__title">
+                                <span class="lk-step-num">1</span>
+                                <span>{{ __('lk.top_up_amount') }}</span>
+                            </div>
 
-                @if (!$singleCurrency)
-                    <div class="lk-currency-bar" role="radiogroup" aria-label="{{ __('lk.select_currency') }}">
-                        @foreach ($currencies as $code)
-                            <div class="lk-currency-bar__item">
-                                <input type="radio" id="currency__{{ $code }}" name="currency"
-                                    value="{{ $code }}" @checked($currency === $code) />
-                                <label for="currency__{{ $code }}">{{ $code }}</label>
+                            @if (!$singleCurrency)
+                                <div class="lk-currency-bar" role="radiogroup"
+                                    aria-label="{{ __('lk.select_currency') }}">
+                                    @foreach ($currencies as $code)
+                                        <div class="lk-currency-bar__item">
+                                            <input type="radio" id="currency__{{ $code }}" name="currency"
+                                                value="{{ $code }}" @checked($currency === $code) />
+                                            <label for="currency__{{ $code }}">{{ $code }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <input type="hidden" name="currency" value="{{ $currency }}" />
+                            @endif
+                        </div>
+
+                        <div class="lk-amount-field">
+                            <input type="text" name="amount" id="lk-amount"
+                                inputmode="decimal" autocomplete="off"
+                                placeholder="0" />
+                            <span class="lk-amount-field__cur" data-lk-currency-label>{{ $currency }}</span>
+                        </div>
+
+                        <div class="lk-presets" role="group" data-lk-presets
+                            aria-label="{{ __('lk.preset_amounts') }}"></div>
+
+                        <p class="lk-hint" data-lk-hint></p>
+                    </section>
+
+                    {{-- Step 2: Payment method --}}
+                    <section class="lk-card">
+                        <div class="lk-card__head">
+                            <div class="lk-card__title">
+                                <span class="lk-step-num">2</span>
+                                <span>{{ __('lk.select_gateway') }}</span>
+                            </div>
+                        </div>
+
+                        @foreach ($currencyGateways as $currCode => $gateways)
+                            @php $isCurrent = $currCode === $currency; @endphp
+                            <div class="lk-gw-grid {{ count($gateways) === 1 ? 'is-single' : '' }}"
+                                data-lk-gateways="{{ $currCode }}"
+                                role="radiogroup"
+                                @unless($isCurrent) style="display:none" @endunless>
+
+                                @foreach ($gateways as $key => $gw)
+                                    @php
+                                        $isSelected = ($isCurrent && $defaultGateway === $key) || count($gateways) === 1;
+                                        $hasFee = ($gw['fee'] ?? 0) > 0;
+                                        $hasBonus = ($gw['bonus'] ?? 0) > 0;
+                                    @endphp
+                                    <label class="lk-gw-card" for="gw__{{ $currCode }}_{{ $key }}">
+                                        <input type="radio" id="gw__{{ $currCode }}_{{ $key }}"
+                                            name="gateway" value="{{ $key }}"
+                                            @checked($isSelected) @disabled(!$isCurrent)
+                                            data-fee="{{ $gw['fee'] ?? 0 }}"
+                                            data-bonus="{{ $gw['bonus'] ?? 0 }}"
+                                            data-min="{{ $gw['minimum_amount'] ?? '' }}" />
+
+                                        <span class="lk-gw-card__icon">
+                                            @if (!empty($gw['image']))
+                                                <img src="{{ asset($gw['image']) }}" alt="{{ $gw['name'] }}"
+                                                    loading="lazy" />
+                                            @else
+                                                <x-icon path="ph.regular.credit-card" />
+                                            @endif
+                                        </span>
+
+                                        <span class="lk-gw-card__body">
+                                            <span class="lk-gw-card__name">{{ $gw['name'] }}</span>
+                                            @if (!empty($gw['description']))
+                                                <span class="lk-gw-card__desc">{{ $gw['description'] }}</span>
+                                            @endif
+                                        </span>
+
+                                        @if ($hasBonus)
+                                            <span class="lk-gw-card__tag lk-gw-card__tag--bonus"
+                                                data-tooltip="{{ __('lk.gateway_bonus_tooltip', ['value' => $gw['bonus']]) }}"
+                                                data-tooltip-placement="top">+{{ $gw['bonus'] }}%</span>
+                                        @elseif ($hasFee)
+                                            <span class="lk-gw-card__tag lk-gw-card__tag--fee"
+                                                data-tooltip="{{ __('lk.gateway_fee_tooltip') }}"
+                                                data-tooltip-placement="top">+{{ $gw['fee'] }}%</span>
+                                        @endif
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            @if (count($gateways) === 1)
+                                <input type="hidden" data-lk-gateway-hidden="{{ $currCode }}"
+                                    name="{{ $isCurrent ? 'gateway' : '' }}"
+                                    value="{{ array_key_first($gateways) }}"
+                                    @unless($isCurrent) disabled @endunless />
+                            @endif
+                        @endforeach
+
+                        @if (!$hasGateways)
+                            <div class="lk-gw-empty">{{ __('lk.no_gateways_for_currency') }}</div>
+                        @endif
+                    </section>
+
+                    {{-- Gateway-specific fields --}}
+                    @if (!empty($gatewayFields))
+                        @foreach ($gatewayFields as $gwAdapter => $gwFieldsHtml)
+                            <div class="lk-gw-fields" data-lk-gw-fields="{{ $gwAdapter }}"
+                                @unless($gwAdapter === $defaultGateway) style="display:none" @endunless>
+                                {!! $gwFieldsHtml !!}
                             </div>
                         @endforeach
-                    </div>
-                @else
-                    <input type="hidden" name="currency" value="{{ $currency }}" />
-                @endif
-
-                <div class="lk-amount-input">
-                    <input type="text" name="amount" id="lk-amount"
-                        inputmode="decimal" autocomplete="off"
-                        placeholder="0" />
-                    <span class="lk-amount-input__cur" data-lk-currency-label>{{ $currency }}</span>
-                </div>
-
-                <div class="lk-pills" role="group" data-lk-presets
-                    aria-label="{{ __('lk.preset_amounts') }}"></div>
-
-                <p class="lk-hint" data-lk-hint></p>
-            </div>
-
-            {{-- Step 2: Payment method --}}
-            <div class="lk-section">
-                <div class="lk-section__head">
-                    <span class="lk-section__num">2</span>
-                    <span class="lk-section__title">{{ __('lk.select_gateway') }}</span>
-                </div>
-
-                @foreach ($currencyGateways as $currCode => $gateways)
-                    @php $isCurrent = $currCode === $currency; @endphp
-                    <div class="lk-gw-list {{ count($gateways) === 1 ? 'is-single' : '' }}"
-                        data-lk-gateways="{{ $currCode }}"
-                        role="radiogroup"
-                        @unless($isCurrent) style="display:none" @endunless>
-
-                        @foreach ($gateways as $key => $gw)
-                            @php
-                                $isSelected = ($isCurrent && $defaultGateway === $key) || count($gateways) === 1;
-                                $hasFee = ($gw['fee'] ?? 0) > 0;
-                                $hasBonus = ($gw['bonus'] ?? 0) > 0;
-                            @endphp
-                            <label class="lk-gw" for="gw__{{ $currCode }}_{{ $key }}">
-                                <input type="radio" id="gw__{{ $currCode }}_{{ $key }}"
-                                    name="gateway" value="{{ $key }}"
-                                    @checked($isSelected) @disabled(!$isCurrent)
-                                    data-fee="{{ $gw['fee'] ?? 0 }}"
-                                    data-bonus="{{ $gw['bonus'] ?? 0 }}"
-                                    data-min="{{ $gw['minimum_amount'] ?? '' }}" />
-
-                                <span class="lk-gw__img">
-                                    @if (!empty($gw['image']))
-                                        <img src="{{ asset($gw['image']) }}" alt="{{ $gw['name'] }}" loading="lazy" />
-                                    @else
-                                        <x-icon path="ph.regular.credit-card" />
-                                    @endif
-                                </span>
-
-                                <span class="lk-gw__info">
-                                    <span class="lk-gw__name">{{ $gw['name'] }}</span>
-                                    @if ($hasBonus)
-                                        <span class="lk-gw__badge lk-gw__badge--bonus">+{{ $gw['bonus'] }}%</span>
-                                    @elseif ($hasFee)
-                                        <span class="lk-gw__badge lk-gw__badge--fee">{{ __('lk.gateway_fee') }} {{ $gw['fee'] }}%</span>
-                                    @endif
-                                </span>
-                            </label>
-                        @endforeach
-                    </div>
-
-                    @if (count($gateways) === 1)
-                        <input type="hidden" data-lk-gateway-hidden="{{ $currCode }}"
-                            name="{{ $isCurrent ? 'gateway' : '' }}" value="{{ array_key_first($gateways) }}"
-                            @unless($isCurrent) disabled @endunless />
                     @endif
-                @endforeach
-
-                @if (!$hasGateways)
-                    <div class="lk-gw-empty">{{ __('lk.no_gateways_for_currency') }}</div>
-                @endif
-            </div>
-
-            {{-- Gateway-specific fields (loaded per gateway) --}}
-            @if (!empty($gatewayFields))
-                @foreach ($gatewayFields as $gwAdapter => $gwFieldsHtml)
-                    <div class="lk-gw-fields" data-lk-gw-fields="{{ $gwAdapter }}"
-                        @unless($gwAdapter === $defaultGateway) style="display:none" @endunless>
-                        {!! $gwFieldsHtml !!}
-                    </div>
-                @endforeach
-            @endif
-
-            {{-- Promo --}}
-            <div class="lk-promo" data-lk-promo-details>
-                <label class="lk-promo__label" for="lk-promo">{{ __('lk.enter_promo_code') }}</label>
-                <div class="lk-promo__input" data-lk-promo>
-                    <input type="text" name="promoCode" id="lk-promo"
-                        placeholder="{{ __('lk.promo_code_label') }}" />
-                    <span class="lk-promo__badge" data-lk-promo-badge style="display:none"></span>
                 </div>
-            </div>
 
-            {{-- Receipt --}}
-            <div class="lk-receipt" data-lk-receipt style="display:none"></div>
+                {{-- ── Right column: Summary ── --}}
+                <div class="lk-grid__aside">
 
-            {{-- Footer --}}
-            <div class="lk-footer">
-                @if (config('lk.oferta_view'))
-                    <div class="lk-terms">
-                        <x-fields.checkbox name="agree" id="lk-agree">
-                            <x-slot:label>
-                                {{ __('lk.agree_terms') }}
-                                <x-link type="accent"
-                                    href="{{ url(config('lk.oferta_url', '/agreenment')) }}"
-                                    target="_blank" rel="noopener">
-                                    {{ __('lk.terms_of_offer') }}
-                                </x-link>
-                            </x-slot:label>
-                        </x-fields.checkbox>
+                    {{-- Balance --}}
+                    <div class="lk-balance-widget">
+                        <span class="lk-balance-widget__label">{{ __('lk.your_balance') }}</span>
+                        <div class="lk-balance-widget__value">
+                            {{ number_format(user()->getCurrentUser()->balance, 2) }}
+                            <span>{{ config('lk.currency_view', 'FC') }}</span>
+                        </div>
+                        <div class="lk-balance-widget__bg">
+                            <x-icon path="ph.bold.wallet-bold" />
+                        </div>
                     </div>
-                @endif
 
-                <button type="submit" class="btn btn-primary lk-submit" id="lk-submit" disabled>
-                    <span data-lk-btn-text>{{ __('lk.top_up_button') }}</span>
-                    <x-icon path="ph.regular.arrow-right" />
-                    <span class="lk-submit__loader" style="display:none"></span>
-                </button>
+                    {{-- Checkout --}}
+                    <div class="lk-checkout">
+                        <h3 class="lk-checkout__title">
+                            <x-icon path="ph.regular.receipt" />
+                            {{ __('lk.to_pay') }}
+                        </h3>
 
-                <p class="lk-disclaimer">{{ __('lk.gateway_disclaimer') }}</p>
+                        {{-- Promo --}}
+                        <div class="lk-promo" data-lk-promo>
+                            <div class="lk-promo__field">
+                                <input type="text" name="promoCode" id="lk-promo"
+                                    class="lk-promo__input"
+                                    placeholder="{{ __('lk.promo_code_label') }}"
+                                    autocomplete="off" />
+                                <button type="button" class="lk-promo__btn" data-lk-promo-btn style="display:none"
+                                    data-label-apply="{{ __('lk.promo_apply') }}"
+                                    data-label-clear="{{ __('lk.promo_clear') }}">
+                                    {{ __('lk.promo_apply') }}
+                                </button>
+                            </div>
+                            <p class="lk-promo__message" data-lk-promo-msg></p>
+                        </div>
+
+                        {{-- Receipt --}}
+                        <div class="lk-receipt" data-lk-receipt style="display:none"></div>
+
+                        {{-- Terms --}}
+                        @if (config('lk.oferta_view'))
+                            <div class="lk-terms">
+                                <x-fields.checkbox name="agree" id="lk-agree">
+                                    <x-slot:label>
+                                        {{ __('lk.agree_terms') }}
+                                        <a href="{{ url(config('lk.oferta_url', '/agreenment')) }}"
+                                            target="_blank" rel="noopener">{{ __('lk.terms_of_offer') }}</a>
+                                    </x-slot:label>
+                                </x-fields.checkbox>
+                            </div>
+                        @endif
+
+                        {{-- Submit --}}
+                        <x-button type="primary" :submit="true" :disabled="true" id="lk-submit"
+                            class="lk-submit" yoyo:ignore>
+                            <span data-lk-btn-text>{{ __('lk.top_up_button') }}</span>
+                            <x-icon path="ph.regular.arrow-right" />
+                            <span class="lk-submit__loader" style="display:none"></span>
+                        </x-button>
+
+                        <p class="lk-disclaimer">{{ __('lk.gateway_disclaimer') }}</p>
+                    </div>
+                </div>
             </div>
         </form>
+
+        {{-- JS Templates --}}
+        <template data-lk-tpl="preset">
+            <button type="button" class="lk-preset"></button>
+        </template>
+
+        <template data-lk-tpl="receipt-row">
+            <div class="lk-receipt__row">
+                <span data-label></span>
+                <span data-value></span>
+            </div>
+        </template>
+
+        <template data-lk-tpl="receipt-row-green">
+            <div class="lk-receipt__row lk-receipt__row--green">
+                <span data-label></span>
+                <span data-value></span>
+            </div>
+        </template>
+
+        <template data-lk-tpl="receipt-total">
+            <div class="lk-receipt__total">
+                <span data-label></span>
+                <span data-value></span>
+            </div>
+        </template>
+
+        <template data-lk-tpl="redirect">
+            <div class="lk-redirect-overlay">
+                <div class="lk-redirect-overlay__spinner"></div>
+                <p class="lk-redirect-overlay__text">{{ __('lk.redirecting') }}</p>
+            </div>
+        </template>
 
         <script src="@asset('assets/js/lk-payment.js')" defer></script>
     @endif

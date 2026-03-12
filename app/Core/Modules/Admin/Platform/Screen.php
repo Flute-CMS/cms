@@ -12,7 +12,10 @@ use Flute\Admin\Services\TableExportService;
 use Flute\Core\Contracts\FluteComponentInterface;
 use Flute\Core\Support\FluteComponent;
 use Illuminate\Support\Arr;
-use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use Symfony\Component\HttpFoundation\Response;
+use TypeError;
 
 /**
  * Abstract class Screen.
@@ -31,25 +34,57 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     public $css = [];
 
-    public array $excludesVariables = [
-        'name',
-        'description',
-        'popover',
-        'permission',
-        'js',
-        'css',
-    ];
-
     protected $additionalLayouts;
 
+    /**
+     * Boot the screen component.
+     *
+     * Unlike simple Yoyo components that restore state from $_REQUEST,
+     * Screens fully reinitialize their state in mount() on every request.
+     * We only assign from template $variables (e.g. 'slug') and handle
+     * modal state from the request explicitly.
+     */
     public function boot(array $variables, array $attributes): FluteComponentInterface
     {
-        parent::boot($variables, $attributes);
+        if (!is_array($variables)) {
+            $variables = [];
+        }
 
-        if ($this->modalParams !== null && $this->modalParams !== 'null') {
-            $this->modalParams = collect(is_string($this->modalParams) ? encrypt()->decrypt($this->modalParams) : $this->modalParams);
+        $this->variables = $variables;
+        $this->attributes = $attributes;
+        $this->validator = validator();
+
+        foreach ($variables as $key => $value) {
+            if (property_exists($this, $key)) {
+                try {
+                    $this->{$key} = $value;
+                } catch (TypeError $e) {
+                    continue;
+                }
+            }
+        }
+
+        $modalId = $this->request->get('modalId');
+        if ($modalId !== null && $this->isAllowedModalMethod($modalId)) {
+            $this->modalId = $modalId;
+        }
+
+        $modalParams = $this->request->get('modalParams');
+        if ($modalParams !== null && $modalParams !== 'null') {
+            $this->modalParams = collect(is_string($modalParams) ? encrypt()->decrypt($modalParams) : $modalParams);
         } else {
             $this->modalParams = null;
+        }
+
+        // Check access before any action method is dispatched by ComponentManager.
+        // This prevents unauthorized users from executing mutation actions (e.g. delete)
+        // even though render() would later redirect to 403.
+        $action = $this->request->get('component', '');
+        $actionName = explode('/', $action)[1] ?? 'render';
+
+        if (!in_array($actionName, ['render', 'refresh'], true) && !$this->checkAccess()) {
+            $this->response->status(Response::HTTP_FORBIDDEN);
+            $this->omitResponse = true;
         }
 
         return $this;
@@ -182,7 +217,10 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
         $exportFormat = request()->input('export');
         if ($exportFormat && in_array($exportFormat, ['csv', 'excel'])) {
-            return $this->handleExport($repository, $exportFormat);
+            $this->handleExport($repository, $exportFormat);
+            $this->skipRenderWithStatus(200);
+
+            throw new BypassRenderMethod(200);
         }
 
         if ($this->modalId !== null) {
@@ -216,8 +254,8 @@ abstract class Screen extends FluteComponent implements ScreenInterface
 
     public function openModal(string $modalFunc, $params = null)
     {
-        if (!is_callable([$this, $modalFunc])) {
-            throw new Exception('Modal '.$modalFunc.' function is not callable');
+        if (!$this->isAllowedModalMethod($modalFunc)) {
+            throw new Exception('Modal '.$modalFunc.' is not a valid modal method on this screen');
         }
 
         $decryptedParams = is_string($params) ? encrypt()->decrypt($params) : $params;
@@ -247,8 +285,28 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         return $default;
     }
 
+    /**
+     * Check if a method name is allowed as a modal handler.
+     * Only methods declared on the concrete Screen subclass (not inherited) are allowed.
+     */
+    protected function isAllowedModalMethod(string $methodName): bool
+    {
+        if (!is_callable([$this, $methodName])) {
+            return false;
+        }
+
+        try {
+            $ref = new ReflectionMethod($this, $methodName);
+
+            // Only allow methods declared on the concrete subclass, not inherited ones
+            return $ref->getDeclaringClass()->getName() === static::class;
+        } catch (ReflectionException $e) {
+            return false;
+        }
+    }
+
     // clear opcache & jit cache
-    public function clearOpcache()
+    protected function clearOpcache()
     {
         if (function_exists('opcache_reset')) {
             opcache_reset();
@@ -327,15 +385,11 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     }
 
     /**
-     * Get the target property from a table layout using reflection.
+     * Get the target property from a table layout.
      */
     protected function getTableTarget(Table $table): string
     {
-        $reflection = new ReflectionClass($table);
-        $property = $reflection->getProperty('target');
-        $property->setAccessible(true);
-
-        return $property->getValue($table) ?? 'default';
+        return $table->getTarget();
     }
 
     protected function checkAccess(): bool

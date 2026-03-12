@@ -36,6 +36,16 @@ $(document).ready(function () {
 
 			container._pickrInit = true;
 
+			// Start collapsed — toggle on swatch click
+			container.classList.add("is-collapsed");
+			const swatch = container.parentElement.querySelector('.color-inline-swatch[data-input-id="' + inputId + '"]');
+			if (swatch) {
+				swatch.style.cursor = "pointer";
+				swatch.addEventListener("click", function () {
+					container.classList.toggle("is-collapsed");
+				});
+			}
+
 			const seed = (input.value || input.dataset.color || "#42445A").trim();
 
 			// Destroy existing instance if any
@@ -462,12 +472,16 @@ $(document).ready(function () {
 			}
 
 			iconPicker.currentInput = input;
-			iconPicker.classList.remove("active");
 
 			const categoriesContainer = iconPicker.querySelector(
 				".icon-picker__categories"
 			);
 			categoriesContainer.innerHTML = "";
+
+			// Show modal immediately with skeleton loader
+			iconPicker.classList.add("active");
+			document.body.style.overflow = "hidden";
+			positionPicker(input);
 
 			if (Object.keys(categorizedPacks).length === 0) {
 				iconPicker.querySelector(".icon-picker__content").innerHTML =
@@ -483,9 +497,6 @@ $(document).ready(function () {
 							categorizedPacks[category].push(pack);
 						});
 						createCategories();
-						iconPicker.classList.add("active");
-						document.body.style.overflow = "hidden";
-						positionPicker(input);
 					})
 					.catch((error) => {
 						console.error(
@@ -496,16 +507,9 @@ $(document).ready(function () {
 							".icon-picker__content"
 						).innerHTML =
 							'<div class="icon-picker__error">Не удалось загрузить пакеты иконок</div>';
-						iconPicker.classList.add("active");
-						document.body.style.overflow = "hidden";
-
-						positionPicker(input);
 					});
 			} else {
 				createCategories();
-				iconPicker.classList.add("active");
-				document.body.style.overflow = "hidden";
-				positionPicker(input);
 			}
 		}
 

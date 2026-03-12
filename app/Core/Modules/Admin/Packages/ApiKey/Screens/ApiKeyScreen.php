@@ -217,7 +217,7 @@ class ApiKeyScreen extends Screen
     {
         $apiKey = ApiKey::findByPK($parameters->get('id'));
         if (!$apiKey) {
-            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'error');
 
             return;
         }
@@ -292,7 +292,7 @@ class ApiKeyScreen extends Screen
 
         $apiKey = ApiKey::findByPK($id);
         if (!$apiKey) {
-            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'error');
 
             return;
         }
@@ -338,7 +338,7 @@ class ApiKeyScreen extends Screen
 
         $apiKey = ApiKey::findByPK($id);
         if (!$apiKey) {
-            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'danger');
+            $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'error');
 
             return;
         }

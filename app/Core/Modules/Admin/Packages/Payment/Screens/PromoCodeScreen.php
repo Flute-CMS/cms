@@ -355,7 +355,7 @@ class PromoCodeScreen extends Screen
             'value' => ['required', 'numeric', 'min:0'],
             'max_usages' => ['nullable', 'min:1'],
             'max_uses_per_user' => ['nullable', 'min:1'],
-            'minimum_amount' => ['nullable', 'numeric', 'min:0'],
+            'minimum_amount' => ['nullable', 'min:0'],
             'allowed_roles' => ['nullable', 'array'],
             'expires_at' => ['nullable', 'datetime:Y-m-d\TH:i'],
         ], $data);
@@ -656,7 +656,7 @@ class PromoCodeScreen extends Screen
         foreach ($promoCodes as $code) {
             $stats = $this->paymentService->getPromoCodeStats($code);
 
-            if (!$stats['is_expired'] && $stats['remaining_usages'] > 0) {
+            if (!$stats['is_expired'] && ($stats['remaining_usages'] === null || $stats['remaining_usages'] > 0)) {
                 $activeCodes++;
             }
 

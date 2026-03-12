@@ -196,12 +196,17 @@
     "align_left"            => "Align left",
     "align_center"          => "Align center",
 
-    // Design presets
-    "design_presets"        => "Design Presets",
-    "design_presets_desc"   => "Choose a ready-made design style. All colors, effects and proportions will update instantly.",
-    "choose_design"         => "Choose Style",
-    "design_details"        => "Active Style",
-    "design_keep_colors"    => "Keep current colors",
+    // Color presets
+    "color_presets"         => "Quick Palette",
+    "color_presets_dark"    => "Dark Palettes",
+    "color_presets_light"   => "Light Palettes",
+
+    // Accordion sections
+    "detailed_settings"     => "Fine-tune",
+    "background_section"    => "Background",
+    "nav_and_footer"        => "Navigation & Footer",
+    "spacing_and_layout"    => "Spacing & Layout",
+    "effects_section"       => "Effects & Animations",
 
     // Widget editor (Wix-style)
     "editing"               => "Editing:",
