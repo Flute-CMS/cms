@@ -849,7 +849,7 @@ class InstallerController extends BaseController
             ];
         }
 
-        usort($allLanguages, function ($a, $b) use ($currentLocale) {
+        usort($allLanguages, static function ($a, $b) use ($currentLocale) {
             if ($a['code'] === $currentLocale) {
                 return -1;
             }
@@ -901,7 +901,7 @@ class InstallerController extends BaseController
                     $allModules = is_array($body) ? $body : [];
 
                     // Filter out paid modules
-                    $allModules = array_filter($allModules, fn($m) => empty($m['isPaid']));
+                    $allModules = array_filter($allModules, static fn ($m) => empty($m['isPaid']));
 
                     // Split into recommended and others
                     foreach ($allModules as $module) {
@@ -914,7 +914,7 @@ class InstallerController extends BaseController
                     }
 
                     // Sort recommended by the defined order
-                    usort($recommended, function ($a, $b) use ($recommendedSlugs) {
+                    usort($recommended, static function ($a, $b) use ($recommendedSlugs) {
                         $aIdx = array_search($a['name'] ?? $a['slug'] ?? '', $recommendedSlugs);
                         $bIdx = array_search($b['name'] ?? $b['slug'] ?? '', $recommendedSlugs);
 
@@ -922,9 +922,7 @@ class InstallerController extends BaseController
                     });
 
                     // Sort others alphabetically
-                    usort($modules, function ($a, $b) {
-                        return strcasecmp($a['name'] ?? $a['slug'] ?? '', $b['name'] ?? $b['slug'] ?? '');
-                    });
+                    usort($modules, static fn ($a, $b) => strcasecmp($a['name'] ?? $a['slug'] ?? '', $b['name'] ?? $b['slug'] ?? ''));
                 } else {
                     $modulesError = __('install.modules.fetch_error');
                 }

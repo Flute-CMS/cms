@@ -411,9 +411,10 @@ class PaymentProcessor
             }
 
             return response()->redirect($redirectUrl);
-        } else {
-            throw new PaymentException($response->getMessage() ?? ($response->getData()['message'] ?? 'Unknown error'));
         }
+
+        throw new PaymentException($response->getMessage() ?? ($response->getData()['message'] ?? 'Unknown error'));
+
     }
 
     /**
@@ -552,6 +553,20 @@ class PaymentProcessor
     }
 
     /**
+     * Processes a failed payment.
+     *
+     * @param ResponseInterface $response Response from the gateway.
+     *
+     * @throws PaymentException
+     */
+    protected function processFailedPayment(ResponseInterface $response): void
+    {
+        $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
+
+        throw new PaymentException($response->getMessage());
+    }
+
+    /**
      * Resolve internal invoice transaction id from request/response payload.
      */
     private function resolveTransactionId(array $input, array $responseData = []): string
@@ -652,19 +667,5 @@ class PaymentProcessor
         }
 
         return '';
-    }
-
-    /**
-     * Processes a failed payment.
-     *
-     * @param ResponseInterface $response Response from the gateway.
-     *
-     * @throws PaymentException
-     */
-    protected function processFailedPayment(ResponseInterface $response): void
-    {
-        $this->dispatcher->dispatch(new PaymentFailedEvent($response), PaymentFailedEvent::NAME);
-
-        throw new PaymentException($response->getMessage());
     }
 }

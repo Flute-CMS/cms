@@ -10,6 +10,7 @@ use Flute\Core\Template\Template;
 class InstallerView
 {
     protected Template $template;
+
     protected InstallerConfig $installerConfig;
 
     /**
