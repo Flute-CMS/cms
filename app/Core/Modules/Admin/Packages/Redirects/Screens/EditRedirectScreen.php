@@ -354,5 +354,4 @@ class EditRedirectScreen extends Screen
         } catch (Throwable $e) {
         }
     }
-
 }
