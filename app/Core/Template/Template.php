@@ -79,6 +79,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
     protected array $loadedScripts = [];
 
+    protected ?array $cachedFallbackOrder = null;
+
     /**
      * Cache size limits to prevent memory leaks
      */
@@ -516,6 +518,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         $this->componentCache = [];
         $this->pathCache = [];
         $this->fallbackPaths = [];
+        $this->cachedFallbackOrder = null;
     }
 
     /**
@@ -587,7 +590,11 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function getThemeFallbackOrder(): array
     {
-        return ThemeFallbackResolver::getThemeHierarchy($this->currentTheme, $this->standardTheme);
+        if ($this->cachedFallbackOrder !== null) {
+            return $this->cachedFallbackOrder;
+        }
+
+        return $this->cachedFallbackOrder = ThemeFallbackResolver::getThemeHierarchy($this->currentTheme, $this->standardTheme);
     }
 
     /**

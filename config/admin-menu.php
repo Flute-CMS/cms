@@ -30,7 +30,7 @@ return [
         'key' => 'content-group',
         'title' => 'admin-menu.content',
         'icon' => 'ph.regular.article',
-        'children' => ['pages', 'navigation', 'footer'],
+        'children' => ['pages', 'navigation', 'footer', 'redirects'],
     ],
     [
         'key' => 'notifications-group',

@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Enter currency rate',
             'help' => 'Rate relative to the base currency',
         ],
+        'preset_amounts' => [
+            'label' => 'Бързи суми',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Суми за бърз избор на страницата за зареждане (разделени със запетая)',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'An enabled currency is available for use in the system',

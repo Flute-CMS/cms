@@ -25,7 +25,7 @@ return [
     'promo_used' => 'Siz allaqachon ushbu promo koddan foydalangansiz',
     'promo_is_empty' => 'Kiritilgan promo kod boʻsh',
     'promo_amount' => 'Toʻldirish bonusi :value :currency',
-    'promo_percentage' => 'Promo kod :percentage% chegirma beradi',
+    'promo_percentage' => 'Toʻldirishga :percentage% bonus',
     'min_amount' => 'Minimal toʻldirish miqdori :sum',
     'process_in_new_window' => 'Yangi oynada toʻlovni yakunlash...',
     'select_currency' => 'Valyutani tanlang',

@@ -192,4 +192,11 @@ return [
     "excluded_paths_hint"   => "例: /about, /user/*, /news/**",
     "excluded_paths_placeholder" => "/非表示にするパス",
     "add_path"              => "追加",
+
+    "apply_opposite_theme_title" => ":themeテーマにも適用しますか？",
+    "apply_opposite_theme_message" => "これらの設定を:themeテーマにも適用しますか？カラーは自動的に調整されます。",
+    "apply_opposite_theme_confirm" => "適用",
+    "apply_opposite_theme_cancel" => "現在のみ",
+    "theme_light" => "ライト",
+    "theme_dark" => "ダーク",
 ];

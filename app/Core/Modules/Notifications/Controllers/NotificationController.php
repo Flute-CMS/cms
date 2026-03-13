@@ -28,9 +28,11 @@ class NotificationController extends BaseController
 
     public function hasUnread()
     {
+        $newestId = notification()->getNewestUnreadId();
+
         return $this->json([
-            'hasUnread' => notification()->hasUnread(),
-            'newestId' => notification()->getNewestUnreadId(),
+            'hasUnread' => $newestId !== null,
+            'newestId' => $newestId,
         ]);
     }
 

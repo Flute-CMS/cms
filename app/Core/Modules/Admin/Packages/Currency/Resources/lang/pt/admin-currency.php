@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Insira taxa de câmbio',
             'help' => 'Taxa relativa à moeda base',
         ],
+        'preset_amounts' => [
+            'label' => 'Valores rápidos',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Valores predefinidos para seleção rápida na página de recarga (separados por vírgula)',
+        ],
         'enabled' => [
             'label' => 'Ativado',
             'help' => 'Uma moeda habilitada está disponível para uso no sistema',

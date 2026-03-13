@@ -32,7 +32,7 @@ class ProfileIndexController extends BaseController
      */
     public function index(FluteRequest $request, $id, ProfileTabService $profileTabService)
     {
-        abort_if($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
+        abort_unless($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
         $stringId = (string) $id;
         $cacheKey = 'profile.search.resolve.' . sha1($stringId);
         $cachedTarget = cache()->get($cacheKey);

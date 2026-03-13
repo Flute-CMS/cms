@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Services;
 
-use DateTime;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
@@ -34,17 +33,9 @@ class PaymentPromo
             throw new PaymentPromoException(__('lk.promo_not_found'));
         }
 
-        $currentDate = new DateTime();
+        $currentDate = new DateTimeImmutable();
         if ($promoCode->expires_at !== null && $promoCode->expires_at <= $currentDate) {
             throw new PaymentPromoException(__('lk.promo_expired'));
-        }
-
-        $totalUsages = PromoCodeUsage::query()
-            ->where('promoCode_id', $promoCode->id)
-            ->count();
-
-        if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
-            throw new PaymentPromoException(__('lk.promo_limit'));
         }
 
         if ($promoCode->minimum_amount !== null && $amount < $promoCode->minimum_amount) {
@@ -58,6 +49,22 @@ class PaymentPromo
         }
 
         $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
+
+        // Single query: count total usages and per-user usages at once
+        $usageQuery = PromoCodeUsage::query()
+            ->where('promoCode_id', $promoCode->id)
+            ->buildQuery();
+        $usageQuery->columns([
+            new \Cycle\Database\Injection\Fragment('COUNT(*) AS total_count'),
+            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN user_id = {$currentUserId} THEN 1 ELSE 0 END) AS user_count"),
+        ]);
+        $usageRow = $usageQuery->run()->fetch();
+        $totalUsages = (int) ($usageRow['total_count'] ?? 0);
+        $userUsageCount = (int) ($usageRow['user_count'] ?? 0);
+
+        if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
+            throw new PaymentPromoException(__('lk.promo_limit'));
+        }
 
         if (!empty($promoCode->roles)) {
             $currentUser = $userId === 0 ? user()->getCurrentUser() : ($userId ? User::findByPK($userId) : null);
@@ -73,20 +80,11 @@ class PaymentPromo
         }
 
         if ($promoCode->max_uses_per_user !== null) {
-            $userUsageCount = PromoCodeUsage::query()
-                ->where('promoCode_id', $promoCode->id)
-                ->where('user_id', $currentUserId)
-                ->count();
-
             if ($userUsageCount >= $promoCode->max_uses_per_user) {
                 throw new PaymentPromoException(__('lk.promo_user_limit'));
             }
-        } else {
-            $usage = PromoCodeUsage::findOne(['promoCode_id' => $promoCode->id, 'user_id' => $currentUserId]);
-
-            if ($usage !== null) {
-                throw new PaymentPromoException(__('lk.promo_used'));
-            }
+        } elseif ($userUsageCount > 0) {
+            throw new PaymentPromoException(__('lk.promo_used'));
         }
 
         return [

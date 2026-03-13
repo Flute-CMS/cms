@@ -202,4 +202,11 @@ return [
     "upload_success"        => "Image uploaded",
     "upload_error"          => "Upload failed",
     "delete_success"        => "Image deleted",
+
+    "apply_opposite_theme_title" => ":theme mavzuga qo'llash?",
+    "apply_opposite_theme_message" => "Ushbu sozlamalarni :theme mavzuga ham qo'llaysizmi? Ranglar avtomatik moslashtiriladi.",
+    "apply_opposite_theme_confirm" => "Qo'llash",
+    "apply_opposite_theme_cancel" => "Faqat joriy",
+    "theme_light" => "yorug'",
+    "theme_dark" => "qorong'u",
 ];

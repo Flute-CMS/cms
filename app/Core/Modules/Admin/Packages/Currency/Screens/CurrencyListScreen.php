@@ -150,6 +150,14 @@ class CurrencyListScreen extends Screen
                 ->required()
                 ->small(__('admin-currency.fields.rate.help')),
 
+            LayoutFactory::field(
+                Input::make('preset_amounts')
+                    ->type('text')
+                    ->placeholder(__('admin-currency.fields.preset_amounts.placeholder'))
+            )
+                ->label(__('admin-currency.fields.preset_amounts.label'))
+                ->small(__('admin-currency.fields.preset_amounts.help')),
+
             ...$paymentGatewayCheckboxes,
         ])
             ->title(__('admin-currency.title.create'))
@@ -200,6 +208,12 @@ class CurrencyListScreen extends Screen
         $currency->code = strtoupper($data['code']);
         $currency->minimum_value = $data['minimum_value'];
         $currency->exchange_rate = $data['exchange_rate'];
+
+        if (!empty($data['preset_amounts'])) {
+            $presets = array_map('trim', explode(',', $data['preset_amounts']));
+            $currency->setPresetAmounts($presets);
+        }
+
         $currency->save();
 
         if (!empty($selectedPaymentGateways)) {
@@ -275,6 +289,15 @@ class CurrencyListScreen extends Screen
                 ->required()
                 ->small(__('admin-currency.fields.rate.help')),
 
+            LayoutFactory::field(
+                Input::make('preset_amounts')
+                    ->type('text')
+                    ->placeholder(__('admin-currency.fields.preset_amounts.placeholder'))
+                    ->value(implode(', ', $currency->getPresetAmounts()))
+            )
+                ->label(__('admin-currency.fields.preset_amounts.label'))
+                ->small(__('admin-currency.fields.preset_amounts.help')),
+
             ...$paymentGatewayCheckboxes,
         ])
             ->title(__('admin-currency.title.edit'))
@@ -332,6 +355,14 @@ class CurrencyListScreen extends Screen
         $currency->code = strtoupper($data['code']);
         $currency->minimum_value = $data['minimum_value'];
         $currency->exchange_rate = $data['exchange_rate'];
+
+        if (!empty($data['preset_amounts'])) {
+            $presets = array_map('trim', explode(',', $data['preset_amounts']));
+            $currency->setPresetAmounts($presets);
+        } else {
+            $currency->preset_amounts = null;
+        }
+
         $currency->save();
 
         $currency->clearPayments();

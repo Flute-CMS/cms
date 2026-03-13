@@ -299,6 +299,7 @@ class ThemeScreen extends Screen
             cache()->deleteImmediately('active_theme');
             cache()->deleteImmediately('flute.themes.get');
             cache()->deleteImmediately('flute.themes.json_data');
+            cache()->deleteImmediately('flute.themes.db_rows');
             cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails

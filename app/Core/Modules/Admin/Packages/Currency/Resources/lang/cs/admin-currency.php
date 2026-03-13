@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Zadejte kurz měny',
             'help' => 'Kurz vzhledem k základní měně',
         ],
+        'preset_amounts' => [
+            'label' => 'Rychlé částky',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Částky pro rychlý výběr na stránce dobití (oddělené čárkou)',
+        ],
         'enabled' => [
             'label' => 'Povoleno',
             'help' => 'Povolená měna je k dispozici pro použití v systému',

@@ -6,8 +6,16 @@ use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 
 #[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["user_id", "isActive"]),
+        new Index(columns: ["blockedBy_id"]),
+    ]
+)]
 class UserBlock extends ActiveRecord
 {
     #[Column(type: "primary")]

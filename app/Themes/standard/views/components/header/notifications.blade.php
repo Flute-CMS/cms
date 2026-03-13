@@ -56,7 +56,7 @@
 
         <div class="notification-dropdown__content" data-notification-content data-empty-text="@t('def.no_notifications')">
             <div class="notification-dropdown__list" data-notification-list="unread"
-                hx-get="{{ url('sidebar/notifications/unread') }}" hx-trigger="load once" hx-swap="innerHTML"
+                hx-get="{{ url('sidebar/notifications/unread') }}" hx-trigger="load" hx-swap="innerHTML"
                 hx-target="this">
                 @for ($i = 0; $i < 3; $i++)
                     <div class="notification-dropdown__skeleton">
@@ -69,7 +69,7 @@
                 @endfor
             </div>
             <div class="notification-dropdown__list" data-notification-list="all" style="display: none;"
-                hx-get="{{ url('sidebar/notifications/all') }}" hx-trigger="revealed once" hx-swap="innerHTML"
+                hx-get="{{ url('sidebar/notifications/all') }}" hx-trigger="revealed" hx-swap="innerHTML"
                 hx-target="this">
                 @for ($i = 0; $i < 3; $i++)
                     <div class="notification-dropdown__skeleton">

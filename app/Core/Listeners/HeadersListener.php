@@ -63,6 +63,31 @@ class HeadersListener
                     's_maxage' => 1800,
                 ]);
             }
+        } else {
+            if (!$response->headers->has('Cache-Control') || $response->headers->get('Cache-Control') === 'no-cache') {
+                if (user()->isLoggedIn()) {
+                    $response->setCache([
+                        'private' => true,
+                        'no_cache' => true,
+                        'must_revalidate' => true,
+                    ]);
+                } else {
+                    $response->setCache([
+                        'public' => true,
+                        'max_age' => 60,
+                        's_maxage' => 120,
+                    ]);
+                }
+            }
+        }
+
+        if ($response->getStatusCode() === 200
+            && !$response->headers->has('ETag')
+        ) {
+            $content = $response->getContent();
+            if ($content !== false && strlen($content) < 512000) {
+                $response->setEtag(md5($content));
+            }
         }
 
         $varyHeaders = array_unique(array_merge($response->getVary(), ['HX-Request', 'HX-Boosted', 'Cookie', 'Authorization']));

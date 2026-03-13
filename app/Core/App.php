@@ -461,6 +461,10 @@ final class App
             return;
         }
 
+        if (mt_rand(1, 50) !== 1) {
+            return;
+        }
+
         try {
             $cacheKey = 'providers.boot_times_stats';
             $maxSamples = 100;

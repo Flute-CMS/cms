@@ -665,20 +665,18 @@ class PromoCodeScreen extends Screen
 
             foreach ($code->usages as $usage) {
                 if ($usage->invoice->isPaid) {
-                    // Calculate the actual discount amount
-                    $discountAmount = 0;
-                    if ($code->type === 'percentage') {
-                        $discountAmount = $usage->invoice->amount * ($code->value / 100);
-                    } else {
-                        $discountAmount = $code->value;
-                    }
+                    $bonusAmount = match ($code->type) {
+                        'percentage' => $usage->invoice->originalAmount * ($code->value / 100),
+                        'amount' => $code->value,
+                        default => 0,
+                    };
 
                     if ($usage->used_at > $today) {
                         $todayUsages++;
-                        $todayDiscountAmount += $discountAmount;
+                        $todayDiscountAmount += $bonusAmount;
                     } elseif ($usage->used_at > $yesterday && $usage->used_at <= $today) {
                         $yesterdayUsages++;
-                        $yesterdayDiscountAmount += $discountAmount;
+                        $yesterdayDiscountAmount += $bonusAmount;
                     }
                 }
             }

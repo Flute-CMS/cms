@@ -107,7 +107,7 @@ class PaymentFormController extends BaseController
 
             $amount = (float) $amount;
 
-            // Calculate amountToPay using exchange rate + promo
+            // Resolve minimum amount from currency/gateway
             $currencies = \Flute\Core\Database\Entities\Currency::findAll();
             $exchangeRate = 1;
             $minAmount = 0;
@@ -139,17 +139,10 @@ class PaymentFormController extends BaseController
                 return $this->json(['error' => __('lk.min_amount', ['sum' => $minAmount])], 422);
             }
 
-            $amountToPay = $amount;
-
-            // Apply promo discount to amountToPay
+            // Validate promo code before creating invoice
             if (!empty($promoCode)) {
                 try {
-                    $promoDetails = payments()->promo()->validate($promoCode, user()->getCurrentUser()->id, $amount);
-
-                    if ($promoDetails['type'] === 'percentage') {
-                        $discount = ($amountToPay * $promoDetails['value']) / 100;
-                        $amountToPay = round(max(0, $amountToPay - $discount), 2);
-                    }
+                    payments()->promo()->validate($promoCode, user()->getCurrentUser()->id, $amount);
                 } catch (PaymentPromoException $e) {
                     return $this->json(['error' => __($e->getMessage())], 422);
                 }
@@ -157,7 +150,7 @@ class PaymentFormController extends BaseController
 
             $invoice = payments()->processor()->createInvoice(
                 $gateway,
-                $amountToPay,
+                $amount,
                 (string) $promoCode,
                 $currency
             );
@@ -166,19 +159,8 @@ class PaymentFormController extends BaseController
                 'gateway' => $gateway,
                 'currency' => $currency,
                 'amount' => $amount,
-                'amount_to_pay' => $amountToPay,
                 'transaction_id' => $invoice->transactionId,
             ]);
-
-            // If invoice amount is zero (promo covered full sum)
-            if ($invoice->amount <= 0) {
-                payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
-
-                return $this->json([
-                    'redirect' => url('/lk/success')->get(),
-                    'message' => __('lk.success'),
-                ]);
-            }
 
             return $this->json([
                 'redirect' => url("/payment/{$invoice->transactionId}")->get(),

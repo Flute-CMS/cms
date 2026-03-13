@@ -192,4 +192,11 @@ return [
     "excluded_paths_hint"   => "Exempel: /about, /user/*, /news/**",
     "excluded_paths_placeholder" => "/sökväg/att/dölja",
     "add_path"              => "Lägg till",
+
+    "apply_opposite_theme_title" => "Tillämpa på :theme tema?",
+    "apply_opposite_theme_message" => "Tillämpa dessa inställningar på :theme temat också? Färgerna anpassas automatiskt.",
+    "apply_opposite_theme_confirm" => "Tillämpa",
+    "apply_opposite_theme_cancel" => "Bara nuvarande",
+    "theme_light" => "ljust",
+    "theme_dark" => "mörkt",
 ];

@@ -33,6 +33,8 @@ class GatewayFactory
             if (is_debug()) {
                 throw $e;
             }
+
+            throw new PaymentException("Failed to initialize gateway '{$gatewayEntity->adapter}'");
         }
     }
 

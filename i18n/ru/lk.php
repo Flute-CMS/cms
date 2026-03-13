@@ -23,7 +23,7 @@
     "promo_used" => "Вы уже использовали этот промокод",
     "promo_is_empty" => "Введенный промокод пуст",
     "promo_amount" => "Бонус к пополнению :value :currency",
-    "promo_percentage" => "Промокод дает скидку :percentage%",
+    "promo_percentage" => "Бонус :percentage% к пополнению",
     "min_amount" => "Минимальная сумма пополнения составляет :sum",
     "process_in_new_window" => "Завершите платеж в новом окне...",
     "select_currency" => "Валюта",

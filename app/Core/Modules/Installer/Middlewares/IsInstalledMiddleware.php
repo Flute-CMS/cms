@@ -13,7 +13,7 @@ class IsInstalledMiddleware extends BaseMiddleware
         $lockFile = storage_path('.installed');
         $isInstalled = is_installed() || file_exists($lockFile);
 
-        abort_if($isInstalled, 404);
+        abort_unless($isInstalled, 404);
 
         return $next($request);
     }

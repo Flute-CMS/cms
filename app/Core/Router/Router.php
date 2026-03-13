@@ -91,6 +91,8 @@ class Router implements RouterInterface
 
     protected array $registeredDynamicRoutes = [];
 
+    protected ?array $routePathIndex = null;
+
     public function __construct(Container $container)
     {
         $this->routes = new RouteCollection();
@@ -181,6 +183,7 @@ class Router implements RouterInterface
         $methods = (array) $methods;
         $uri = '/' . trim($uri, '/');
 
+        $this->routePathIndex = null;
         $this->trackDynamicRoute($uri, $methods);
 
         $isAdminRoute = false;
@@ -674,38 +677,40 @@ class Router implements RouterInterface
     public function hasRoute(string $uri, array|string $methods = []): bool
     {
         $uri = '/' . trim($uri, '/');
-        $methods = (array) $methods;
+        $methods = array_map('strtoupper', (array) $methods);
 
         if (isset($this->registeredDynamicRoutes[$uri])) {
             if (empty($methods)) {
                 return true;
             }
 
-            $existingMethods = $this->registeredDynamicRoutes[$uri];
             foreach ($methods as $method) {
-                if (in_array(strtoupper($method), $existingMethods)) {
+                if (in_array($method, $this->registeredDynamicRoutes[$uri], true)) {
                     return true;
                 }
             }
         }
 
-        foreach ($this->routes->all() as $route) {
-            $routePath = $route->getPath();
+        if ($this->routePathIndex === null) {
+            $this->buildRoutePathIndex();
+        }
 
-            if ($routePath === $uri) {
-                if (empty($methods)) {
+        if (!isset($this->routePathIndex[$uri])) {
+            return false;
+        }
+
+        if (empty($methods)) {
+            return true;
+        }
+
+        foreach ($this->routePathIndex[$uri] as $routeMethods) {
+            if (empty($routeMethods)) {
+                return true;
+            }
+
+            foreach ($methods as $method) {
+                if (in_array($method, $routeMethods, true)) {
                     return true;
-                }
-
-                $routeMethods = $route->getMethods();
-                if (empty($routeMethods)) {
-                    return true;
-                }
-
-                foreach ($methods as $method) {
-                    if (in_array(strtoupper($method), $routeMethods)) {
-                        return true;
-                    }
                 }
             }
         }
@@ -728,6 +733,16 @@ class Router implements RouterInterface
             $this->middlewareGroups['default'],
             $this->currentRoute->getMiddleware()
         );
+
+        // Remove excluded middleware
+        $excluded = $this->currentRoute->getExcludedMiddleware();
+        if (!empty($excluded)) {
+            $middleware = array_filter($middleware, static function (string $m) use ($excluded): bool {
+                $alias = str_contains($m, ':') ? explode(':', $m, 2)[0] : $m;
+
+                return !in_array($alias, $excluded, true) && !in_array($m, $excluded, true);
+            });
+        }
 
         // Expand middleware groups and resolve aliases
         $expandedMiddleware = [];
@@ -869,6 +884,19 @@ class Router implements RouterInterface
         \Flute\Core\Router\RoutingTiming::add('Controller', microtime(true) - $start);
 
         return $response;
+    }
+
+    /**
+     * Build an index of route paths for O(1) hasRoute lookups.
+     */
+    protected function buildRoutePathIndex(): void
+    {
+        $this->routePathIndex = [];
+
+        foreach ($this->routes->all() as $route) {
+            $path = $route->getPath();
+            $this->routePathIndex[$path][] = $route->getMethods();
+        }
     }
 
     /**

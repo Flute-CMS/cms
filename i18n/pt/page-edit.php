@@ -192,4 +192,11 @@ return [
     "excluded_paths_hint"   => "Exemplos: /about, /user/*, /news/**",
     "excluded_paths_placeholder" => "/caminho/para/ocultar",
     "add_path"              => "Adicionar",
+
+    "apply_opposite_theme_title" => "Aplicar ao tema :theme?",
+    "apply_opposite_theme_message" => "Aplicar estas definições ao tema :theme também? As cores serão adaptadas automaticamente.",
+    "apply_opposite_theme_confirm" => "Aplicar",
+    "apply_opposite_theme_cancel" => "Apenas o atual",
+    "theme_light" => "claro",
+    "theme_dark" => "escuro",
 ];

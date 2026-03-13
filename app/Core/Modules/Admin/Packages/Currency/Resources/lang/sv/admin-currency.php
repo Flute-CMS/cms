@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Ange valutakurs',
             'help' => 'Kurs i förhållande till basvalutan',
         ],
+        'preset_amounts' => [
+            'label' => 'Snabbbelopp',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Förinställda belopp för snabbval på påfyllningssidan (kommaseparerade)',
+        ],
         'enabled' => [
             'label' => 'Aktiverad',
             'help' => 'En aktiverad valuta är tillgänglig för användning i systemet',

@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Enter currency rate',
             'help' => 'Rate relative to the base currency',
         ],
+        'preset_amounts' => [
+            'label' => 'Quick amounts',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Preset amounts for quick selection on the top-up page (comma-separated)',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'An enabled currency is available for use in the system',

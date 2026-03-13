@@ -202,4 +202,11 @@ return [
     "upload_success"        => "Image uploaded",
     "upload_error"          => "Upload failed",
     "delete_success"        => "Image deleted",
+
+    "apply_opposite_theme_title" => "Aplicar ao tema :theme?",
+    "apply_opposite_theme_message" => "Aplicar essas configurações ao tema :theme também? As cores serão adaptadas automaticamente.",
+    "apply_opposite_theme_confirm" => "Aplicar",
+    "apply_opposite_theme_cancel" => "Apenas o atual",
+    "theme_light" => "claro",
+    "theme_dark" => "escuro",
 ];

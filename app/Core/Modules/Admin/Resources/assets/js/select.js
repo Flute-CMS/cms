@@ -427,30 +427,39 @@ class Select {
         };
 
         if (select.dataset.renderOption) {
-            try {
-                render.option = new Function('data', 'escape', select.dataset.renderOption);
-            } catch (e) {
-                console.warn('Invalid render option function:', e);
-            }
+            const fn = this.resolveRenderFunction(select.dataset.renderOption);
+            if (fn) render.option = fn;
         }
 
         if (select.dataset.renderItem) {
-            try {
-                render.item = new Function('data', 'escape', select.dataset.renderItem);
-            } catch (e) {
-                console.warn('Invalid render item function:', e);
-            }
+            const fn = this.resolveRenderFunction(select.dataset.renderItem);
+            if (fn) render.item = fn;
         }
 
         if (select.dataset.renderNoResults) {
-            try {
-                render.no_results = new Function('data', 'escape', select.dataset.renderNoResults);
-            } catch (e) {
-                console.warn('Invalid render no results function:', e);
-            }
+            const fn = this.resolveRenderFunction(select.dataset.renderNoResults);
+            if (fn) render.no_results = fn;
         }
 
         return render;
+    }
+
+    resolveRenderFunction(nameOrBody) {
+        if (typeof window[nameOrBody] === 'function') {
+            return window[nameOrBody];
+        }
+
+        const parts = nameOrBody.split('.');
+        let ref = window;
+        for (const part of parts) {
+            ref = ref?.[part];
+        }
+        if (typeof ref === 'function') {
+            return ref;
+        }
+
+        console.warn('Select render function not found:', nameOrBody, '— register it as a global function (window.myRenderer = function(data, escape) { ... })');
+        return null;
     }
 
     getAsyncConfig(select) {

@@ -25,7 +25,7 @@ return [
     'promo_used' => 'このプロモーションコードは既に使用されています',
     'promo_is_empty' => '入力されたプロモーションコードが空です',
     'promo_amount' => 'チャージボーナス :value :currency',
-    'promo_percentage' => 'プロモーションコードは:percentage% 割引を提供します',
+    'promo_percentage' => 'チャージボーナス :percentage%',
     'min_amount' => '最小チャージ額は :sum です',
     'process_in_new_window' => '新しいウィンドウで支払いを完了...',
     'select_currency' => '通貨を選択',

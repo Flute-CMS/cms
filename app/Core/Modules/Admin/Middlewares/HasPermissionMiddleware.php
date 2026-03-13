@@ -21,12 +21,15 @@ class HasPermissionMiddleware extends BaseMiddleware
 
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
+        $permissions = array_unique(self::$permission);
+        self::$permission = [];
+
         if (user()->can('admin.boss')) {
             return $next($request);
         }
 
-        foreach (array_unique(self::$permission) as $permission) {
-            abort_if(user()->can($permission), 403, __('def.no_access'));
+        foreach ($permissions as $permission) {
+            abort_unless(user()->can($permission), 403, __('def.no_access'));
         }
 
         return $next($request);

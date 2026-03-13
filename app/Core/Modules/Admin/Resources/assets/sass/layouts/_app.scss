@@ -114,13 +114,15 @@ main.content {
     margin-top: -12px;
     transition: all 0.2s ease;
 
-    &.is-stuck {
-        background: var(--blurred-background);
-        backdrop-filter: blur(12px);
-        padding: 12px;
-        border-bottom-left-radius: var(--border1);
-        border-bottom-right-radius: var(--border1);
-        -webkit-backdrop-filter: blur(12px);
+    @media(min-width: 992px) {
+        &.is-stuck {
+            background: var(--blurred-background);
+            backdrop-filter: blur(12px);
+            padding: 12px;
+            border-bottom-left-radius: var(--border1);
+            border-bottom-right-radius: var(--border1);
+            -webkit-backdrop-filter: blur(12px);
+        }
     }
 
     @include media(mobile) {
@@ -128,6 +130,7 @@ main.content {
         flex-direction: column;
         gap: 10px;
         top: 0;
+        position: relative;
 
         >ul {
             width: 100%;

@@ -9,7 +9,7 @@ use Flute\Core\Support\FluteRequest;
 
 class BanCheckMiddleware extends BaseMiddleware
 {
-    protected const CACHE_TIME = 60;
+    protected const CACHE_TIME = 300;
 
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
@@ -75,27 +75,25 @@ class BanCheckMiddleware extends BaseMiddleware
         $cacheKey = 'flute.ip_block_info.' . md5($ipAddress);
 
         return cache()->callback($cacheKey, static function () use ($ipAddress) {
-            $users = UserDevice::query()
+            $userDevice = UserDevice::query()
                 ->where('ip', $ipAddress)
-                ->load('user')
-                ->load('user.blocksReceived')
-                ->fetchAll();
+                ->load(['user', 'user.blocksReceived'])
+                ->fetchOne();
 
-            foreach ($users as $userDevice) {
-                if ($userDevice->user->isBlocked()) {
-                    $info = $userDevice->user->getBlockInfo();
-
-                    return [
-                        'blocked' => true,
-                        'reason' => $info['reason'] ?? null,
-                    ];
-                }
+            if (!$userDevice) {
+                return ['blocked' => false, 'reason' => null];
             }
 
-            return [
-                'blocked' => false,
-                'reason' => null,
-            ];
+            if ($userDevice->user->isBlocked()) {
+                $info = $userDevice->user->getBlockInfo();
+
+                return [
+                    'blocked' => true,
+                    'reason' => $info['reason'] ?? null,
+                ];
+            }
+
+            return ['blocked' => false, 'reason' => null];
         }, self::CACHE_TIME);
     }
 }

@@ -84,6 +84,7 @@ class PaymentProcessor
 
         $invoiceAmount = $amount;
         $user = user()->getCurrentUser();
+        $currency = null;
 
         $invoice = new PaymentInvoice();
 
@@ -108,7 +109,7 @@ class PaymentProcessor
         $invoice->transactionId = $this->generateTransactionId();
         $invoice->isPaid = false;
         $invoice->user = $user;
-        $invoice->currency = $currency ?? null;
+        $invoice->currency = $currency;
 
         $this->dispatcher->dispatch(new AfterPaymentCreatedEvent($invoice), AfterPaymentCreatedEvent::NAME);
 
@@ -300,21 +301,11 @@ class PaymentProcessor
      */
     public function calculatePromoBonus(array $promoData, $amount): float
     {
-        switch ($promoData['type']) {
-            case 'percentage':
-                $percentage = (float) ($promoData['value'] ?? 0);
-                if ($percentage <= 0) {
-                    return 0;
-                }
-
-                return (float) $amount * ($percentage / 100.0);
-
-            case 'amount':
-                return $promoData['value'];
-
-            default:
-                return 0;
-        }
+        return match ($promoData['type']) {
+            'percentage' => (float) $amount * ((float) ($promoData['value'] ?? 0) / 100.0),
+            'amount' => (float) $promoData['value'],
+            default => 0,
+        };
     }
 
     /**
@@ -331,7 +322,7 @@ class PaymentProcessor
         $usage->invoice = $invoice;
         $usage->user = $user;
         $usage->used_at = new DateTimeImmutable();
-        transaction($usage)->run();
+        $usage->saveOrFail();
     }
 
     /**

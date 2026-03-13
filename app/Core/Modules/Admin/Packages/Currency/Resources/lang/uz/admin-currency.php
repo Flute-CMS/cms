@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Valyuta kursini kiriting',
             'help' => 'Asosiy valyutaga nisbatan kurs',
         ],
+        'preset_amounts' => [
+            'label' => 'Tez summalar',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Toʻldirish sahifasida tez tanlash uchun oldindan belgilangan summalar (vergul bilan ajratilgan)',
+        ],
         'enabled' => [
             'label' => 'Faol',
             'help' => 'Faol valyuta tizimda foydalanish uchun mavjud',

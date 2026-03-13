@@ -202,10 +202,27 @@ if (!function_exists('is_admin_path')) {
     }
 }
 
-if (!function_exists("abort_if")) {
-    function abort_if(bool $condition, int $code = 403, string $message = "")
+if (!function_exists("abort_unless")) {
+    /**
+     * Abort unless the given condition is true.
+     * Throws HttpException when condition is FALSE.
+     */
+    function abort_unless(bool $condition, int $code = 403, string $message = ""): void
     {
         if (!$condition) {
+            throw new HttpException($code, $message);
+        }
+    }
+}
+
+if (!function_exists("abort_if")) {
+    /**
+     * Abort if the given condition is true.
+     * Throws HttpException when condition is TRUE.
+     */
+    function abort_if(bool $condition, int $code = 403, string $message = ""): void
+    {
+        if ($condition) {
             throw new HttpException($code, $message);
         }
     }

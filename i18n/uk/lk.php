@@ -23,7 +23,7 @@
     "promo_used"              => "Ви вже використали цей промокод",
     "promo_is_empty"          => "Введений промокод порожній",
     "promo_amount"            => "Бонус за поповнення :value :currency",
-    "promo_percentage"        => "Промокод надає знижку :percentage%",
+    "promo_percentage"        => "Бонус :percentage% до поповнення",
     "min_amount"              => "Мінімальна сума поповнення :sum",
     "process_in_new_window"   => "Завершіть оплату в новому вікні...",
     "select_currency"         => "Валюта",

@@ -25,7 +25,7 @@ return [
     'promo_used' => 'Tento promo kód jste již použili',
     'promo_is_empty' => 'Zadaný promo kód je prázdný',
     'promo_amount' => 'Bonus k dobití :value :currency',
-    'promo_percentage' => 'Promo kód poskytuje slevu :percentage%',
+    'promo_percentage' => 'Bonus :percentage% k dobití',
     'min_amount' => 'Minimální částka dobití je :sum',
     'process_in_new_window' => 'Dokončete platbu v novém okně...',
     'select_currency' => 'Vyberte měnu',

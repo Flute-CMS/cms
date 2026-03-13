@@ -37,7 +37,7 @@ class PromoCode extends ActiveRecord
     #[Column(type: "integer", nullable: true)]
     public ?int $max_uses_per_user = null;
 
-    #[Column(type: "enum(amount, percentage, subtract)")]
+    #[Column(type: "enum(amount, percentage)")]
     public string $type;
 
     #[Column(type: "float")]

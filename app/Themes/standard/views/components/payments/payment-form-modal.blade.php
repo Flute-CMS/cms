@@ -29,14 +29,7 @@
         'ofertaView' => (bool) config('lk.oferta_view'),
         'maxAmount' => config('lk.max_single_amount', 1000000),
         'mode' => 'modal',
-        'presets' => [
-            'RUB' => [500, 1000, 2500, 5000],
-            'USD' => [5, 10, 25, 50],
-            'EUR' => [5, 10, 25, 50],
-            'UAH' => [200, 500, 1000, 2500],
-            'KZT' => [2000, 5000, 10000, 25000],
-            '_default' => [500, 1000, 2500, 5000],
-        ],
+        'presets' => $currencyPresets ?? [],
         'i18n' => [
             'min_amount_info' => __('lk.min_amount_info', ['amount' => ':amount', 'currency' => ':currency']),
             'base_amount' => __('lk.base_amount'),
@@ -94,8 +87,13 @@
             </div>
 
             {{-- Presets --}}
+            @php $activePresets = ($currencyPresets ?? [])[$currency] ?? []; @endphp
             <div class="lk-presets lk-presets--grid" role="group" data-lk-presets
-                aria-label="{{ __('lk.preset_amounts') }}"></div>
+                aria-label="{{ __('lk.preset_amounts') }}">
+                @foreach ($activePresets as $presetVal)
+                    <button type="button" class="lk-preset" data-amount="{{ $presetVal }}">{{ number_format($presetVal, 0, '', ' ') }}</button>
+                @endforeach
+            </div>
 
             <p class="lk-hint" data-lk-hint></p>
 

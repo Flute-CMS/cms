@@ -224,30 +224,55 @@
 
     // ── Presets ────────────────────────────────────────────
     function getPresets(cur) {
-        return cfg.presets[cur] || cfg.presets._default || [500, 1000, 2500, 5000];
+        return cfg.presets[cur] || [];
     }
 
     function renderPresets() {
         if (!presetsWrap) return;
         var presets = getPresets(state.currency);
-        presetsWrap.innerHTML = '';
-        presets.forEach(function (val) {
-            var btn = tpl('preset');
-            if (!btn) {
-                btn = document.createElement('button');
+        if (!presets.length) {
+            presetsWrap.innerHTML = '';
+            return;
+        }
+        // Re-use existing SSR buttons if they match, otherwise rebuild
+        var existing = presetsWrap.querySelectorAll('.lk-preset');
+        var needsRebuild = existing.length !== presets.length;
+        if (!needsRebuild) {
+            for (var i = 0; i < presets.length; i++) {
+                if (Number(existing[i].getAttribute('data-amount')) !== presets[i]) {
+                    needsRebuild = true;
+                    break;
+                }
+            }
+        }
+        if (needsRebuild) {
+            presetsWrap.innerHTML = '';
+            presets.forEach(function (val) {
+                var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'lk-preset';
-            }
-            btn.classList.toggle('is-active', state.amount === val);
-            btn.setAttribute('data-amount', val);
-            btn.textContent = val.toLocaleString();
-            btn.addEventListener('click', function () {
-                state.amount = val;
-                amountInput.value = val;
-                renderPresets();
-                recalculate();
+                btn.setAttribute('data-amount', val);
+                btn.textContent = val.toLocaleString();
+                presetsWrap.appendChild(btn);
             });
-            presetsWrap.appendChild(btn);
+        }
+        // Update active state and ensure listeners
+        presetsWrap.querySelectorAll('.lk-preset').forEach(function (btn) {
+            var val = Number(btn.getAttribute('data-amount'));
+            btn.classList.toggle('is-active', state.amount === val);
+        });
+    }
+
+    // Event delegation for preset clicks (works for both SSR and JS-rendered buttons)
+    if (presetsWrap) {
+        presetsWrap.addEventListener('click', function (e) {
+            var btn = e.target.closest('.lk-preset');
+            if (!btn) return;
+            var val = Number(btn.getAttribute('data-amount'));
+            state.amount = val;
+            amountInput.value = val;
+            renderPresets();
+            recalculate();
         });
     }
 
@@ -376,14 +401,13 @@
 
         var amountToPay = amount;
 
-        // Promo
+        // Promo — all types are bonuses to balance
         if (state.promoValid && state.promoDetails) {
             var p = state.promoDetails;
             if (p.type === 'amount') {
                 amountToReceive += p.value;
             } else if (p.type === 'percentage') {
-                var discount = (amountToPay * p.value) / 100;
-                amountToPay = Math.max(0, amountToPay - discount);
+                amountToReceive += Math.round((amountToReceive * p.value) / 100 * 100) / 100;
             }
         }
 
@@ -403,9 +427,9 @@
         if (state.promoValid && state.promoDetails) {
             var p = state.promoDetails;
             if (p.type === 'amount') {
-                appendReceiptRow('receipt-row-green', cfg.i18n.bonus, '+' + p.value + ' ' + state.currency);
+                appendReceiptRow('receipt-row-green', cfg.i18n.bonus, '+' + p.value + ' ' + cfg.currencyView);
             } else if (p.type === 'percentage') {
-                appendReceiptRow('receipt-row-green', cfg.i18n.discount, '-' + p.value + '%');
+                appendReceiptRow('receipt-row-green', cfg.i18n.bonus, '+' + p.value + '%');
             }
         }
 
@@ -462,7 +486,7 @@
                 state.promoValid = true;
                 state.promoDetails = { type: payload.type, value: payload.value };
                 var successMsg = payload.type === 'percentage'
-                    ? (cfg.i18n.promo_applied_discount || 'Скидка') + ' -' + payload.value + '%'
+                    ? (cfg.i18n.promo_applied_bonus || 'Бонус') + ' +' + payload.value + '%'
                     : (cfg.i18n.promo_applied_bonus || 'Бонус') + ' +' + payload.value;
                 setPromoState('valid', successMsg);
             } else {

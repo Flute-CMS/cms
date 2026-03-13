@@ -37,12 +37,9 @@ class NavbarService
 
         $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
 
-        if (!is_development()) {
-            cache()->tagKey(self::CACHE_TAG, $cacheKey);
-            $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME);
-        } else {
-            $this->cachedNavbarItems = $this->getDefaultNavbarItems();
-        }
+        $cacheTime = is_development() ? 30 : self::CACHE_TIME;
+        cache()->tagKey(self::CACHE_TAG, $cacheKey);
+        $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), $cacheTime);
     }
 
     /**
@@ -108,12 +105,14 @@ class NavbarService
                 break;
         }
 
-        if (sizeof($item->roles) === 0) {
+        if (count($item->roles) === 0) {
             return true;
         }
 
+        $highestPriority = user()->getHighestPriority();
+
         foreach ($item->roles as $role) {
-            if ((user()->hasRole($role->name) || user()->getHighestPriority() > $role->priority)) {
+            if (user()->hasRole($role->name) || $highestPriority > $role->priority) {
                 return true;
             }
         }

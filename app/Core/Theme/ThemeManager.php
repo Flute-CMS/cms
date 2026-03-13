@@ -143,7 +143,7 @@ class ThemeManager
     public function getAllThemes(): array
     {
         if (empty($this->allThemes)) {
-            $this->allThemes = Theme::query()->load('settings')->fetchAll();
+            $this->allThemes = cache()->callback('flute.themes.all', static fn () => (array) Theme::query()->load('settings')->fetchAll(), self::CACHE_TIME);
         }
 
         return $this->allThemes;
@@ -421,16 +421,52 @@ class ThemeManager
 
     /**
      * Get an associative array of themes from the database.
-     * Note: ORM entities cannot be cached due to serialization issues.
+     * Uses cache to avoid a DB query on every request.
      */
     protected function getAssocThemes(): array
     {
-        $themes = Theme::query()->load('settings')->fetchAll();
+        $cachedRows = cache()->callback('flute.themes.db_rows', static function () {
+            $themes = Theme::query()->load('settings')->fetchAll();
 
-        return array_reduce($themes, static function ($carry, Theme $theme) {
-            $carry[$theme->key] = $theme;
+            return array_map(static fn (Theme $t) => [
+                'key' => $t->key,
+                'name' => $t->name,
+                'version' => $t->version,
+                'author' => $t->author,
+                'description' => $t->description,
+                'status' => $t->status,
+                'settings' => array_map(static fn (ThemeSettings $s) => [
+                    'id' => $s->id,
+                    'key' => $s->key,
+                    'name' => $s->name,
+                    'description' => $s->description,
+                    'value' => $s->value,
+                ], is_array($t->settings) ? $t->settings : iterator_to_array($t->settings)),
+            ], $themes);
+        }, self::CACHE_TIME);
 
-            return $carry;
-        }, []);
+        $result = [];
+        foreach ($cachedRows as $row) {
+            $theme = new Theme();
+            $theme->key = $row['key'];
+            $theme->name = $row['name'];
+            $theme->version = $row['version'];
+            $theme->author = $row['author'];
+            $theme->description = $row['description'];
+            $theme->status = $row['status'];
+
+            foreach ($row['settings'] as $settingRow) {
+                $setting = new ThemeSettings();
+                $setting->key = $settingRow['key'];
+                $setting->name = $settingRow['name'];
+                $setting->description = $settingRow['description'];
+                $setting->value = $settingRow['value'];
+                $theme->addSetting($setting);
+            }
+
+            $result[$row['key']] = $theme;
+        }
+
+        return $result;
     }
 }

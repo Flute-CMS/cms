@@ -12,7 +12,7 @@ class BeforePaymentEvent extends Event
 
     protected $promo;
 
-    public function __construct(int $amount, string $promo)
+    public function __construct($amount, ?string $promo = null)
     {
         $this->amount = $amount;
         $this->promo = $promo;
@@ -23,7 +23,7 @@ class BeforePaymentEvent extends Event
         return $this->amount;
     }
 
-    public function getPromo()
+    public function getPromo(): ?string
     {
         return $this->promo;
     }

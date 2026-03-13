@@ -25,7 +25,7 @@ return [
     'promo_used' => 'Você já usou este código promocional',
     'promo_is_empty' => 'O código promocional inserido está vazio',
     'promo_amount' => 'Bônus de recarga :value :currency',
-    'promo_percentage' => 'Código promocional dá um desconto de :percentage%',
+    'promo_percentage' => 'Bônus de :percentage% na recarga',
     'min_amount' => 'Valor mínimo de recarga é :sum',
     'process_in_new_window' => 'Conclua o pagamento em uma nova janela...',
     'select_currency' => 'Selecionar moeda',

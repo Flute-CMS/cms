@@ -80,6 +80,8 @@ class TemplateAssets
 
     protected string $standardTheme = 'standard';
 
+    protected ?array $cachedThemeFallbackOrder = null;
+
     /**
      * Accumulated time spent on compiling/minifying theme assets (scss, js, etc.)
      */
@@ -208,6 +210,7 @@ class TemplateAssets
         $this->assetPathCache = [];
         $this->compilationCache = [];
         $this->fallbackAssetPaths = [];
+        $this->cachedThemeFallbackOrder = null;
     }
 
     /**
@@ -266,6 +269,10 @@ class TemplateAssets
      */
     protected function getThemeFallbackOrder(): array
     {
+        if ($this->cachedThemeFallbackOrder !== null) {
+            return $this->cachedThemeFallbackOrder;
+        }
+
         $currentTheme = app(ThemeManager::class)->getCurrentTheme() ?? $this->standardTheme;
         $themes = [$currentTheme];
 
@@ -273,7 +280,7 @@ class TemplateAssets
             $themes[] = $this->standardTheme;
         }
 
-        return $themes;
+        return $this->cachedThemeFallbackOrder = $themes;
     }
 
     /**
@@ -987,17 +994,21 @@ class TemplateAssets
 
     /**
      * Return max mtime among an SCSS file and its imports.
+     * Caches the dependency list keyed by the root SCSS file path.
      */
     private function getScssDependenciesMaxMtime(string $scssPath): int
     {
-        $visited = [];
-        $maxMtime = 0;
+        $depsCacheKey = 'scss_deps_' . md5($scssPath);
 
-        $paths = $this->collectScssDependencies($scssPath, $visited);
-
-        if (is_development()) {
-            logs('templates')->debug('SCSS dependencies for ' . $scssPath . ': ' . json_encode($paths));
+        if (isset($this->compilationCache[$depsCacheKey])) {
+            $paths = $this->compilationCache[$depsCacheKey];
+        } else {
+            $visited = [];
+            $paths = $this->collectScssDependencies($scssPath, $visited);
+            $this->compilationCache[$depsCacheKey] = $paths;
         }
+
+        $maxMtime = 0;
 
         foreach ($paths as $path) {
             $mtime = @filemtime($path) ?: 0;

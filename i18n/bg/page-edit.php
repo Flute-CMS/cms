@@ -192,4 +192,11 @@ return [
     "excluded_paths_hint"   => "Примери: /about, /user/*, /news/**",
     "excluded_paths_placeholder" => "/път/за/скриване",
     "add_path"              => "Добави",
+
+    "apply_opposite_theme_title" => "Приложи към :theme тема?",
+    "apply_opposite_theme_message" => "Да се приложат ли тези настройки и за :theme тема? Цветовете ще бъдат адаптирани автоматично.",
+    "apply_opposite_theme_confirm" => "Приложи",
+    "apply_opposite_theme_cancel" => "Само текущата",
+    "theme_light" => "светла",
+    "theme_dark" => "тъмна",
 ];

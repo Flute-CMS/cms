@@ -25,7 +25,7 @@ return [
     'promo_used' => 'Du har redan använt denna kampanjkod',
     'promo_is_empty' => 'Den angivna kampanjkoden är tom',
     'promo_amount' => 'Top-up bonus :value :currency',
-    'promo_percentage' => 'Kampanjkoden ger en :percentage% rabatt',
+    'promo_percentage' => 'Bonus :percentage% på påfyllning',
     'min_amount' => 'Minsta påfyllningsbelopp är :sum',
     'process_in_new_window' => 'Slutför betalning i ett nytt fönster...',
     'select_currency' => 'Välj valuta',

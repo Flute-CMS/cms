@@ -474,6 +474,7 @@ class NotificationManager {
         this.isOpen = false;
         this.activeTab = 'unread';
         this.cleanup = null;
+        this._pendingMarkRead = new Set();
 
         this.initCustomEvents();
         this.initAutoMarkRead();
@@ -481,44 +482,133 @@ class NotificationManager {
         this.initPopupNotifications();
     }
 
-    updateNotificationDot() {
-        const dot = document.getElementById("notification-dot");
-        if (!dot) return;
+    /** CSRF token — cached, refreshed on meta change */
+    get csrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    }
 
-        if (typeof htmx !== "undefined") {
-            htmx.trigger(dot, "notificationsUpdated");
+    /** Common fetch helper with CSRF + XHR headers */
+    apiFetch(url, method = 'GET') {
+        const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+        if (method !== 'GET') {
+            headers['X-CSRF-Token'] = this.csrfToken;
         }
+        return fetch(u(url), { method, headers });
     }
 
+    /** Trigger HTMX poll on the dot element */
     triggerNotificationsUpdate() {
-        document.body.dispatchEvent(new CustomEvent("notificationsUpdated"));
+        document.body.dispatchEvent(new CustomEvent('notificationsUpdated'));
     }
+
+    /** Find all DOM items with given notification ID across all tabs */
+    findItemsById(id) {
+        return document.querySelectorAll(`.notification-item[data-id="${id}"]`);
+    }
+
+    /** Mark a single item as read in the DOM (all instances) */
+    markItemReadInDOM(id) {
+        this.findItemsById(id).forEach(item => {
+            item.classList.remove('unread');
+            item.classList.add('viewed');
+            const dot = item.querySelector('.notification-unread-indicator');
+            if (dot) dot.remove();
+        });
+    }
+
+    /** Remove a single item from the DOM (all instances across tabs) */
+    removeItemFromDOM(id) {
+        this.findItemsById(id).forEach(item => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(20px)';
+            setTimeout(() => item.remove(), 300);
+        });
+    }
+
+    /** Fetch counts from API and update all badges + dot */
+    updateBadges() {
+        this.triggerNotificationsUpdate();
+
+        this.apiFetch('api/notifications/has-unread')
+            .then(r => r.json())
+            .then(data => {
+                const dot = document.getElementById('notification-dot');
+                if (dot) {
+                    dot.classList.toggle('active', data.hasUnread === true);
+                }
+
+                const unreadBadge = document.querySelector('[data-notification-count-unread]');
+                if (unreadBadge) {
+                    // Count items currently in the unread list DOM
+                    const unreadItems = document.querySelectorAll("[data-notification-list='unread'] .notification-item");
+                    unreadBadge.textContent = unreadItems.length;
+                }
+
+                const allBadge = document.querySelector('[data-notification-count-all]');
+                if (allBadge) {
+                    const allItems = document.querySelectorAll("[data-notification-list='all'] .notification-item");
+                    allBadge.textContent = allItems.length;
+                }
+            })
+            .catch(() => {
+                // Fallback: count DOM elements
+                const unreadCount = document.querySelectorAll("[data-notification-list='unread'] .notification-item").length;
+                const allCount = document.querySelectorAll("[data-notification-list='all'] .notification-item").length;
+
+                const allBadge = document.querySelector('[data-notification-count-all]');
+                const unreadBadge = document.querySelector('[data-notification-count-unread]');
+                if (allBadge) allBadge.textContent = allCount;
+                if (unreadBadge) unreadBadge.textContent = unreadCount;
+
+                const dot = document.getElementById('notification-dot');
+                if (dot && unreadCount === 0) dot.classList.remove('active');
+            });
+    }
+
+    /** Show empty state message in lists that have no items */
+    checkEmptyState() {
+        const content = document.querySelector('[data-notification-content]');
+        const emptyText = content?.dataset.emptyText || 'No notifications';
+
+        document.querySelectorAll('[data-notification-list]').forEach(list => {
+            const items = list.querySelectorAll('.notification-item');
+            let emptyMsg = list.querySelector('.notifications__empty');
+
+            if (items.length === 0 && !emptyMsg) {
+                const p = document.createElement('p');
+                p.className = 'notifications__empty';
+                p.textContent = emptyText;
+                list.appendChild(p);
+            } else if (items.length > 0 && emptyMsg) {
+                emptyMsg.remove();
+            }
+        });
+    }
+
+    // ── Toasts ──────────────────────────────────────────
 
     handleToasts(evt) {
         try {
-            const toastsHeader = evt.detail.xhr.getResponseHeader("X-Toasts");
+            const toastsHeader = evt.detail.xhr.getResponseHeader('X-Toasts');
             if (toastsHeader) {
                 const toasts = JSON.parse(toastsHeader);
                 if (Array.isArray(toasts)) {
-                    toasts.forEach((toast) => this.displayToast(toast));
+                    toasts.forEach(toast => this.displayToast(toast));
                 }
             }
         } catch (error) {
-            console.error("Error handling toast notifications:", error);
+            console.error('Error handling toast notifications:', error);
         }
     }
 
     displayToast(toast) {
         if (!toast) return;
 
-        const type = toast.type || 'info';
-        const duration = toast.duration || 4000;
-        const message = toast.message || '';
-
         const options = {
-            type: type,
-            duration: duration,
-            message: message,
+            type: toast.type || 'info',
+            duration: toast.duration || 4000,
+            message: toast.message || '',
             dismissible: toast.dismissible !== false,
         };
 
@@ -527,119 +617,111 @@ class NotificationManager {
         }
 
         if (toast.events) {
-            const eventHandlers = {};
-            Object.entries(toast.events).forEach(([eventName, handler]) => {
-                eventHandlers[eventName] = () => {
-                    new Function(handler)();
-                };
-            });
-
-            Object.entries(eventHandlers).forEach(([eventName, handlerFn]) => {
-                this.notyf.on(eventName, handlerFn);
+            Object.entries(toast.events).forEach(([eventName, handlerName]) => {
+                this.notyf.on(eventName, () => {
+                    if (typeof window[handlerName] === 'function') {
+                        window[handlerName]();
+                    }
+                });
             });
         }
 
         return this.notyf.open(options);
     }
 
+    // ── Custom Events ───────────────────────────────────
+
     initCustomEvents() {
-        window.addEventListener("delayed-redirect", (event) => {
+        window.addEventListener('delayed-redirect', (event) => {
             try {
                 const { url, delay } = event.detail;
                 if (url && delay) {
-                    setTimeout(() => {
-                        window.location.href = url;
-                    }, delay);
+                    setTimeout(() => { window.location.href = url; }, delay);
                 }
             } catch (error) {
-                console.error("Error handling delayed redirect:", error);
+                console.error('Error handling delayed redirect:', error);
             }
         });
     }
 
+    // ── Auto-Mark-Read (IntersectionObserver) ───────────
+
     initAutoMarkRead() {
-        const observer = new IntersectionObserver((entries, observer) => {
+        this._markReadObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const item = entry.target;
-                    const id = item.getAttribute("data-id");
+                if (!entry.isIntersecting) return;
+                const item = entry.target;
+                const id = item.getAttribute('data-id');
 
-                    if (id && item.classList.contains("unread")) {
-                        item.classList.remove("unread");
-                        item.classList.add("viewed");
-                        const dot = item.querySelector(".notification-unread-indicator");
-                        if (dot) dot.remove();
+                if (!id || !item.classList.contains('unread')) return;
+                if (this._pendingMarkRead.has(id)) return;
 
-                        fetch(u(`api/notifications/${id}`), {
-                            method: "PUT",
-                            headers: {
-                                "X-Requested-With": "XMLHttpRequest",
-                                "X-CSRF-Token": document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    ?.getAttribute("content"),
-                            },
-                        }).catch(() => { });
-
-                        this.updateBadges();
-                        observer.unobserve(item);
-                    }
+                // Only auto-mark-read items in the unread tab
+                const list = item.closest('[data-notification-list]');
+                if (list && list.getAttribute('data-notification-list') !== 'unread') {
+                    this._markReadObserver.unobserve(item);
+                    return;
                 }
+
+                this._pendingMarkRead.add(id);
+
+                // Optimistic UI update — sync across all tabs
+                this.markItemReadInDOM(id);
+                this._markReadObserver.unobserve(item);
+
+                this.apiFetch(`api/notifications/${id}`, 'PUT')
+                    .then(() => {
+                        this._pendingMarkRead.delete(id);
+                        this.updateBadges();
+                    })
+                    .catch(() => {
+                        this._pendingMarkRead.delete(id);
+                    });
             });
         }, { threshold: 0.5 });
 
-        const observeUnreadItems = () => {
-            document.querySelectorAll('.notification-item.unread').forEach(item => {
-                observer.observe(item);
-            });
-        };
+        this._observeUnreadItems();
 
-        observeUnreadItems();
-
-        const mutationObserver = new MutationObserver((mutations) => {
+        // Watch for new items added to DOM (HTMX swaps)
+        this._mutationObserver = new MutationObserver(mutations => {
             let hasNewItems = false;
-            mutations.forEach(mutation => {
-                if (mutation.addedNodes.length > 0) {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) {
-                            if (node.classList.contains('notification-item') || node.querySelector('.notification-item')) {
-                                hasNewItems = true;
-                            }
-                        }
-                    });
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1 && (
+                        node.classList?.contains('notification-item') ||
+                        node.querySelector?.('.notification-item')
+                    )) {
+                        hasNewItems = true;
+                        break;
+                    }
                 }
-            });
+                if (hasNewItems) break;
+            }
             if (hasNewItems) {
-                observeUnreadItems();
+                this._observeUnreadItems();
+                this.checkEmptyState();
             }
         });
 
-        mutationObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        this._mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
 
-        // Click handler for navigation
-        document.addEventListener("click", (e) => {
-            const item = e.target.closest(".notification-item");
-            if (!item) return;
-
-            // Don't process if clicking delete, file link, or action button
-            if (e.target.closest(".notification-delete") || e.target.closest(".notification-btn") || e.target.closest(".notification-file-link")) {
-                return;
-            }
-
-            // Navigate if has URL
-            const url = item.getAttribute("data-url");
-            if (url) {
-                window.location.href = url;
-            }
+    _observeUnreadItems() {
+        // Only observe unread items in the unread tab
+        const unreadList = document.querySelector("[data-notification-list='unread']");
+        if (!unreadList) return;
+        unreadList.querySelectorAll('.notification-item.unread').forEach(item => {
+            this._markReadObserver.observe(item);
         });
     }
 
+    // ── Dropdown ────────────────────────────────────────
+
     initDropdown() {
-        // Toggle button
-        document.addEventListener("click", (e) => {
-            const toggle = e.target.closest("[data-notification-toggle]");
+        // Single delegated click handler for all notification actions
+        document.addEventListener('click', (e) => {
+            // Toggle button
+            const toggle = e.target.closest('[data-notification-toggle]');
             if (toggle) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -647,131 +729,111 @@ class NotificationManager {
                 return;
             }
 
-            // Close on click outside
-            const dropdown = e.target.closest("[data-notification-dropdown]");
-            if (!dropdown && this.isOpen) {
-                this.closeDropdown();
+            // Delete notification
+            const deleteBtn = e.target.closest('[data-notification-delete]');
+            if (deleteBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.deleteNotification(deleteBtn.getAttribute('data-notification-delete'), deleteBtn);
+                return;
             }
-        });
 
-        // Tab switching
-        document.addEventListener("click", (e) => {
-            const tab = e.target.closest("[data-notification-tab]");
-            if (!tab) return;
-
-            e.preventDefault();
-            const tabName = tab.getAttribute("data-notification-tab");
-            this.switchTab(tabName);
-        });
-
-        // Mark all as read
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-mark-all-read]");
-            if (!btn) return;
-
-            e.preventDefault();
-            this.markAllAsRead();
-        });
-
-        // Delete notification
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-notification-delete]");
-            if (!btn) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-            const id = btn.getAttribute("data-notification-delete");
-            this.deleteNotification(id, btn);
-        });
-
-        // Clear all notifications
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-clear-all]");
-            if (!btn) return;
-
-            e.preventDefault();
-            this.clearAllNotifications();
-        });
-
-        // Button handlers
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-notification-handler]");
-            if (!btn) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-            const handler = btn.getAttribute("data-notification-handler");
-            if (handler) {
-                try {
-                    new Function(handler)();
-                } catch (error) {
-                    console.error("Error executing notification handler:", error);
+            // Button handler
+            const handlerBtn = e.target.closest('[data-notification-handler]');
+            if (handlerBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const handlerName = handlerBtn.getAttribute('data-notification-handler');
+                if (handlerName && typeof window[handlerName] === 'function') {
+                    try { window[handlerName](); } catch (err) {
+                        console.error('Error executing notification handler:', err);
+                    }
                 }
+                return;
+            }
+
+            // Tab switching
+            const tab = e.target.closest('[data-notification-tab]');
+            if (tab) {
+                e.preventDefault();
+                this.switchTab(tab.getAttribute('data-notification-tab'));
+                return;
+            }
+
+            // Mark all as read
+            if (e.target.closest('[data-mark-all-read]')) {
+                e.preventDefault();
+                this.markAllAsRead();
+                return;
+            }
+
+            // Clear all
+            if (e.target.closest('[data-clear-all]')) {
+                e.preventDefault();
+                this.clearAllNotifications();
+                return;
+            }
+
+            // Click on notification item to navigate
+            const item = e.target.closest('.notification-item');
+            if (item && !e.target.closest('.notification-btn') && !e.target.closest('.notification-file-link')) {
+                const url = item.getAttribute('data-url');
+                if (url) window.location.href = url;
+                return;
+            }
+
+            // Close on click outside
+            if (this.isOpen && !e.target.closest('[data-notification-dropdown]')) {
+                this.closeDropdown();
             }
         });
 
         // Close on Escape
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && this.isOpen) {
-                this.closeDropdown();
-            }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) this.closeDropdown();
         });
-        // HTMX events for updating badges
-        if (typeof htmx !== "undefined") {
-            htmx.on("htmx:afterSwap", (e) => {
-                if (e.target.closest("[data-notification-dropdown]")) {
+
+        // HTMX events for updating badges after tab content loads
+        if (typeof htmx !== 'undefined') {
+            htmx.on('htmx:afterSwap', (e) => {
+                if (e.target.closest('[data-notification-dropdown]')) {
                     this.updateBadges();
+                    this.checkEmptyState();
                 }
             });
         }
     }
 
     toggleDropdown() {
-        this.dropdown = document.querySelector("[data-notification-dropdown]");
-        this.toggle = document.querySelector("[data-notification-toggle]");
-
+        this.dropdown = document.querySelector('[data-notification-dropdown]');
+        this.toggle = document.querySelector('[data-notification-toggle]');
         if (!this.dropdown) return;
-
-        if (this.isOpen) {
-            this.closeDropdown();
-        } else {
-            this.openDropdown();
-        }
+        this.isOpen ? this.closeDropdown() : this.openDropdown();
     }
 
     openDropdown() {
-        if (!this.dropdown) {
-            this.dropdown = document.querySelector("[data-notification-dropdown]");
-        }
-        if (!this.toggle) {
-            this.toggle = document.querySelector("[data-notification-toggle]");
-        }
-
+        if (!this.dropdown) this.dropdown = document.querySelector('[data-notification-dropdown]');
+        if (!this.toggle) this.toggle = document.querySelector('[data-notification-toggle]');
         if (!this.dropdown || !this.toggle) return;
 
         // Close profile dropdown if open
-        const profileDropdown = document.querySelector("[data-profile-dropdown].is-open");
+        const profileDropdown = document.querySelector('[data-profile-dropdown].is-open');
         if (profileDropdown) {
-            profileDropdown.classList.remove("is-open");
-            profileDropdown.setAttribute("aria-hidden", "true");
-            const profileToggle = document.querySelector("[data-profile-toggle]");
-            if (profileToggle) {
-                profileToggle.setAttribute("aria-expanded", "false");
-            }
+            profileDropdown.classList.remove('is-open');
+            profileDropdown.setAttribute('aria-hidden', 'true');
+            const profileToggle = document.querySelector('[data-profile-toggle]');
+            if (profileToggle) profileToggle.setAttribute('aria-expanded', 'false');
             this.removeBackdrop();
         }
 
-        // Move to body for proper backdrop-filter
         this.moveToBody();
         this.showBackdrop();
-
-        this.toggle.setAttribute("aria-expanded", "true");
+        this.toggle.setAttribute('aria-expanded', 'true');
         this.isOpen = true;
 
-        // Position first, then show with animation
         this.positionDropdown(() => {
-            this.dropdown.classList.add("is-open");
-            this.dropdown.setAttribute("aria-hidden", "false");
+            this.dropdown.classList.add('is-open');
+            this.dropdown.setAttribute('aria-hidden', 'false');
         });
     }
 
@@ -799,23 +861,20 @@ class NotificationManager {
             if (!this.toggle || !this.dropdown) return;
 
             window.FloatingUIDOM.computePosition(this.toggle, this.dropdown, {
-                placement: "bottom-end",
-                strategy: "fixed",
+                placement: 'bottom-end',
+                strategy: 'fixed',
                 middleware: [
                     window.FloatingUIDOM.offset(16),
                     window.FloatingUIDOM.flip({
-                        fallbackPlacements: ["top-end", "bottom-start", "top-start"],
+                        fallbackPlacements: ['top-end', 'bottom-start', 'top-start'],
                     }),
                     window.FloatingUIDOM.shift({ padding: 8 }),
                 ],
             }).then(({ x, y, placement }) => {
                 if (!this.dropdown) return;
-
                 this.dropdown.style.left = `${x}px`;
                 this.dropdown.style.top = `${y}px`;
-                this.dropdown.setAttribute("data-placement", placement);
-
-                // Call callback after first positioning
+                this.dropdown.setAttribute('data-placement', placement);
                 if (firstUpdate && onPositioned) {
                     firstUpdate = false;
                     requestAnimationFrame(onPositioned);
@@ -823,258 +882,158 @@ class NotificationManager {
             });
         };
 
-        // Auto-update position on scroll/resize with all listeners
-        if (this.cleanup) {
-            this.cleanup();
-        }
+        if (this.cleanup) this.cleanup();
         this.cleanup = window.FloatingUIDOM.autoUpdate(
-            this.toggle,
-            this.dropdown,
-            updatePosition,
-            {
-                ancestorScroll: true,
-                ancestorResize: true,
-                elementResize: true,
-                layoutShift: true,
-            }
+            this.toggle, this.dropdown, updatePosition,
+            { ancestorScroll: true, ancestorResize: true, elementResize: true, layoutShift: true }
         );
     }
 
     closeDropdown() {
-        if (!this.dropdown) {
-            this.dropdown = document.querySelector("[data-notification-dropdown]");
-        }
-        if (!this.toggle) {
-            this.toggle = document.querySelector("[data-notification-toggle]");
-        }
+        if (!this.dropdown) this.dropdown = document.querySelector('[data-notification-dropdown]');
+        if (!this.toggle) this.toggle = document.querySelector('[data-notification-toggle]');
 
-        if (this.cleanup) {
-            this.cleanup();
-            this.cleanup = null;
-        }
-
+        if (this.cleanup) { this.cleanup(); this.cleanup = null; }
         if (!this.dropdown) return;
 
-        this.dropdown.classList.remove("is-open");
-        this.dropdown.setAttribute("aria-hidden", "true");
-        if (this.toggle) {
-            this.toggle.setAttribute("aria-expanded", "false");
-        }
+        this.dropdown.classList.remove('is-open');
+        this.dropdown.setAttribute('aria-hidden', 'true');
+        if (this.toggle) this.toggle.setAttribute('aria-expanded', 'false');
         this.isOpen = false;
         this.removeBackdrop();
 
-        // Return to original parent after animation
-        setTimeout(() => {
-            if (!this.isOpen) {
-                this.restoreToParent();
-            }
-        }, 200);
+        setTimeout(() => { if (!this.isOpen) this.restoreToParent(); }, 200);
     }
 
     showBackdrop() {
         if (window.innerWidth > 768) return;
         this.removeBackdrop();
-        this.backdrop = document.createElement("div");
-        this.backdrop.className = "dropdown-backdrop";
-        this.backdrop.addEventListener("click", () => this.closeDropdown());
+        this.backdrop = document.createElement('div');
+        this.backdrop.className = 'dropdown-backdrop';
+        this.backdrop.addEventListener('click', () => this.closeDropdown());
         document.body.appendChild(this.backdrop);
-        requestAnimationFrame(() => this.backdrop && this.backdrop.classList.add("is-visible"));
+        requestAnimationFrame(() => this.backdrop && this.backdrop.classList.add('is-visible'));
     }
 
     removeBackdrop() {
         if (!this.backdrop) return;
-        this.backdrop.classList.remove("is-visible");
+        this.backdrop.classList.remove('is-visible');
         const el = this.backdrop;
         this.backdrop = null;
         setTimeout(() => el.remove(), 200);
     }
 
-    switchTab(tabName) {
-        const tabs = document.querySelectorAll("[data-notification-tab]");
-        const lists = document.querySelectorAll("[data-notification-list]");
+    // ── Tab Switching ───────────────────────────────────
 
-        tabs.forEach((tab) => {
-            const isActive = tab.getAttribute("data-notification-tab") === tabName;
-            tab.classList.toggle("active", isActive);
+    switchTab(tabName) {
+        const tabs = document.querySelectorAll('[data-notification-tab]');
+        const lists = document.querySelectorAll('[data-notification-list]');
+
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.getAttribute('data-notification-tab') === tabName);
         });
 
-        lists.forEach((list) => {
-            const isActive = list.getAttribute("data-notification-list") === tabName;
-            list.style.display = isActive ? "" : "none";
+        lists.forEach(list => {
+            const isActive = list.getAttribute('data-notification-list') === tabName;
+            list.style.display = isActive ? '' : 'none';
 
-            if (isActive && typeof htmx !== "undefined") {
-                const hasRevealed = list.getAttribute("hx-trigger")?.includes("revealed");
-                const hasGet = list.hasAttribute("hx-get");
-                const isLoaded = list.getAttribute("data-loaded") === "true";
-
-                if (hasRevealed && hasGet && !isLoaded) {
-                    list.setAttribute("data-loaded", "true");
-                    htmx.trigger(list, "revealed");
-                }
+            // Trigger HTMX load when switching to a tab with hx-trigger="revealed"
+            if (isActive && typeof htmx !== 'undefined' && list.hasAttribute('hx-get')) {
+                htmx.trigger(list, 'revealed');
             }
         });
 
         this.activeTab = tabName;
     }
 
+    // ── Notification Actions ────────────────────────────
+
     markAllAsRead() {
-        const csrfToken = document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content");
+        // Optimistic UI update — mark all as read across both tabs
+        const items = document.querySelectorAll('.notification-item.unread');
+        items.forEach(item => {
+            item.classList.remove('unread');
+            item.classList.add('viewed');
+            const dot = item.querySelector('.notification-unread-indicator');
+            if (dot) dot.remove();
+        });
 
-        fetch(u("api/notifications/read-all"), {
-            method: "PUT",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRF-Token": csrfToken,
-            },
-        })
-            .then((response) => {
-                if (response.ok) {
-                    // Update UI
-                    const items = document.querySelectorAll(".notification-item.unread");
-                    items.forEach((item) => {
-                        item.classList.remove("unread");
-                        item.classList.add("viewed");
-                        const dot = item.querySelector(".notification-unread-indicator");
-                        if (dot) dot.remove();
-                    });
+        // Remove all items from unread list (they're now read)
+        const unreadList = document.querySelector("[data-notification-list='unread']");
+        if (unreadList) {
+            unreadList.querySelectorAll('.notification-item').forEach(item => item.remove());
+        }
 
-                    this.updateBadges();
+        this.updateBadges();
+        this.checkEmptyState();
+
+        this.apiFetch('api/notifications/read-all', 'PUT')
+            .then(response => {
+                if (!response.ok) {
+                    // Rollback: reload lists on failure
+                    this._reloadLists();
                 }
             })
-            .catch((error) => {
-                console.error("Error marking all as read:", error);
-            });
+            .catch(() => this._reloadLists());
     }
 
     deleteNotification(id, btn) {
-        const item = btn.closest(".notification-item");
-        const csrfToken = document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content");
+        // Optimistic UI — remove from ALL tabs
+        this.removeItemFromDOM(id);
 
-        // Animate out
-        if (item) {
-            item.style.transition = "all 0.3s ease";
-            item.style.opacity = "0";
-            item.style.transform = "translateX(20px)";
-        }
+        // Wait for animation, then update state
+        setTimeout(() => {
+            this.updateBadges();
+            this.checkEmptyState();
+        }, 320);
 
-        fetch(u(`api/notifications/${id}`), {
-            method: "DELETE",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRF-Token": csrfToken,
-            },
-        })
-            .then((response) => {
-                if (response.ok && item) {
-                    setTimeout(() => {
-                        item.remove();
-                        this.updateBadges();
-                        this.checkEmptyState();
-                    }, 300);
-                }
-            })
-            .catch((error) => {
-                console.error("Error deleting notification:", error);
-                if (item) {
-                    item.style.opacity = "";
-                    item.style.transform = "";
-                }
-            });
+        this.apiFetch(`api/notifications/${id}`, 'DELETE')
+            .catch(() => this._reloadLists());
     }
 
     clearAllNotifications() {
-        const csrfToken = document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content");
+        const items = document.querySelectorAll('.notification-item');
 
-        const lists = document.querySelectorAll("[data-notification-list]");
-        const items = document.querySelectorAll(".notification-item");
-
-        // Animate all items out
+        // Staggered animation
         items.forEach((item, index) => {
             item.style.transition = `all 0.3s ease ${index * 0.05}s`;
-            item.style.opacity = "0";
-            item.style.transform = "translateX(20px)";
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(20px)';
         });
 
-        fetch(u("api/notifications/clear"), {
-            method: "DELETE",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRF-Token": csrfToken,
-            },
-        })
-            .then((response) => {
+        const animDuration = 300 + items.length * 50;
+
+        this.apiFetch('api/notifications/clear', 'DELETE')
+            .then(response => {
                 if (response.ok) {
                     setTimeout(() => {
-                        items.forEach((item) => item.remove());
+                        items.forEach(item => item.remove());
                         this.updateBadges();
                         this.checkEmptyState();
-                    }, 300 + items.length * 50);
+                    }, animDuration);
+                } else {
+                    this._reloadLists();
                 }
             })
-            .catch((error) => {
-                console.error("Error clearing notifications:", error);
-                items.forEach((item) => {
-                    item.style.opacity = "";
-                    item.style.transform = "";
-                });
+            .catch(() => {
+                items.forEach(item => { item.style.opacity = ''; item.style.transform = ''; });
             });
     }
 
-    refreshNotifications() {
-        const lists = document.querySelectorAll("[data-notification-list]");
-        lists.forEach((list) => {
-            list.removeAttribute("data-loaded");
-            if (typeof htmx !== "undefined" && list.hasAttribute("hx-get")) {
-                htmx.trigger(list, "load");
+    /** Force-reload both tab lists via HTMX */
+    _reloadLists() {
+        document.querySelectorAll('[data-notification-list]').forEach(list => {
+            if (typeof htmx !== 'undefined' && list.hasAttribute('hx-get')) {
+                // Only reload visible list, mark hidden for reload on next switch
+                if (list.style.display !== 'none') {
+                    htmx.trigger(list, 'load');
+                }
             }
         });
         this.updateBadges();
     }
 
-    updateBadges() {
-        // Trigger HTMX to update the dot indicator
-        this.triggerNotificationsUpdate();
-
-        setTimeout(() => {
-            const allCount = document.querySelectorAll("[data-notification-list='all'] .notification-item").length;
-            const unreadCount = document.querySelectorAll("[data-notification-list='unread'] .notification-item.unread").length;
-
-            const allBadge = document.querySelector("[data-notification-count-all]");
-            const unreadBadge = document.querySelector("[data-notification-count-unread]");
-
-            if (allBadge) allBadge.textContent = allCount;
-            if (unreadBadge) unreadBadge.textContent = unreadCount;
-
-            const dot = document.getElementById("notification-dot");
-            if (dot && unreadCount === 0) {
-                dot.classList.remove("active");
-            }
-        }, 150);
-    }
-
-    checkEmptyState() {
-        const content = document.querySelector("[data-notification-content]");
-        const emptyText = content?.dataset.emptyText || "No notifications";
-
-        const lists = document.querySelectorAll("[data-notification-list]");
-        lists.forEach((list) => {
-            const items = list.querySelectorAll(".notification-item");
-            const emptyMsg = list.querySelector(".notifications__empty");
-
-            if (items.length === 0 && !emptyMsg) {
-                const p = document.createElement("p");
-                p.className = "notifications__empty";
-                p.textContent = emptyText;
-                list.appendChild(p);
-            }
-        });
-    }
+    // ── Popup Notifications ─────────────────────────────
 
     initPopupNotifications() {
         const dot = document.getElementById('notification-dot');
@@ -1112,35 +1071,29 @@ class NotificationManager {
     }
 
     prefillKnownIds() {
-        fetch(u('api/notifications/unread'), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        })
-            .then((r) => r.json())
-            .then((data) => {
-                const items = data.result || {};
-                const flat = Object.values(items).flat();
-                for (const n of flat) {
-                    this.knownIds.add(n.id);
-                }
+        this.apiFetch('api/notifications/unread')
+            .then(r => r.json())
+            .then(data => {
+                const flat = Object.values(data.result || {}).flat();
+                for (const n of flat) this.knownIds.add(n.id);
             })
             .catch(() => {});
     }
 
     fetchAndShowPopups() {
-        fetch(u('api/notifications/unread'), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        })
-            .then((r) => r.json())
-            .then((data) => {
-                const items = data.result || {};
-                const flat = Object.values(items).flat();
-
+        this.apiFetch('api/notifications/unread')
+            .then(r => r.json())
+            .then(data => {
+                const flat = Object.values(data.result || {}).flat();
                 for (const n of flat) {
                     if (!this.knownIds.has(n.id)) {
                         this.knownIds.add(n.id);
                         this.showNotificationPopup(n);
                     }
                 }
+
+                // Also reload dropdown lists if open
+                if (this.isOpen) this._reloadLists();
             })
             .catch(() => {});
     }
@@ -1193,26 +1146,19 @@ class NotificationManager {
         `;
 
         container.appendChild(popup);
-
-        requestAnimationFrame(() => {
-            popup.classList.add('is-visible');
-        });
+        requestAnimationFrame(() => popup.classList.add('is-visible'));
 
         // Hover pause — a11y: don't dismiss while user interacts
         popup.addEventListener('mouseenter', () => {
-            popup._hovered = true;
             clearTimeout(popup._dismissTimer);
             const progress = popup.querySelector('.notification-popup__progress');
             if (progress) progress.style.animationPlayState = 'paused';
         });
 
         popup.addEventListener('mouseleave', () => {
-            popup._hovered = false;
             const progress = popup.querySelector('.notification-popup__progress');
             if (progress) progress.style.animationPlayState = 'running';
-            popup._dismissTimer = setTimeout(() => {
-                this.dismissPopup(popup, notification.id);
-            }, 3000);
+            popup._dismissTimer = setTimeout(() => this.dismissPopup(popup, notification.id), 3000);
         });
 
         // Close button
@@ -1230,9 +1176,7 @@ class NotificationManager {
         });
 
         // Auto-dismiss after 6s
-        popup._dismissTimer = setTimeout(() => {
-            this.dismissPopup(popup, notification.id);
-        }, 6000);
+        popup._dismissTimer = setTimeout(() => this.dismissPopup(popup, notification.id), 6000);
     }
 
     dismissPopup(popup, id) {
@@ -1243,21 +1187,17 @@ class NotificationManager {
         popup.classList.remove('is-visible');
         popup.classList.add('is-hiding');
 
-        // Mark as read
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (id && csrfToken) {
-            fetch(u(`api/notifications/${id}`), {
-                method: 'PUT',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': csrfToken,
-                },
-            }).catch(() => {});
+        // Mark as read via API + sync dropdown
+        if (id) {
+            this.apiFetch(`api/notifications/${id}`, 'PUT')
+                .then(() => {
+                    this.markItemReadInDOM(id);
+                    this.updateBadges();
+                })
+                .catch(() => {});
         }
 
-        setTimeout(() => {
-            popup.remove();
-        }, 300);
+        setTimeout(() => popup.remove(), 300);
     }
 
     escapeHtml(str) {

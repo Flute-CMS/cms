@@ -25,7 +25,7 @@ return [
     'promo_used' => 'Вече сте използвали този промо код',
     'promo_is_empty' => 'Въведеният промо код е празен',
     'promo_amount' => 'Бонус при зареждане: :value :currency',
-    'promo_percentage' => 'Промо кодът дава :percentage% отстъпка',
+    'promo_percentage' => 'Бонус :percentage% към зареждането',
     'min_amount' => 'Минималната сума за зареждане е :sum',
     'process_in_new_window' => 'Завършете плащането в нов прозорец...',
     'select_currency' => 'Изберете валута',

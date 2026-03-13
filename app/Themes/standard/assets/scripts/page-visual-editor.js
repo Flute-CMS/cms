@@ -2478,14 +2478,10 @@ class VisualEditor {
         }
     }
 
-    async save() {
-        const theme = this.getThemeKey();
-        const state = this.captureState();
-        
+    _buildSavePayload(state) {
         const colors = {};
         const settings = {};
-        
-        // Collect colors (only if changed)
+
         ['--accent', '--primary', '--secondary', '--background', '--text'].forEach(key => {
             if (state[key]) colors[key] = state[key];
             [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].forEach(step => {
@@ -2493,32 +2489,26 @@ class VisualEditor {
                 if (state[shadeKey]) colors[shadeKey] = state[shadeKey];
             });
         });
-        
-        // Border - save as number for rem
+
         if (state['--border1']) {
             colors['--border1'] = parseFloat(state['--border1']);
         }
-        
-        // Gradient settings
+
         colors['--gradient-type'] = state['_gradient-type'] || 'none';
         colors['--gradient-stops'] = state['_gradient-stops'] || JSON.stringify(this.gradientState.stops);
         ['--gradient-angle', '--gradient-pos-x', '--gradient-pos-y', '--gradient-intensity'].forEach(key => {
             if (state[key]) colors[key] = state[key];
         });
-        
-        // Background effect
+
         colors['--bg-effect'] = state['_bg-effect'] || 'none';
         if (state['--bg-effect-opacity']) {
             colors['--bg-effect-opacity'] = state['--bg-effect-opacity'];
         }
-        
-        // Emoji settings
+
         colors['--emoji-settings'] = state['_emoji-settings'] || JSON.stringify(this.emojiState);
-        
-        // Container width from attribute
+
         colors['--container-width'] = state['_container-width'] || 'container';
-        
-        // Navigation and footer settings
+
         colors['--nav-style'] = state['_nav-style'] || 'default';
         colors['--sidebar-style'] = state['_sidebar-style'] || 'default';
         colors['--sidebar-mode'] = state['_sidebar-mode'] || 'full';
@@ -2531,9 +2521,7 @@ class VisualEditor {
         colors['--footer-type'] = state['_footer-type'] || 'default';
         colors['--footer-socials'] = state['_footer-socials'] || 'true';
         colors['--footer-logo'] = state['_footer-logo'] || 'true';
-        
-        // Settings - fonts and other CSS variables
-        // Map CSS variable names to settings keys for PHP
+
         const settingsVarsMap = {
             '--font': 'font',
             '--font-header': 'font_header',
@@ -2553,17 +2541,126 @@ class VisualEditor {
             '--shadow-medium': 'shadow_medium',
             '--shadow-large': 'shadow_large'
         };
-        
+
         Object.entries(settingsVarsMap).forEach(([cssKey, settingKey]) => {
             if (state[cssKey]) {
                 settings[settingKey] = state[cssKey];
             }
         });
-        
+
+        return { colors, settings };
+    }
+
+    _generateShadesForTheme(variable, baseColor, isLight) {
+        const shades = {};
+        const hsl = tinycolor(baseColor).toHsl();
+        const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+        const darkTargets = { 50: 96, 100: 90, 200: 80, 300: 70, 400: 60, 500: 50, 600: 40, 700: 30, 800: 20, 900: 12, 950: 8 };
+
+        steps.forEach(step => {
+            let shade;
+            if (step === 500) {
+                shade = tinycolor(baseColor).toHexString();
+            } else if (isLight) {
+                if (step < 500) {
+                    shade = tinycolor.mix(baseColor, '#000000', ((500 - step) / 450) * 100).toHexString();
+                } else {
+                    shade = tinycolor.mix(baseColor, '#FFFFFF', ((step - 500) / 450) * 100).toHexString();
+                }
+            } else {
+                shade = tinycolor({ h: hsl.h, s: hsl.s, l: darkTargets[step] / 100 }).toHexString();
+            }
+            shades[`${variable}-${step}`] = shade;
+        });
+        return shades;
+    }
+
+    _adaptColorsForOppositeTheme(colors, fromTheme) {
+        const adapted = { ...colors };
+        const toLight = fromTheme === 'dark';
+        const baseVars = ['--accent', '--primary', '--secondary', '--background', '--text'];
+
+        baseVars.forEach(variable => {
+            if (!colors[variable]) return;
+            const hsl = tinycolor(colors[variable]).toHsl();
+
+            if (variable === '--accent') {
+                if (toLight && hsl.l > 0.6) {
+                    hsl.l = Math.max(0.35, hsl.l * 0.55);
+                    hsl.s = Math.min(1, hsl.s * 0.85);
+                } else if (!toLight && hsl.l < 0.5) {
+                    hsl.l = Math.min(0.7, hsl.l * 1.6 + 0.15);
+                }
+            } else {
+                hsl.l = 1 - hsl.l;
+                if (variable === '--background') {
+                    hsl.l = toLight ? Math.max(hsl.l, 0.97) : Math.max(Math.min(hsl.l, 0.08), 0.04);
+                } else if (variable === '--secondary') {
+                    hsl.l = toLight ? Math.max(hsl.l, 0.93) : Math.max(Math.min(hsl.l, 0.15), 0.08);
+                }
+            }
+
+            adapted[variable] = tinycolor(hsl).toHexString();
+            Object.assign(adapted, this._generateShadesForTheme(variable, adapted[variable], toLight));
+        });
+
+        return adapted;
+    }
+
+    _isThemeChangeEnabled() {
+        return document.querySelector('meta[name="change-theme"]')?.getAttribute('content') === 'true';
+    }
+
+    async _showApplyOppositeThemeConfirm(oppositeTheme) {
+        const themeLabel = await asyncTranslate(`page-edit.theme_${oppositeTheme}`);
+        const replaceMap = { ':theme': themeLabel };
+
+        const [message, title, confirmText, cancelText] = await Promise.all([
+            asyncTranslate('page-edit.apply_opposite_theme_message', replaceMap),
+            asyncTranslate('page-edit.apply_opposite_theme_title', replaceMap),
+            asyncTranslate('page-edit.apply_opposite_theme_confirm'),
+            asyncTranslate('page-edit.apply_opposite_theme_cancel'),
+        ]);
+
+        return new Promise((resolve) => {
+            if (typeof app !== 'undefined' && app.confirmations) {
+                app.confirmations.showConfirmDialog({
+                    message,
+                    title,
+                    confirmText,
+                    cancelText,
+                    type: 'info',
+                    onConfirm: () => resolve(true),
+                    onCancel: () => resolve(false),
+                });
+            } else {
+                resolve(confirm(message));
+            }
+        });
+    }
+
+    async _sendThemeSave(colors, settings, theme) {
+        const response = await fetch(u('api/pages/save-theme'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ colors, settings, theme })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Save failed');
+        return data;
+    }
+
+    async save() {
+        const theme = this.getThemeKey();
+        const state = this.captureState();
+        const { colors, settings } = this._buildSavePayload(state);
+
         this.saveBtn.disabled = true;
         this.saveBtn.classList.add('saving');
 
-        // Upload any pending images before saving theme settings
         if (Object.keys(this.pendingUploads).length > 0) {
             for (const [type, { file, objectUrl }] of Object.entries(this.pendingUploads)) {
                 await this.uploadSiteImage(type, file);
@@ -2573,23 +2670,20 @@ class VisualEditor {
         }
 
         try {
-            const response = await fetch(u('api/pages/save-theme'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-                },
-                body: JSON.stringify({ colors, settings, theme })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                this.close();
-                if (typeof notyf !== 'undefined') notyf.success(translate('page-edit.settings_saved') || 'Saved');
-            } else {
-                throw new Error(data.error || 'Save failed');
+            await this._sendThemeSave(colors, settings, theme);
+
+            if (this._isThemeChangeEnabled()) {
+                const oppositeTheme = theme === 'dark' ? 'light' : 'dark';
+                const applyToOpposite = await this._showApplyOppositeThemeConfirm(oppositeTheme);
+
+                if (applyToOpposite) {
+                    const adaptedColors = this._adaptColorsForOppositeTheme(colors, theme);
+                    await this._sendThemeSave(adaptedColors, settings, oppositeTheme);
+                }
             }
+
+            this.close();
+            if (typeof notyf !== 'undefined') notyf.success(translate('page-edit.settings_saved') || 'Saved');
         } catch (error) {
             console.error('Save error:', error);
             if (typeof notyf !== 'undefined') notyf.error(translate('page-edit.settings_error') || 'Error');

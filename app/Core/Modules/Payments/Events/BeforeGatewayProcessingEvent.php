@@ -42,7 +42,7 @@ class BeforeGatewayProcessingEvent extends Event
         return $this->gateway;
     }
 
-    public function getPaymentdata(): array
+    public function getPaymentData(): array
     {
         return $this->paymentData;
     }

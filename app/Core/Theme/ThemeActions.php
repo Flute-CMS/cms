@@ -201,6 +201,7 @@ class ThemeActions
             cache()->deleteImmediately('active_theme');
             cache()->deleteImmediately('flute.themes.get');
             cache()->deleteImmediately('flute.themes.json_data');
+            cache()->deleteImmediately('flute.themes.db_rows');
             cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Do not break theme operations if cache clearing fails

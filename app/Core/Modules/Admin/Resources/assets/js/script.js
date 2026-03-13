@@ -63,15 +63,14 @@ function displayToast(toast) {
     }
 
     if (toast.events) {
-        const eventHandlers = {};
-        Object.entries(toast.events).forEach(([eventName, handler]) => {
-            eventHandlers[eventName] = () => {
-                new Function(handler)();
-            };
-        });
-
-        Object.entries(eventHandlers).forEach(([eventName, handlerFn]) => {
-            notyf.on(eventName, handlerFn);
+        Object.entries(toast.events).forEach(([eventName, handlerName]) => {
+            notyf.on(eventName, () => {
+                if (typeof window[handlerName] === 'function') {
+                    window[handlerName]();
+                } else {
+                    console.warn('Toast event handler not found:', handlerName);
+                }
+            });
         });
     }
 

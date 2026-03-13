@@ -37,14 +37,29 @@ class BeforeInvoiceCreatedEvent extends Event
         return $this->amount;
     }
 
+    public function setAmount($amount): void
+    {
+        $this->amount = $amount;
+    }
+
     public function getPromo(): ?string
     {
         return $this->promo;
     }
 
+    public function setPromo(?string $promo): void
+    {
+        $this->promo = $promo;
+    }
+
     public function getCurrencyCode(): ?string
     {
         return $this->currencyCode;
+    }
+
+    public function setCurrencyCode(?string $currencyCode): void
+    {
+        $this->currencyCode = $currencyCode;
     }
 
     public function getAdditionalData(): array

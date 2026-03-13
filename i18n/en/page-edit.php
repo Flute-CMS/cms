@@ -237,4 +237,12 @@
     "upload_success"        => "Image uploaded",
     "upload_error"          => "Upload failed",
     "delete_success"        => "Image deleted",
+
+    // Apply to opposite theme confirmation
+    "apply_opposite_theme_title" => "Apply to :theme theme?",
+    "apply_opposite_theme_message" => "Apply these settings to the :theme theme as well? Colors will be automatically adapted.",
+    "apply_opposite_theme_confirm" => "Apply",
+    "apply_opposite_theme_cancel" => "Only current",
+    "theme_light" => "light",
+    "theme_dark" => "dark",
 ];

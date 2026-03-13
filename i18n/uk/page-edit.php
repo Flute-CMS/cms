@@ -202,4 +202,11 @@ return [
     "upload_success"        => "Image uploaded",
     "upload_error"          => "Upload failed",
     "delete_success"        => "Image deleted",
+
+    "apply_opposite_theme_title" => "Застосувати до :theme теми?",
+    "apply_opposite_theme_message" => "Застосувати ці налаштування і до :theme теми? Кольори будуть адаптовані автоматично.",
+    "apply_opposite_theme_confirm" => "Застосувати",
+    "apply_opposite_theme_cancel" => "Тільки поточну",
+    "theme_light" => "світлої",
+    "theme_dark" => "темної",
 ];

@@ -17,14 +17,22 @@ class PaymentsCleaner
             $dateThreshold = new DateTime();
             $dateThreshold->modify('-' . self::DAYS . ' days');
 
-            $oldPayments = PaymentInvoice::findAll([
-                'isPaid' => false,
-                'created_at' => ['<' => $dateThreshold],
-            ]);
+            $batchSize = 500;
+            do {
+                $oldPayments = PaymentInvoice::query()
+                    ->where('isPaid', false)
+                    ->where('created_at', '<', $dateThreshold)
+                    ->limit($batchSize)
+                    ->fetchAll();
 
-            foreach ($oldPayments as $payment) {
-                $payment->delete();
-            }
+                if (!empty($oldPayments)) {
+                    $em = new \Cycle\ORM\EntityManager(orm());
+                    foreach ($oldPayments as $payment) {
+                        $em->delete($payment);
+                    }
+                    $em->run();
+                }
+            } while (count($oldPayments) === $batchSize);
 
             cache()->set(self::CACHE_KEY, true, 43200);
         }

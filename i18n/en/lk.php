@@ -23,7 +23,7 @@
     "promo_used"              => "You have already used this promo code",
     "promo_is_empty"          => "The entered promo code is empty",
     "promo_amount"            => "Top-up bonus :value :currency",
-    "promo_percentage"        => "Promo code gives a :percentage% discount",
+    "promo_percentage"        => "Top-up bonus :percentage%",
     "min_amount"              => "Minimum top-up amount is :sum",
     "process_in_new_window"   => "Complete payment in a new window...",
     "select_currency"         => "Currency",

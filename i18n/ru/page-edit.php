@@ -238,4 +238,12 @@ return [
     "upload_success"        => "Изображение загружено",
     "upload_error"          => "Ошибка загрузки",
     "delete_success"        => "Изображение удалено",
+
+    // Подтверждение применения к противоположной теме
+    "apply_opposite_theme_title" => "Применить к :theme теме?",
+    "apply_opposite_theme_message" => "Применить эти настройки и к :theme теме? Цвета будут адаптированы автоматически.",
+    "apply_opposite_theme_confirm" => "Применить",
+    "apply_opposite_theme_cancel" => "Только текущую",
+    "theme_light" => "светлой",
+    "theme_dark" => "тёмной",
 ];

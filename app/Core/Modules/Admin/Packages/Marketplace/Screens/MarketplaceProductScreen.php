@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Marketplace\Screens;
 
 use Exception;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
+use Flute\Admin\Packages\Marketplace\Services\ModuleCategoryService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -269,13 +270,23 @@ class MarketplaceProductScreen extends Screen
 
     public function layout(): array
     {
+        $module = $this->module;
+
+        if (!empty($module)) {
+            $categoryService = app(ModuleCategoryService::class);
+            if (!empty($module['description'])) {
+                $module['_localizedDesc'] = $categoryService->getLocalizedDescription($module['description']);
+            }
+            $module['_category'] = $categoryService->getModuleCategory($module);
+        }
+
         return [
             LayoutFactory::view('admin-marketplace::marketplace.module-details', [
-                'module' => $this->module,
+                'module' => $module,
                 'versions' => $this->versions,
-                'isInstalled' => $this->module['isInstalled'] ?? false,
-                'needsUpdate' => $this->module['needsUpdate'] ?? false,
-                'status' => $this->module['status'] ?? '',
+                'isInstalled' => $module['isInstalled'] ?? false,
+                'needsUpdate' => $module['needsUpdate'] ?? false,
+                'status' => $module['status'] ?? '',
                 'isLoading' => $this->isLoading,
             ]),
         ];

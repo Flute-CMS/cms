@@ -48,7 +48,8 @@ class UserServiceProvider extends AbstractServiceProvider
             return;
         }
 
-        $container->get(UserService::class)->getCurrentUser();
+        // Lazy: do not eagerly initialize user — let it happen on first access
+        // $container->get(UserService::class)->getCurrentUser();
 
         if (!is_cli()) {
             $events = $container->get('events');

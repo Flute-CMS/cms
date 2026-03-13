@@ -50,6 +50,8 @@ class PaymentComponent extends FluteComponent
 
     public array $gatewayMinimumAmounts = [];
 
+    public array $currencyPresets = [];
+
     public function mount()
     {
         $this->loadCurrenciesAndGateways();
@@ -74,11 +76,7 @@ class PaymentComponent extends FluteComponent
 
                 if (!empty($this->promoCode)) {
                     try {
-                        $promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $serverAmount);
-                        if ($promoDetails['type'] === 'percentage') {
-                            $discount = ($serverAmountToPay * $promoDetails['value']) / 100;
-                            $serverAmountToPay = round(max(0, $serverAmountToPay - $discount), 2);
-                        }
+                        payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $serverAmount);
                     } catch (\Flute\Core\Modules\Payments\Exceptions\PaymentPromoException $e) {
                         $this->inputError('promoCode', $e->getMessage());
 
@@ -88,19 +86,10 @@ class PaymentComponent extends FluteComponent
 
                 $invoice = payments()->processor()->createInvoice(
                     $this->gateway,
-                    $serverAmountToPay,
+                    $serverAmount,
                     (string) $this->promoCode,
                     $this->currency
                 );
-
-                // If invoice amount is zero (promo covered full sum) — mark as paid immediately,
-                // credit user's balance and record promo usage without redirecting to gateway.
-                if ($invoice->amount <= 0) {
-                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
-                    toast()->success(__('lk.success'))->push();
-
-                    return $this->redirectTo(url('/lk/success'));
-                }
 
                 toast()->success(__('lk.redirect'))->push();
 
@@ -187,17 +176,12 @@ class PaymentComponent extends FluteComponent
             $this->promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
             $this->promoIsValid = true;
 
-            switch ($this->promoDetails['type']) {
-                case 'amount':
-                    $this->amountToReceive = round($this->amountToReceive + $this->promoDetails['value'], 2);
-
-                    break;
-                case 'percentage':
-                    $discount = ($this->amountToPay * $this->promoDetails['value']) / 100;
-                    $this->amountToPay = round(max(0, $this->amountToPay - $discount), 2);
-
-                    break;
-            }
+            $promoBonus = match ($this->promoDetails['type']) {
+                'amount' => (float) $this->promoDetails['value'],
+                'percentage' => round(($this->amountToReceive * $this->promoDetails['value']) / 100, 2),
+                default => 0,
+            };
+            $this->amountToReceive = round($this->amountToReceive + $promoBonus, 2);
 
             if ($this->gatewayFee > 0) {
                 $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
@@ -301,6 +285,10 @@ class PaymentComponent extends FluteComponent
             $this->currencies[] = $code;
             $this->currencyExchangeRates[$code] = $currency->exchange_rate;
             $this->currencyMinimumAmounts[$code] = $currency->minimum_value;
+            $presets = $currency->getPresetAmounts();
+            if (!empty($presets)) {
+                $this->currencyPresets[$code] = $presets;
+            }
 
             foreach ($currency->paymentGateways as $gateway) {
                 if ($gateway->enabled === false) {

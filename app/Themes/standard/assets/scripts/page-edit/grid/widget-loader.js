@@ -195,13 +195,46 @@ class WidgetLoader {
     }
 
     /**
-     * Render multiple widgets at once
+     * Render multiple widgets using parallel chunked requests.
+     * Splits widgets into small chunks, fires them all at once,
+     * and renders each chunk as soon as its response arrives.
      * @param {Array} widgetElements - Array of {el, widgetName, settings}
      */
     async renderWidgetsBatch(widgetElements) {
         if (widgetElements.length === 0) return;
 
-        const requestData = widgetElements.map(w => ({
+        const CHUNK_SIZE = 4;
+        const chunks = [];
+        for (let i = 0; i < widgetElements.length; i += CHUNK_SIZE) {
+            chunks.push(widgetElements.slice(i, i + CHUNK_SIZE));
+        }
+
+        // Start buttons loading in parallel (non-blocking)
+        const widgetNames = widgetElements.map(w => w.widgetName);
+        const buttonsPromise = this.loadButtonsBatch(widgetNames);
+
+        // Fire all chunk requests in parallel — each renders its widgets on arrival
+        const chunkPromises = chunks.map(chunk => this._renderChunk(chunk));
+
+        // Wait for all chunks + buttons to finish
+        await Promise.all([...chunkPromises, buttonsPromise]);
+
+        // Apply toolbar buttons now that cache is populated
+        for (const { el, widgetName } of widgetElements) {
+            if (!el || !document.contains(el)) continue;
+            if (!el.querySelector(':scope > .widget-toolbar')) {
+                const buttons = this.widgetButtonsCache[widgetName] || [];
+                this.editor.widgetToolbar.addToolbar(el, buttons);
+            }
+        }
+    }
+
+    /**
+     * Render a single chunk of widgets — one HTTP request, applies results immediately.
+     * @param {Array} chunk - Array of {el, widgetName, settings}
+     */
+    async _renderChunk(chunk) {
+        const requestData = chunk.map(w => ({
             widget_name: w.widgetName,
             settings: w.settings
         }));
@@ -214,18 +247,13 @@ class WidgetLoader {
             });
 
             if (!res.ok) {
-                throw new Error(`Failed to batch render widgets: ${res.status}`);
+                throw new Error(`Chunk render failed: ${res.status}`);
             }
 
             const results = await res.json();
 
-            // Load buttons in batch
-            const widgetNames = widgetElements.map(w => w.widgetName);
-            await this.loadButtonsBatch(widgetNames);
-
-            // Apply results to widgets
             results.forEach((result, idx) => {
-                const { el } = widgetElements[idx];
+                const { el, widgetName } = chunk[idx];
                 if (!el || !document.contains(el)) return;
 
                 const content = el.querySelector('.widget-content');
@@ -240,7 +268,6 @@ class WidgetLoader {
                         content.style.opacity = '1';
                         content.style.pointerEvents = 'auto';
 
-                        // Resize widget to fit loaded content
                         this._resizeWidgetToContent(el);
 
                         setTimeout(() => {
@@ -249,25 +276,19 @@ class WidgetLoader {
                     }, 50);
                 }
 
-                // Use cached buttons
-                const buttons = this.widgetButtonsCache[widgetElements[idx].widgetName] || [];
-                this.editor.widgetToolbar.addToolbar(el, buttons);
-
-                // Start monitoring content height changes
                 this.observeWidgetContent(el);
 
                 this.eventBus.emit(window.FlutePageEdit.events.WIDGET_INITIALIZED, {
-                    widgetName: widgetElements[idx].widgetName,
+                    widgetName,
                     widgetElement: el,
                     content: result
                 });
             });
 
         } catch (err) {
-            this.utils.logError('renderWidgetsBatch', err);
+            this.utils.logError('_renderChunk', err);
 
-            // Show error on all widgets
-            widgetElements.forEach(({ el }) => {
+            chunk.forEach(({ el }) => {
                 if (el && document.contains(el)) {
                     const content = el.querySelector('.widget-content');
                     if (content) {

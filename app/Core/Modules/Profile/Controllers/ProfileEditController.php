@@ -37,7 +37,7 @@ class ProfileEditController extends BaseController
             ]);
         }
 
-        abort_if($profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
+        abort_unless($profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
 
         $activeTab = $profileTabService->getTabsByPath($this->path);
         $activeTabContent = $profileTabService->renderTabsByPath($this->path, $user);

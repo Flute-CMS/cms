@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Marketplace\Screens;
 
 use Exception;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
+use Flute\Admin\Packages\Marketplace\Services\ModuleCategoryService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -38,9 +39,24 @@ class MarketplaceScreen extends Screen
     public $statusFilter = '';
 
     /**
+     * @var string
+     */
+    public $categoryFilter = '';
+
+    /**
      * @var array
      */
     public $categories = [];
+
+    /**
+     * @var string
+     */
+    public $sortBy = 'featured';
+
+    /**
+     * @var string
+     */
+    public $viewMode = 'grid';
 
     /**
      * @var bool
@@ -83,6 +99,16 @@ class MarketplaceScreen extends Screen
     protected $moduleManager;
 
     /**
+     * @var ModuleCategoryService
+     */
+    protected $categoryService;
+
+    /**
+     * @var array All modules before filtering (for category counts)
+     */
+    protected array $allModulesUnfiltered = [];
+
+    /**
      * Mount the screen
      */
     public function mount(): void
@@ -91,14 +117,16 @@ class MarketplaceScreen extends Screen
 
         $this->marketplaceService = app(MarketplaceService::class);
         $this->moduleManager = app(ModuleManager::class);
+        $this->categoryService = app(ModuleCategoryService::class);
 
         $req = request();
         $this->searchQuery = (string) $req->input('q', '');
         $this->selectedCategory = (string) $req->input('category', '');
-        $this->priceFilter = (string) $req->input('price', ''); // '', 'free', 'paid'
-        $this->statusFilter = (string) $req->input('status', ''); // '', 'installed','notinstalled','update'
-
-        $this->categories = $this->getCategories();
+        $this->priceFilter = (string) $req->input('price', '');
+        $this->statusFilter = (string) $req->input('status', '');
+        $this->categoryFilter = (string) $req->input('categoryFilter', '');
+        $this->sortBy = (string) $req->input('sortBy', 'featured');
+        $this->viewMode = (string) session()->get('mp_view_mode', 'grid');
 
         $this->loadModules();
     }
@@ -126,6 +154,15 @@ class MarketplaceScreen extends Screen
     }
 
     /**
+     * Yoyo handler: switch view mode (grid/list)
+     */
+    public function setViewMode(string $mode): void
+    {
+        $this->viewMode = in_array($mode, ['grid', 'list']) ? $mode : 'grid';
+        session()->set('mp_view_mode', $this->viewMode);
+    }
+
+    /**
      * Yoyo handler: apply filters from current request payload
      */
     public function handleFilters(): void
@@ -135,6 +172,8 @@ class MarketplaceScreen extends Screen
         $this->selectedCategory = (string) $req->input('category', '');
         $this->priceFilter = (string) $req->input('price', '');
         $this->statusFilter = (string) $req->input('status', '');
+        $this->categoryFilter = (string) $req->input('categoryFilter', '');
+        $this->sortBy = (string) $req->input('sortBy', 'featured');
 
         $this->loadModules();
     }
@@ -148,6 +187,8 @@ class MarketplaceScreen extends Screen
         $this->selectedCategory = '';
         $this->priceFilter = '';
         $this->statusFilter = '';
+        $this->categoryFilter = '';
+        $this->sortBy = 'featured';
 
         $this->loadModules();
     }
@@ -320,7 +361,9 @@ class MarketplaceScreen extends Screen
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
         } finally {
-            $moduleInstaller->finishInstallation();
+            if (isset($moduleInstaller)) {
+                $moduleInstaller->finishInstallation();
+            }
             $this->moduleManager->clearCache();
             $this->moduleManager->refreshModules();
             $this->marketplaceService->clearModuleCache($slug);
@@ -335,36 +378,30 @@ class MarketplaceScreen extends Screen
      */
     public function layout(): array
     {
+        $allModulesForCategories = !empty($this->allModulesUnfiltered) ? $this->allModulesUnfiltered : $this->modules;
+        $categoriesWithCounts = $this->categoryService->getCategoriesWithCounts($allModulesForCategories);
+
+        $modulesWithMeta = array_map(function ($module) {
+            $module['_category'] = $this->categoryService->getModuleCategory($module);
+            $module['_shortDesc'] = $this->categoryService->getShortDescription($module['description'] ?? '');
+
+            return $module;
+        }, $this->modules);
+
         return [
-            LayoutFactory::columns([
-                LayoutFactory::view('admin-marketplace::marketplace.module-list', [
-                    'modules' => $this->modules,
-                    'isLoading' => $this->isLoading,
-                    'moduleManager' => $this->moduleManager,
-                    'searchQuery' => $this->searchQuery,
-                    'selectedCategory' => $this->selectedCategory,
-                    'priceFilter' => $this->priceFilter,
-                    'statusFilter' => $this->statusFilter,
-                    'categories' => $this->categories,
-                ]),
+            LayoutFactory::view('admin-marketplace::marketplace.module-list', [
+                'modules' => $modulesWithMeta,
+                'isLoading' => $this->isLoading,
+                'moduleManager' => $this->moduleManager,
+                'searchQuery' => $this->searchQuery,
+                'priceFilter' => $this->priceFilter,
+                'statusFilter' => $this->statusFilter,
+                'categoryFilter' => $this->categoryFilter,
+                'sortBy' => $this->sortBy,
+                'viewMode' => $this->viewMode,
+                'categoriesWithCounts' => $categoriesWithCounts,
             ]),
         ];
-    }
-
-    /**
-     * Get module categories for filtering
-     *
-     * @return array
-     */
-    public function getCategories()
-    {
-        try {
-            return $this->marketplaceService->getCategories();
-        } catch (Exception $e) {
-            logs()->error($e);
-
-            return [];
-        }
     }
 
     protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 20): ?string
@@ -428,7 +465,13 @@ class MarketplaceScreen extends Screen
             return;
         }
 
+        $this->allModulesUnfiltered = $this->modules;
+
         $filteredModules = $this->modules;
+
+        if (!empty($this->categoryFilter) && $this->categoryFilter !== 'all') {
+            $filteredModules = array_filter($filteredModules, fn ($module) => $this->categoryService->getModuleCategory($module) === $this->categoryFilter);
+        }
 
         if (!empty($this->priceFilter)) {
             $filteredModules = array_filter($filteredModules, function ($module) {
@@ -456,17 +499,31 @@ class MarketplaceScreen extends Screen
         }
 
         if (!empty($this->searchQuery)) {
-            $filteredModules = array_filter($filteredModules, fn ($module) => str_contains(strtolower((string)($module['name'] ?? '')), strtolower((string)$this->searchQuery)));
+            $search = strtolower((string) $this->searchQuery);
+            $filteredModules = array_filter($filteredModules, static fn ($module) => str_contains(strtolower((string) ($module['name'] ?? '')), $search)
+                    || str_contains(strtolower((string) ($module['description'] ?? '')), $search));
         }
 
-        usort($filteredModules, static function ($a, $b) {
-            $ap = !empty($a['isPaid']);
-            $bp = !empty($b['isPaid']);
-            if ($ap === $bp) {
-                return 0;
-            }
+        $sortBy = $this->sortBy;
+        usort($filteredModules, static function ($a, $b) use ($sortBy) {
+            switch ($sortBy) {
+                case 'name':
+                    return strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+                case 'free_first':
+                    $ap = !empty($a['isPaid']) ? 1 : 0;
+                    $bp = !empty($b['isPaid']) ? 1 : 0;
 
-            return $ap ? -1 : 1;
+                    return $ap - $bp;
+                case 'featured':
+                default:
+                    $ap = !empty($a['isPaid']) ? 1 : 0;
+                    $bp = !empty($b['isPaid']) ? 1 : 0;
+                    if ($ap !== $bp) {
+                        return $bp - $ap;
+                    }
+
+                    return strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+            }
         });
 
         $this->modules = array_values($filteredModules);
@@ -482,6 +539,9 @@ class MarketplaceScreen extends Screen
         }
         if (!isset($this->moduleManager)) {
             $this->moduleManager = app(ModuleManager::class);
+        }
+        if (!isset($this->categoryService)) {
+            $this->categoryService = app(ModuleCategoryService::class);
         }
     }
 }

@@ -108,7 +108,7 @@ class UserService
                 return;
             }
 
-            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork', 'blocksReceived']);
+            $this->currentUser = $this->get($userId, false, ['roles', 'roles.permissions', 'blocksReceived']);
 
             if (!$this->currentUser) {
                 $this->sessionExpired();
@@ -147,7 +147,7 @@ class UserService
      * @param bool $force Force data refresh from the database.
      * @param array $with Load specified relationships.
      */
-    public function get(int $userId, bool $force = false, array $with = ['roles', 'socialNetworks', 'userDevices', 'actionLogs', 'invoices', 'blocksReceived']): ?User
+    public function get(int $userId, bool $force = false, array $with = ['roles', 'roles.permissions', 'blocksReceived']): ?User
     {
         if (isset($this->usersCache[$userId]) && !$force) {
             return $this->usersCache[$userId];
@@ -449,16 +449,16 @@ class UserService
         }
 
         if ($this->rolesCache !== null) {
-            return in_array($role, $this->rolesCache, true);
+            return isset($this->rolesCache[$role]);
         }
 
         $this->rolesCache = [];
 
         foreach ($this->currentUser->roles as $userRole) {
-            $this->rolesCache[] = $userRole->name;
+            $this->rolesCache[$userRole->name] = true;
         }
 
-        return in_array($role, $this->rolesCache, true);
+        return isset($this->rolesCache[$role]);
     }
 
     /**
@@ -611,7 +611,7 @@ class UserService
                 }
             }
 
-            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'socialNetworks', 'socialNetworks.socialNetwork', 'blocksReceived']);
+            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'blocksReceived']);
 
             if (!$this->currentUser) {
                 $this->sessionExpired();
@@ -663,13 +663,12 @@ class UserService
 
         $this->permissionsCache = [];
 
-        // Ensure roles and permissions are already loaded to prevent N+1 queries
         if (!isset($this->currentUser->roles[0]->permissions)) {
             $this->currentUser = $this->get($this->currentUser->id, true, ['roles', 'roles.permissions']);
         }
 
         foreach ($this->currentUser->getPermissions() as $permission) {
-            $this->permissionsCache[] = $permission->name;
+            $this->permissionsCache[$permission->name] = true;
         }
 
         return $this->permissionsCache;
@@ -683,6 +682,6 @@ class UserService
 
         $permissions = $this->getPermissions();
 
-        return in_array(UserPermission::ADMIN_BOSS->value, $permissions, true) || in_array($permission, $permissions, true);
+        return isset($permissions[UserPermission::ADMIN_BOSS->value]) || isset($permissions[$permission]);
     }
 }

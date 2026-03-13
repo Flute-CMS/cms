@@ -202,4 +202,11 @@ return [
     "upload_success"        => "Image uploaded",
     "upload_error"          => "Upload failed",
     "delete_success"        => "Image deleted",
+
+    "apply_opposite_theme_title" => "Použít na :theme motiv?",
+    "apply_opposite_theme_message" => "Použít tato nastavení i pro :theme motiv? Barvy budou automaticky přizpůsobeny.",
+    "apply_opposite_theme_confirm" => "Použít",
+    "apply_opposite_theme_cancel" => "Jen aktuální",
+    "theme_light" => "světlý",
+    "theme_dark" => "tmavý",
 ];

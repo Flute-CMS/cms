@@ -24,7 +24,7 @@ if (config('app.auth_enabled', true)) {
             });
         }
 
-        $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf']], static function (RouterInterface $router) {
+        $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf', 'throttle:ip,5,60']], static function (RouterInterface $router) {
             $router->post('/register', [AuthController::class, 'postRegister']);
             $router->post('/login', [AuthController::class, 'postLogin']);
 
