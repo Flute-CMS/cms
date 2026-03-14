@@ -219,7 +219,39 @@
         }
     }
 
-    // 3rd level links
+    // 3rd level — section with label + child items
+    &__menu-section {
+        display: flex;
+        flex-direction: column;
+        grid-column: 1 / -1;
+
+        .navbar-dropdown__menu-item {
+            padding: var(--space-2xs) var(--space-sm);
+            border-radius: 14px;
+        }
+
+        .navbar-dropdown__menu-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+    &__menu-section-title {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-600);
+        padding: var(--space-2xs) var(--space-sm);
+    }
+
+    // Legacy 3rd level links (kept for dropdown.blade.php)
     &__sublinks {
         display: flex;
         flex-wrap: wrap;

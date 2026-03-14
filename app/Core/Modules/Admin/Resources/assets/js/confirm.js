@@ -70,6 +70,7 @@ class ConfirmationManager {
                     if (actionKey) {
                         this.confirmedActions.add(actionKey);
                     }
+                    htmx.trigger($triggerElement[0], 'confirmed');
                 },
                 onCancel: () => {
                     if (actionKey) {

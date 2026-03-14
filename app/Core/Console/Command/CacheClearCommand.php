@@ -57,6 +57,15 @@ class CacheClearCommand extends Command
             $this->removeAndRecreate($filesystem, $jsCacheDir);
             $this->removeAndRecreate($filesystem, $jsCacheStaleDir);
 
+            // Clear compiled config cache
+            $configCompiled = storage_path('app/cache/config_compiled.php');
+            if (file_exists($configCompiled)) {
+                @unlink($configCompiled);
+                if (function_exists('opcache_invalidate')) {
+                    @opcache_invalidate($configCompiled, true);
+                }
+            }
+
             // Always clear Blade view cache
             $viewsPath = storage_path('app/views/*');
             $viewFiles = glob($viewsPath);

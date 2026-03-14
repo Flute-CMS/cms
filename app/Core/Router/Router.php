@@ -516,7 +516,7 @@ class Router implements RouterInterface
 
                     $response = $runMatched($parameters);
                     $handled = true;
-                } catch (Throwable) {
+                } catch (ResourceNotFoundException | MethodNotAllowedException) {
                 }
             }
 
@@ -525,14 +525,13 @@ class Router implements RouterInterface
 
                 try {
                     $parameters = $dynamicMatcher->match($request->getPathInfo());
-                    $response = $runMatched($parameters);
-                } catch (Exception $dynamicE) {
-                    // if (is_debug()) {
-                    //     throw $dynamicE;
-                    // }
-
+                } catch (ResourceNotFoundException | MethodNotAllowedException $dynamicE) {
                     $response = response()->error(404, __('def.page_not_found'));
                     $response->setStatusCode(404);
+                }
+
+                if (!isset($response)) {
+                    $response = $runMatched($parameters);
                 }
             }
         } catch (ForcedRedirectException $exception) {

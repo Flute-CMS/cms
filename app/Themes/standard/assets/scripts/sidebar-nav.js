@@ -35,6 +35,7 @@ class SidebarNav {
         this.createFloatingContainer();
         this.bindEvents();
         this.initDropdowns();
+        this.initSubgroups();
         this.updateState();
         this.updateActiveItems();
         this.updateTooltips();
@@ -128,10 +129,10 @@ class SidebarNav {
     }
 
     shouldUseFloatingDropdown() {
-        if (this.isMobile()) {
+        if (this.isMobile() || this.hoverPreviewActive) {
             return false;
         }
-        return this.isCollapsed || this.isMini || this.isContained;
+        return this.isCollapsed || this.isMini;
     }
 
     initDropdowns() {
@@ -144,8 +145,7 @@ class SidebarNav {
             if (!trigger) return;
 
             const submenu = dropdown.querySelector('[data-sidebar-submenu]');
-            const miniDropdown = dropdown.querySelector('.sidebar-nav__mini-dropdown');
-            const menuSource = submenu || miniDropdown;
+            const menuSource = submenu;
 
             if (!menuSource) return;
 
@@ -180,6 +180,30 @@ class SidebarNav {
             });
 
             dropdown.dataset.sidebarEventsBound = "true";
+        });
+    }
+
+    initSubgroups() {
+        const subgroups = this.sidebar.querySelectorAll('[data-sidebar-subgroup]');
+
+        subgroups.forEach(subgroup => {
+            if (subgroup.dataset.subgroupBound) return;
+
+            const trigger = subgroup.querySelector('[data-sidebar-subgroup-trigger]');
+            if (!trigger) return;
+
+            // Auto-open if contains active item
+            const hasActive = subgroup.querySelector('.sidebar-nav__subitem.active');
+            if (hasActive) {
+                subgroup.classList.add('is-open');
+            }
+
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                subgroup.classList.toggle('is-open');
+            });
+
+            subgroup.dataset.subgroupBound = 'true';
         });
     }
 
@@ -283,39 +307,43 @@ class SidebarNav {
         const dropdown = document.createElement('div');
         dropdown.className = 'sidebar-floating-dropdown';
 
-        const titleText = trigger.querySelector('.sidebar-nav__item-text')?.textContent || '';
+        const titleText = trigger.querySelector('.sidebar-nav__item-text')?.textContent?.trim() || '';
         const titleIcon = trigger.querySelector('.sidebar-nav__item-icon')?.innerHTML || '';
 
         let html = `
-            <div class="sidebar-floating-dropdown__title">
-                ${titleIcon ? `<span>${titleIcon}</span>` : ''}
-                ${titleText}
+            <div class="sidebar-floating-dropdown__header">
+                ${titleIcon ? `<span class="sidebar-floating-dropdown__header-icon">${titleIcon}</span>` : ''}
+                <span class="sidebar-floating-dropdown__header-text">${titleText}</span>
             </div>
-            <div class="sidebar-floating-dropdown__items">
+            <div class="sidebar-floating-dropdown__content">
+                <div class="sidebar-floating-dropdown__items">
         `;
 
         const innerWrapper = menuSource.querySelector('.sidebar-nav__submenu-inner');
         const itemsContainer = innerWrapper || menuSource;
-        const items = itemsContainer.querySelectorAll(':scope > a, :scope > .sidebar-nav__subgroup, :scope > .sidebar-nav__mini-dropdown__group, :scope > .sidebar-nav__mini-dropdown__item, :scope > .sidebar-nav__subitem');
+        const items = itemsContainer.querySelectorAll(':scope > a, :scope > .sidebar-nav__subgroup, :scope > .sidebar-nav__subitem');
+
+        let itemIndex = 0;
 
         items.forEach(item => {
-            if (item.classList.contains('sidebar-nav__subgroup') || item.classList.contains('sidebar-nav__mini-dropdown__group')) {
-                const groupTitle = item.querySelector('.sidebar-nav__subgroup-title, .sidebar-nav__mini-dropdown__group-title')?.textContent || '';
+            if (item.classList.contains('sidebar-nav__subgroup')) {
+                const groupTitle = item.querySelector('.sidebar-nav__subgroup-title')?.textContent?.trim() || '';
                 html += `<div class="sidebar-floating-dropdown__group">`;
                 html += `<div class="sidebar-floating-dropdown__group-title">${groupTitle}</div>`;
+                html += `<div class="sidebar-floating-dropdown__group-items">`;
 
                 const subItems = item.querySelectorAll('a');
                 subItems.forEach(subItem => {
-                    html += this.createDropdownItemHTML(subItem);
+                    html += this.createDropdownItemHTML(subItem, itemIndex++);
                 });
 
-                html += `</div>`;
+                html += `</div></div>`;
             } else if (item.tagName === 'A') {
-                html += this.createDropdownItemHTML(item);
+                html += this.createDropdownItemHTML(item, itemIndex++);
             }
         });
 
-        html += `</div>`;
+        html += `</div></div>`;
         dropdown.innerHTML = html;
 
         dropdown.querySelectorAll('a').forEach(link => {
@@ -327,18 +355,20 @@ class SidebarNav {
         return dropdown;
     }
 
-    createDropdownItemHTML(item) {
+    createDropdownItemHTML(item, index = 0) {
         const href = item.getAttribute('href') || '#';
         const target = item.getAttribute('target') || '';
         const text = item.textContent?.trim() || '';
         const isActive = item.classList.contains('active');
         const iconEl = item.querySelector('svg, .sidebar-nav__subitem-icon svg');
         const iconHTML = iconEl ? `<span class="sidebar-floating-dropdown__item-icon">${iconEl.outerHTML}</span>` : '';
+        const delay = Math.min(index * 20, 200);
 
         return `
             <a href="${href}"
                ${target ? `target="${target}"` : ''}
                class="sidebar-floating-dropdown__item ${isActive ? 'active' : ''}"
+               style="transition-delay: ${delay}ms"
                hx-boost="true"
                hx-target="#main"
                hx-swap="outerHTML transition:true">
@@ -410,7 +440,7 @@ class SidebarNav {
     updateActiveItems() {
         const currentPath = window.location.pathname;
 
-        const sidebarItems = this.sidebar.querySelectorAll('.sidebar-nav__item[href], .sidebar-nav__subitem, .sidebar-nav__mini-dropdown__item');
+        const sidebarItems = this.sidebar.querySelectorAll('.sidebar-nav__item[href], .sidebar-nav__subitem');
         sidebarItems.forEach(item => {
             if (item.tagName === 'A') {
                 const href = item.getAttribute('href');
@@ -426,7 +456,7 @@ class SidebarNav {
 
         const dropdowns = this.sidebar.querySelectorAll('[data-sidebar-dropdown]');
         dropdowns.forEach(dropdown => {
-            const hasActiveChild = dropdown.querySelector('.sidebar-nav__subitem.active, .sidebar-nav__mini-dropdown__item.active');
+            const hasActiveChild = dropdown.querySelector('.sidebar-nav__subitem.active');
             const trigger = dropdown.querySelector('.sidebar-nav__item');
             if (trigger && trigger.tagName === 'BUTTON') {
                 trigger.classList.toggle('active', !!hasActiveChild);

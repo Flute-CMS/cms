@@ -318,9 +318,13 @@
                     }
                 }
             }
+            // Also check if the global layout already rendered the Content widget
+            if (!$hasContentWidget) {
+                $hasContentWidget = page()->isGlobalContentRendered();
+            }
         @endphp
 
-        @if (empty($pageBlocks) || !$hasContentWidget)
+        @if (!$hasContentWidget)
             @stack('content')
 
             @if (isset($sections['content']))

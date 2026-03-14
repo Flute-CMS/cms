@@ -79,9 +79,10 @@ class AttentionService
             return;
         }
 
-        $logFile = BASE_PATH . '/storage/logs/cron.log';
+        $logDir = BASE_PATH . '/storage/logs';
+        $logFiles = glob($logDir . '/cron-*.log');
 
-        if (!file_exists($logFile) || (time() - filemtime($logFile)) > 3600) {
+        if (empty($logFiles) || (time() - max(array_map('filemtime', $logFiles))) > 3600) {
             $this->items[] = [
                 'key' => 'cron',
                 'type' => 'warning',

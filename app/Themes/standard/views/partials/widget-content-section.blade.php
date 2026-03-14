@@ -1,5 +1,5 @@
-<section 
-    data-widget-id="{{ $widgetId }}" 
-    data-widget-name="Content" 
+<section
+    data-widget-id="{{ $widgetId }}"
+    data-widget-name="Content"
     style="{{ $style }}"
-><div class="page-widgets" id="page-widgets-content-{{ $widgetId }}">{!! $localContent !!}</div></section>
+>@if (!empty($wrapGrid))<div class="page-widgets">{!! $localContent !!}</div>@else{!! $localContent !!}@endif</section>

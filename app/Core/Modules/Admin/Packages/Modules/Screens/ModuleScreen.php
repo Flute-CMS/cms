@@ -32,6 +32,11 @@ class ModuleScreen extends Screen
 
     protected ModuleManager $moduleManager;
 
+    protected function resolveKey(): ?string
+    {
+        return $this->key ?? request()->input('key');
+    }
+
     public function mount(): void
     {
         $this->moduleManager = app(ModuleManager::class);
@@ -246,7 +251,14 @@ class ModuleScreen extends Screen
      */
     public function installModule()
     {
-        $module = $this->moduleManager->getModule($this->key);
+        $key = $this->resolveKey();
+        if (empty($key)) {
+            $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
+            return;
+        }
+
+        $module = $this->moduleManager->getModule($key);
         if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
 
@@ -269,7 +281,14 @@ class ModuleScreen extends Screen
      */
     public function activateModule()
     {
-        $module = $this->moduleManager->getModule($this->key);
+        $key = $this->resolveKey();
+        if (empty($key)) {
+            $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
+            return;
+        }
+
+        $module = $this->moduleManager->getModule($key);
         if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
 
@@ -292,7 +311,14 @@ class ModuleScreen extends Screen
      */
     public function disableModule()
     {
-        $module = $this->moduleManager->getModule($this->key);
+        $key = $this->resolveKey();
+        if (empty($key)) {
+            $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
+            return;
+        }
+
+        $module = $this->moduleManager->getModule($key);
         if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
 
@@ -315,7 +341,14 @@ class ModuleScreen extends Screen
      */
     public function updateModule()
     {
-        $module = $this->moduleManager->getModule($this->key);
+        $key = $this->resolveKey();
+        if (empty($key)) {
+            $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
+            return;
+        }
+
+        $module = $this->moduleManager->getModule($key);
         if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
 
@@ -338,7 +371,14 @@ class ModuleScreen extends Screen
      */
     public function uninstallModule()
     {
-        $module = $this->moduleManager->getModule($this->key);
+        $key = $this->resolveKey();
+        if (empty($key)) {
+            $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
+
+            return;
+        }
+
+        $module = $this->moduleManager->getModule($key);
         if (!$module) {
             $this->flashMessage(__('admin-modules.messages.module_not_found'), 'error');
 

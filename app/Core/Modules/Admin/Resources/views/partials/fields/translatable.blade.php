@@ -14,15 +14,17 @@
          data-translatable-languages='{!! json_encode($langs, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS) !!}'
          data-translatable-default="{{ $defaultLang }}">
         @if ($fieldType === 'textarea')
-            <textarea
-                id="{{ $inputId }}"
-                data-translatable-input
-                data-translatable-name="{{ $name }}"
-                @class(['input__field', 'has-error' => $hasError])
-                @if($placeholder) placeholder="{{ $placeholder }}" @endif
-                @if(isset($disabled) && $disabled) disabled @endif
-                @if(isset($readonly) && $readonly) readonly @endif
-            >{{ $value }}</textarea>
+            <div class="textarea__field-container @if($hasError) has-error @endif">
+                <textarea
+                    id="{{ $inputId }}"
+                    data-translatable-input
+                    data-translatable-name="{{ $name }}"
+                    class="textarea__field"
+                    @if($placeholder) placeholder="{{ $placeholder }}" @endif
+                    @if(isset($disabled) && $disabled) disabled @endif
+                    @if(isset($readonly) && $readonly) readonly @endif
+                >{{ $value }}</textarea>
+            </div>
         @else
             <div class="input__field-container @if($hasError) has-error @endif">
                 <input type="text"
@@ -45,14 +47,16 @@
 @else
     {{-- Single language — plain input --}}
     @if ($fieldType === 'textarea')
-        <textarea
-            id="{{ $inputId }}"
-            name="{{ $name }}"
-            @class(['input__field', 'has-error' => $hasError])
-            @if($placeholder) placeholder="{{ $placeholder }}" @endif
-            @if(isset($disabled) && $disabled) disabled @endif
-            @if(isset($readonly) && $readonly) readonly @endif
-        >{{ $plainValue }}</textarea>
+        <div class="textarea__field-container @if($hasError) has-error @endif">
+            <textarea
+                id="{{ $inputId }}"
+                name="{{ $name }}"
+                class="textarea__field"
+                @if($placeholder) placeholder="{{ $placeholder }}" @endif
+                @if(isset($disabled) && $disabled) disabled @endif
+                @if(isset($readonly) && $readonly) readonly @endif
+            >{{ $plainValue }}</textarea>
+        </div>
     @else
         <div class="input__field-container @if($hasError) has-error @endif">
             <input type="text"

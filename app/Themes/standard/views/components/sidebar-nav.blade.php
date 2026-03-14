@@ -76,16 +76,29 @@
                                 <div class="sidebar-nav__submenu-inner">
                                     @foreach ($item['children'] as $child)
                                         @if (!empty($child['children']) && count($child['children']) > 0)
-                                            <div class="sidebar-nav__subgroup">
-                                                <span
-                                                    class="sidebar-nav__subgroup-title">{{ transValue($child['title']) }}</span>
-                                                @foreach ($child['children'] as $subChild)
-                                                    <a href="{{ url($subChild['url']) }}"
-                                                        @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
-                                                        class="sidebar-nav__subitem {{ active($subChild['url']) }}">
-                                                        {{ transValue($subChild['title']) }}
-                                                    </a>
-                                                @endforeach
+                                            <div class="sidebar-nav__subgroup" data-sidebar-subgroup>
+                                                <button type="button" class="sidebar-nav__subgroup-toggle" data-sidebar-subgroup-trigger>
+                                                    <span class="sidebar-nav__subgroup-title">{{ transValue($child['title']) }}</span>
+                                                    <span class="sidebar-nav__subgroup-chevron">
+                                                        <x-icon path="ph.bold.caret-down-bold" />
+                                                    </span>
+                                                </button>
+                                                <div class="sidebar-nav__subgroup-items" data-sidebar-subgroup-items>
+                                                    <div class="sidebar-nav__subgroup-items-inner">
+                                                        @foreach ($child['children'] as $subChild)
+                                                            <a href="{{ url($subChild['url']) }}"
+                                                                @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
+                                                                class="sidebar-nav__subitem {{ active($subChild['url']) }}">
+                                                                @if ($subChild['icon'])
+                                                                    <span class="sidebar-nav__subitem-icon">
+                                                                        <x-icon path="{{ $subChild['icon'] }}" />
+                                                                    </span>
+                                                                @endif
+                                                                {{ transValue($subChild['title']) }}
+                                                            </a>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                             </div>
                                         @else
                                         <a href="{{ url($child['url']) }}"
@@ -103,36 +116,6 @@
                                 </div>
                             </div>
 
-                            <div class="sidebar-nav__mini-dropdown">
-                                <div class="sidebar-nav__mini-dropdown__title">{{ transValue($item['title']) }}</div>
-                                @foreach ($item['children'] as $child)
-                                    @if (!empty($child['children']) && count($child['children']) > 0)
-                                        <div class="sidebar-nav__mini-dropdown__group">
-                                            <div class="sidebar-nav__mini-dropdown__group-title">
-                                                {{ transValue($child['title']) }}</div>
-                                            @foreach ($child['children'] as $subChild)
-                                                <a href="{{ url($subChild['url']) }}"
-                                                    @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
-                                                    class="sidebar-nav__mini-dropdown__item {{ active($subChild['url']) }}">
-                                                    @if ($subChild['icon'])
-                                                        <x-icon path="{{ $subChild['icon'] }}" />
-                                                    @endif
-                                                    {{ transValue($subChild['title']) }}
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <a href="{{ url($child['url']) }}"
-                                            @if ($child['new_tab']) target="_blank" rel="noopener" @endif
-                                            class="sidebar-nav__mini-dropdown__item {{ active($child['url']) }}">
-                                            @if ($child['icon'])
-                                                <x-icon path="{{ $child['icon'] }}" />
-                                            @endif
-                                            {{ transValue($child['title']) }}
-                                        </a>
-                                    @endif
-                                @endforeach
-                            </div>
                         </div>
                     @endif
                 @endforeach

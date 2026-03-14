@@ -238,13 +238,14 @@ class ServerListScreen extends Screen
             return false;
         }
 
-        $logFile = BASE_PATH . '/storage/logs/cron.log';
+        $logDir = BASE_PATH . '/storage/logs';
+        $logFiles = glob($logDir . '/cron-*.log');
 
-        if (!file_exists($logFile)) {
+        if (empty($logFiles)) {
             return true;
         }
 
-        $lastModified = filemtime($logFile);
+        $lastModified = max(array_map('filemtime', $logFiles));
 
         return (time() - $lastModified) > 3600;
     }

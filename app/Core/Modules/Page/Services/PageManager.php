@@ -43,6 +43,8 @@ class PageManager
 
     protected bool $disabled = false;
 
+    private bool $globalContentRendered = false;
+
     private static bool $pagesLoaded = false;
 
     private array $permissions = [];
@@ -509,6 +511,15 @@ class PageManager
     }
 
     /**
+     * Checks whether the global Content widget was rendered during renderAllWidgets().
+     * Used by the layout template to avoid rendering @stack('content') twice.
+     */
+    public function isGlobalContentRendered(): bool
+    {
+        return $this->globalContentRendered;
+    }
+
+    /**
      * Checks if the editor is disabled.
      */
     public function isEditorDisabled(): bool
@@ -679,11 +690,20 @@ class PageManager
     protected function renderGlobalLayout(array $globalBlocks): string
     {
         $content = '';
-        $localContent = '';
+        $localBlocks = $this->currentPage ? $this->currentPage->getBlocks() : [];
+        $localHasContentWidget = false;
 
-        if ($this->currentPage) {
-            $localContent = $this->renderBlocksAsGrid($this->currentPage->getBlocks(), false);
+        foreach ($localBlocks as $block) {
+            if ($block->getWidget() === 'Content') {
+                $localHasContentWidget = true;
+
+                break;
+            }
         }
+
+        $localContent = !empty($localBlocks)
+            ? $this->renderBlocksAsGrid($localBlocks, false)
+            : '';
 
         $currentPath = $this->request->getPathInfo();
 
@@ -704,13 +724,21 @@ class PageManager
             $widgetName = $block->getWidget();
 
             if ($widgetName === 'Content') {
-                if ($localContent !== '') {
-                    $content .= view('flute::partials.widget-content-section', [
-                        'widgetId' => 'global-' . $block->getId(),
-                        'style' => $style,
-                        'localContent' => $localContent,
-                    ])->render();
+                $this->globalContentRendered = true;
+
+                // If local blocks don't have their own Content widget,
+                // insert a marker so the Blade template can inject @stack('content') here
+                $localContentToRender = $localContent;
+                if (!$localHasContentWidget) {
+                    $localContentToRender = '<!-- __FLUTE_GLOBAL_CONTENT__ -->' . $localContent;
                 }
+
+                $content .= view('flute::partials.widget-content-section', [
+                    'widgetId' => 'global-' . $block->getId(),
+                    'style' => $style,
+                    'localContent' => $localContentToRender,
+                    'wrapGrid' => !empty($localBlocks),
+                ])->render();
 
                 continue;
             }

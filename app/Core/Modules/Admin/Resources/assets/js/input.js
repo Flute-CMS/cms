@@ -285,7 +285,7 @@ $(document).ready(function () {
                                 <svg class="icon-picker__search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <input type="text" placeholder="${translate('def.search')}..." class="icon-picker__search-input">
+                                <input type="text" placeholder="" class="icon-picker__search-input">
                             </div>
                             <button type="button" class="icon-picker__close" aria-label="Close">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -309,6 +309,15 @@ $(document).ready(function () {
 				const searchInput = iconPicker.querySelector(
 					".icon-picker__search-input"
 				);
+
+				// Set placeholder safely (translate() can return HTML spans)
+				const searchPlaceholder = translate('def.search');
+				if (typeof searchPlaceholder === 'string' && !searchPlaceholder.includes('<')) {
+					searchInput.placeholder = searchPlaceholder + '...';
+				} else {
+					searchInput.placeholder = 'Search...';
+				}
+
 				searchInput.addEventListener(
 					"input",
 					debounce(function () {

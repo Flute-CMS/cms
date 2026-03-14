@@ -77,13 +77,7 @@ class ConfigurationService
             }
         }
 
-        $compiledPath = $this->getCompiledConfigPath();
-        if ($compiledPath !== null && file_exists($compiledPath)) {
-            @unlink($compiledPath);
-            if (function_exists('opcache_invalidate')) {
-                @opcache_invalidate($compiledPath, true);
-            }
-        }
+        $this->invalidateCompiledCache();
 
         $this->loadConfigurations();
     }
@@ -98,14 +92,25 @@ class ConfigurationService
         return $this->configsPath;
     }
 
+    /**
+     * Remove the compiled config cache so fresh values are picked up on next load.
+     */
+    public function invalidateCompiledCache(): void
+    {
+        $compiledPath = $this->getCompiledConfigPath();
+        if ($compiledPath !== null && file_exists($compiledPath)) {
+            @unlink($compiledPath);
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($compiledPath, true);
+            }
+        }
+    }
+
     public function setConfigsPath(string $configsPath): void
     {
         $this->configsPath = rtrim($configsPath, DIRECTORY_SEPARATOR);
 
-        $compiledPath = $this->getCompiledConfigPath();
-        if ($compiledPath !== null && file_exists($compiledPath)) {
-            @unlink($compiledPath);
-        }
+        $this->invalidateCompiledCache();
 
         $this->loadConfigurations();
     }

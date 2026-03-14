@@ -82,5 +82,7 @@ class SidebarController extends BaseController
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($filePath, true);
         }
+
+        config()->invalidateCompiledCache();
     }
 }

@@ -190,8 +190,6 @@ class LayoutAPI {
                         sizeToContent: true,
                         content: `<div class="widget-content">${this.utils.createSkeleton()}</div>`,
                         id: nd.id || `widget-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                        noResize: isSystem,
-                        noMove: isSystem,
                     });
 
                     if (!el) continue;

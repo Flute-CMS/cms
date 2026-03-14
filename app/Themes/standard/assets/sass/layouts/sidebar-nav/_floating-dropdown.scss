@@ -1,7 +1,7 @@
 .sidebar-floating-dropdown {
     position: fixed;
-    min-width: 200px;
-    max-width: 320px;
+    min-width: 220px;
+    max-width: 280px;
     max-height: 80vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -10,15 +10,15 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--transp-1);
     border-radius: var(--border1);
-    padding: var(--space-xs);
+    padding: 0;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-8px) scale(0.96);
-    transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+    transform: translateX(-6px) scale(0.97);
+    transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
     z-index: 9999;
     box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.15),
-        0 8px 40px rgba(0, 0, 0, 0.1);
+        0 4px 24px rgba(0, 0, 0, 0.12),
+        0 12px 48px rgba(0, 0, 0, 0.08);
 
     &::-webkit-scrollbar {
         width: 4px;
@@ -37,13 +37,19 @@
         opacity: 1;
         visibility: visible;
         transform: translateX(0) scale(1);
+
+        .sidebar-floating-dropdown__item {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
+    // Arrow
     &::before {
         content: '';
         position: absolute;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background: var(--blurred-background);
         border: 1px solid var(--transp-1);
         transform: rotate(45deg);
@@ -51,65 +57,98 @@
     }
 
     &[data-placement^="right"]::before {
-        left: -5px;
-        top: 16px;
+        left: -4px;
+        top: 18px;
         border-right: none;
         border-top: none;
     }
 
     &[data-placement^="left"]::before {
-        right: -5px;
-        top: 16px;
+        right: -4px;
+        top: 18px;
         border-left: none;
         border-bottom: none;
     }
 
-    &__title {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-500);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: var(--space-xs) var(--space-sm);
+    // Header with parent name
+    &__header {
         display: flex;
         align-items: center;
-        gap: var(--space-xs);
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--transp-05);
+    }
+
+    &__header-icon {
+        display: flex;
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        color: var(--accent);
+        opacity: 0.8;
 
         svg {
-            width: 14px;
-            height: 14px;
-            opacity: 0.6;
+            width: 18px;
+            height: 18px;
         }
     }
 
+    &__header-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-300);
+        letter-spacing: 0.01em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Content area
+    &__content {
+        padding: var(--space-2xs);
+    }
+
+    // Flat items (no groups)
     &__items {
         display: flex;
         flex-direction: column;
         gap: 1px;
     }
 
+    // Individual item
     &__item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 9px 12px;
+        gap: 8px;
+        padding: 7px 10px;
         border-radius: var(--border05);
         color: var(--text-400);
         text-decoration: none;
         font-size: 13px;
         font-weight: 500;
-        transition: all 0.12s ease;
-        white-space: normal;
-        word-break: break-word;
-        line-height: 1.35;
+        transition: background 0.12s ease, color 0.12s ease, opacity 0.2s ease, transform 0.2s ease;
+        line-height: 1;
+        // Stagger animation
+        opacity: 0;
+        transform: translateX(-4px);
+
+        > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         &:hover {
             background: var(--transp-05);
             color: var(--text);
+
+            .sidebar-floating-dropdown__item-icon {
+                color: var(--text-300);
+            }
         }
 
         &.active {
-            background: var(--transp-1);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
             color: var(--accent);
 
             .sidebar-floating-dropdown__item-icon {
@@ -119,6 +158,9 @@
     }
 
     &__item-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 16px;
         height: 16px;
         flex-shrink: 0;
@@ -128,28 +170,43 @@
         svg {
             width: 16px;
             height: 16px;
+            display: block;
         }
     }
 
+    // Group (3rd level container)
     &__group {
-        padding-top: var(--space-xs);
-        margin-top: var(--space-xs);
-        border-top: 1px solid var(--transp-05);
+        &:not(:first-child) {
+            margin-top: 2px;
+            padding-top: 2px;
+            border-top: 1px solid var(--transp-05);
+        }
     }
 
     &__group-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 10px;
         font-weight: 600;
         color: var(--text-600);
-        padding: var(--space-2xs) var(--space-sm);
+        padding: 6px 10px 4px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
+    }
 
-        >span {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: var(--space-xs);
+    // Nested items under a group — indented with left accent
+    &__group-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        margin-left: 10px;
+        padding-left: 8px;
+        border-left: 1.5px solid var(--transp-1);
+
+        .sidebar-floating-dropdown__item {
+            font-size: 12.5px;
+            padding: 6px 8px;
         }
     }
 }

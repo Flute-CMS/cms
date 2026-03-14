@@ -132,59 +132,45 @@
                                                                         !empty($child['children']) &&
                                                                         count($child['children']) > 0;
                                                                 @endphp
-                                                                <div class="navbar-dropdown__menu-item group">
-                                                                    @if ($hasSubChildren)
-                                                                        {{-- If has 3rd level children, use div container --}}
-                                                                        <div class="navbar-dropdown__menu-group">
-                                                                            <div class="navbar-dropdown__menu-header">
-                                                                                @if ($child['icon'])
-                                                                                    <span
-                                                                                        class="navbar-dropdown__menu-icon">
-                                                                                        <x-icon
-                                                                                            path="{{ $child['icon'] }}" />
+                                                                @if ($hasSubChildren)
+                                                                    <div class="navbar-dropdown__menu-section">
+                                                                        <div class="navbar-dropdown__menu-section-title">{{ transValue($child['title']) }}</div>
+                                                                        @foreach ($child['children'] as $subChild)
+                                                                            <div class="navbar-dropdown__menu-item">
+                                                                                <a href="{{ url($subChild['url']) }}"
+                                                                                    @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
+                                                                                    class="navbar-dropdown__menu-link">
+                                                                                    @if ($subChild['icon'])
+                                                                                        <span class="navbar-dropdown__menu-icon">
+                                                                                            <x-icon path="{{ $subChild['icon'] }}" />
+                                                                                        </span>
+                                                                                    @endif
+                                                                                    <span class="navbar-dropdown__menu-text">
+                                                                                        <span class="navbar-dropdown__menu-title">{{ transValue($subChild['title']) }}</span>
                                                                                     </span>
-                                                                                @endif
-
-                                                                                <div
-                                                                                    class="navbar-dropdown__menu-group-content">
-                                                                                    <span
-                                                                                        class="navbar-dropdown__menu-title">{{ transValue($child['title']) }}</span>
-                                                                                    <div
-                                                                                        class="navbar-dropdown__sublinks">
-                                                                                        @foreach ($child['children'] as $subChild)
-                                                                                            <a href="{{ url($subChild['url']) }}"
-                                                                                                @if ($subChild['new_tab']) target="_blank" rel="noopener" @endif
-                                                                                                class="navbar-dropdown__sublink">
-                                                                                                {{ transValue($subChild['title']) }}
-                                                                                            </a>
-                                                                                        @endforeach
-                                                                                    </div>
-                                                                                </div>
+                                                                                </a>
                                                                             </div>
-                                                                        </div>
-                                                                    @else
-                                                                        {{-- Regular link without children --}}
+                                                                        @endforeach
+                                                                    </div>
+                                                                @else
+                                                                    <div class="navbar-dropdown__menu-item">
                                                                         <a href="{{ url($child['url']) }}"
                                                                             @if ($child['new_tab']) target="_blank" rel="noopener" @endif
                                                                             class="navbar-dropdown__menu-link">
                                                                             @if ($child['icon'])
-                                                                                <span
-                                                                                    class="navbar-dropdown__menu-icon">
-                                                                                    <x-icon
-                                                                                        path="{{ $child['icon'] }}" />
+                                                                                <span class="navbar-dropdown__menu-icon">
+                                                                                    <x-icon path="{{ $child['icon'] }}" />
                                                                                 </span>
                                                                             @endif
                                                                             <span class="navbar-dropdown__menu-text">
-                                                                                <span
-                                                                                    class="navbar-dropdown__menu-title">{{ transValue($child['title']) }}</span>
+                                                                                <span class="navbar-dropdown__menu-title">{{ transValue($child['title']) }}</span>
                                                                                 @if (!empty($child['description']))
-                                                                                    <span
-                                                                                        class="navbar-dropdown__menu-desc">{{ transValue($child['description']) }}</span>
+                                                                                    <span class="navbar-dropdown__menu-desc">{{ transValue($child['description']) }}</span>
                                                                                 @endif
                                                                             </span>
                                                                         </a>
-                                                                    @endif
-                                                                </div>
+                                                                    </div>
+                                                                @endif
                                                             @endforeach
                                                         </div>
                                                     </div>

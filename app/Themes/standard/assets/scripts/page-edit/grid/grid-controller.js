@@ -209,15 +209,12 @@ class DragDropController {
         if (!this.gsGrid) return null;
 
         const content = `<div class="widget-content">${this.utils.createSkeleton()}</div>`;
-        const isSystem = name === 'Content';
 
         const opts = {
             w: Math.max(1, Math.min(12, cols || 6)),
             sizeToContent: true,
             content: content,
             id: `widget-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-            noResize: isSystem,
-            noMove: isSystem,
         };
 
         const el = this.gsGrid.addWidget(opts);
