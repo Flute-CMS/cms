@@ -32,11 +32,6 @@ class ModuleScreen extends Screen
 
     protected ModuleManager $moduleManager;
 
-    protected function resolveKey(): ?string
-    {
-        return $this->key ?? request()->input('key');
-    }
-
     public function mount(): void
     {
         $this->moduleManager = app(ModuleManager::class);
@@ -460,6 +455,11 @@ class ModuleScreen extends Screen
         $this->loadModules(true);
         $this->flashMessage(__('admin-modules.messages.uninstalled', ['name' => '']), 'success');
         $this->triggerSidebarRefresh();
+    }
+
+    protected function resolveKey(): ?string
+    {
+        return $this->key ?? request()->input('key');
     }
 
     protected function triggerSidebarRefresh(): void
