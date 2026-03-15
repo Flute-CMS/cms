@@ -76,14 +76,22 @@ class SelectRegistry
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 20,
+                'extraFields' => ['ip', 'port', 'mod'],
+                'optionView' => 'admin::partials.select.server-option',
+                'itemView' => 'admin::partials.select.server-item',
+                'lazy' => true,
             ],
             'users' => [
                 'class' => User::class,
                 'permission' => 'admin.users',
-                'searchFields' => ['name', 'email'],
+                'searchFields' => ['name', 'email', 'login'],
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 20,
+                'extraFields' => ['avatar', 'email', 'login'],
+                'optionView' => 'admin::partials.select.user-option',
+                'itemView' => 'admin::partials.select.user-item',
+                'lazy' => true,
                 'scope' => static function ($select) {
                     if (!user()->can('admin.boss')) {
                         $myPriority = user()->getHighestPriority();
@@ -98,6 +106,9 @@ class SelectRegistry
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 20,
+                'extraFields' => ['color', 'icon'],
+                'optionView' => 'admin::partials.select.role-option',
+                'itemView' => 'admin::partials.select.role-item',
                 'scope' => static function ($select) {
                     if (!user()->can('admin.boss')) {
                         $myPriority = user()->getHighestPriority();
@@ -112,6 +123,8 @@ class SelectRegistry
                 'displayField' => 'name',
                 'valueField' => 'id',
                 'limit' => 100,
+                'optionView' => 'admin::partials.select.permission-option',
+                'itemView' => 'admin::partials.select.permission-item',
             ],
             'modules' => [
                 'class' => Module::class,
@@ -128,6 +141,8 @@ class SelectRegistry
                 'displayField' => 'key',
                 'valueField' => 'id',
                 'limit' => 20,
+                'optionView' => 'admin::partials.select.social-option',
+                'itemView' => 'admin::partials.select.social-item',
             ],
         ];
     }

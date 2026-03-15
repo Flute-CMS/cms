@@ -253,7 +253,8 @@
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
         <script src="@asset('assets/js/libs/sortable.js')" defer></script>
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
-        <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
+        <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
+        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
         <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
         <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
         <script src="@asset('assets/js/libs/pickr.js')" defer></script>

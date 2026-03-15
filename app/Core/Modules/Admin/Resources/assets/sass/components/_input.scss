@@ -18,38 +18,25 @@
     &__field-container {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--fs-trigger-gap, 8px);
         position: relative;
         width: 100%;
-        min-height: 40px;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.875rem;
-        border: 1px solid var(--transp-2);
-        border-radius: 0.5rem;
-        color: var(--text);
-        background-color: transparent;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-
-        :root[data-theme=light] & {
-            background-color: var(--background);
-            border-color: rgba(0, 0, 0, 0.15);
-        }
+        min-height: var(--fs-trigger-height, 36px);
+        padding: var(--fs-trigger-py, 6px) var(--fs-trigger-px, 12px);
+        font-size: var(--fs-font-size, 14px);
+        border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius, 12px);
+        color: var(--fs-text);
+        background-color: var(--fs-bg);
+        transition: border-color var(--fs-transition, .15s), box-shadow var(--fs-transition, .15s);
 
         &:focus-within:not(.input__field-container-readonly):not(.has-error) {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
-
-            :root[data-theme=light] & {
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
-            }
+            border-color: var(--fs-border-focus);
+            box-shadow: 0 0 0 2px var(--fs-ring);
         }
 
-        &:hover:not(:focus-within):not(.has-error) {
-            border-color: var(--transp-3);
-
-            :root[data-theme=light] & {
-                border-color: rgba(0, 0, 0, 0.25);
-            }
+        &:hover:not(:focus-within):not(.has-error):not(.input__field-container-readonly) {
+            border-color: var(--fs-border-focus);
         }
 
         &.has-error {
@@ -58,12 +45,8 @@
         }
 
         &-readonly {
-            background-color: var(--transp-05);
-            cursor: not-allowed;
-
-            :root[data-theme=light] & {
-                background-color: #f8f8fa;
-            }
+            opacity: 0.5;
+            pointer-events: none;
         }
     }
 
@@ -80,7 +63,7 @@
         line-height: 1.5;
 
         &::placeholder {
-            color: var(--text-500);
+            color: var(--fs-text-placeholder);
         }
 
         &[type="color"] {

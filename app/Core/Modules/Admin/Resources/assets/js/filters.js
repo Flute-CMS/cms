@@ -27,8 +27,9 @@ function resetFilters(filtersEl) {
 
     filtersEl.querySelectorAll('[data-select]').forEach((select) => {
         const defaultVal = select.dataset.default || '';
-        if (select.tomselect) {
-            select.tomselect.setValue(defaultVal, true);
+        const fsInstance = window.Select?.getInstance(select) || FluteSelect?.get(select);
+        if (fsInstance) {
+            fsInstance.setValue(defaultVal, true);
         } else {
             select.value = defaultVal;
         }

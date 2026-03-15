@@ -19,10 +19,12 @@ if (!window._ceRequestHooked) {
                 var valVal = '';
 
                 if (typeSelect) {
-                    typeVal = typeSelect.tomselect ? typeSelect.tomselect.getValue() : typeSelect.value;
+                    var tsFsType = window.Select?.getInstance(typeSelect) || (typeof FluteSelect !== 'undefined' ? FluteSelect.get(typeSelect) : null);
+                    typeVal = tsFsType ? tsFsType.getValue() : typeSelect.value;
                 }
                 if (opSelect) {
-                    opVal = opSelect.tomselect ? opSelect.tomselect.getValue() : opSelect.value;
+                    var tsFsOp = window.Select?.getInstance(opSelect) || (typeof FluteSelect !== 'undefined' ? FluteSelect.get(opSelect) : null);
+                    opVal = tsFsOp ? tsFsOp.getValue() : opSelect.value;
                 }
                 if (valueInput) {
                     valVal = valueInput.value;
@@ -69,7 +71,8 @@ function initConditionsEditor() {
     function initNewSelects(el) {
         if (!window.Select) return;
         el.querySelectorAll('[data-select]').forEach(function(s) {
-            if (!s.tomselect) window.Select.createInstance(s);
+            var existing = window.Select.getInstance(s) || (typeof FluteSelect !== 'undefined' ? FluteSelect.get(s) : null);
+            if (!existing) window.Select.createInstance(s);
         });
     }
 

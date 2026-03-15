@@ -15,26 +15,29 @@
     &__field-container {
         @extend .align-center;
 
-        gap: var(--space-sm);
+        gap: var(--fs-trigger-gap, 8px);
         position: relative;
         width: 100%;
-        padding: 0.75em 1em 0.75em 1em;
-        font-size: var(--p);
-        border: 1px solid var(--transp-2);
-        border-radius: var(--border05);
-        color: var(--text);
-        transition: border var(--transition), background-color var(--transition);
+        min-height: var(--fs-trigger-height, 36px);
+        padding: var(--fs-trigger-py, 6px) var(--fs-trigger-px, 12px);
+        font-size: var(--fs-font-size, 14px);
+        border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius, 12px);
+        color: var(--fs-text);
+        background-color: var(--fs-bg);
+        transition: border-color var(--fs-transition, .15s), box-shadow var(--fs-transition, .15s);
 
         &-withPassword {
             padding-right: 3em;
         }
 
-        // &:hover:not(.input__field-container-readonly) {
-        //     background-color: var(--transp-2);
-        // }
+        &:hover:not(:focus-within):not(.has-error):not(.input__field-container-readonly) {
+            border-color: var(--fs-border-focus);
+        }
 
         &:focus-within:not(.input__field-container-readonly):not(.has-error) {
-            border-color: var(--primary-300);
+            border-color: var(--fs-border-focus);
+            box-shadow: 0 0 0 2px var(--fs-ring);
         }
 
         &.has-error {

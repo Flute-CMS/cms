@@ -48,6 +48,12 @@ class EditPaymentGatewayScreen extends Screen
 
         $this->id = (int) request()->input('id');
 
+        // Read driverKey from request (sent by Yoyo select on change)
+        $requestDriverKey = request()->input('driverKey');
+        if (is_array($requestDriverKey)) {
+            $requestDriverKey = $requestDriverKey[0] ?? null;
+        }
+
         if ($this->id) {
             $this->gateway = $this->paymentService->getGatewayById($this->id);
 
@@ -73,6 +79,7 @@ class EditPaymentGatewayScreen extends Screen
                 ->add(__('admin-payment.title.gateway_add'));
 
             $this->name = __('admin-payment.title.gateway_add');
+            $this->driverKey = $requestDriverKey;
         }
     }
 

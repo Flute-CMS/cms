@@ -1,18 +1,18 @@
 /**
- * Select component using Tom Select
- * @see https://tom-select.js.org/
+ * Select component using FluteSelect
+ * @see https://github.com/FlamesONE/flute-select
  */
 class Select {
     constructor() {
         this.instances = new Map();
-        this.dropdownRepositionHandlers = new Map();
+        this._swapping = false;
         this.init();
     }
 
     cleanup() {
         this.instances.forEach((instance, select) => {
-            if (!document.body.contains(select) || this.isInstanceStale(select, instance)) {
-                this.destroyInstance(select, instance);
+            if (!document.body.contains(select)) {
+                this.destroyInstance(select);
             }
         });
     }
@@ -21,28 +21,15 @@ class Select {
         this.cleanup();
 
         this.getSelectElements(root).forEach((select) => {
-            this.ensureNativeChangeListener(select);
-
             const existingInstance = this.instances.get(select);
             if (existingInstance) {
-                if (this.isInstanceStale(select, existingInstance)) {
-                    this.destroyInstance(select, existingInstance);
-                } else {
-                    this.applyWrapperState(select, existingInstance);
-                    existingInstance.sync();
-                    return;
-                }
+                return;
             }
 
-            if (select.tomselect) {
-                if (this.isInstanceStale(select, select.tomselect)) {
-                    this.destroyInstance(select, select.tomselect);
-                } else {
-                    select.tomselect.sync();
-                    this.instances.set(select, select.tomselect);
-                    this.applyWrapperState(select, select.tomselect);
-                    return;
-                }
+            const fsInstance = FluteSelect.get(select);
+            if (fsInstance) {
+                this.instances.set(select, fsInstance);
+                return;
             }
 
             this.createInstance(select);
@@ -51,22 +38,14 @@ class Select {
 
     createInstance(select) {
         const config = this.getConfig(select);
-        const instance = new TomSelect(select, config);
+        const instance = FluteSelect.create(select, config);
         this.instances.set(select, instance);
 
-        if (instance.wrapper) {
-            instance.wrapper.style.width = '100%';
-        }
-
-        this.applyWrapperState(select, instance);
-        this.setSearchPlaceholder(instance);
-        instance.sync();
         this.applyInitialValue(select, instance);
-        this.updateClearButton(instance);
-        this.makeVisibleForYoyo(select);
         this.bindChangeHandler(select, instance);
         this.bindAsyncPreload(select, instance);
-        this.bindDropdownPositioning(select, instance);
+
+        return instance;
     }
 
     applyInitialValue(select, instance) {
@@ -83,144 +62,62 @@ class Select {
         }
     }
 
-    makeVisibleForYoyo(select) {
-        Object.assign(select.style, {
-            display: 'block',
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            opacity: '0',
-            pointerEvents: 'none',
-            width: '1px',
-            height: '1px',
-            zIndex: '-1',
-        });
-    }
-
     bindChangeHandler(select, instance) {
-        instance.on('change', () => {
-            if (instance.settings.mode === 'multi' && instance.items.includes('')) {
-                instance.removeItem('');
-            }
+        const isYoyo = this.isYoyoSelect(select);
 
-            this.updateClearButton(instance);
-
-            if (select.dataset.yoyo) {
-                const yoyoValue = select.dataset.yoyoValue;
-                if (yoyoValue) {
-                    instance.setValue(yoyoValue);
-                }
-            }
-
+        instance.on('change', ({ value }) => {
             if (select._changeTimeout) clearTimeout(select._changeTimeout);
+
             select._changeTimeout = setTimeout(() => {
-                this.dispatchSyntheticChange(select);
+                if (isYoyo) {
+                    // For Yoyo selects: dispatch a non-internal change so HTMX picks it up.
+                    // The native select is already synced by FluteSelect's FormBridge,
+                    // but that event has _fsSyncInternal=true which we filter out.
+                    // We need a clean change event for HTMX to trigger Yoyo re-render.
+                    this.dispatchYoyoChange(select);
+                } else {
+                    this.dispatchSyntheticChange(select);
+                }
             }, 100);
         });
 
-        if (instance.settings.mode === 'multi' && instance.items.includes('')) {
-            instance.removeItem('');
+        if (isYoyo) {
+            // Filter out internal sync events from FluteSelect FormBridge
+            // to prevent infinite loop: FluteSelect change → FormBridge syncs native select
+            // → native select fires change → bubbles to wrapper → HTMX picks it up → Yoyo re-renders → repeat
+            select.addEventListener('change', (e) => {
+                if (e._fsSyncInternal) {
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                }
+            });
         }
     }
 
-    updateClearButton(instance) {
-        if (!instance.control) return;
-        const btn = instance.control.querySelector(':scope > .clear-button');
-        if (!btn) return;
+    isYoyoSelect(select) {
+        const wrapper = select.closest('.select-wrapper');
+        return !!(wrapper && wrapper.hasAttribute('yoyo'));
+    }
 
-        const val = instance.getValue();
-        const hasValue = val !== '' && val !== null && val !== undefined;
+    dispatchYoyoChange(select) {
+        if (this._swapping) return;
 
-        btn.style.display = hasValue ? '' : 'none';
+        const wrapper = select.closest('.select-wrapper');
+        if (!wrapper) return;
+
+        // Dispatch change event on the wrapper (where hx-trigger is set)
+        wrapper.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     bindAsyncPreload(select, instance) {
         if (select.dataset.mode !== 'async' || select.dataset.preload !== 'true') return;
-
-        instance.load('');
-        select.addEventListener('focus', () => {
-            if (!instance.loading) instance.load('');
-        });
-    }
-
-    bindDropdownPositioning(select, instance) {
-        instance.on('dropdown_open', () => {
-            const dropdown = instance.dropdown;
-            if (!dropdown) return;
-
-            const val = instance.getValue();
-            if (val) {
-                const option = instance.getOption(val);
-                if (option) instance.setActiveOption(option);
-            }
-
-            dropdown.style.position = 'fixed';
-            this.positionDropdown(instance);
-
-            let rafId = 0;
-            let lastLeft = null;
-            let lastTop = null;
-            let lastWidth = null;
-
-            const reposition = () => {
-                if (!instance.isOpen) return;
-                if (rafId) return;
-                rafId = window.requestAnimationFrame(() => {
-                    rafId = 0;
-                    const control = instance.control;
-                    const dd = instance.dropdown;
-                    if (!control || !dd) return;
-
-                    const rect = control.getBoundingClientRect();
-                    const left = rect.left;
-                    const top = rect.bottom + 4;
-                    const width = rect.width;
-
-                    if (left === lastLeft && top === lastTop && width === lastWidth) return;
-                    lastLeft = left;
-                    lastTop = top;
-                    lastWidth = width;
-
-                    dd.style.left = left + 'px';
-                    dd.style.top = top + 'px';
-                    dd.style.width = width + 'px';
-                    dd.style.minWidth = width + 'px';
-                });
-            };
-
-            window.addEventListener('scroll', reposition, { capture: true, passive: true });
-            window.addEventListener('resize', reposition, { passive: true });
-            this.dropdownRepositionHandlers.set(select, reposition);
-        });
-
-        instance.on('dropdown_close', () => {
-            const dropdown = instance.dropdown;
-            if (dropdown) dropdown.style.position = '';
-
-            const reposition = this.dropdownRepositionHandlers.get(select);
-            if (reposition) {
-                window.removeEventListener('scroll', reposition, true);
-                window.removeEventListener('resize', reposition);
-                this.dropdownRepositionHandlers.delete(select);
-            }
-        });
-    }
-
-    ensureNativeChangeListener(select) {
-        if (select._nativeChangeListenerAttached) return;
-        select.addEventListener('change', () => {
-            if (select._dispatchingSyntheticChange) return;
-            select._lastNativeChangeAt = Date.now();
-        });
-        select._nativeChangeListenerAttached = true;
+        if (instance._loader) {
+            instance._loader.load(1, '');
+        }
     }
 
     dispatchSyntheticChange(select) {
-        if (select._dispatchingSyntheticChange) return;
-
-        const now = Date.now();
-        const lastNative = select._lastNativeChangeAt || 0;
-        if (now - lastNative < 150) return;
+        if (select._dispatchingSyntheticChange || this._swapping) return;
 
         select._dispatchingSyntheticChange = true;
         try {
@@ -245,133 +142,114 @@ class Select {
         const explicit = select.getAttribute('placeholder') || select.dataset.placeholder;
         if (explicit) return explicit;
 
+        const emptyOpt = select.querySelector('option[value=""]');
+        if (emptyOpt) {
+            const text = emptyOpt.textContent.trim();
+            if (text) return text;
+        }
+
         const container = select.closest('[data-select-placeholder]');
         if (container?.dataset?.selectPlaceholder) return container.dataset.selectPlaceholder;
 
         return translate('def.select_option') || 'Select...';
     }
 
-    applyWrapperState(select, instance) {
-        const wrapper = instance?.wrapper;
-        if (!wrapper) return;
-
-        const placeholder = this.resolvePlaceholder(select);
-        const enableSearch = this.getEnableSearch(select);
-        const allowEmpty = this.isAllowEmpty(select);
-
-        if (!select.multiple && !enableSearch) {
-            wrapper.dataset.placeholder = placeholder;
-        } else {
-            delete wrapper.dataset.placeholder;
-        }
-
-        if (allowEmpty) {
-            wrapper.dataset.allowEmpty = 'true';
-        } else {
-            delete wrapper.dataset.allowEmpty;
-        }
-    }
-
-    isAllowEmpty(select) {
-        if (select.dataset.allowEmpty === 'true') return true;
-        if (select.dataset.allowEmpty === 'false') return false;
-        return !!select.querySelector('option[value=""]');
-    }
-
-    setSearchPlaceholder(instance) {
-        if (!instance.dropdown) return;
-        const searchInput = instance.dropdown.querySelector('.dropdown-input');
-        if (searchInput && !searchInput.getAttribute('placeholder')) {
-            searchInput.placeholder = translate('def.search') || 'Search...';
-        }
-    }
-
-    isInstanceStale(select, instance) {
-        if (!instance) return true;
-        if (instance.input && instance.input !== select) return true;
-        if (select.tomselect && select.tomselect !== instance) return true;
-
-        const wrapper = instance.wrapper;
-        if (!wrapper || !document.body.contains(wrapper)) return true;
-
-        const control = instance.control;
-        if (!control || !document.body.contains(control)) return true;
-
-        if (!select.classList.contains('tomselected')) return true;
-
-        return false;
-    }
-
-    destroyInstance(select, instance) {
-        try {
-            instance.destroy();
-        } catch (e) {
-            // ignore
-        }
-
-        const reposition = this.dropdownRepositionHandlers.get(select);
-        if (reposition) {
-            window.removeEventListener('scroll', reposition, true);
-            window.removeEventListener('resize', reposition);
-            this.dropdownRepositionHandlers.delete(select);
-        }
-
-        if (select.tomselect === instance) {
-            try {
-                delete select.tomselect;
-            } catch (e) {
-                select.tomselect = null;
-            }
-        }
-
-        this.instances.delete(select);
-    }
-
-    positionDropdown(instance) {
-        const control = instance.control;
-        const dropdown = instance.dropdown;
-        if (!control || !dropdown) return;
-
-        const rect = control.getBoundingClientRect();
-        dropdown.style.left = rect.left + 'px';
-        dropdown.style.top = rect.bottom + 4 + 'px';
-        dropdown.style.width = rect.width + 'px';
-        dropdown.style.minWidth = rect.width + 'px';
-    }
-
     getConfig(select) {
         const isMultiple = select.multiple;
         const enableSearch = this.getEnableSearch(select);
         const placeholder = this.resolvePlaceholder(select);
-        const plugins = this.getPlugins(select, enableSearch);
+        const isAllowEmpty = this.isAllowEmpty(select);
+
+        const positioning = select.dataset.positioning || 'dropdown';
 
         const config = {
-            allowEmptyOption: !isMultiple,
-            maxItems: parseInt(select.dataset.maxItems || (isMultiple ? null : 1)),
-            hideSelected: select.dataset.hideSelected === 'true',
-            plugins: plugins,
-            render: this.getRenderFunctions(select),
             placeholder: placeholder,
-            dropdownParent: 'body',
-            controlInput: (!isMultiple && !enableSearch) ? null : undefined,
-            onItemAdd: (value) => {
-                if (isMultiple && value === '') {
-                    setTimeout(() => this.instances.get(select)?.removeItem(''), 0);
-                }
-            },
-            onItemRemove: () => {},
+            multiple: isMultiple,
+            searchable: enableSearch,
+            clearable: isAllowEmpty,
+            positioning: positioning,
+            maxItems: parseInt(select.dataset.maxItems || (isMultiple ? 0 : 0)),
+            name: select.getAttribute('name') || '',
+            disabled: select.disabled,
         };
 
+        const richOptions = this.collectRichOptions(select);
+        if (richOptions.length > 0) {
+            config.options = richOptions;
+            const selectedValues = Array.from(select.selectedOptions || []).map(o => o.value).filter(Boolean);
+            if (selectedValues.length > 0) {
+                config.value = isMultiple ? selectedValues : selectedValues[0];
+            }
+        }
+
         if (select.dataset.allowAdd === 'true') {
-            config.create = true;
-            config.persist = false;
+            config.creatable = true;
         }
 
         if (select.dataset.mode === 'async') {
             Object.assign(config, this.getAsyncConfig(select));
         }
 
+        if (select.dataset.renderOption) {
+            const fn = this.resolveRenderFunction(select.dataset.renderOption);
+            if (fn) config.renderOption = fn;
+        }
+
+        if (select.dataset.renderItem) {
+            const fn = this.resolveRenderFunction(select.dataset.renderItem);
+            if (fn) config.renderSelected = fn;
+        }
+
+        if (select.dataset.renderNoResults) {
+            const fn = this.resolveRenderFunction(select.dataset.renderNoResults);
+            if (fn) config.renderEmpty = fn;
+        }
+
         return config;
+    }
+
+    collectRichOptions(select) {
+        const result = [];
+        for (const opt of select.querySelectorAll('option')) {
+            if (opt.value === '') continue;
+
+            const dataAttr = opt.getAttribute('data-data');
+            if (dataAttr) {
+                try {
+                    const data = JSON.parse(dataAttr);
+                    const option = {
+                        value: opt.value,
+                        label: data.text || opt.textContent.trim(),
+                    };
+                    if (data.optionHtml) {
+                        option.html = data.optionHtml;
+                    }
+                    if (data.icon) {
+                        option.icon = data.icon;
+                    }
+                    if (data.image || data.avatar) {
+                        option.image = data.image || data.avatar;
+                    }
+                    if (data.description || data.email) {
+                        option.description = data.description || data.email;
+                    }
+                    option.data = data;
+                    result.push(option);
+                } catch (e) {
+                    result.push({
+                        value: opt.value,
+                        label: opt.textContent.trim(),
+                    });
+                }
+            } else {
+                result.push({
+                    value: opt.value,
+                    label: opt.textContent.trim(),
+                    disabled: opt.disabled,
+                });
+            }
+        }
+        return result;
     }
 
     getEnableSearch(select) {
@@ -385,63 +263,6 @@ class Select {
         if (mode !== 'static') return true;
 
         return select.querySelectorAll('option').length > threshold;
-    }
-
-    getPlugins(select, enableSearch) {
-        const isMultiple = select.multiple;
-        try {
-            const plugins = JSON.parse(select.dataset.plugins || '[]');
-            const normalized = [...new Set(plugins)];
-
-            if (isMultiple) {
-                if (!normalized.includes('remove_button')) {
-                    normalized.push('remove_button');
-                }
-                const idx = normalized.indexOf('clear_button');
-                if (idx !== -1) normalized.splice(idx, 1);
-            } else {
-                if (!normalized.includes('clear_button')) {
-                    normalized.push('clear_button');
-                }
-                if (enableSearch && !normalized.includes('dropdown_input')) {
-                    normalized.push('dropdown_input');
-                }
-                if (!enableSearch) {
-                    const idx = normalized.indexOf('dropdown_input');
-                    if (idx !== -1) normalized.splice(idx, 1);
-                }
-            }
-
-            return normalized;
-        } catch (e) {
-            console.warn('Invalid plugins configuration:', e);
-            return isMultiple ? ['remove_button'] : ['clear_button'];
-        }
-    }
-
-    getRenderFunctions(select) {
-        const render = {
-            option: this.renderOption,
-            item: this.renderItem,
-            no_results: this.renderNoResults,
-        };
-
-        if (select.dataset.renderOption) {
-            const fn = this.resolveRenderFunction(select.dataset.renderOption);
-            if (fn) render.option = fn;
-        }
-
-        if (select.dataset.renderItem) {
-            const fn = this.resolveRenderFunction(select.dataset.renderItem);
-            if (fn) render.item = fn;
-        }
-
-        if (select.dataset.renderNoResults) {
-            const fn = this.resolveRenderFunction(select.dataset.renderNoResults);
-            if (fn) render.no_results = fn;
-        }
-
-        return render;
     }
 
     resolveRenderFunction(nameOrBody) {
@@ -458,76 +279,94 @@ class Select {
             return ref;
         }
 
-        console.warn('Select render function not found:', nameOrBody, '— register it as a global function (window.myRenderer = function(data, escape) { ... })');
         return null;
     }
 
     getAsyncConfig(select) {
+        const searchUrl = select.dataset.searchUrl || '/admin/select/search';
+        const minLength = parseInt(select.dataset.searchMinLength ?? 2);
+
+        const params = new URLSearchParams();
+        if (select.dataset.entity) params.set('entity', select.dataset.entity);
+        if (select.dataset.displayField) params.set('displayField', select.dataset.displayField);
+        if (select.dataset.valueField) params.set('valueField', select.dataset.valueField);
+        if (select.dataset.searchFields) params.set('searchFields', select.dataset.searchFields);
+        if (select.dataset.extraFields) params.set('extraFields', select.dataset.extraFields);
+        if (select.dataset.optionView) params.set('optionView', select.dataset.optionView);
+        if (select.dataset.itemView) params.set('itemView', select.dataset.itemView);
+
+        const separator = searchUrl.includes('?') ? '&' : '?';
+        const fullSourceUrl = searchUrl + separator + params.toString();
+
         return {
-            load: (query, callback) => {
-                const minLength = parseInt(select.dataset.searchMinLength ?? 2);
-
-                if (query.length < minLength && query !== '') {
-                    return callback();
-                }
-
-                const searchData = {
-                    query,
-                    entity: select.dataset.entity,
-                    displayField: select.dataset.displayField,
-                    valueField: select.dataset.valueField,
-                    searchFields: select.dataset.searchFields
-                        ? JSON.parse(select.dataset.searchFields)
-                        : [],
-                };
-
-                const queryParams = new URLSearchParams(searchData).toString();
-                select.classList.add('is-loading');
-
-                fetch(`${select.dataset.searchUrl}?${queryParams}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    credentials: 'same-origin',
-                })
-                    .then((response) => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then((data) => {
-                        callback(data);
-                        select.classList.remove('is-loading');
-                    })
-                    .catch((error) => {
-                        console.error('Error loading options:', error);
-                        callback();
-                        select.classList.remove('is-loading');
+            source: fullSourceUrl,
+            searchable: true,
+            lazy: {
+                pageSize: 20,
+                searchParam: 'query',
+                pageParam: 'page',
+                debounce: parseInt(select.dataset.searchDelay ?? 300),
+                loadOnInit: select.dataset.preload === 'true',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                transformResponse: (json) => {
+                    const data = Array.isArray(json) ? json : (json.data || []);
+                    return data.map(item => {
+                        const opt = {
+                            value: String(item.value),
+                            label: item.text || item.label || '',
+                        };
+                        if (item.optionHtml) {
+                            opt.html = item.optionHtml;
+                        }
+                        if (item.icon) {
+                            opt.icon = item.icon;
+                        }
+                        if (item.image || item.avatar) {
+                            opt.image = item.image || item.avatar;
+                        }
+                        if (item.description || item.email) {
+                            opt.description = item.description || item.email;
+                        }
+                        opt.data = item;
+                        return opt;
                     });
+                },
             },
-            loadThrottle: parseInt(select.dataset.searchDelay ?? 300),
+            renderOption: (opt, state) => {
+                if (opt.data?.optionHtml) {
+                    return opt.data.optionHtml;
+                }
+                return null;
+            },
+            renderSelected: (opt) => {
+                if (opt.data?.itemHtml) {
+                    return opt.data.itemHtml;
+                }
+                return null;
+            },
         };
+
     }
 
-    renderOption(data, escape) {
-        return `<div class="ts-option">
-            ${data.icon ? `<i class="${escape(data.icon)}"></i>` : ''}
-            <span>${escape(data.text)}</span>
-        </div>`;
+    isAllowEmpty(select) {
+        if (select.dataset.allowEmpty === 'true') return true;
+        if (select.dataset.allowEmpty === 'false') return false;
+        return !!select.querySelector('option[value=""]');
     }
 
-    renderItem(data, escape) {
-        return `<div class="ts-item">
-            ${data.icon ? `<i class="${escape(data.icon)}"></i>` : ''}
-            <span>${escape(data.text)}</span>
-        </div>`;
-    }
-
-    renderNoResults() {
-        return `<div class="ts-no-results">
-            ${translate('def.no_results_found') ?? 'No results found'}
-        </div>`;
+    destroyInstance(select) {
+        const instance = this.instances.get(select) || FluteSelect.get(select);
+        if (instance) {
+            try {
+                instance.destroy();
+            } catch (e) {
+                // ignore
+            }
+        }
+        this.instances.delete(select);
     }
 
     clear() {
@@ -535,7 +374,7 @@ class Select {
             try {
                 instance.clear();
             } catch (e) {
-                console.warn('Error clearing select instance:', e);
+                // ignore
             }
         });
     }
@@ -545,22 +384,46 @@ class Select {
             try {
                 instance.destroy();
             } catch (e) {
-                console.warn('Error destroying select instance:', e);
-            }
-        });
-        this.dropdownRepositionHandlers.forEach((reposition) => {
-            try {
-                window.removeEventListener('scroll', reposition, true);
-                window.removeEventListener('resize', reposition);
-            } catch (e) {
                 // ignore
             }
         });
         this.instances.clear();
-        this.dropdownRepositionHandlers.clear();
+    }
+
+    getInstance(select) {
+        return this.instances.get(select) || FluteSelect.get(select);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     window.Select = new Select();
+
+    document.body.addEventListener('htmx:beforeSwap', (e) => {
+        if (!window.Select) return;
+        const target = e.detail.target;
+        if (!target) return;
+
+        // Flag to prevent synthetic change events during swap
+        window.Select._swapping = true;
+
+        target.querySelectorAll('[data-select]').forEach((select) => {
+            window.Select.destroyInstance(select);
+        });
+
+        if (target.matches?.('[data-select]')) {
+            window.Select.destroyInstance(target);
+        }
+    });
+
+    document.body.addEventListener('htmx:afterSettle', (e) => {
+        if (!window.Select) return;
+
+        const target = e.detail.target ?? e.detail.elt;
+        if (target) {
+            window.Select.init(target);
+        }
+
+        // Reset swapping flag after init
+        window.Select._swapping = false;
+    });
 });

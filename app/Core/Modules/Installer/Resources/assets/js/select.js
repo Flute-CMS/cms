@@ -1,7 +1,6 @@
 class InstallerSelect {
     constructor() {
         this.instances = new WeakMap();
-        this.dropdownRepositionHandlers = new WeakMap();
         this.init();
     }
 
@@ -12,94 +11,12 @@ class InstallerSelect {
     }
 
     initSelect(select) {
-        if (typeof TomSelect === 'undefined') return;
-        
-        if (select.tomselect) {
-            return;
-        }
-        
-        if (select.classList.contains('tomselected')) {
-            select.classList.remove('tomselected');
-            const wrapper = select.closest('.ts-wrapper');
-            if (wrapper) {
-                wrapper.replaceWith(select);
-            }
-        }
+        if (typeof FluteSelect === 'undefined') return;
+        if (this.instances.has(select)) return;
 
         const config = this.getConfig(select);
-        const instance = new TomSelect(select, config);
+        const instance = FluteSelect.create(select, config);
         this.instances.set(select, instance);
-
-        if (instance.settings.mode === 'multi' && instance.items.includes('')) {
-            instance.removeItem('', true);
-        }
-
-        instance.on('dropdown_open', () => {
-            const dropdown = instance.dropdown;
-            if (dropdown) {
-                dropdown.style.position = 'fixed';
-                this.positionDropdown(instance);
-            }
-
-            let rafId = 0;
-            let lastLeft = null;
-            let lastTop = null;
-            let lastWidth = null;
-            const reposition = () => {
-                if (!instance.isOpen) return;
-                if (rafId) return;
-                rafId = window.requestAnimationFrame(() => {
-                    rafId = 0;
-
-                    const control = instance.control;
-                    const dropdown = instance.dropdown;
-                    if (!control || !dropdown) return;
-
-                    const rect = control.getBoundingClientRect();
-                    const left = rect.left;
-                    const top = rect.bottom + 4;
-                    const width = rect.width;
-
-                    if (left === lastLeft && top === lastTop && width === lastWidth) return;
-                    lastLeft = left;
-                    lastTop = top;
-                    lastWidth = width;
-
-                    dropdown.style.left = left + 'px';
-                    dropdown.style.top = top + 'px';
-                    dropdown.style.width = width + 'px';
-                    dropdown.style.minWidth = width + 'px';
-                });
-            };
-
-            window.addEventListener('scroll', reposition, { capture: true, passive: true });
-            window.addEventListener('resize', reposition, { passive: true });
-            this.dropdownRepositionHandlers.set(select, { reposition, getRafId: () => rafId });
-        });
-
-        instance.on('dropdown_close', () => {
-            const dropdown = instance.dropdown;
-            if (dropdown) {
-                dropdown.style.position = '';
-            }
-            const handlers = this.dropdownRepositionHandlers.get(select);
-            if (handlers?.reposition) {
-                window.removeEventListener('scroll', handlers.reposition, true);
-                window.removeEventListener('resize', handlers.reposition);
-            }
-        });
-    }
-
-    positionDropdown(instance) {
-        const control = instance.control;
-        const dropdown = instance.dropdown;
-        if (!control || !dropdown) return;
-
-        const rect = control.getBoundingClientRect();
-        dropdown.style.left = rect.left + 'px';
-        dropdown.style.top = (rect.bottom + 4) + 'px';
-        dropdown.style.width = rect.width + 'px';
-        dropdown.style.minWidth = rect.width + 'px';
     }
 
     getConfig(select) {
@@ -107,66 +24,70 @@ class InstallerSelect {
         const allowEmpty = select.dataset.allowEmpty === 'true';
         const allowAdd = select.dataset.allowAdd === 'true';
         const searchable = select.dataset.searchable === 'true';
-        const placeholder = select.dataset.placeholder || select.getAttribute('placeholder') || '';
+        const placeholder = this.resolvePlaceholder(select);
+
+        const options = this.collectOptions(select);
 
         const config = {
-            allowEmptyOption: allowEmpty,
-            maxItems: isMultiple ? null : 1,
-            plugins: this.getPlugins(isMultiple, searchable),
-            render: this.getRenderFunctions(),
             placeholder: placeholder,
-            onItemAdd: (value) => {
-                if (isMultiple && value === '') {
-                    const inst = this.instances.get(select);
-                    if (inst) setTimeout(() => inst.removeItem('', true), 0);
-                }
-            },
-            dropdownParent: 'body',
-            controlInput: (!isMultiple && !searchable) ? null : undefined,
+            multiple: isMultiple,
+            searchable: searchable || options.length > 6,
+            clearable: allowEmpty,
+            positioning: 'aligned',
+            name: select.getAttribute('name') || '',
+            disabled: select.disabled,
         };
 
-        if (allowAdd) {
-            config.create = true;
-            config.persist = false;
+        if (options.length > 0) {
+            config.options = options;
+            const selectedValues = Array.from(select.selectedOptions || [])
+                .map(o => o.value).filter(Boolean);
+            if (selectedValues.length > 0) {
+                config.value = isMultiple ? selectedValues : selectedValues[0];
+            }
         }
 
-        if (isMultiple) {
-            config.plugins.push('remove_button');
+        if (allowAdd) {
+            config.creatable = true;
         }
 
         return config;
     }
 
-    getPlugins(isMultiple, searchable) {
-        const plugins = [];
-        if (!isMultiple && searchable) {
-            plugins.push('dropdown_input');
+    resolvePlaceholder(select) {
+        const explicit = select.dataset.placeholder || select.getAttribute('placeholder');
+        if (explicit) return explicit;
+
+        const emptyOpt = select.querySelector('option[value=""]');
+        if (emptyOpt) {
+            const text = emptyOpt.textContent.trim();
+            if (text) return text;
         }
-        return plugins;
+
+        return 'Select...';
     }
 
-    getRenderFunctions() {
-        return {
-            option: (data, escape) => `<div class="ts-opt">${escape(data.text)}</div>`,
-            item: (data, escape) => `<div class="ts-itm">${escape(data.text)}</div>`,
-            no_results: () => `<div class="ts-empty">No results</div>`,
-        };
+    collectOptions(select) {
+        const result = [];
+        for (const opt of select.querySelectorAll('option')) {
+            if (opt.value === '') continue;
+            result.push({
+                value: opt.value,
+                label: opt.textContent.trim(),
+                disabled: opt.disabled,
+            });
+        }
+        return result;
     }
 
     destroySelect(select) {
-        const instance = this.instances.get(select);
+        const instance = this.instances.get(select) || FluteSelect.get(select);
         if (instance) {
             try {
                 instance.destroy();
             } catch (e) { }
             this.instances.delete(select);
         }
-        const handlers = this.dropdownRepositionHandlers.get(select);
-        if (handlers?.reposition) {
-            window.removeEventListener('scroll', handlers.reposition, true);
-            window.removeEventListener('resize', handlers.reposition);
-        }
-        this.dropdownRepositionHandlers.delete(select);
     }
 
     refresh() {
@@ -178,19 +99,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.InstallerSelect = new InstallerSelect();
 });
 
-document.addEventListener('htmx:beforeSwap', (evt) => {
+document.body.addEventListener('htmx:beforeSwap', (evt) => {
     if (!window.InstallerSelect) return;
-    const target = evt.detail.target;
+    const target = evt.detail?.target;
     if (!target) return;
-    
+
     target.querySelectorAll('[data-tom-select]').forEach((select) => {
         window.InstallerSelect.destroySelect(select);
     });
 });
 
-document.addEventListener('htmx:afterSwap', () => {
+document.body.addEventListener('htmx:afterSettle', () => {
     if (window.InstallerSelect) {
         window.InstallerSelect.init();
     }
 });
-

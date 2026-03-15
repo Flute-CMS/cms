@@ -201,7 +201,8 @@
     @if (! request()->htmx()->isHtmxRequest())
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
-        <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
+        <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
+        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
         <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
         <script src="@asset('assets/js/libs/notyf.js')" defer></script>

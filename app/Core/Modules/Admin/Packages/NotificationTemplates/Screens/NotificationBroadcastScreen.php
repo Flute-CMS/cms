@@ -29,6 +29,8 @@ class NotificationBroadcastScreen extends Screen
         $this->name = __('admin-notifications.broadcast.title');
         $this->description = __('admin-notifications.broadcast.description');
 
+        $this->target = request()->input('target', $this->target);
+
         breadcrumb()
             ->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-notifications.broadcast.title'));

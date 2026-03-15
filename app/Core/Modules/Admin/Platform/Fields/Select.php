@@ -9,6 +9,7 @@ use Flute\Admin\Platform\Concerns\Multipliable;
 use Flute\Admin\Platform\Field;
 use ReflectionEnum;
 use ReflectionException;
+use Throwable;
 use Traversable;
 
 /**
@@ -55,11 +56,15 @@ class Select extends Field implements ComplexFieldConcern
         'removeButton' => false,        // show remove button
         'allowEmpty' => false,          // allow empty option
         'allowAdd' => false,            // allow adding new options
+        'positioning' => 'dropdown',    // dropdown|aligned
         'plugins' => [],                // default plugins (UI search plugin is enabled dynamically)
         'renderOption' => null,         // custom option render function
         'renderItem' => null,           // custom item render function
         'renderNoResults' => null,      // custom no results render function
         'filter' => null,               // custom filter function
+        'extraFields' => [],            // extra entity fields to include as option metadata
+        'optionView' => null,           // Blade view name for option rendering
+        'itemView' => null,             // Blade view name for item rendering
     ];
 
     /**
@@ -113,6 +118,10 @@ class Select extends Field implements ComplexFieldConcern
         'data-allow-add',
         'data-searchable',
         'data-search-threshold',
+        'data-extra-fields',
+        'data-option-view',
+        'data-item-view',
+        'data-positioning',
     ];
 
     public function __construct()
@@ -256,6 +265,24 @@ class Select extends Field implements ComplexFieldConcern
     }
 
     /**
+     * Set positioning mode (dropdown or aligned).
+     * Aligned mode highlights the selected option directly in the list
+     * instead of using a checkmark indicator.
+     */
+    public function positioning(string $mode): self
+    {
+        return $this->setConfig('positioning', $mode);
+    }
+
+    /**
+     * Shorthand for aligned positioning mode
+     */
+    public function aligned(): self
+    {
+        return $this->positioning('aligned');
+    }
+
+    /**
      * Set order by
      */
     public function orderBy(string $field, string $direction = 'ASC'): self
@@ -296,7 +323,7 @@ class Select extends Field implements ComplexFieldConcern
     }
 
     /**
-     * Set custom render functions
+     * Set custom render functions (global JS function names).
      */
     public function setRenders(?string $option = null, ?string $item = null, ?string $noResults = null): self
     {
@@ -305,6 +332,40 @@ class Select extends Field implements ComplexFieldConcern
             'renderItem' => $item,
             'renderNoResults' => $noResults,
         ]);
+    }
+
+    /**
+     * Set a Blade view for rendering dropdown options.
+     * View receives: $item (entity object), $text (display text), $value (option value).
+     *
+     * Example: ->optionView('admin::partials.select.role-option')
+     */
+    public function optionView(string $bladeView): self
+    {
+        return $this->setConfig('optionView', $bladeView);
+    }
+
+    /**
+     * Set a Blade view for rendering selected items.
+     * View receives: $item (entity object), $text (display text), $value (option value).
+     *
+     * Example: ->itemView('admin::partials.select.role-item')
+     */
+    public function itemView(string $bladeView): self
+    {
+        return $this->setConfig('itemView', $bladeView);
+    }
+
+    /**
+     * Specify extra entity fields to include as option metadata.
+     * These fields will be available in data-data JSON on <option> elements
+     * and in async search results for custom renderers/views.
+     *
+     * @param array $fields e.g. ['avatar', 'color', 'icon', 'email']
+     */
+    public function withMeta(array $fields): self
+    {
+        return $this->setConfig('extraFields', $fields);
     }
 
     /**
@@ -406,10 +467,26 @@ class Select extends Field implements ComplexFieldConcern
      */
     protected function configureSelect(): void
     {
+        // Auto-promote database → async for lazy entities (must run before other config)
+        if ($this->getConfig('mode') === 'database') {
+            $entity = $this->databaseConfig['entity'];
+            if ($entity) {
+                $selectRegistry = app(SelectRegistry::class);
+                $registryConfig = $selectRegistry->getEntityConfig($entity);
+                if (!empty($registryConfig['lazy'])) {
+                    $this->setConfig('mode', 'async');
+                    $this->setConfig('preload', true);
+                    $this->setConfig('uiSearch', true);
+                    $this->setConfig('minSearchLength', 0);
+                }
+            }
+        }
+
         // Set basic attributes
         $this->set('multiple', $this->getConfig('multiple'))
             ->set('maxItems', $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1)
-            ->set('mode', $this->getConfig('mode'));
+            ->set('mode', $this->getConfig('mode'))
+            ->set('data-positioning', $this->getConfig('positioning', 'dropdown'));
 
         // Expose allowAdd flag to template via data attribute
         $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
@@ -444,6 +521,11 @@ class Select extends Field implements ComplexFieldConcern
             $this->configureAsyncMode();
         }
 
+        // Pre-load selected items as <option> elements for async mode
+        if ($this->getConfig('mode') === 'async') {
+            $this->preloadSelectedOptions();
+        }
+
         // Configure render functions
         $this->configureRenderFunctions();
 
@@ -464,6 +546,107 @@ class Select extends Field implements ComplexFieldConcern
             ->set('data-display-field', $this->databaseConfig['displayField'])
             ->set('data-value-field', $this->databaseConfig['valueField'])
             ->set('data-preload', $this->getConfig('preload') ? 'true' : 'false');
+
+        $extraFields = $this->getConfig('extraFields', []);
+        if (!empty($extraFields)) {
+            $this->set('data-extra-fields', json_encode($extraFields));
+        }
+
+        // Pass custom view overrides for async rendering
+        if ($optionView = $this->getConfig('optionView')) {
+            $this->set('data-option-view', $optionView);
+        }
+        if ($itemView = $this->getConfig('itemView')) {
+            $this->set('data-item-view', $itemView);
+        }
+    }
+
+    /**
+     * Pre-load selected items as options for async selects
+     * so that already-selected values display correctly.
+     */
+    protected function preloadSelectedOptions(): void
+    {
+        $value = $this->get('value');
+        if (empty($value)) {
+            return;
+        }
+
+        $entity = $this->databaseConfig['entity'];
+        if (!$entity) {
+            return;
+        }
+
+        $selectRegistry = app(SelectRegistry::class);
+        $config = $selectRegistry->getEntityConfig($entity);
+        if (!$config) {
+            return;
+        }
+
+        $valueField = $this->databaseConfig['valueField'] ?? 'id';
+        $displayField = $this->databaseConfig['displayField'] ?? 'name';
+
+        $ids = is_array($value) ? $value : [$value];
+        $ids = array_filter($ids, static fn ($v) => $v !== '' && $v !== null);
+        if (empty($ids)) {
+            return;
+        }
+
+        // Resolve entity IDs to objects
+        $repository = orm()->getRepository($config['class']);
+        $items = [];
+        foreach ($ids as $id) {
+            $item = is_object($id) ? $id : $repository->findByPK($id);
+            if ($item) {
+                $items[] = $item;
+            }
+        }
+
+        $optionView = $this->getConfig('optionView') ?? ($config['optionView'] ?? null);
+        $itemView = $this->getConfig('itemView') ?? ($config['itemView'] ?? null);
+        $extraFields = $this->getConfig('extraFields', []);
+        if (empty($extraFields) && !empty($config['extraFields'])) {
+            $extraFields = $config['extraFields'];
+        }
+
+        $options = [];
+        foreach ($items as $item) {
+            if (!isset($item->{$valueField}, $item->{$displayField})) {
+                continue;
+            }
+            $key = $item->{$valueField};
+            $text = $item->{$displayField};
+            $meta = ['text' => $text];
+
+            foreach ($extraFields as $field) {
+                if (isset($item->{$field})) {
+                    $meta[$field] = $item->{$field};
+                }
+            }
+
+            try {
+                if ($optionView) {
+                    $meta['optionHtml'] = view($optionView, [
+                        'item' => $item,
+                        'text' => $text,
+                        'value' => $key,
+                    ])->render();
+                }
+                if ($itemView) {
+                    $meta['itemHtml'] = view($itemView, [
+                        'item' => $item,
+                        'text' => $text,
+                        'value' => $key,
+                    ])->render();
+                }
+            } catch (Throwable $e) {
+                // View rendering failed — use text-only
+            }
+
+            $options[$key] = $meta;
+        }
+
+        $this->set('options', $options);
     }
 
     /**
@@ -526,11 +709,60 @@ class Select extends Field implements ComplexFieldConcern
             $items = array_filter($items, $filter);
         }
 
+        $optionView = $this->getConfig('optionView') ?? ($config['optionView'] ?? null);
+        $itemView = $this->getConfig('itemView') ?? ($config['itemView'] ?? null);
+        $extraFields = $this->getConfig('extraFields', []);
+        if (empty($extraFields) && !empty($config['extraFields'])) {
+            $extraFields = $config['extraFields'];
+        }
+
+        $hasViews = $optionView || $itemView;
+        $hasMeta = !empty($extraFields);
+
         $options = [];
         foreach ($items as $item) {
-            if (isset($item->{$this->databaseConfig['valueField']}, $item->{$this->databaseConfig['displayField']})) {
-                $options[$item->{$this->databaseConfig['valueField']}] = $item->{$this->databaseConfig['displayField']};
+            if (!isset($item->{$this->databaseConfig['valueField']}, $item->{$this->databaseConfig['displayField']})) {
+                continue;
             }
+
+            $key = $item->{$this->databaseConfig['valueField']};
+            $text = $item->{$this->databaseConfig['displayField']};
+
+            if (!$hasViews && !$hasMeta) {
+                $options[$key] = $text;
+
+                continue;
+            }
+
+            $meta = ['text' => $text];
+
+            foreach ($extraFields as $field) {
+                if (isset($item->{$field})) {
+                    $meta[$field] = $item->{$field};
+                }
+            }
+
+            try {
+                if ($optionView) {
+                    $meta['optionHtml'] = view($optionView, [
+                        'item' => $item,
+                        'text' => $text,
+                        'value' => $key,
+                    ])->render();
+                }
+
+                if ($itemView) {
+                    $meta['itemHtml'] = view($itemView, [
+                        'item' => $item,
+                        'text' => $text,
+                        'value' => $key,
+                    ])->render();
+                }
+            } catch (Throwable $e) {
+                // View rendering failed — use text-only
+            }
+
+            $options[$key] = $meta;
         }
 
         return $options;
