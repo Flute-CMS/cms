@@ -46,6 +46,7 @@
     <meta name="site_url" content="{{ config('app.url') }}">
 
     <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
 
     @stack('styles')
 
@@ -254,7 +255,6 @@
         <script src="@asset('assets/js/libs/sortable.js')" defer></script>
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
         <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
-        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
         <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
         <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
         <script src="@asset('assets/js/libs/pickr.js')" defer></script>

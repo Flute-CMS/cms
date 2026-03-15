@@ -24,12 +24,12 @@
 
         &--native {
             @extend .align-center;
-            gap: 10px;
-            font-size: var(--p);
+            gap: 8px;
+            font-size: 14px;
             border: 1px solid var(--transp-2);
-            border-radius: var(--border05);
+            border-radius: 12px;
             color: var(--text);
-            background-color: transparent;
+            background-color: var(--transp-05);
             transition: border-color 0.15s, box-shadow 0.15s;
 
             :root[data-theme=light] & {
@@ -38,15 +38,25 @@
             }
 
             >select {
-                padding: 0.625rem 0.875rem;
+                padding: 6px 12px;
                 padding-right: 2rem;
             }
 
-            &:focus-within:not(.has-error) {
-                border-color: var(--accent);
+            &:hover:not(:focus-within):not(.has-error) {
+                border-color: #3f3f46;
 
                 :root[data-theme=light] & {
-                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+                    border-color: #a1a1aa;
+                }
+            }
+
+            &:focus-within:not(.has-error) {
+                border-color: #3f3f46;
+                box-shadow: 0 0 0 2px rgba(161, 161, 170, 0.25);
+
+                :root[data-theme=light] & {
+                    border-color: #a1a1aa;
+                    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
                 }
             }
 
@@ -93,9 +103,29 @@ select[data-select] {
 }
 
 .fs {
-    --fs-bg: var(--transp-05);
     width: 100%;
     display: flex;
+}
+
+.fs,
+.fs__wrapper,
+.fs__dropdown {
+    --fs-bg: var(--transp-05);
+    --fs-bg-popover: var(--background);
+    --fs-bg-hover: var(--transp-1);
+    --fs-bg-highlight: var(--transp-1);
+    --fs-border: var(--transp-2);
+    --fs-border-focus: #3f3f46;
+    --fs-ring: rgba(161, 161, 170, 0.25);
+    --fs-text: var(--text);
+    --fs-text-muted: var(--text-500);
+    --fs-text-placeholder: var(--text-500);
+    --fs-text-disabled: var(--text-400);
+    --fs-shadow: 0 4px 16px rgba(0, 0, 0, 0.24), 0 0 0 1px var(--transp-2);
+    --fs-font-size: 14px;
+    --fs-font-size-sm: 12px;
+    --fs-radius: 12px;
+    --fs-radius-popover: 12px;
 }
 
 // Rich option/item styles for custom Blade views

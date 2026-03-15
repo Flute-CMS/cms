@@ -18,6 +18,7 @@ class EditDatabaseLayout extends Rows
                         'mysql' => 'MySQL',
                         'postgres' => 'PostgreSQL',
                     ])
+                    ->aligned()
                     ->value(request()->input('driver', $this->query->get('driver')))
                     ->placeholder(__('admin-main-settings.placeholders.db_driver'))
                     ->required()

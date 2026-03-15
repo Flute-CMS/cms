@@ -15,29 +15,28 @@
     &__field-container {
         @extend .align-center;
 
-        gap: var(--fs-trigger-gap, 8px);
+        gap: 8px;
         position: relative;
         width: 100%;
-        min-height: var(--fs-trigger-height, 36px);
-        padding: var(--fs-trigger-py, 6px) var(--fs-trigger-px, 12px);
-        font-size: var(--fs-font-size, 14px);
-        border: 1px solid var(--fs-border);
-        border-radius: var(--fs-radius, 12px);
-        color: var(--fs-text);
-        background-color: var(--fs-bg);
-        transition: border-color var(--fs-transition, .15s), box-shadow var(--fs-transition, .15s);
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 14px;
+        border: 1px solid var(--transp-2);
+        border-radius: 12px;
+        color: var(--text);
+        background-color: var(--transp-05);
+        transition: border-color 0.15s, box-shadow 0.15s;
 
         &-withPassword {
             padding-right: 3em;
         }
 
         &:hover:not(:focus-within):not(.has-error):not(.input__field-container-readonly) {
-            border-color: var(--fs-border-focus);
+            border-color: var(--transp-3);
         }
 
         &:focus-within:not(.input__field-container-readonly):not(.has-error) {
-            border-color: var(--fs-border-focus);
-            box-shadow: 0 0 0 2px var(--fs-ring);
+            border-color: var(--primary-300);
         }
 
         &.has-error {

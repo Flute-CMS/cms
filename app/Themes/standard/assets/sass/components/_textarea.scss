@@ -8,15 +8,20 @@
     &__field-container {
         @extend .align-center;
 
-        gap: var(--space-sm);
+        gap: 8px;
         position: relative;
         width: 100%;
-        padding: 0.75em 1em;
-        font-size: var(--p);
+        padding: 6px 12px;
+        font-size: 14px;
         border: 1px solid var(--transp-2);
-        border-radius: var(--border05);
+        border-radius: 12px;
         color: var(--text);
-        transition: border var(--transition), background-color var(--transition);
+        background-color: var(--transp-05);
+        transition: border-color 0.15s, box-shadow 0.15s;
+
+        &:hover:not(:focus-within):not(.has-error):not(.textarea__field-container-readonly) {
+            border-color: var(--transp-3);
+        }
 
         &:focus-within:not(.textarea__field-container-readonly):not(.has-error) {
             border-color: var(--primary-300);
@@ -38,6 +43,12 @@
         color: inherit;
         width: 100%;
         resize: vertical;
+        min-height: 5em;
+        line-height: 1.5;
+
+        &::placeholder {
+            color: var(--text-500);
+        }
     }
 
     &__error {

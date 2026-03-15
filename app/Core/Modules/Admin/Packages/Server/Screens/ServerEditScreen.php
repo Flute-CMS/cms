@@ -1017,6 +1017,7 @@ class ServerEditScreen extends Screen
                 LayoutFactory::field(
                     Select::make('ranks_format')
                         ->options($this->ranksFormats)
+                        ->aligned()
                         ->value($this->server?->ranks_format ?? 'webp')
                         ->placeholder(__('admin-server.fields.ranks_format.placeholder'))
                 )

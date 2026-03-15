@@ -59,6 +59,7 @@ class NotificationBroadcastScreen extends Screen
                             'roles' => __('admin-notifications.broadcast.target_roles'),
                             'users' => __('admin-notifications.broadcast.target_users'),
                         ])
+                        ->aligned()
                         ->value($this->target)
                         ->yoyo()
                 )->label(__('admin-notifications.broadcast.target')),

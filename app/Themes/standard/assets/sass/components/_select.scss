@@ -23,21 +23,25 @@
 
         &--native {
             @extend .align-center;
-            gap: var(--space-sm);
-            font-size: var(--p);
+            gap: 8px;
+            font-size: 14px;
             border: 1px solid var(--transp-2);
-            border-radius: var(--border05);
+            border-radius: 12px;
             color: var(--text);
-            background-color: transparent;
-            transition: border-color 0.15s;
+            background-color: var(--transp-05);
+            transition: border-color 0.15s, box-shadow 0.15s;
 
             > select {
-                padding: 0.625rem 0.875rem;
+                padding: 6px 12px;
                 padding-right: 2rem;
             }
 
             &:focus-within:not(.has-error) {
                 border-color: var(--primary-300);
+            }
+
+            &:hover:not(:focus-within):not(.has-error) {
+                border-color: var(--transp-3);
             }
 
             option {
@@ -80,7 +84,6 @@ select[data-tom-select] {
 }
 
 .fs {
-    --fs-bg: var(--transp-05);
     width: 100%;
     display: flex;
 }

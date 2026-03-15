@@ -1489,6 +1489,7 @@ class MainSettingsPackageScreen extends Screen
             LayoutFactory::field(
                 Select::make('robots')
                     ->value(config('app.robots', 'index, follow'))
+                    ->aligned()
                     ->options([
                         'index, follow' => __('admin-main-settings.options.robots.index_follow'),
                         'index, nofollow' => __('admin-main-settings.options.robots.index_nofollow'),
@@ -2168,6 +2169,7 @@ class MainSettingsPackageScreen extends Screen
                     Select::make('locale')
                         ->placeholder(__('admin-main-settings.placeholders.locale'))
                         ->value(config('lang.locale'))
+                        ->aligned()
                         ->options(array_combine(
                             config('lang.available'),
                             array_map(

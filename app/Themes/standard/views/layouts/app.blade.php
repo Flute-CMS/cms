@@ -179,6 +179,8 @@
 
     @include('flute::partials.background')
 
+    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
+
     @stack('styles')
 
     @if (isset($sections['styles']))
@@ -407,7 +409,6 @@
         <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
 
         <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
-        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
 
         @at(tt('assets/scripts/libs/simplebar.js'))
         @at(tt('assets/scripts/libs/tinycolor.js'))
