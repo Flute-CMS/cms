@@ -227,6 +227,22 @@ class User extends ActiveRecord
         $this->socialNetworks[] = $socialNetwork;
     }
 
+    /**
+     * Get the rendered username HTML with all decorators (badges, icons, tags).
+     *
+     * @param bool $withColor Apply role color styling
+     * @param bool $link      Wrap name in a profile link
+     * @param string $class   Additional CSS class for the wrapper
+     */
+    public function getDisplayName(string $class = '', bool $withColor = true, bool $link = false) : string
+    {
+        try {
+            return app(\Flute\Core\Services\UserNameRenderer::class)->render($this, $class, $withColor, $link);
+        } catch (\Throwable $e) {
+            return e($this->name);
+        }
+    }
+
     public function getUrl() : string
     {
         return ! empty($this->uri) ? $this->uri : (string) $this->id;

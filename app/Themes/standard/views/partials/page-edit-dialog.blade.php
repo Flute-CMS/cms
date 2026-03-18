@@ -50,3 +50,18 @@
         </div>
     </template>
 </template>
+
+{{-- Icons for conditions editor (pre-rendered, used by JS) --}}
+<div id="pe-conditions-icons" hidden>
+    <span data-icon="user"><x-icon path="ph.regular.user" /></span>
+    <span data-icon="users-three"><x-icon path="ph.regular.users-three" /></span>
+    <span data-icon="user-minus"><x-icon path="ph.regular.user-minus" /></span>
+    <span data-icon="user-check"><x-icon path="ph.regular.user-check" /></span>
+    <span data-icon="shield"><x-icon path="ph.regular.shield-check" /></span>
+    <span data-icon="devices"><x-icon path="ph.regular.devices" /></span>
+    <span data-icon="browsers"><x-icon path="ph.regular.browsers" /></span>
+    <span data-icon="desktop"><x-icon path="ph.regular.desktop" /></span>
+    <span data-icon="tablet"><x-icon path="ph.regular.device-tablet" /></span>
+    <span data-icon="mobile"><x-icon path="ph.regular.device-mobile" /></span>
+    <span data-icon="eye-slash"><x-icon path="ph.regular.eye-slash" /></span>
+</div>

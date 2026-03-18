@@ -245,6 +245,8 @@ function reinitializeComponents(container) {
         initButtonGroupsInContainer(container);
         initModalsInContainer(container);
         initFiltersInContainer(container);
+        if (typeof window.initDatePickers === 'function') window.initDatePickers(container);
+        if (typeof window.initializeSortables === 'function') window.initializeSortables(container);
 
         if (typeof htmx !== 'undefined') {
             try { htmx.process(container); } catch (_) { }
@@ -284,13 +286,8 @@ function initRichTextEditors(container) {
 
 function initFilePonds(container) {
     if (typeof initializeFilePondElement !== 'function') return;
-
     try {
-        container.querySelectorAll('input.filepond').forEach((input) => {
-            if (!input.filepond) {
-                initializeFilePondElement(input);
-            }
-        });
+        container.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
     } catch (_) { }
 }
 

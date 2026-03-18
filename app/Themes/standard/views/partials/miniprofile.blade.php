@@ -12,7 +12,7 @@
             <div class="miniprofile__user">
                 <img src="{{ url(user()->avatar) }}" alt="{{ user()->name }}" class="miniprofile__avatar" loading="lazy">
                 <div class="miniprofile__user-content">
-                    <h6>{{ user()->name }}</h6>
+                    <h6>{!! user()->getCurrentUser()->getDisplayName() !!}</h6>
                     <p>#{{ user()->id }}</p>
                 </div>
 

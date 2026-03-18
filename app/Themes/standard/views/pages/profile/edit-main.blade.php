@@ -16,7 +16,7 @@
                     <div class="profile-edit__sidebar-hero">
                         <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}" loading="lazy" data-profile-avatar="{{ $user->avatar }}">
 
-                        <h5 data-profile-name="{{ $user->name }}">{{ $user->name }}</h5>
+                        <h5 data-profile-name="{{ $user->name }}">{!! $user->getDisplayName() !!}</h5>
                         @if ($user->email)
                             <p data-profile-email="{{ $user->email }}">{{ $user->email }}</p>
                         @endif

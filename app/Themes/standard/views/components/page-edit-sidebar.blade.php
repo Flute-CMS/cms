@@ -149,4 +149,5 @@
     <span data-icon="refresh"><x-icon path="ph.regular.arrows-clockwise" /></span>
     <span data-icon="drag"><x-icon path="ph.regular.dots-six-vertical" /></span>
     <span data-icon="excluded-paths"><x-icon path="ph.regular.eye-slash" /></span>
+    <span data-icon="conditions"><x-icon path="ph.regular.funnel" /></span>
 </div>

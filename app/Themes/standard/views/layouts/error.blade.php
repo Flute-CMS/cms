@@ -100,7 +100,7 @@
         {!! $sections['head'] !!}
     @endif
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
     @include('flute::partials.background')

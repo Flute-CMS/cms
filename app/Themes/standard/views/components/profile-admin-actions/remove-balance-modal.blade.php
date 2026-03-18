@@ -4,7 +4,7 @@
         <div class="profile-admin-modal__user">
             <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="profile-admin-modal__avatar">
             <div class="profile-admin-modal__user-details">
-                <span class="profile-admin-modal__name">{{ $user->name }}</span>
+                <span class="profile-admin-modal__name">{!! $user->getDisplayName() !!}</span>
                 <span class="profile-admin-modal__balance" data-profile-balance>
                     @t('profile.admin_actions.current_balance'): <strong>{{ number_format($user->balance, 2) }}</strong>
                 </span>

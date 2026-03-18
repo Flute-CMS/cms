@@ -5,6 +5,7 @@ namespace Flute\Core\ServiceProviders;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Listeners\UserChangeResponseListener;
+use Flute\Core\Services\UserNameRenderer;
 use Flute\Core\Services\UserService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Throwable;
@@ -18,6 +19,7 @@ class UserServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             UserService::class => \DI\autowire(),
+            UserNameRenderer::class => \DI\create(),
             "user" => \DI\get(UserService::class),
         ]);
     }

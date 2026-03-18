@@ -37,6 +37,9 @@ class GlobalPageBlock extends ActiveRecord
     #[Column(type: "json", nullable: true)]
     public ?string $excludedPaths = null;
 
+    #[Column(type: "json", nullable: true)]
+    public ?string $conditions = null;
+
     #[ManyToMany(target: "Permission", through: "GlobalPageBlockPermission")]
     public array $permissions = [];
 
@@ -89,6 +92,16 @@ class GlobalPageBlock extends ActiveRecord
     public function setExcludedPaths(?string $excludedPaths): void
     {
         $this->excludedPaths = $excludedPaths;
+    }
+
+    public function getConditions(): ?string
+    {
+        return $this->conditions;
+    }
+
+    public function setConditions(?string $conditions): void
+    {
+        $this->conditions = $conditions;
     }
 
     /**

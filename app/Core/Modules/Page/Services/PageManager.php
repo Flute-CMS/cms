@@ -199,12 +199,15 @@ class PageManager
                         $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
                         WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
+                        $conditionsRaw = $block->getConditions();
+
                         $layout[] = [
                             'id' => $block->getId(),
                             'widgetName' => $widgetName,
                             'settings' => $settings,
                             'gridstack' => json_decode($block->gridstack, true),
                             'content' => $widgetContent,
+                            'conditions' => $conditionsRaw ? (json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']) : ['auth' => 'all', 'device' => 'all'],
                         ];
                     } catch (Exception $e) {
                         $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
@@ -320,6 +323,8 @@ class PageManager
                 $excludedPathsRaw = $block->getExcludedPaths();
                 $excludedPaths = $excludedPathsRaw ? (json_decode($excludedPathsRaw, true) ?? []) : [];
 
+                $conditionsRaw = $block->getConditions();
+
                 $layout[] = [
                     'id' => $block->getId(),
                     'widgetName' => $widgetName,
@@ -328,6 +333,7 @@ class PageManager
                     'content' => $widgetContent,
                     'isSystem' => $widgetName === 'Content',
                     'excludedPaths' => $excludedPaths,
+                    'conditions' => $conditionsRaw ? (json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']) : ['auth' => 'all', 'device' => 'all'],
                 ];
             } catch (Exception $e) {
                 $this->logger->error("Failed to retrieve global layout widget: " . $e->getMessage());
@@ -399,6 +405,13 @@ class PageManager
                 $block->setExcludedPaths(Json::encode(array_values(array_filter(array_map('trim', $excludedPaths)))));
             } else {
                 $block->setExcludedPaths(null);
+            }
+
+            $conditions = $item['conditions'] ?? null;
+            if ($conditions && is_array($conditions) && (($conditions['auth'] ?? 'all') !== 'all' || ($conditions['device'] ?? 'all') !== 'all')) {
+                $block->setConditions(Json::encode($conditions));
+            } else {
+                $block->setConditions(null);
             }
 
             $block->saveOrFail();
@@ -503,6 +516,13 @@ class PageManager
                     'minW' => $item['gridstack']['minW'] ?? $widget->getMinWidth(),
                 ])
                 : '{}';
+
+            $conditions = $item['conditions'] ?? null;
+            if ($conditions && is_array($conditions) && (($conditions['auth'] ?? 'all') !== 'all' || ($conditions['device'] ?? 'all') !== 'all')) {
+                $block->setConditions(Json::encode($conditions));
+            } else {
+                $block->setConditions(null);
+            }
 
             $page->addBlock($block);
         }
@@ -715,11 +735,22 @@ class PageManager
             return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
         });
 
-        foreach ($globalBlocks as $block) {
+        // Filter out blocks hidden by conditions
+        $visibleBlocks = array_filter($globalBlocks, function ($block) use ($currentPath) {
             if ($this->isBlockExcludedForPath($block, $currentPath)) {
-                continue;
+                return false;
+            }
+            if ($block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block)) {
+                return false;
             }
 
+            return true;
+        });
+
+        // Recompact to eliminate gaps from filtered blocks
+        $visibleBlocks = $this->recompactBlocks(array_values($visibleBlocks));
+
+        foreach ($visibleBlocks as $block) {
             $style = $this->getBlockGridStyle($block);
             $widgetName = $block->getWidget();
 
@@ -768,13 +799,13 @@ class PageManager
     {
         $content = '';
 
-        usort($blocks, static function ($a, $b) {
-            $aGs = json_decode($a->gridstack, true) ?? [];
-            $bGs = json_decode($b->gridstack, true) ?? [];
-            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
-
-            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+        // Filter out blocks hidden by conditions
+        $blocks = array_filter($blocks, function ($block) {
+            return $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block);
         });
+
+        // Recompact to eliminate gaps
+        $blocks = $this->recompactBlocks(array_values($blocks));
 
         foreach ($blocks as $block) {
             $style = $this->getBlockGridStyle($block);
@@ -1038,6 +1069,130 @@ class PageManager
         } catch (Exception $e) {
             return true;
         }
+    }
+
+    /**
+     * Checks if a block should be hidden based on its visibility conditions.
+     *
+     * @param PageBlock|GlobalPageBlock $block
+     */
+    private function isBlockHiddenByConditions($block): bool
+    {
+        $raw = $block->getConditions();
+        if (!$raw) {
+            return false;
+        }
+
+        $conditions = json_decode($raw, true);
+        if (!is_array($conditions)) {
+            return false;
+        }
+
+        // Auth condition
+        $authCondition = $conditions['auth'] ?? 'all';
+        if ($authCondition !== 'all') {
+            $isLoggedIn = $this->userService->isLoggedIn();
+            if ($authCondition === 'auth' && !$isLoggedIn) {
+                return true;
+            }
+            if ($authCondition === 'guest' && $isLoggedIn) {
+                return true;
+            }
+        }
+
+        // Roles condition
+        $rolesCondition = $conditions['roles'] ?? [];
+        if (!empty($rolesCondition) && is_array($rolesCondition)) {
+            if (!$this->userService->isLoggedIn()) {
+                return true; // Not logged in — can't match any role
+            }
+
+            $user = $this->userService->getCurrentUser();
+            $hasMatchingRole = false;
+
+            foreach ($user->getRoles() as $userRole) {
+                $roleId = is_object($userRole) ? ($userRole->role->id ?? $userRole->id ?? null) : $userRole;
+                if ($roleId !== null && in_array((int) $roleId, $rolesCondition, true)) {
+                    $hasMatchingRole = true;
+
+                    break;
+                }
+            }
+
+            if (!$hasMatchingRole) {
+                return true;
+            }
+        }
+
+        // Device condition — checked via user agent
+        $deviceCondition = $conditions['device'] ?? 'all';
+        if ($deviceCondition !== 'all') {
+            $userAgent = $this->request->headers->get('User-Agent', '');
+            $isMobile = (bool) preg_match('/Mobile|Android.*Mobile|iPhone|iPod/i', $userAgent);
+            $isTablet = !$isMobile && (bool) preg_match('/iPad|Android|Tablet/i', $userAgent);
+
+            if ($deviceCondition === 'mobile' && !$isMobile) {
+                return true;
+            }
+            if ($deviceCondition === 'tablet' && !$isTablet) {
+                return true;
+            }
+            if ($deviceCondition === 'desktop' && ($isMobile || $isTablet)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Recompact grid positions after filtering out hidden blocks.
+     * Recalculates Y positions to eliminate vertical gaps.
+     *
+     * @param array $blocks Array of blocks with decoded gridstack data
+     * @return array Recompacted blocks
+     */
+    private function recompactBlocks(array $blocks): array
+    {
+        if (empty($blocks)) {
+            return $blocks;
+        }
+
+        // Sort by y then x
+        usort($blocks, static function ($a, $b) {
+            $aGs = json_decode($a->gridstack, true) ?? [];
+            $bGs = json_decode($b->gridstack, true) ?? [];
+            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
+
+            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+        });
+
+        // Simple row-based compaction: track the next available Y per column
+        $columnHeights = array_fill(0, 12, 0);
+
+        foreach ($blocks as $block) {
+            $gs = json_decode($block->gridstack, true) ?? [];
+            $x = $gs['x'] ?? 0;
+            $w = $gs['w'] ?? 12;
+            $h = $gs['h'] ?? 1;
+
+            // Find the maximum height in the columns this widget spans
+            $maxY = 0;
+            for ($col = $x; $col < min($x + $w, 12); $col++) {
+                $maxY = max($maxY, $columnHeights[$col]);
+            }
+
+            // Update the gridstack y position
+            $gs['y'] = $maxY;
+            $block->gridstack = json_encode($gs);
+
+            // Update column heights
+            for ($col = $x; $col < min($x + $w, 12); $col++) {
+                $columnHeights[$col] = $maxY + $h;
+            }
+        }
+
+        return $blocks;
     }
 
     /**

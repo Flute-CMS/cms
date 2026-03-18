@@ -35,7 +35,7 @@
         </div>
     @else
         <div class="server-status-error">
-            <x-icon name="ph.bold.warning-bold" />
+            <x-icon path="ph.bold.warning-bold" />
             <span>{{ $status['error'] ?? __('admin-server.messages.connection_failed') }}</span>
         </div>
     @endif

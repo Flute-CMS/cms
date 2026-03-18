@@ -218,6 +218,26 @@
     "empty_title"           => "No widgets yet",
     "empty_desc"            => "Drag widgets from the sidebar or click + to add them to the page.",
 
+    // Visibility conditions
+    "conditions"            => "Visibility",
+    "conditions_desc"       => "Set conditions to show or hide this widget for specific users or devices.",
+    "cond_auth_label"       => "User state",
+    "cond_device_label"     => "Device type",
+    "auth_all"              => "Everyone",
+    "cond_guests"           => "Guests",
+    "cond_auth"             => "Authorized",
+    "cond_desktop"          => "Desktop",
+    "cond_tablet"           => "Tablet",
+    "cond_mobile"           => "Mobile",
+    "device_all"            => "All devices",
+    "preview_device"        => "Device preview",
+    "only_for"              => "Only for",
+    "hidden_in_preview"     => "Hidden in this view",
+    "cond_roles_label"      => "Roles",
+    "cond_roles_hint"       => "Leave empty to show for all roles",
+    "cond_roles_short"      => "roles",
+    "cond_no_roles"         => "No roles available",
+
     // Excluded paths (global widget visibility)
     "excluded_paths"        => "Hidden paths",
     "excluded_paths_desc"   => "The widget won't be shown on these paths",

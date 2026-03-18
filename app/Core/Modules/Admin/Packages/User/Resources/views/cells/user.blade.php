@@ -7,7 +7,7 @@
     </div>
     <div class="d-flex flex-column gap-1">
         <span>
-            {{ $user->name }}
+            {!! $user->getDisplayName() !!}
         </span>
         @if ($user->verified || $user->approved || $user->hidden || $user->isBlocked())
             <div class="d-flex align-items-center gap-1">

@@ -8,6 +8,11 @@ tr {
 	border-color: inherit;
 }
 
+.table-responsive {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
 .table {
 	vertical-align: top;
 	width: 100%;
@@ -21,14 +26,18 @@ tr {
 				border-top: 0;
 				color: var(--text-500);
 				font-weight: 500;
-				font-size: var(--small);
+				font-size: 0.75rem;
+				letter-spacing: 0.02em;
 				vertical-align: middle;
+				white-space: nowrap;
 				padding: 0.625rem 1rem;
 				border-bottom: 1px solid var(--transp-1);
-				@include transition();
+				cursor: default;
+				background: transparent;
+				transition: color 0.15s ease;
 
 				.table-th {
-					display: flex;
+					display: inline-flex;
 					align-items: center;
 					gap: 0.375rem;
 					flex-direction: row;
@@ -48,6 +57,7 @@ tr {
 					.sort-icon {
 						display: inline-flex;
 						opacity: 0.4;
+						transition: opacity 0.15s ease;
 
 						svg {
 							width: 14px;
@@ -63,7 +73,7 @@ tr {
 				&.sortable .sort-icon:has(.ph-arrow-up),
 				&.sortable .sort-icon:has(.ph-arrow-down) {
 					opacity: 1;
-					color: var(--accent);
+					color: var(--text);
 				}
 			}
 		}
@@ -73,7 +83,7 @@ tr {
 		vertical-align: inherit;
 
 		tr {
-			@include transition();
+			transition: background-color 0.1s ease;
 
 			&:hover {
 				background-color: var(--transp-05);
@@ -84,6 +94,8 @@ tr {
 				font-size: var(--p-small);
 				padding: 0.75rem 1rem;
 				vertical-align: middle;
+				word-break: break-word;
+				color: var(--text);
 
 				&:first-child {
 					padding-left: 1.25rem !important;
@@ -120,7 +132,7 @@ tr {
 			border-radius: var(--border05);
 			font-weight: 500;
 			font-size: var(--p-small);
-			@include transition();
+			transition: color 0.15s ease, background-color 0.15s ease;
 
 			button,
 			span {
@@ -129,8 +141,10 @@ tr {
 				cursor: pointer;
 				height: 100%;
 				width: 100%;
+				padding: 0 0.375rem;
 				color: inherit;
-				font-size: var(--p-small);
+				font-size: 0.8125rem;
+				font-weight: 500;
 
 				&.link-icon {
 					font-size: var(--p);
@@ -144,15 +158,15 @@ tr {
 				}
 
 				&.active {
-					color: var(--accent-900);
-					background-color: var(--accent);
+					color: var(--text);
+					background-color: var(--transp-1);
 					font-weight: 600;
 				}
 			}
 
 			&.disabled {
 				pointer-events: none;
-				opacity: 0.35;
+				opacity: 0.3;
 			}
 		}
 	}

@@ -219,13 +219,12 @@ class WidgetLoader {
         // Wait for all chunks + buttons to finish
         await Promise.all([...chunkPromises, buttonsPromise]);
 
-        // Apply toolbar buttons now that cache is populated
+        // Re-apply toolbar buttons now that button cache is fully populated
         for (const { el, widgetName } of widgetElements) {
             if (!el || !document.contains(el)) continue;
-            if (!el.querySelector(':scope > .widget-toolbar')) {
-                const buttons = this.widgetButtonsCache[widgetName] || [];
-                this.editor.widgetToolbar.addToolbar(el, buttons);
-            }
+            const buttons = this.widgetButtonsCache[widgetName] || [];
+            this.editor.widgetToolbar.removeToolbar(el);
+            this.editor.widgetToolbar.addToolbar(el, buttons);
         }
     }
 
@@ -277,6 +276,17 @@ class WidgetLoader {
                 }
 
                 this.observeWidgetContent(el);
+
+                // Add toolbar immediately per-chunk (don't wait for all chunks)
+                if (!el.querySelector(':scope > .widget-toolbar')) {
+                    const buttons = this.widgetButtonsCache[widgetName] || [];
+                    this.editor.widgetToolbar.addToolbar(el, buttons);
+                }
+
+                // Refresh condition badge immediately
+                if (this.editor.visibilityConditions) {
+                    this.editor.visibilityConditions._updateConditionsBadge(el);
+                }
 
                 this.eventBus.emit(window.FlutePageEdit.events.WIDGET_INITIALIZED, {
                     widgetName,

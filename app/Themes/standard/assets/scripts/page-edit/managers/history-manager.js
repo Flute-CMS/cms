@@ -26,6 +26,7 @@ class HistoryManager {
                 id: el.getAttribute('data-widget-id'),
                 widgetName: el.getAttribute('data-widget-name'),
                 settings: el.dataset.widgetSettings,
+                conditions: el.dataset.conditions || '{"auth":"all","device":"all"}',
                 content: el.querySelector('.widget-content')?.innerHTML,
                 buttons: this.editor.widgetButtonsCache?.[el.getAttribute('data-widget-name')] || [],
                 isSystem: el.getAttribute('data-system-widget') === 'true',
@@ -77,6 +78,7 @@ class HistoryManager {
                 if (item.id) el.setAttribute('data-widget-id', item.id);
                 el.setAttribute('data-widget-name', item.widgetName || '');
                 el.dataset.widgetSettings = item.settings || '{}';
+                el.dataset.conditions = item.conditions || '{"auth":"all","device":"all"}';
                 el.classList.add('widget-item');
 
                 if (isSystem) {

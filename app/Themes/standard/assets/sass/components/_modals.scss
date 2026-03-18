@@ -7,28 +7,26 @@
     right: 0;
     z-index: 1000;
     inset: 0;
-    transition: var(--transition);
-    will-change: opacity, transform;
 
     &.is-open {
         display: flex;
 
         .modal__overlay {
-            animation: mmfadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: mmfadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: mmslideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
     &[aria-hidden="true"] {
         .modal__overlay {
-            animation: mmfadeOut 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: mmfadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: mmslideOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
@@ -56,13 +54,14 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(calc(var(--blur-amount, 10px) / 5));
-        -webkit-backdrop-filter: blur(calc(var(--blur-amount, 10px) / 5));
+        background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.45) 0%,
+            rgba(0, 0, 0, 0.75) 100%
+        );
         z-index: 1000;
         position: fixed;
         inset: 0;
-        will-change: opacity;
         touch-action: none;
         overscroll-behavior: contain;
 
@@ -73,20 +72,8 @@
 
     &__footer {
         width: 100%;
-        padding: 0 var(--space-xl) var(--space-lg) var(--space-xl);
-        
-        > * {
-            animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-            animation-delay: 0.1s;
-            
-            &:nth-child(2) {
-                animation-delay: 0.1s;
-            }
-            
-            &:nth-child(3) {
-                animation-delay: 0.1s;
-            }
-        }
+        padding: var(--space-md) var(--space-xl) var(--space-lg) var(--space-xl);
+        border-top: 1px solid var(--transp-1);
     }
 
     &__container {
@@ -104,14 +91,13 @@
         min-width: 500px;
         pointer-events: auto;
         margin: auto;
-        will-change: transform, opacity;
-        box-shadow: var(--shadow-medium);
+        box-shadow: 0 16px 70px -12px rgba(0, 0, 0, 0.25);
         transform-origin: center center;
 
         @include media(pc) {
             max-height: calc(100dvh - 20px);
         }
-        
+
         @include media(mobile) {
             min-width: unset;
             width: 92%;
@@ -123,7 +109,6 @@
 
         width: 100%;
         padding: var(--space-xl) var(--space-xl) 0 var(--space-xl);
-        animation: mmfadeDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 
         &-withoutHeading {
             align-self: flex-end;
@@ -131,50 +116,34 @@
     }
 
     &__close {
-        align-self: flex-end;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: transparent;
         border: 0;
-        width: var(--space-xl);
-        height: var(--space-xl);
+        width: 2rem;
+        height: 2rem;
         color: var(--text-400);
-        @include transition(all);
+        transition: color 0.15s ease, background-color 0.15s ease;
         border-radius: var(--border05);
         cursor: pointer;
         margin-left: auto;
         flex-shrink: 0;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid var(--transp-1);
 
         &:hover {
-            background-color: var(--transp-2);
+            background-color: var(--transp-1);
             color: var(--text);
         }
 
         &::before {
             content: "\2715";
             font-size: 1rem;
-            position: relative;
-            z-index: 1;
-            line-height: 1.25;
+            line-height: 1;
         }
-        
-        &::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, var(--transp-1) 0%, transparent 70%);
-            transform: scale(0);
-            top: 0;
-            left: 0;
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        
-        &:hover::after {
-            transform: scale(2.5);
-            opacity: 1;
+
+        &:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
     }
 
@@ -185,8 +154,6 @@
     &__content {
         padding: var(--space-sm) var(--space-xl) var(--space-xl) var(--space-xl);
         width: 100%;
-        animation: mmfadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-        animation-delay: 0.1s;
 
         @include media(mobile) {
             padding: 0 var(--space-lg) var(--space-lg) var(--space-lg);
@@ -224,7 +191,7 @@
                 height: 20dvh;
                 overflow: hidden;
                 transform: translateY(100%);
-                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
                 animation: none !important;
                 position: absolute;
                 bottom: 0;
@@ -258,18 +225,6 @@
                     height: var(--space-2xs);
                     background: var(--background-800);
                     border-radius: 50px;
-                    position: relative;
-                    overflow: hidden;
-                    
-                    &::after {
-                        content: '';
-                        position: absolute;
-                        top: 0;
-                        left: -100%;
-                        width: 100%;
-                        height: 100%;
-                        background: linear-gradient(90deg, transparent, var(--accent-100), transparent);
-                    }
                 }
             }
 
@@ -317,40 +272,22 @@
 
 @keyframes mmslideIn {
     from {
-        transform: scale(0.98);
         opacity: 0;
+        transform: scale(0.98) translateY(4px);
     }
     to {
-        transform: scale(1);
         opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
 @keyframes mmslideOut {
     from {
-        transform: scale(1);
         opacity: 1;
+        transform: scale(1) translateY(0);
     }
     to {
-        transform: scale(0.98);
         opacity: 0;
-    }
-}
-
-@keyframes mmfadeUp {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes mmfadeDown {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
+        transform: scale(0.98) translateY(4px);
     }
 }

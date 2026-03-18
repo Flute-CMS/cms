@@ -35,6 +35,9 @@ class PageBlock extends ActiveRecord
     #[Column(type: "json")]
     public string $settings;
 
+    #[Column(type: "json", nullable: true)]
+    public ?string $conditions = null;
+
     #[ManyToMany(target: "Permission", through: "PageBlockPermission")]
     public array $permissions;
 
@@ -79,10 +82,20 @@ class PageBlock extends ActiveRecord
         $this->settings = $settings;
     }
 
+    public function getConditions(): ?string
+    {
+        return $this->conditions;
+    }
+
+    public function setConditions(?string $conditions): void
+    {
+        $this->conditions = $conditions;
+    }
+
     /**
      * @return array
      */
-    public function getPermissions() : array
+    public function getPermissions(): array
     {
         return $this->permissions;
     }

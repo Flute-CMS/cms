@@ -20,7 +20,7 @@
                             alt="{{ $payment->user->name }}"
                             loading="lazy">
                         <div class="recent-payments__info">
-                            <span class="recent-payments__name">{{ $payment->user->name }}</span>
+                            <span class="recent-payments__name">{!! $payment->user->getDisplayName() !!}</span>
                             <span class="recent-payments__time">
                                 {{ carbon($payment->paidAt)->setTimezone(new \DateTimeZone(config('app.timezone', 'UTC')))->diffForHumans() }}
                             </span>

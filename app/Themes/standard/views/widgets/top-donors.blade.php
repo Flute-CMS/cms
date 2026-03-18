@@ -39,7 +39,7 @@
                                     <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" loading="lazy">
                                     <span class="top-donors__podium-place">{{ $place }}</span>
                                 </div>
-                                <span class="top-donors__podium-name">{{ $user->name }}</span>
+                                <span class="top-donors__podium-name">{!! $user->getDisplayName() !!}</span>
                                 @if ($showAmount)
                                     <span class="top-donors__podium-amount">
                                         {{ number_format($donated, 0, '', ' ') }} {{ config('lk.currency_view') }}
@@ -64,7 +64,7 @@
                                 <span class="top-donors__list-rank">{{ $position }}</span>
                                 <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
                                     class="top-donors__list-avatar" loading="lazy">
-                                <span class="top-donors__list-name">{{ $user->name }}</span>
+                                <span class="top-donors__list-name">{!! $user->getDisplayName() !!}</span>
                                 @if ($showAmount)
                                     <span class="top-donors__list-amount">
                                         {{ number_format($donated, 0, '', ' ') }} {{ config('lk.currency_view') }}
@@ -90,7 +90,7 @@
                             <span class="top-donors__list-rank">{{ $position }}</span>
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
                                 class="top-donors__list-avatar" loading="lazy">
-                            <span class="top-donors__list-name">{{ $user->name }}</span>
+                            <span class="top-donors__list-name">{!! $user->getDisplayName() !!}</span>
                             @if ($showAmount)
                                 <span class="top-donors__list-amount">
                                     {{ number_format($donated, 0, '', ' ') }} {{ config('lk.currency_view') }}

@@ -21,24 +21,32 @@ function isMobileDevice() {
     return window.innerWidth <= 768;
 }
 
-if (
-    typeof FilePondPluginFileValidateType !== 'undefined' &&
-    typeof FilePondPluginImagePreview !== 'undefined'
-) {
-    if (!window.filePondPluginsRegistered) {
-        FilePond.registerPlugin(
-            FilePondPluginFileValidateType,
-            FilePondPluginImagePreview,
-        );
-        window.filePondPluginsRegistered = true;
-    }
+// Plugin registration is deferred to DOMContentLoaded because helpers.js is
+// inlined (no defer) and runs before the FilePond <script defer> tags execute.
+
+// Track FilePond instances by wrapper element for proper lifecycle management.
+const _filePondInstances = new WeakMap();
+
+function destroyFilePondsIn(scope) {
+    if (typeof FilePond === 'undefined' || !scope) return;
+    const wrappers = [];
+    if (scope.matches?.('.input-wrapper')) wrappers.push(scope);
+    scope.querySelectorAll?.('.input-wrapper').forEach(w => wrappers.push(w));
+    wrappers.forEach(wrapper => {
+        const pond = _filePondInstances.get(wrapper);
+        if (pond) {
+            try { pond.destroy(); } catch (_) {}
+            _filePondInstances.delete(wrapper);
+        }
+    });
 }
 
 function initializeFilePondElement(element) {
-    if (element.classList.contains('filepond') && !element.filepond) {
-        const defaultFile = element.dataset.defaultFile || null;
-        const wrapper = element.closest('.input-wrapper');
-        const fieldName = element.name;
+    if (!element.classList.contains('filepond')) return;
+    const defaultFile = element.dataset.defaultFile || null;
+    const wrapper = element.closest('.input-wrapper');
+    if (!wrapper || _filePondInstances.has(wrapper)) return;
+    const fieldName = element.name;
 
         let filePondOptions = {
             storeAsFile: true,
@@ -143,6 +151,20 @@ function initializeFilePondElement(element) {
             filePondOptions.name = element.name;
         }
 
+        // Use native fetch for loading existing files to avoid XHR headers
+        // that may trigger middleware 400 rejections.
+        filePondOptions.server = {
+            load: (source, load, error) => {
+                fetch(source, { credentials: 'same-origin' })
+                    .then(r => r.ok ? r.blob() : Promise.reject(r.status))
+                    .then(blob => {
+                        const filename = source.split('/').pop().split('?')[0] || 'file';
+                        load(new File([blob], filename, { type: blob.type }));
+                    })
+                    .catch(e => error(String(e)));
+            },
+        };
+
         if (defaultFile) {
             filePondOptions.files = [
                 {
@@ -154,13 +176,24 @@ function initializeFilePondElement(element) {
             ];
         }
 
-        FilePond.create(wrapper, filePondOptions);
-    }
+    const pond = FilePond.create(wrapper, filePondOptions);
+    _filePondInstances.set(wrapper, pond);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const fileInputs = document.querySelectorAll('input.filepond');
-    fileInputs.forEach((input) => initializeFilePondElement(input));
+    // Register FilePond plugins here — deferred scripts have all executed by now.
+    if (typeof FilePond !== 'undefined' && !window.filePondPluginsRegistered) {
+        const plugins = [];
+        if (typeof FilePondPluginImagePreview !== 'undefined') plugins.push(FilePondPluginImagePreview);
+        if (typeof FilePondPluginFileValidateType !== 'undefined') plugins.push(FilePondPluginFileValidateType);
+        if (plugins.length) FilePond.registerPlugin(...plugins);
+        window.filePondPluginsRegistered = true;
+    }
+
+    document.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
+    // Clean up per-element (Yoyo morph) but NOT on beforeSwap —
+    // destroying before swap causes a visible native-input flash.
+    document.body.addEventListener('htmx:beforeCleanupElement', e => destroyFilePondsIn(e.target));
 });
 
 // FilePond re-initialization after HTMX swaps is handled by the central

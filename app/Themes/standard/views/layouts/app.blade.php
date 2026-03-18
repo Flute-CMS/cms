@@ -169,7 +169,7 @@
         {!! $sections['head'] !!}
     @endif
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="alternate" href="{{ url()->current() }}" hreflang="x-default">
 
@@ -445,6 +445,7 @@
             @at(tt('assets/scripts/page-edit/ui/search-handler.js'))
             @at(tt('assets/scripts/page-edit/ui/category-accordion.js'))
             @at(tt('assets/scripts/page-edit/ui/keyboard-handler.js'))
+            @at(tt('assets/scripts/page-edit/ui/visibility-conditions.js'))
             @at(tt('assets/scripts/page-edit/storage/local-storage.js'))
             @at(tt('assets/scripts/page-edit/storage/layout-api.js'))
             @at(tt('assets/scripts/page-edit/main.js'))

@@ -145,6 +145,7 @@ const PageEditEvents = {
     HEIGHT_MODE_CHANGED: 'heightModeChanged',
     CONTAINER_WIDTH_CHANGED: 'containerWidthChanged',
     SCOPE_CHANGED: 'scopeChanged',
+    PREVIEW_CHANGED: 'previewChanged',
 
     // Error events
     ERROR: 'error',

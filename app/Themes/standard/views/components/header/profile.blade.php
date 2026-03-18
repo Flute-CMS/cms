@@ -12,7 +12,7 @@
             <div class="profile-dropdown__hero-avatar">
                 <img src="{{ url(user()->avatar) }}" alt="{{ user()->name }}" loading="lazy">
             </div>
-            <span class="profile-dropdown__hero-name">{{ user()->name }}</span>
+            <span class="profile-dropdown__hero-name">{!! user()->getCurrentUser()->getDisplayName() !!}</span>
             @if (user()->login)
                 <span class="profile-dropdown__hero-sub">{{ '@' . user()->login }}</span>
             @elseif (user()->email)

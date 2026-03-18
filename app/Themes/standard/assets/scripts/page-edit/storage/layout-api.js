@@ -129,6 +129,12 @@ class LayoutAPI {
                     excludedPaths = JSON.parse(el.dataset.excludedPaths || '[]');
                 } catch (_) {}
 
+                let conditions = { auth: 'all', device: 'all' };
+                try {
+                    const raw = el.dataset.conditions;
+                    if (raw) conditions = JSON.parse(raw);
+                } catch (_) {}
+
                 const node = el.gridstackNode || {};
 
                 return {
@@ -137,6 +143,7 @@ class LayoutAPI {
                     widgetName: el.getAttribute('data-widget-name') || '',
                     settings,
                     excludedPaths,
+                    conditions,
                     layout: { width: node.w || 6, order: index },
                     gridstack: {
                         w: node.w || 6,
@@ -198,6 +205,7 @@ class LayoutAPI {
                     if (nd.id) el.setAttribute('data-widget-id', nd.id);
                     el.dataset.widgetSettings = JSON.stringify(nd.settings || {});
                     el.dataset.excludedPaths = JSON.stringify(nd.excludedPaths || []);
+                    el.dataset.conditions = JSON.stringify(nd.conditions || { auth: 'all', device: 'all' });
                     el.classList.add('widget-item');
 
                     if (isSystem) {

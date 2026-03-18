@@ -12,21 +12,21 @@
         display: flex;
 
         .modal__overlay {
-            animation: mmfadeIn 0.2s ease;
+            animation: mmfadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideIn 0.2s ease;
+            animation: mmslideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
     &[aria-hidden="true"] {
         .modal__overlay {
-            animation: mmfadeOut 0.2s ease;
+            animation: mmfadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideOut 0.2s ease;
+            animation: mmslideOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
@@ -35,12 +35,16 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.45) 0%,
+            rgba(0, 0, 0, 0.75) 100%
+        );
         z-index: 1000;
         position: fixed;
         inset: 0;
+        touch-action: none;
+        overscroll-behavior: contain;
 
         @include media(pc) {
             padding: 1rem 0;
@@ -58,16 +62,17 @@
         border-radius: 0.875rem;
         flex-direction: column;
         border: 1px solid var(--transp-1);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 16px 70px -12px rgba(0, 0, 0, 0.25);
         z-index: 1001;
         max-width: 90%;
         max-height: 90vh;
         width: 560px;
         pointer-events: auto;
         margin: auto;
+        transform-origin: center center;
 
         :root[data-theme=light] & {
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 16px 70px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
         }
 
         @include media(pc) {
@@ -115,7 +120,7 @@
         width: 32px;
         height: 32px;
         color: var(--text-500);
-        transition: all 0.15s ease;
+        transition: color 0.15s ease, background-color 0.15s ease;
         border-radius: 0.5rem;
         cursor: pointer;
         line-height: 1;
@@ -206,10 +211,11 @@
                 height: 20vh;
                 overflow: hidden;
                 transform: translateY(100%);
-                transition: transform 0.2s ease, height 0.2s ease;
+                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
                 animation: none !important;
                 position: absolute;
                 bottom: 0;
+                overscroll-behavior: contain;
             }
 
             .modal__header {
@@ -285,7 +291,7 @@
 @keyframes mmslideIn {
     from {
         opacity: 0;
-        transform: scale(0.98) translateY(8px);
+        transform: scale(0.98) translateY(4px);
     }
     to {
         opacity: 1;
@@ -300,6 +306,6 @@
     }
     to {
         opacity: 0;
-        transform: scale(0.98) translateY(8px);
+        transform: scale(0.98) translateY(4px);
     }
 }

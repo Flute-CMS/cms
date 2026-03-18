@@ -225,6 +225,8 @@ class MainSettingsPackageScreen extends Screen
 
         try {
             config()->save();
+            $this->invalidateConfig('app');
+            $this->invalidateSettingsCache();
             $this->flashMessage(__('admin-main-settings.messages.flute_images_saved'), 'success');
         } catch (Exception $e) {
             logs()->error($e);
@@ -2091,6 +2093,7 @@ class MainSettingsPackageScreen extends Screen
         ])
             ->title(__('admin-main-settings.blocks.profile_tabs_order'))
             ->description(__('admin-main-settings.blocks.profile_tabs_order_description'))
+            ->maxLevels(1)
             ->onSortEnd('saveProfileTabsOrder');
     }
 

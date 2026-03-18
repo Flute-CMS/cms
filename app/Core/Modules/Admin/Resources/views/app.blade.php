@@ -45,7 +45,7 @@
     }'>
     <meta name="site_url" content="{{ config('app.url') }}">
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
 
     @stack('styles')
@@ -256,7 +256,8 @@
         <script src="@asset('assets/js/libs/confetti.js')" defer></script>
         <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
         <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
-        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
+        <script src="@asset('assets/js/libs/flatpickr.js')" defer></script>
+        <script src="@asset('assets/js/libs/flatpickr-l10n.js')" defer></script>
         <script src="@asset('assets/js/libs/pickr.js')" defer></script>
 
         @at('Core/Modules/Admin/Resources/assets/js/helpers.js')
@@ -285,6 +286,7 @@
         @at('Core/Modules/Admin/Resources/assets/js/richtext/main.js')
         @at('Core/Modules/Admin/Resources/assets/js/customization.js')
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
+        @at('Core/Modules/Admin/Resources/assets/js/datepicker.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
         @at('Core/Modules/Admin/Resources/assets/js/buttongroup.js')
         @at('Core/Modules/Admin/Resources/assets/js/translatable.js')
@@ -303,6 +305,20 @@
         @if (isset($sections['scripts']))
             {!! $sections['scripts'] !!}
         @endif
+
+        <script>
+            (function() {
+                var b = document.body, t = 80, expanded = false;
+                window.addEventListener('scroll', function() {
+                    var top = window.scrollY < t;
+                    if (top !== expanded) {
+                        expanded = top;
+                        b.classList.toggle('glow-expanded', top);
+                    }
+                }, { passive: true });
+                if (window.scrollY < t) b.classList.add('glow-expanded');
+            })();
+        </script>
     @endif
 </body>
 

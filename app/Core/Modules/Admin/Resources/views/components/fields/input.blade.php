@@ -24,10 +24,51 @@
 @php
     $hasError = $errors->has($name);
     $inputId = $id ?: ($attributes->get('id', $name) ?: $name);
+    $isDateType = $type === 'date' || $type === 'datetime' || $type === 'datetime-local';
 @endphp
 
 @if ($type === 'hidden')
     <input type="hidden" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}" />
+@elseif ($isDateType)
+    {{-- DatePicker: standalone wrapper, not inside input__field-container --}}
+    @php
+        $isDateOnly     = $type === 'date';
+        $isDatetimeLocal = $type === 'datetime-local';
+        $fpEnableTime   = $isDateOnly ? false : ($isDatetimeLocal ? true : $enableTime);
+        $fpFormat       = $format ?: ($isDatetimeLocal ? 'Y-m-d\\TH:i' : ($fpEnableTime ? 'Y-m-d H:i' : 'Y-m-d'));
+        $fpConfig = [
+            'enableTime' => $fpEnableTime,
+            'time_24hr' => true,
+            'dateFormat' => $fpFormat,
+            'allowInput' => true,
+        ];
+        if ($default) $fpConfig['defaultDate'] = $default;
+    @endphp
+    <div class="datepicker-field" data-datepicker data-datepicker-config='@json($fpConfig)'>
+        <div @class([
+            'datepicker-field__input-wrap',
+            'has-error' => $hasError,
+            'is-disabled' => $readOnly,
+        ])>
+            <span class="datepicker-field__icon">
+                <x-icon path="ph.regular.calendar-blank" />
+            </span>
+            <input type="text" name="{{ $name }}" id="{{ $inputId }}"
+                value="{{ $value }}" class="datepicker-field__input"
+                @if ($attributes->get('placeholder')) placeholder="{{ $attributes->get('placeholder') }}" @endif
+                {{ $hasError ? 'aria-invalid=true' : '' }}
+                @if ($readOnly) disabled @endif
+                @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
+                autocomplete="off" readonly />
+            <button type="button" class="datepicker-field__clear" aria-label="Clear" style="display:none">
+                <x-icon path="ph.bold.x-bold" />
+            </button>
+        </div>
+
+        @error($name)
+            <span class="input__error">{{ $message }}</span>
+        @enderror
+    </div>
 @else
     <div class="input-wrapper">
         <div id="input-{{ $inputId }}" @class([
@@ -59,13 +100,6 @@
                         @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
                         {{ $attributes->merge(['class' => 'input__field input__field-color']) }} />
                 </div>
-            @elseif ($type === 'datetime')
-                <input type="text" name="{{ $name }}" id="{{ $inputId }}" value="{{ $value }}"
-                    data-default="{{ $default }}" {{ $hasError ? 'aria-invalid=true' : '' }} @readonly($readOnly)
-                    @if ($format) data-format="{{ $format }}" @endif
-                    data-enable-time="{{ $enableTime ? 'true' : 'false' }}"
-                    @if ($yoyo) hx-swap="morph:outerHTML transition:true" yoyo yoyo:trigger="input changed delay:500ms" @endif
-                    {{ $attributes->merge(['class' => 'input__field input__field-datetime']) }} />
             @elseif ($type === 'icon')
                 <div class="icon-input-container">
                     <div class="icon-input-preview" role="button" tabindex="0"

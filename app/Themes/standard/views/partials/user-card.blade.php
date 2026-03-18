@@ -29,7 +29,7 @@
     <div class="user-card-body">
         <div class="user-card-identity">
             <div class="user-card-name-row">
-                <h4 class="user-card-name" style="color: {{ $roleColor }}">{{ $user->name }}</h4>
+                <h4 class="user-card-name" style="color: {{ $roleColor }}">{!! $user->getDisplayName(withColor: false) !!}</h4>
                 @if ($user->approved)
                     <span class="verified-badge verified-badge--small" data-tooltip="{{ __('def.approved') }}">
                         <x-icon path="ph.bold.seal-check-bold" />

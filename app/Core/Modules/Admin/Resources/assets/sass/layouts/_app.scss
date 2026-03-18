@@ -11,10 +11,24 @@ body {
         inset: 0;
         z-index: -2;
         background:
-            radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--accent) 8%, transparent), transparent),
-            radial-gradient(ellipse 60% 40% at 100% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent),
-            radial-gradient(ellipse 50% 30% at 0% 100%, color-mix(in srgb, var(--accent) 4%, transparent), transparent);
+            radial-gradient(circle 500px at 50% -100px, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
+            radial-gradient(circle 350px at 90% 50px, color-mix(in srgb, var(--accent) 5%, transparent), transparent);
         pointer-events: none;
+    }
+
+    &::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background: radial-gradient(circle 700px at 50% -50px, color-mix(in srgb, var(--accent) 14%, transparent), transparent);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &.glow-expanded::after {
+        opacity: 1;
     }
 
     @include media(mobile) {

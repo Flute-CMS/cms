@@ -602,24 +602,6 @@ input:disabled {
     opacity: 0.5 !important;
 }
 
-// ─── FilePond ───
-
-.filepond--panel-root {
-    background-color: var(--transp-05) !important;
-    color: var(--text) !important;
-    transition: background-color 0.15s ease;
-
-    :root[data-theme=light] & {
-        background-color: #f8f9fa !important;
-        border: 1px dashed rgba(0, 0, 0, 0.15);
-        border-radius: 0.5rem;
-    }
-}
-
-.filepond--drop-label.filepond--drop-label label {
-    color: var(--text-500) !important;
-}
-
 // ─── Reduced motion ───
 
 @media (prefers-reduced-motion: reduce) {

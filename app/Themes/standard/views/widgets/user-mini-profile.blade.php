@@ -37,7 +37,7 @@
                     <div class="user-mini-profile-info">
                         <div class="user-mini-profile-name-row">
                             <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-name">
-                                {{ $user->name }}
+                                {!! $user->getDisplayName(withColor: false) !!}
                             </a>
                             @if ($user->approved)
                                 <span class="verified-badge verified-badge--small" data-tooltip="{{ __('def.approved') }}">

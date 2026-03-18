@@ -144,7 +144,7 @@
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"preferred-install": "dist",
-		"process-timeout": 600,
+		"process-timeout": 1800,
 		"allow-plugins": {
 			"php-http/discovery": true,
 			"wikimedia/composer-merge-plugin": true

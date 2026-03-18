@@ -86,6 +86,7 @@ class PageEditor {
         const KeyboardHandler = window.FlutePageEdit.get('KeyboardHandler');
         const LocalStorageHandler = window.FlutePageEdit.get('LocalStorageHandler');
         const LayoutAPI = window.FlutePageEdit.get('LayoutAPI');
+        const VisibilityConditions = window.FlutePageEdit.get('VisibilityConditions');
 
         this.history = new HistoryManager(this);
         this.onboarding = new OnboardingManager(this);
@@ -98,6 +99,7 @@ class PageEditor {
         this.keyboardHandler = new KeyboardHandler(this);
         this.localStorage = new LocalStorageHandler(this);
         this.layoutAPI = new LayoutAPI(this);
+        this.visibilityConditions = VisibilityConditions ? new VisibilityConditions(this) : null;
 
         this.widgetButtonsCache = this.widgetLoader.widgetButtonsCache;
     }
@@ -442,6 +444,7 @@ class PageEditor {
             this.searchHandler.initialize();
             this.categoryAccordion.initialize();
             this.keyboardHandler.initialize();
+            if (this.visibilityConditions) this.visibilityConditions.initialize();
             this.setupSidebarPanel();
 
             setTimeout(() => {
@@ -486,6 +489,7 @@ class PageEditor {
         this.elements.pageEditBtn?.classList.remove('hide');
         this.elements.pageEditFab?.classList.remove('hide');
 
+        if (this.visibilityConditions) this.visibilityConditions.resetPreview();
         this.sidebarManager.close();
         this.destroyGrid(ignoreHtmx);
 
@@ -537,7 +541,10 @@ class PageEditor {
             this.updateSaveButtonState();
         }
 
-        setTimeout(() => this.gridController.updateEmptyState(), 300);
+        setTimeout(() => {
+            this.gridController.updateEmptyState();
+            if (this.visibilityConditions) this.visibilityConditions.refreshBadges();
+        }, 300);
     }
 
     async saveLayout() {
@@ -649,8 +656,21 @@ class PageEditor {
         }
 
         sidebarContent.innerHTML = `
-            <div class="widget-settings-loading skeleton page-edit-skeleton widget-setting-loading"></div>
-            <div class="widget-settings-loading skeleton page-edit-skeleton widget-setting-loading"></div>
+            <div class="pe-settings-skeleton">
+                <div class="pe-settings-skeleton__title"></div>
+                <div class="pe-settings-skeleton__field">
+                    <div class="pe-settings-skeleton__label"></div>
+                    <div class="pe-settings-skeleton__input"></div>
+                </div>
+                <div class="pe-settings-skeleton__field">
+                    <div class="pe-settings-skeleton__label"></div>
+                    <div class="pe-settings-skeleton__input pe-settings-skeleton__input--tall"></div>
+                </div>
+                <div class="pe-settings-skeleton__field">
+                    <div class="pe-settings-skeleton__label"></div>
+                    <div class="pe-settings-skeleton__input"></div>
+                </div>
+            </div>
         `;
         this.rightSidebarDialog.show();
 
@@ -664,12 +684,10 @@ class PageEditor {
             if (!response.ok) throw new Error('Failed to load settings form');
             const html = await response.text();
 
-            sidebarContent.style.transition = 'opacity 0.15s ease-in-out';
-            sidebarContent.style.opacity = '0';
+            sidebarContent.innerHTML = html;
 
-            setTimeout(() => {
-                sidebarContent.innerHTML = html;
-
+            // Post-processing in separate try-catch so HTML is preserved on error
+            try {
                 const saveBtn = document.getElementById('widget-settings-save-btn');
                 if (saveBtn) {
                     saveBtn.setAttribute('hx-post', u('api/pages/widgets/save-settings'));
@@ -679,15 +697,37 @@ class PageEditor {
                     htmx.process(saveBtn);
                 }
 
+                // Process htmx attributes in the loaded HTML
                 htmx.process(sidebarContent);
-                if (window.FluteSelect) window.FluteSelect.init();
 
-                this.eventBus.emit(window.FlutePageEdit.events.WIDGET_SETTINGS_LOADED, {
-                    widgetName, widgetElement: widgetEl, settingsContainer: sidebarContent
+                // Execute inline <script> tags that innerHTML doesn't run
+                sidebarContent.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    } else {
+                        newScript.textContent = oldScript.textContent;
+                    }
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
 
-                sidebarContent.style.opacity = '1';
-            }, 150);
+                // Trigger htmx lifecycle events so all components re-initialize
+                // (selects, tabs, tooltips, dropdowns, otp-inputs, etc.)
+                const fakeDetail = {
+                    target: sidebarContent,
+                    elt: sidebarContent,
+                    xhr: { getResponseHeader: () => null, status: 200, response: html },
+                    requestConfig: { url: '' }
+                };
+                htmx.trigger(sidebarContent, 'htmx:afterSwap', fakeDetail);
+                htmx.trigger(sidebarContent, 'htmx:afterSettle', fakeDetail);
+            } catch (postErr) {
+                this.utils.logError('openWidgetSettings post-processing', postErr);
+            }
+
+            this.eventBus.emit(window.FlutePageEdit.events.WIDGET_SETTINGS_LOADED, {
+                widgetName, widgetElement: widgetEl, settingsContainer: sidebarContent
+            });
         } catch (err) {
             this.utils.logError('openWidgetSettings', err);
             sidebarContent.innerHTML = `<div class="alert alert-danger">${this.config.translations.errorLoading}</div>`;
@@ -703,7 +743,7 @@ class PageEditor {
             if (sidebarContent && evt.detail.xhr?.response) {
                 sidebarContent.innerHTML = evt.detail.xhr.response;
                 try { htmx.process(sidebarContent); } catch {}
-                if (window.FluteSelect) window.FluteSelect.init();
+                if (window.Select?.init) window.Select.init(sidebarContent);
             }
             return;
         }
@@ -764,112 +804,11 @@ class PageEditor {
     }
 
     /**
-     * Open excluded paths editor for a global widget.
-     * Uses <template id="pe-excluded-paths-tpl"> from blade.
+     * Open excluded paths editor — now delegated to VisibilityConditions.
      */
     openExcludedPathsEditor(widgetEl) {
-        const widgetName = widgetEl.getAttribute('data-widget-name');
-        if (!widgetName || widgetName === 'Content') return;
-
-        const tpl = document.getElementById('pe-excluded-paths-tpl');
-        if (!tpl) return;
-
-        window.currentExcludedPathsWidgetEl = widgetEl;
-
-        const rightSidebar = document.getElementById('page-edit-dialog');
-        const sidebarContent = document.getElementById('page-edit-dialog-content');
-        if (!rightSidebar || !sidebarContent) return;
-
-        if (!this.rightSidebarDialog) {
-            this.rightSidebarDialog = new A11yDialog(rightSidebar);
-            this.rightSidebarDialog.on('hide', () => { window.currentEditedWidgetEl = null; });
-        }
-
-        // Register per-session cleanup for excluded paths
-        const onHide = () => {
-            this._cleanupExcludedPaths();
-            window.currentExcludedPathsWidgetEl = null;
-            this.rightSidebarDialog.off('hide', onHide);
-        };
-        this.rightSidebarDialog.on('hide', onHide);
-
-        // Clone template into sidebar content
-        sidebarContent.innerHTML = '';
-        sidebarContent.appendChild(tpl.content.cloneNode(true));
-
-        // Fill current paths
-        let currentPaths = [];
-        try { currentPaths = JSON.parse(widgetEl.dataset.excludedPaths || '[]'); } catch (_) {}
-
-        const list = sidebarContent.querySelector('.pe-excluded-paths__list');
-        const tagTpl = sidebarContent.querySelector('.pe-excluded-paths__tag-tpl');
-
-        currentPaths.forEach(p => this._addExcludedPathTag(list, tagTpl, p));
-
-        // Setup add
-        const input = sidebarContent.querySelector('.pe-excluded-paths__input');
-        const addBtn = sidebarContent.querySelector('.pe-excluded-paths__add-btn');
-
-        const addPath = () => {
-            const val = input.value.trim();
-            if (!val) return;
-            const existing = this._getExcludedPaths(list);
-            if (existing.includes(val)) { input.value = ''; return; }
-            this._addExcludedPathTag(list, tagTpl, val);
-            input.value = '';
-            input.focus();
-        };
-
-        addBtn.addEventListener('click', addPath);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); addPath(); }
-        });
-
-        list.addEventListener('click', (e) => {
-            const btn = e.target.closest('.pe-excluded-paths__tag-remove');
-            if (btn) btn.closest('.pe-excluded-paths__tag')?.remove();
-        });
-
-        // Reconfigure the sidebar Save button for excluded-paths mode
-        const saveBtn = document.getElementById('widget-settings-save-btn');
-        if (saveBtn) {
-            saveBtn.removeAttribute('hx-post');
-            saveBtn.removeAttribute('hx-vals');
-            htmx.process(saveBtn);
-
-            this._epSaveHandler = () => {
-                const paths = this._getExcludedPaths(list);
-                widgetEl.dataset.excludedPaths = JSON.stringify(paths);
-                this.hasUnsavedChanges = true;
-                this.updateSaveButtonState();
-                this.history?.push();
-                this.saveToLocalStorage();
-                if (this.rightSidebarDialog) this.rightSidebarDialog.hide();
-            };
-            saveBtn.addEventListener('click', this._epSaveHandler);
-        }
-
-        this.rightSidebarDialog.show();
-    }
-
-    _addExcludedPathTag(list, tagTpl, path) {
-        if (!tagTpl) return;
-        const clone = tagTpl.content.cloneNode(true);
-        clone.querySelector('.pe-excluded-paths__tag-text').textContent = path;
-        list.appendChild(clone);
-    }
-
-    _getExcludedPaths(list) {
-        return Array.from(list.querySelectorAll('.pe-excluded-paths__tag-text'))
-            .map(el => el.textContent.trim()).filter(Boolean);
-    }
-
-    _cleanupExcludedPaths() {
-        window.currentExcludedPathsWidgetEl = null;
-        const saveBtn = document.getElementById('widget-settings-save-btn');
-        if (saveBtn && this._epSaveHandler) {
-            saveBtn.removeEventListener('click', this._epSaveHandler);
-            this._epSaveHandler = null;
+        if (this.visibilityConditions) {
+            this.visibilityConditions.openConditionsEditor(widgetEl);
         }
     }
 

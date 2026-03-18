@@ -46,6 +46,39 @@
             <x-icon path="ph.regular.magic-wand" />
         </button>
 
+        <div class="pe-topbar__divider"></div>
+
+        {{-- Preview: Device --}}
+        <div class="pe-preview-device" data-tooltip="{{ __('page-edit.preview_device') }}">
+            <button type="button" class="pe-preview-device__btn active" data-device-preview="all" data-tooltip="{{ __('page-edit.device_all') }}">
+                <x-icon path="ph.regular.browsers" />
+            </button>
+            <button type="button" class="pe-preview-device__btn" data-device-preview="desktop" data-tooltip="{{ __('page-edit.cond_desktop') }}">
+                <x-icon path="ph.regular.desktop" />
+            </button>
+            <button type="button" class="pe-preview-device__btn" data-device-preview="tablet" data-tooltip="{{ __('page-edit.cond_tablet') }}">
+                <x-icon path="ph.regular.device-tablet" />
+            </button>
+            <button type="button" class="pe-preview-device__btn" data-device-preview="mobile" data-tooltip="{{ __('page-edit.cond_mobile') }}">
+                <x-icon path="ph.regular.device-mobile" />
+            </button>
+        </div>
+
+        <div class="pe-topbar__divider"></div>
+
+        {{-- Preview: Auth state --}}
+        <div class="pe-preview-auth">
+            <button type="button" class="pe-preview-auth__btn active" data-auth-preview="all" data-tooltip="{{ __('page-edit.auth_all') }}">
+                <x-icon path="ph.regular.users-three" />
+            </button>
+            <button type="button" class="pe-preview-auth__btn" data-auth-preview="guest" data-tooltip="{{ __('page-edit.cond_guests') }}">
+                <x-icon path="ph.regular.user-minus" />
+            </button>
+            <button type="button" class="pe-preview-auth__btn" data-auth-preview="auth" data-tooltip="{{ __('page-edit.cond_auth') }}">
+                <x-icon path="ph.regular.user-check" />
+            </button>
+        </div>
+
         <div class="pe-topbar__spacer"></div>
 
         {{-- Discard + Save --}}

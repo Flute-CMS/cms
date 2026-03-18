@@ -25,7 +25,7 @@
             @else
                 @foreach ($users as $key => $user)
                     <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="users-stats-name">
-                        {{ $user->name }}
+                        {!! $user->getDisplayName() !!}
                     </x-link>
                     @isset($users[$key + 1])
                         ,
