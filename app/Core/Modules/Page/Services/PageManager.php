@@ -740,11 +740,8 @@ class PageManager
             if ($this->isBlockExcludedForPath($block, $currentPath)) {
                 return false;
             }
-            if ($block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block)) {
-                return false;
-            }
 
-            return true;
+            return !($block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block));
         });
 
         // Recompact to eliminate gaps from filtered blocks
@@ -800,9 +797,7 @@ class PageManager
         $content = '';
 
         // Filter out blocks hidden by conditions
-        $blocks = array_filter($blocks, function ($block) {
-            return $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block);
-        });
+        $blocks = array_filter($blocks, fn ($block) => $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block));
 
         // Recompact to eliminate gaps
         $blocks = $this->recompactBlocks(array_values($blocks));

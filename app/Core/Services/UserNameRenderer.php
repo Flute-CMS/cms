@@ -3,14 +3,18 @@
 namespace Flute\Core\Services;
 
 use Flute\Core\Database\Entities\User;
+use Throwable;
 
 class UserNameRenderer
 {
     public const POSITION_BEFORE = 'before';
+
     public const POSITION_AFTER = 'after';
 
     public const PRIORITY_HIGH = 100;
+
     public const PRIORITY_NORMAL = 50;
+
     public const PRIORITY_LOW = 10;
 
     /**
@@ -172,7 +176,7 @@ class UserNameRenderer
                 if ($result !== null && $result !== '') {
                     $html .= $result;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 if (function_exists('logs')) {
                     logs()->error('UserNameRenderer decorator error: ' . $e->getMessage());
                 }
