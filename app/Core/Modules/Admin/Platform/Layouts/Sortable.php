@@ -65,7 +65,7 @@ abstract class Sortable extends Layout
      * Maximum nesting depth for sortable items.
      * Default is 2 (parent + one level of children).
      */
-    protected int $maxLevels = 2;
+    protected int $maxLevels = 1;
 
     protected ?string $emptyIcon = null;
 

@@ -32,6 +32,11 @@ class PaymentsTab extends ProfileTab
         return __('profile.edit.payments.title');
     }
 
+    public function isFullWidth(): bool
+    {
+        return true;
+    }
+
     public function getContent(User $user)
     {
         return view('flute::partials.profile-tabs.edit.payments', [

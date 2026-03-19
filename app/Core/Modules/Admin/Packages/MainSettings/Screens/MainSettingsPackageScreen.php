@@ -11,6 +11,7 @@ use Flute\Admin\Packages\MainSettings\Services\MainSettingsPackageService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\RadioCards;
 use Flute\Admin\Platform\Fields\RichText;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
@@ -1404,7 +1405,7 @@ class MainSettingsPackageScreen extends Screen
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.change_theme'))->popover(__('admin-main-settings.popovers.change_theme')),
                 LayoutFactory::field(
-                    ButtonGroup::make('default_theme')
+                    RadioCards::make('default_theme')
                         ->options([
                             'dark' => [
                                 'label' => __('admin-main-settings.options.theme.dark'),
@@ -1415,8 +1416,8 @@ class MainSettingsPackageScreen extends Screen
                                 'icon' => 'ph.bold.sun-bold',
                             ],
                         ])
+                        ->columns(2)
                         ->value(config('app.default_theme', 'dark'))
-                        ->color('accent')
                 )->label(__('admin-main-settings.labels.default_theme'))->popover(__('admin-main-settings.popovers.default_theme')),
             ])->ratio('50/50'),
             LayoutFactory::field(
@@ -1668,6 +1669,15 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('lk.only_modal') ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.lk_only_modal'))->popover(__('admin-main-settings.popovers.lk_only_modal')),
+                LayoutFactory::field(
+                    ButtonGroup::make('lk_step_mode')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.steps-bold'],
+                        ])
+                        ->value(config('lk.step_mode') ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.lk_step_mode'))->popover(__('admin-main-settings.popovers.lk_step_mode')),
             ]),
             LayoutFactory::field(
                 Input::make('oferta_url')
@@ -1729,6 +1739,15 @@ class MainSettingsPackageScreen extends Screen
                         ->value(config('app.notifications_popup_enabled', true) ? '1' : '0')
                         ->color('accent')
                 )->label(__('admin-main-settings.labels.notifications_popup_enabled'))->popover(__('admin-main-settings.popovers.notifications_popup_enabled')),
+                LayoutFactory::field(
+                    ButtonGroup::make('notifications_sound_enabled')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
+                        ])
+                        ->value(config('app.notifications_sound_enabled', true) ? '1' : '0')
+                        ->color('accent')
+                )->label(__('admin-main-settings.labels.notifications_sound_enabled'))->popover(__('admin-main-settings.popovers.notifications_sound_enabled')),
             ]),
         ])->title(__('admin-main-settings.blocks.features'))->description(__('admin-main-settings.blocks.features_description'))->addClass('mb-2');
     }

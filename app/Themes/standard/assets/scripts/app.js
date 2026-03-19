@@ -5,12 +5,6 @@
  * "Если ты в душе не ебешь как это работает, то не трогай"
  */
 
-window.TOAST_ICONS = {
-    success: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-    error: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
-    warning: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
-    info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
-};
 
 class FluteApp {
     constructor() {
@@ -42,22 +36,6 @@ class FluteApp {
                 },
             ],
         });
-
-        const originalOpen = this.notyf.open.bind(this.notyf);
-        this.notyf.open = (options) => {
-            const result = originalOpen(options);
-            const type = options.type || 'info';
-            setTimeout(() => {
-                const toastEl = document.querySelector('.notyf__toast:last-child');
-                if (toastEl) {
-                    const iconContainer = toastEl.querySelector('.notyf__icon');
-                    if (iconContainer && window.TOAST_ICONS[type]) {
-                        iconContainer.innerHTML = window.TOAST_ICONS[type];
-                    }
-                }
-            }, 50);
-            return result;
-        };
 
         this.notifications = new NotificationManager(this.notyf);
         this.modals = new ModalManager();
@@ -292,6 +270,17 @@ class FluteApp {
                 ?.getAttribute("content");
             if (csrfToken) {
                 evt.detail.headers["X-CSRF-Token"] = csrfToken;
+            }
+        });
+
+        // Refresh CSRF token from response header
+        htmx.on("htmx:afterOnLoad", (evt) => {
+            const newToken = evt.detail.xhr?.getResponseHeader("X-CSRF-Token");
+            if (newToken) {
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) {
+                    meta.setAttribute("content", newToken);
+                }
             }
         });
 
@@ -774,6 +763,14 @@ class NotificationManager {
                 return;
             }
 
+            // Sound toggle
+            if (e.target.closest('[data-notification-sound-toggle]')) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleNotificationSound();
+                return;
+            }
+
             // Click on notification item to navigate
             const item = e.target.closest('.notification-item');
             if (item && !e.target.closest('.notification-btn') && !e.target.closest('.notification-file-link')) {
@@ -1040,12 +1037,19 @@ class NotificationManager {
         if (!dot) return;
 
         this.popupEnabled = dot.dataset.popupEnabled === 'true';
-        if (!this.popupEnabled) return;
+        this.soundEnabled = dot.dataset.soundEnabled === 'true';
+        this.soundUserEnabled = localStorage.getItem('flute_notification_sound') !== 'false';
+        this.notificationAudio = null;
+
+        if (!this.popupEnabled && !this.soundEnabled) return;
 
         this.knownIds = new Set();
         this.lastNewestId = null;
         this.popupFirstPoll = true;
         this.popupContainer = null;
+
+        this.updateSoundIcons();
+        this.initProfileSoundToggle();
 
         document.body.addEventListener('notificationPoll', (e) => {
             const { hasUnread, newestId } = e.detail;
@@ -1060,14 +1064,87 @@ class NotificationManager {
                 this.popupFirstPoll = false;
                 this.lastNewestId = newestId;
                 this.prefillKnownIds();
+
+                const lastSeenId = localStorage.getItem('flute_notification_last_seen_id');
+                if (hasUnread && lastSeenId !== String(newestId)) {
+                    this.playNotificationSound();
+                }
+                localStorage.setItem('flute_notification_last_seen_id', String(newestId));
                 return;
             }
 
             if (newestId !== this.lastNewestId) {
                 this.lastNewestId = newestId;
+                localStorage.setItem('flute_notification_last_seen_id', String(newestId));
                 this.fetchAndShowPopups();
             }
         });
+    }
+
+    toggleNotificationSound() {
+        this.soundUserEnabled = !this.soundUserEnabled;
+        localStorage.setItem('flute_notification_sound', this.soundUserEnabled ? 'true' : 'false');
+        this.updateSoundIcons();
+
+        if (this.soundUserEnabled) {
+            this.playNotificationSound();
+        }
+    }
+
+    updateSoundIcons() {
+        const btn = document.querySelector('[data-notification-sound-toggle]');
+        if (!btn) return;
+
+        const iconOn = btn.querySelector('[data-sound-icon-on]');
+        const iconOff = btn.querySelector('[data-sound-icon-off]');
+
+        if (iconOn) iconOn.style.display = this.soundUserEnabled ? '' : 'none';
+        if (iconOff) iconOff.style.display = this.soundUserEnabled ? 'none' : '';
+
+        btn.classList.toggle('is-muted', !this.soundUserEnabled);
+
+        const labelOn = btn.dataset.labelOn || 'Sound enabled';
+        const labelOff = btn.dataset.labelOff || 'Sound disabled';
+        btn.setAttribute('data-tooltip', this.soundUserEnabled ? labelOn : labelOff);
+
+        const profileToggle = document.getElementById('notification-sound-profile-toggle');
+        if (profileToggle) {
+            profileToggle.checked = this.soundUserEnabled;
+        }
+    }
+
+    initProfileSoundToggle() {
+        this._bindProfileSoundToggle();
+
+        if (typeof htmx !== 'undefined') {
+            htmx.on('htmx:afterSettle', () => this._bindProfileSoundToggle());
+        }
+    }
+
+    _bindProfileSoundToggle() {
+        const toggle = document.getElementById('notification-sound-profile-toggle');
+        if (!toggle || toggle._soundBound) return;
+
+        toggle._soundBound = true;
+        toggle.checked = this.soundUserEnabled;
+        toggle.addEventListener('change', () => {
+            this.soundUserEnabled = toggle.checked;
+            localStorage.setItem('flute_notification_sound', this.soundUserEnabled ? 'true' : 'false');
+            this.updateSoundIcons();
+        });
+    }
+
+    playNotificationSound() {
+        if (!this.soundEnabled || !this.soundUserEnabled) return;
+
+        try {
+            if (!this.notificationAudio) {
+                this.notificationAudio = new Audio(u('assets/sounds/notification.wav'));
+                this.notificationAudio.volume = 0.5;
+            }
+            this.notificationAudio.currentTime = 0;
+            this.notificationAudio.play().catch(() => {});
+        } catch (e) {}
     }
 
     prefillKnownIds() {
@@ -1085,14 +1162,21 @@ class NotificationManager {
             .then(r => r.json())
             .then(data => {
                 const flat = Object.values(data.result || {}).flat();
+                let hasNew = false;
                 for (const n of flat) {
                     if (!this.knownIds.has(n.id)) {
                         this.knownIds.add(n.id);
-                        this.showNotificationPopup(n);
+                        hasNew = true;
+                        if (this.popupEnabled) {
+                            this.showNotificationPopup(n);
+                        }
                     }
                 }
 
-                // Also reload dropdown lists if open
+                if (hasNew) {
+                    this.playNotificationSound();
+                }
+
                 if (this.isOpen) this._reloadLists();
             })
             .catch(() => {});
@@ -2383,6 +2467,14 @@ class ConfirmationManager {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
+                        const newCsrfToken = xhr.getResponseHeader("X-CSRF-Token");
+                        if (newCsrfToken) {
+                            const meta = document.querySelector('meta[name="csrf-token"]');
+                            if (meta) {
+                                meta.setAttribute("content", newCsrfToken);
+                            }
+                        }
+
                         htmx.trigger(document.body, "htmx:afterRequest", {
                             target: yoyoComponent,
                             xhr: xhr,

@@ -20,7 +20,11 @@ $(document).ready(function () {
 
 	function initColorPickers(root = document) {
 		if (!window.Pickr) {
-			setTimeout(() => initColorPickers(root), 100);
+			setTimeout(() => {
+				// After delay, verify root is still in DOM (it may have been swapped out)
+				if (root !== document && root.isConnected === false) return;
+				initColorPickers(root);
+			}, 100);
 			return;
 		}
 
@@ -36,8 +40,13 @@ $(document).ready(function () {
 
 			container._pickrInit = true;
 
-			// Start collapsed — toggle on swatch click
-			container.classList.add("is-collapsed");
+			// Ensure collapsed state (already set in HTML, enforce for dynamic content without transition flash)
+			if (!container.classList.contains("is-collapsed")) {
+				container.style.transition = "none";
+				container.classList.add("is-collapsed");
+				container.offsetHeight; // force reflow
+				container.style.transition = "";
+			}
 			const swatch = container.parentElement.querySelector('.color-inline-swatch[data-input-id="' + inputId + '"]');
 			if (swatch) {
 				swatch.style.cursor = "pointer";
@@ -51,11 +60,12 @@ $(document).ready(function () {
 			// Destroy existing instance if any
 			const existing = pickrByInputId.get(inputId);
 			if (existing) {
-				try { existing.destroyAndRemove?.(); } catch (_) {
-					try { existing.destroy(); } catch (_2) {}
-				}
+				try { existing.destroy(); } catch (_) {}
 				pickrByInputId.delete(inputId);
 			}
+
+			// Remove leftover trigger elements from previous instances
+			container.querySelectorAll(".pickr-inline-trigger").forEach((el) => el.remove());
 
 			// Create a hidden trigger element inside the inline container
 			const trigger = document.createElement("div");
@@ -181,8 +191,7 @@ $(document).ready(function () {
 	}
 
 	// Cleanup Pickr instances when HTMX is about to remove elements
-	document.body.addEventListener("htmx:beforeCleanupElement", (evt) => {
-		const el = evt && evt.target ? evt.target : null;
+	function cleanupPickrsIn(el) {
 		if (!el) return;
 		const candidates = [];
 		if (el.matches && el.matches(".color-inline-picker")) candidates.push(el);
@@ -192,13 +201,23 @@ $(document).ready(function () {
 			const inputId = container.getAttribute("data-input-id");
 			const instance = inputId ? pickrByInputId.get(inputId) : null;
 			if (instance) {
-				try { instance.destroyAndRemove?.(); } catch (_) {
-					try { instance.destroy(); } catch (_2) {}
-				}
+				// Use destroy() only — HTMX will remove the DOM elements itself.
+				// destroyAndRemove() can interfere with HTMX's own cleanup.
+				try { instance.destroy(); } catch (_) {}
 			}
 			if (inputId) pickrByInputId.delete(inputId);
 			delete container._pickrInit;
 		});
+	}
+
+	document.body.addEventListener("htmx:beforeCleanupElement", (evt) => {
+		cleanupPickrsIn(evt && evt.target ? evt.target : null);
+	});
+
+	// Also clean up on beforeSwap for swap strategies that may not fire beforeCleanupElement
+	document.body.addEventListener("htmx:beforeSwap", (evt) => {
+		const target = evt.detail && evt.detail.target ? evt.detail.target : null;
+		cleanupPickrsIn(target);
 	});
 
 	function saveIconCache() {

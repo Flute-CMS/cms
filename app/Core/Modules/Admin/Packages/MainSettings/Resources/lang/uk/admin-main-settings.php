@@ -63,6 +63,8 @@ return [
         'description' => 'Опис сайту',
         'robots' => 'Індексація сайту',
         'keywords' => 'Ключові слова',
+        'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'default_theme' => 'Тема за замовчуванням',
         'default_role' => 'Роль реєстрації за замовчуванням',
         'two_factor_enabled' => 'Увімкнути двофакторну автентифікацію',
@@ -141,5 +143,10 @@ return [
         'performance' => 'Продуктивність',
         'performance_description' => 'Оптимізація продуктивності та фонові завдання.',
         'misc_settings' => 'Різне',
+    ],
+
+    'popovers' => [
+        'lk_only_modal' => 'Replaces user dashboard with a modal.',
+        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
     ],
 ];

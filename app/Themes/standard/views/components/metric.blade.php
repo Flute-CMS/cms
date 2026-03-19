@@ -4,10 +4,13 @@
     'icon' => null,
     'prefix' => null,
     'suffix' => null,
-    'trend' => null, // e.g. 12 or "-3.4%"
-    'trendDirection' => null, // 'up' | 'down' | null (auto if trend is numeric)
-    'progress' => null, // 0..100
-    'hint' => null, // small text below
+    'trend' => null,
+    'trendDirection' => null,
+    'trendLabel' => null,
+    'progress' => null,
+    'hint' => null,
+    'color' => null, // accent color for marker: 'primary' | 'success' | 'warning' | 'error' | 'info' | null
+    'size' => null, // 'sm' | null (default) | 'lg'
 ])
 
 @php
@@ -19,12 +22,12 @@
     $trendText = is_null($trend)
         ? null
         : (is_numeric($trend)
-            ? ($numericTrend > 0 ? '+' : '') . $numericTrend
+            ? ($numericTrend > 0 ? '+' : '') . $numericTrend . '%'
             : (string) $trend);
     $progressValue = is_null($progress) ? null : max(0, min(100, (int) $progress));
 @endphp
 
-<article {{ $attributes->merge(['class' => 'metric']) }}>
+<article {{ $attributes->merge(['class' => 'metric' . ($size ? ' metric--' . $size : '') . ($color ? ' metric--' . $color : '')]) }}>
     @if ($icon || $label)
         <header class="metric__header">
             @if ($icon)
@@ -38,15 +41,15 @@
         </header>
     @endif
 
-    <div class="metric__content">
-        <div class="metric__main">
+    <div class="metric__body">
+        <div class="metric__row">
             <div class="metric__value">
                 @if ($prefix)
-                    <span class="metric__value-prefix">{{ $prefix }}</span>
+                    <span class="metric__affix">{{ $prefix }}</span>
                 @endif
-                <span class="metric__value-number">{{ $value }}</span>
+                <span class="metric__number">{{ $value }}</span>
                 @if ($suffix)
-                    <span class="metric__value-suffix">{{ $suffix }}</span>
+                    <span class="metric__affix metric__affix--after">{{ $suffix }}</span>
                 @endif
             </div>
 
@@ -61,7 +64,7 @@
                     @else
                         <x-icon class="metric__trend-icon" path="ph.bold.arrow-up-right-bold" />
                     @endif
-                    <span class="metric__trend-text">{{ $trendText }}</span>
+                    <span>{{ $trendText }}</span>
                 </span>
             @endif
         </div>
@@ -69,12 +72,12 @@
         @if (!is_null($progressValue))
             <div class="metric__progress" role="progressbar" aria-valuenow="{{ $progressValue }}" aria-valuemin="0"
                 aria-valuemax="100">
-                <div class="metric__progress-bar" style="width: {{ $progressValue }}%"></div>
+                <div class="metric__progress-fill" style="width: {{ $progressValue }}%"></div>
             </div>
         @endif
 
-        @if ($hint)
-            <div class="metric__hint">{{ $hint }}</div>
+        @if ($hint || $trendLabel)
+            <p class="metric__hint">{{ $hint ?? $trendLabel }}</p>
         @endif
 
         @if ($slot->isNotEmpty())

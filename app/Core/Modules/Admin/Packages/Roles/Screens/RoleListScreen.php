@@ -6,8 +6,8 @@ use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\ButtonGroup;
-use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
@@ -77,6 +77,7 @@ class RoleListScreen extends Screen
                     ),
             ])
                 ->onSortEnd('saveRolePriority')
+                ->maxLevels(1)
                 ->empty('ph.regular.shield', __('admin-roles.empty.title'), __('admin-roles.empty.sub')),
         ];
     }
@@ -104,20 +105,6 @@ class RoleListScreen extends Screen
      */
     public function createRoleModal(Repository $parameters)
     {
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.' . $name))
-            );
-        }
-
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Input::make('name')
@@ -155,7 +142,13 @@ class RoleListScreen extends Screen
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->multiple()
+            )
+                ->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.create.title'))
             ->applyButton(__('admin-roles.modal.create.submit'))
@@ -169,15 +162,9 @@ class RoleListScreen extends Screen
     {
         $data = request()->input();
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissions[] = str_replace('_', '.', $permissionName);
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
 
         // if (empty($data['permissions'])) {
         //     $this->flashMessage(__('admin-roles.messages.no_permissions'), 'error');
@@ -239,20 +226,10 @@ class RoleListScreen extends Screen
             return;
         }
 
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.' . $name))
-                    ->checked($role->hasPermission(Permission::findByPK($id)))
-            );
-        }
+        $selectedPermissions = array_map(
+            static fn ($permission) => $permission->name,
+            $role->permissions
+        );
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
@@ -294,7 +271,14 @@ class RoleListScreen extends Screen
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->multiple()
+                    ->value($selectedPermissions)
+            )
+                ->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.edit.title'))
             ->applyButton(__('admin-roles.modal.edit.submit'))
@@ -316,20 +300,9 @@ class RoleListScreen extends Screen
             return;
         }
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissions[] = str_replace('_', '.', $permissionName);
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
-
-        // if (empty($data['permissions'])) {
-        //     $this->flashMessage(__('admin-roles.messages.no_permissions'), 'error');
-        //     return;
-        // }
 
         $validation = $this->validate([
             'name' => ['required', 'string', 'max-str-len:255', 'unique:roles,name,' . $role->id],

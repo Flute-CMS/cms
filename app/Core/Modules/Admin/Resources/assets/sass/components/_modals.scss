@@ -8,6 +8,11 @@
     z-index: 1000;
     inset: 0;
 
+    // Hide drag handle on desktop — it's rendered in HTML for mobile.
+    .drag-handle {
+        display: none;
+    }
+
     &.is-open {
         display: flex;
 
@@ -199,72 +204,84 @@
         }
     }
 
+    // On mobile, ALL modals are bottom-sheet drawers (no JS class needed).
     @media (max-width: 768px) {
-        &.bottom-sheet {
-            .modal__container {
+        // Overlay: use opacity transition for smooth open/close.
+        .modal__overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: none !important;
+        }
+
+        &.is-open .modal__overlay {
+            opacity: 1;
+        }
+
+        .modal__container {
+            display: block;
+            width: 100%;
+            max-width: none;
+            max-height: 100vh;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            height: auto;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), height 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+            animation: none !important;
+            position: absolute;
+            bottom: 0;
+            overscroll-behavior: contain;
+        }
+
+        .modal__header {
+            padding-top: 0.75rem;
+        }
+
+        &.is-open .modal__container {
+            transform: translateY(0);
+        }
+
+        &.dragging .modal__container {
+            transition: none;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            padding-top: 1.25rem;
+            width: 100%;
+
+            span {
                 display: block;
-                width: 100%;
-                max-width: none;
-                max-height: 100vh;
-                border-bottom-right-radius: 0;
-                border-bottom-left-radius: 0;
-                height: 20vh;
-                overflow: hidden;
-                transform: translateY(100%);
-                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-                animation: none !important;
-                position: absolute;
-                bottom: 0;
-                overscroll-behavior: contain;
+                width: 36px;
+                height: 4px;
+                background: var(--transp-2);
+                border-radius: 2px;
+                pointer-events: none;
             }
+        }
 
-            .modal__header {
-                padding-top: 0.75rem;
-            }
+        .modal__close {
+            display: none;
+        }
 
-            &.is-open .modal__container {
-                transform: translateY(0);
-            }
+        .modal__title {
+            text-align: center;
+            width: 100%;
+        }
 
-            &.dragging .modal__container {
-                transition: none;
-            }
+        .skeleton {
+            width: auto;
+        }
 
-            .drag-handle {
-                cursor: grab;
-                user-select: none;
-                display: flex;
-                justify-content: center;
-                padding-top: 1.25rem;
-                width: 100%;
-
-                span {
-                    display: block;
-                    width: 36px;
-                    height: 4px;
-                    background: var(--transp-2);
-                    border-radius: 2px;
-                }
-            }
-
-            .modal__close {
-                display: none;
-            }
-
-            .modal__title {
-                text-align: center;
-                width: 100%;
-            }
-
-            .skeleton {
-                width: auto;
-            }
-
-            &.fullscreen {
-                .modal__container {
-                    border-radius: 0;
-                    overflow: auto;
-                }
+        &.fullscreen {
+            .modal__container {
+                border-radius: 0;
+                overflow: auto;
             }
         }
     }

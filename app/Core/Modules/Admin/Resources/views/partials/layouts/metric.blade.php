@@ -16,14 +16,14 @@
                         @endif
                         <span class="metric__label">{{ __($key) }}</span>
                     </div>
-                    <div class="metric__content">
-                        <div class="metric__main">
-                            <div class="metric__value">
+                    <div class="metric__body">
+                        <div class="metric__row">
+                            <div class="metric__number">
                                 {{ is_array($metric['value']) ? $metric['value']['value'] : $metric['value'] }}
                             </div>
                             @if (isset($metric['value']['diff']) && $metric['value']['diff'] != 0)
                                 <div class="metric__trend {{ (float) $metric['value']['diff'] < 0 ? 'metric__trend--down' : 'metric__trend--up' }}">
-                                    <x-icon 
+                                    <x-icon
                                         path="ph.bold.{{ (float) $metric['value']['diff'] < 0 ? 'trend-down' : 'trend-up' }}-bold"
                                         class="metric__trend-icon"
                                     ></x-icon>

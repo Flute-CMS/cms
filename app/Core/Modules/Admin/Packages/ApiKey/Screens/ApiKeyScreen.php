@@ -6,8 +6,8 @@ use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
@@ -122,20 +122,6 @@ class ApiKeyScreen extends Screen
      */
     public function addApiKeyModal(Repository $parameters)
     {
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.'.$name))
-            );
-        }
-
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Input::make('key')
@@ -156,7 +142,13 @@ class ApiKeyScreen extends Screen
                 ->required()
                 ->small(__('admin-apikey.fields.name.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->multiple()
+            )
+                ->label(__('def.permissions')),
         ])
             ->title(__('admin-apikey.title.create'))
             ->applyButton(__('admin-apikey.buttons.add'))
@@ -170,16 +162,9 @@ class ApiKeyScreen extends Screen
     {
         $data = request()->input();
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissionName = str_replace('_', '.', $permissionName);
-                $permissions[] = $permissionName;
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
 
         $validation = $this->validate([
             'key' => ['required', 'string', 'unique:api_keys,key'],
@@ -222,21 +207,10 @@ class ApiKeyScreen extends Screen
             return;
         }
 
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.'.$name))
-                    ->checked($apiKey->hasPermissionByName($name))
-                    ->value(1)
-            );
-        }
+        $selectedPermissions = array_map(
+            static fn ($permission) => $permission->name,
+            $apiKey->permissions
+        );
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
@@ -259,7 +233,14 @@ class ApiKeyScreen extends Screen
                 ->required()
                 ->small(__('admin-apikey.fields.name.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->multiple()
+                    ->value($selectedPermissions)
+            )
+                ->label(__('def.permissions')),
         ])
             ->title(__('admin-apikey.title.edit'))
             ->applyButton(__('admin-apikey.buttons.save'))
@@ -274,15 +255,9 @@ class ApiKeyScreen extends Screen
         $data = request()->input();
         $id = $this->modalParams->get('id');
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissions[] = str_replace('_', '.', $permissionName);
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
 
         if (empty($data['permissions'])) {
             $this->flashMessage(__('admin-apikey.messages.no_permissions'), 'error');

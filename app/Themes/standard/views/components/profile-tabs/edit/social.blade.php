@@ -1,6 +1,6 @@
 @if (sizeof($socials) > 0)
     <x-card withoutPadding>
-        <div class="page-edit__socials">
+        <div class="profile-edit__socials">
             @foreach ($socials as $network)
                 @php
                     $userNetwork = $user->hasSocialNetwork($network->key)

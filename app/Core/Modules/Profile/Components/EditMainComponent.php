@@ -29,8 +29,6 @@ class EditMainComponent extends FluteComponent
 
     public ?string $new_password_confirmation = null;
 
-    public ?string $delete_confirmation = null;
-
     /**
      * @var UploadedFile|null
      */
@@ -180,36 +178,6 @@ class EditMainComponent extends FluteComponent
             $this->flashMessage(__('profile.edit.main.change_password.save_changes_success'), 'success');
         } catch (Exception $e) {
             $this->inputError('new_password', $e->getMessage());
-        }
-    }
-
-    /**
-     * Delete the user account.
-     */
-    public function deleteAccount()
-    {
-        if ($this->validateDeleteAccount()) {
-            if (!$this->confirmed('delete_account_confirmation')) {
-                $this->confirm(
-                    actionKey: 'delete_account_confirmation',
-                    message: __('profile.edit.main.delete_account.confirm_message'),
-                    type: 'error',
-                    confirmText: __('def.delete'),
-                    cancelText: __('def.cancel')
-                );
-
-                return;
-            }
-
-            try {
-                user()->deleteUser($this->user);
-
-                auth()->logout();
-
-                $this->flashMessage(__('profile.edit.main.delete_account.delete_success'), 'success');
-            } catch (Exception $e) {
-                $this->inputError('delete_confirmation', __('profile.edit.main.delete_account.delete_failed'));
-            }
         }
     }
 
@@ -387,17 +355,5 @@ class EditMainComponent extends FluteComponent
         ]);
 
         return $validation;
-    }
-
-    /**
-     * Validate the account deletion confirmation.
-     */
-    protected function validateDeleteAccount(): bool
-    {
-        return $this->validate([
-            'delete_confirmation' => 'required|in:' . $this->user->login,
-        ], null, [
-            'delete_confirmation.in' => __('profile.edit.main.delete_account.confirmation_error'),
-        ]);
     }
 }

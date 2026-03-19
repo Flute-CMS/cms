@@ -5,6 +5,7 @@ namespace Flute\Core\Modules\Profile\Components;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Flute\Core\Components\Table;
+use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 
 class TablePaymentsComponent extends Table
@@ -15,9 +16,12 @@ class TablePaymentsComponent extends Table
 
     public array $paginationOptions = [10, 25, 50];
 
+    protected array $gatewayNames = [];
+
     public function mount()
     {
         $this->user = user()->getCurrentUser();
+        $this->loadGatewayNames();
 
         $this->columns = $this->getColumns();
 
@@ -38,18 +42,10 @@ class TablePaymentsComponent extends Table
                 'field' => 'transactionId',
                 'allowSort' => true,
                 'searchable' => true,
-                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.transaction-id', [
+                'renderer' => fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.transaction-id', [
                     'transactionId' => $row->transactionId,
                     'id' => $row->id,
-                ])->render(),
-            ],
-            [
-                'label' => __('profile.edit.payments.table.gateway'),
-                'field' => 'gateway',
-                'allowSort' => true,
-                'searchable' => true,
-                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.payment-gateway', [
-                    'gateway' => $row->gateway,
+                    'gateway' => $this->resolveGatewayName($row->gateway),
                 ])->render(),
             ],
             [
@@ -60,43 +56,29 @@ class TablePaymentsComponent extends Table
                 'renderer' => static function (PaymentInvoice $row) {
                     $currencyCode = $row->currency ? $row->currency->code : 'USD';
 
+                    $promoCode = null;
+                    $promoValue = null;
+                    $promoType = null;
+
+                    if ($row->promoCode) {
+                        $promoCode = $row->promoCode->code;
+                        $promoValue = $row->promoCode->value;
+                        $promoType = $row->promoCode->type;
+                    }
+
                     return view('flute::components.profile-tabs.edit.payments.amount', [
                         'amount' => $row->amount,
                         'currency' => $currencyCode,
                         'originalAmount' => $row->originalAmount,
+                        'promoCode' => $promoCode,
+                        'promoValue' => $promoValue,
+                        'promoType' => $promoType,
                     ])->render();
                 },
             ],
             [
                 'label' => __('profile.edit.payments.table.status'),
                 'field' => 'isPaid',
-                'allowSort' => true,
-                'searchable' => false,
-                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.payment-status', [
-                    'isPaid' => $row->isPaid,
-                    'paidAt' => $row->paidAt,
-                ])->render(),
-            ],
-            [
-                'label' => __('profile.edit.payments.table.promo'),
-                'field' => 'promoCode',
-                'allowSort' => false,
-                'searchable' => false,
-                'renderer' => static function (PaymentInvoice $row) {
-                    if (!$row->promoCode) {
-                        return '-';
-                    }
-
-                    return view('flute::components.profile-tabs.edit.payments.promo-code', [
-                        'promoCode' => $row->promoCode->code,
-                        'value' => $row->promoCode->value,
-                        'type' => $row->promoCode->type,
-                    ])->render();
-                },
-            ],
-            [
-                'label' => __('profile.edit.payments.table.date'),
-                'field' => 'createdAt',
                 'allowSort' => true,
                 'searchable' => false,
                 'defaultSort' => true,
@@ -106,14 +88,16 @@ class TablePaymentsComponent extends Table
                         ? Carbon::instance($row->createdAt)
                         : Carbon::parse($row->createdAt);
 
-                    return view('flute::components.profile-tabs.edit.payments.date', [
-                        'date' => $date->format('d.m.Y H:i'),
-                        'timestamp' => $date->timestamp,
+                    return view('flute::components.profile-tabs.edit.payments.payment-status', [
+                        'isPaid' => $row->isPaid,
+                        'paidAt' => $row->paidAt,
+                        'date' => $date->format('d.m.Y'),
+                        'time' => $date->format('H:i'),
                     ])->render();
                 },
             ],
             [
-                'label' => __('profile.edit.payments.table.actions'),
+                'label' => '',
                 'field' => 'actions',
                 'allowSort' => false,
                 'searchable' => false,
@@ -122,5 +106,19 @@ class TablePaymentsComponent extends Table
                 ])->render(),
             ],
         ];
+    }
+
+    protected function loadGatewayNames(): void
+    {
+        $gateways = PaymentGateway::query()->fetchAll();
+
+        foreach ($gateways as $gw) {
+            $this->gatewayNames[$gw->adapter] = $gw->name;
+        }
+    }
+
+    protected function resolveGatewayName(string $adapter): string
+    {
+        return $this->gatewayNames[$adapter] ?? $adapter;
     }
 }

@@ -1,11 +1,3 @@
-// Toast notification icons
-const TOAST_ICONS = {
-    success: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-    error: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
-    warning: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
-    info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
-};
-
 // Initialize Notyf
 var notyf = new Notyf({
     duration: 4000,
@@ -74,21 +66,7 @@ function displayToast(toast) {
         });
     }
 
-    const notification = notyf.open(options);
-
-    requestAnimationFrame(() => {
-        const notyfContainer = document.querySelector('.notyf');
-        const toastEl = notyfContainer?.querySelector('.notyf__toast:last-child');
-        if (toastEl) {
-            toastEl.classList.add('notyf__toast--dismissible');
-            const iconContainer = toastEl.querySelector('.notyf__icon');
-            if (iconContainer && TOAST_ICONS[type]) {
-                iconContainer.innerHTML = TOAST_ICONS[type];
-            }
-        }
-    });
-
-    return notification;
+    return notyf.open(options);
 }
 
 // Show NProgress during HTMX requests
@@ -130,6 +108,17 @@ window.addEventListener('htmx:configRequest', (evt) => {
         ?.getAttribute('content');
     if (csrfToken) {
         evt.detail.headers['X-CSRF-Token'] = csrfToken;
+    }
+});
+
+// Refresh CSRF token from response header
+window.addEventListener('htmx:afterOnLoad', (evt) => {
+    const newToken = evt.detail.xhr?.getResponseHeader('X-CSRF-Token');
+    if (newToken) {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) {
+            meta.setAttribute('content', newToken);
+        }
     }
 });
 

@@ -27,7 +27,13 @@ class CsrfMiddleware extends BaseMiddleware
             return $this->error()->forbidden(__('def.csrf_expired'));
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        if ($request->isXmlHttpRequest() || $request->headers->has('HX-Request')) {
+            $response->headers->set('X-CSRF-Token', $this->csrfTokenService->getToken());
+        }
+
+        return $response;
     }
 
     protected function getRequestToken(FluteRequest $request): ?string

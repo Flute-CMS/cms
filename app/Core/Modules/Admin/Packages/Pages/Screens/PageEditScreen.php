@@ -7,8 +7,8 @@ use Flute\Admin\Packages\Pages\Services\AdminPagesService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
@@ -35,8 +35,6 @@ class PageEditScreen extends Screen
 
     public $pageBlocks;
 
-    public $permissions;
-
     public bool $isEditMode = false;
 
     /**
@@ -53,8 +51,6 @@ class PageEditScreen extends Screen
             $this->name = __('admin-pages.title.create');
             $this->description = __('admin-pages.title.description');
         }
-
-        $this->permissions = Permission::findAll();
 
         breadcrumb()
             ->add(__('def.admin_panel'), url('/admin'))
@@ -248,11 +244,12 @@ class PageEditScreen extends Screen
             $this->page->save();
 
             // Обработка разрешений
-            if ($this->pageId && isset($data['permissions'])) {
+            if ($this->pageId) {
                 $this->page->permissions = [];
-                foreach ($data['permissions'] as $permissionId => $value) {
-                    if ($value === 'on') {
-                        $permission = Permission::findByPK($permissionId);
+                $permissionIds = $data['permissions'] ?? [];
+                if (is_array($permissionIds)) {
+                    foreach ($permissionIds as $permissionId) {
+                        $permission = Permission::findByPK((int) $permissionId);
                         if ($permission) {
                             $this->page->addPermission($permission);
                         }
@@ -616,20 +613,19 @@ class PageEditScreen extends Screen
      */
     private function permissionsLayout()
     {
-        $permissionsCheckboxes = [];
-        $pagePermissions = array_map(static fn ($permission) => $permission->id, $this->page?->permissions ?? []);
-
-        foreach ($this->permissions as $permission) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$permission->id}")
-                    ->label($permission->name)
-                    ->popover(__('permissions.' . $permission->name))
-                    ->checked(in_array($permission->id, $pagePermissions))
-            );
-        }
+        $selectedPermissions = array_map(
+            static fn ($permission) => (string) $permission->id,
+            $this->page?->permissions ?? []
+        );
 
         return LayoutFactory::block([
-            LayoutFactory::split($permissionsCheckboxes),
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'id')
+                    ->multiple()
+                    ->value($selectedPermissions)
+            )
+                ->label(__('def.permissions')),
         ])
             ->title(__('admin-pages.title.permissions'))
             ->setVisible($this->pageId);

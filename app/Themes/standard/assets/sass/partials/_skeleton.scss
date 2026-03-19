@@ -25,7 +25,11 @@
         content: '';
     }
 
-    @keyframes shimmer { to { transform: translateX(100%); } }
+    @keyframes shimmer {
+        to {
+            transform: translateX(100%);
+        }
+    }
 }
 
 .tab-skeleton-content {
@@ -40,39 +44,39 @@
     background: var(--transp-02);
     border: 1px solid var(--transp-05);
     border-radius: var(--border1);
-    
+
     &__header {
         display: flex;
         align-items: center;
         gap: var(--space-sm);
     }
-    
+
     &__icon {
         width: 36px;
         height: 36px;
         border-radius: 8px;
         background: var(--transp-1);
         flex-shrink: 0;
-        
+
         &::after {
             animation: shimmer 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
         }
     }
-    
+
     &__title-group {
         display: flex;
         flex-direction: column;
         gap: var(--space-2xs);
         flex: 1;
     }
-    
+
     &__title {
         height: 14px;
         width: 45%;
         min-width: 100px;
         border-radius: 4px;
     }
-    
+
     &__subtitle {
         height: 10px;
         width: 30%;
@@ -80,72 +84,72 @@
         border-radius: 3px;
         opacity: 0.6;
     }
-    
+
     &__content {
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
     }
-    
+
     &__row {
         display: flex;
         gap: var(--space-sm);
-        
+
         &--split {
             .tabs-skeleton-card__field {
                 flex: 1;
             }
         }
     }
-    
+
     &__field {
         display: flex;
         flex-direction: column;
         gap: var(--space-2xs);
         flex: 1;
-        
+
         &--half {
             flex: 0 0 50%;
         }
-        
+
         &--third {
             flex: 0 0 33.333%;
         }
     }
-    
+
     &__label {
         height: 10px;
         width: 80px;
         border-radius: 3px;
         opacity: 0.5;
     }
-    
+
     &__input {
         height: 38px;
         width: 100%;
         border-radius: 6px;
     }
-    
+
     &__textarea {
         height: 80px;
         width: 100%;
         border-radius: 6px;
     }
-    
+
     &__toggle {
         display: flex;
         align-items: center;
         gap: var(--space-xs);
         padding: var(--space-xs) 0;
     }
-    
+
     &__toggle-switch {
         width: 40px;
         height: 22px;
         border-radius: 11px;
         flex-shrink: 0;
     }
-    
+
     &__toggle-label {
         height: 12px;
         width: 120px;
@@ -153,24 +157,265 @@
     }
 }
 
+.modal-skeleton {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: var(--space-md);
+
+    &__socials {
+        display: flex;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-lg);
+    }
+
+    &__social-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: var(--border1);
+    }
+
+    &__divider {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+
+        &::before,
+        &::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--transp-1);
+        }
+    }
+
+    &__divider-text {
+        width: 24px;
+        height: 12px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        margin-bottom: var(--space-md);
+    }
+
+    &__label {
+        height: 12px;
+        width: 100px;
+        border-radius: 4px;
+
+        &--link {
+            width: 80px;
+        }
+    }
+
+    &__label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &__input {
+        height: 44px;
+        width: 100%;
+        border-radius: var(--border05);
+    }
+
+    &__checkbox {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-bottom: var(--space-lg);
+    }
+
+    &__checkbox-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    &__checkbox-label {
+        height: 12px;
+        width: 110px;
+        border-radius: 4px;
+    }
+
+    &__submit {
+        height: 46px;
+        width: 100%;
+        border-radius: var(--border05);
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: center;
+        margin-top: var(--space-xl);
+    }
+
+    &__footer-text {
+        height: 12px;
+        width: 180px;
+        border-radius: 4px;
+    }
+
+    // ── LK / Payment ──
+
+    &__currency-bar {
+        display: flex;
+        gap: var(--space-2xs);
+        margin-bottom: var(--space-sm);
+    }
+
+    &__currency-item {
+        flex: 1;
+        height: 38px;
+        border-radius: var(--border05);
+    }
+
+    &__amount-input {
+        height: 46px;
+        width: 100%;
+        border-radius: var(--border05);
+        margin-bottom: var(--space-sm);
+    }
+
+    &__presets {
+        display: flex;
+        gap: var(--space-2xs);
+        margin-bottom: var(--space-md);
+    }
+
+    &__preset {
+        flex: 1;
+        height: 36px;
+        border-radius: var(--border05);
+    }
+
+    &__gateways {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-md);
+    }
+
+    &__gateway-card {
+        height: 60px;
+        width: 100%;
+        border-radius: var(--border1);
+    }
+
+    &__promo {
+        height: 42px;
+        width: 100%;
+        border-radius: var(--border05);
+        margin-bottom: var(--space-md);
+    }
+
+    // ── Staggered shimmer delays for natural feel ──
+
+    &--auth,
+    &--register,
+    &--lk {
+        .skeleton {
+            &::after {
+                animation-delay: 0s;
+            }
+
+            @for $i from 1 through 12 {
+                &:nth-child(#{$i}) {
+                    &::after {
+                        animation-delay: #{$i * 0.08}s;
+                    }
+                }
+            }
+        }
+
+        >*:nth-child(1) .skeleton {
+            &::after {
+                animation-delay: 0s;
+            }
+        }
+
+        >*:nth-child(2) .skeleton {
+            &::after {
+                animation-delay: 0.06s;
+            }
+        }
+
+        >*:nth-child(3) .skeleton {
+            &::after {
+                animation-delay: 0.12s;
+            }
+        }
+
+        >*:nth-child(4) .skeleton {
+            &::after {
+                animation-delay: 0.18s;
+            }
+        }
+
+        >*:nth-child(5) .skeleton {
+            &::after {
+                animation-delay: 0.24s;
+            }
+        }
+
+        >*:nth-child(6) .skeleton {
+            &::after {
+                animation-delay: 0.30s;
+            }
+        }
+
+        >*:nth-child(7) .skeleton {
+            &::after {
+                animation-delay: 0.36s;
+            }
+        }
+
+        >*:nth-child(8) .skeleton {
+            &::after {
+                animation-delay: 0.42s;
+            }
+        }
+
+        >*:nth-child(9) .skeleton {
+            &::after {
+                animation-delay: 0.48s;
+            }
+        }
+
+        >*:nth-child(10) .skeleton {
+            &::after {
+                animation-delay: 0.54s;
+            }
+        }
+    }
+}
+
 .tabs-skeleton-form {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
-    
+
     &__section {
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
     }
-    
+
     &__section-title {
         height: 16px;
         width: 150px;
         border-radius: var(--space-2xs);
         margin-bottom: var(--space-2xs);
     }
-    
+
     &__fields {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

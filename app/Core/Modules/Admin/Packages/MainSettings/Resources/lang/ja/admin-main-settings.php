@@ -63,6 +63,8 @@ return [
         'description' => 'サイト説明',
         'robots' => 'サイトインデックス',
         'keywords' => 'キーワード',
+        'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'default_theme' => 'デフォルトテーマ',
         'default_role' => 'デフォルト登録ロール',
         'two_factor_enabled' => '二要素認証を有効化',
@@ -141,5 +143,10 @@ return [
         'performance' => 'パフォーマンス',
         'performance_description' => 'パフォーマンス最適化とバックグラウンドタスク。',
         'misc_settings' => 'その他',
+    ],
+
+    'popovers' => [
+        'lk_only_modal' => 'Replaces user dashboard with a modal.',
+        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
     ],
 ];

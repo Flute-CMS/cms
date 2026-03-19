@@ -87,4 +87,9 @@
     "redirecting"             => "Redirecting to payment page…",
     "promo_apply"             => "Apply",
     "promo_clear"             => "Clear",
+    "step_amount"             => "Amount",
+    "step_method"             => "Payment",
+    "step_confirm"            => "Confirmation",
+    "step_next"               => "Next",
+    "step_back"               => "Back",
 ];

@@ -12,6 +12,7 @@
             data-disable-loading-states
             data-noprogress
             data-popup-enabled="{{ config('app.notifications_popup_enabled', true) ? 'true' : 'false' }}"
+            data-sound-enabled="{{ config('app.notifications_sound_enabled', true) ? 'true' : 'false' }}"
             hx-on::after-request="
                 try {
                     const data = JSON.parse(event.detail.xhr.responseText);
@@ -32,6 +33,15 @@
         <div class="notification-dropdown__header">
             <h5 class="notification-dropdown__title">@t('def.notifications')</h5>
             <div class="notification-dropdown__actions">
+                @if(config('app.notifications_sound_enabled', true))
+                    <button class="notification-dropdown__action notification-dropdown__action--sound"
+                        data-notification-sound-toggle
+                        data-label-on="@t('def.notification_sound_on')"
+                        data-label-off="@t('def.notification_sound_off')">
+                        <x-icon path="ph.fill.speaker-high-fill" data-sound-icon-on />
+                        <x-icon path="ph.fill.speaker-slash-fill" data-sound-icon-off style="display:none" />
+                    </button>
+                @endif
                 <button class="notification-dropdown__action" data-mark-all-read
                     data-tooltip="@t('def.mark_all_read')">
                     <x-icon path="ph.regular.checks" />

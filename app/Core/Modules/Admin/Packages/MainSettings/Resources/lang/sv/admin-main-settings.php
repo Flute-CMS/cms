@@ -63,6 +63,8 @@ return [
         'description' => 'Webbplatsbeskrivning',
         'robots' => 'Webbplatsindexering',
         'keywords' => 'Nyckelord',
+        'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'default_theme' => 'Standardtema',
         'default_role' => 'Standardregistreringsroll',
         'two_factor_enabled' => 'Aktivera tvåfaktorsautentisering',
@@ -141,5 +143,10 @@ return [
         'performance' => 'Prestanda',
         'performance_description' => 'Prestandaoptimering och bakgrundsuppgifter.',
         'misc_settings' => 'Övrigt',
+    ],
+
+    'popovers' => [
+        'lk_only_modal' => 'Replaces user dashboard with a modal.',
+        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
     ],
 ];

@@ -63,6 +63,8 @@ return [
         'description' => 'Popis webu',
         'robots' => 'Indexování webu',
         'keywords' => 'Klíčová slova',
+        'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'default_theme' => 'Výchozí motiv',
         'default_role' => 'Výchozí registrační role',
         'two_factor_enabled' => 'Povolit dvoufaktorovou autentizaci',
@@ -141,5 +143,10 @@ return [
         'performance' => 'Výkon',
         'performance_description' => 'Optimalizace výkonu a úlohy na pozadí.',
         'misc_settings' => 'Různé',
+    ],
+
+    'popovers' => [
+        'lk_only_modal' => 'Replaces user dashboard with a modal.',
+        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
     ],
 ];

@@ -2,6 +2,7 @@
 
 namespace Flute\Core\Modules\Profile\Listeners;
 
+use Flute\Core\Modules\Profile\Components\DeleteAccountComponent;
 use Flute\Core\Modules\Profile\Components\EditMainComponent;
 use Flute\Core\Modules\Profile\Components\EditNotificationsComponent;
 use Flute\Core\Modules\Profile\Components\EditSocialsComponent;
@@ -19,5 +20,6 @@ class TemplateListener
         $template->registerComponent('profile-two-factor', TwoFactorComponent::class);
         $template->registerComponent('profile-edit-socials', EditSocialsComponent::class);
         $template->registerComponent('table-payments', TablePaymentsComponent::class);
+        $template->registerComponent('profile-delete-account', DeleteAccountComponent::class);
     }
 }

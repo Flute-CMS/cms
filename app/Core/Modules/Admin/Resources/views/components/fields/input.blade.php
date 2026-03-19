@@ -153,7 +153,7 @@
         </div>
 
         @if ($type === 'color')
-            <div class="color-inline-picker" data-input-id="{{ $inputId }}"></div>
+            <div class="color-inline-picker is-collapsed" data-input-id="{{ $inputId }}"></div>
         @endif
 
         @error($name)

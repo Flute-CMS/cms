@@ -73,6 +73,9 @@
         </noscript>
         <link rel="stylesheet" href="@asset('grid')" type='text/css'>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">
+
+        <link rel="stylesheet" href="@asset('assets/css/libs/cropper.min.css')" media="print" onload="this.media='all'">
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
@@ -247,9 +250,12 @@
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
         <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-image-preview.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-validate.js')" defer></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-image-preview.js')" defer></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-type.js')" defer></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-size.js')" defer></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-image-exif-orientation.js')" defer></script>
         <script src="@asset('assets/js/libs/filepond.js')" defer></script>
+        <script src="@asset('assets/js/libs/cropper.js')" defer></script>
         <script src="@asset('assets/js/libs/notyf.js')" defer></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
         <script src="@asset('assets/js/libs/sortable.js')" defer></script>
@@ -261,6 +267,25 @@
         <script src="@asset('assets/js/libs/pickr.js')" defer></script>
 
         @at('Core/Modules/Admin/Resources/assets/js/helpers.js')
+        <script>
+            window.__imageCropperI18n = {
+                crop_image: @json(__('def.crop_image')),
+                rotate_left: @json(__('def.rotate_left')),
+                rotate_right: @json(__('def.rotate_right')),
+                flip_horizontal: @json(__('def.flip_horizontal')),
+                flip_vertical: @json(__('def.flip_vertical')),
+                zoom_in: @json(__('def.zoom_in')),
+                zoom_out: @json(__('def.zoom_out')),
+                reset: @json(__('def.reset')),
+                cancel: @json(__('def.cancel')),
+                apply: @json(__('def.apply')),
+                free: @json(__('def.free')),
+                square: @json(__('def.square')),
+                landscape: @json(__('def.landscape')),
+                portrait: @json(__('def.portrait'))
+            };
+        </script>
+        @at('Core/Modules/Admin/Resources/assets/js/image-cropper.js')
         @at('Core/Modules/Admin/Resources/assets/js/modals.js')
         @at('Core/Modules/Admin/Resources/assets/js/tabs.js')
         @at('Core/Modules/Admin/Resources/assets/js/popover.js')
@@ -289,6 +314,7 @@
         @at('Core/Modules/Admin/Resources/assets/js/datepicker.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
         @at('Core/Modules/Admin/Resources/assets/js/buttongroup.js')
+        @at('Core/Modules/Admin/Resources/assets/js/radiocards.js')
         @at('Core/Modules/Admin/Resources/assets/js/translatable.js')
         @at('Core/Modules/Admin/Resources/assets/js/filters.js')
 

@@ -1,6 +1,6 @@
 <div class="d-flex flex-column">
-    <div class="text-truncate" style="max-width: 150px;" title="{{ $transactionId }}">
-        {{ $transactionId }}
-    </div>
-    <small class="text-muted">#{{ $id }}</small>
+    <span class="text-truncate" style="max-width: 140px; font-weight: 500;" title="{{ $transactionId }}">
+        #{{ $id }}
+    </span>
+    <small style="color: var(--text-500);">{{ $gateway }}</small>
 </div>

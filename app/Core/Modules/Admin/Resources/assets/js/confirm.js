@@ -294,6 +294,14 @@ class ConfirmationManager {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
+                        const newCsrfToken = xhr.getResponseHeader('X-CSRF-Token');
+                        if (newCsrfToken) {
+                            const meta = document.querySelector('meta[name="csrf-token"]');
+                            if (meta) {
+                                meta.setAttribute('content', newCsrfToken);
+                            }
+                        }
+
                         htmx.trigger(document.body, 'htmx:afterRequest', {
                             target: yoyoComponent,
                             xhr: xhr,

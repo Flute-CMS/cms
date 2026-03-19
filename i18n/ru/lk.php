@@ -87,4 +87,9 @@
     "redirecting" => "Перенаправляем на страницу оплаты…",
     "promo_apply" => "Применить",
     "promo_clear" => "Очистить",
+    "step_amount" => "Сумма",
+    "step_method" => "Оплата",
+    "step_confirm" => "Подтверждение",
+    "step_next" => "Далее",
+    "step_back" => "Назад",
 ];

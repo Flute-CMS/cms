@@ -26,6 +26,8 @@ return [
         'home' => 'Configurações Principais',
         'flute_key' => 'Chave Flute',
         'description' => 'Descrição do Site',
+        'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'favicon' => 'Favicon',
         'social_image' => 'Imagem social (PNG)',
         'profile_tab_title' => 'Aba',
@@ -69,7 +71,7 @@ return [
     ],
 
     'popovers' => [        'cron_mode' => 'Isto usa CRON em vez de solicitações normais. Veja <a target="_blank" href="https://docs.flute-cms.com">aqui</a>.',        'reset_password' => 'Habilitar recuperação de senha do usuário.',
-        'only_social' => 'Autenticação padrão por login/senha será desativado.',        'check_ip' => 'Vincule cada sessão a um endereço IP específico.',        'debug_ips' => 'A depuração funciona apenas com estes endereços IP. Separe por vírgulas.',    ],
+        'only_social' => 'Autenticação padrão por login/senha será desativado.',        'lk_only_modal' => 'Replaces user dashboard with a modal.',        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',        'check_ip' => 'Vincule cada sessão a um endereço IP específico.',        'debug_ips' => 'A depuração funciona apenas com estes endereços IP. Separe por vírgulas.',    ],
 
     'examples' => [    ],
 

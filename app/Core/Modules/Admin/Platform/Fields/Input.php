@@ -199,6 +199,35 @@ class Input extends Field
     }
 
     /**
+     * Enables image cropping via Cropper.js modal on FilePond file inputs.
+     *
+     * @param float|null $aspectRatio Aspect ratio (e.g. 1 for square, 16/9 for landscape)
+     * @param int|null $width Target output width in pixels
+     * @param int|null $height Target output height in pixels
+     * @param bool $round Show circular crop mask (for avatars)
+     */
+    public function crop(?float $aspectRatio = null, ?int $width = null, ?int $height = null, bool $round = false): self
+    {
+        if ($aspectRatio !== null) {
+            $this->set('data-crop-aspect', (string) $aspectRatio);
+        }
+
+        if ($round) {
+            $this->set('data-crop-round', 'true');
+        }
+
+        if ($width !== null) {
+            $this->set('data-crop-width', (string) $width);
+        }
+
+        if ($height !== null) {
+            $this->set('data-crop-height', (string) $height);
+        }
+
+        return $this;
+    }
+
+    /**
      * Sets the datalist options.
      */
     public function datalist(array $datalist): self

@@ -270,7 +270,7 @@
             if (!btn) return;
             var val = Number(btn.getAttribute('data-amount'));
             state.amount = val;
-            amountInput.value = val;
+            amountInput.value = formatAmountDisplay(String(val));
             renderPresets();
             recalculate();
         });
@@ -684,8 +684,32 @@
     });
 
     // Amount input
+    function formatAmountDisplay(str) {
+        var clean = str.replace(/[\s\u00A0]/g, '').replace(',', '.');
+        var parts = clean.split('.');
+        var intPart = parts[0].replace(/\D/g, '');
+        var formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        if (parts.length > 1) {
+            formatted += '.' + parts[1].replace(/[^\d]/g, '');
+        }
+        return formatted;
+    }
+
     if (amountInput) {
-        var onAmountInput = debounce(function () {
+        amountInput.addEventListener('input', function () {
+            var pos = amountInput.selectionStart;
+            var before = amountInput.value;
+            var spacesBefore = (before.slice(0, pos).match(/\s/g) || []).length;
+
+            var formatted = formatAmountDisplay(before);
+            amountInput.value = formatted;
+
+            var spacesAfter = (formatted.slice(0, pos).match(/\s/g) || []).length;
+            var newPos = pos + (spacesAfter - spacesBefore);
+            amountInput.setSelectionRange(newPos, newPos);
+        });
+
+        var onAmountCalc = debounce(function () {
             var raw = amountInput.value.replace(/[\s\u00A0]/g, '').replace(',', '.');
             var val = parseFloat(raw) || 0;
             state.amount = val;
@@ -693,7 +717,7 @@
             recalculate();
         }, 300);
 
-        amountInput.addEventListener('input', onAmountInput);
+        amountInput.addEventListener('input', onAmountCalc);
     }
 
     // Promo input — show/hide button on typing, reset state when cleared
@@ -735,6 +759,46 @@
     // Form submit
     if (form) {
         form.addEventListener('submit', onSubmit);
+    }
+
+    // ── Step mode integration ────────────────────────────────
+    if (cfg.stepMode) {
+        // Block step change if current step validation fails
+        root.addEventListener('steps:before-change', function (e) {
+            var fromName = e.detail && e.detail.fromName;
+
+            // Step 1: require valid amount
+            if (fromName === 'lk-amount') {
+                var raw = amountInput ? amountInput.value.replace(/[\s\u00A0]/g, '').replace(',', '.') : '';
+                var val = parseFloat(raw) || 0;
+                var min = getEffectiveMin();
+                if (val <= 0 || (min > 0 && val < min)) {
+                    if (amountInput) {
+                        amountInput.focus();
+                        amountInput.classList.add('is-error');
+                        setTimeout(function () { amountInput.classList.remove('is-error'); }, 1500);
+                    }
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Step 2: require gateway selected
+            if (fromName === 'lk-method') {
+                if (!state.gateway) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        // Recalculate receipt when entering confirmation step
+        root.addEventListener('steps:change', function (e) {
+            var detail = e.detail || {};
+            if (detail.stepName === 'lk-confirm') {
+                recalculate();
+            }
+        });
     }
 
     // ── Init ───────────────────────────────────────────────

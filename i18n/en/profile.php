@@ -145,6 +145,11 @@ return [
             "title"       => "Notifications",
             "description" => "Manage how and where you receive notifications.",
 
+            "sound_title"          => "Notification Sound",
+            "sound_description"    => "Play a sound when new notifications arrive.",
+            "sound_label"          => "Notification sound",
+            "sound_hint"           => "When enabled, a short chime plays each time you receive a new notification.",
+
             "channels_title"       => "Notification Channels",
             "channels_description" => "Enable or disable notification channels globally.",
 
@@ -182,6 +187,10 @@ return [
         "payments" => [
             "title"       => "Payments",
             "description" => "History of payments and transactions.",
+            "balance"     => "Balance",
+            "top_up"      => "Top up",
+            "invoices_title" => "Payment history",
+            "invoices_description" => "All your transactions and balance top-ups.",
             "table"       => [
                 "id"          => "ID",
                 "date"        => "Date",

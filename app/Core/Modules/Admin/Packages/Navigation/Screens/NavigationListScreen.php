@@ -5,9 +5,10 @@ namespace Flute\Admin\Packages\Navigation\Screens;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\RadioCards;
+use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Fields\TranslatableInput;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -28,8 +29,6 @@ class NavigationListScreen extends Screen
 
     public $navbarItems;
 
-    public $roles;
-
     public function mount(): void
     {
         $this->name = __('admin-navigation.title');
@@ -38,8 +37,6 @@ class NavigationListScreen extends Screen
         breadcrumb()
             ->add(__('def.admin_panel'), url('/admin'))
             ->add(__('admin-navigation.title'));
-
-        $this->roles = rep(Role::class)->findAll();
 
         $this->loadNavbarItems();
     }
@@ -113,19 +110,6 @@ class NavigationListScreen extends Screen
      */
     public function createNavbarItemModal(Repository $parameters)
     {
-        $rolesCheckboxes = [];
-
-        $priority = user()->getHighestPriority();
-
-        foreach ($this->roles as $role) {
-            if ($role->priority <= $priority) {
-                $rolesCheckboxes[] = LayoutFactory::field(
-                    CheckBox::make("roles.{$role->id}")
-                        ->label($role->name)
-                );
-            }
-        }
-
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 TranslatableInput::make('title')
@@ -167,12 +151,13 @@ class NavigationListScreen extends Screen
 
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    ButtonGroup::make('visibility_auth')
+                    RadioCards::make('visibility_auth')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.users-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
-                            'guests' => ['icon' => 'ph.bold.user-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
-                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
+                            'all' => ['icon' => 'ph.bold.users-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
+                            'guests' => ['icon' => 'ph.bold.user-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
+                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
                         ])
+                        ->columns(3)
                         ->value('all')
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility_auth.label'))
@@ -180,12 +165,13 @@ class NavigationListScreen extends Screen
                     ->required(),
 
                 LayoutFactory::field(
-                    ButtonGroup::make('visibility')
+                    RadioCards::make('visibility')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.devices-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.all')],
-                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
-                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
+                            'all' => ['icon' => 'ph.bold.devices-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.all')],
+                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
+                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
                         ])
+                        ->columns(3)
                         ->value('all')
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility.label'))
@@ -193,11 +179,20 @@ class NavigationListScreen extends Screen
                     ->required(),
             ]),
 
-            $rolesCheckboxes ?
-                LayoutFactory::block([
-                    LayoutFactory::split($rolesCheckboxes),
-                ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
-                : null,
+            LayoutFactory::field(
+                Select::make('roles')
+                    ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
+                    ->multiple()
+                    ->filter(static function ($role) {
+                        if (user()->can('admin.boss')) {
+                            return true;
+                        }
+
+                        return $role->priority <= user()->getHighestPriority();
+                    })
+            )
+                ->label(__('admin-navigation.modal.item.roles.title'))
+                ->popover(__('admin-navigation.modal.item.roles.help')),
         ])
             ->title(__('admin-navigation.modal.item.create_title'))
             ->applyButton(__('admin-navigation.buttons.create'))
@@ -290,22 +285,6 @@ class NavigationListScreen extends Screen
             return;
         }
 
-        $rolesCheckboxes = [];
-
-        $priority = user()->getHighestPriority();
-
-        $roles = array_map(static fn ($role) => $role->id, $navbarItem->roles);
-
-        foreach ($this->roles as $role) {
-            if ($role->priority <= $priority) {
-                $rolesCheckboxes[] = LayoutFactory::field(
-                    CheckBox::make("roles.{$role->id}")
-                        ->label($role->name)
-                        ->value(in_array($role->id, $roles))
-                );
-            }
-        }
-
         $visibilityAuth = 'all';
 
         if ($navbarItem->visibleOnlyForGuests) {
@@ -360,12 +339,13 @@ class NavigationListScreen extends Screen
 
             LayoutFactory::columns([
                 LayoutFactory::field(
-                    ButtonGroup::make('visibility_auth')
+                    RadioCards::make('visibility_auth')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.users-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
-                            'guests' => ['icon' => 'ph.bold.user-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
-                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
+                            'all' => ['icon' => 'ph.bold.users-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
+                            'guests' => ['icon' => 'ph.bold.user-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
+                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
                         ])
+                        ->columns(3)
                         ->value($visibilityAuth)
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility_auth.label'))
@@ -373,12 +353,13 @@ class NavigationListScreen extends Screen
                     ->required(),
 
                 LayoutFactory::field(
-                    ButtonGroup::make('visibility')
+                    RadioCards::make('visibility')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.devices-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.all')],
-                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
-                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'tooltip' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
+                            'all' => ['icon' => 'ph.bold.devices-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.all')],
+                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
+                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
                         ])
+                        ->columns(3)
                         ->value($navbarItem->visibility)
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility.label'))
@@ -386,11 +367,21 @@ class NavigationListScreen extends Screen
                     ->required(),
             ]),
 
-            $rolesCheckboxes ?
-                LayoutFactory::block([
-                    LayoutFactory::split($rolesCheckboxes),
-                ])->title(__('admin-navigation.modal.item.roles.title'))->popover(__('admin-navigation.modal.item.roles.help'))->addClass('navigation-modal-roles')
-                : null,
+            LayoutFactory::field(
+                Select::make('roles')
+                    ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
+                    ->multiple()
+                    ->value($navbarItem->roles)
+                    ->filter(static function ($role) {
+                        if (user()->can('admin.boss')) {
+                            return true;
+                        }
+
+                        return $role->priority <= user()->getHighestPriority();
+                    })
+            )
+                ->label(__('admin-navigation.modal.item.roles.title'))
+                ->popover(__('admin-navigation.modal.item.roles.help')),
         ])
             ->title(__('admin-navigation.modal.item.edit_title'))
             ->applyButton(__('def.save'))
@@ -570,24 +561,32 @@ class NavigationListScreen extends Screen
 
     private function extractRoleIds(array $data): array
     {
-        $roles = [];
-
-        if (isset($data['roles']) && is_array($data['roles'])) {
-            foreach ($data['roles'] as $roleId => $value) {
-                if (($value === 'on' || $value === true || $value === 1 || $value === '1') && is_numeric($roleId)) {
-                    $roles[] = (int) $roleId;
-                }
-            }
-
-            return array_values(array_unique($roles));
+        if (!isset($data['roles'])) {
+            return [];
         }
 
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'roles_') === 0 && ($value === 'on' || $value === true || $value === 1 || $value === '1')) {
-                $roleId = str_replace('roles_', '', $key);
-                if (is_numeric($roleId)) {
-                    $roles[] = (int) $roleId;
-                }
+        $raw = $data['roles'];
+
+        // Single value (string/int)
+        if (!is_array($raw)) {
+            $id = (int) $raw;
+
+            return $id > 0 ? [$id] : [];
+        }
+
+        $roles = [];
+
+        foreach ($raw as $key => $value) {
+            // Flat array from multiselect: [0 => '7', 1 => '8', ...]
+            if (is_numeric($value) && (int) $value > 0) {
+                $roles[] = (int) $value;
+
+                continue;
+            }
+
+            // Legacy checkbox format: roles[{id}] => 'on'
+            if (is_numeric($key) && ($value === 'on' || $value === true || $value === 1 || $value === '1')) {
+                $roles[] = (int) $key;
             }
         }
 

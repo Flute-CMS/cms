@@ -1,3 +1,28 @@
+@if(config('app.notifications_sound_enabled', true))
+<div class="profile-settings__section mb-4" id="notification-sound-settings">
+    <x-card>
+        <x-slot:header>
+            <h4>{{ __('profile.edit.notifications.sound_title') }}</h4>
+            <p class="text-muted mb-0">{{ __('profile.edit.notifications.sound_description') }}</p>
+        </x-slot:header>
+
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <x-icon path="ph.bold.speaker-high-bold" style="font-size: var(--h5); color: var(--text-500); line-height: 1.2;" />
+                <div>
+                    <p class="mb-0" style="font-weight: 500; line-height: 1.2;">{{ __('profile.edit.notifications.sound_label') }}</p>
+                    <small style="color: var(--text-600);">{{ __('profile.edit.notifications.sound_hint') }}</small>
+                </div>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="notification-sound-profile-toggle" class="toggle-switch-input">
+                <span class="toggle-switch-slider"></span>
+            </label>
+        </div>
+    </x-card>
+</div>
+@endif
+
 <div class="profile-settings__section mb-4" id="notification-channels-settings">
     <x-card>
         <x-slot:header>

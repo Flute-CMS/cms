@@ -176,8 +176,48 @@ function initializeFilePondElement(element) {
             ];
         }
 
+    // Read crop config BEFORE FilePond.create() which may remove input from DOM
+    var cropSrc = element.classList.contains('filepond') ? element : (wrapper.querySelector('input.filepond') || element);
+    var hasCrop = cropSrc.dataset && cropSrc.dataset.cropAspect !== undefined;
+    var cropCfg = null;
+    if (hasCrop) {
+        cropCfg = {
+            aspectRatio: cropSrc.dataset.cropAspect ? parseFloat(cropSrc.dataset.cropAspect) : NaN,
+            round: cropSrc.dataset.cropRound === 'true',
+            width: cropSrc.dataset.cropWidth ? parseInt(cropSrc.dataset.cropWidth, 10) : undefined,
+            height: cropSrc.dataset.cropHeight ? parseInt(cropSrc.dataset.cropHeight, 10) : undefined
+        };
+    }
+
     const pond = FilePond.create(wrapper, filePondOptions);
     _filePondInstances.set(wrapper, pond);
+
+    if (hasCrop && cropCfg && typeof window.ImageCropper !== 'undefined') {
+        var busy = false;
+        var origOnAdd = pond.onaddfile;
+
+        pond.onaddfile = function (err, item) {
+            if (origOnAdd) origOnAdd(err, item);
+            if (err || !item || !item.file || busy) return;
+            if (item.origin !== 1) return; // only user-added files, not server-loaded defaults
+            if (!item.file.type || !item.file.type.startsWith('image/')) return;
+            if (item.file._cropped) return;
+
+            busy = true;
+            window.ImageCropper.open(item.file, cropCfg)
+                .then(function (cropped) {
+                    pond.removeFile(item.id, { revert: false });
+                    pond.addFile(cropped).then(function () { busy = false; }).catch(function () { busy = false; });
+                })
+                .catch(function () {
+                    pond.removeFile(item.id, { revert: false });
+                    busy = false;
+                });
+        };
+
+        // Add edit button for re-cropping
+        window.ImageCropper.addEditButton(pond, wrapper, cropCfg);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -186,6 +226,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const plugins = [];
         if (typeof FilePondPluginImagePreview !== 'undefined') plugins.push(FilePondPluginImagePreview);
         if (typeof FilePondPluginFileValidateType !== 'undefined') plugins.push(FilePondPluginFileValidateType);
+        if (typeof FilePondPluginFileValidateSize !== 'undefined') plugins.push(FilePondPluginFileValidateSize);
+        if (typeof FilePondPluginImageExifOrientation !== 'undefined') plugins.push(FilePondPluginImageExifOrientation);
         if (plugins.length) FilePond.registerPlugin(...plugins);
         window.filePondPluginsRegistered = true;
     }

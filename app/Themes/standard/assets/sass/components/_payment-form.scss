@@ -191,6 +191,11 @@
             border-bottom-color: var(--primary);
         }
 
+        &.is-error {
+            border-bottom-color: var(--error);
+            animation: lk-shake 0.3s ease;
+        }
+
         &::placeholder {
             color: var(--text-800);
             font-weight: 300;
@@ -763,6 +768,23 @@
     }
 }
 
+@keyframes lk-shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-4px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(4px);
+    }
+}
+
 // ============================================================
 // Disclaimer
 // ============================================================
@@ -802,6 +824,31 @@
         color: var(--text-500);
         margin: 0;
         line-height: 1.5;
+    }
+}
+
+.lk-step-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+
+    .lk-submit {
+        flex: 1;
+    }
+}
+
+.lk-page--steps {
+    max-width: 640px;
+    margin: 0 auto;
+
+    .lk-card {
+        padding: var(--space-lg);
+    }
+}
+
+.lk-modal-wrap--steps {
+    .steps-content {
+        margin-top: var(--space-sm);
     }
 }
 

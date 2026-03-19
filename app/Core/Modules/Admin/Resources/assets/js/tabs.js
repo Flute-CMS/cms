@@ -243,6 +243,7 @@ function reinitializeComponents(container) {
         initColorPickersInContainer(container);
         initIconPickersInContainer(container);
         initButtonGroupsInContainer(container);
+        initRadioCardsInContainer(container);
         initModalsInContainer(container);
         initFiltersInContainer(container);
         if (typeof window.initDatePickers === 'function') window.initDatePickers(container);
@@ -330,6 +331,12 @@ function initIconPickersInContainer(container) {
 function initButtonGroupsInContainer(container) {
     if (typeof initButtonGroups === 'function') {
         try { initButtonGroups(container); } catch (_) { }
+    }
+}
+
+function initRadioCardsInContainer(container) {
+    if (typeof initRadioCards === 'function') {
+        try { initRadioCards(container); } catch (_) { }
     }
 }
 
