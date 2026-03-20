@@ -13,11 +13,9 @@ class EditSocialsComponent extends FluteComponent
 
     public function changeVisibility()
     {
-        if (
-            $this->validate([
-                'socialKey' => 'required',
-            ])
-        ) {
+        if ($this->validate([
+            'socialKey' => 'required',
+        ])) {
             $user = user()->getCurrentUser();
 
             $socialNetwork = $user->getSocialNetwork($this->socialKey);
@@ -57,7 +55,7 @@ class EditSocialsComponent extends FluteComponent
     {
         return $this->view('flute::components.profile-tabs.edit.social', [
             'user' => user()->getCurrentUser(),
-            "socials" => SocialNetwork::findAll([
+            'socials' => SocialNetwork::findAll([
                 'enabled' => 1,
             ]),
         ]);

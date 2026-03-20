@@ -74,9 +74,7 @@ class LogsScreen extends Screen
      */
     public function mount(): void
     {
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-logs.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-logs.title'));
 
         $this->logService = app(LogViewerService::class);
     }
@@ -101,7 +99,7 @@ class LogsScreen extends Screen
 
             // Apply level filter
             if (!empty($this->level)) {
-                $rawLogContent = array_filter($rawLogContent, fn ($entry) => $entry['level'] === $this->level);
+                $rawLogContent = array_filter($rawLogContent, fn($entry) => $entry['level'] === $this->level);
             }
 
             // Apply search filter
@@ -109,11 +107,15 @@ class LogsScreen extends Screen
                 $searchTerm = strtolower($this->search);
                 $rawLogContent = array_filter($rawLogContent, static function ($entry) use ($searchTerm) {
                     $searchableText = strtolower(
-                        $entry['message'] . ' ' .
-                        $entry['channel'] . ' ' .
-                        $entry['level'] . ' ' .
-                        ($entry['file_info']['file_name'] ?? '') . ' ' .
-                        ($entry['file_info']['relative_path'] ?? '')
+                        $entry['message']
+                        . ' '
+                        . $entry['channel']
+                        . ' '
+                        . $entry['level']
+                        . ' '
+                        . ( $entry['file_info']['file_name'] ?? '' )
+                        . ' '
+                        . ( $entry['file_info']['relative_path'] ?? '' ),
                     );
 
                     return strpos($searchableText, $searchTerm) !== false;
@@ -122,15 +124,19 @@ class LogsScreen extends Screen
 
             $totalEntries = count($rawLogContent);
 
-            $offset = ($this->page - 1) * $this->limit;
+            $offset = ( $this->page - 1 ) * $this->limit;
             $logContent = array_slice($rawLogContent, $offset, $this->limit);
 
             foreach ($logContent as &$entry) {
-                if (empty($entry['code_context']) && !empty($entry['file_info']['file_path']) && !empty($entry['file_info']['line_number'])) {
+                if (
+                    empty($entry['code_context'])
+                    && !empty($entry['file_info']['file_path'])
+                    && !empty($entry['file_info']['line_number'])
+                ) {
                     $entry['code_context'] = $this->logService->getFileContext(
                         $entry['file_info']['file_path'],
                         $entry['file_info']['line_number'],
-                        20
+                        20,
                     );
                 }
             }
@@ -157,7 +163,7 @@ class LogsScreen extends Screen
             'searchQuery' => $this->search,
             'currentPage' => $this->page,
             'totalEntries' => $totalEntries,
-            'hasMorePages' => $totalEntries > ($this->page * $this->limit),
+            'hasMorePages' => $totalEntries > ( $this->page * $this->limit ),
             'autoRefreshEnabled' => $this->autoRefresh,
             'limit' => $this->limit,
         ];
@@ -179,9 +185,7 @@ class LogsScreen extends Screen
     public function commandBar(): array
     {
         $commands = [
-            Button::make(__('admin-logs.refresh'))
-                ->icon('ph.bold.arrow-clockwise-bold')
-                ->method('render'),
+            Button::make(__('admin-logs.refresh'))->icon('ph.bold.arrow-clockwise-bold')->method('render'),
         ];
 
         return $commands;
@@ -295,7 +299,10 @@ class LogsScreen extends Screen
             }
             $stats['levels'][$level]++;
 
-            if (in_array($level, ['error', 'critical', 'alert', 'emergency']) && !empty($entry['file_info']['file_name'])) {
+            if (
+                in_array($level, ['error', 'critical', 'alert', 'emergency'])
+                && !empty($entry['file_info']['file_name'])
+            ) {
                 $fileName = $entry['file_info']['file_name'];
                 if (!isset($stats['files_with_errors'][$fileName])) {
                     $stats['files_with_errors'][$fileName] = 0;

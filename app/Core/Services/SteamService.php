@@ -146,8 +146,8 @@ class SteamService
 
                         $userInfo = [
                             'steamid' => $steamId,
-                            'name' => $player['personaname'] ?? ($player['personaname'] ?? ''),
-                            'avatar' => $player['avatarfull'] ?? ($player['avatar'] ?? ''),
+                            'name' => $player['personaname'] ?? $player['personaname'] ?? '',
+                            'avatar' => $player['avatarfull'] ?? $player['avatar'] ?? '',
                             'profile' => $player['profileurl'] ?? '',
                         ];
 
@@ -158,13 +158,13 @@ class SteamService
                 }
 
                 foreach (self::$deferreds as $id64 => $deferred) {
-                    $norm = $this->normalizeSteamId((string)$id64);
+                    $norm = $this->normalizeSteamId((string) $id64);
                     $info = $playersData[$norm] ?? cache()->get("steam_user_{$norm}") ?? [];
                     $deferred->resolve($info);
                     unset(self::$deferreds[$id64]);
                 }
             } catch (Exception $e) {
-                logs()->error('Steam API Batch Request Failed: '.$e->getMessage());
+                logs()->error('Steam API Batch Request Failed: ' . $e->getMessage());
             }
         }
     }
@@ -249,7 +249,7 @@ class SteamService
                         }
                     }
                 } catch (Exception $e) {
-                    logs()->error("Steam API Error: " . $e->getMessage());
+                    logs()->error('Steam API Error: ' . $e->getMessage());
                 }
             }
         }
@@ -276,7 +276,7 @@ class SteamService
      */
     public function getUserName(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['personaname'] ?? null);
+        return $this->getUserInfo($steamId)->then(static fn($userInfo) => $userInfo['personaname'] ?? null);
     }
 
     /**
@@ -284,7 +284,7 @@ class SteamService
      */
     public function getUserAvatar(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['avatarfull'] ?? null);
+        return $this->getUserInfo($steamId)->then(static fn($userInfo) => $userInfo['avatarfull'] ?? null);
     }
 
     /**

@@ -42,7 +42,7 @@ class ProfileIndexController extends BaseController
         } else {
             $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
             $candidate = $searchEvent->getUser();
-            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+            $user = $candidate instanceof User && isset($candidate->id) ? $candidate : $this->getUser($id);
         }
 
         if (!$user) {
@@ -57,9 +57,7 @@ class ProfileIndexController extends BaseController
             return response()->make($profileTabService->renderTabsByPath($this->path, $user));
         }
 
-        breadcrumb()
-            ->add(__('def.home'), url('/'))
-            ->add(__('def.profile') . " - {$user->name}");
+        breadcrumb()->add(__('def.home'), url('/'))->add(__('def.profile') . " - {$user->name}");
 
         $tabs = $profileTabService->getTabs($user);
 
@@ -96,14 +94,20 @@ class ProfileIndexController extends BaseController
         } else {
             $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
             $candidate = $searchEvent->getUser();
-            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+            $user = $candidate instanceof User && isset($candidate->id) ? $candidate : $this->getUser($id);
         }
 
         if (!$user) {
             return $this->errors()->notFound();
         }
 
-        if ($user->hidden && !(user()->isLoggedIn() && (user()->id === $user->id || user()->can('admin.users') || user()->can('admin.users.view')))) {
+        if (
+            $user->hidden
+            && !(
+                user()->isLoggedIn()
+                && ( user()->id === $user->id || user()->can('admin.users') || user()->can('admin.users.view') )
+            )
+        ) {
             return $this->errors()->forbidden(__('profile.profile_hidden'));
         }
 

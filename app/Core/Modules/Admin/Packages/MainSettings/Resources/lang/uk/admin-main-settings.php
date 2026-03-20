@@ -71,6 +71,8 @@ return [
         'captcha_enabled_login' => 'Увімкнути Captcha для входу',
         'captcha_enabled_register' => 'Увімкнути Captcha для реєстрації',
         'captcha_type' => 'Тип Captcha',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
     ],
     'options' => [
         'robots' => [
@@ -96,6 +98,8 @@ return [
         'flute_key' => 'Введіть Flute ключ з marketplace',
         'keywords' => 'Введіть ключові слова',
         'description' => 'Введіть опис',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
     ],
     'buttons' => [
         'clear_cache' => 'Очистити кеш',
@@ -148,5 +152,7 @@ return [
     'popovers' => [
         'lk_only_modal' => 'Replaces user dashboard with a modal.',
         'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
     ],
 ];

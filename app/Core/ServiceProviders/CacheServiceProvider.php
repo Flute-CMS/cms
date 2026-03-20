@@ -14,12 +14,9 @@ class CacheServiceProvider extends AbstractServiceProvider
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            CacheManager::class => \DI\create(CacheManager::class)->constructor(
-                \DI\get('logger')
-            )->method(
-                'create',
-                \DI\get('cache')
-            ),
+            CacheManager::class => \DI\create(CacheManager::class)
+                ->constructor(\DI\get('logger'))
+                ->method('create', \DI\get('cache')),
             CacheInterface::class => \DI\factory(static function (Container $container) {
                 $cacheManager = $container->get(CacheManager::class);
 

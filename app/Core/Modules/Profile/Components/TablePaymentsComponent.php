@@ -42,11 +42,12 @@ class TablePaymentsComponent extends Table
                 'field' => 'transactionId',
                 'allowSort' => true,
                 'searchable' => true,
-                'renderer' => fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.transaction-id', [
-                    'transactionId' => $row->transactionId,
-                    'id' => $row->id,
-                    'gateway' => $this->resolveGatewayName($row->gateway),
-                ])->render(),
+                'renderer' =>
+                    fn(PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.transaction-id', [
+                        'transactionId' => $row->transactionId,
+                        'id' => $row->id,
+                        'gateway' => $this->resolveGatewayName($row->gateway),
+                    ])->render(),
             ],
             [
                 'label' => __('profile.edit.payments.table.amount'),
@@ -101,9 +102,10 @@ class TablePaymentsComponent extends Table
                 'field' => 'actions',
                 'allowSort' => false,
                 'searchable' => false,
-                'renderer' => static fn (PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.pay-button', [
-                    'invoice' => $row,
-                ])->render(),
+                'renderer' =>
+                    static fn(PaymentInvoice $row) => view('flute::components.profile-tabs.edit.payments.pay-button', [
+                        'invoice' => $row,
+                    ])->render(),
             ],
         ];
     }

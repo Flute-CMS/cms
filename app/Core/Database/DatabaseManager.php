@@ -65,7 +65,7 @@ class DatabaseManager
      */
     protected function configure(): void
     {
-        $config = new CycleDatabaseConfig(config("database"));
+        $config = new CycleDatabaseConfig(config('database'));
 
         if (!$config) {
             throw new Exception('Database configuration not found.');

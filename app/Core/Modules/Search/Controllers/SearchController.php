@@ -22,7 +22,7 @@ class SearchController extends BaseController
             return response()->json($cached);
         }
 
-        $results = app("search")->emit($value);
+        $results = app('search')->emit($value);
 
         cache()->set($cacheKey, $results, 30);
 

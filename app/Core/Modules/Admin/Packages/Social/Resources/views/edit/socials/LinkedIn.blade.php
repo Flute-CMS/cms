@@ -17,4 +17,3 @@
         value="{{ request()->input('settings__secret', $social ? $social->getSettings()['secret'] : '') }}"
         placeholder="{{ __('admin-social.edit.linkedin_secret_placeholder') }}" required />
 </x-forms.field>
-

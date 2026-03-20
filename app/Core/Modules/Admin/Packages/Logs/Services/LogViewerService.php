@@ -47,7 +47,7 @@ class LogViewerService
         $content = $this->readLastLines($logPath, $lines);
         $parsedEntries = $this->parseLogContent($content);
 
-        usort($parsedEntries, static fn ($a, $b) => strtotime($b['datetime']) <=> strtotime($a['datetime']));
+        usort($parsedEntries, static fn($a, $b) => strtotime($b['datetime']) <=> strtotime($a['datetime']));
 
         $this->cacheLogData($cacheKey, $parsedEntries);
 
@@ -111,7 +111,7 @@ class LogViewerService
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $message, $matches)) {
                 $filePath = $matches[1] ?? '';
-                $lineNumber = (int)($matches[2] ?? 0);
+                $lineNumber = (int) ( $matches[2] ?? 0 );
 
                 break;
             }
@@ -172,7 +172,7 @@ class LogViewerService
             }
         }
 
-        uasort($result, static fn ($a, $b) => $b['modified_timestamp'] <=> $a['modified_timestamp']);
+        uasort($result, static fn($a, $b) => $b['modified_timestamp'] <=> $a['modified_timestamp']);
 
         return $result;
     }
@@ -192,13 +192,13 @@ class LogViewerService
         $systemInfo = $this->getSystemInfo();
 
         $exportContent = "# System Information\n";
-        $exportContent .= "Export Date: " . date('Y-m-d H:i:s') . "\n";
-        $exportContent .= "Log File: " . $logFile . "\n\n";
+        $exportContent .= 'Export Date: ' . date('Y-m-d H:i:s') . "\n";
+        $exportContent .= 'Log File: ' . $logFile . "\n\n";
 
         foreach ($systemInfo as $section => $data) {
-            $exportContent .= "## " . $section . "\n";
+            $exportContent .= '## ' . $section . "\n";
             foreach ($data as $key => $value) {
-                $exportContent .= $key . ": " . $value . "\n";
+                $exportContent .= $key . ': ' . $value . "\n";
             }
             $exportContent .= "\n";
         }
@@ -253,7 +253,7 @@ class LogViewerService
         $lineCount = 0;
         $offset = $fileSize;
 
-        while ($offset > 0 && $lineCount < $lines + 1) {
+        while ($offset > 0 && $lineCount < ( $lines + 1 )) {
             $readSize = min($chunkSize, $offset);
             $offset -= $readSize;
             fseek($handle, $offset);
@@ -364,7 +364,7 @@ class LogViewerService
                 $decodedContext = json_decode($messageParts['context'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decodedContext)) {
                     $ctxFile = $decodedContext['file'] ?? '';
-                    $ctxLine = (int)($decodedContext['line'] ?? 0);
+                    $ctxLine = (int) ( $decodedContext['line'] ?? 0 );
                     if ($ctxFile && $ctxLine) {
                         $fileInfo = [
                             'file_path' => $ctxFile,
@@ -427,7 +427,7 @@ class LogViewerService
         $message = preg_replace('/password["\']?\s*[:=]\s*["\']?([^"\'\s,}]+)/i', 'password="***"', $message);
         $message = preg_replace('/token["\']?\s*[:=]\s*["\']?([^"\'\s,}]+)/i', 'token="***"', $message);
 
-        $message = str_replace("\n", "<br>", $message);
+        $message = str_replace("\n", '<br>', $message);
 
         return $message;
     }
@@ -477,7 +477,7 @@ class LogViewerService
             foreach ($matches[1] as $level) {
                 $level = strtolower($level);
                 if (in_array($level, $levels, true)) {
-                    $stats[$level] = ($stats[$level] ?? 0) + 1;
+                    $stats[$level] = ( $stats[$level] ?? 0 ) + 1;
                 }
             }
         }
@@ -499,7 +499,7 @@ class LogViewerService
 
         $lastModified = filemtime($logPath);
 
-        return (time() - $lastModified) < 3600;
+        return ( time() - $lastModified ) < 3600;
     }
 
     /**
@@ -510,10 +510,10 @@ class LogViewerService
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = floor(( $bytes ? log($bytes) : 0 ) / log(1024));
         $pow = min($pow, count($units) - 1);
 
-        $bytes /= (1 << (10 * $pow));
+        $bytes /= 1 << ( 10 * $pow );
 
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
@@ -534,7 +534,7 @@ class LogViewerService
                 'Server Software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
                 'Operating System' => PHP_OS,
                 'Hostname' => gethostname(),
-                'Server IP' => $_SERVER['SERVER_ADDR'] ?? ($_SERVER['LOCAL_ADDR'] ?? 'Unknown'),
+                'Server IP' => $_SERVER['SERVER_ADDR'] ?? $_SERVER['LOCAL_ADDR'] ?? 'Unknown',
                 'Server Time' => date('Y-m-d H:i:s'),
                 'Timezone' => date_default_timezone_get(),
                 'Server Load' => $this->getServerLoad(),
@@ -563,7 +563,7 @@ class LogViewerService
                     'Total Space' => $this->formatBytes($diskTotal),
                     'Free Space' => $this->formatBytes($diskFree),
                     'Used Space' => $this->formatBytes($diskUsed),
-                    'Usage Percentage' => round(($diskUsed / $diskTotal) * 100, 2) . '%',
+                    'Usage Percentage' => round(( $diskUsed / $diskTotal ) * 100, 2) . '%',
                 ];
             }
         }
@@ -667,7 +667,7 @@ class LogViewerService
 
         $cacheData = $this->logCache[$cacheKey];
 
-        return (time() - $cacheData['timestamp']) < $this->cacheLifetime;
+        return ( time() - $cacheData['timestamp'] ) < $this->cacheLifetime;
     }
 
     /**
@@ -705,7 +705,7 @@ class LogViewerService
         $now = time();
 
         foreach ($this->logCache as $key => $data) {
-            if (($now - $data['timestamp']) > $this->cacheLifetime) {
+            if (( $now - $data['timestamp'] ) > $this->cacheLifetime) {
                 unset($this->logCache[$key]);
             }
         }

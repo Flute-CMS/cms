@@ -11,7 +11,10 @@ use Flute\Core\Router\Contracts\RouterInterface;
 if (config('app.auth_enabled', true)) {
     router()->group(['middleware' => 'guest'], static function (RouterInterface $router) {
         $router->get('/login', [AuthController::class, 'getLogin'])->middleware(ModalAuthMiddleware::class);
-        $router->get('/register', [AuthController::class, 'getRegister'])->middleware([StandardAuthMiddleware::class, RegisterMiddleware::class]);
+        $router->get('/register', [AuthController::class, 'getRegister'])->middleware([
+            StandardAuthMiddleware::class,
+            RegisterMiddleware::class,
+        ]);
 
         $router->group([], static function (RouterInterface $router) {
             $router->get('/social/register', [SocialAuthController::class, 'getSocialRegister']);
@@ -24,7 +27,11 @@ if (config('app.auth_enabled', true)) {
             });
         }
 
-        $router->group(['middleware' => [StandardAuthMiddleware::class, 'csrf', 'throttle:ip,5,60']], static function (RouterInterface $router) {
+        $router->group(['middleware' => [
+            StandardAuthMiddleware::class,
+            'csrf',
+            'throttle:ip,5,60',
+        ]], static function (RouterInterface $router) {
             $router->post('/register', [AuthController::class, 'postRegister']);
             $router->post('/login', [AuthController::class, 'postLogin']);
 

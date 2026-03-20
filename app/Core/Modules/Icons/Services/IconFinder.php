@@ -57,7 +57,11 @@ class IconFinder
     {
         if (Str::contains($name, 'svg')) {
             $decoded = html_entity_decode($name, ENT_QUOTES | ENT_HTML5);
-            if (Str::startsWith(trim($decoded), '<svg') && Str::contains($decoded, ['</svg>']) && !Str::contains(strtolower($decoded), ['<script', 'onload=', 'onerror='])) {
+            if (
+                Str::startsWith(trim($decoded), '<svg')
+                && Str::contains($decoded, ['</svg>'])
+                && !Str::contains(strtolower($decoded), ['<script', 'onload=', 'onerror='])
+            ) {
                 return $decoded;
             }
         }
@@ -71,7 +75,7 @@ class IconFinder
 
         // Failed to find the icon
         return $this->directories
-            ->map(fn ($dir) => $this->getContent($name, $prefix, $dir))
+            ->map(fn($dir) => $this->getContent($name, $prefix, $dir))
             ->filter()
             ->first();
     }
@@ -112,7 +116,7 @@ class IconFinder
      */
     public function getIconsInPackage(string $prefix, ?string $category = null): array
     {
-        $cacheKey = $prefix . '|' . ($category ?? '*');
+        $cacheKey = $prefix . '|' . ( $category ?? '*' );
 
         if (isset(self::$iconListCache[$cacheKey])) {
             return self::$iconListCache[$cacheKey];
@@ -207,7 +211,7 @@ class IconFinder
     protected function getContent(string $name, string $prefix, string $dir)
     {
         $file = Str::of($name)
-            ->when($prefix !== $name, static fn ($string) => $string->replaceFirst($prefix, ''))
+            ->when($prefix !== $name, static fn($string) => $string->replaceFirst($prefix, ''))
             ->replaceFirst('.', '')
             ->replace('.', DIRECTORY_SEPARATOR);
 

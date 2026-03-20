@@ -88,7 +88,7 @@ class ModuleRegister
                 }
 
                 // Schema exception is not critical and can be ignored
-                if (user()->can('admin.boss') && !($e instanceof ORMException)) {
+                if (user()->can('admin.boss') && !$e instanceof ORMException) {
                     throw $e;
                 }
             }

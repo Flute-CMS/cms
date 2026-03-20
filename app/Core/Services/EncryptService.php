@@ -5,11 +5,10 @@ namespace Flute\Core\Services;
 use Exception;
 use Flute\Core\Exceptions\DecryptException;
 use Flute\Core\Exceptions\EncryptException;
+use RuntimeException;
 
 use function openssl_decrypt;
 use function openssl_encrypt;
-
-use RuntimeException;
 
 /**
  * From Laravel Encrypted.
@@ -48,12 +47,13 @@ class EncryptService
         if (!static::supported($key, $cipher)) {
             $ciphers = implode(', ', array_keys(self::$supportedCiphers));
 
-            throw new RuntimeException("Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}.");
+            throw new RuntimeException(
+                "Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}.",
+            );
         }
 
         $this->key = $key;
         $this->cipher = $cipher;
-
     }
 
     /**
@@ -96,7 +96,7 @@ class EncryptService
             $this->key,
             0,
             $iv,
-            $tag
+            $tag,
         );
 
         if ($value === false) {
@@ -106,9 +106,7 @@ class EncryptService
         $iv = base64_encode($iv);
         $tag = base64_encode($tag ?? '');
 
-        $mac = self::$supportedCiphers[strtolower($this->cipher)]['aead']
-            ? '' // For AEAD-algorithms, the tag / MAC is returned by openssl_encrypt...
-            : $this->hash($iv, $value);
+        $mac = self::$supportedCiphers[strtolower($this->cipher)]['aead'] ? '' : $this->hash($iv, $value); // For AEAD-algorithms, the tag / MAC is returned by openssl_encrypt...
 
         $json = json_encode(compact('iv', 'value', 'mac', 'tag'), JSON_UNESCAPED_SLASHES);
 
@@ -141,21 +139,12 @@ class EncryptService
 
         $iv = base64_decode($payload['iv']);
 
-        $this->ensureTagIsValid(
-            $tag = empty($payload['tag']) ? '' : base64_decode($payload['tag'])
-        );
+        $this->ensureTagIsValid($tag = empty($payload['tag']) ? '' : base64_decode($payload['tag']));
 
         // Here we will decrypt the value. If we are able to successfully decrypt it
         // we will then serialize it and return it out to the caller. If we are
         // unable to decrypt this value we will throw out an exception message.
-        $decrypted = openssl_decrypt(
-            $payload['value'],
-            strtolower($this->cipher),
-            $this->key,
-            0,
-            $iv,
-            $tag
-        );
+        $decrypted = openssl_decrypt($payload['value'], strtolower($this->cipher), $this->key, 0, $iv, $tag);
 
         if ($decrypted === false) {
             throw new DecryptException('Could not decrypt the data.');
@@ -244,10 +233,7 @@ class EncryptService
      */
     protected function validMac(array $payload): bool
     {
-        return hash_equals(
-            $this->hash($payload['iv'], $payload['value']),
-            $payload['mac']
-        );
+        return hash_equals($this->hash($payload['iv'], $payload['value']), $payload['mac']);
     }
 
     /**

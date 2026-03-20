@@ -9,30 +9,34 @@ use InvalidArgumentException;
 class ModDriverFactory
 {
     /**
-     * Registered drivers.
+     * Registered drivers (class string or instance).
      */
     protected array $drivers = [
         'custom' => CustomModDriver::class,
     ];
 
     /**
-     * Register a new mod driver.
+     * Register a new mod driver by class name.
      */
     public function register(string $key, string $driverClass): void
     {
         if (!is_subclass_of($driverClass, ModDriverInterface::class)) {
-            throw new InvalidArgumentException(
-                "Driver class must implement ModDriverInterface."
-            );
+            throw new InvalidArgumentException('Driver class must implement ModDriverInterface.');
         }
 
         if (isset($this->drivers[$key])) {
-            throw new InvalidArgumentException(
-                "Driver [{$key}] already registered."
-            );
+            throw new InvalidArgumentException("Driver [{$key}] already registered.");
         }
 
         $this->drivers[$key] = $driverClass;
+    }
+
+    /**
+     * Register a pre-built driver instance.
+     */
+    public function registerInstance(string $key, ModDriverInterface $instance): void
+    {
+        $this->drivers[$key] = $instance;
     }
 
     /**
@@ -41,14 +45,16 @@ class ModDriverFactory
     public function make(string $key): ModDriverInterface
     {
         if (!isset($this->drivers[$key])) {
-            throw new InvalidArgumentException(
-                "Mod driver [{$key}] not found."
-            );
+            throw new InvalidArgumentException("Mod driver [{$key}] not found.");
         }
 
-        $driverClass = $this->drivers[$key];
+        $driver = $this->drivers[$key];
 
-        return new $driverClass();
+        if ($driver instanceof ModDriverInterface) {
+            return $driver;
+        }
+
+        return new $driver();
     }
 
     /**

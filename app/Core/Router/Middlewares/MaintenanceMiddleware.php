@@ -25,7 +25,10 @@ class MaintenanceMiddleware extends BaseMiddleware
         }
 
         if (config('app.maintenance_mode') && !is_debug()) {
-            return $this->error()->custom(config('app.maintenance_message') ? __(config('app.maintenance_message')) : __('def.maintenance_mode'), 503);
+            return $this->error()->custom(
+                config('app.maintenance_message') ? __(config('app.maintenance_message')) : __('def.maintenance_mode'),
+                503,
+            );
         }
 
         return $next($request);

@@ -36,7 +36,7 @@ class TableExportService
 
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-        $headers = $exportColumns->map(fn (TD $column) => $this->cleanText($column->getTitle()))->toArray();
+        $headers = $exportColumns->map(fn(TD $column) => $this->cleanText($column->getTitle()))->toArray();
         fputcsv($output, $headers, ';');
 
         foreach ($rows as $row) {
@@ -45,7 +45,7 @@ class TableExportService
         }
 
         fclose($output);
-        exit;
+        exit();
     }
 
     /**
@@ -69,14 +69,20 @@ class TableExportService
         header('Expires: 0');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 
-        echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo
+            '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">'
+        ;
         echo '<head><meta charset="UTF-8"></head>';
         echo '<body>';
         echo '<table border="1">';
 
         echo '<tr>';
         foreach ($exportColumns as $column) {
-            echo '<th style="background-color:#f0f0f0;font-weight:bold;">' . htmlspecialchars($this->cleanText($column->getTitle())) . '</th>';
+            echo
+                '<th style="background-color:#f0f0f0;font-weight:bold;">'
+                    . htmlspecialchars($this->cleanText($column->getTitle()))
+                    . '</th>'
+            ;
         }
         echo '</tr>';
 
@@ -91,7 +97,7 @@ class TableExportService
 
         echo '</table>';
         echo '</body></html>';
-        exit;
+        exit();
     }
 
     /**
@@ -106,7 +112,7 @@ class TableExportService
                 return false;
             }
 
-            return !($name === 'actions' || str_contains($name, 'action'));
+            return !( $name === 'actions' || str_contains($name, 'action') );
         });
     }
 

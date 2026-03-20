@@ -299,7 +299,7 @@ class SessionService implements SessionInterface
 
         $touchInterval = max(30, (int) floor($gcMaxLifetime / 2));
 
-        if ($lastTouch === 0 || ($now - $lastTouch) >= $touchInterval) {
+        if ($lastTouch === 0 || ( $now - $lastTouch ) >= $touchInterval) {
             $this->session->set('_flute_last_activity', $now);
         }
     }
@@ -316,7 +316,7 @@ class SessionService implements SessionInterface
         $secureFlag = $sessionConfig['secure'] ?? null;
         $secure = is_bool($secureFlag)
             ? $secureFlag
-            : (($this->request?->isSecure() ?? false) || $appScheme === 'https');
+            : ( $this->request?->isSecure() ?? false ) || $appScheme === 'https';
 
         $sameSite = $sessionConfig['same_site'] ?? 'Lax';
         $allowedSameSite = ['Lax', 'Strict', 'None'];

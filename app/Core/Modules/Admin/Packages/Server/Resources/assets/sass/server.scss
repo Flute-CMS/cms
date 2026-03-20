@@ -38,3 +38,133 @@
         }
     }
 }
+
+// ─── RCON Console — iOS grouped style ───
+.rcon {
+    display: flex;
+    flex-direction: column;
+    height: 460px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--transp-03);
+}
+
+.rcon__output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    scrollbar-width: thin;
+    scrollbar-color: var(--transp-1) transparent;
+}
+
+.rcon__empty {
+    color: var(--text-700);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.rcon__entry {
+    & + & {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--transp-05);
+    }
+}
+
+.rcon__cmd {
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 2px;
+    user-select: all;
+}
+
+.rcon__result {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text-500);
+    font-family: inherit;
+    font-size: inherit;
+
+    &--err {
+        color: var(--error);
+    }
+}
+
+.rcon__bar {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--transp-05);
+    background: var(--transp-05);
+    flex-shrink: 0;
+}
+
+.rcon__field {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12.5px;
+    min-width: 0;
+
+    &::placeholder {
+        color: var(--text-700);
+    }
+}
+
+.rcon__clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--text-700);
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 8px;
+    margin-left: 4px;
+    transition: color 0.15s;
+
+    &:hover {
+        color: var(--error);
+    }
+
+    i {
+        font-size: 13px;
+    }
+}
+
+.rcon__send {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 8px;
+    margin-right: 4px;
+    transition: background 0.15s;
+
+    &:hover {
+        background: var(--transp-05);
+    }
+
+    i {
+        font-size: 15px;
+    }
+}

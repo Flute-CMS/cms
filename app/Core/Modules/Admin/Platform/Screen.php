@@ -163,9 +163,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
      */
     public function permission(): ?iterable
     {
-        return isset($this->permission)
-            ? Arr::wrap($this->permission)
-            : null;
+        return isset($this->permission) ? Arr::wrap($this->permission) : null;
     }
 
     /**
@@ -255,7 +253,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     public function openModal(string $modalFunc, $params = null)
     {
         if (!$this->isAllowedModalMethod($modalFunc)) {
-            throw new Exception('Modal '.$modalFunc.' is not a valid modal method on this screen');
+            throw new Exception('Modal ' . $modalFunc . ' is not a valid modal method on this screen');
         }
 
         $decryptedParams = is_string($params) ? encrypt()->decrypt($params) : $params;
@@ -274,7 +272,7 @@ abstract class Screen extends FluteComponent implements ScreenInterface
     {
         $studlyProperty = YoyoHelpers::studly($property);
 
-        if (method_exists($this, $computedMethodName = 'get'.$studlyProperty.'Property')) {
+        if (method_exists($this, $computedMethodName = 'get' . $studlyProperty . 'Property')) {
             if (isset($this->computedPropertyCache[$property])) {
                 return $this->computedPropertyCache[$property];
             }

@@ -32,9 +32,7 @@ class ApiKeyScreen extends Screen
         $this->name = __('admin-apikey.title.list');
         $this->description = __('admin-apikey.title.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-apikey.title.list'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-apikey.title.list'));
 
         $this->apiKeys = rep(ApiKey::class)->select();
     }
@@ -46,35 +44,36 @@ class ApiKeyScreen extends Screen
 
             LayoutFactory::table('apiKeys', [
                 TD::selection('id'),
-                TD::make('id', 'ID')
-                    ->minWidth('50px'),
+                TD::make('id', 'ID')->minWidth('50px'),
 
                 TD::make('name', __('admin-apikey.fields.name.label'))
-                    ->render(static fn (ApiKey $apiKey) => $apiKey->name)
+                    ->render(static fn(ApiKey $apiKey) => $apiKey->name)
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('key', __('admin-apikey.fields.key.label'))
-                    ->render(static fn (ApiKey $apiKey) => view('admin-api::cells.key', compact('apiKey')))
+                    ->render(static fn(ApiKey $apiKey) => view('admin-api::cells.key', compact('apiKey')))
                     ->minWidth('250px'),
 
                 TD::make('permissions', __('admin-apikey.fields.permissions.label'))
                     ->alignCenter()
-                    ->render(static fn (ApiKey $apiKey) => sizeof($apiKey->permissions))
+                    ->render(static fn(ApiKey $apiKey) => sizeof($apiKey->permissions))
                     ->minWidth('100px'),
 
                 TD::make('lastUsedAt', __('admin-apikey.fields.last_used_at'))
-                    ->render(static fn (ApiKey $apiKey) => $apiKey->lastUsedAt ? $apiKey->lastUsedAt->format(default_date_format()) : __('admin-apikey.fields.never'))
+                    ->render(static fn(ApiKey $apiKey) => $apiKey->lastUsedAt
+                        ? $apiKey->lastUsedAt->format(default_date_format())
+                        : __('admin-apikey.fields.never'))
                     ->minWidth('150px'),
 
                 TD::make('createdAt', __('admin-apikey.fields.created_at'))
-                    ->render(static fn (ApiKey $apiKey) => $apiKey->createdAt->format(default_date_format()))
+                    ->render(static fn(ApiKey $apiKey) => $apiKey->createdAt->format(default_date_format()))
                     ->minWidth('150px'),
 
                 TD::make('actions', __('admin-apikey.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
-                    ->render(static fn (ApiKey $apiKey) => DropDown::make()
+                    ->render(static fn(ApiKey $apiKey) => DropDown::make()
                         ->icon('ph.regular.dots-three-outline-vertical')
                         ->list([
                             DropDownItem::make(__('admin-apikey.buttons.edit'))
@@ -98,7 +97,7 @@ class ApiKeyScreen extends Screen
                     Button::make(__('admin-apikey.buttons.add'))
                         ->icon('ph.regular.plus')
                         ->type(Color::PRIMARY)
-                        ->modal('addApiKeyModal')
+                        ->modal('addApiKeyModal'),
                 )
                 ->searchable(['key', 'id'])
                 ->bulkActions([
@@ -127,16 +126,14 @@ class ApiKeyScreen extends Screen
                 Input::make('key')
                     ->type('text')
                     ->placeholder(__('admin-apikey.fields.key.placeholder'))
-                    ->value(Str::random(32))
+                    ->value(Str::random(32)),
             )
                 ->label(__('admin-apikey.fields.key.label'))
                 ->required()
                 ->small(__('admin-apikey.fields.key.help')),
 
             LayoutFactory::field(
-                Input::make('name')
-                    ->type('text')
-                    ->placeholder(__('admin-apikey.fields.name.placeholder'))
+                Input::make('name')->type('text')->placeholder(__('admin-apikey.fields.name.placeholder')),
             )
                 ->label(__('admin-apikey.fields.name.label'))
                 ->required()
@@ -145,10 +142,9 @@ class ApiKeyScreen extends Screen
             LayoutFactory::field(
                 Select::make('permissions')
                     ->fromDatabase('permissions', 'name', 'name')
-                    ->filter(static fn ($permission) => user()->can($permission->name))
-                    ->multiple()
-            )
-                ->label(__('def.permissions')),
+                    ->filter(static fn($permission) => user()->can($permission->name))
+                    ->multiple(),
+            )->label(__('def.permissions')),
         ])
             ->title(__('admin-apikey.title.create'))
             ->applyButton(__('admin-apikey.buttons.add'))
@@ -166,12 +162,15 @@ class ApiKeyScreen extends Screen
             $data['permissions'] = [];
         }
 
-        $validation = $this->validate([
-            'key' => ['required', 'string', 'unique:api_keys,key'],
-            'name' => ['required', 'string', 'unique:api_keys,name'],
-            'permissions' => ['required', 'array'],
-            // 'permissions.*' => ['exists:permissions,name'],
-        ], $data);
+        $validation = $this->validate(
+            [
+                'key' => ['required', 'string', 'unique:api_keys,key'],
+                'name' => ['required', 'string', 'unique:api_keys,name'],
+                'permissions' => ['required', 'array'],
+                // 'permissions.*' => ['exists:permissions,name'],
+            ],
+            $data,
+        );
 
         if (!$validation) {
             return;
@@ -207,17 +206,14 @@ class ApiKeyScreen extends Screen
             return;
         }
 
-        $selectedPermissions = array_map(
-            static fn ($permission) => $permission->name,
-            $apiKey->permissions
-        );
+        $selectedPermissions = array_map(static fn($permission) => $permission->name, $apiKey->permissions);
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Input::make('key')
                     ->type('text')
                     ->placeholder(__('admin-apikey.fields.key.placeholder'))
-                    ->value($apiKey->key)
+                    ->value($apiKey->key),
             )
                 ->label(__('admin-apikey.fields.key.label'))
                 ->required()
@@ -227,7 +223,7 @@ class ApiKeyScreen extends Screen
                 Input::make('name')
                     ->type('text')
                     ->placeholder(__('admin-apikey.fields.name.placeholder'))
-                    ->value($apiKey->name)
+                    ->value($apiKey->name),
             )
                 ->label(__('admin-apikey.fields.name.label'))
                 ->required()
@@ -236,11 +232,10 @@ class ApiKeyScreen extends Screen
             LayoutFactory::field(
                 Select::make('permissions')
                     ->fromDatabase('permissions', 'name', 'name')
-                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->filter(static fn($permission) => user()->can($permission->name))
                     ->multiple()
-                    ->value($selectedPermissions)
-            )
-                ->label(__('def.permissions')),
+                    ->value($selectedPermissions),
+            )->label(__('def.permissions')),
         ])
             ->title(__('admin-apikey.title.edit'))
             ->applyButton(__('admin-apikey.buttons.save'))
@@ -272,12 +267,15 @@ class ApiKeyScreen extends Screen
             return;
         }
 
-        $validation = $this->validate([
-            'key' => ['required', 'string', "unique:api_keys,key,{$apiKey->id}"],
-            'name' => ['required', 'string'],
-            'permissions' => ['required', 'array'],
-            // 'permissions.*' => ['exists:permissions,name'],
-        ], $data);
+        $validation = $this->validate(
+            [
+                'key' => ['required', 'string', "unique:api_keys,key,{$apiKey->id}"],
+                'name' => ['required', 'string'],
+                'permissions' => ['required', 'array'],
+                // 'permissions.*' => ['exists:permissions,name'],
+            ],
+            $data,
+        );
 
         if (!$validation) {
             return;

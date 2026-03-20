@@ -102,7 +102,7 @@ class AdminPagesService
 
         $q = PageBlock::query()->buildQuery();
         $q->columns([new \Cycle\Database\Injection\Expression('COUNT(DISTINCT page_id) AS cnt')]);
-        $pagesWithBlocksCount = (int) ($q->fetchAll()[0]['cnt'] ?? 0);
+        $pagesWithBlocksCount = (int) ( $q->fetchAll()[0]['cnt'] ?? 0 );
 
         return [
             'total_pages' => $totalPages,

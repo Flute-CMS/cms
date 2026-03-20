@@ -47,17 +47,17 @@ class EditRedirectScreen extends Screen
 
             $this->isEditMode = true;
 
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-redirects.title'), url('/admin/redirects'))
-                ->add(__('admin-redirects.modal.edit_title'));
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-redirects.title'),
+                url('/admin/redirects'),
+            )->add(__('admin-redirects.modal.edit_title'));
 
             $this->name = __('admin-redirects.modal.edit_title');
         } else {
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-redirects.title'), url('/admin/redirects'))
-                ->add(__('admin-redirects.modal.create_title'));
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-redirects.title'),
+                url('/admin/redirects'),
+            )->add(__('admin-redirects.modal.create_title'));
 
             $this->name = __('admin-redirects.modal.create_title');
         }
@@ -66,9 +66,7 @@ class EditRedirectScreen extends Screen
     public function commandBar(): array
     {
         return [
-            Button::make(__('def.cancel'))
-                ->redirect('/admin/redirects')
-                ->type(Color::OUTLINE_PRIMARY),
+            Button::make(__('def.cancel'))->redirect('/admin/redirects')->type(Color::OUTLINE_PRIMARY),
 
             Button::make($this->isEditMode ? __('def.save') : __('admin-redirects.buttons.add'))
                 ->method('save')
@@ -98,7 +96,7 @@ class EditRedirectScreen extends Screen
                     Input::make('from_url')
                         ->type('text')
                         ->placeholder(__('admin-redirects.fields.from_url.placeholder'))
-                        ->value($fromUrl)
+                        ->value($fromUrl),
                 )
                     ->label(__('admin-redirects.fields.from_url.label'))
                     ->required()
@@ -108,7 +106,7 @@ class EditRedirectScreen extends Screen
                     Input::make('to_url')
                         ->type('text')
                         ->placeholder(__('admin-redirects.fields.to_url.placeholder'))
-                        ->value($toUrl)
+                        ->value($toUrl),
                 )
                     ->label(__('admin-redirects.fields.to_url.label'))
                     ->required()
@@ -334,11 +332,7 @@ class EditRedirectScreen extends Screen
             $group->redirect = $redirect;
 
             foreach ($validConditions as $condData) {
-                $condition = new RedirectCondition(
-                    $condData['type'],
-                    $condData['value'] ?? '',
-                    $condData['operator']
-                );
+                $condition = new RedirectCondition($condData['type'], $condData['value'] ?? '', $condData['operator']);
                 $group->addCondition($condition);
             }
 

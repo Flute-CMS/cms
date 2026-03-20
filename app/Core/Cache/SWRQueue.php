@@ -58,7 +58,7 @@ final class SWRQueue
         // Best-effort: only one worker should run SWR tasks at a time.
         $lockFile = function_exists('storage_path')
             ? storage_path('app/swr_queue.lock')
-            : (defined('BASE_PATH') ? BASE_PATH . 'storage/app/swr_queue.lock' : 'swr_queue.lock');
+            : ( defined('BASE_PATH') ? BASE_PATH . 'storage/app/swr_queue.lock' : 'swr_queue.lock' );
 
         $handle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
         if ($handle === false) {

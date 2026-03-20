@@ -42,14 +42,14 @@ final class App
     use LoggerTrait;
     use SingletonTrait;
 
-    public const PERFORMANCE_MODE = "performance";
+    public const PERFORMANCE_MODE = 'performance';
 
-    public const DEFAULT_MODE = "default";
+    public const DEFAULT_MODE = 'default';
 
     /**
      * @var string
      */
-    public const VERSION = "1.0.0";
+    public const VERSION = '1.0.0';
 
     /**
      * Set the base path of the application
@@ -99,9 +99,7 @@ final class App
     public static function getInstance(): App
     {
         if (is_null(self::$instance)) {
-            self::$instance = new self(
-                require BASE_PATH . "vendor/autoload.php",
-            );
+            self::$instance = new self(require BASE_PATH . 'vendor/autoload.php');
         }
 
         return self::$instance;
@@ -127,7 +125,7 @@ final class App
         $this->basePath = $basePath;
 
         $this->containerBuilder->addDefinitions([
-            "base_path" => $this->basePath,
+            'base_path' => $this->basePath,
         ]);
     }
 
@@ -156,15 +154,15 @@ final class App
      */
     public function debug(bool $debug = true): void
     {
-        if (function_exists("ini_set")) {
-            ini_set("display_errors", $debug ? "1" : "0");
-            ini_set("display_startup_errors", $debug ? "1" : "0");
+        if (function_exists('ini_set')) {
+            ini_set('display_errors', $debug ? '1' : '0');
+            ini_set('display_startup_errors', $debug ? '1' : '0');
         }
 
         error_reporting($debug ? E_ALL : E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
         // We add debug mode to the container
-        $this->bind("debug", (string) $debug);
+        $this->bind('debug', (string) $debug);
     }
 
     /**
@@ -182,7 +180,7 @@ final class App
         try {
             return $this->container->make($abstract, $parameters);
         } catch (NotFoundException $e) {
-            if (function_exists("logs")) {
+            if (function_exists('logs')) {
                 logs()->emergency($e->getMessage());
             }
 
@@ -235,16 +233,14 @@ final class App
 
         try {
             $provider->register(
-                $provider instanceof ServiceProviderInterface
-                    ? $this->getContainerBuilder()
-                    : $this->getContainer(),
+                $provider instanceof ServiceProviderInterface ? $this->getContainerBuilder() : $this->getContainer(),
             );
         } catch (Exception $e) {
-            if (function_exists("is_debug") && is_debug()) {
+            if (function_exists('is_debug') && is_debug()) {
                 throw $e;
             }
 
-            if (function_exists("logs")) {
+            if (function_exists('logs')) {
                 logs()->error($e);
             }
         }
@@ -271,21 +267,15 @@ final class App
 
                 $provider->setApp($this);
                 $provider->boot($this->container);
-                $this->listen = array_merge_recursive(
-                    $this->listen,
-                    $provider->getEventListeners(),
-                );
+                $this->listen = array_merge_recursive($this->listen, $provider->getEventListeners());
 
-                $this->bootTimes[$className] = round(
-                    microtime(true) - $startTime,
-                    3,
-                );
+                $this->bootTimes[$className] = round(microtime(true) - $startTime, 3);
             } catch (Exception $e) {
-                if (function_exists("is_debug") && is_debug()) {
+                if (function_exists('is_debug') && is_debug()) {
                     throw $e;
                 }
 
-                if (function_exists("logs")) {
+                if (function_exists('logs')) {
                     logs()->error($e);
                 }
             }
@@ -346,8 +336,8 @@ final class App
             return;
         }
 
-        if (!defined("FLUTE_ROUTER_START")) {
-            define("FLUTE_ROUTER_START", microtime(true));
+        if (!defined('FLUTE_ROUTER_START')) {
+            define('FLUTE_ROUTER_START', microtime(true));
         }
 
         // Optional global profiler (only runs if enabled in config/profiler.php)
@@ -355,8 +345,8 @@ final class App
 
         $this->get(DatabaseConnection::class)->recompileIfNeeded();
 
-        if (!defined("FLUTE_DB_SETUP_END")) {
-            define("FLUTE_DB_SETUP_END", microtime(true));
+        if (!defined('FLUTE_DB_SETUP_END')) {
+            define('FLUTE_DB_SETUP_END', microtime(true));
         }
 
         /** @var RouterInterface $router */
@@ -366,24 +356,24 @@ final class App
         $request = $this->get(FluteRequest::class);
         $dispatchResult = $router->dispatch($request);
 
-        if (!defined("FLUTE_DISPATCH_END")) {
-            define("FLUTE_DISPATCH_END", microtime(true));
+        if (!defined('FLUTE_DISPATCH_END')) {
+            define('FLUTE_DISPATCH_END', microtime(true));
         }
 
         $res = $this->responseEvent($dispatchResult);
 
-        if (!defined("FLUTE_EVENTS_END")) {
-            define("FLUTE_EVENTS_END", microtime(true));
+        if (!defined('FLUTE_EVENTS_END')) {
+            define('FLUTE_EVENTS_END', microtime(true));
         }
 
-        if (!defined("FLUTE_ROUTER_END")) {
-            define("FLUTE_ROUTER_END", microtime(true));
+        if (!defined('FLUTE_ROUTER_END')) {
+            define('FLUTE_ROUTER_END', microtime(true));
         }
 
         $this->get(FluteEventDispatcher::class)->saveDeferredListenersToCache();
 
-        if (!defined("FLUTE_DEFERRED_SAVE_END")) {
-            define("FLUTE_DEFERRED_SAVE_END", microtime(true));
+        if (!defined('FLUTE_DEFERRED_SAVE_END')) {
+            define('FLUTE_DEFERRED_SAVE_END', microtime(true));
         }
 
         // Stop profiler before sending response
@@ -413,12 +403,9 @@ final class App
     public function getConsole(): Application
     {
         if ($this->consoleApplication === null) {
-            $this->consoleApplication = new Application(
-                "Flute CLI",
-                self::VERSION,
-            );
+            $this->consoleApplication = new Application('Flute CLI', self::VERSION);
             $this->bind(Application::class, $this->consoleApplication);
-            $this->bind("console", $this->consoleApplication);
+            $this->bind('console', $this->consoleApplication);
         }
 
         return $this->consoleApplication;
@@ -514,13 +501,13 @@ final class App
 
         $containerBuilder->addDefinitions([
             self::class => $this,
-            "app" => \DI\get(self::class),
+            'app' => \DI\get(self::class),
         ]);
 
         // Enable container optimizations outside CLI
-        if (!(php_sapi_name() === "cli" || defined("STDIN"))) {
+        if (!( php_sapi_name() === 'cli' || defined('STDIN') )) {
             // In performance mode compile container, always write proxies to disk
-            if (function_exists("is_performance") && is_performance()) {
+            if (function_exists('is_performance') && is_performance()) {
                 $containerBuilder->enableCompilation(
                     BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
                 );
@@ -544,7 +531,7 @@ final class App
 
         foreach ($this->listen as $event => $listeners) {
             foreach ($listeners as $listener) {
-                $dispatcher->addListener($event, [new $listener(), "handle"]);
+                $dispatcher->addListener($event, [new $listener(), 'handle']);
             }
         }
     }
@@ -557,7 +544,8 @@ final class App
      */
     protected function responseEvent(Response $response): Response
     {
-        return $this->get(EventDispatcher::class)
+        return $this
+            ->get(EventDispatcher::class)
             ->dispatch(new ResponseEvent($response), ResponseEvent::NAME)
             ->getResponse();
     }

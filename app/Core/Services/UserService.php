@@ -130,7 +130,10 @@ class UserService
             return $this->usersCache[$route];
         }
 
-        $user = User::query()->where(['uri' => $route])->load('blocksReceived')->fetchOne();
+        $user = User::query()
+            ->where(['uri' => $route])
+            ->load('blocksReceived')
+            ->fetchOne();
 
         if ($user) {
             $this->usersCache[$user->id] = $user;
@@ -147,8 +150,11 @@ class UserService
      * @param bool $force Force data refresh from the database.
      * @param array $with Load specified relationships.
      */
-    public function get(int $userId, bool $force = false, array $with = ['roles', 'roles.permissions', 'blocksReceived']): ?User
-    {
+    public function get(
+        int $userId,
+        bool $force = false,
+        array $with = ['roles', 'roles.permissions', 'blocksReceived'],
+    ): ?User {
         if (isset($this->usersCache[$userId]) && !$force) {
             return $this->usersCache[$userId];
         }
@@ -356,7 +362,7 @@ class UserService
         if ($balanceUser->balance < $sum) {
             $neededSum = $sum - $balanceUser->balance;
 
-            throw (new BalanceNotEnoughException())->setNeededSum($neededSum);
+            throw ( new BalanceNotEnoughException() )->setNeededSum($neededSum);
         }
 
         $balanceUser->balance -= $sum;
@@ -422,7 +428,8 @@ class UserService
         $currentUserHighestPriority = $this->getHighestPriority();
         $userToEditHighestPriority = $this->getHighestPriority($userToEdit);
 
-        return $currentUserHighestPriority > $userToEditHighestPriority || $this->can(UserPermission::ADMIN_BOSS->value);
+        return $currentUserHighestPriority > $userToEditHighestPriority
+        || $this->can(UserPermission::ADMIN_BOSS->value);
     }
 
     /**
@@ -486,7 +493,7 @@ class UserService
             return false;
         }
 
-        return ($this->currentUser->balance ?? 0) >= $sum;
+        return ( $this->currentUser->balance ?? 0 ) >= $sum;
     }
 
     /**
@@ -604,14 +611,21 @@ class UserService
 
             if (config('auth.check_ip')) {
                 if ($tokenInfo->userDevice->ip !== request()->ip()) {
-                    logs()->warning('auth.token.ip_mismatch', ['expected' => $tokenInfo->userDevice->ip, 'actual' => request()->ip()]);
+                    logs()->warning('auth.token.ip_mismatch', [
+                        'expected' => $tokenInfo->userDevice->ip,
+                        'actual' => request()->ip(),
+                    ]);
                     $this->sessionExpired();
 
                     return;
                 }
             }
 
-            $this->currentUser = $this->get((int) $tokenInfo->user->id, false, ['roles', 'roles.permissions', 'blocksReceived']);
+            $this->currentUser = $this->get(
+                (int) $tokenInfo->user->id,
+                false,
+                ['roles', 'roles.permissions', 'blocksReceived'],
+            );
 
             if (!$this->currentUser) {
                 $this->sessionExpired();
@@ -621,7 +635,7 @@ class UserService
 
             session()->set('user_id', $tokenInfo->user->id);
 
-            $dt = (int) round((microtime(true) - $t0) * 1000);
+            $dt = (int) round(( microtime(true) - $t0 ) * 1000);
             if ($dt >= 20) {
                 logs()->info('auth.token.initialize_success', ['ms' => $dt, 'user_id' => (int) $tokenInfo->user->id]);
             } else {

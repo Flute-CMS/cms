@@ -4,4 +4,4 @@
     <span class="badge warning">{{ __('admin-payment.status.depleted') }}</span>
 @else
     <span class="badge success">{{ __('admin-payment.status.active') }}</span>
-@endif 
+@endif

@@ -56,8 +56,16 @@ class CookieService
      * @param string $sameSite SameSite attribute for the cookie
      * @param bool|null $secure Whether the cookie should only be sent over HTTPS. If null, auto-detect based on request.
      */
-    public function set(string $name, string $value, $expire = null, string $path = '/', ?string $domain = null, bool $httpOnly = true, string $sameSite = 'Strict', ?bool $secure = null): void
-    {
+    public function set(
+        string $name,
+        string $value,
+        $expire = null,
+        string $path = '/',
+        ?string $domain = null,
+        bool $httpOnly = true,
+        string $sameSite = 'Strict',
+        ?bool $secure = null,
+    ): void {
         $cookie = new Cookie(
             name: $name,
             value: $value,
@@ -67,7 +75,7 @@ class CookieService
             secure: $secure ?? $this->request->isSecure(),
             httpOnly: $httpOnly,
             raw: false,
-            sameSite: $sameSite
+            sameSite: $sameSite,
         );
         $this->cookies[$name] = $cookie;
         $this->localCookies[$name] = $value;
@@ -92,7 +100,7 @@ class CookieService
      */
     public function remove(string $name, string $path = '/', ?string $domain = null): void
     {
-        $this->set($name, '', (new DateTimeImmutable())->modify("-3600 seconds"), $path, $domain);
+        $this->set($name, '', ( new DateTimeImmutable() )->modify('-3600 seconds'), $path, $domain);
         unset($this->localCookies[$name]);
     }
 
@@ -124,10 +132,10 @@ class CookieService
         }
 
         if (is_int($expire)) {
-            return (new DateTimeImmutable())->modify("+{$expire} seconds");
+            return ( new DateTimeImmutable() )->modify("+{$expire} seconds");
         }
 
         // Default to 30 days for null or any other type
-        return (new DateTimeImmutable())->modify("+30 days");
+        return ( new DateTimeImmutable() )->modify('+30 days');
     }
 }

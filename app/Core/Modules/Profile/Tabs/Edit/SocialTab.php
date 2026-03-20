@@ -22,7 +22,7 @@ class SocialTab extends ProfileTab
         return 'ph.bold.plugs-connected-bold';
     }
 
-    public function getDescription(): string|null
+    public function getDescription(): ?string
     {
         return __('profile.edit.social.description');
     }

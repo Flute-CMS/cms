@@ -33,11 +33,21 @@ class RouterServiceProvider extends AbstractServiceProvider
 
             RequestContext::class => \DI\autowire(),
 
-            UrlMatcher::class => \DI\factory(static fn (Container $c) => new UrlMatcher($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
+            UrlMatcher::class => \DI\factory(
+                static fn(Container $c) => new UrlMatcher(
+                    $c->get(RouteCollection::class),
+                    ( new RequestContext() )->fromRequest($c->get(FluteRequest::class)),
+                ),
+            ),
 
             ContainerControllerResolver::class => \DI\autowire(),
 
-            UrlGenerator::class => \DI\factory(static fn (Container $c) => new UrlGenerator($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
+            UrlGenerator::class => \DI\factory(
+                static fn(Container $c) => new UrlGenerator(
+                    $c->get(RouteCollection::class),
+                    ( new RequestContext() )->fromRequest($c->get(FluteRequest::class)),
+                ),
+            ),
 
             RateLimiterFactory::class => \DI\factory(static function (Container $c) {
                 $storage = new CacheStorage($c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter());
@@ -58,10 +68,7 @@ class RouterServiceProvider extends AbstractServiceProvider
             }),
 
             CsrfTokenManagerInterface::class => \DI\create(CsrfTokenManager::class)
-                ->constructor(
-                    \DI\get(UriSafeTokenGenerator::class),
-                    \DI\get(SessionTokenStorage::class)
-                ),
+                ->constructor(\DI\get(UriSafeTokenGenerator::class), \DI\get(SessionTokenStorage::class)),
 
             Router::class => \DI\autowire(),
 

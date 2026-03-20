@@ -84,7 +84,7 @@ abstract class Sortable extends Layout
             return;
         }
 
-        $columns = collect($this->columns())->filter(static fn (Sight $sight) => $sight->isVisible());
+        $columns = collect($this->columns())->filter(static fn(Sight $sight) => $sight->isVisible());
 
         $rows = collect()->merge($repository->getContent($this->target));
 

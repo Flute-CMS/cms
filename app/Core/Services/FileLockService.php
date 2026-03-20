@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Core\Services;
 
@@ -85,8 +85,11 @@ class FileLockService
      * @throws LockAcquireTimeoutException If lock cannot be acquired within timeout
      * @return mixed Return value from callback
      */
-    public static function withLock(string $lockFile, callable $callback, float $timeoutSeconds = self::DEFAULT_TIMEOUT): mixed
-    {
+    public static function withLock(
+        string $lockFile,
+        callable $callback,
+        float $timeoutSeconds = self::DEFAULT_TIMEOUT,
+    ): mixed {
         // Create directory first (needed for normalization)
         $dir = dirname($lockFile);
         if (!is_dir($dir) && !mkdir($dir, 0o755, true) && !is_dir($dir)) {
@@ -103,6 +106,7 @@ class FileLockService
                 return $callback();
             } finally {
                 self::$withLockCache[$normalizedPath]['depth']--;
+
                 // Don't release - outer withLock will handle it
             }
         }
@@ -118,7 +122,7 @@ class FileLockService
         try {
             // Try to acquire lock with timeout (using monotonic clock)
             $startNs = hrtime(true);
-            $timeoutNs = (int) ($timeoutSeconds * 1_000_000_000);
+            $timeoutNs = (int) ( $timeoutSeconds * 1_000_000_000 );
 
             while (true) {
                 if (flock($handle, LOCK_EX | LOCK_NB)) {
@@ -138,7 +142,9 @@ class FileLockService
             if (!$locked) {
                 fclose($handle);
 
-                throw new LockAcquireTimeoutException("Could not acquire lock for {$lockFile} after {$timeoutSeconds} seconds");
+                throw new LockAcquireTimeoutException(
+                    "Could not acquire lock for {$lockFile} after {$timeoutSeconds} seconds",
+                );
             }
 
             // Write PID for debugging
@@ -154,7 +160,6 @@ class FileLockService
 
             // Execute the callback
             return $callback();
-
         } finally {
             // Release only if this is the outermost withLock call
             if (isset(self::$withLockCache[$normalizedPath])) {
@@ -191,7 +196,7 @@ class FileLockService
         string $lockFile,
         callable $callback,
         ?callable $onLockFailed = null,
-        float $timeoutSeconds = self::DEFAULT_TIMEOUT
+        float $timeoutSeconds = self::DEFAULT_TIMEOUT,
     ): mixed {
         try {
             return self::withLock($lockFile, $callback, $timeoutSeconds);
@@ -202,6 +207,7 @@ class FileLockService
 
             return null;
         }
+
         // RuntimeException (directory/file errors) propagates up
     }
 
@@ -278,7 +284,7 @@ class FileLockService
         }
 
         $startNs = hrtime(true);
-        $timeoutNs = (int) ($timeoutSeconds * 1_000_000_000);
+        $timeoutNs = (int) ( $timeoutSeconds * 1_000_000_000 );
 
         while (true) {
             if (flock($handle, LOCK_EX | LOCK_NB)) {

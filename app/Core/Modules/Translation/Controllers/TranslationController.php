@@ -18,7 +18,7 @@ class TranslationController extends BaseController
         $result = [];
 
         foreach ($translations as $key => $value) {
-            $phraseKey = is_array($value) ? ($value['phrase'] ?? null) : null;
+            $phraseKey = is_array($value) ? $value['phrase'] ?? null : null;
             if (!is_string($phraseKey) || $phraseKey === '') {
                 continue;
             }

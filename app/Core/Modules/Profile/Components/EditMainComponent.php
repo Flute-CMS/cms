@@ -79,11 +79,9 @@ class EditMainComponent extends FluteComponent
 
     public function saveTheme()
     {
-        if (
-            $this->validate([
-                'theme' => 'required|in:dark,light,system',
-            ])
-        ) {
+        if ($this->validate([
+            'theme' => 'required|in:dark,light,system',
+        ])) {
             if ($this->theme === 'system') {
                 cookie()->remove('theme');
             } else {
@@ -100,11 +98,9 @@ class EditMainComponent extends FluteComponent
 
     public function savePrivacy()
     {
-        if (
-            $this->validate([
-                'privacy' => 'required|in:hidden,visible',
-            ])
-        ) {
+        if ($this->validate([
+            'privacy' => 'required|in:hidden,visible',
+        ])) {
             $this->user->hidden = $this->privacy === 'hidden';
 
             user()->updateUser($this->user);
@@ -132,8 +128,20 @@ class EditMainComponent extends FluteComponent
             return;
         }
 
-        $avatarError = $this->processImageUpload('avatar', $uploader, $uploadsDir, config('profile.max_avatar_size'), 'events.profile_avatar_updated');
-        $bannerError = $this->processImageUpload('banner', $uploader, $uploadsDir, config('profile.max_banner_size'), 'events.profile_banner_updated');
+        $avatarError = $this->processImageUpload(
+            'avatar',
+            $uploader,
+            $uploadsDir,
+            config('profile.max_avatar_size'),
+            'events.profile_avatar_updated',
+        );
+        $bannerError = $this->processImageUpload(
+            'banner',
+            $uploader,
+            $uploadsDir,
+            config('profile.max_banner_size'),
+            'events.profile_banner_updated',
+        );
 
         if ($avatarError || $bannerError) {
             $this->handleImageErrors($avatarError, $bannerError);
@@ -206,8 +214,13 @@ class EditMainComponent extends FluteComponent
     /**
      * Handle the upload of a single image.
      */
-    protected function processImageUpload(string $field, FileUploader $uploader, string $uploadsDir, int $maxSize, string $logEvent): ?string
-    {
+    protected function processImageUpload(
+        string $field,
+        FileUploader $uploader,
+        string $uploadsDir,
+        int $maxSize,
+        string $logEvent,
+    ): ?string {
         $file = $this->$field;
         if ($file instanceof UploadedFile && $file->isValid()) {
             try {
@@ -313,11 +326,11 @@ class EditMainComponent extends FluteComponent
 
         $rules = [
             'avatar' => $this->avatar
-                ? 'image|max-file-size:' . (config('profile.max_avatar_size') * 1024)
-                : 'nullable|image|max-file-size:' . (config('profile.max_avatar_size') * 1024),
+                ? 'image|max-file-size:' . ( config('profile.max_avatar_size') * 1024 )
+                : 'nullable|image|max-file-size:' . ( config('profile.max_avatar_size') * 1024 ),
             'banner' => $this->banner
-                ? 'image|max-file-size:' . (config('profile.max_banner_size') * 1024)
-                : 'nullable|image|max-file-size:' . (config('profile.max_banner_size') * 1024),
+                ? 'image|max-file-size:' . ( config('profile.max_banner_size') * 1024 )
+                : 'nullable|image|max-file-size:' . ( config('profile.max_banner_size') * 1024 ),
         ];
 
         return $this->validate($rules);
@@ -343,7 +356,8 @@ class EditMainComponent extends FluteComponent
                 'min-str-len:' . config('auth.validation.password.min_length'),
                 'max-str-len:' . config('auth.validation.password.max_length'),
             ],
-            'new_password_confirmation' => 'required|string|min-str-len:' . config('auth.validation.password.min_length'),
+            'new_password_confirmation' =>
+                'required|string|min-str-len:' . config('auth.validation.password.min_length'),
         ];
 
         if ($requiresCurrentPassword) {

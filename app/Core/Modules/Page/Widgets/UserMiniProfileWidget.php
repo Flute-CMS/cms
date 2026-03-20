@@ -23,7 +23,7 @@ class UserMiniProfileWidget extends AbstractWidget
     /**
      * Renders the widget with specified settings.
      */
-    public function render(array $settings): string|null
+    public function render(array $settings): ?string
     {
         $user = user()->getCurrentUser();
 

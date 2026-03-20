@@ -49,9 +49,7 @@ class PaymentGatewayScreen extends Screen
         $this->name = __('admin-payment.title.gateways');
         $this->description = __('admin-payment.title.gateways_description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-payment.title.gateways'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-payment.title.gateways'));
     }
 
     /**
@@ -85,42 +83,47 @@ class PaymentGatewayScreen extends Screen
                 __('admin-payment.metrics.today_revenue') => 'money',
             ]),
 
-            Filters::make()
-                ->status('status', __('admin.filters.status_label'), 'all')
-                ->compact(),
+            Filters::make()->status('status', __('admin.filters.status_label'), 'all')->compact(),
 
             LayoutFactory::table('gateways', [
                 TD::selection('id'),
                 TD::make('image', '')
-                    ->render(static fn (PaymentGateway $gateway) => view('admin-payment::cells.gateway-image', ['gateway' => $gateway]))
+                    ->render(static fn(PaymentGateway $gateway) => view('admin-payment::cells.gateway-image', [
+                        'gateway' => $gateway,
+                    ]))
                     ->width('80px'),
 
                 TD::make('name', __('admin-payment.table.name'))
-                    ->render(static fn (PaymentGateway $gateway) => $gateway->name)
+                    ->render(static fn(PaymentGateway $gateway) => $gateway->name)
                     ->width('150px'),
 
-                TD::make('adapter', __('admin-payment.table.adapter'))
-                    ->width('200px'),
+                TD::make('adapter', __('admin-payment.table.adapter'))->width('200px'),
 
                 TD::make('enabled', __('admin-payment.table.status'))
-                    ->render(static fn (PaymentGateway $gateway) => view('admin-payment::cells.gateway-status', ['enabled' => $gateway->enabled]))
+                    ->render(static fn(PaymentGateway $gateway) => view('admin-payment::cells.gateway-status', [
+                        'enabled' => $gateway->enabled,
+                    ]))
                     ->width('150px'),
 
                 TD::make('createdAt', __('admin-payment.table.created_at'))
                     ->sort()
-                    ->render(static fn (PaymentGateway $gateway) => $gateway->createdAt->format(default_date_format()))
+                    ->render(static fn(PaymentGateway $gateway) => $gateway->createdAt->format(default_date_format()))
                     ->width('200px'),
 
                 TD::make('actions', __('admin-payment.table.actions'))
                     ->class('actions-col')
-                    ->render(fn (PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
+                    ->render(fn(PaymentGateway $gateway) => $this->gatewayActionsDropdown($gateway))
                     ->width('100px'),
             ])
-                ->empty('ph.regular.credit-card', __('admin-payment.empty.gateways.title'), __('admin-payment.empty.gateways.sub'))
+                ->empty(
+                    'ph.regular.credit-card',
+                    __('admin-payment.empty.gateways.title'),
+                    __('admin-payment.empty.gateways.sub'),
+                )
                 ->emptyButton(
                     Button::make(__('admin-payment.buttons.add_gateway'))
                         ->icon('ph.bold.plus-bold')
-                        ->redirect(url('/admin/payment/gateways/add'))
+                        ->redirect(url('/admin/payment/gateways/add')),
                 )
                 ->searchable([
                     'name',
@@ -166,13 +169,16 @@ class PaymentGatewayScreen extends Screen
             $gateway->saveOrFail();
 
             $this->flashMessage(
-                $gateway->enabled ? __('admin-payment.messages.gateway_enabled') : __('admin-payment.messages.gateway_disabled'),
-                'success'
+                $gateway->enabled
+                    ? __('admin-payment.messages.gateway_enabled')
+                    : __('admin-payment.messages.gateway_disabled'),
+                'success',
             );
 
             $this->metrics = $this->calculateMetrics();
         } catch (Exception $e) {
-            $this->flashMessage(__('admin-payment.messages.status_change_error', ['message' => $e->getMessage()]), 'error');
+            $this->flashMessage(__('admin-payment.messages.status_change_error', ['message' =>
+                $e->getMessage()]), 'error');
         }
     }
 
@@ -321,16 +327,16 @@ class PaymentGatewayScreen extends Screen
         }
 
         $gatewaysDiff = $lastMonthGateways > 0
-            ? (($totalGateways - $lastMonthGateways) / $lastMonthGateways) * 100
-            : ($totalGateways > 0 ? 100 : 0);
+            ? ( ( $totalGateways - $lastMonthGateways ) / $lastMonthGateways ) * 100
+            : ( $totalGateways > 0 ? 100 : 0 );
 
         $transactionsDiff = $yesterdayTransactions > 0
-            ? (($todayTransactions - $yesterdayTransactions) / $yesterdayTransactions) * 100
-            : ($todayTransactions > 0 ? 100 : 0);
+            ? ( ( $todayTransactions - $yesterdayTransactions ) / $yesterdayTransactions ) * 100
+            : ( $todayTransactions > 0 ? 100 : 0 );
 
         $revenueDiff = $yesterdayRevenue > 0
-            ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100
-            : ($todayRevenue > 0 ? 100 : 0);
+            ? ( ( $todayRevenue - $yesterdayRevenue ) / $yesterdayRevenue ) * 100
+            : ( $todayRevenue > 0 ? 100 : 0 );
 
         return [
             'total_gateways' => [
@@ -339,7 +345,11 @@ class PaymentGatewayScreen extends Screen
                 'icon' => 'bank',
             ],
             'active_gateways' => [
-                'value' => number_format($activeGateways) . ' (' . ($totalGateways > 0 ? round(($activeGateways / $totalGateways) * 100) : 0) . '%)',
+                'value' =>
+                    number_format($activeGateways)
+                        . ' ('
+                        . ( $totalGateways > 0 ? round(( $activeGateways / $totalGateways ) * 100) : 0 )
+                        . '%)',
                 'diff' => 0,
                 'icon' => 'check-circle',
             ],
@@ -371,7 +381,9 @@ class PaymentGatewayScreen extends Screen
                     ->size('small')
                     ->fullWidth(),
 
-                DropDownItem::make($gateway->enabled ? __('admin-payment.buttons.disable') : __('admin-payment.buttons.enable'))
+                DropDownItem::make(
+                    $gateway->enabled ? __('admin-payment.buttons.disable') : __('admin-payment.buttons.enable'),
+                )
                     ->method('toggleGateway', ['gatewayId' => $gateway->id])
                     ->icon($gateway->enabled ? 'ph.bold.power-bold' : 'ph.bold.play-bold')
                     ->type($gateway->enabled ? Color::OUTLINE_WARNING : Color::OUTLINE_SUCCESS)

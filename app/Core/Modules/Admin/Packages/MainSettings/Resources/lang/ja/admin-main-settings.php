@@ -71,6 +71,8 @@ return [
         'captcha_enabled_login' => 'ログインCaptchaを有効化',
         'captcha_enabled_register' => '登録Captchaを有効化',
         'captcha_type' => 'Captchaタイプ',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
     ],
     'options' => [
         'robots' => [
@@ -96,6 +98,8 @@ return [
         'flute_key' => 'MarketplaceからFluteキーを入力',
         'keywords' => 'キーワードを入力',
         'description' => '説明を入力',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
     ],
     'buttons' => [
         'clear_cache' => 'キャッシュをクリア',
@@ -148,5 +152,7 @@ return [
     'popovers' => [
         'lk_only_modal' => 'Replaces user dashboard with a modal.',
         'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
     ],
 ];

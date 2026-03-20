@@ -11,7 +11,7 @@ class NavbarServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             NavbarService::class => \DI\autowire(),
-            "navbar" => \DI\get(NavbarService::class),
+            'navbar' => \DI\get(NavbarService::class),
         ]);
     }
 

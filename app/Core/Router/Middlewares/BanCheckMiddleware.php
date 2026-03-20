@@ -21,7 +21,7 @@ class BanCheckMiddleware extends BaseMiddleware
             $reason = $this->getBlockReason($request);
 
             return $this->error()->forbidden(__('def.you_are_blocked', [
-                ":reason" => $reason,
+                ':reason' => $reason,
             ]));
         }
 
@@ -74,26 +74,30 @@ class BanCheckMiddleware extends BaseMiddleware
     {
         $cacheKey = 'flute.ip_block_info.' . md5($ipAddress);
 
-        return cache()->callback($cacheKey, static function () use ($ipAddress) {
-            $userDevice = UserDevice::query()
-                ->where('ip', $ipAddress)
-                ->load(['user', 'user.blocksReceived'])
-                ->fetchOne();
+        return cache()->callback(
+            $cacheKey,
+            static function () use ($ipAddress) {
+                $userDevice = UserDevice::query()
+                    ->where('ip', $ipAddress)
+                    ->load(['user', 'user.blocksReceived'])
+                    ->fetchOne();
 
-            if (!$userDevice) {
+                if (!$userDevice) {
+                    return ['blocked' => false, 'reason' => null];
+                }
+
+                if ($userDevice->user->isBlocked()) {
+                    $info = $userDevice->user->getBlockInfo();
+
+                    return [
+                        'blocked' => true,
+                        'reason' => $info['reason'] ?? null,
+                    ];
+                }
+
                 return ['blocked' => false, 'reason' => null];
-            }
-
-            if ($userDevice->user->isBlocked()) {
-                $info = $userDevice->user->getBlockInfo();
-
-                return [
-                    'blocked' => true,
-                    'reason' => $info['reason'] ?? null,
-                ];
-            }
-
-            return ['blocked' => false, 'reason' => null];
-        }, self::CACHE_TIME);
+            },
+            self::CACHE_TIME,
+        );
     }
 }

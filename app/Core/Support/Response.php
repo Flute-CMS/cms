@@ -32,7 +32,7 @@ class Response
     public function success($message = 'success', int $status = 200): JsonResponse
     {
         return $this->json([
-            "success" => $message,
+            'success' => $message,
         ], $status);
     }
 
@@ -48,12 +48,12 @@ class Response
 
         if ($request->expectsJson() || $request->isAjax()) {
             return $this->json([
-                "error" => $message,
+                'error' => $message,
             ], $status);
         }
 
         return $this->make($this->template->renderError($status, [
-            "message" => $message,
+            'message' => $message,
         ]), $status);
     }
 
@@ -123,8 +123,12 @@ class Response
      *
      * @return HtmxResponse
      */
-    public function redirect(string $url, int $status = 302, array $headers = [], bool $redirectForced = false): RedirectResponse
-    {
+    public function redirect(
+        string $url,
+        int $status = 302,
+        array $headers = [],
+        bool $redirectForced = false,
+    ): RedirectResponse {
         $redirect = app()->make(RedirectResponse::class, ['to' => $url, 'status' => $status, 'headers' => $headers]);
 
         return $redirectForced ? $redirect->send() : $redirect;
@@ -137,7 +141,7 @@ class Response
     {
         $redirect = app()->make(RedirectResponse::class, ['to' => $url, 'status' => $status, 'headers' => $headers]);
         $redirect->send();
-        exit;
+        exit();
     }
 
     /**

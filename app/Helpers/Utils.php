@@ -9,8 +9,6 @@ use Flute\Core\Support\UrlSupport;
 use Flute\Core\Validator\FluteValidator;
 use Nette\Utils\Validators;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use xPaw\SourceQuery\SourceQuery;
-
 // Spizdil s laravel
 if (!function_exists("tap")) {
     function tap($value, $callback)
@@ -297,13 +295,12 @@ if (!function_exists('table_lang')) {
 }
 
 if (!function_exists('sq')) {
-    function sq(string $ip, int $port, int $timeout = 3, int $engine = 1)
+    /**
+     * @deprecated Use ServerQueryService instead
+     */
+    function sq(string $ip, int $port, int $timeout = 3, string $mod = 'source'): \Flute\Core\ServerQuery\QueryResult
     {
-        $Query = new SourceQuery();
-
-        $Query->Connect($ip, $port, $timeout, $engine);
-
-        return $Query;
+        return app(\Flute\Core\ServerQuery\ServerQueryService::class)->queryRaw($ip, $port, $mod, $timeout);
     }
 }
 

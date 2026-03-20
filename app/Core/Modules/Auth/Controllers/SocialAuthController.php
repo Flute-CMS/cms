@@ -24,7 +24,13 @@ class SocialAuthController extends BaseController
 
                 $redirectUrl = redirect('/profile/settings?tab=social')->getTargetUrl();
 
-                return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', " . $origin . "); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+                return response()->make(
+                    "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+                    . $origin
+                    . "); window.close(); } else { window.location = '"
+                    . $redirectUrl
+                    . "'; }</script>",
+                );
             }
 
             $user = social()->authenticateWithRegister(ucfirst($provider));
@@ -37,7 +43,13 @@ class SocialAuthController extends BaseController
 
             $redirectUrl = redirect('/')->getTargetUrl();
 
-            return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', " . $origin . "); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+            return response()->make(
+                "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+                . $origin
+                . "); window.close(); } else { window.location = '"
+                . $redirectUrl
+                . "'; }</script>",
+            );
         } catch (NeedRegistrationException $e) {
             return $this->socialError('This function is not supported yet.', $request);
         } catch (UserNotFoundException $e) {
@@ -63,7 +75,13 @@ class SocialAuthController extends BaseController
         $redirectUrl = redirect('/')->getTargetUrl();
         $origin = json_encode($this->getSiteOrigin());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', " . $origin . "); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+            . $origin
+            . "); window.close(); } else { window.location = '"
+            . $redirectUrl
+            . "'; }</script>",
+        );
     }
 
     /**
@@ -77,7 +95,17 @@ class SocialAuthController extends BaseController
         $errorJs = json_encode($error);
         $redirectUrlJs = json_encode($redirectUrl);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", " . $origin . "); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_error:' + "
+            . $errorJs
+            . ', '
+            . $origin
+            . '); window.close(); } else { alert('
+            . $errorJs
+            . '); window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 
     /**
@@ -89,7 +117,7 @@ class SocialAuthController extends BaseController
         if (!empty($url)) {
             $parsed = parse_url($url);
 
-            return ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
+            return ( $parsed['scheme'] ?? 'https' ) . '://' . ( $parsed['host'] ?? '' );
         }
 
         return request()->getSchemeAndHttpHost();

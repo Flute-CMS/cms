@@ -41,7 +41,13 @@ class RegisterComponent extends FluteComponent
                     'remember_me' => $this->rememberMe,
                 ], $this->rememberMe);
 
-                toast()->success(app('auth.registration.confirm_email') ? __('auth.register_email') : __('auth.register_success'))->push();
+                toast()
+                    ->success(
+                        app('auth.registration.confirm_email')
+                            ? __('auth.register_email')
+                            : __('auth.register_success'),
+                    )
+                    ->push();
 
                 $this->modalClose('register-modal');
 
@@ -175,9 +181,10 @@ class RegisterComponent extends FluteComponent
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

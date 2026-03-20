@@ -71,9 +71,7 @@ class EditNotificationsComponent extends FluteComponent
         $setting = $this->getOrCreateSetting();
         $availableChannels = $this->getAvailableChannels();
 
-        $templates = NotificationTemplate::query()
-            ->where(['is_enabled' => true])
-            ->fetchAll();
+        $templates = NotificationTemplate::query()->where(['is_enabled' => true])->fetchAll();
 
         $templateSettings = [];
 

@@ -43,9 +43,12 @@ class InstallerServiceProvider extends AbstractServiceProvider
             $this->registerRoutes();
 
             $template->addNamespace('installer', path('app/Core/Modules/Installer/Resources/views'));
-            $template->getTemplateAssets()->getCompiler()->setImportPaths(path('app/Core/Modules/Installer/Resources/assets/sass'));
+            $template
+                ->getTemplateAssets()
+                ->getCompiler()
+                ->setImportPaths(path('app/Core/Modules/Installer/Resources/assets/sass'));
 
-            (new SystemConfiguration())->initSystem();
+            ( new SystemConfiguration() )->initSystem();
         }
     }
 
@@ -57,10 +60,10 @@ class InstallerServiceProvider extends AbstractServiceProvider
             $componentFiles = $template->getBladeFiles($componentsDir);
 
             foreach ($componentFiles as $componentFile) {
-                $relativePath = str_replace([$componentsDir.DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
+                $relativePath = str_replace([$componentsDir . DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
                 $alias = str_replace(DIRECTORY_SEPARATOR, '.', $relativePath);
 
-                $componentView = "Core.Modules.Installer.Resources.views.components.".$alias;
+                $componentView = 'Core.Modules.Installer.Resources.views.components.' . $alias;
                 $template->getBlade()->compiler()->component($componentView, $alias);
             }
         }
@@ -71,6 +74,9 @@ class InstallerServiceProvider extends AbstractServiceProvider
      */
     protected function registerRoutes(): void
     {
-        router()->registerAttributeRoutes([BASE_PATH.'/app/Core/Modules/Installer/Controllers'], 'Flute\Core\Modules\Installer\Controllers');
+        router()->registerAttributeRoutes(
+            [BASE_PATH . '/app/Core/Modules/Installer/Controllers'],
+            'Flute\Core\Modules\Installer\Controllers',
+        );
     }
 }

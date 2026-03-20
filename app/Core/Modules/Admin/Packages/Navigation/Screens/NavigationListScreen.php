@@ -34,9 +34,7 @@ class NavigationListScreen extends Screen
         $this->name = __('admin-navigation.title');
         $this->description = __('admin-navigation.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-navigation.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-navigation.title'));
 
         $this->loadNavbarItems();
     }
@@ -56,27 +54,32 @@ class NavigationListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('navbarItems', [
-                Sight::make('title', __('admin-navigation.table.title'))->render(static fn (NavbarItem $navbarItem) => view('admin-navigation::cells.item-title', compact('navbarItem'))),
-                Sight::make('actions', __('admin-navigation.table.actions'))
-                    ->render(
-                        static fn (NavbarItem $navbarItem) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-navigation.buttons.edit'))
-                                    ->modal('editNavbarItemModal', ['navbarItem' => $navbarItem->id])
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
-                                DropDownItem::make(__('admin-navigation.buttons.delete'))
-                                    ->confirm(__('admin-navigation.confirms.delete_item'))
-                                    ->method('deleteNavbarItem', ['id' => $navbarItem->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
+                Sight::make(
+                    'title',
+                    __('admin-navigation.table.title'),
+                )->render(static fn(NavbarItem $navbarItem) => view(
+                    'admin-navigation::cells.item-title',
+                    compact('navbarItem'),
+                )),
+                Sight::make('actions', __('admin-navigation.table.actions'))->render(
+                    static fn(NavbarItem $navbarItem) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list([
+                            DropDownItem::make(__('admin-navigation.buttons.edit'))
+                                ->modal('editNavbarItemModal', ['navbarItem' => $navbarItem->id])
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
+                            DropDownItem::make(__('admin-navigation.buttons.delete'))
+                                ->confirm(__('admin-navigation.confirms.delete_item'))
+                                ->method('deleteNavbarItem', ['id' => $navbarItem->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ]),
+                ),
             ])
                 ->maxLevels(levels: 3)
                 ->onSortEnd('updateNavbarItemPositions')
@@ -114,7 +117,7 @@ class NavigationListScreen extends Screen
             LayoutFactory::field(
                 TranslatableInput::make('title')
                     ->type('text')
-                    ->placeholder(__('admin-navigation.modal.item.fields.title.placeholder'))
+                    ->placeholder(__('admin-navigation.modal.item.fields.title.placeholder')),
             )
                 ->label(__('admin-navigation.modal.item.fields.title.label'))
                 ->required()
@@ -123,15 +126,13 @@ class NavigationListScreen extends Screen
             LayoutFactory::field(
                 TranslatableInput::make('description')
                     ->type('text')
-                    ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
+                    ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder')),
             )
                 ->label(__('admin-navigation.modal.item.fields.description.label'))
                 ->small(__('admin-navigation.modal.item.fields.description.help')),
 
             LayoutFactory::field(
-                Input::make('url')
-                    ->type('text')
-                    ->placeholder(__('admin-navigation.modal.item.fields.url.placeholder'))
+                Input::make('url')->type('text')->placeholder(__('admin-navigation.modal.item.fields.url.placeholder')),
             )
                 ->label(__('admin-navigation.modal.item.fields.url.label'))
                 ->small(__('admin-navigation.modal.item.fields.url.help')),
@@ -145,20 +146,28 @@ class NavigationListScreen extends Screen
             LayoutFactory::field(
                 Input::make('icon')
                     ->type('icon')
-                    ->placeholder(__('admin-navigation.modal.item.fields.icon.placeholder'))
-            )
-                ->label(__('admin-navigation.modal.item.fields.icon.label')),
+                    ->placeholder(__('admin-navigation.modal.item.fields.icon.placeholder')),
+            )->label(__('admin-navigation.modal.item.fields.icon.label')),
 
             LayoutFactory::columns([
                 LayoutFactory::field(
                     RadioCards::make('visibility_auth')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.users-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
-                            'guests' => ['icon' => 'ph.bold.user-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
-                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
+                            'all' => [
+                                'icon' => 'ph.bold.users-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all'),
+                            ],
+                            'guests' => [
+                                'icon' => 'ph.bold.user-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests'),
+                            ],
+                            'logged_in' => [
+                                'icon' => 'ph.bold.user-check-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in'),
+                            ],
                         ])
                         ->columns(3)
-                        ->value('all')
+                        ->value('all'),
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility_auth.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility_auth.help'))
@@ -167,30 +176,37 @@ class NavigationListScreen extends Screen
                 LayoutFactory::field(
                     RadioCards::make('visibility')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.devices-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.all')],
-                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
-                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
+                            'all' => [
+                                'icon' => 'ph.bold.devices-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.all'),
+                            ],
+                            'desktop' => [
+                                'icon' => 'ph.bold.desktop-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop'),
+                            ],
+                            'mobile' => [
+                                'icon' => 'ph.bold.device-mobile-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile'),
+                            ],
                         ])
                         ->columns(3)
-                        ->value('all')
+                        ->value('all'),
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility.help'))
                     ->required(),
             ]),
 
-            LayoutFactory::field(
-                Select::make('roles')
-                    ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
-                    ->multiple()
-                    ->filter(static function ($role) {
-                        if (user()->can('admin.boss')) {
-                            return true;
-                        }
+            LayoutFactory::field(Select::make('roles')
+                ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
+                ->multiple()
+                ->filter(static function ($role) {
+                    if (user()->can('admin.boss')) {
+                        return true;
+                    }
 
-                        return $role->priority <= user()->getHighestPriority();
-                    })
-            )
+                    return $role->priority <= user()->getHighestPriority();
+                }))
                 ->label(__('admin-navigation.modal.item.roles.title'))
                 ->popover(__('admin-navigation.modal.item.roles.help')),
         ])
@@ -298,7 +314,7 @@ class NavigationListScreen extends Screen
                 TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.title.placeholder'))
-                    ->value($navbarItem->title)
+                    ->value($navbarItem->title),
             )
                 ->label(__('admin-navigation.modal.item.fields.title.label'))
                 ->required()
@@ -308,7 +324,7 @@ class NavigationListScreen extends Screen
                 TranslatableInput::make('description')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.description.placeholder'))
-                    ->value($navbarItem->description)
+                    ->value($navbarItem->description),
             )
                 ->label(__('admin-navigation.modal.item.fields.description.label'))
                 ->small(__('admin-navigation.modal.item.fields.description.help')),
@@ -317,7 +333,7 @@ class NavigationListScreen extends Screen
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-navigation.modal.item.fields.url.placeholder'))
-                    ->value($navbarItem->url)
+                    ->value($navbarItem->url),
             )
                 ->label(__('admin-navigation.modal.item.fields.url.label'))
                 ->small(__('admin-navigation.modal.item.fields.url.help')),
@@ -326,27 +342,35 @@ class NavigationListScreen extends Screen
                 CheckBox::make('new_tab')
                     ->label(__('admin-navigation.modal.item.fields.new_tab.label'))
                     ->popover(__('admin-navigation.modal.item.fields.new_tab.help'))
-                    ->value($navbarItem->new_tab)
+                    ->value($navbarItem->new_tab),
             ),
 
             LayoutFactory::field(
                 Input::make('icon')
                     ->type('icon')
                     ->placeholder(__('admin-navigation.modal.item.fields.icon.placeholder'))
-                    ->value($navbarItem->icon)
-            )
-                ->label(__('admin-navigation.modal.item.fields.icon.label')),
+                    ->value($navbarItem->icon),
+            )->label(__('admin-navigation.modal.item.fields.icon.label')),
 
             LayoutFactory::columns([
                 LayoutFactory::field(
                     RadioCards::make('visibility_auth')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.users-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all')],
-                            'guests' => ['icon' => 'ph.bold.user-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests')],
-                            'logged_in' => ['icon' => 'ph.bold.user-check-bold', 'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in')],
+                            'all' => [
+                                'icon' => 'ph.bold.users-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.all'),
+                            ],
+                            'guests' => [
+                                'icon' => 'ph.bold.user-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.guests'),
+                            ],
+                            'logged_in' => [
+                                'icon' => 'ph.bold.user-check-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility_auth.options.logged_in'),
+                            ],
                         ])
                         ->columns(3)
-                        ->value($visibilityAuth)
+                        ->value($visibilityAuth),
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility_auth.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility_auth.help'))
@@ -355,31 +379,38 @@ class NavigationListScreen extends Screen
                 LayoutFactory::field(
                     RadioCards::make('visibility')
                         ->options([
-                            'all' => ['icon' => 'ph.bold.devices-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.all')],
-                            'desktop' => ['icon' => 'ph.bold.desktop-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop')],
-                            'mobile' => ['icon' => 'ph.bold.device-mobile-bold', 'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile')],
+                            'all' => [
+                                'icon' => 'ph.bold.devices-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.all'),
+                            ],
+                            'desktop' => [
+                                'icon' => 'ph.bold.desktop-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.desktop'),
+                            ],
+                            'mobile' => [
+                                'icon' => 'ph.bold.device-mobile-bold',
+                                'label' => __('admin-navigation.modal.item.fields.visibility.options.mobile'),
+                            ],
                         ])
                         ->columns(3)
-                        ->value($navbarItem->visibility)
+                        ->value($navbarItem->visibility),
                 )
                     ->label(__('admin-navigation.modal.item.fields.visibility.label'))
                     ->popover(__('admin-navigation.modal.item.fields.visibility.help'))
                     ->required(),
             ]),
 
-            LayoutFactory::field(
-                Select::make('roles')
-                    ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
-                    ->multiple()
-                    ->value($navbarItem->roles)
-                    ->filter(static function ($role) {
-                        if (user()->can('admin.boss')) {
-                            return true;
-                        }
+            LayoutFactory::field(Select::make('roles')
+                ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
+                ->multiple()
+                ->value($navbarItem->roles)
+                ->filter(static function ($role) {
+                    if (user()->can('admin.boss')) {
+                        return true;
+                    }
 
-                        return $role->priority <= user()->getHighestPriority();
-                    })
-            )
+                    return $role->priority <= user()->getHighestPriority();
+                }))
                 ->label(__('admin-navigation.modal.item.roles.title'))
                 ->popover(__('admin-navigation.modal.item.roles.help')),
         ])
@@ -585,7 +616,7 @@ class NavigationListScreen extends Screen
             }
 
             // Legacy checkbox format: roles[{id}] => 'on'
-            if (is_numeric($key) && ($value === 'on' || $value === true || $value === 1 || $value === '1')) {
+            if (is_numeric($key) && ( $value === 'on' || $value === true || $value === 1 || $value === '1' )) {
                 $roles[] = (int) $key;
             }
         }

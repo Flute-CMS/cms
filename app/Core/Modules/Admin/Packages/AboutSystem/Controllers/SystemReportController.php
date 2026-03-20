@@ -28,7 +28,7 @@ class SystemReportController extends BaseController
     public function __construct(
         ModuleManager $moduleManager,
         ThemeManager $themeManager,
-        LogViewerService $logViewerService
+        LogViewerService $logViewerService,
     ) {
         $this->moduleManager = $moduleManager;
         $this->themeManager = $themeManager;
@@ -45,7 +45,7 @@ class SystemReportController extends BaseController
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
         $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $filename
+            $filename,
         ));
 
         return $response;
@@ -103,7 +103,7 @@ class SystemReportController extends BaseController
         $lines[] = str_repeat('-', 80);
 
         $ioncubeLoaded = extension_loaded('ionCube Loader');
-        $lines[] = 'ionCube Loader: ' . ($ioncubeLoaded ? 'LOADED' : 'NOT LOADED');
+        $lines[] = 'ionCube Loader: ' . ( $ioncubeLoaded ? 'LOADED' : 'NOT LOADED' );
 
         if ($ioncubeLoaded) {
             if (function_exists('ioncube_loader_version')) {
@@ -188,13 +188,13 @@ class SystemReportController extends BaseController
                 '%.2f / %.2f / %.2f',
                 $resourceUsage['cpu_load']['1min'],
                 $resourceUsage['cpu_load']['5min'],
-                $resourceUsage['cpu_load']['15min']
+                $resourceUsage['cpu_load']['15min'],
             )),
             $this->formatKeyValue('RAM Usage', sprintf(
                 '%s / %s (%d%%)',
                 AboutSystemHelper::formatBytes($resourceUsage['ram']['used']),
                 AboutSystemHelper::formatBytes($resourceUsage['ram']['total']),
-                $resourceUsage['ram']['percent']
+                $resourceUsage['ram']['percent'],
             )),
         ];
 
@@ -227,8 +227,14 @@ class SystemReportController extends BaseController
             $this->formatKeyValue('PHP Version', PHP_VERSION),
             $this->formatKeyValue('SAPI', php_sapi_name()),
             $this->formatKeyValue('Memory Limit', $phpInfo['memory_limit'] ?? ini_get('memory_limit')),
-            $this->formatKeyValue('Max Execution Time', $phpInfo['max_execution_time'] ?? ini_get('max_execution_time') . 's'),
-            $this->formatKeyValue('Upload Max Filesize', $phpInfo['upload_max_filesize'] ?? ini_get('upload_max_filesize')),
+            $this->formatKeyValue(
+                'Max Execution Time',
+                $phpInfo['max_execution_time'] ?? ini_get('max_execution_time') . 's',
+            ),
+            $this->formatKeyValue(
+                'Upload Max Filesize',
+                $phpInfo['upload_max_filesize'] ?? ini_get('upload_max_filesize'),
+            ),
             $this->formatKeyValue('Post Max Size', $phpInfo['post_max_size'] ?? ini_get('post_max_size')),
             $this->formatKeyValue('Max Input Vars', ini_get('max_input_vars')),
             $this->formatKeyValue('Display Errors', ini_get('display_errors') ? 'On' : 'Off'),
@@ -259,12 +265,18 @@ class SystemReportController extends BaseController
         $lines = [
             $this->sectionTitle('SERVER INFORMATION'),
             $this->formatKeyValue('Operating System', PHP_OS . ' (' . php_uname('r') . ')'),
-            $this->formatKeyValue('Server Software', $serverInfo['server_software'] ?? ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A')),
-            $this->formatKeyValue('Server Protocol', $serverInfo['server_protocol'] ?? ($_SERVER['SERVER_PROTOCOL'] ?? 'N/A')),
-            $this->formatKeyValue('Server Name', $serverInfo['server_name'] ?? ($_SERVER['SERVER_NAME'] ?? 'N/A')),
-            $this->formatKeyValue('Server Port', $serverInfo['server_port'] ?? ($_SERVER['SERVER_PORT'] ?? 'N/A')),
-            $this->formatKeyValue('Document Root', $serverInfo['document_root'] ?? ($_SERVER['DOCUMENT_ROOT'] ?? 'N/A')),
-            $this->formatKeyValue('Server IP', $_SERVER['SERVER_ADDR'] ?? ($_SERVER['LOCAL_ADDR'] ?? 'N/A')),
+            $this->formatKeyValue(
+                'Server Software',
+                $serverInfo['server_software'] ?? $_SERVER['SERVER_SOFTWARE'] ?? 'N/A',
+            ),
+            $this->formatKeyValue(
+                'Server Protocol',
+                $serverInfo['server_protocol'] ?? $_SERVER['SERVER_PROTOCOL'] ?? 'N/A',
+            ),
+            $this->formatKeyValue('Server Name', $serverInfo['server_name'] ?? $_SERVER['SERVER_NAME'] ?? 'N/A'),
+            $this->formatKeyValue('Server Port', $serverInfo['server_port'] ?? $_SERVER['SERVER_PORT'] ?? 'N/A'),
+            $this->formatKeyValue('Document Root', $serverInfo['document_root'] ?? $_SERVER['DOCUMENT_ROOT'] ?? 'N/A'),
+            $this->formatKeyValue('Server IP', $_SERVER['SERVER_ADDR'] ?? $_SERVER['LOCAL_ADDR'] ?? 'N/A'),
             '',
             $this->formatKeyValue('Disk Total', $serverInfo['disk_total_space'] ?? 'N/A'),
             $this->formatKeyValue('Disk Free', $serverInfo['disk_free_space'] ?? 'N/A'),
@@ -287,7 +299,7 @@ class SystemReportController extends BaseController
         ];
 
         foreach ($extensions as $name => $info) {
-            $status = $info['loaded'] ? '[OK]' : ($info['required'] ? '[MISSING]' : '[NOT LOADED]');
+            $status = $info['loaded'] ? '[OK]' : ( $info['required'] ? '[MISSING]' : '[NOT LOADED]' );
             $required = $info['required'] ? ' (required)' : ' (optional)';
             $lines[] = sprintf('  %s %s%s', $status, $name, $required);
         }
@@ -313,7 +325,15 @@ class SystemReportController extends BaseController
                 $lines[] = 'No modules installed.';
             } else {
                 $lines[] = '';
-                $lines[] = sprintf('%-15s %-25s %-10s %-12s %-10s %s', 'STATUS', 'NAME', 'VERSION', 'KEY', 'BOOT TIME', 'DEPENDENCIES');
+                $lines[] = sprintf(
+                    '%-15s %-25s %-10s %-12s %-10s %s',
+                    'STATUS',
+                    'NAME',
+                    'VERSION',
+                    'KEY',
+                    'BOOT TIME',
+                    'DEPENDENCIES',
+                );
                 $lines[] = str_repeat('-', 110);
 
                 $totalBootTime = 0;
@@ -343,14 +363,23 @@ class SystemReportController extends BaseController
                     }
                     $depsStr = !empty($deps) ? implode(', ', $deps) : '-';
 
-                    $lines[] = sprintf('%-15s %-25s %-10s %-12s %-10s %s', $statusIcon, substr($name, 0, 23), $version, $key, $bootTimeStr, $depsStr);
+                    $lines[] = sprintf(
+                        '%-15s %-25s %-10s %-12s %-10s %s',
+                        $statusIcon,
+                        substr($name, 0, 23),
+                        $version,
+                        $key,
+                        $bootTimeStr,
+                        $depsStr,
+                    );
                 }
 
                 $lines[] = str_repeat('-', 110);
                 $lines[] = '';
                 $lines[] = 'Total modules: ' . $modules->count();
-                $lines[] = 'Active: ' . $modules->filter(static fn ($m) => ($m->status ?? '') === 'active')->count();
-                $lines[] = 'Disabled: ' . $modules->filter(static fn ($m) => ($m->status ?? '') === 'disabled')->count();
+                $lines[] = 'Active: ' . $modules->filter(static fn($m) => ( $m->status ?? '' ) === 'active')->count();
+                $lines[] =
+                    'Disabled: ' . $modules->filter(static fn($m) => ( $m->status ?? '' ) === 'disabled')->count();
                 $lines[] = sprintf('Current request total boot time: %.3fs', $totalBootTime);
             }
         } catch (Throwable $e) {
@@ -421,11 +450,20 @@ class SystemReportController extends BaseController
                     ];
                 }
 
-                uasort($moduleStats, static fn ($a, $b) => $b['avg'] <=> $a['avg']);
+                uasort($moduleStats, static fn($a, $b) => $b['avg'] <=> $a['avg']);
 
                 $lines[] = '';
                 $lines[] = 'Per-Module Statistics (sorted by average boot time):';
-                $lines[] = sprintf('%-20s %10s %10s %10s %10s %10s %8s', 'MODULE', 'AVG', 'MEDIAN', 'MIN', 'MAX', 'IMPACT', 'SAMPLES');
+                $lines[] = sprintf(
+                    '%-20s %10s %10s %10s %10s %10s %8s',
+                    'MODULE',
+                    'AVG',
+                    'MEDIAN',
+                    'MIN',
+                    'MAX',
+                    'IMPACT',
+                    'SAMPLES',
+                );
                 $lines[] = str_repeat('-', 88);
 
                 foreach ($moduleStats as $module => $stat) {
@@ -437,7 +475,7 @@ class SystemReportController extends BaseController
                         $stat['min'],
                         $stat['max'],
                         $stat['total_impact'],
-                        $stat['samples']
+                        $stat['samples'],
                     );
                 }
 
@@ -449,14 +487,14 @@ class SystemReportController extends BaseController
                     $pctOfTotal = 0;
                     if (!empty($totalTimes)) {
                         $avgTotal = array_sum($totalTimes) / count($totalTimes);
-                        $pctOfTotal = $avgTotal > 0 ? ($stat['avg'] / $avgTotal) * 100 : 0;
+                        $pctOfTotal = $avgTotal > 0 ? ( $stat['avg'] / $avgTotal ) * 100 : 0;
                     }
                     $lines[] = sprintf(
                         '  %d. %-25s avg: %.3fs (%.1f%% of total)',
                         $rank++,
                         $module,
                         $stat['avg'],
-                        $pctOfTotal
+                        $pctOfTotal,
                     );
                 }
 
@@ -473,13 +511,8 @@ class SystemReportController extends BaseController
                     $topVariance = array_slice($variance, 0, 5, true);
                     foreach ($topVariance as $module => $stdDev) {
                         $avg = $moduleStats[$module]['avg'] ?? 0;
-                        $cv = $avg > 0 ? ($stdDev / $avg) * 100 : 0;
-                        $lines[] = sprintf(
-                            '  %-25s std dev: %.3fs (CV: %.1f%%)',
-                            $module,
-                            $stdDev,
-                            $cv
-                        );
+                        $cv = $avg > 0 ? ( $stdDev / $avg ) * 100 : 0;
+                        $lines[] = sprintf('  %-25s std dev: %.3fs (CV: %.1f%%)', $module, $stdDev, $cv);
                     }
                 } else {
                     $lines[] = '  Not enough data (need at least 3 samples per module)';
@@ -569,11 +602,19 @@ class SystemReportController extends BaseController
                     ];
                 }
 
-                uasort($providerStats, static fn ($a, $b) => $b['avg'] <=> $a['avg']);
+                uasort($providerStats, static fn($a, $b) => $b['avg'] <=> $a['avg']);
 
                 $lines[] = '';
                 $lines[] = 'Per-Provider Statistics (sorted by average, top 15):';
-                $lines[] = sprintf('%-35s %10s %10s %10s %10s %8s', 'PROVIDER', 'AVG', 'MEDIAN', 'MIN', 'MAX', 'SAMPLES');
+                $lines[] = sprintf(
+                    '%-35s %10s %10s %10s %10s %8s',
+                    'PROVIDER',
+                    'AVG',
+                    'MEDIAN',
+                    'MIN',
+                    'MAX',
+                    'SAMPLES',
+                );
                 $lines[] = str_repeat('-', 93);
 
                 $top15 = array_slice($providerStats, 0, 15, true);
@@ -585,7 +626,7 @@ class SystemReportController extends BaseController
                         $stat['median'],
                         $stat['min'],
                         $stat['max'],
-                        $stat['samples']
+                        $stat['samples'],
                     );
                 }
 
@@ -597,14 +638,14 @@ class SystemReportController extends BaseController
                     $pctOfTotal = 0;
                     if (!empty($totalTimes)) {
                         $avgTotal = array_sum($totalTimes) / count($totalTimes);
-                        $pctOfTotal = $avgTotal > 0 ? ($stat['avg'] / $avgTotal) * 100 : 0;
+                        $pctOfTotal = $avgTotal > 0 ? ( $stat['avg'] / $avgTotal ) * 100 : 0;
                     }
                     $lines[] = sprintf(
                         '  %d. %-30s avg: %.3fs (%.1f%% of total)',
                         $rank++,
                         $provider,
                         $stat['avg'],
-                        $pctOfTotal
+                        $pctOfTotal,
                     );
                 }
             }
@@ -673,11 +714,12 @@ class SystemReportController extends BaseController
                 ];
 
                 if ($routeStats[$routeKey]['avg_time'] > 0) {
-                    $routeStats[$routeKey]['db_pct'] = ($routeStats[$routeKey]['avg_db_time'] / $routeStats[$routeKey]['avg_time']) * 100;
+                    $routeStats[$routeKey]['db_pct'] =
+                        ( $routeStats[$routeKey]['avg_db_time'] / $routeStats[$routeKey]['avg_time'] ) * 100;
                 }
             }
 
-            uasort($routeStats, static fn ($a, $b) => $b['avg_time'] <=> $a['avg_time']);
+            uasort($routeStats, static fn($a, $b) => $b['avg_time'] <=> $a['avg_time']);
 
             $lines[] = '';
             $lines[] = str_repeat('=', 120);
@@ -692,7 +734,7 @@ class SystemReportController extends BaseController
                 'MAX',
                 'DB TIME',
                 'DB %',
-                'HITS'
+                'HITS',
             );
             $lines[] = str_repeat('-', 120);
 
@@ -707,7 +749,7 @@ class SystemReportController extends BaseController
                     $stat['max_time'] * 1000,
                     $stat['avg_db_time'] * 1000,
                     $stat['db_pct'],
-                    $stat['hits']
+                    $stat['hits'],
                 );
             }
 
@@ -716,7 +758,7 @@ class SystemReportController extends BaseController
             $lines[] = 'MOST DATABASE-HEAVY ROUTES (by DB time percentage)';
             $lines[] = str_repeat('-', 120);
 
-            uasort($routeStats, static fn ($a, $b) => $b['db_pct'] <=> $a['db_pct']);
+            uasort($routeStats, static fn($a, $b) => $b['db_pct'] <=> $a['db_pct']);
             $topDbHeavy = array_slice($routeStats, 0, 10, true);
 
             $lines[] = sprintf(
@@ -726,7 +768,7 @@ class SystemReportController extends BaseController
                 'DB TIME',
                 'DB %',
                 'AVG QUERIES',
-                'TOTAL TIME'
+                'TOTAL TIME',
             );
             $lines[] = str_repeat('-', 100);
 
@@ -738,7 +780,7 @@ class SystemReportController extends BaseController
                     $stat['avg_db_time'] * 1000,
                     $stat['db_pct'],
                     $stat['avg_db_queries'],
-                    $stat['avg_time'] * 1000
+                    $stat['avg_time'] * 1000,
                 );
             }
 
@@ -747,17 +789,10 @@ class SystemReportController extends BaseController
             $lines[] = 'MOST MEMORY-INTENSIVE ROUTES';
             $lines[] = str_repeat('-', 120);
 
-            uasort($routeStats, static fn ($a, $b) => $b['avg_memory'] <=> $a['avg_memory']);
+            uasort($routeStats, static fn($a, $b) => $b['avg_memory'] <=> $a['avg_memory']);
             $topMemory = array_slice($routeStats, 0, 10, true);
 
-            $lines[] = sprintf(
-                '%-7s %-45s %12s %12s %10s',
-                'METHOD',
-                'ROUTE',
-                'AVG MEMORY',
-                'MAX MEMORY',
-                'HITS'
-            );
+            $lines[] = sprintf('%-7s %-45s %12s %12s %10s', 'METHOD', 'ROUTE', 'AVG MEMORY', 'MAX MEMORY', 'HITS');
             $lines[] = str_repeat('-', 90);
 
             foreach ($topMemory as $routeKey => $stat) {
@@ -767,7 +802,7 @@ class SystemReportController extends BaseController
                     substr($stat['path'], 0, 43),
                     $this->formatBytes($stat['avg_memory']),
                     $this->formatBytes($stat['max_memory']),
-                    $stat['hits']
+                    $stat['hits'],
                 );
             }
 
@@ -776,17 +811,10 @@ class SystemReportController extends BaseController
             $lines[] = 'MOST FREQUENTLY ACCESSED ROUTES';
             $lines[] = str_repeat('-', 120);
 
-            uasort($routeStats, static fn ($a, $b) => $b['hits'] <=> $a['hits']);
+            uasort($routeStats, static fn($a, $b) => $b['hits'] <=> $a['hits']);
             $topHits = array_slice($routeStats, 0, 10, true);
 
-            $lines[] = sprintf(
-                '%-7s %-50s %10s %10s %10s',
-                'METHOD',
-                'ROUTE',
-                'HITS',
-                'AVG TIME',
-                'TOTAL TIME'
-            );
+            $lines[] = sprintf('%-7s %-50s %10s %10s %10s', 'METHOD', 'ROUTE', 'HITS', 'AVG TIME', 'TOTAL TIME');
             $lines[] = str_repeat('-', 95);
 
             foreach ($topHits as $routeKey => $stat) {
@@ -797,7 +825,7 @@ class SystemReportController extends BaseController
                     substr($stat['path'], 0, 48),
                     $stat['hits'],
                     $stat['avg_time'] * 1000,
-                    $totalTime
+                    $totalTime,
                 );
             }
 
@@ -813,7 +841,7 @@ class SystemReportController extends BaseController
                     $times = array_column($samples, 'time');
                     $stdDev = $this->calculateStdDev($times);
                     $avg = array_sum($times) / count($times);
-                    $cv = $avg > 0 ? ($stdDev / $avg) * 100 : 0;
+                    $cv = $avg > 0 ? ( $stdDev / $avg ) * 100 : 0;
                     $variance[$routeKey] = [
                         'method' => $routeData['method'],
                         'path' => $routeData['path'],
@@ -826,7 +854,7 @@ class SystemReportController extends BaseController
             }
 
             if (!empty($variance)) {
-                uasort($variance, static fn ($a, $b) => $b['cv'] <=> $a['cv']);
+                uasort($variance, static fn($a, $b) => $b['cv'] <=> $a['cv']);
                 $topVariance = array_slice($variance, 0, 10, true);
 
                 $lines[] = sprintf(
@@ -836,7 +864,7 @@ class SystemReportController extends BaseController
                     'STD DEV',
                     'CV %',
                     'AVG TIME',
-                    'SAMPLES'
+                    'SAMPLES',
                 );
                 $lines[] = str_repeat('-', 100);
 
@@ -848,13 +876,12 @@ class SystemReportController extends BaseController
                         $stat['std_dev'] * 1000,
                         $stat['cv'],
                         $stat['avg'] * 1000,
-                        $stat['samples']
+                        $stat['samples'],
                     );
                 }
             } else {
                 $lines[] = 'Not enough data (need at least 5 samples per route)';
             }
-
         } catch (Throwable $e) {
             $lines[] = 'Error loading route statistics: ' . $e->getMessage();
         }
@@ -922,7 +949,7 @@ class SystemReportController extends BaseController
                 return implode("\n", $lines);
             }
 
-            uasort($processedQueries, static fn ($a, $b) => $b['avg_time'] <=> $a['avg_time']);
+            uasort($processedQueries, static fn($a, $b) => $b['avg_time'] <=> $a['avg_time']);
 
             $lines[] = 'Total unique query patterns: ' . count($processedQueries);
             $lines[] = '';
@@ -943,7 +970,7 @@ class SystemReportController extends BaseController
                     $stat['avg_time'] * 1000,
                     $stat['median_time'] * 1000,
                     $stat['min_time'] * 1000,
-                    $stat['max_time'] * 1000
+                    $stat['max_time'] * 1000,
                 );
 
                 $queryDisplay = $stat['query'];
@@ -977,10 +1004,9 @@ class SystemReportController extends BaseController
                     $type,
                     $data['count'],
                     $data['total_hits'],
-                    $data['total_time'] * 1000
+                    $data['total_time'] * 1000,
                 );
             }
-
         } catch (Throwable $e) {
             $lines[] = 'Error loading query statistics: ' . $e->getMessage();
         }
@@ -1044,7 +1070,7 @@ class SystemReportController extends BaseController
                 return implode("\n", $lines);
             }
 
-            uasort($processedWidgets, static fn ($a, $b) => $b['avg_time'] <=> $a['avg_time']);
+            uasort($processedWidgets, static fn($a, $b) => $b['avg_time'] <=> $a['avg_time']);
 
             $lines[] = str_repeat('=', 120);
             $lines[] = 'WIDGET RENDER TIMES (sorted by avg time)';
@@ -1058,7 +1084,7 @@ class SystemReportController extends BaseController
                 'MIN',
                 'MAX',
                 'STD DEV',
-                'SAMPLES'
+                'SAMPLES',
             );
             $lines[] = str_repeat('-', 120);
 
@@ -1072,7 +1098,7 @@ class SystemReportController extends BaseController
                     $stat['min_time'] * 1000,
                     $stat['max_time'] * 1000,
                     $stat['std_dev'] * 1000,
-                    $stat['samples']
+                    $stat['samples'],
                 );
             }
 
@@ -1090,10 +1116,9 @@ class SystemReportController extends BaseController
                     $widgetName,
                     $stat['avg_time'] * 1000,
                     $stat['max_time'] * 1000,
-                    $stat['samples']
+                    $stat['samples'],
                 );
             }
-
         } catch (Throwable $e) {
             $lines[] = 'Error loading widget statistics: ' . $e->getMessage();
         }
@@ -1154,7 +1179,7 @@ class SystemReportController extends BaseController
                 return implode("\n", $lines);
             }
 
-            uasort($processedViews, static fn ($a, $b) => $b['avg_time'] <=> $a['avg_time']);
+            uasort($processedViews, static fn($a, $b) => $b['avg_time'] <=> $a['avg_time']);
 
             $totalViews = count($processedViews);
             $lines[] = "Total unique views tracked: {$totalViews}";
@@ -1171,7 +1196,7 @@ class SystemReportController extends BaseController
                 'MEDIAN',
                 'MIN',
                 'MAX',
-                'SAMPLES'
+                'SAMPLES',
             );
             $lines[] = str_repeat('-', 130);
 
@@ -1187,14 +1212,13 @@ class SystemReportController extends BaseController
                     $stat['median_time'] * 1000,
                     $stat['min_time'] * 1000,
                     $stat['max_time'] * 1000,
-                    $stat['samples']
+                    $stat['samples'],
                 );
             }
 
             $totalTime = array_sum(array_column($processedViews, 'avg_time'));
             $lines[] = '';
             $lines[] = sprintf('Total avg view render time: %.1fms', $totalTime * 1000);
-
         } catch (Throwable $e) {
             $lines[] = 'Error loading view statistics: ' . $e->getMessage();
         }
@@ -1206,9 +1230,9 @@ class SystemReportController extends BaseController
     {
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = floor(( $bytes ? log($bytes) : 0 ) / log(1024));
         $pow = min($pow, count($units) - 1);
-        $bytes /= (1 << (10 * $pow));
+        $bytes /= 1 << ( 10 * $pow );
 
         return round($bytes, 1) . ' ' . $units[$pow];
     }
@@ -1223,8 +1247,8 @@ class SystemReportController extends BaseController
         $count = count($values);
         $middle = (int) floor($count / 2);
 
-        if ($count % 2 === 0) {
-            return ($values[$middle - 1] + $values[$middle]) / 2;
+        if (( $count % 2 ) === 0) {
+            return ( $values[$middle - 1] + $values[$middle] ) / 2;
         }
 
         return $values[$middle];
@@ -1237,7 +1261,7 @@ class SystemReportController extends BaseController
         }
 
         $mean = array_sum($values) / count($values);
-        $squaredDiffs = array_map(static fn ($v) => pow($v - $mean, 2), $values);
+        $squaredDiffs = array_map(static fn($v) => pow($v - $mean, 2), $values);
 
         return sqrt(array_sum($squaredDiffs) / count($values));
     }
@@ -1259,7 +1283,7 @@ class SystemReportController extends BaseController
                     $name = $theme->name ?? 'Unknown';
                     $version = $theme->version ?? 'N/A';
                     $status = $theme->status ?? 'unknown';
-                    $isCurrent = ($theme->name === $currentTheme) ? ' [CURRENT]' : '';
+                    $isCurrent = $theme->name === $currentTheme ? ' [CURRENT]' : '';
 
                     $statusIcon = match ($status) {
                         'active' => '[ACTIVE]',
@@ -1407,7 +1431,7 @@ class SystemReportController extends BaseController
                     $perms,
                     $readable,
                     $writable,
-                    AboutSystemHelper::formatBytes($size)
+                    AboutSystemHelper::formatBytes($size),
                 );
             } else {
                 $lines[] = sprintf('  %-25s [NOT EXISTS]', $name);
@@ -1531,7 +1555,15 @@ class SystemReportController extends BaseController
 
             $lines[] = '';
             $lines[] = 'Server Variables (selected):';
-            $serverVars = ['REQUEST_TIME', 'REQUEST_TIME_FLOAT', 'REMOTE_ADDR', 'REMOTE_PORT', 'SERVER_PROTOCOL', 'GATEWAY_INTERFACE', 'HTTPS'];
+            $serverVars = [
+                'REQUEST_TIME',
+                'REQUEST_TIME_FLOAT',
+                'REMOTE_ADDR',
+                'REMOTE_PORT',
+                'SERVER_PROTOCOL',
+                'GATEWAY_INTERFACE',
+                'HTTPS',
+            ];
             foreach ($serverVars as $var) {
                 if (isset($_SERVER[$var])) {
                     $lines[] = sprintf('  %-25s: %s', $var, $_SERVER[$var]);
@@ -1563,8 +1595,8 @@ class SystemReportController extends BaseController
                 $lines[] = '';
                 $lines[] = str_repeat('-', 80);
                 $lines[] = 'LOG FILE: ' . $fileName;
-                $lines[] = 'Size: ' . ($fileInfo['size'] ?? 'N/A');
-                $lines[] = 'Modified: ' . ($fileInfo['modified'] ?? 'N/A');
+                $lines[] = 'Size: ' . ( $fileInfo['size'] ?? 'N/A' );
+                $lines[] = 'Modified: ' . ( $fileInfo['modified'] ?? 'N/A' );
                 $lines[] = str_repeat('-', 80);
                 $lines[] = '';
 
@@ -1599,7 +1631,7 @@ class SystemReportController extends BaseController
         try {
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::LEAVES_ONLY
+                RecursiveIteratorIterator::LEAVES_ONLY,
             );
 
             $count = 0;
@@ -1681,6 +1713,6 @@ class SystemReportController extends BaseController
             return 'E_ALL';
         }
 
-        return implode(' | ', array_slice($flags, 0, 4)) . (count($flags) > 4 ? '...' : '');
+        return implode(' | ', array_slice($flags, 0, 4)) . ( count($flags) > 4 ? '...' : '' );
     }
 }

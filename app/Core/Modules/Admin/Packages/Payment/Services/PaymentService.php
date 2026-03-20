@@ -98,7 +98,10 @@ class PaymentService
             $totalAmount += $stats['total_amount'];
             $totalUsages += $stats['total_usages'];
 
-            if (($code->expires_at > $now || $code->expires_at === null) && ($stats['remaining_usages'] === null || $stats['remaining_usages'] > 0)) {
+            if (
+                ( $code->expires_at > $now || $code->expires_at === null )
+                && ( $stats['remaining_usages'] === null || $stats['remaining_usages'] > 0 )
+            ) {
                 $activeCodes++;
             }
         }
@@ -139,10 +142,7 @@ class PaymentService
         $promoCode->clearRoles();
 
         if (!empty($roleIds)) {
-            $selectedRoles = array_filter(
-                Role::findAll(),
-                static fn ($role) => in_array($role->id, $roleIds)
-            );
+            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array($role->id, $roleIds));
 
             foreach ($selectedRoles as $role) {
                 $promoCode->addRole($role);

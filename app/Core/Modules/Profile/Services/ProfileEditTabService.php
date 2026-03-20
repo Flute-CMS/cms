@@ -35,13 +35,11 @@ class ProfileEditTabService
      */
     public function getTabs(?User $user = null): Collection
     {
-        $tabs = $user !== null
-            ? $this->tabs->filter(static fn (ProfileTab $tab) => $tab->canView($user))
-            : $this->tabs;
+        $tabs = $user !== null ? $this->tabs->filter(static fn(ProfileTab $tab) => $tab->canView($user)) : $this->tabs;
 
         return $tabs
-            ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
-            ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
+            ->sortByDesc(static fn(ProfileTab $tab) => $tab->getOrder())
+            ->groupBy(static fn(ProfileTab $tab) => $tab->getPath())
             ->map(static function (Collection $group) {
                 $highestPriorityTab = $group->first();
 
@@ -61,7 +59,7 @@ class ProfileEditTabService
      */
     public function renderTabsByPath(string $path, User $user): string
     {
-        $tabs = $this->getTabsByPath($path)->filter(static fn (ProfileTab $tab) => $tab->canView($user));
+        $tabs = $this->getTabsByPath($path)->filter(static fn(ProfileTab $tab) => $tab->canView($user));
 
         $content = '';
 
@@ -93,6 +91,8 @@ class ProfileEditTabService
      */
     public function getTabsByPath(string $path): Collection
     {
-        return $this->tabs->filter(static fn (ProfileTab $tab) => $tab->getPath() === $path)->sortBy(static fn (ProfileTab $tab) => $tab->getOrder());
+        return $this->tabs
+            ->filter(static fn(ProfileTab $tab) => $tab->getPath() === $path)
+            ->sortBy(static fn(ProfileTab $tab) => $tab->getOrder());
     }
 }

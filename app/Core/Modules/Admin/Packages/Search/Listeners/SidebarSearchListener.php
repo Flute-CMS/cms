@@ -62,7 +62,7 @@ class SidebarSearchListener
                         $item['url'],
                         $item['icon'] ?? null,
                         __('search.category_navigation'),
-                        $relevance
+                        $relevance,
                     );
                     $event->add($searchResult);
                 }

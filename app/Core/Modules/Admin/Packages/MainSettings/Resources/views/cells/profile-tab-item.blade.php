@@ -7,4 +7,3 @@
         <small class="text-muted">{{ $path }}</small>
     </div>
 </div>
-

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Core\Services;
 
@@ -76,13 +76,14 @@ class IoncubeService
     {
         $directUrl = $this->getRecommendedDirectDownloadUrl();
         if (!$directUrl) {
-            throw new RuntimeException('No direct ionCube loaders download is available for this platform. Use: ' . self::DOWNLOADS_PAGE_URL);
+            throw new RuntimeException('No direct ionCube loaders download is available for this platform. Use: '
+            . self::DOWNLOADS_PAGE_URL);
         }
 
         $fs = new Filesystem();
         $fs->mkdir($targetDir);
 
-        $archiveName = $this->guessArchiveNameFromUrl($directUrl) ?? ('ioncube_loaders_' . time());
+        $archiveName = $this->guessArchiveNameFromUrl($directUrl) ?? 'ioncube_loaders_' . time();
         $archivePath = rtrim($targetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $archiveName;
 
         $this->downloadFile($directUrl, $archivePath);
@@ -148,7 +149,9 @@ class IoncubeService
             if ($ok !== true || $code >= 400) {
                 @unlink($destPath);
 
-                throw new RuntimeException('Failed to download ionCube loaders. HTTP: ' . $code . ($err ? (', error: ' . $err) : ''));
+                throw new RuntimeException(
+                    'Failed to download ionCube loaders. HTTP: ' . $code . ( $err ? ', error: ' . $err : '' ),
+                );
             }
 
             return;

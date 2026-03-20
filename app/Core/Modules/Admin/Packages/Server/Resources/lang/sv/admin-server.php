@@ -78,6 +78,8 @@ return [
         'map' => 'Karta',
         'players' => 'Spelare',
         'game' => 'Spel',
+        'status' => 'Status',
+        'and_more' => '+:count till',
     ],
     'db_connection' => [
         'title' => 'DB-integrationer',

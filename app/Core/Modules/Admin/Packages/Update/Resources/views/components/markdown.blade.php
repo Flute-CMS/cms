@@ -5,4 +5,3 @@
         {!! markdown()->parse($markdown) !!}
     @endif
 </div>
-

@@ -14,7 +14,7 @@ class Percentage extends Component
         protected float $value,
         protected int $decimals = 0,
         protected ?string $decimal_separator = '.',
-        protected ?string $thousands_separator = ','
+        protected ?string $thousands_separator = ',',
     ) {
     }
 
@@ -25,6 +25,9 @@ class Percentage extends Component
      */
     public function render()
     {
-        return number_format($this->value * 100, $this->decimals, $this->decimal_separator, $this->thousands_separator).'%';
+        return (
+            number_format($this->value * 100, $this->decimals, $this->decimal_separator, $this->thousands_separator)
+            . '%'
+        );
     }
 }

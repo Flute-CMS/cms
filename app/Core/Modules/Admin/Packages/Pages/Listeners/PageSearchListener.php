@@ -5,14 +5,12 @@ namespace Flute\Admin\Packages\Pages\Listeners;
 use Flute\Admin\Packages\Search\Events\AdminSearchEvent;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
 use Flute\Core\Database\Entities\Page;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use function mb_strpos;
 use function mb_strtolower;
 use function str_starts_with;
 use function substr;
-
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
 use function trim;
 
 /**
@@ -44,7 +42,10 @@ class PageSearchListener implements EventSubscriberInterface
             $searchValue = trim($searchValue);
 
             if ($searchValue === '') {
-                $pages = Page::query()->orderBy('title', 'asc')->limit(10)->fetchAll();
+                $pages = Page::query()
+                    ->orderBy('title', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
 
                 foreach ($pages as $page) {
                     $event->add($this->createPageSearchResult($page, 1));
@@ -87,7 +88,7 @@ class PageSearchListener implements EventSubscriberInterface
             url('admin/pages/' . $page->id . '/edit'),
             'ph.regular.file-text',
             __('search.category_pages'),
-            $relevance
+            $relevance,
         );
     }
 

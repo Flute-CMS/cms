@@ -62,8 +62,8 @@ abstract class Layout implements LayoutInterface
         }
 
         $build = collect($this->layouts)
-            ->map(static fn ($layouts) => Arr::wrap($layouts))
-            ->map(fn (iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
+            ->map(static fn($layouts) => Arr::wrap($layouts))
+            ->map(fn(iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
             ->collapse()
             ->all();
 
@@ -85,8 +85,8 @@ abstract class Layout implements LayoutInterface
     {
         return collect($layouts)
             ->flatten()
-            ->map(static fn ($layout) => is_object($layout) ? $layout : app()->get($layout))
-            ->filter(fn () => $this->isVisible())
+            ->map(static fn($layout) => is_object($layout) ? $layout : app()->get($layout))
+            ->filter(fn() => $this->isVisible())
             ->reduce(static function ($build, self $layout) use ($key, $repository) {
                 $build[$key][] = $layout->build($repository);
 

@@ -210,8 +210,9 @@ class MarketplaceScreen extends Screen
 
                 $moduleKey = $module['name'];
 
-                $module['isInstalled'] = $this->moduleManager->issetModule($moduleKey) &&
-                    $this->moduleManager->getModule($moduleKey)->status !== 'notinstalled';
+                $module['isInstalled'] =
+                    $this->moduleManager->issetModule($moduleKey)
+                    && $this->moduleManager->getModule($moduleKey)->status !== 'notinstalled';
 
                 if ($module['isInstalled'] && isset($module['currentVersion'])) {
                     $installedModule = $this->moduleManager->getModule($moduleKey);
@@ -219,7 +220,7 @@ class MarketplaceScreen extends Screen
                     $module['needsUpdate'] = version_compare(
                         $module['currentVersion'],
                         $module['installedVersion'],
-                        '>'
+                        '>',
                     );
                 }
             }
@@ -256,7 +257,7 @@ class MarketplaceScreen extends Screen
             $allModules = $this->marketplaceService->getModules('', '', true);
             $moduleData = null;
             foreach ($allModules as $m) {
-                if (($m['slug'] ?? '') === $slug) {
+                if (( $m['slug'] ?? '' ) === $slug) {
                     $moduleData = $m;
 
                     break;
@@ -277,7 +278,7 @@ class MarketplaceScreen extends Screen
                     $allModules = $this->marketplaceService->getModules('', '', true);
                     $moduleData = null;
                     foreach ($allModules as $m) {
-                        if (($m['slug'] ?? '') === $slug) {
+                        if (( $m['slug'] ?? '' ) === $slug) {
                             $moduleData = $m;
 
                             break;
@@ -324,7 +325,10 @@ class MarketplaceScreen extends Screen
             try {
                 $moduleInstaller->updateComposerDependencies();
             } catch (Exception $e) {
-                $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+                $moduleInstaller->rollbackInstallation(
+                    $installResult['moduleFolder'],
+                    $installResult['backupDir'] ?? null,
+                );
 
                 throw $e;
             }
@@ -350,13 +354,14 @@ class MarketplaceScreen extends Screen
                     $moduleActions->activateModule($moduleInfo, $moduleManager);
                 }
             } else {
-                throw new Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
+                throw new Exception(
+                    __('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов',
+                );
             }
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
 
             $this->loadModules();
-
         } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
@@ -404,8 +409,11 @@ class MarketplaceScreen extends Screen
         ];
     }
 
-    protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 20): ?string
-    {
+    protected function waitForInstalledModuleKey(
+        ModuleManager $moduleManager,
+        string $moduleFolder,
+        int $timeoutSeconds = 20,
+    ): ?string {
         $moduleFolder = trim($moduleFolder);
         if ($moduleFolder === '') {
             return null;
@@ -415,18 +423,21 @@ class MarketplaceScreen extends Screen
         $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
         $normalized = trim($normalized, '/');
 
-        $candidates = array_values(array_unique(array_filter([
-            $moduleFolder,
-            $normalized,
-            basename($normalized),
-            explode('/', $normalized)[0] ?? null,
-        ], static fn ($v) => is_string($v) && $v !== '')));
+        $candidates = array_values(array_unique(array_filter(
+            [
+                $moduleFolder,
+                $normalized,
+                basename($normalized),
+                explode('/', $normalized)[0] ?? null,
+            ],
+            static fn($v) => is_string($v) && $v !== '',
+        )));
 
         $modulesPath = path('app/Modules');
 
         $start = microtime(true);
         $attemptCount = 0;
-        while ((microtime(true) - $start) < $timeoutSeconds) {
+        while (( microtime(true) - $start ) < $timeoutSeconds) {
             $attemptCount++;
             clearstatcache(true);
 
@@ -470,14 +481,17 @@ class MarketplaceScreen extends Screen
         $filteredModules = $this->modules;
 
         if (!empty($this->categoryFilter) && $this->categoryFilter !== 'all') {
-            $filteredModules = array_filter($filteredModules, fn ($module) => $this->categoryService->getModuleCategory($module) === $this->categoryFilter);
+            $filteredModules = array_filter(
+                $filteredModules,
+                fn($module) => $this->categoryService->getModuleCategory($module) === $this->categoryFilter,
+            );
         }
 
         if (!empty($this->priceFilter)) {
             $filteredModules = array_filter($filteredModules, function ($module) {
                 $isPaid = !empty($module['isPaid']);
 
-                return ($this->priceFilter === 'paid' && $isPaid) || ($this->priceFilter === 'free' && !$isPaid);
+                return $this->priceFilter === 'paid' && $isPaid || $this->priceFilter === 'free' && !$isPaid;
             });
         }
 
@@ -500,8 +514,13 @@ class MarketplaceScreen extends Screen
 
         if (!empty($this->searchQuery)) {
             $search = strtolower((string) $this->searchQuery);
-            $filteredModules = array_filter($filteredModules, static fn ($module) => str_contains(strtolower((string) ($module['name'] ?? '')), $search)
-                    || str_contains(strtolower((string) ($module['description'] ?? '')), $search));
+            $filteredModules = array_filter(
+                $filteredModules,
+                static fn($module) => (
+                    str_contains(strtolower((string) ( $module['name'] ?? '' )), $search)
+                    || str_contains(strtolower((string) ( $module['description'] ?? '' )), $search)
+                ),
+            );
         }
 
         $sortBy = $this->sortBy;

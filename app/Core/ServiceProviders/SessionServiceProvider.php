@@ -19,12 +19,9 @@ class SessionServiceProvider extends AbstractServiceProvider
         $containerBuilder->addDefinitions([
             SessionService::class => \DI\autowire(),
             SessionInterface::class => \DI\get(SessionService::class),
-            "session" => \DI\get(SessionService::class),
+            'session' => \DI\get(SessionService::class),
             CsrfTokenManagerInterface::class => \DI\create(CsrfTokenManager::class)
-                ->constructor(
-                    \DI\get(UriSafeTokenGenerator::class),
-                    \DI\get(SessionTokenStorage::class)
-                ),
+                ->constructor(\DI\get(UriSafeTokenGenerator::class), \DI\get(SessionTokenStorage::class)),
         ]);
     }
 

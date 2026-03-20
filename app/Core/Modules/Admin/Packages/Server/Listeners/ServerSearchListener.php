@@ -5,14 +5,12 @@ namespace Flute\Admin\Packages\Server\Listeners;
 use Flute\Admin\Packages\Search\Events\AdminSearchEvent;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
 use Flute\Core\Database\Entities\Server;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use function mb_strpos;
 use function mb_strtolower;
 use function str_starts_with;
 use function substr;
-
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
 use function trim;
 
 /**
@@ -44,7 +42,10 @@ class ServerSearchListener implements EventSubscriberInterface
             $searchValue = trim($searchValue);
 
             if ($searchValue === '') {
-                $servers = Server::query()->orderBy('name', 'asc')->limit(10)->fetchAll();
+                $servers = Server::query()
+                    ->orderBy('name', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
 
                 foreach ($servers as $server) {
                     $event->add($this->createServerSearchResult($server, 1));
@@ -87,7 +88,7 @@ class ServerSearchListener implements EventSubscriberInterface
             url('admin/servers/' . $server->id . '/edit'),
             'ph.regular.hard-drives',
             __('search.category_servers'),
-            $relevance
+            $relevance,
         );
     }
 

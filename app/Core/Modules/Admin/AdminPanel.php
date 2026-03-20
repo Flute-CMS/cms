@@ -73,7 +73,10 @@ class AdminPanel
 
             $this->recompileTranslations();
 
-            template()->getTemplateAssets()->getCompiler()->setImportPaths(path('app/Core/Modules/Admin/Resources/assets/sass'));
+            template()
+                ->getTemplateAssets()
+                ->getCompiler()
+                ->setImportPaths(path('app/Core/Modules/Admin/Resources/assets/sass'));
 
             $this->loadComponents();
         }
@@ -90,7 +93,11 @@ class AdminPanel
                 router()->any($url, static function () use ($screenString, $url) {
                     $url = request()->getPathInfo();
 
-                    if (request()->htmx()->isHtmxRequest() && !request()->htmx()->isBoosted() && request()->input('yoyo-id')) {
+                    if (
+                        request()->htmx()->isHtmxRequest()
+                        && !request()->htmx()->isBoosted()
+                        && request()->input('yoyo-id')
+                    ) {
                         try {
                             return response()->make(template()->getYoyo()->update());
                         } catch (Exception $e) {
@@ -136,7 +143,7 @@ class AdminPanel
                 $relativePath = str_replace([$componentsDir . DIRECTORY_SEPARATOR, '.blade.php'], '', $componentFile);
                 $alias = str_replace(DIRECTORY_SEPARATOR, '.', $relativePath);
 
-                $componentView = "Core.Modules.Admin.Resources.views.components." . $alias;
+                $componentView = 'Core.Modules.Admin.Resources.views.components.' . $alias;
                 $this->componentsCache[$alias] = $componentView;
 
                 template()->getBlade()->compiler()->component($componentView, $alias);

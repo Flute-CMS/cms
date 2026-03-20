@@ -40,18 +40,11 @@ class LoggerService
         $logger->pushProcessor(new IntrospectionProcessor());
         $logger->pushProcessor(new WebProcessor());
 
-        $handler = new RotatingFileHandler(
-            $logFile,
-            self::MAX_FILES,
-            $logLevel,
-            true,
-            0o666,
-            true
-        );
+        $handler = new RotatingFileHandler($logFile, self::MAX_FILES, $logLevel, true, 0o666, true);
 
         $lineFormatter = new LineFormatter(
             "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
-            "Y-m-d H:i:s"
+            'Y-m-d H:i:s',
         );
         $handler->setFormatter($lineFormatter);
 
@@ -106,9 +99,13 @@ class LoggerService
                 $this->cleanupOldLogs();
             })->daily();
         } else {
-            cache()->callback(self::CACHE_KEY, function () {
-                $this->cleanupOldLogs();
-            }, self::CACHE_TTL);
+            cache()->callback(
+                self::CACHE_KEY,
+                function () {
+                    $this->cleanupOldLogs();
+                },
+                self::CACHE_TTL,
+            );
         }
     }
 
@@ -130,7 +127,7 @@ class LoggerService
         }
 
         $logFile = $logsDir . '/' . $safeName . '.log';
-        $logLevel = (int) (config('logging.dynamic_level') ?? self::DEFAULT_DYNAMIC_LEVEL);
+        $logLevel = (int) ( config('logging.dynamic_level') ?? self::DEFAULT_DYNAMIC_LEVEL );
 
         $this->addLogger($name, $logFile, $logLevel);
     }

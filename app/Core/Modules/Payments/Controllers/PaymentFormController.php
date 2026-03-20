@@ -45,7 +45,7 @@ class PaymentFormController extends BaseController
         } catch (PaymentPromoException $e) {
             return $this->json(['valid' => false, 'error' => __($e->getMessage())]);
         } catch (Exception $e) {
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
 
             return $this->json(['valid' => false, 'error' => $message]);
         }
@@ -148,12 +148,7 @@ class PaymentFormController extends BaseController
                 }
             }
 
-            $invoice = payments()->processor()->createInvoice(
-                $gateway,
-                $amount,
-                (string) $promoCode,
-                $currency
-            );
+            $invoice = payments()->processor()->createInvoice($gateway, $amount, (string) $promoCode, $currency);
 
             logs()->info('payments.form.purchase.invoice_created', [
                 'gateway' => $gateway,

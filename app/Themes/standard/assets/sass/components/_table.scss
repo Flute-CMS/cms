@@ -186,8 +186,7 @@ tr {
 		}
 
 		@include media(mobile) {
-			@extend .gap-3;
-
+			gap: 1rem;
 			flex-direction: column;
 			padding-left: 1rem;
 		}

@@ -68,22 +68,21 @@ class EditSocialScreen extends Screen
 
             $this->isEditMode = true;
 
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-social.title.social'), url('/admin/socials'))
-                ->add($this->social->key);
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-social.title.social'),
+                url('/admin/socials'),
+            )->add($this->social->key);
 
             $this->name = __('admin-social.title.edit', ['name' => $this->social->key]);
 
             if (!$this->driverKey) {
                 $this->driverKey = $this->social->key;
             }
-
         } else {
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-social.title.social'), url('/admin/socials'))
-                ->add(__('admin-social.title.create'));
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-social.title.social'),
+                url('/admin/socials'),
+            )->add(__('admin-social.title.create'));
 
             $this->name = __('admin-social.title.create');
         }
@@ -92,9 +91,7 @@ class EditSocialScreen extends Screen
     public function commandBar(): array
     {
         return [
-            Button::make(__('def.cancel'))
-                ->redirect('/admin/socials')
-                ->type(Color::OUTLINE_PRIMARY),
+            Button::make(__('def.cancel'))->redirect('/admin/socials')->type(Color::OUTLINE_PRIMARY),
 
             Button::make(__('admin-social.buttons.delete'))
                 ->method('delete')
@@ -102,8 +99,7 @@ class EditSocialScreen extends Screen
                 ->confirm(__('admin-social.confirms.delete'))
                 ->setVisible($this->isEditMode),
 
-            Button::make(__('admin-social.buttons.save'))
-                ->method('save'),
+            Button::make(__('admin-social.buttons.save'))->method('save'),
         ];
     }
 
@@ -118,9 +114,7 @@ class EditSocialScreen extends Screen
                 ->where('key', '!=', $this->social->key)
                 ->pluck('key')
                 ->toArray()
-            : collect(rep(SocialNetwork::class)->findAll())
-                ->pluck('key')
-                ->toArray();
+            : collect(rep(SocialNetwork::class)->findAll())->pluck('key')->toArray();
 
         $availableDrivers = array_diff($allDrivers, array_combine($registeredDrivers, $registeredDrivers));
 
@@ -140,8 +134,10 @@ class EditSocialScreen extends Screen
                                     ->required()
                                     ->type('icon')
                                     ->value($this->social->icon ?? '')
-                                    ->placeholder(__('admin-social.fields.icon.placeholder'))
-                            )->label(__('admin-social.fields.icon.label'))->required(),
+                                    ->placeholder(__('admin-social.fields.icon.placeholder')),
+                            )
+                                ->label(__('admin-social.fields.icon.label'))
+                                ->required(),
 
                             LayoutFactory::field(
                                 ButtonGroup::make('allow_to_register')
@@ -149,9 +145,11 @@ class EditSocialScreen extends Screen
                                         '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
                                         '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
                                     ])
-                                    ->value(($this->social->allowToRegister ?? true) ? '1' : '0')
-                                    ->color('accent')
-                            )->label(__('admin-social.fields.allow_register.label'))->popover(__('admin-social.fields.allow_register.help')),
+                                    ->value($this->social->allowToRegister ?? true ? '1' : '0')
+                                    ->color('accent'),
+                            )
+                                ->label(__('admin-social.fields.allow_register.label'))
+                                ->popover(__('admin-social.fields.allow_register.help')),
                         ])->ratio('50/50'),
 
                         LayoutFactory::field(
@@ -159,30 +157,32 @@ class EditSocialScreen extends Screen
                                 ->value($this->social->cooldownTime ?? '0')
                                 ->placeholder(__('admin-social.fields.cooldown_time.placeholder'))
                                 ->required()
-                                ->type('number')
-                        )->label(__('admin-social.fields.cooldown_time.label'))->small(__('admin-social.fields.cooldown_time.small'))
+                                ->type('number'),
+                        )
+                            ->label(__('admin-social.fields.cooldown_time.label'))
+                            ->small(__('admin-social.fields.cooldown_time.small'))
                             ->popover(__('admin-social.fields.cooldown_time.help')),
                     ])->addClass('mb-3'),
 
-                    $driverKey ? LayoutFactory::block([
-                        LayoutFactory::field(
-                            Input::make('redirect_uri_1')
-                                ->readonly()
-                                ->disableFromRequest()
-                                ->value(url('/social/' . $driverKey))
-                        )->label(__('admin-social.fields.redirect_uri.first')),
-                        LayoutFactory::field(
-                            Input::make('redirect_uri_2')
-                                ->readonly()
-                                ->disableFromRequest()
-                                ->value(url('/profile/social/bind/' . $driverKey))
-                        )->label(__('admin-social.fields.redirect_uri.second')),
-                    ])->addClass('mb-3')->morph(false) : null,
+                    $driverKey
+                        ? LayoutFactory::block([
+                            LayoutFactory::field(
+                                Input::make('redirect_uri_1')
+                                    ->readonly()
+                                    ->disableFromRequest()
+                                    ->value(url('/social/' . $driverKey)),
+                            )->label(__('admin-social.fields.redirect_uri.first')),
+                            LayoutFactory::field(
+                                Input::make('redirect_uri_2')
+                                    ->readonly()
+                                    ->disableFromRequest()
+                                    ->value(url('/profile/social/bind/' . $driverKey)),
+                            )->label(__('admin-social.fields.redirect_uri.second')),
+                        ])->addClass('mb-3')->morph(false)
+                        : null,
                 ]),
 
-                LayoutFactory::block(
-                    $this->getEditDriverFields($availableDrivers, $driverKey)
-                )->addClass('mb-3'),
+                LayoutFactory::block($this->getEditDriverFields($availableDrivers, $driverKey))->addClass('mb-3'),
             ]),
         ];
     }
@@ -202,7 +202,7 @@ class EditSocialScreen extends Screen
         $settings = $this->extractSettingsFromRequest($data);
         $data['settings'] = $settings;
 
-        if ($this->isEditMode || ($this->isEditMode === false && Arr::has($data, 'driverKey'))) {
+        if ($this->isEditMode || $this->isEditMode === false && Arr::has($data, 'driverKey')) {
             $rules = array_merge($rules, [
                 'driverKey' => 'required|string',
             ]);
@@ -226,7 +226,10 @@ class EditSocialScreen extends Screen
         try {
             if ($this->isEditMode) {
                 $this->social->icon = $data['icon'];
-                $this->social->allowToRegister = filter_var($data['allow_to_register'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $this->social->allowToRegister = filter_var(
+                    $data['allow_to_register'] ?? false,
+                    FILTER_VALIDATE_BOOLEAN,
+                );
                 $this->social->cooldownTime = (int) $data['cooldown_time'];
 
                 $this->social->settings = Json::encode($settings);
@@ -279,41 +282,53 @@ class EditSocialScreen extends Screen
      */
     protected function getAllAvailableDrivers()
     {
-        return cache()->callback('available_social_drivers', function () {
-            $namespaceMap = app()->getLoader()->getPrefixesPsr4();
-            $result = [];
+        return cache()->callback(
+            'available_social_drivers',
+            function () {
+                $namespaceMap = app()->getLoader()->getPrefixesPsr4();
+                $result = [];
 
-            foreach ($namespaceMap as $namespace => $paths) {
-                foreach ($paths as $path) {
-                    $fullPath = realpath($path);
-                    if ($fullPath && is_dir($fullPath)) {
-                        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath));
-                        foreach ($files as $file) {
-                            if ($file->isFile() && $file->getExtension() == 'php') {
-                                $class = $namespace . str_replace('/', '\\', substr($file->getPathname(), strlen($fullPath), -4));
-                                $ex = explode('\\', $class);
-                                $driver = $ex[array_key_last($ex)];
+                foreach ($namespaceMap as $namespace => $paths) {
+                    foreach ($paths as $path) {
+                        $fullPath = realpath($path);
+                        if ($fullPath && is_dir($fullPath)) {
+                            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath));
+                            foreach ($files as $file) {
+                                if ($file->isFile() && $file->getExtension() == 'php') {
+                                    $class =
+                                        $namespace
+                                        . str_replace('/', '\\', substr($file->getPathname(), strlen($fullPath), -4));
+                                    $ex = explode('\\', $class);
+                                    $driver = $ex[array_key_last($ex)];
 
-                                if (Str::startsWith($class, 'Hybridauth\Provider') && !Str::contains($class, array_merge(['\\Discord', 'HttpsSteam', 'StorageSession'], array_keys($this->supportedDrivers)))) {
-                                    $result[$driver] = $driver;
+                                    if (
+                                        Str::startsWith($class, 'Hybridauth\Provider')
+                                        && !Str::contains($class, array_merge(
+                                            ['\\Discord', 'HttpsSteam', 'StorageSession'],
+                                            array_keys($this->supportedDrivers),
+                                        ))
+                                    ) {
+                                        $result[$driver] = $driver;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            $namespaces = array_keys(app()->getLoader()->getClassMap());
-            foreach ($namespaces as $item) {
-                if (Str::startsWith($item, "Hybridauth\\Provider")) {
-                    $ex = explode('\\', $item);
-                    $driver = $ex[array_key_last($ex)];
-                    $result[$driver] = $driver;
+                $namespaces = array_keys(app()->getLoader()->getClassMap());
+                foreach ($namespaces as $item) {
+                    if (Str::startsWith($item, "Hybridauth\\Provider")) {
+                        $ex = explode('\\', $item);
+                        $driver = $ex[array_key_last($ex)];
+                        $result[$driver] = $driver;
+                    }
                 }
-            }
 
-            return $result;
-        }, 3600);
+                return $result;
+            },
+            3600,
+        );
     }
 
     protected function extractSettingsFromRequest(array $data): array
@@ -418,8 +433,10 @@ class EditSocialScreen extends Screen
                     ->value($driverKey ?? null)
                     ->yoyo()
                     ->placeholder(__('admin-social.fields.driver.placeholder'))
-                    ->required()
-            )->label(__('admin-social.fields.driver.label'))->required(),
+                    ->required(),
+            )
+                ->label(__('admin-social.fields.driver.label'))
+                ->required(),
         ];
 
         if ($driverKey) {
@@ -427,18 +444,18 @@ class EditSocialScreen extends Screen
                 $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
             } else {
                 $fields[] = LayoutFactory::blank([
-                    LayoutFactory::view("admin-social::edit.socials.default", ['driverKey' => $driverKey]),
+                    LayoutFactory::view('admin-social::edit.socials.default', ['driverKey' => $driverKey]),
 
                     LayoutFactory::field(
                         Input::make('settings__id')
                             ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : '')
+                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : ''),
                     )->label(__('admin-social.fields.client_id.label')),
 
                     LayoutFactory::field(
                         Input::make('settings__secret')
                             ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : '')
+                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : ''),
                     )->label(__('admin-social.fields.client_secret.label')),
                 ]);
             }

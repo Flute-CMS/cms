@@ -20,21 +20,25 @@ class UsersNewWidget extends AbstractWidget
         return 'ph.regular.user-circle-plus';
     }
 
-    public function render(array $settings): string|null
+    public function render(array $settings): ?string
     {
         $maxDisplay = min($settings['max_display'] ?? 50, 100);
         $cacheKey = 'flute.widget.users_new.' . $maxDisplay;
 
-        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
-            $users = User::query()
-                ->where('createdAt', '>=', (new DateTimeImmutable())->modify('-7 day'))
-                ->where('hidden', false)
-                ->orderBy('createdAt', 'DESC')
-                ->limit($maxDisplay)
-                ->fetchAll();
+        $userIds = cache()->callback(
+            $cacheKey,
+            static function () use ($maxDisplay) {
+                $users = User::query()
+                    ->where('createdAt', '>=', ( new DateTimeImmutable() )->modify('-7 day'))
+                    ->where('hidden', false)
+                    ->orderBy('createdAt', 'DESC')
+                    ->limit($maxDisplay)
+                    ->fetchAll();
 
-            return array_map(static fn ($u) => $u->id, $users);
-        }, self::CACHE_TIME);
+                return array_map(static fn($u) => $u->id, $users);
+            },
+            self::CACHE_TIME,
+        );
 
         $newUsers = !empty($userIds)
             ? User::query()
@@ -81,7 +85,7 @@ class UsersNewWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => min((int) ($input['max_display'] ?? 50), 100),
+            'max_display' => min((int) ( $input['max_display'] ?? 50 ), 100),
         ];
     }
 }

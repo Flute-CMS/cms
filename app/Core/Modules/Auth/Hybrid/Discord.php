@@ -68,7 +68,7 @@ class Discord extends OAuth2
         $userProfile->identifier = $data->get('id');
         $userProfile->displayName = $displayName;
         $userProfile->email = $data->get('email');
-        $userProfile->profileURL = 'https://discord.com/users/'.$userProfile->identifier;
+        $userProfile->profileURL = 'https://discord.com/users/' . $userProfile->identifier;
 
         if ($data->get('verified')) {
             $userProfile->emailVerified = $data->get('email');
@@ -81,7 +81,12 @@ class Discord extends OAuth2
 
         if ($data->get('banner')) {
             $existingData = is_array($userProfile->data ?? null) ? $userProfile->data : [];
-            $existingData['bannerURL'] = 'https://cdn.discordapp.com/banners/' . $data->get('id') . '/' . $data->get('banner') . '.png?size=1024';
+            $existingData['bannerURL'] =
+                'https://cdn.discordapp.com/banners/'
+                . $data->get('id')
+                . '/'
+                . $data->get('banner')
+                . '.png?size=1024';
             $userProfile->data = $existingData;
         }
 

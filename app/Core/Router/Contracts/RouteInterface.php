@@ -16,7 +16,7 @@ interface RouteInterface
 
     public function name(string $name): self;
 
-    public function where(string|array $parameter, string|null $pattern = null): self;
+    public function where(string|array $parameter, ?string $pattern = null): self;
 
     public function defaults(string $key, mixed $value): self;
 

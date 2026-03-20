@@ -26,7 +26,10 @@ class PaymentPromo
         }
 
         $promoCode = $lock
-            ? PromoCode::query()->forUpdate()->where(['code' => $code])->fetchOne()
+            ? PromoCode::query()
+                ->forUpdate()
+                ->where(['code' => $code])
+                ->fetchOne()
             : $this->get($code);
 
         if ($promoCode === null) {
@@ -39,7 +42,10 @@ class PaymentPromo
         }
 
         if ($promoCode->minimum_amount !== null && $amount < $promoCode->minimum_amount) {
-            throw new PaymentPromoException(__('lk.promo_minimum_amount', [':amount' => $promoCode->minimum_amount, ':currency' => config('lk.currency_view')]));
+            throw new PaymentPromoException(__('lk.promo_minimum_amount', [
+                ':amount' => $promoCode->minimum_amount,
+                ':currency' => config('lk.currency_view'),
+            ]));
         }
 
         if ($promoCode->type === 'percentage') {
@@ -51,26 +57,26 @@ class PaymentPromo
         $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
 
         // Single query: count total usages and per-user usages at once
-        $usageQuery = PromoCodeUsage::query()
-            ->where('promoCode_id', $promoCode->id)
-            ->buildQuery();
+        $usageQuery = PromoCodeUsage::query()->where('promoCode_id', $promoCode->id)->buildQuery();
         $usageQuery->columns([
             new \Cycle\Database\Injection\Fragment('COUNT(*) AS total_count'),
-            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN user_id = {$currentUserId} THEN 1 ELSE 0 END) AS user_count"),
+            new \Cycle\Database\Injection\Fragment(
+                "SUM(CASE WHEN user_id = {$currentUserId} THEN 1 ELSE 0 END) AS user_count",
+            ),
         ]);
         $usageRow = $usageQuery->run()->fetch();
-        $totalUsages = (int) ($usageRow['total_count'] ?? 0);
-        $userUsageCount = (int) ($usageRow['user_count'] ?? 0);
+        $totalUsages = (int) ( $usageRow['total_count'] ?? 0 );
+        $userUsageCount = (int) ( $usageRow['user_count'] ?? 0 );
 
         if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
             throw new PaymentPromoException(__('lk.promo_limit'));
         }
 
         if (!empty($promoCode->roles)) {
-            $currentUser = $userId === 0 ? user()->getCurrentUser() : ($userId ? User::findByPK($userId) : null);
+            $currentUser = $userId === 0 ? user()->getCurrentUser() : ( $userId ? User::findByPK($userId) : null );
             if ($currentUser) {
-                $userRoleIds = array_map(static fn ($role) => $role->id, $currentUser->roles);
-                $promoRoleIds = array_map(static fn ($role) => $role->id, $promoCode->roles);
+                $userRoleIds = array_map(static fn($role) => $role->id, $currentUser->roles);
+                $promoRoleIds = array_map(static fn($role) => $role->id, $promoCode->roles);
                 $hasAllowedRole = !empty(array_intersect($userRoleIds, $promoRoleIds));
 
                 if (!$hasAllowedRole) {
@@ -159,7 +165,10 @@ class PaymentPromo
     {
         switch ($promoCode->type) {
             case 'amount':
-                $message = __('lk.promo_amount', [':value' => $promoCode->value, ':currency' => config('lk.currency_view')]);
+                $message = __('lk.promo_amount', [
+                    ':value' => $promoCode->value,
+                    ':currency' => config('lk.currency_view'),
+                ]);
 
                 break;
             case 'percentage':

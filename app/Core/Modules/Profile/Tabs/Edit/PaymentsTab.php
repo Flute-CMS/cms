@@ -22,7 +22,7 @@ class PaymentsTab extends ProfileTab
         return 'ph.bold.credit-card-bold';
     }
 
-    public function getDescription(): string|null
+    public function getDescription(): ?string
     {
         return __('profile.edit.payments.description');
     }

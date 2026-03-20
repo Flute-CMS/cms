@@ -73,9 +73,12 @@ class AdminUpdatePackage extends AbstractAdminPackage
             $count += count($updates['themes']);
         }
 
-        return $count > 0 ? [
-            'text' => $count,
-            'class' => 'accent',
-        ] : [];
+        return (
+            $count > 0
+                ? [
+                    'text' => $count,
+                    'class' => 'accent',
+                ] : []
+        );
     }
 }

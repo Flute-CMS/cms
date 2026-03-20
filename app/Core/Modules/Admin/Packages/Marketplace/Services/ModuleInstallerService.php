@@ -103,9 +103,7 @@ class ModuleInstallerService
             ]);
 
             $body = method_exists($response, 'getBody') ? (string) $response->getBody() : '';
-            if (
-                $response->getStatusCode() === 401
-            ) {
+            if ($response->getStatusCode() === 401) {
                 throw new Exception('MARKETPLACE_BAD_REQUEST');
             }
             if ($response->getStatusCode() !== 200) {
@@ -151,10 +149,16 @@ class ModuleInstallerService
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $entryName = $zip->getNameIndex($i);
 
-            if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_starts_with($entryName, '\\')) {
+            if (
+                str_contains($entryName, '..')
+                || str_starts_with($entryName, '/')
+                || str_starts_with($entryName, '\\')
+            ) {
                 $zip->close();
 
-                throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве');
+                throw new Exception(
+                    __('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве',
+                );
             }
 
             $targetPath = $this->moduleExtractPath . '/' . $entryName;
@@ -164,7 +168,9 @@ class ModuleInstallerService
             if ($realExtract && !str_starts_with($realTarget, $realExtract)) {
                 $zip->close();
 
-                throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве');
+                throw new Exception(
+                    __('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве',
+                );
             }
         }
 
@@ -233,7 +239,9 @@ class ModuleInstallerService
             $requiredPhp = $moduleJson['requires']['php'];
 
             if (!$this->checkPhpVersion($requiredPhp)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Требуется PHP ' . $requiredPhp);
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Требуется PHP ' . $requiredPhp,
+                );
             }
         }
 
@@ -241,7 +249,9 @@ class ModuleInstallerService
             $requiredFlute = $moduleJson['requires']['flute'];
 
             if (!$this->checkFluteVersion($requiredFlute)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Требуется Flute ' . $requiredFlute);
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Требуется Flute ' . $requiredFlute,
+                );
             }
         }
 
@@ -250,7 +260,10 @@ class ModuleInstallerService
             $missingModules = $this->checkModuleDependencies($requiredModules);
 
             if (!empty($missingModules)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Отсутствуют модули: ' . implode(', ', $missingModules));
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Отсутствуют модули: '
+                        . implode(', ', $missingModules),
+                );
             }
         }
 
@@ -285,7 +298,9 @@ class ModuleInstallerService
             $moduleName = $this->moduleInfo['name'];
         }
 
-        $moduleFolder = $this->sanitizeModuleFolderName((string) ($moduleName ?? $this->moduleKey ?? $module['slug']));
+        $moduleFolder = $this->sanitizeModuleFolderName(
+            (string) ( $moduleName ?? $this->moduleKey ?? $module['slug'] ),
+        );
         $destination = $this->modulesDir . '/' . $moduleFolder;
 
         $this->backupDir = null;
@@ -452,7 +467,7 @@ class ModuleInstallerService
         $start = microtime(true);
         $moduleJsonPath = $destinationDir . '/module.json';
 
-        while ((microtime(true) - $start) < $timeoutSeconds) {
+        while (( microtime(true) - $start ) < $timeoutSeconds) {
             clearstatcache(true, $destinationDir);
             clearstatcache(true, $moduleJsonPath);
 
@@ -468,11 +483,7 @@ class ModuleInstallerService
             }
 
             $jsonFinder = finder();
-            $jsonFinder
-                ->files()
-                ->name('module.json')
-                ->in($destinationDir)
-                ->depth('== 1');
+            $jsonFinder->files()->name('module.json')->in($destinationDir)->depth('== 1');
 
             foreach ($jsonFinder as $jsonFile) {
                 if ($jsonFile->isFile()) {
@@ -491,7 +502,12 @@ class ModuleInstallerService
             usleep(300000);
         }
 
-        throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования (' . $moduleJsonPath . ')');
+        throw new Exception(
+            __('admin-marketplace.messages.install_failed')
+            . ': Файл module.json не найден после копирования ('
+            . $moduleJsonPath
+            . ')',
+        );
     }
 
     /**
@@ -562,7 +578,7 @@ class ModuleInstallerService
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }

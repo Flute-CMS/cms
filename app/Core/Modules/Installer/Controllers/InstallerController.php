@@ -113,7 +113,6 @@ class InstallerController extends BaseController
         $keyValid = false;
         $savedKeys = array_filter([config('app.flute_key', ''), config('installer.flute_key', '')]);
 
-
         if (!empty($fluteKey) && !in_array($fluteKey, $savedKeys, true)) {
             try {
                 $client = new \GuzzleHttp\Client();
@@ -311,7 +310,9 @@ class InstallerController extends BaseController
             } catch (PDOException $e) {
                 // If database doesn't exist, create it
                 if ($driver === 'mysql') {
-                    $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                    $pdo->exec(
+                        "CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+                    );
                 } elseif ($driver === 'pgsql') {
                     $pdo->exec("CREATE DATABASE \"{$database}\"");
                 }
@@ -661,11 +662,11 @@ class InstallerController extends BaseController
         $currentStep = $this->installerConfig->getCurrentStep();
 
         // Only allow advancing one step at a time
-        if ($id > $currentStep + 1) {
+        if ($id > ( $currentStep + 1 )) {
             $id = $currentStep > 0 ? $currentStep : 1;
         }
 
-        if ($id > $currentStep && $id === $currentStep + 1) {
+        if ($id > $currentStep && $id === ( $currentStep + 1 )) {
             $this->installerConfig->setCurrentStep($id);
             config()->save();
         }
@@ -787,8 +788,11 @@ class InstallerController extends BaseController
 
         $siteUrl = $appConfig['url'] ?? '';
         if (empty($siteUrl)) {
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443 ? 'https://' : 'http://';
-            $siteUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            $protocol =
+                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ( $_SERVER['SERVER_PORT'] ?? 80 ) == 443
+                    ? 'https://'
+                    : 'http://';
+            $siteUrl = $protocol . ( $_SERVER['HTTP_HOST'] ?? 'localhost' );
         }
 
         return [
@@ -829,7 +833,7 @@ class InstallerController extends BaseController
             $langsFile = path('i18n/en/langs.php');
         }
 
-        $langsMap = file_exists($langsFile) ? (require $langsFile) : [];
+        $langsMap = file_exists($langsFile) ? ( require $langsFile ) : [];
 
         $allLangs = array_keys($langsMap);
         $enabledLangs = config('lang.available', []);
@@ -839,7 +843,7 @@ class InstallerController extends BaseController
         foreach ($allLangs as $code) {
             $langKey = "langs.{$code}";
             $translated = __($langKey);
-            $name = ($translated !== $langKey) ? $translated : ($langsMap[$code] ?? strtoupper($code));
+            $name = $translated !== $langKey ? $translated : $langsMap[$code] ?? strtoupper($code);
             $flagCode = $flagOverrides[$code] ?? $code;
 
             $allLanguages[] = [
@@ -901,7 +905,7 @@ class InstallerController extends BaseController
                     $allModules = is_array($body) ? $body : [];
 
                     // Filter out paid modules
-                    $allModules = array_filter($allModules, static fn ($m) => empty($m['isPaid']));
+                    $allModules = array_filter($allModules, static fn($m) => empty($m['isPaid']));
 
                     // Split into recommended and others
                     foreach ($allModules as $module) {
@@ -922,7 +926,10 @@ class InstallerController extends BaseController
                     });
 
                     // Sort others alphabetically
-                    usort($modules, static fn ($a, $b) => strcasecmp($a['name'] ?? $a['slug'] ?? '', $b['name'] ?? $b['slug'] ?? ''));
+                    usort($modules, static fn($a, $b) => strcasecmp(
+                        $a['name'] ?? $a['slug'] ?? '',
+                        $b['name'] ?? $b['slug'] ?? '',
+                    ));
                 } else {
                     $modulesError = __('install.modules.fetch_error');
                 }
@@ -979,109 +986,106 @@ class InstallerController extends BaseController
         $config = config('database');
 
         if ($driver === 'mysql') {
-            $config['connections']['default'] =
-                \Cycle\Database\Config\MySQLDriverConfig::__set_state([
+            $config['connections']['default'] = \Cycle\Database\Config\MySQLDriverConfig::__set_state([
+                'options' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'defaultOptions' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'connection' => \Cycle\Database\Config\MySQL\TcpConnectionConfig::__set_state([
+                    'nonPrintableOptions' => [
+                        0 => 'password',
+                        1 => 'PWD',
+                    ],
+                    'user' => $username,
+                    'password' => $password,
                     'options' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
+                        8 => 0,
+                        3 => 2,
+                        1002 => 'SET NAMES utf8mb4',
+                        17 => false,
                     ],
-                    'defaultOptions' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
-                    ],
-                    'connection' => \Cycle\Database\Config\MySQL\TcpConnectionConfig::__set_state([
-                        'nonPrintableOptions' => [
-                            0 => 'password',
-                            1 => 'PWD',
-                        ],
-                        'user' => $username,
-                        'password' => $password,
-                        'options' => [
-                            8 => 0,
-                            3 => 2,
-                            1002 => 'SET NAMES utf8mb4',
-                            17 => false,
-                        ],
-                        'port' => (int) $port,
-                        'database' => $database,
-                        'host' => $host,
-                        'charset' => 'utf8mb4',
-                    ]),
-                    'driver' => 'Cycle\\Database\\Driver\\MySQL\\MySQLDriver',
-                    'reconnect' => true,
-                    'timezone' => 'UTC',
-                    'queryCache' => true,
-                    'readonlySchema' => false,
-                    'readonly' => false,
-                ]);
+                    'port' => (int) $port,
+                    'database' => $database,
+                    'host' => $host,
+                    'charset' => 'utf8mb4',
+                ]),
+                'driver' => 'Cycle\\Database\\Driver\\MySQL\\MySQLDriver',
+                'reconnect' => true,
+                'timezone' => 'UTC',
+                'queryCache' => true,
+                'readonlySchema' => false,
+                'readonly' => false,
+            ]);
         } elseif ($driver === 'pgsql') {
-            $config['connections']['default'] =
-                \Cycle\Database\Config\PostgresDriverConfig::__set_state([
+            $config['connections']['default'] = \Cycle\Database\Config\PostgresDriverConfig::__set_state([
+                'options' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'defaultOptions' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'connection' => \Cycle\Database\Config\Postgres\TcpConnectionConfig::__set_state([
+                    'nonPrintableOptions' => [
+                        0 => 'password',
+                        1 => 'PWD',
+                    ],
+                    'user' => $username,
+                    'password' => $password,
                     'options' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_CASE => PDO::CASE_NATURAL,
                     ],
-                    'defaultOptions' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
-                    ],
-                    'connection' => \Cycle\Database\Config\Postgres\TcpConnectionConfig::__set_state([
-                        'nonPrintableOptions' => [
-                            0 => 'password',
-                            1 => 'PWD',
-                        ],
-                        'user' => $username,
-                        'password' => $password,
-                        'options' => [
-                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                            PDO::ATTR_CASE => PDO::CASE_NATURAL,
-                        ],
-                        'port' => (int) $port,
-                        'database' => $database,
-                        'host' => $host,
-                        'schema' => 'public',
-                    ]),
-                    'driver' => 'Cycle\\Database\\Driver\\Postgres\\PostgresDriver',
-                    'reconnect' => true,
-                    'timezone' => 'UTC',
-                    'queryCache' => true,
-                    'readonlySchema' => false,
-                    'readonly' => false,
-                ]);
+                    'port' => (int) $port,
+                    'database' => $database,
+                    'host' => $host,
+                    'schema' => 'public',
+                ]),
+                'driver' => 'Cycle\\Database\\Driver\\Postgres\\PostgresDriver',
+                'reconnect' => true,
+                'timezone' => 'UTC',
+                'queryCache' => true,
+                'readonlySchema' => false,
+                'readonly' => false,
+            ]);
         } elseif ($driver === 'sqlite') {
-            $config['connections']['default'] =
-                \Cycle\Database\Config\SQLiteDriverConfig::__set_state([
+            $config['connections']['default'] = \Cycle\Database\Config\SQLiteDriverConfig::__set_state([
+                'options' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'defaultOptions' => [
+                    'withDatetimeMicroseconds' => false,
+                    'logInterpolatedQueries' => false,
+                    'logQueryParameters' => false,
+                ],
+                'connection' => \Cycle\Database\Config\SQLite\FileConnectionConfig::__set_state([
+                    'nonPrintableOptions' => [
+                        0 => 'password',
+                        1 => 'PWD',
+                    ],
+                    'filename' => path('storage/database/' . $database),
                     'options' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     ],
-                    'defaultOptions' => [
-                        'withDatetimeMicroseconds' => false,
-                        'logInterpolatedQueries' => false,
-                        'logQueryParameters' => false,
-                    ],
-                    'connection' => \Cycle\Database\Config\SQLite\FileConnectionConfig::__set_state([
-                        'nonPrintableOptions' => [
-                            0 => 'password',
-                            1 => 'PWD',
-                        ],
-                        'filename' => path('storage/database/' . $database),
-                        'options' => [
-                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                        ],
-                    ]),
-                    'driver' => 'Cycle\\Database\\Driver\\SQLite\\SQLiteDriver',
-                    'reconnect' => true,
-                    'timezone' => 'UTC',
-                    'queryCache' => true,
-                    'readonlySchema' => false,
-                    'readonly' => false,
-                ]);
+                ]),
+                'driver' => 'Cycle\\Database\\Driver\\SQLite\\SQLiteDriver',
+                'reconnect' => true,
+                'timezone' => 'UTC',
+                'queryCache' => true,
+                'readonlySchema' => false,
+                'readonly' => false,
+            ]);
         }
 
         $config['databases']['default']['prefix'] = $prefix;
@@ -1100,7 +1104,7 @@ class InstallerController extends BaseController
     {
         app(CheckPermissionsMigration::class)->run();
 
-        if (!Role::findOne(['name' => 'admin']) && $permission = Permission::findOne(['name' => 'admin.boss'])) {
+        if (!Role::findOne(['name' => 'admin']) && ( $permission = Permission::findOne(['name' => 'admin.boss']) )) {
             $role = new Role();
             $role->name = 'admin';
             $role->priority = 2;
@@ -1119,8 +1123,12 @@ class InstallerController extends BaseController
     /**
      * Re-render the full database step with connection result
      */
-    protected function renderDatabaseStep(FluteRequest $request, bool $isConnected, ?string $errorMessage, array $fieldErrors = []): mixed
-    {
+    protected function renderDatabaseStep(
+        FluteRequest $request,
+        bool $isConnected,
+        ?string $errorMessage,
+        array $fieldErrors = [],
+    ): mixed {
         return $this->renderStep(2, [
             'driver' => $request->input('driver', 'mysql'),
             'host' => $request->input('host', 'localhost'),

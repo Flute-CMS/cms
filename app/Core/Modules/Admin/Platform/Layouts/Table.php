@@ -134,7 +134,7 @@ abstract class Table extends Layout
 
         $allColumns = collect($this->columns());
 
-        $columns = $allColumns->filter(static fn (TD $column) => $column->isVisible());
+        $columns = $allColumns->filter(static fn(TD $column) => $column->isVisible());
 
         // Mark columns that should be hidden by user preference
         $columns->each(static function (TD $column) use ($tableId) {
@@ -145,14 +145,14 @@ abstract class Table extends Layout
             $column->setAttribute('tableId', $tableId);
         });
 
-        $total = collect($this->total())->filter(static fn (TD $column) => $column->isVisible());
+        $total = collect($this->total())->filter(static fn(TD $column) => $column->isVisible());
 
         $content = $repository->getContent($this->target);
 
         $requestSort = request()->input('sort', '');
 
         if (empty($requestSort)) {
-            $defaultSortColumn = $columns->first(static fn (TD $column) => $column->getAttribute('defaultSort', false));
+            $defaultSortColumn = $columns->first(static fn(TD $column) => $column->getAttribute('defaultSort', false));
             if ($defaultSortColumn) {
                 $this->sortColumn = $defaultSortColumn->getName();
                 $this->sortDirection = $defaultSortColumn->getAttribute('defaultSortDirection', 'asc');
@@ -189,7 +189,7 @@ abstract class Table extends Layout
             $collection = $this->getCollectionFromContent($content);
             $totalItems = $collection->count();
             $totalPages = (int) ceil($totalItems / $perPage);
-            $rows = $collection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $rows = $collection->slice(( $currentPage - 1 ) * $perPage, $perPage)->values();
         }
 
         if ($this->dataCallback !== null) {
@@ -201,7 +201,7 @@ abstract class Table extends Layout
         }
 
         if ($this->rowCallback !== null && $rows->isNotEmpty()) {
-            $rows = $rows->map(fn ($row) => call_user_func($this->rowCallback, $row));
+            $rows = $rows->map(fn($row) => call_user_func($this->rowCallback, $row));
         }
 
         return view($this->template, [
@@ -231,7 +231,7 @@ abstract class Table extends Layout
                 'currentPage' => $currentPage,
                 'perPage' => $perPage,
             ],
-            'tableStorageKey' => 'tableSelection-'.$tableId,
+            'tableStorageKey' => 'tableSelection-' . $tableId,
             'exportable' => $this->isExportable(),
             'exportFilename' => $this->getExportFilename(),
         ]);
@@ -355,7 +355,7 @@ abstract class Table extends Layout
     {
         $content = $repository->getContent($this->target);
         $allColumns = collect($this->columns());
-        $columns = $allColumns->filter(static fn (TD $column) => $column->isVisible());
+        $columns = $allColumns->filter(static fn(TD $column) => $column->isVisible());
 
         if ($this->searchQuery) {
             $content = $this->applySearch($content);
@@ -380,7 +380,7 @@ abstract class Table extends Layout
         }
 
         if ($this->rowCallback !== null && $rows->isNotEmpty()) {
-            $rows = $rows->map(fn ($row) => call_user_func($this->rowCallback, $row));
+            $rows = $rows->map(fn($row) => call_user_func($this->rowCallback, $row));
         }
 
         return [
@@ -430,17 +430,21 @@ abstract class Table extends Layout
             return [];
         }
 
-        return collect($this->bulkActions)
-            ->map(function ($action) use ($tableId) {
-                if ($action instanceof Action) {
-                    $selector = '#bulk-actions-' . $tableId . ', table#' . $tableId . ' .row-selector input, table#' . $tableId . ' .row-selector';
-                    $action->set('hx-include', $selector);
-                }
+        return collect($this->bulkActions)->map(function ($action) use ($tableId) {
+            if ($action instanceof Action) {
+                $selector =
+                    '#bulk-actions-'
+                    . $tableId
+                    . ', table#'
+                    . $tableId
+                    . ' .row-selector input, table#'
+                    . $tableId
+                    . ' .row-selector';
+                $action->set('hx-include', $selector);
+            }
 
-                return $action->build($this->query);
-            })
-            ->filter()
-            ->all();
+            return $action->build($this->query);
+        })->filter()->all();
     }
 
     protected function getCurrentPage()
@@ -564,8 +568,8 @@ abstract class Table extends Layout
         }
 
         return collect($this->columns())
-            ->filter(static fn (TD $TD) => $TD->isSearchable())
-            ->map(static fn (TD $TD) => $TD->getName())
+            ->filter(static fn(TD $TD) => $TD->isSearchable())
+            ->map(static fn(TD $TD) => $TD->getName())
             ->toArray();
     }
 
@@ -578,7 +582,7 @@ abstract class Table extends Layout
 
         $select->andWhere(static function ($query) use ($columns, $searchQuery) {
             foreach ($columns as $column) {
-                $query->orWhere($column, 'LIKE', '%'.$searchQuery.'%');
+                $query->orWhere($column, 'LIKE', '%' . $searchQuery . '%');
             }
         });
 
@@ -626,7 +630,6 @@ abstract class Table extends Layout
 
         // if the content type is not supported, return an empty collection
         return collect();
-
     }
 
     /**

@@ -13,6 +13,7 @@
         'recaptcha_v3' => (string) config('auth.captcha.recaptcha_v3.secret_key', ''),
         'hcaptcha' => (string) config('auth.captcha.hcaptcha.secret_key', ''),
         'turnstile' => (string) config('auth.captcha.turnstile.secret_key', ''),
+        'yandex' => (string) config('auth.captcha.yandex.server_key', ''),
         default => '',
     };
 
@@ -111,6 +112,17 @@
                     if (!el || el.childElementCount > 0) return;
                     if (window.turnstile && window.turnstile.render) {
                         try { turnstile.render(el, { sitekey: @json($siteKey) }); } catch(e) {}
+                    }
+                })();
+            </script>
+        @elseif($type === 'yandex')
+            <div id="{{ $instanceId }}" class="smart-captcha w-100" data-sitekey="{{ $siteKey }}"></div>
+            <script>
+                (function() {
+                    var el = document.getElementById(@json($instanceId));
+                    if (!el || el.childElementCount > 0) return;
+                    if (window.smartCaptcha && window.smartCaptcha.render) {
+                        try { smartCaptcha.render(el, { sitekey: @json($siteKey) }); } catch(e) {}
                     }
                 })();
             </script>

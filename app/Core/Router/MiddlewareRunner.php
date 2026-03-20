@@ -37,12 +37,12 @@ class MiddlewareRunner
     protected function process(FluteRequest $request): Response
     {
         if ($this->current >= count($this->middleware)) {
-            return ($this->destination)($request);
+            return ( $this->destination )($request);
         }
 
         $middleware = $this->middleware[$this->current];
         $this->current++;
 
-        return $middleware($request, fn ($request) => $this->process($request));
+        return $middleware($request, fn($request) => $this->process($request));
     }
 }

@@ -78,6 +78,8 @@ return [
         'map' => 'Mapa',
         'players' => 'Hráči',
         'game' => 'Hra',
+        'status' => 'Status',
+        'and_more' => '+:count dalších',
     ],
     'db_connection' => [
         'title' => 'DB integrace',

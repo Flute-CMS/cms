@@ -18,6 +18,7 @@ class CmsUpdater extends AbstractUpdater
         'bootstrap',
         'i18n',
         'public',
+        'scripts',
         'storage',
     ];
 
@@ -68,7 +69,7 @@ class CmsUpdater extends AbstractUpdater
     public function update(array $data): bool
     {
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
-            logs()->error('Update package file not found: ' . ($data['package_file'] ?? 'null'));
+            logs()->error('Update package file not found: ' . ( $data['package_file'] ?? 'null' ));
 
             return false;
         }
@@ -119,7 +120,7 @@ class CmsUpdater extends AbstractUpdater
                 // If composer files changed or exist in the package, ensure dependencies are installed
                 if (is_file($this->getBasePath() . '/composer.json')) {
                     try {
-                        (new ComposerManager())->install();
+                        ( new ComposerManager() )->install();
                     } catch (Throwable $e) {
                         logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
                     }
@@ -206,7 +207,7 @@ class CmsUpdater extends AbstractUpdater
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..' || $this->shouldExcludeFile($file)) {
                 continue;
             }

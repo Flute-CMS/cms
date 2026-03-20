@@ -31,9 +31,7 @@ class NotificationBroadcastScreen extends Screen
 
         $this->target = request()->input('target', $this->target);
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-notifications.broadcast.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-notifications.broadcast.title'));
     }
 
     public function commandBar(): array
@@ -61,7 +59,7 @@ class NotificationBroadcastScreen extends Screen
                         ])
                         ->aligned()
                         ->value($this->target)
-                        ->yoyo()
+                        ->yoyo(),
                 )->label(__('admin-notifications.broadcast.target')),
 
                 $this->target === 'roles'
@@ -69,8 +67,10 @@ class NotificationBroadcastScreen extends Screen
                         Select::make('roles')
                             ->fromDatabase('roles', 'name', 'id', ['name', 'id'])
                             ->multiple(true)
-                            ->placeholder(__('admin-notifications.broadcast.roles'))
-                    )->label(__('admin-notifications.broadcast.roles'))->required()
+                            ->placeholder(__('admin-notifications.broadcast.roles')),
+                    )
+                        ->label(__('admin-notifications.broadcast.roles'))
+                        ->required()
                     : null,
 
                 $this->target === 'users'
@@ -78,8 +78,10 @@ class NotificationBroadcastScreen extends Screen
                         Select::make('users')
                             ->fromDatabase('users', 'name', 'id', ['name', 'id', 'login'])
                             ->multiple(true)
-                            ->placeholder(__('admin-notifications.broadcast.users'))
-                    )->label(__('admin-notifications.broadcast.users'))->required()
+                            ->placeholder(__('admin-notifications.broadcast.users')),
+                    )
+                        ->label(__('admin-notifications.broadcast.users'))
+                        ->required()
                     : null,
             ]))
                 ->title(__('admin-notifications.broadcast.blocks.recipients'))
@@ -94,28 +96,30 @@ class NotificationBroadcastScreen extends Screen
                         LayoutFactory::field(
                             Input::make('title')
                                 ->required()
-                                ->placeholder(__('admin-notifications.broadcast.notification_title'))
-                        )->label(__('admin-notifications.broadcast.notification_title'))->required(),
+                                ->placeholder(__('admin-notifications.broadcast.notification_title')),
+                        )
+                            ->label(__('admin-notifications.broadcast.notification_title'))
+                            ->required(),
 
                         LayoutFactory::field(
                             TextArea::make('content')
                                 ->required()
                                 ->rows(4)
-                                ->placeholder(__('admin-notifications.broadcast.notification_content'))
-                        )->label(__('admin-notifications.broadcast.notification_content'))->required(),
+                                ->placeholder(__('admin-notifications.broadcast.notification_content')),
+                        )
+                            ->label(__('admin-notifications.broadcast.notification_content'))
+                            ->required(),
 
                         LayoutFactory::field(
-                            Input::make('icon')
-                                ->type('icon')
-                                ->placeholder('ph.bold.bell-bold')
+                            Input::make('icon')->type('icon')->placeholder('ph.bold.bell-bold'),
                         )->label(__('admin-notifications.broadcast.notification_icon')),
 
-                        LayoutFactory::field(
-                            Input::make('url')
-                                ->placeholder('https://')
-                        )->label(__('admin-notifications.broadcast.notification_url')),
-                    ])->title(__('admin-notifications.broadcast.blocks.content'))
-                        ->description(__('admin-notifications.broadcast.blocks.content_description')),
+                        LayoutFactory::field(Input::make('url')->placeholder('https://'))->label(__(
+                            'admin-notifications.broadcast.notification_url',
+                        )),
+                    ])->title(__('admin-notifications.broadcast.blocks.content'))->description(__(
+                        'admin-notifications.broadcast.blocks.content_description',
+                    )),
                 ]),
 
                 // Right: Preview
@@ -135,7 +139,9 @@ class NotificationBroadcastScreen extends Screen
         $url = request()->input('url') ?: null;
 
         if (empty($title) || empty($content)) {
-            $this->flashMessage(__('validator.required', ['attribute' => __('admin-notifications.broadcast.notification_title')]), 'error');
+            $this->flashMessage(__('validator.required', ['attribute' => __(
+                'admin-notifications.broadcast.notification_title',
+            )]), 'error');
 
             return;
         }

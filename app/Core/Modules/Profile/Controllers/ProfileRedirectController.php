@@ -43,7 +43,10 @@ class ProfileRedirectController extends BaseController
             $user = $this->isValidUser($candidate) ? $candidate : null;
 
             if (!$this->isValidUser($user)) {
-                $userNetwork = UserSocialNetwork::query()->where('value', $stringValue)->load('user')->fetchOne();
+                $userNetwork = UserSocialNetwork::query()
+                    ->where('value', $stringValue)
+                    ->load('user')
+                    ->fetchOne();
                 $user = $userNetwork?->user;
             }
 
@@ -62,13 +65,18 @@ class ProfileRedirectController extends BaseController
             return $this->error(__('def.user_not_found'), 404);
         }
 
-        if ($user->hidden === true && !user()->can('admin.users') && !user()->can('admin.users.view') && $user->id !== user()->id) {
+        if (
+            $user->hidden === true
+            && !user()->can('admin.users')
+            && !user()->can('admin.users.view')
+            && $user->id !== user()->id
+        ) {
             return $this->error(__('profile.profile_hidden'));
         }
 
         cache()->set($cacheKey, $user->getUrl(), 86400);
 
-        return redirect(url('profile/'.$user->getUrl()));
+        return redirect(url('profile/' . $user->getUrl()));
     }
 
     private function sanitizeRedirectTarget(?string $target): ?string
@@ -127,6 +135,11 @@ class ProfileRedirectController extends BaseController
 
     private function isValidUser($user): bool
     {
-        return $user instanceof \Flute\Core\Database\Entities\User && isset($user->id) && is_int($user->id) && $user->id > 0;
+        return (
+            $user instanceof \Flute\Core\Database\Entities\User
+            && isset($user->id)
+            && is_int($user->id)
+            && $user->id > 0
+        );
     }
 }

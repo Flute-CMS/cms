@@ -17,4 +17,3 @@
         value="{{ request()->input('settings__secret', $social ? $social->getSettings()['secret'] : '') }}"
         placeholder="{{ __('admin-social.edit.twitch_secret_placeholder') }}" required />
 </x-forms.field>
-

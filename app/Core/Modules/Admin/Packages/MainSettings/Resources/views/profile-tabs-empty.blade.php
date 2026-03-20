@@ -3,4 +3,3 @@
     <p class="text-muted mb-0">{{ __('admin-main-settings.messages.no_profile_tabs') }}</p>
     <small class="text-muted">{{ __('admin-main-settings.messages.visit_profile_first') }}</small>
 </div>
-

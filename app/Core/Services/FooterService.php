@@ -23,10 +23,10 @@ class FooterService
      */
     public function __construct()
     {
-        $this->performance = (bool) (is_performance());
+        $this->performance = (bool) is_performance();
 
         cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
-        $this->cachedItems = cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME);
+        $this->cachedItems = cache()->callback(self::CACHE_KEY, fn() => $this->getDefaultItems(), self::CACHE_TIME);
     }
 
     /**
@@ -75,7 +75,7 @@ class FooterService
         }
 
         if ($result['children']) {
-            usort($result['children'], static fn ($a, $b) => $a['position'] <=> $b['position']);
+            usort($result['children'], static fn($a, $b) => $a['position'] <=> $b['position']);
         }
 
         return $result;

@@ -12,13 +12,19 @@ Flute CMS is a modular content management system for gaming communities (CS2, CS
 # Install dependencies
 composer install
 
-# Code style check (CI "test")
+# Lint + format check (CI "test")
 composer test
 
-# Auto-fix code style
-composer test-fix # or composer format
+# Auto-fix formatting
+composer fix # or composer format
 
-# Dry-run style check
+# Lint only
+composer lint
+
+# Static analysis (with baseline)
+composer analyse
+
+# Dry-run format check
 composer format-check
 
 # Project CLI utilities
@@ -32,6 +38,7 @@ php flute generate:module # Generate module
 php flute routes:list # List routes
 php flute route:detail # Route details
 php flute cron:run # Run cron jobs
+php flute sass:install # Download dart-sass binary (optional, faster SCSS)
 ```
 
 ## Architecture
@@ -107,7 +114,7 @@ Structure (`Flute\Admin\Platform\Screen`):
 * PHP 8.2+, PSR-12
 * 4 spaces for indentation, short array syntax
 * Imports are sorted alphabetically, unused ones removed
-* php-cs-fixer is applied to `app/Core` and `app/Modules` (excluding Entities)
+* Mago (`mago.toml`) handles linting and static analysis; php-cs-fixer (`.php-cs-fixer.php`) handles formatting for `app/Core` and `app/Modules` (excluding Entities)
 * Routes use `#[Route]` attributes, no separate route files
 * One class per file, no `.class.php` suffix
 

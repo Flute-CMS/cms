@@ -21,7 +21,7 @@ class Delete extends Route
         ?string $name = null,
         array|string|null $middleware = null,
         array $where = [],
-        array $defaults = []
+        array $defaults = [],
     ) {
         parent::__construct($uri, ['DELETE'], $name, $middleware, $where, $defaults);
     }

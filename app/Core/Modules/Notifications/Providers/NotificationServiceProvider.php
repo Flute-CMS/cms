@@ -17,10 +17,10 @@ class NotificationServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             NotificationService::class => \DI\autowire(),
-            "notification" => \DI\get(NotificationService::class),
+            'notification' => \DI\get(NotificationService::class),
 
             NotificationTemplateService::class => \DI\autowire(),
-            "notification_templates" => \DI\get(NotificationTemplateService::class),
+            'notification_templates' => \DI\get(NotificationTemplateService::class),
         ]);
     }
 
@@ -40,9 +40,15 @@ class NotificationServiceProvider extends AbstractServiceProvider
 
             $this->addNamespace('notifications', cms_path('Modules/Notifications/Resources/views'));
 
-            events()->addDeferredListener(UserRegisteredEvent::NAME, [CoreNotificationListener::class, 'onUserRegistered']);
+            events()->addDeferredListener(UserRegisteredEvent::NAME, [
+                CoreNotificationListener::class,
+                'onUserRegistered',
+            ]);
             events()->addDeferredListener(UserLoggedInEvent::NAME, [CoreNotificationListener::class, 'onUserLoggedIn']);
-            events()->addDeferredListener(PaymentSuccessEvent::NAME, [CoreNotificationListener::class, 'onPaymentSuccess']);
+            events()->addDeferredListener(PaymentSuccessEvent::NAME, [
+                CoreNotificationListener::class,
+                'onPaymentSuccess',
+            ]);
             events()->addDeferredListener(UserVerifiedEvent::NAME, [CoreNotificationListener::class, 'onUserVerified']);
         }
     }

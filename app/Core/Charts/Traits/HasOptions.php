@@ -11,7 +11,9 @@ trait HasOptions
      */
     public function getOptions()
     {
-        return $this->options ? array_merge_recursive($this->getDefaultOption(), $this->options) : $this->getDefaultOption();
+        return $this->options
+            ? array_merge_recursive($this->getDefaultOption(), $this->options)
+            : $this->getDefaultOption();
     }
 
     /**

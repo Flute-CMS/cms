@@ -247,7 +247,7 @@ class FluteRequest extends Request
         }
 
         if (is_url($uri)) {
-            return $this->getSchemeAndHttpHost().$this->getPathInfo() === $uri;
+            return $this->getSchemeAndHttpHost() . $this->getPathInfo() === $uri;
         }
 
         return $this->getPathInfo() === $uri;

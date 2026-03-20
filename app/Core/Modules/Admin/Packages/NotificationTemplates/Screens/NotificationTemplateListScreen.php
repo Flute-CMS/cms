@@ -33,9 +33,7 @@ class NotificationTemplateListScreen extends Screen
         $this->name = __('admin-notifications.title.list');
         $this->description = __('admin-notifications.title.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-notifications.title.list'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-notifications.title.list'));
 
         $this->loadTemplates();
         $this->calculateMetrics();
@@ -63,22 +61,30 @@ class NotificationTemplateListScreen extends Screen
                     ->title(__('admin-notifications.fields.status'))
                     ->width('100px')
                     ->alignCenter()
-                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.status', ['model' => $template])),
+                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.status', [
+                        'model' => $template,
+                    ])),
 
                 TD::make('key')
                     ->title(__('admin-notifications.fields.key'))
-                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.key', ['model' => $template]))
+                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.key', [
+                        'model' => $template,
+                    ]))
                     ->minWidth('200px')
                     ->cantHide(),
 
                 TD::make('title')
                     ->title(__('admin-notifications.fields.title'))
-                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.title', ['model' => $template]))
+                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.title', [
+                        'model' => $template,
+                    ]))
                     ->minWidth('250px'),
 
                 TD::make('channels')
                     ->title(__('admin-notifications.fields.channels'))
-                    ->render(static fn (NotificationTemplate $template) => view('admin-notifications::cells.channels', ['model' => $template]))
+                    ->render(static fn(NotificationTemplate $template) => view('admin-notifications::cells.channels', [
+                        'model' => $template,
+                    ]))
                     ->width('150px')
                     ->alignCenter(),
 
@@ -87,25 +93,28 @@ class NotificationTemplateListScreen extends Screen
                     ->title(__('def.actions'))
                     ->width('100px')
                     ->alignCenter()
-                    ->render(
-                        static fn (NotificationTemplate $template) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list(array_filter([
-                                DropDownItem::make(__('def.edit'))
-                                    ->redirect(url('/admin/notification-templates/' . $template->id . '/edit'))
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
+                    ->render(static fn(NotificationTemplate $template) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list(array_filter([
+                            DropDownItem::make(__('def.edit'))
+                                ->redirect(url('/admin/notification-templates/' . $template->id . '/edit'))
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
 
-                                DropDownItem::make($template->is_enabled ? __('admin-notifications.disable') : __('admin-notifications.enable'))
-                                    ->method('toggle', ['id' => $template->id])
-                                    ->icon($template->is_enabled ? 'ph.bold.toggle-right-bold' : 'ph.bold.toggle-left-bold')
-                                    ->type($template->is_enabled ? Color::OUTLINE_WARNING : Color::OUTLINE_SUCCESS)
-                                    ->size('small')
-                                    ->fullWidth(),
+                            DropDownItem::make(
+                                $template->is_enabled
+                                    ? __('admin-notifications.disable')
+                                    : __('admin-notifications.enable'),
+                            )
+                                ->method('toggle', ['id' => $template->id])
+                                ->icon($template->is_enabled ? 'ph.bold.toggle-right-bold' : 'ph.bold.toggle-left-bold')
+                                ->type($template->is_enabled ? Color::OUTLINE_WARNING : Color::OUTLINE_SUCCESS)
+                                ->size('small')
+                                ->fullWidth(),
 
-                                $template->is_customized
+                            $template->is_customized
                                 ? DropDownItem::make(__('admin-notifications.reset'))
                                     ->confirm(__('admin-notifications.confirms.reset'))
                                     ->method('reset', ['id' => $template->id])
@@ -115,15 +124,14 @@ class NotificationTemplateListScreen extends Screen
                                     ->fullWidth()
                                 : null,
 
-                                DropDownItem::make(__('def.delete'))
-                                    ->confirm(__('admin-notifications.confirms.delete'))
-                                    ->method('delete', ['id' => $template->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ]))
-                    ),
+                            DropDownItem::make(__('def.delete'))
+                                ->confirm(__('admin-notifications.confirms.delete'))
+                                ->method('delete', ['id' => $template->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ]))),
             ])
                 ->searchable(['key', 'title', 'module'])
                 ->bulkActions([
@@ -339,7 +347,7 @@ class NotificationTemplateListScreen extends Screen
             $modules[$module] = true;
         }
 
-        $activePercent = $total > 0 ? round(($active / $total) * 100) : 0;
+        $activePercent = $total > 0 ? round(( $active / $total ) * 100) : 0;
 
         $this->metrics = [
             'total' => [
@@ -365,12 +373,17 @@ class NotificationTemplateListScreen extends Screen
         }
 
         return Filters::make()
-            ->buttonGroup('status', __('admin-notifications.fields.enabled'), [
-                '' => __('admin-notifications.filters.all'),
-                'active' => __('admin-notifications.filters.active'),
-                'inactive' => __('admin-notifications.filters.inactive'),
-                'customized' => __('admin-notifications.filters.customized'),
-            ], '')
+            ->buttonGroup(
+                'status',
+                __('admin-notifications.fields.enabled'),
+                [
+                    '' => __('admin-notifications.filters.all'),
+                    'active' => __('admin-notifications.filters.active'),
+                    'inactive' => __('admin-notifications.filters.inactive'),
+                    'customized' => __('admin-notifications.filters.customized'),
+                ],
+                '',
+            )
             ->select('module', __('admin-notifications.fields.module'), $moduleOptions, '')
             ->compact();
     }

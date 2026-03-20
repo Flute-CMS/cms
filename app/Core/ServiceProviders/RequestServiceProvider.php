@@ -17,11 +17,11 @@ class RequestServiceProvider extends AbstractServiceProvider
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            FluteRequest::class => \DI\factory(static fn () => FluteRequest::createFromGlobals()),
+            FluteRequest::class => \DI\factory(static fn() => FluteRequest::createFromGlobals()),
             Request::class => \DI\get(FluteRequest::class),
             RequestInterface::class => \DI\get(FluteRequest::class),
             Response::class => \DI\create(),
-            RequestStack::class => \DI\factory(static fn () => new RequestStack()),
+            RequestStack::class => \DI\factory(static fn() => new RequestStack()),
             RequestContext::class => \DI\factory(static function (Container $container) {
                 $context = new RequestContext();
                 $context->fromRequest($container->get(Request::class));
@@ -43,7 +43,8 @@ class RequestServiceProvider extends AbstractServiceProvider
             $trustedProxies = [$_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'];
         }
 
-        $trustedHeaders = Request::HEADER_X_FORWARDED_FOR
+        $trustedHeaders =
+            Request::HEADER_X_FORWARDED_FOR
             | Request::HEADER_X_FORWARDED_PORT
             | Request::HEADER_X_FORWARDED_PROTO
             | Request::HEADER_X_FORWARDED_HOST;

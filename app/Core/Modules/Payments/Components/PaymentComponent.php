@@ -84,12 +84,9 @@ class PaymentComponent extends FluteComponent
                     }
                 }
 
-                $invoice = payments()->processor()->createInvoice(
-                    $this->gateway,
-                    $serverAmount,
-                    (string) $this->promoCode,
-                    $this->currency
-                );
+                $invoice = payments()
+                    ->processor()
+                    ->createInvoice($this->gateway, $serverAmount, (string) $this->promoCode, $this->currency);
 
                 toast()->success(__('lk.redirect'))->push();
 
@@ -147,11 +144,11 @@ class PaymentComponent extends FluteComponent
                 $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
 
                 if ($this->gatewayFee > 0) {
-                    $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
+                    $this->gatewayFeeAmount = round(( $this->amount * $this->gatewayFee ) / 100, 2);
                 }
 
                 if ($this->gatewayBonus > 0) {
-                    $this->gatewayBonusAmount = round(($this->amountToReceive * $this->gatewayBonus) / 100, 2);
+                    $this->gatewayBonusAmount = round(( $this->amountToReceive * $this->gatewayBonus ) / 100, 2);
                     $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
                 }
             }
@@ -163,7 +160,7 @@ class PaymentComponent extends FluteComponent
 
         if (empty($this->promoCode)) {
             if ($this->gatewayFee > 0) {
-                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
+                $feeOnPay = round(( $this->amountToPay * $this->gatewayFee ) / 100, 2);
                 $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
 
@@ -173,21 +170,22 @@ class PaymentComponent extends FluteComponent
         try {
             $this->throttle('lk_validate_promo');
 
-            $this->promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
+            $this->promoDetails = payments()
+                ->promo()
+                ->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
             $this->promoIsValid = true;
 
             $promoBonus = match ($this->promoDetails['type']) {
                 'amount' => (float) $this->promoDetails['value'],
-                'percentage' => round(($this->amountToReceive * $this->promoDetails['value']) / 100, 2),
+                'percentage' => round(( $this->amountToReceive * $this->promoDetails['value'] ) / 100, 2),
                 default => 0,
             };
             $this->amountToReceive = round($this->amountToReceive + $promoBonus, 2);
 
             if ($this->gatewayFee > 0) {
-                $feeOnPay = round(($this->amountToPay * $this->gatewayFee) / 100, 2);
+                $feeOnPay = round(( $this->amountToPay * $this->gatewayFee ) / 100, 2);
                 $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
-
         } catch (PaymentPromoException $e) {
             $this->inputError('promoCode', __($e->getMessage()));
             $this->promoIsValid = false;
@@ -195,7 +193,7 @@ class PaymentComponent extends FluteComponent
         } catch (Exception $e) {
             logs()->error($e);
 
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
             $this->inputError('promoCode', $message);
 
             $this->promoIsValid = false;
@@ -225,7 +223,7 @@ class PaymentComponent extends FluteComponent
         }
 
         // Fall back to currency minimum
-        return (float) ($this->currencyMinimumAmounts[$this->currency] ?? 0);
+        return (float) ( $this->currencyMinimumAmounts[$this->currency] ?? 0 );
     }
 
     /**
@@ -346,11 +344,11 @@ class PaymentComponent extends FluteComponent
             $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
 
             if ($this->gatewayFee > 0) {
-                $this->gatewayFeeAmount = round(($this->amount * $this->gatewayFee) / 100, 2);
+                $this->gatewayFeeAmount = round(( $this->amount * $this->gatewayFee ) / 100, 2);
             }
 
             if ($this->gatewayBonus > 0) {
-                $this->gatewayBonusAmount = round(($this->amountToReceive * $this->gatewayBonus) / 100, 2);
+                $this->gatewayBonusAmount = round(( $this->amountToReceive * $this->gatewayBonus ) / 100, 2);
                 $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
             }
         }
@@ -372,7 +370,7 @@ class PaymentComponent extends FluteComponent
         ], [
             'gateway' => 'required|string',
             'currency' => 'required|string',
-            'amount' => 'required|numeric|gt:0|max:'.config('lk.max_single_amount', 1000000),
+            'amount' => 'required|numeric|gt:0|max:' . config('lk.max_single_amount', 1000000),
             'promoCode' => 'nullable|string',
         ]);
     }

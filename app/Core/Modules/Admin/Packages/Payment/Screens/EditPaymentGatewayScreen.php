@@ -66,17 +66,17 @@ class EditPaymentGatewayScreen extends Screen
             $this->isEditMode = true;
             $this->driverKey = $this->gateway->adapter;
 
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-payment.title.gateways'), url('/admin/payment/gateways'))
-                ->add($this->gateway->name);
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-payment.title.gateways'),
+                url('/admin/payment/gateways'),
+            )->add($this->gateway->name);
 
             $this->name = __('admin-payment.title.gateway_edit', ['name' => $this->gateway->name]);
         } else {
-            breadcrumb()
-                ->add(__('def.admin_panel'), url('/admin'))
-                ->add(__('admin-payment.title.gateways'), url('/admin/payment/gateways'))
-                ->add(__('admin-payment.title.gateway_add'));
+            breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+                __('admin-payment.title.gateways'),
+                url('/admin/payment/gateways'),
+            )->add(__('admin-payment.title.gateway_add'));
 
             $this->name = __('admin-payment.title.gateway_add');
             $this->driverKey = $requestDriverKey;
@@ -86,9 +86,7 @@ class EditPaymentGatewayScreen extends Screen
     public function commandBar(): array
     {
         return [
-            Button::make(__('def.cancel'))
-                ->redirect('/admin/payment/gateways')
-                ->type(Color::OUTLINE_PRIMARY),
+            Button::make(__('def.cancel'))->redirect('/admin/payment/gateways')->type(Color::OUTLINE_PRIMARY),
 
             Button::make(__('admin-payment.buttons.delete'))
                 ->method('delete')
@@ -125,14 +123,16 @@ class EditPaymentGatewayScreen extends Screen
             ];
         }
 
-
         $currencyCheckboxes = [];
         foreach ($currencies as $currency) {
             $isChecked = $this->gateway ? $currency->hasPayment($this->gateway) : false;
             $currencyCheckboxes[] = LayoutFactory::field(
                 CheckBox::make("currencies.{$currency->id}")
                     ->label($currency->code)
-                    ->checked(filter_var(request()->input("currencies_{$currency->id}", $isChecked), FILTER_VALIDATE_BOOLEAN))
+                    ->checked(filter_var(
+                        request()->input("currencies_{$currency->id}", $isChecked),
+                        FILTER_VALIDATE_BOOLEAN,
+                    )),
             );
         }
 
@@ -144,23 +144,28 @@ class EditPaymentGatewayScreen extends Screen
                             Input::make('name')
                                 ->required()
                                 ->value($this->gateway->name ?? '')
-                                ->placeholder(__('admin-payment.fields.name.placeholder'))
-                        )->label(__('admin-payment.fields.name.label'))->required()->small(__('admin-payment.fields.name.help')),
+                                ->placeholder(__('admin-payment.fields.name.placeholder')),
+                        )
+                            ->label(__('admin-payment.fields.name.label'))
+                            ->required()
+                            ->small(__('admin-payment.fields.name.help')),
 
                         LayoutFactory::field(
                             Input::make('image')
                                 ->type('file')
                                 ->filePond()
                                 ->accept('image/png, image/jpeg, image/gif, image/webp')
-                                ->defaultFile(asset($this->gateway?->image ?? ''))
+                                ->defaultFile(asset($this->gateway?->image ?? '')),
                         )->label(__('admin-payment.fields.image.label')),
 
                         LayoutFactory::field(
                             Input::make('description')
                                 ->type('text')
                                 ->value($this->gateway->description ?? '')
-                                ->placeholder(__('admin-payment.fields.description.placeholder'))
-                        )->label(__('admin-payment.fields.description.label'))->popover(__('admin-payment.fields.description.help')),
+                                ->placeholder(__('admin-payment.fields.description.placeholder')),
+                        )
+                            ->label(__('admin-payment.fields.description.label'))
+                            ->popover(__('admin-payment.fields.description.help')),
 
                         LayoutFactory::field(
                             Input::make('fee')
@@ -169,8 +174,10 @@ class EditPaymentGatewayScreen extends Screen
                                 ->min('0')
                                 ->max('100')
                                 ->value($this->gateway->fee ?? 0)
-                                ->placeholder(__('admin-payment.fields.fee.placeholder'))
-                        )->label(__('admin-payment.fields.fee.label'))->popover(__('admin-payment.fields.fee.help')),
+                                ->placeholder(__('admin-payment.fields.fee.placeholder')),
+                        )
+                            ->label(__('admin-payment.fields.fee.label'))
+                            ->popover(__('admin-payment.fields.fee.help')),
 
                         LayoutFactory::field(
                             Input::make('bonus')
@@ -179,8 +186,10 @@ class EditPaymentGatewayScreen extends Screen
                                 ->min('0')
                                 ->max('100')
                                 ->value($this->gateway->bonus ?? 0)
-                                ->placeholder(__('admin-payment.fields.bonus.placeholder'))
-                        )->label(__('admin-payment.fields.bonus.label'))->popover(__('admin-payment.fields.bonus.help')),
+                                ->placeholder(__('admin-payment.fields.bonus.placeholder')),
+                        )
+                            ->label(__('admin-payment.fields.bonus.label'))
+                            ->popover(__('admin-payment.fields.bonus.help')),
 
                         LayoutFactory::field(
                             Input::make('minimum_amount')
@@ -188,8 +197,10 @@ class EditPaymentGatewayScreen extends Screen
                                 ->step('0.01')
                                 ->min('0')
                                 ->value($this->gateway->minimumAmount ?? '')
-                                ->placeholder(__('admin-payment.fields.minimum_amount.placeholder'))
-                        )->label(__('admin-payment.fields.minimum_amount.label'))->popover(__('admin-payment.fields.minimum_amount.help')),
+                                ->placeholder(__('admin-payment.fields.minimum_amount.placeholder')),
+                        )
+                            ->label(__('admin-payment.fields.minimum_amount.label'))
+                            ->popover(__('admin-payment.fields.minimum_amount.help')),
 
                         LayoutFactory::field(
                             ButtonGroup::make('enabled')
@@ -197,9 +208,11 @@ class EditPaymentGatewayScreen extends Screen
                                     '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
                                     '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                                 ])
-                                ->value(($this->gateway->enabled ?? true) ? '1' : '0')
-                                ->color('accent')
-                        )->label(__('admin-payment.fields.enabled.label'))->popover(__('admin-payment.fields.enabled.help')),
+                                ->value($this->gateway->enabled ?? true ? '1' : '0')
+                                ->color('accent'),
+                        )
+                            ->label(__('admin-payment.fields.enabled.label'))
+                            ->popover(__('admin-payment.fields.enabled.help')),
                     ])->addClass('mb-2'),
 
                     LayoutFactory::block($currencyCheckboxes)
@@ -211,33 +224,37 @@ class EditPaymentGatewayScreen extends Screen
                         LayoutFactory::field(
                             Input::make('method')
                                 ->type('text')
-                                ->value("POST")
-                                ->readonly()
+                                ->value('POST')
+                                ->readonly(),
                         )->label(__('admin-payment.fields.method.label')),
                         LayoutFactory::field(
                             Input::make('handle_url')
                                 ->type('text')
                                 ->value(url('api/lk/handle/' . $this->gateway->adapter))
-                                ->readonly()
-                        )->label(__('admin-payment.fields.handle_url.label'))->small(__('admin-payment.fields.handle_url.help')),
+                                ->readonly(),
+                        )
+                            ->label(__('admin-payment.fields.handle_url.label'))
+                            ->small(__('admin-payment.fields.handle_url.help')),
                         LayoutFactory::field(
                             Input::make('success_url')
                                 ->type('text')
                                 ->value(url('lk/success'))
-                                ->readonly()
-                        )->label(__('admin-payment.fields.success_url.label'))->small(__('admin-payment.fields.success_url.help')),
+                                ->readonly(),
+                        )
+                            ->label(__('admin-payment.fields.success_url.label'))
+                            ->small(__('admin-payment.fields.success_url.help')),
                         LayoutFactory::field(
                             Input::make('fail_url')
                                 ->type('text')
                                 ->value(url('lk/fail'))
-                                ->readonly()
-                        )->label(__('admin-payment.fields.fail_url.label'))->small(__('admin-payment.fields.fail_url.help')),
+                                ->readonly(),
+                        )
+                            ->label(__('admin-payment.fields.fail_url.label'))
+                            ->small(__('admin-payment.fields.fail_url.help')),
                     ])->setVisible(!empty($this->gateway->adapter)),
                 ]),
 
-                LayoutFactory::block(
-                    $this->getDriverFields($availableDrivers, $driverKey)
-                )->addClass('mb-3'),
+                LayoutFactory::block($this->getDriverFields($availableDrivers, $driverKey))->addClass('mb-3'),
             ]),
         ];
     }
@@ -266,7 +283,9 @@ class EditPaymentGatewayScreen extends Screen
                 $this->gateway->description = $data['description'] ?? null;
                 $this->gateway->fee = isset($data['fee']) ? (float) $data['fee'] : 0;
                 $this->gateway->bonus = isset($data['bonus']) ? (float) $data['bonus'] : 0;
-                $this->gateway->minimumAmount = !empty($data['minimum_amount']) ? (float) $data['minimum_amount'] : null;
+                $this->gateway->minimumAmount = !empty($data['minimum_amount'])
+                    ? (float) $data['minimum_amount']
+                    : null;
                 $this->gateway->enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
                 $imageFile = $files->get('image');
@@ -407,8 +426,11 @@ class EditPaymentGatewayScreen extends Screen
                     ->disabled($this->isEditMode)
                     ->yoyo()
                     ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
-                    ->required()
-            )->label(__('admin-payment.fields.payment_system.label'))->required()->small(__('admin-payment.fields.payment_system.help')),
+                    ->required(),
+            )
+                ->label(__('admin-payment.fields.payment_system.label'))
+                ->required()
+                ->small(__('admin-payment.fields.payment_system.help')),
         ];
 
         if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {

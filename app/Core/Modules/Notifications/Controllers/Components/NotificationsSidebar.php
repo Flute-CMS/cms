@@ -9,8 +9,8 @@ class NotificationsSidebar extends BaseController
     public function sidebarNotifications()
     {
         return $this->htmxRender('flute::partials.notifications', [
-            "countAll" => notification()->countAll(),
-            "countUnread" => notification()->countUnread(),
+            'countAll' => notification()->countAll(),
+            'countUnread' => notification()->countUnread(),
         ])->setTriggers('open-right-sidebar');
     }
 

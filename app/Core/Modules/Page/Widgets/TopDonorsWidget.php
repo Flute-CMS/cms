@@ -22,7 +22,7 @@ class TopDonorsWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $limit = (int) ($settings['limit'] ?? 5);
+        $limit = (int) ( $settings['limit'] ?? 5 );
         $topDonors = $this->getTopDonors($limit);
 
         return view('flute::widgets.top-donors', [
@@ -64,8 +64,8 @@ class TopDonorsWidget extends AbstractWidget
     {
         return [
             'display_mode' => $input['display_mode'] ?? 'podium',
-            'limit' => (int) ($input['limit'] ?? 5),
-            'show_amount' => (bool) ($input['show_amount'] ?? true),
+            'limit' => (int) ( $input['limit'] ?? 5 ),
+            'show_amount' => (bool) ( $input['show_amount'] ?? true ),
         ];
     }
 
@@ -73,39 +73,39 @@ class TopDonorsWidget extends AbstractWidget
     {
         $cacheKey = 'flute.widget.top_donors.' . $limit;
 
-        $cachedData = cache()->callback($cacheKey, static function () use ($limit) {
-            $query = PaymentInvoice::query()
-                ->where('isPaid', true)
-                ->buildQuery();
+        $cachedData = cache()->callback(
+            $cacheKey,
+            static function () use ($limit) {
+                $query = PaymentInvoice::query()->where('isPaid', true)->buildQuery();
 
-            $query->columns([
-                'user_id',
-                new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0) AS total'),
-            ]);
-            $query->groupBy('user_id');
-            $query->orderBy(new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0)'), 'DESC');
-            $query->limit($limit);
+                $query->columns([
+                    'user_id',
+                    new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0) AS total'),
+                ]);
+                $query->groupBy('user_id');
+                $query->orderBy(new \Cycle\Database\Injection\Fragment('COALESCE(SUM(original_amount), 0)'), 'DESC');
+                $query->limit($limit);
 
-            $results = $query->fetchAll();
+                $results = $query->fetchAll();
 
-            if (empty($results)) {
-                return [];
-            }
+                if (empty($results)) {
+                    return [];
+                }
 
-            return array_map(static fn ($r) => [
-                'user_id' => (int) $r['user_id'],
-                'total' => (float) $r['total'],
-            ], $results);
-        }, self::CACHE_TIME);
+                return array_map(static fn($r) => [
+                    'user_id' => (int) $r['user_id'],
+                    'total' => (float) $r['total'],
+                ], $results);
+            },
+            self::CACHE_TIME,
+        );
 
         if (empty($cachedData)) {
             return [];
         }
 
         $userIds = array_column($cachedData, 'user_id');
-        $userList = User::query()
-            ->where('id', 'IN', new Parameter($userIds))
-            ->fetchAll();
+        $userList = User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll();
 
         $usersById = [];
         foreach ($userList as $u) {

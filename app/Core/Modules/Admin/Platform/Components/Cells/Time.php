@@ -17,7 +17,7 @@ class Time extends Component
     public function __construct(
         protected mixed $value,
         protected DateTimeZone|null|string $tz = null,
-        protected string $unitPrecision = 'minute'
+        protected string $unitPrecision = 'minute',
     ) {
     }
 

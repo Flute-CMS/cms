@@ -69,7 +69,7 @@ class ColorController extends BaseController
         try {
             if (isset($colors['--border1'])) {
                 $colors['--border1'] = $colors['--border1'] . 'rem';
-                $colors['--border05'] = (floatval($colors['--border1']) / 2) . 'rem';
+                $colors['--border05'] = ( floatval($colors['--border1']) / 2 ) . 'rem';
             }
 
             // Set default background type if not provided
@@ -88,7 +88,7 @@ class ColorController extends BaseController
                 'message' => __('def.colors_updated'),
             ], 200);
         } catch (Exception $e) {
-            logs('templates')->error("Failed to update theme colors: " . $e->getMessage());
+            logs('templates')->error('Failed to update theme colors: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to update theme colors. Please try again later.';
             $this->toast($message, 'error');
 
@@ -156,26 +156,26 @@ class ColorController extends BaseController
             $customizeSettings = [
                 '--nav-type' => $settings['nav_type'] ?? 'horizontal',
                 '--nav-position' => $settings['nav_position'] ?? 'top',
-                '--nav-blur' => ($settings['nav_blur'] ?? true) ? 'true' : 'false',
+                '--nav-blur' => $settings['nav_blur'] ?? true ? 'true' : 'false',
                 '--footer-type' => $settings['footer_type'] ?? 'default',
-                '--footer-columns' => (string) ($settings['footer_columns'] ?? 3),
-                '--footer-socials' => ($settings['footer_socials'] ?? true) ? 'true' : 'false',
+                '--footer-columns' => (string) ( $settings['footer_columns'] ?? 3 ),
+                '--footer-socials' => $settings['footer_socials'] ?? true ? 'true' : 'false',
                 '--font' => $settings['font_family'] ?? 'Manrope',
                 '--font-header' => $settings['heading_font'] ?? 'inherit',
-                '--base-font-size' => ($settings['font_size'] ?? 16) . 'px',
-                '--line-height' => (string) ($settings['line_height'] ?? 1.5),
-                '--heading-weight' => (string) ($settings['heading_weight'] ?? 600),
-                '--container-padding' => ($settings['container_padding'] ?? 16) . 'px',
-                '--section-gap' => ($settings['section_gap'] ?? 24) . 'px',
-                '--card-padding' => ($settings['card_padding'] ?? 16) . 'px',
-                '--element-gap' => ($settings['element_gap'] ?? 12) . 'px',
-                '--shadow-intensity' => (string) (($settings['shadow_intensity'] ?? 30) / 100),
-                '--blur-amount' => ($settings['blur_amount'] ?? 10) . 'px',
-                '--animations' => ($settings['animations'] ?? true) ? 'true' : 'false',
+                '--base-font-size' => ( $settings['font_size'] ?? 16 ) . 'px',
+                '--line-height' => (string) ( $settings['line_height'] ?? 1.5 ),
+                '--heading-weight' => (string) ( $settings['heading_weight'] ?? 600 ),
+                '--container-padding' => ( $settings['container_padding'] ?? 16 ) . 'px',
+                '--section-gap' => ( $settings['section_gap'] ?? 24 ) . 'px',
+                '--card-padding' => ( $settings['card_padding'] ?? 16 ) . 'px',
+                '--element-gap' => ( $settings['element_gap'] ?? 12 ) . 'px',
+                '--shadow-intensity' => (string) ( ( $settings['shadow_intensity'] ?? 30 ) / 100 ),
+                '--blur-amount' => ( $settings['blur_amount'] ?? 10 ) . 'px',
+                '--animations' => $settings['animations'] ?? true ? 'true' : 'false',
                 '--transition' => $settings['transition_speed'] ?? '0.2s',
-                '--hover-scale' => ($settings['hover_scale'] ?? true) ? 'true' : 'false',
-                '--max-content-width' => ($settings['max_width'] ?? 1200) . 'px',
-                '--sidebar-width' => ($settings['sidebar_width'] ?? 260) . 'px',
+                '--hover-scale' => $settings['hover_scale'] ?? true ? 'true' : 'false',
+                '--max-content-width' => ( $settings['max_width'] ?? 1200 ) . 'px',
+                '--sidebar-width' => ( $settings['sidebar_width'] ?? 260 ) . 'px',
                 '--content-align' => $settings['content_align'] ?? 'left',
             ];
 
@@ -189,7 +189,7 @@ class ColorController extends BaseController
                 'message' => __('def.settings_updated'),
             ], 200);
         } catch (Exception $e) {
-            logs('templates')->error("Failed to update theme customization: " . $e->getMessage());
+            logs('templates')->error('Failed to update theme customization: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to update theme customization. Please try again later.';
             $this->toast($message, 'error');
 
@@ -285,7 +285,7 @@ class ColorController extends BaseController
 
                 if ($key === '--border1' && is_numeric($value)) {
                     $themeSettings[$key] = $value . 'rem';
-                    $themeSettings['--border05'] = (floatval($value) / 2) . 'rem';
+                    $themeSettings['--border05'] = ( floatval($value) / 2 ) . 'rem';
                 } elseif ($key === '--border05') {
                     continue;
                 } else {
@@ -330,7 +330,7 @@ class ColorController extends BaseController
                 'message' => __('page-edit.settings_saved'),
             ], 200);
         } catch (Exception $e) {
-            logs('templates')->error("Failed to save theme settings: " . $e->getMessage());
+            logs('templates')->error('Failed to save theme settings: ' . $e->getMessage());
             $message = is_debug() ? $e->getMessage() : 'Failed to save theme settings. Please try again later.';
             $this->toast($message, 'error');
 

@@ -44,7 +44,11 @@ class FluteEventDispatcher extends EventDispatcher
             return;
         }
 
-        $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority, 'id' => $listenerId];
+        $this->deferredListeners[$eventName][$listenerId] = [
+            'listener' => $listener,
+            'priority' => $priority,
+            'id' => $listenerId,
+        ];
         $this->isDirty = true;
 
         if (is_callable($listener)) {

@@ -85,6 +85,8 @@ return [
         'recaptcha_secret_key' => 'reCAPTCHA Maxfiy Kaliti',
         'hcaptcha_site_key' => 'hCaptcha Sayt Kaliti',
         'hcaptcha_secret_key' => 'hCaptcha Maxfiy Kaliti',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
         'default_theme' => 'Standart Mavzu',
         'profile_tab_title' => 'Ichki sahifa',
     ],
@@ -143,6 +145,8 @@ return [
         'recaptcha_secret_key' => 'reCAPTCHA maxfiy kalitini kiriting',
         'hcaptcha_site_key' => 'hCaptcha sayt kalitini kiriting',
         'hcaptcha_secret_key' => 'hCaptcha maxfiy kalitini kiriting',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
     ],
 
     'buttons' => [
@@ -266,6 +270,8 @@ return [
         'recaptcha_secret_key' => 'reCAPTCHA maxfiy kalitingizni <a target="_blank" href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a> dan oling.',
         'hcaptcha_site_key' => 'hCaptcha sayt kalitingizni <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a> dan oling.',
         'hcaptcha_secret_key' => 'hCaptcha maxfiy kalitingizni <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a> dan oling.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
     ],
 
     'examples' => [

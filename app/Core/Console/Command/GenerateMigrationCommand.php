@@ -34,7 +34,7 @@ class GenerateMigrationCommand extends Command
         $modules = $this->getModules();
 
         if (empty($modules)) {
-            $io->error("No modules found in app/Modules.");
+            $io->error('No modules found in app/Modules.');
 
             return Command::FAILURE;
         }
@@ -46,7 +46,7 @@ class GenerateMigrationCommand extends Command
         $nameQuestion->setValidator(static function ($answer) {
             if (!preg_match('/^[a-zA-Z_]+$/', $answer)) {
                 throw new RuntimeException(
-                    'The migration name must contain only English letters and underscores without spaces.'
+                    'The migration name must contain only English letters and underscores without spaces.',
                 );
             }
 

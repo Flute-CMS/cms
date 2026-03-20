@@ -19,9 +19,10 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\DatabaseConnection;
 use Flute\Core\Database\Entities\Server;
+use Flute\Core\Rcon\RconService;
+use Flute\Core\ServerQuery\ServerQueryService;
 use Illuminate\Support\Str;
 use PDO;
-use xPaw\SourceQuery\SourceQuery;
 
 class ServerEditScreen extends Screen
 {
@@ -42,11 +43,20 @@ class ServerEditScreen extends Screen
      */
     public $serversService;
 
-    public $ranksFormats = ['webp' => 'webp', 'png' => 'png', 'svg' => 'svg', 'jpg' => 'jpg', 'gif' => 'gif', 'jpeg' => 'jpeg'];
+    public $ranksFormats = [
+        'webp' => 'webp',
+        'png' => 'png',
+        'svg' => 'svg',
+        'jpg' => 'jpg',
+        'gif' => 'gif',
+        'jpeg' => 'jpeg',
+    ];
 
     public bool $isEditMode = false;
 
     public ?array $serverStatus = null;
+
+    public array $rconHistory = [];
 
     private $availableDrivers = null;
 
@@ -61,15 +71,16 @@ class ServerEditScreen extends Screen
         if ($this->serverId) {
             $this->initServer();
             $this->isEditMode = true;
+            $this->rconHistory = session()->get("rcon_history_{$this->serverId}", []);
         } else {
             $this->name = __('admin-server.title.create');
             $this->description = __('admin-server.title.description');
         }
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-server.title.list'), url('/admin/servers'))
-            ->add($this->serverId ? $this->server->name : __('admin-server.title.create'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+            __('admin-server.title.list'),
+            url('/admin/servers'),
+        )->add($this->serverId ? $this->server->name : __('admin-server.title.create'));
     }
 
     /**
@@ -78,9 +89,7 @@ class ServerEditScreen extends Screen
     public function commandBar(): array
     {
         $buttons = [
-            Button::make(__('admin-server.buttons.cancel'))
-                ->type(Color::OUTLINE_PRIMARY)
-                ->redirect('/admin/servers'),
+            Button::make(__('admin-server.buttons.cancel'))->type(Color::OUTLINE_PRIMARY)->redirect('/admin/servers'),
         ];
 
         if (user()->can('admin.servers')) {
@@ -110,12 +119,16 @@ class ServerEditScreen extends Screen
                 ->icon('ph.bold.database-bold')
                 ->layouts([$this->dbConnectionsLayout()])
                 ->badge(sizeof($this->dbConnections ?? []));
+
+            if ($this->server && !empty($this->server->rcon)) {
+                $tabs[] = Tab::make(__('admin-server.rcon.title'))
+                    ->icon('ph.bold.terminal-bold')
+                    ->layouts([$this->rconTabLayout()]);
+            }
         }
 
         return [
-            LayoutFactory::tabs($tabs)
-                ->slug('server-edit')
-                ->pills(),
+            LayoutFactory::tabs($tabs)->slug('server-edit')->pills(),
         ];
     }
 
@@ -154,7 +167,7 @@ class ServerEditScreen extends Screen
                 ->allowEmpty()
                 ->yoyo()
                 ->placeholder(__('admin-server.db_connection.fields.mod.placeholder'))
-                ->value($selectedDriver)
+                ->value($selectedDriver),
         )
             ->label(__('admin-server.db_connection.fields.mod.label'))
             ->small(__('admin-server.db_connection.fields.mod.help'))
@@ -169,7 +182,7 @@ class ServerEditScreen extends Screen
                     ->allowEmpty()
                     ->yoyo()
                     ->value($selectedDb)
-                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
+                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder')),
             )
                 ->label(__('admin-server.db_connection.fields.dbname.label'))
                 ->small(implode(' ', $dbHelpParts))
@@ -220,7 +233,7 @@ class ServerEditScreen extends Screen
                     ->allowEmpty()
                     ->value(request()->input('custom_mod', $isCustomDriver ? 'custom' : $connection->mod))
                     ->yoyo()
-                    ->placeholder(__('admin-server.db_connection.fields.mod.placeholder'))
+                    ->placeholder(__('admin-server.db_connection.fields.mod.placeholder')),
             )
                 ->label(__('admin-server.db_connection.fields.mod.label'))
                 ->small(__('admin-server.db_connection.fields.mod.help'))
@@ -231,7 +244,7 @@ class ServerEditScreen extends Screen
                     ->options($databaseOptions)
                     ->allowEmpty()
                     ->value(request()->input('dbname', $connection->dbname))
-                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder'))
+                    ->placeholder(__('admin-server.db_connection.fields.dbname.placeholder')),
             )
                 ->label(__('admin-server.db_connection.fields.dbname.label'))
                 ->small(__('admin-server.db_connection.fields.dbname.help'))
@@ -282,43 +295,55 @@ class ServerEditScreen extends Screen
                         ],
                     ])
                     ->value($driver)
-                    ->color('accent')
-            )->label(__('admin-main-settings.labels.db_driver'))->required(),
+                    ->color('accent'),
+            )
+                ->label(__('admin-main-settings.labels.db_driver'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('databaseName')
                     ->type('text')
                     ->value(request()->input('databaseName', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.database_name'))
-            )->label(__('admin-main-settings.labels.database_name'))->required(),
+                    ->placeholder(__('admin-main-settings.placeholders.database_name')),
+            )
+                ->label(__('admin-main-settings.labels.database_name'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('host')
                     ->type('text')
                     ->value(request()->input('host', $defaultConnection->connection->host))
-                    ->placeholder(__('admin-main-settings.placeholders.db_host'))
-            )->label(__('admin-main-settings.labels.host'))->required(),
+                    ->placeholder(__('admin-main-settings.placeholders.db_host')),
+            )
+                ->label(__('admin-main-settings.labels.host'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('port')
                     ->type('number')
                     ->value(request()->input('port', $defaultConnection->connection->port))
-                    ->placeholder(__('admin-main-settings.placeholders.db_port'))
-            )->label(__('admin-main-settings.labels.port'))->required(),
+                    ->placeholder(__('admin-main-settings.placeholders.db_port')),
+            )
+                ->label(__('admin-main-settings.labels.port'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('user')
                     ->type('text')
                     ->value(request()->input('user', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.db_user'))
-            )->label(__('admin-main-settings.labels.user'))->required(),
+                    ->placeholder(__('admin-main-settings.placeholders.db_user')),
+            )
+                ->label(__('admin-main-settings.labels.user'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('database')
                     ->type('text')
                     ->value(request()->input('database', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.db_database'))
-            )->label(__('admin-main-settings.labels.database'))->required(),
+                    ->placeholder(__('admin-main-settings.placeholders.db_database')),
+            )
+                ->label(__('admin-main-settings.labels.database'))
+                ->required(),
             LayoutFactory::field(
                 Input::make('password')
                     ->type('password')
                     ->value(request()->input('password', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.db_password'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_password')),
             )->label(__('admin-main-settings.labels.password')),
             LayoutFactory::field(
                 ButtonGroup::make('persistent')
@@ -327,15 +352,17 @@ class ServerEditScreen extends Screen
                         '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                     ])
                     ->value(request()->input('persistent', '0'))
-                    ->color('accent')
-            )->label(__('admin-main-settings.labels.persistent_connections'))
+                    ->color('accent'),
+            )
+                ->label(__('admin-main-settings.labels.persistent_connections'))
                 ->popover(__('admin-main-settings.popovers.persistent_connections')),
             LayoutFactory::field(
                 Input::make('init_sql')
                     ->type('text')
                     ->value(request()->input('init_sql', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.db_init_sql'))
-            )->label(__('admin-main-settings.labels.db_init_sql'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_init_sql')),
+            )
+                ->label(__('admin-main-settings.labels.db_init_sql'))
                 ->popover(__('admin-main-settings.popovers.db_init_sql'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
@@ -345,8 +372,9 @@ class ServerEditScreen extends Screen
                         '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                     ])
                     ->value(request()->input('compression', '0'))
-                    ->color('accent')
-            )->label(__('admin-main-settings.labels.db_compression'))
+                    ->color('accent'),
+            )
+                ->label(__('admin-main-settings.labels.db_compression'))
                 ->popover(__('admin-main-settings.popovers.db_compression'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
@@ -356,40 +384,45 @@ class ServerEditScreen extends Screen
                         '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                     ])
                     ->value(request()->input('reconnect', '1'))
-                    ->color('accent')
-            )->label(__('admin-main-settings.labels.db_reconnect'))
+                    ->color('accent'),
+            )
+                ->label(__('admin-main-settings.labels.db_reconnect'))
                 ->popover(__('admin-main-settings.popovers.db_reconnect'))
                 ->setVisible($supportsReconnect),
             LayoutFactory::field(
                 Input::make('connect_timeout')
                     ->type('number')
                     ->value(request()->input('connect_timeout', 5))
-                    ->placeholder(__('admin-main-settings.placeholders.db_connect_timeout'))
-            )->label(__('admin-main-settings.labels.db_connect_timeout'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_connect_timeout')),
+            )
+                ->label(__('admin-main-settings.labels.db_connect_timeout'))
                 ->popover(__('admin-main-settings.popovers.db_connect_timeout'))
                 ->setVisible($supportsReconnect),
             LayoutFactory::field(
                 Input::make('read_timeout')
                     ->type('number')
                     ->value(request()->input('read_timeout', 30))
-                    ->placeholder(__('admin-main-settings.placeholders.db_read_timeout'))
-            )->label(__('admin-main-settings.labels.db_read_timeout'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_read_timeout')),
+            )
+                ->label(__('admin-main-settings.labels.db_read_timeout'))
                 ->popover(__('admin-main-settings.popovers.db_read_timeout'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
                 Input::make('write_timeout')
                     ->type('number')
                     ->value(request()->input('write_timeout', 30))
-                    ->placeholder(__('admin-main-settings.placeholders.db_write_timeout'))
-            )->label(__('admin-main-settings.labels.db_write_timeout'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_write_timeout')),
+            )
+                ->label(__('admin-main-settings.labels.db_write_timeout'))
                 ->popover(__('admin-main-settings.popovers.db_write_timeout'))
                 ->setVisible($supportsMysqlOptions),
             LayoutFactory::field(
                 Input::make('prefix')
                     ->type('text')
                     ->value(request()->input('prefix', ''))
-                    ->placeholder(__('admin-main-settings.placeholders.db_prefix'))
-            )->label(__('admin-main-settings.labels.prefix'))
+                    ->placeholder(__('admin-main-settings.placeholders.db_prefix')),
+            )
+                ->label(__('admin-main-settings.labels.prefix'))
                 ->popover(__('admin-main-settings.popovers.prefix'))
                 ->small(__('admin-main-settings.examples.prefix')),
         ])
@@ -431,7 +464,7 @@ class ServerEditScreen extends Screen
             return;
         }
 
-        if (str_contains((string)($data['ip'] ?? ''), ':')) {
+        if (str_contains((string) ( $data['ip'] ?? '' ), ':')) {
             $this->inputError('ip', __('admin-server.messages.invalid_ip'));
 
             return;
@@ -538,25 +571,23 @@ class ServerEditScreen extends Screen
     {
         $data = request()->input();
 
-        if (
-            !$this->validate([
-                'driver' => ['required', 'string', 'in:mysql,postgres'],
-                'databaseName' => ['required', 'string', 'not-in:default'],
-                'host' => ['required', 'string'],
-                'port' => ['required', 'integer', 'min:1', 'max:65535'],
-                'user' => ['required', 'string'],
-                'database' => ['required', 'string'],
-                'password' => ['nullable', 'string'],
-                'persistent' => ['nullable'],
-                'init_sql' => ['nullable', 'string'],
-                'compression' => ['nullable'],
-                'reconnect' => ['nullable'],
-                'connect_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
-                'read_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
-                'write_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
-                'prefix' => ['nullable', 'string'],
-            ], $data)
-        ) {
+        if (!$this->validate([
+            'driver' => ['required', 'string', 'in:mysql,postgres'],
+            'databaseName' => ['required', 'string', 'not-in:default'],
+            'host' => ['required', 'string'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'user' => ['required', 'string'],
+            'database' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
+            'persistent' => ['nullable'],
+            'init_sql' => ['nullable', 'string'],
+            'compression' => ['nullable'],
+            'reconnect' => ['nullable'],
+            'connect_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+            'read_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+            'write_timeout' => ['nullable', 'integer', 'min:0', 'max:300'],
+            'prefix' => ['nullable', 'string'],
+        ], $data)) {
             return;
         }
 
@@ -566,11 +597,14 @@ class ServerEditScreen extends Screen
             (int) $data['port'],
             $data['database'],
             $data['user'],
-            $data['password'] ?? null
+            $data['password'] ?? null,
         );
 
         if ($connectionTest !== true) {
-            $this->flashMessage(__('admin-main-settings.messages.connection_test_failed') . ': ' . $connectionTest, 'error');
+            $this->flashMessage(
+                __('admin-main-settings.messages.connection_test_failed') . ': ' . $connectionTest,
+                'error',
+            );
 
             return;
         }
@@ -578,7 +612,7 @@ class ServerEditScreen extends Screen
         $databaseName = $data['databaseName'];
         $driver = $data['driver'];
         $persistent = filter_var($data['persistent'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $initSql = trim((string) ($data['init_sql'] ?? ''));
+        $initSql = trim((string) ( $data['init_sql'] ?? '' ));
         $compression = filter_var($data['compression'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $reconnect = filter_var($data['reconnect'] ?? true, FILTER_VALIDATE_BOOLEAN);
         $connectTimeout = isset($data['connect_timeout']) ? (int) $data['connect_timeout'] : null;
@@ -599,9 +633,7 @@ class ServerEditScreen extends Screen
 
         if ($driver === 'mysql') {
             $options = [];
-            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND')
-                ? constant('PDO::MYSQL_ATTR_INIT_COMMAND')
-                : null;
+            $mysqlInitKey = defined('PDO::MYSQL_ATTR_INIT_COMMAND') ? constant('PDO::MYSQL_ATTR_INIT_COMMAND') : null;
             if ($mysqlInitKey !== null) {
                 $options[$mysqlInitKey] = $initSql !== '' ? $initSql : 'SET NAMES utf8mb4';
             }
@@ -609,9 +641,7 @@ class ServerEditScreen extends Screen
                 $options[PDO::ATTR_PERSISTENT] = true;
             }
             if ($compression) {
-                $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS')
-                    ? constant('PDO::MYSQL_ATTR_COMPRESS')
-                    : null;
+                $mysqlCompressKey = defined('PDO::MYSQL_ATTR_COMPRESS') ? constant('PDO::MYSQL_ATTR_COMPRESS') : null;
                 if ($mysqlCompressKey !== null) {
                     $options[$mysqlCompressKey] = true;
                 }
@@ -818,7 +848,7 @@ class ServerEditScreen extends Screen
     }
 
     /**
-     * Проверка соединения с сервером через Source Query.
+     * Проверка соединения с сервером через ServerQueryService.
      */
     public function testConnection()
     {
@@ -828,28 +858,28 @@ class ServerEditScreen extends Screen
             return;
         }
 
-        $query = new SourceQuery();
-
         try {
-            $ip = $this->server->ip;
-            $queryPort = $this->server->getSetting('query_port') ?: $this->server->port;
-            $timeout = 3;
+            $queryService = app(ServerQueryService::class);
+            $result = $queryService->query($this->server);
 
-            // Определяем тип движка на основе игры
-            $engine = $this->getEngineType($this->server->mod);
+            if ($result->online) {
+                $vac = isset($result->additional['vac'])
+                    ? ( $result->additional['vac'] ? __('def.yes') : __('def.no') )
+                    : null;
 
-            $query->Connect($ip, (int) $queryPort, $timeout, $engine);
+                $totalPlayers = count($result->playersData);
+                $playerNames = array_slice(array_column($result->playersData, 'name'), 0, 5);
 
-            $info = $query->GetInfo();
-
-            if ($info) {
                 $this->serverStatus = [
                     'online' => true,
-                    'hostname' => $info['HostName'] ?? $info['hostname'] ?? __('def.unknown'),
-                    'map' => $info['Map'] ?? $info['map'] ?? __('def.unknown'),
-                    'players' => ($info['Players'] ?? $info['players'] ?? 0) . '/' . ($info['MaxPlayers'] ?? $info['max_players'] ?? 0),
-                    'game' => $info['GameDir'] ?? $info['folder'] ?? $this->serversService->getGameName($this->server->mod),
-                    'vac' => isset($info['VAC']) ? ($info['VAC'] ? __('def.yes') : __('def.no')) : null,
+                    'hostname' => $result->hostname ?? __('def.unknown'),
+                    'map' => $result->map ?? __('def.unknown'),
+                    'players' => $result->players . '/' . $result->maxPlayers,
+                    'game' => $result->additional['folder'] ?? $this->serversService->getGameName($this->server->mod),
+                    'vac' => $vac,
+                    'player_list' => $playerNames,
+                    'player_list_truncated' => $totalPlayers > 5,
+                    'players_total' => $totalPlayers > 5 ? $totalPlayers - 5 : 0,
                 ];
 
                 $this->flashMessage(__('admin-server.messages.connection_success'), 'success');
@@ -868,9 +898,61 @@ class ServerEditScreen extends Screen
             ];
 
             $this->flashMessage(__('admin-server.messages.connection_failed') . ': ' . $e->getMessage(), 'error');
-        } finally {
-            $query->Disconnect();
         }
+    }
+
+    public function executeRcon(): void
+    {
+        $command = trim((string) request()->input('rcon_command', ''));
+
+        if ($command === '') {
+            $this->flashMessage(__('admin-server.rcon.empty_command'), 'warning');
+
+            return;
+        }
+
+        if (!$this->server || empty($this->server->rcon)) {
+            $this->flashMessage(__('admin-server.rcon.no_rcon'), 'error');
+
+            return;
+        }
+
+        try {
+            $rconService = app(RconService::class);
+            $output = $rconService->execute($this->server, $command);
+
+            $this->rconHistory[] = [
+                'cmd' => $command,
+                'out' => $output !== '' ? $output : __('admin-server.rcon.no_output'),
+                'ok' => true,
+            ];
+        } catch (Exception $e) {
+            $this->rconHistory[] = [
+                'cmd' => $command,
+                'out' => $e->getMessage(),
+                'ok' => false,
+            ];
+
+            $this->flashMessage(__('admin-server.rcon.error') . ': ' . $e->getMessage(), 'error');
+        }
+
+        $this->saveRconHistory();
+    }
+
+    public function clearRcon(): void
+    {
+        $this->rconHistory = [];
+        $this->saveRconHistory();
+    }
+
+    private function saveRconHistory(): void
+    {
+        // Keep last 50 entries to avoid session bloat
+        if (count($this->rconHistory) > 50) {
+            $this->rconHistory = array_slice($this->rconHistory, -50);
+        }
+
+        session()->set("rcon_history_{$this->serverId}", $this->rconHistory);
     }
 
     protected function initServer(): void
@@ -889,27 +971,6 @@ class ServerEditScreen extends Screen
     }
 
     /**
-     * Определение типа движка для SourceQuery.
-     */
-    private function getEngineType(string $mod): int
-    {
-        // GoldSource games (HL1, CS 1.6, etc.)
-        $goldSourceMods = ['10', 'all_hl_games_mods'];
-
-        if (in_array($mod, $goldSourceMods)) {
-            return SourceQuery::GOLDSOURCE;
-        }
-
-        // Minecraft использует другой протокол
-        if ($mod === 'minecraft') {
-            return SourceQuery::SOURCE;
-        }
-
-        // По умолчанию Source engine
-        return SourceQuery::SOURCE;
-    }
-
-    /**
      * Макет вкладки "Основные".
      */
     private function buildModField(bool $canEditServer)
@@ -919,7 +980,7 @@ class ServerEditScreen extends Screen
                 ->options($this->serversService->getListGames())
                 ->value($this->server?->mod ?? null)
                 ->placeholder(__('admin-server.fields.mod.placeholder'))
-                ->disabled(!$canEditServer || $this->serverId)
+                ->disabled(!$canEditServer || $this->serverId),
         )
             ->label(__('admin-server.fields.mod.label'))
             ->required();
@@ -935,10 +996,12 @@ class ServerEditScreen extends Screen
     {
         $canEditServer = user()->can('admin.servers');
 
-        return $this->serverId ? LayoutFactory::split([
-            $this->getMainLayout($canEditServer),
-            $this->getActionsLayout($canEditServer),
-        ])->ratio('70/30') : $this->getMainLayout($canEditServer);
+        return $this->serverId
+            ? LayoutFactory::split([
+                $this->getMainLayout($canEditServer),
+                $this->getActionsLayout($canEditServer),
+            ])->ratio('60/40')
+            : $this->getMainLayout($canEditServer);
     }
 
     private function getMainLayout(bool $canEditServer)
@@ -950,7 +1013,7 @@ class ServerEditScreen extends Screen
                         ->type('text')
                         ->value($this->server?->name ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder(__('admin-server.fields.name.placeholder'))
+                        ->placeholder(__('admin-server.fields.name.placeholder')),
                 )
                     ->label(__('admin-server.fields.name.label'))
                     ->required(),
@@ -960,7 +1023,7 @@ class ServerEditScreen extends Screen
                         ->type('text')
                         ->value($this->server?->ip ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder(__('admin-server.fields.ip.placeholder'))
+                        ->placeholder(__('admin-server.fields.ip.placeholder')),
                 )
                     ->label(__('admin-server.fields.ip.label'))
                     ->small(__('admin-server.fields.ip.help'))
@@ -973,7 +1036,7 @@ class ServerEditScreen extends Screen
                         ->type('number')
                         ->value($this->server?->port ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder(__('admin-server.fields.port.placeholder'))
+                        ->placeholder(__('admin-server.fields.port.placeholder')),
                 )
                     ->label(__('admin-server.fields.port.label'))
                     ->required(),
@@ -987,7 +1050,7 @@ class ServerEditScreen extends Screen
                         ->type('password')
                         ->value($this->server?->rcon ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder(__('admin-server.fields.rcon.placeholder'))
+                        ->placeholder(__('admin-server.fields.rcon.placeholder')),
                 )
                     ->label(__('admin-server.fields.rcon.label'))
                     ->small(__('admin-server.fields.rcon.help')),
@@ -997,7 +1060,7 @@ class ServerEditScreen extends Screen
                         ->type('text')
                         ->value($this->server?->display_ip ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder(__('admin-server.fields.display_ip.placeholder'))
+                        ->placeholder(__('admin-server.fields.display_ip.placeholder')),
                 )
                     ->label(__('admin-server.fields.display_ip.label'))
                     ->small(__('admin-server.fields.display_ip.help')),
@@ -1008,7 +1071,7 @@ class ServerEditScreen extends Screen
                     Select::make('ranks')
                         ->options($this->serversService->getListRanks())
                         ->value($this->server?->ranks ?? 'default')
-                        ->placeholder(__('admin-server.fields.ranks.placeholder'))
+                        ->placeholder(__('admin-server.fields.ranks.placeholder')),
                 )
                     ->label(__('admin-server.fields.ranks.label'))
                     ->small(__('admin-server.fields.ranks.help'))
@@ -1019,7 +1082,7 @@ class ServerEditScreen extends Screen
                         ->options($this->ranksFormats)
                         ->aligned()
                         ->value($this->server?->ranks_format ?? 'webp')
-                        ->placeholder(__('admin-server.fields.ranks_format.placeholder'))
+                        ->placeholder(__('admin-server.fields.ranks_format.placeholder')),
                 )
                     ->label(__('admin-server.fields.ranks_format.label'))
                     ->small(__('admin-server.fields.ranks_format.help'))
@@ -1031,21 +1094,20 @@ class ServerEditScreen extends Screen
                             '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
                             '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.crown-bold'],
                         ])
-                        ->value(($this->server?->ranks_premier ?? false) ? '1' : '0')
-                        ->color('accent')
+                        ->value($this->server?->ranks_premier ?? false ? '1' : '0')
+                        ->color('accent'),
                 )
                     ->label(__('admin-server.fields.ranks_premier.label'))
                     ->small(__('admin-server.fields.ranks_premier.help')),
-
             ]),
 
             LayoutFactory::split([
                 LayoutFactory::field(
                     Input::make('settings__query_port')
                         ->type('number')
-                        ->value(($this->server?->getSetting('query_port') ?? ''))
+                        ->value($this->server?->getSetting('query_port') ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder('27015')
+                        ->placeholder('27015'),
                 )
                     ->small(__('admin-server.fields.query_port.help'))
                     ->label(__('admin-server.fields.query_port.label')),
@@ -1053,9 +1115,9 @@ class ServerEditScreen extends Screen
                 LayoutFactory::field(
                     Input::make('settings__rcon_port')
                         ->type('number')
-                        ->value(($this->server?->getSetting('rcon_port') ?? ''))
+                        ->value($this->server?->getSetting('rcon_port') ?? '')
                         ->disabled(!$canEditServer)
-                        ->placeholder('27015')
+                        ->placeholder('27015'),
                 )
                     ->small(__('admin-server.fields.rcon_port.help'))
                     ->label(__('admin-server.fields.rcon_port.label')),
@@ -1067,16 +1129,15 @@ class ServerEditScreen extends Screen
                         '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
                         '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                     ])
-                    ->value(($this->server?->enabled ?? true) ? '1' : '0')
+                    ->value($this->server?->enabled ?? true ? '1' : '0')
                     ->disabled(!$canEditServer)
-                    ->color('accent')
+                    ->color('accent'),
             )
                 ->label(__('admin-server.fields.enabled.label'))
                 ->popover(__('admin-server.fields.enabled.help')),
         ];
 
-        return LayoutFactory::block($fields)
-            ->title(__('admin-server.title.main_info'));
+        return LayoutFactory::block($fields)->title(__('admin-server.title.main_info'));
     }
 
     private function getActionsLayout(bool $canEditServer)
@@ -1120,11 +1181,11 @@ class ServerEditScreen extends Screen
     {
         return LayoutFactory::table('dbConnections', [
             TD::make('mod', __('admin-server.db_connection.fields.mod.label'))
-                ->render(static fn (DatabaseConnection $connection) => $connection->mod)
+                ->render(static fn(DatabaseConnection $connection) => $connection->mod)
                 ->width('200px'),
 
             TD::make('dbname', __('admin-server.db_connection.fields.dbname.label'))
-                ->render(static fn (DatabaseConnection $connection) => $connection->dbname)
+                ->render(static fn(DatabaseConnection $connection) => $connection->dbname)
                 ->width('200px'),
 
             TD::make('additional', __('admin-server.db_connection.fields.additional.label'))
@@ -1144,21 +1205,25 @@ class ServerEditScreen extends Screen
                         '%s (%d %s)',
                         $driverName,
                         $paramCount,
-                        __('admin-server.db_connection.fields.params')
+                        __('admin-server.db_connection.fields.params'),
                     );
                 })
                 ->width('200px'),
 
             TD::make('actions', __('admin-server.buttons.actions'))
-                ->render(fn (DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
+                ->render(fn(DatabaseConnection $connection) => $this->dbConnectionActionsDropdown($connection))
                 ->width('100px'),
         ])
-            ->empty('ph.regular.plugs-connected', __('admin-server.empty.db_connections.title'), __('admin-server.empty.db_connections.sub'))
+            ->empty(
+                'ph.regular.plugs-connected',
+                __('admin-server.empty.db_connections.title'),
+                __('admin-server.empty.db_connections.sub'),
+            )
             ->emptyButton(
                 Button::make(__('admin-server.db_connection.add.button'))
                     ->type(Color::OUTLINE_PRIMARY)
                     ->icon('ph.bold.plus-bold')
-                    ->modal('addDbConnectionModal')
+                    ->modal('addDbConnectionModal'),
             )
             ->searchable([
                 'mod',
@@ -1284,5 +1349,13 @@ class ServerEditScreen extends Screen
         }
 
         return [];
+    }
+
+    private function rconTabLayout()
+    {
+        return LayoutFactory::view('admin-server::partials.rcon-console', [
+            'history' => $this->rconHistory,
+            'server' => $this->server,
+        ]);
     }
 }

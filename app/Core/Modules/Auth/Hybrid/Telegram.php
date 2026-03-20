@@ -110,7 +110,7 @@ class Telegram extends OAuth2
             $this->accessTokenUrl,
             $this->tokenExchangeMethod,
             $this->tokenExchangeParameters,
-            $this->tokenExchangeHeaders
+            $this->tokenExchangeHeaders,
         );
 
         $this->validateApiResponse('Unable to exchange code for API access token');
@@ -151,7 +151,7 @@ class Telegram extends OAuth2
         [$headerB64, $payloadB64, $signatureB64] = $parts;
 
         $header = json_decode($this->base64UrlDecode($headerB64), true);
-        if (!is_array($header) || ($header['alg'] ?? null) !== 'RS256') {
+        if (!is_array($header) || ( $header['alg'] ?? null ) !== 'RS256') {
             throw new InvalidAccessTokenException('Unsupported id_token algorithm.');
         }
 
@@ -171,16 +171,12 @@ class Telegram extends OAuth2
             throw new InvalidAccessTokenException('Unable to decode id_token payload.');
         }
 
-        if (($decoded['iss'] ?? null) !== static::EXPECTED_ISSUER) {
-            throw new InvalidAccessTokenException(
-                'id_token issuer mismatch: expected ' . static::EXPECTED_ISSUER
-            );
+        if (( $decoded['iss'] ?? null ) !== static::EXPECTED_ISSUER) {
+            throw new InvalidAccessTokenException('id_token issuer mismatch: expected ' . static::EXPECTED_ISSUER);
         }
 
-        if (($decoded['aud'] ?? null) !== $this->clientId) {
-            throw new InvalidAccessTokenException(
-                'id_token audience mismatch: expected ' . $this->clientId
-            );
+        if (( $decoded['aud'] ?? null ) !== $this->clientId) {
+            throw new InvalidAccessTokenException('id_token audience mismatch: expected ' . $this->clientId);
         }
 
         if (isset($decoded['exp']) && (int) $decoded['exp'] < time()) {
@@ -206,7 +202,7 @@ class Telegram extends OAuth2
 
         $jwk = null;
         foreach ($jwks['keys'] as $key) {
-            if ($kid !== null && ($key['kid'] ?? null) === $kid) {
+            if ($kid !== null && ( $key['kid'] ?? null ) === $kid) {
                 $jwk = $key;
 
                 break;
@@ -217,7 +213,7 @@ class Telegram extends OAuth2
             $jwk = $jwks['keys'][0];
         }
 
-        if (($jwk['kty'] ?? null) !== 'RSA' || empty($jwk['n']) || empty($jwk['e'])) {
+        if (( $jwk['kty'] ?? null ) !== 'RSA' || empty($jwk['n']) || empty($jwk['e'])) {
             throw new InvalidAccessTokenException('Invalid JWK key in Telegram JWKS.');
         }
 
@@ -245,21 +241,17 @@ class Telegram extends OAuth2
         }
 
         $components = $this->asn1Sequence(
-            $this->asn1Sequence(
-                $this->asn1ObjectIdentifier("\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01") // rsaEncryption
-                . "\x05\x00" // NULL
-            )
-            . $this->asn1BitString(
-                $this->asn1Sequence(
-                    $this->asn1UnsignedInteger($modulus)
-                    . $this->asn1UnsignedInteger($exponent)
-                )
-            )
+            $this->asn1Sequence($this->asn1ObjectIdentifier("\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01") . "\x05\x00")
+                . $this->asn1BitString($this->asn1Sequence(
+                    $this->asn1UnsignedInteger($modulus) . $this->asn1UnsignedInteger($exponent),
+                )), // rsaEncryption // NULL
         );
 
-        return "-----BEGIN PUBLIC KEY-----\n"
+        return (
+            "-----BEGIN PUBLIC KEY-----\n"
             . chunk_split(base64_encode($components), 64, "\n")
-            . "-----END PUBLIC KEY-----\n";
+            . "-----END PUBLIC KEY-----\n"
+        );
     }
 
     /**

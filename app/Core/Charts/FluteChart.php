@@ -10,15 +10,15 @@ class FluteChart
     use HasOptions;
 
     /*
-    |--------------------------------------------------------------------------
-    | Chart
-    |--------------------------------------------------------------------------
-    |
-    | This class build the chart by passing setters to the object, it will
-    | use the method container and scripts to generate a JSON
-    | in blade view
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Chart
+     |--------------------------------------------------------------------------
+     |
+     | This class build the chart by passing setters to the object, it will
+     | use the method container and scripts to generate a JSON
+     | in blade view
+     |
+     */
 
     public string $id;
 
@@ -73,10 +73,10 @@ class FluteChart
     protected static $cdnLoaded = false;
 
     /*
-    |--------------------------------------------------------------------------
-    | Constructors
-    |--------------------------------------------------------------------------
-    */
+     |--------------------------------------------------------------------------
+     | Constructors
+     |--------------------------------------------------------------------------
+     */
 
     public function __construct()
     {
@@ -158,10 +158,10 @@ class FluteChart
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Setters
-    |--------------------------------------------------------------------------
-    */
+     |--------------------------------------------------------------------------
+     | Setters
+     |--------------------------------------------------------------------------
+     */
 
     /**
      * @deprecated deprecated since version 2.0
@@ -296,7 +296,7 @@ class FluteChart
         $this->markers = json_encode([
             'size' => $width,
             'colors' => $colors,
-            'strokeColors' => "#fff",
+            'strokeColors' => '#fff',
             'strokeWidth' => $width / 2,
             'hover' => [
                 'size' => $hoverSize,
@@ -380,14 +380,14 @@ class FluteChart
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Getters
-    |--------------------------------------------------------------------------
-    */
+     |--------------------------------------------------------------------------
+     | Getters
+     |--------------------------------------------------------------------------
+     */
 
     public function transformLabels(array $array)
     {
-        $stringArray = array_filter($array, static fn ($string) => "{$string}");
+        $stringArray = array_filter($array, static fn($string) => "{$string}");
 
         return json_encode(['"' . implode('","', $stringArray) . '"']);
     }
@@ -410,7 +410,7 @@ class FluteChart
     public function cdn(): string
     {
         if (self::$cdnLoaded) {
-            return "";
+            return '';
         }
 
         self::$cdnLoaded = true;
@@ -554,10 +554,10 @@ class FluteChart
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | JSON Options Builder
-    |--------------------------------------------------------------------------
-    */
+     |--------------------------------------------------------------------------
+     | JSON Options Builder
+     |--------------------------------------------------------------------------
+     */
 
     public function toJson()
     {

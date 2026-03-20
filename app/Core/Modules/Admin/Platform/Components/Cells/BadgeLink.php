@@ -59,7 +59,7 @@ class BadgeLink extends Component
                     $current = $value;
                     $path = '';
                     foreach ($parts as $part) {
-                        $path .= ($path ? '.' : '') . $part;
+                        $path .= ( $path ? '.' : '' ) . $part;
                         if (is_object($current) && isset($current->$part)) {
                             $current = $current->$part;
                         } elseif (is_array($current) && isset($current[$part])) {
@@ -86,12 +86,12 @@ class BadgeLink extends Component
      */
     public function render()
     {
-        if (str_contains((string)$this->url, 'http')) {
+        if (str_contains((string) $this->url, 'http')) {
             return sprintf(
                 '<a href="%s" class="badge %s" target="_blank">%s</a>',
                 $this->url,
                 htmlspecialchars($this->badgeClass, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($this->value, ENT_QUOTES, 'UTF-8')
+                htmlspecialchars($this->value, ENT_QUOTES, 'UTF-8'),
             );
         }
 
@@ -99,7 +99,7 @@ class BadgeLink extends Component
             '<a href="%s" class="badge %s" hx-include="none" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">%s</a>',
             $this->url,
             htmlspecialchars($this->badgeClass, ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($this->value, ENT_QUOTES, 'UTF-8')
+            htmlspecialchars($this->value, ENT_QUOTES, 'UTF-8'),
         );
     }
 

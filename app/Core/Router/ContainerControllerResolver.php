@@ -56,13 +56,16 @@ class ContainerControllerResolver
 
         foreach ($params as $param) {
             $type = $param->getType();
-            if ($type && !$type instanceof ReflectionNamedType || ($type && method_exists($type, 'isBuiltin') && !$type->isBuiltin())) {
+            if (
+                $type && !$type instanceof ReflectionNamedType
+                || $type && method_exists($type, 'isBuiltin') && !$type->isBuiltin()
+            ) {
                 $paramClass = method_exists($type, 'getName') ? $type->getName() : (string) $type;
 
                 try {
                     $id = $request->attributes->get($param->getName());
                     $args[] = $this->fetchModel($paramClass, $id);
-                } catch (SchemaException | ResourceNotFoundException $e) {
+                } catch (SchemaException|ResourceNotFoundException $e) {
                     if ($paramClass === \Cycle\ORM\ORMInterface::class || $paramClass === \Cycle\ORM\ORM::class) {
                         try {
                             $dbConn = app(\Flute\Core\Database\DatabaseConnection::class);
@@ -79,7 +82,7 @@ class ContainerControllerResolver
             } elseif ($param->isOptional()) {
                 $args[] = $param->getDefaultValue();
             } else {
-                throw new InvalidArgumentException("Missing argument: " . $param->getName());
+                throw new InvalidArgumentException('Missing argument: ' . $param->getName());
             }
         }
 
@@ -99,7 +102,7 @@ class ContainerControllerResolver
         $has = cache()->has($key);
 
         if ($has && cache($key) !== true) {
-            throw new SchemaException("Model not found in cache.");
+            throw new SchemaException('Model not found in cache.');
         }
 
         try {

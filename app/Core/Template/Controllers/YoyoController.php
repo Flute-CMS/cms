@@ -19,7 +19,7 @@ class YoyoController extends BaseController
                 throw $e;
             }
 
-            logs()->error("Error in Yoyo update: ".$e->getMessage());
+            logs()->error('Error in Yoyo update: ' . $e->getMessage());
 
             return response()->error(500, $e->getMessage());
         }

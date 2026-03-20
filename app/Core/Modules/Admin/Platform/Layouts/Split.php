@@ -73,11 +73,11 @@ abstract class Split extends Layout
             '80/20' => ['col-md-10', 'col-md-2'],
         ]);
 
-        throw_unless($allowedRatios->offsetExists($ratio), InvalidArgumentException::class, sprintf(
-            'Invalid ratio "%s". Allowed ratios: %s',
-            $ratio,
-            $allowedRatios->keys()->implode(', ')
-        ));
+        throw_unless(
+            $allowedRatios->offsetExists($ratio),
+            InvalidArgumentException::class,
+            sprintf('Invalid ratio "%s". Allowed ratios: %s', $ratio, $allowedRatios->keys()->implode(', ')),
+        );
 
         $this->variables['columnClass'] = $allowedRatios->get($ratio);
 

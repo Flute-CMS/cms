@@ -89,6 +89,18 @@ return [
         'map' => 'Карта',
         'players' => 'Игроки',
         'game' => 'Игра',
+        'status' => 'Статус',
+        'and_more' => '+:count ещё',
+    ],
+
+    'rcon' => [
+        'title' => 'RCON Консоль',
+        'placeholder' => 'Введите команду...',
+        'empty' => 'Введите команду ниже',
+        'no_rcon' => 'RCON пароль не настроен для этого сервера.',
+        'no_output' => '(нет вывода)',
+        'empty_command' => 'Сначала введите команду.',
+        'error' => 'Ошибка RCON',
     ],
 
     'db_connection' => [

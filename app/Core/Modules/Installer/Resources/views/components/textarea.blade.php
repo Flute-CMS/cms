@@ -29,4 +29,3 @@
 
     <textarea name="{{ $name }}" id="{{ $id }}" class="{{ $inputClass }}" placeholder="{{ $placeholder }}" {{ $attributes }}>{{ $value }}</textarea>
 </div>
-

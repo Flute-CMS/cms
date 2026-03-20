@@ -76,7 +76,7 @@ class DatabaseTimingLogger implements LoggerInterface
     public static function getSlowestQueries(int $limit = 10): array
     {
         $queries = self::$queries;
-        usort($queries, static fn ($a, $b) => $b['time'] <=> $a['time']);
+        usort($queries, static fn($a, $b) => $b['time'] <=> $a['time']);
 
         return array_slice($queries, 0, $limit);
     }
@@ -99,7 +99,7 @@ class DatabaseTimingLogger implements LoggerInterface
             self::$totalTime += $elapsed;
         } else {
             if (preg_match('/([0-9.]+)\s*ms/iu', (string) $message, $m)) {
-                $elapsed = ((float) $m[1]) / 1000;
+                $elapsed = (float) $m[1] / 1000;
                 self::$totalTime += $elapsed;
             } elseif (preg_match('/([0-9.]+)\s*s/iu', (string) $message, $m)) {
                 $elapsed = (float) $m[1];

@@ -19,8 +19,15 @@ class CacheClearCommand extends Command
         $this
             ->setName('cache:clear')
             ->setDescription('Clears application cache (with SWR rotation) and asset caches.')
-            ->addOption('full', null, InputOption::VALUE_NONE, 'Also clears templates, translations, logs and proxies caches (may be expensive under load).')
-            ->setHelp('Clears Flute cache. Use --full to additionally purge templates/translations/logs/proxies caches.');
+            ->addOption(
+                'full',
+                null,
+                InputOption::VALUE_NONE,
+                'Also clears templates, translations, logs and proxies caches (may be expensive under load).',
+            )
+            ->setHelp(
+                'Clears Flute cache. Use --full to additionally purge templates/translations/logs/proxies caches.',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

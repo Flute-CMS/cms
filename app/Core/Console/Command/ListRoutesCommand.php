@@ -77,6 +77,5 @@ class ListRoutesCommand extends Command
         }
 
         return 'Unknown';
-
     }
 }

@@ -80,7 +80,7 @@ class DiscordService
                 $social->additional = json_encode([
                     'access_token' => $data['access_token'],
                     'refresh_token' => $data['refresh_token'],
-                    'expires_at' => (new DateTime())->add(new DateInterval('PT' . $data['expires_in'] . 'S')),
+                    'expires_at' => ( new DateTime() )->add(new DateInterval('PT' . $data['expires_in'] . 'S')),
                 ]);
 
                 transaction($user)->run();
@@ -242,7 +242,13 @@ class DiscordService
             $currentRoles = isset($data['roles']) && is_array($data['roles']) ? $data['roles'] : [];
         } catch (ClientException $e) {
             if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
-                logs()->warning('Discord member not found in guild for user #' . $user->id . ' (Discord ID ' . $discordUserId . '). Skipping bot role sync.');
+                logs()->warning(
+                    'Discord member not found in guild for user #'
+                    . $user->id
+                    . ' (Discord ID '
+                    . $discordUserId
+                    . '). Skipping bot role sync.',
+                );
 
                 return false;
             }
@@ -259,12 +265,16 @@ class DiscordService
 
         foreach ($toRemove as $discordRoleId) {
             try {
-                $this->client->request('DELETE', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-                    'headers' => [
-                        'Authorization' => 'Bot ' . $botToken,
-                        'Accept' => 'application/json',
+                $this->client->request(
+                    'DELETE',
+                    self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}",
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bot ' . $botToken,
+                            'Accept' => 'application/json',
+                        ],
                     ],
-                ]);
+                );
                 usleep(250000);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -276,12 +286,16 @@ class DiscordService
 
         foreach ($toAdd as $discordRoleId) {
             try {
-                $this->client->request('PUT', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-                    'headers' => [
-                        'Authorization' => 'Bot ' . $botToken,
-                        'Accept' => 'application/json',
+                $this->client->request(
+                    'PUT',
+                    self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}",
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bot ' . $botToken,
+                            'Accept' => 'application/json',
+                        ],
                     ],
-                ]);
+                );
                 usleep(250000);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -296,7 +310,7 @@ class DiscordService
 
     protected function getDiscordInfo()
     {
-        $socialNetwork = $this->getSocialNetworkByKey("Discord");
+        $socialNetwork = $this->getSocialNetworkByKey('Discord');
 
         if (!$socialNetwork) {
             return false;
@@ -320,7 +334,7 @@ class DiscordService
         $additional = json_decode($user->getSocialNetwork('Discord')->additional, true);
 
         if (is_int($additional['expires_at'])) {
-            if ((new DateTime())->getTimestamp() > (int) $additional['expires_at']) {
+            if (( new DateTime() )->getTimestamp() > (int) $additional['expires_at']) {
                 return $this->refreshAccessToken($additional['refresh_token'], $user->id);
             }
         } else {

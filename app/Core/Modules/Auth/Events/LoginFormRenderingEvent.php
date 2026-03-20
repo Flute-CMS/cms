@@ -87,7 +87,7 @@ class LoginFormRenderingEvent
     {
         $views = $this->{$slot} ?? [];
 
-        usort($views, static fn ($a, $b) => $a['priority'] <=> $b['priority']);
+        usort($views, static fn($a, $b) => $a['priority'] <=> $b['priority']);
 
         $html = '';
         foreach ($views as $item) {

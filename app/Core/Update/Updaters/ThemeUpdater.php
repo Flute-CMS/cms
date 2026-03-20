@@ -56,7 +56,7 @@ class ThemeUpdater extends AbstractUpdater
     {
         // Проверяем, есть ли файл с обновлением
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
-            logs()->error('Theme update package file not found: ' . ($data['package_file'] ?? 'null'));
+            logs()->error('Theme update package file not found: ' . ( $data['package_file'] ?? 'null' ));
 
             return false;
         }
@@ -181,7 +181,7 @@ class ThemeUpdater extends AbstractUpdater
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }

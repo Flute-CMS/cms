@@ -89,6 +89,8 @@ return [
         'recaptcha_secret_key' => 'Chave Secreta reCAPTCHA',
         'hcaptcha_site_key' => 'Chave do Site hCaptcha',
         'hcaptcha_secret_key' => 'Chave Secreta hCaptcha',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
         'default_theme' => 'Tema Padrão',
         'default_role' => 'Papel Padrão de Registro',
         'profile_tab_title' => 'Aba',
@@ -149,6 +151,8 @@ return [
         'recaptcha_secret_key' => 'Digite a chave secreta reCAPTCHA',
         'hcaptcha_site_key' => 'Digite a chave do site hCaptcha',
         'hcaptcha_secret_key' => 'Digite a chave secreta hCaptcha',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
         'default_role_placeholder' => 'Sem papel',
     ],
 
@@ -277,6 +281,8 @@ return [
         'recaptcha_secret_key' => 'Obtenha sua chave secreta reCAPTCHA em <a target="_blank" href="https://www.google.com/recaptcha/admin">Google reCAPTCHA</a>.',
         'hcaptcha_site_key' => 'Obtenha sua chave do site hCaptcha em <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
         'hcaptcha_secret_key' => 'Obtenha sua chave secreta hCaptcha em <a target="_blank" href="https://dashboard.hcaptcha.com/">hCaptcha Dashboard</a>.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
         'default_role' => 'Este papel será atribuído a todos os novos usuários registrados.',
     ],
 

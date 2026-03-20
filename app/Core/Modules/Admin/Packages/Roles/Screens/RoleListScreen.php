@@ -32,9 +32,7 @@ class RoleListScreen extends Screen
         $this->name = __('admin-roles.title.roles');
         $this->description = __('admin-roles.title.roles_description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-roles.breadcrumbs.roles'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-roles.breadcrumbs.roles'));
 
         $this->loadRoles();
     }
@@ -54,27 +52,26 @@ class RoleListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('roles', [
-                Sight::make()->render(static fn (Role $role) => view('admin-roles::cells.role-name', compact('role'))),
-                Sight::make('actions', __('admin-roles.table.actions'))
-                    ->render(
-                        static fn (Role $role) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-roles.buttons.edit'))
-                                    ->modal('editRoleModal', ['role' => $role->id])
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
-                                DropDownItem::make(__('admin-roles.buttons.delete'))
-                                    ->confirm(__('admin-roles.modal.delete.confirm'))
-                                    ->method('deleteRole', ['id' => $role->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
+                Sight::make()->render(static fn(Role $role) => view('admin-roles::cells.role-name', compact('role'))),
+                Sight::make('actions', __('admin-roles.table.actions'))->render(
+                    static fn(Role $role) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list([
+                            DropDownItem::make(__('admin-roles.buttons.edit'))
+                                ->modal('editRoleModal', ['role' => $role->id])
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
+                            DropDownItem::make(__('admin-roles.buttons.delete'))
+                                ->confirm(__('admin-roles.modal.delete.confirm'))
+                                ->method('deleteRole', ['id' => $role->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ]),
+                ),
             ])
                 ->onSortEnd('saveRolePriority')
                 ->maxLevels(1)
@@ -107,18 +104,14 @@ class RoleListScreen extends Screen
     {
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('name')
-                    ->type('text')
-                    ->placeholder(__('admin-roles.fields.name.placeholder'))
+                Input::make('name')->type('text')->placeholder(__('admin-roles.fields.name.placeholder')),
             )
                 ->label(__('admin-roles.fields.name.label'))
                 ->required()
                 ->small(__('admin-roles.fields.name.help')),
 
             LayoutFactory::field(
-                Input::make('icon')
-                    ->type('icon')
-                    ->placeholder(__('admin-roles.fields.icon.placeholder'))
+                Input::make('icon')->type('icon')->placeholder(__('admin-roles.fields.icon.placeholder')),
             )
                 ->label(__('admin-roles.fields.icon.label'))
                 ->small(__('admin-roles.fields.icon.help')),
@@ -130,25 +123,21 @@ class RoleListScreen extends Screen
                         '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
                     ])
                     ->value('0')
-                    ->color('accent')
+                    ->color('accent'),
             )
                 ->label(__('admin-roles.fields.show_icon.label'))
                 ->small(__('admin-roles.fields.show_icon.help')),
 
-            LayoutFactory::field(
-                Input::make('color')
-                    ->type('color')
-            )
+            LayoutFactory::field(Input::make('color')->type('color'))
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
             LayoutFactory::field(
                 Select::make('permissions')
                     ->fromDatabase('permissions', 'name', 'name')
-                    ->filter(static fn ($permission) => user()->can($permission->name))
-                    ->multiple()
-            )
-                ->label(__('admin-roles.fields.permissions.label')),
+                    ->filter(static fn($permission) => user()->can($permission->name))
+                    ->multiple(),
+            )->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.create.title'))
             ->applyButton(__('admin-roles.modal.create.submit'))
@@ -226,17 +215,14 @@ class RoleListScreen extends Screen
             return;
         }
 
-        $selectedPermissions = array_map(
-            static fn ($permission) => $permission->name,
-            $role->permissions
-        );
+        $selectedPermissions = array_map(static fn($permission) => $permission->name, $role->permissions);
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Input::make('name')
                     ->type('text')
                     ->placeholder(__('admin-roles.fields.name.placeholder'))
-                    ->value($role->name)
+                    ->value($role->name),
             )
                 ->label(__('admin-roles.fields.name.label'))
                 ->required()
@@ -246,7 +232,7 @@ class RoleListScreen extends Screen
                 Input::make('icon')
                     ->type('icon')
                     ->placeholder(__('admin-roles.fields.icon.placeholder'))
-                    ->value($role->icon)
+                    ->value($role->icon),
             )
                 ->label(__('admin-roles.fields.icon.label'))
                 ->small(__('admin-roles.fields.icon.help')),
@@ -258,27 +244,22 @@ class RoleListScreen extends Screen
                         '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
                     ])
                     ->value($role->showIcon ? '1' : '0')
-                    ->color('accent')
+                    ->color('accent'),
             )
                 ->label(__('admin-roles.fields.show_icon.label'))
                 ->small(__('admin-roles.fields.show_icon.help')),
 
-            LayoutFactory::field(
-                Input::make('color')
-                    ->type('color')
-                    ->value($role->color)
-            )
+            LayoutFactory::field(Input::make('color')->type('color')->value($role->color))
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
             LayoutFactory::field(
                 Select::make('permissions')
                     ->fromDatabase('permissions', 'name', 'name')
-                    ->filter(static fn ($permission) => user()->can($permission->name))
+                    ->filter(static fn($permission) => user()->can($permission->name))
                     ->multiple()
-                    ->value($selectedPermissions)
-            )
-                ->label(__('admin-roles.fields.permissions.label')),
+                    ->value($selectedPermissions),
+            )->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.edit.title'))
             ->applyButton(__('admin-roles.modal.edit.submit'))

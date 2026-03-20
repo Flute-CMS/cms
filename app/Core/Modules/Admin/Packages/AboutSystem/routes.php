@@ -6,5 +6,7 @@ use Flute\Core\Router\Router;
 
 Router::screen('/admin/about-system', AboutSystemScreen::class);
 
-router()->get('/admin/about-system/download-report', [SystemReportController::class, 'download'])
-    ->middleware(['can:admin.boss', 'csrf']);
+router()->get('/admin/about-system/download-report', [SystemReportController::class, 'download'])->middleware([
+    'can:admin.boss',
+    'csrf',
+]);

@@ -35,11 +35,18 @@ class NavbarService
         $this->format = $format;
         $this->agent = $agent;
 
-        $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
+        $cacheKey =
+            self::CACHE_KEY
+            . '.'
+            . ( user()->isLoggedIn() ? user()->id : 'guest' )
+            . '.'
+            . ( $this->agent->isMobile() ? 'mobile' : 'desktop' )
+            . '.'
+            . app()->getLang();
 
         $cacheTime = is_development() ? 30 : self::CACHE_TIME;
         cache()->tagKey(self::CACHE_TAG, $cacheKey);
-        $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), $cacheTime);
+        $this->cachedNavbarItems = cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), $cacheTime);
     }
 
     /**
@@ -165,7 +172,7 @@ class NavbarService
             $tree[] = $formatted;
         }
 
-        usort($tree, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($tree, static fn($a, $b) => ( $a['position'] ?? 0 ) <=> ( $b['position'] ?? 0 ));
 
         return $tree;
     }

@@ -78,6 +78,8 @@ return [
         'map' => 'Карта',
         'players' => 'Гравці',
         'game' => 'Гра',
+        'status' => 'Статус',
+        'and_more' => '+:count ще',
     ],
     'db_connection' => [
         'title' => 'DB інтеграції',

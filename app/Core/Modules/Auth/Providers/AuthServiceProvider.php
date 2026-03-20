@@ -51,7 +51,10 @@ class AuthServiceProvider extends AbstractServiceProvider
                 $template->registerComponent('reset-token', PasswordResetTokenComponent::class);
             });
 
-            events()->addListener(\Flute\Core\Modules\Auth\Events\UserRegisteredEvent::NAME, [DefaultRoleListener::class, 'handle']);
+            events()->addListener(\Flute\Core\Modules\Auth\Events\UserRegisteredEvent::NAME, [
+                DefaultRoleListener::class,
+                'handle',
+            ]);
         }
     }
 }

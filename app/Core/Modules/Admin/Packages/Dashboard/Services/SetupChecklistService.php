@@ -22,7 +22,7 @@ class SetupChecklistService
 
     public function getCompletedCount(): int
     {
-        return count(array_filter($this->getItems(), static fn (array $item) => $item['done']));
+        return count(array_filter($this->getItems(), static fn(array $item) => $item['done']));
     }
 
     public function getTotalCount(): int
@@ -39,7 +39,7 @@ class SetupChecklistService
     {
         $total = $this->getTotalCount();
 
-        return $total > 0 ? (int) round(($this->getCompletedCount() / $total) * 100) : 0;
+        return $total > 0 ? (int) round(( $this->getCompletedCount() / $total ) * 100) : 0;
     }
 
     protected function buildItems(): void

@@ -13,9 +13,9 @@ class ApcuAdapterCacheDriver extends AbstractCacheDriver
         parent::__construct($config, $logger);
 
         $this->cache = new ApcuAdapter(
-            $config["namespace"] ?? '',
-            $config["defaultLifetime"] ?? 0,
-            $config["version"] ?? null,
+            $config['namespace'] ?? '',
+            $config['defaultLifetime'] ?? 0,
+            $config['version'] ?? null,
         );
     }
 }

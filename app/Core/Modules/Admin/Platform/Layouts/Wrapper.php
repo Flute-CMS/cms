@@ -39,8 +39,7 @@ abstract class Wrapper extends Layout
 
                 return !is_array($layout) ? reset($items)[0] : reset($items);
             })
-            ->merge($repository->all())
-            ->all();
+            ->merge($repository->all())->all();
 
         return view($this->template, $build);
     }

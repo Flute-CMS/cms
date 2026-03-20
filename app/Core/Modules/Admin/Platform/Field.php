@@ -119,7 +119,9 @@ class Field implements Fieldable, Htmlable
             return $this->macroCall($method, $parameters);
         }
 
-        $arguments = collect($parameters)->map(static fn ($argument) => $argument instanceof Closure ? $argument() : $argument);
+        $arguments = collect($parameters)->map(static fn($argument) => $argument instanceof Closure
+            ? $argument()
+            : $argument);
 
         if (method_exists($this, $method)) {
             $this->$method($arguments);
@@ -264,7 +266,7 @@ class Field implements Fieldable, Htmlable
      */
     public function withoutFormType(): self
     {
-        $this->typeForm = static fn (array $attributes) => $attributes['slot'];
+        $this->typeForm = static fn(array $attributes) => $attributes['slot'];
 
         return $this;
     }
@@ -366,7 +368,7 @@ class Field implements Fieldable, Htmlable
     protected function ensureRequiredAttributesArePresent(): self
     {
         collect($this->required)
-            ->filter(fn ($attribute) => !array_key_exists($attribute, $this->attributes))
+            ->filter(fn($attribute) => !array_key_exists($attribute, $this->attributes))
             ->each(static function ($attribute) {
                 throw new FieldRequiredAttributeException($attribute);
             });
@@ -382,11 +384,10 @@ class Field implements Fieldable, Htmlable
         $allow = array_merge($this->universalAttributes, $this->inlineAttributes);
 
         $attributes = collect($this->getAttributes())
-            ->filter(static fn ($value, $attribute) => Str::is($allow, $attribute))
+            ->filter(static fn($value, $attribute) => Str::is($allow, $attribute))
             ->toArray();
 
-        return (new ComponentAttributeBag())
-            ->merge($attributes);
+        return ( new ComponentAttributeBag() )->merge($attributes);
     }
 
     /**
@@ -394,7 +395,7 @@ class Field implements Fieldable, Htmlable
      */
     protected function getAllowDataAttributes(): ComponentAttributeBag
     {
-        return $this->getAllowAttributes()->filter(static fn ($value, $key) => Str::startsWith($key, 'data-'));
+        return $this->getAllowAttributes()->filter(static fn($value, $key) => Str::startsWith($key, 'data-'));
     }
 
     /**
@@ -413,15 +414,15 @@ class Field implements Fieldable, Htmlable
         $lang = $this->get('lang');
 
         if ($prefix !== null && $lang !== null) {
-            return $this->set('name', $prefix.'['.$lang.']'.$name);
+            return $this->set('name', $prefix . '[' . $lang . ']' . $name);
         }
 
         if ($prefix !== null) {
-            return $this->set('name', $prefix.$name);
+            return $this->set('name', $prefix . $name);
         }
 
         if ($lang !== null) {
-            return $this->set('name', $lang.'['.$name.']');
+            return $this->set('name', $lang . '[' . $name . ']');
         }
 
         return $this;

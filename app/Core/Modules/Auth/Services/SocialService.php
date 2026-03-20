@@ -51,7 +51,10 @@ class SocialService implements SocialServiceInterface
     {
         $socialNetwork = new SocialNetwork();
         $socialNetwork->key = $config['key'];
-        $socialNetwork->settings = json_encode($this->prepareSettingsPayload($config['key'], $config['settings'] ?? []));
+        $socialNetwork->settings = json_encode($this->prepareSettingsPayload(
+            $config['key'],
+            $config['settings'] ?? [],
+        ));
         $socialNetwork->icon = $config['icon'] ?? '';
         $socialNetwork->enabled = $config['enabled'] ?? true;
         $socialNetwork->allowToRegister = $config['allowToRegister'] ?? true;
@@ -298,9 +301,7 @@ class SocialService implements SocialServiceInterface
         $email = $userProfile->email;
 
         if ($email) {
-            $existingUser = User::query()
-                ->where(['email' => $email])
-                ->fetchOne();
+            $existingUser = User::query()->where(['email' => $email])->fetchOne();
 
             if ($existingUser) {
                 $email = null;
@@ -346,7 +347,7 @@ class SocialService implements SocialServiceInterface
 
         events()->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
-        if ($socialNetwork->key === "Discord") {
+        if ($socialNetwork->key === 'Discord') {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
         }
 
@@ -395,7 +396,7 @@ class SocialService implements SocialServiceInterface
                         transaction($tempUser, 'delete')->run();
                     }
                 } catch (Exception $e) {
-                    logs()->error("Error deleting temporary user during bind: " . $e->getMessage());
+                    logs()->error('Error deleting temporary user during bind: ' . $e->getMessage());
 
                     throw new Exception('Failed to reassign social account. Please try again.');
                 }
@@ -408,7 +409,11 @@ class SocialService implements SocialServiceInterface
         if ($userSocialNetwork) {
             $lastLinked = $userSocialNetwork->linkedAt;
 
-            if ($social['entity']->cooldownTime > 0 && $lastLinked && ($now->getTimestamp() - $lastLinked->getTimestamp() < $social['entity']->cooldownTime)) {
+            if (
+                $social['entity']->cooldownTime > 0
+                && $lastLinked
+                && ( $now->getTimestamp() - $lastLinked->getTimestamp() ) < $social['entity']->cooldownTime
+            ) {
                 throw new Exception(__('profile.errors.social_delay'));
             }
 
@@ -461,10 +466,13 @@ class SocialService implements SocialServiceInterface
         }
 
         if (!isset($user->roles)) {
-            $user = User::query()->load(['roles'])->where(['id' => $user->id])->fetchOne();
+            $user = User::query()
+                ->load(['roles'])
+                ->where(['id' => $user->id])
+                ->fetchOne();
         }
 
-        if ($social['entity']->key === "Discord") {
+        if ($social['entity']->key === 'Discord') {
             app()->get(DiscordService::class)->linkRoles($user, $user->roles);
         }
 
@@ -558,7 +566,17 @@ class SocialService implements SocialServiceInterface
      */
     private function initializePSR()
     {
-        $hybridPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid';
+        $hybridPath =
+            BASE_PATH
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'Core'
+            . DIRECTORY_SEPARATOR
+            . 'Modules'
+            . DIRECTORY_SEPARATOR
+            . 'Auth'
+            . DIRECTORY_SEPARATOR
+            . 'Hybrid';
 
         $loader = app()->getLoader();
 
@@ -581,7 +599,17 @@ class SocialService implements SocialServiceInterface
     {
         $loader = app()->getLoader();
 
-        $hybridPath = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'Auth' . DIRECTORY_SEPARATOR . 'Hybrid';
+        $hybridPath =
+            BASE_PATH
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'Core'
+            . DIRECTORY_SEPARATOR
+            . 'Modules'
+            . DIRECTORY_SEPARATOR
+            . 'Auth'
+            . DIRECTORY_SEPARATOR
+            . 'Hybrid';
 
         $loader->addClassMap([
             'Hybridauth\\Provider\\Discord' => $hybridPath . DIRECTORY_SEPARATOR . 'Discord.php',
@@ -601,10 +629,14 @@ class SocialService implements SocialServiceInterface
         $callbackPath = $bind ? "profile/social/bind/{$providerName}" : "social/{$providerName}";
         $callbackUrl = url($callbackPath)->get();
 
-        $this->hybridauth = new Hybridauth([
-            'callback' => $callbackUrl,
-            'providers' => $this->registeredProviders,
-        ], null, new StorageSession());
+        $this->hybridauth = new Hybridauth(
+            [
+                'callback' => $callbackUrl,
+                'providers' => $this->registeredProviders,
+            ],
+            null,
+            new StorageSession(),
+        );
     }
 
     /**
@@ -649,7 +681,7 @@ class SocialService implements SocialServiceInterface
                 }
             }
         } catch (Exception $e) {
-            logs()->error("Error deleting temporary user: " . $e->getMessage());
+            logs()->error('Error deleting temporary user: ' . $e->getMessage());
         }
     }
 
@@ -788,7 +820,10 @@ class SocialService implements SocialServiceInterface
             $currentAvatar = $user->avatar ?? '';
             $defaultAvatar = config('profile.default_avatar');
 
-            $isDefault = empty($currentAvatar) || $currentAvatar === $defaultAvatar || str_contains($currentAvatar, basename($defaultAvatar));
+            $isDefault =
+                empty($currentAvatar)
+                || $currentAvatar === $defaultAvatar
+                || str_contains($currentAvatar, basename($defaultAvatar));
 
             $photoUrl = $profile->photoURL ?? null;
 
@@ -815,7 +850,10 @@ class SocialService implements SocialServiceInterface
             $currentBanner = $user->banner ?? '';
             $defaultBanner = config('profile.default_banner');
 
-            $isDefault = empty($currentBanner) || $currentBanner === $defaultBanner || str_contains($currentBanner, basename($defaultBanner));
+            $isDefault =
+                empty($currentBanner)
+                || $currentBanner === $defaultBanner
+                || str_contains($currentBanner, basename($defaultBanner));
 
             $bannerUrl = $profile->data['bannerURL'] ?? null;
 

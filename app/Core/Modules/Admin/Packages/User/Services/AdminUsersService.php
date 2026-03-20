@@ -65,7 +65,10 @@ class AdminUsersService
     public function unblockUser(User $user): void
     {
         foreach ($user->blocksReceived as $block) {
-            if ($block->isActive && ($block->blockedUntil > new DateTimeImmutable() || $block->blockedUntil === null)) {
+            if (
+                $block->isActive
+                && ( $block->blockedUntil > new DateTimeImmutable() || $block->blockedUntil === null )
+            ) {
                 $block->isActive = false;
                 $block->save();
             }
@@ -202,10 +205,7 @@ class AdminUsersService
         $user->clearRoles();
 
         if ($hasBossAccess) {
-            $selectedRoles = array_filter(
-                Role::findAll(),
-                static fn ($role) => in_array($role->id, $roleIds)
-            );
+            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array($role->id, $roleIds));
 
             foreach ($selectedRoles as $role) {
                 $user->addRole($role);
@@ -220,7 +220,7 @@ class AdminUsersService
             if (!empty($roleIds)) {
                 $allowedRoles = array_filter(
                     Role::findAll(),
-                    static fn ($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority
+                    static fn($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority,
                 );
 
                 foreach ($allowedRoles as $role) {
@@ -286,11 +286,14 @@ class AdminUsersService
 
         $originalName = $file->getClientOriginalName();
 
-        if ($originalName && (str_starts_with($originalName, 'http://') || str_starts_with($originalName, 'https://'))) {
+        if (
+            $originalName
+            && ( str_starts_with($originalName, 'http://') || str_starts_with($originalName, 'https://') )
+        ) {
             return false;
         }
 
-        if ($originalName && (str_starts_with($originalName, '/') || str_starts_with($originalName, 'assets/'))) {
+        if ($originalName && ( str_starts_with($originalName, '/') || str_starts_with($originalName, 'assets/') )) {
             return false;
         }
 
@@ -299,7 +302,11 @@ class AdminUsersService
             $firstBytes = @file_get_contents($tempPath, false, null, 0, 256);
             if ($firstBytes !== false) {
                 $trimmed = trim($firstBytes);
-                if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://') || str_starts_with($trimmed, '/')) {
+                if (
+                    str_starts_with($trimmed, 'http://')
+                    || str_starts_with($trimmed, 'https://')
+                    || str_starts_with($trimmed, '/')
+                ) {
                     return false;
                 }
             }

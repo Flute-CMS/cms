@@ -30,10 +30,7 @@ class BackupController extends BaseController
             $path = $this->backupService->getBackupPath($filename);
 
             $response = new BinaryFileResponse($path);
-            $response->setContentDisposition(
-                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                basename($filename)
-            );
+            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, basename($filename));
 
             return $response;
         } catch (Exception $e) {

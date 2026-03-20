@@ -12,8 +12,7 @@ class AuthController extends BaseController
 {
     public function getLogin(FluteRequest $request)
     {
-        breadcrumb()->add(config('app.name'), url('/'))
-            ->add(__('auth.header.login'));
+        breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.login'));
 
         if (config('auth.only_social', false)) {
             $providers = social()->getAll();
@@ -26,17 +25,16 @@ class AuthController extends BaseController
         }
 
         return view('flute::pages.login', [
-            "social" => social()->toDisplay(),
+            'social' => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'auth-card');
     }
 
     public function getRegister(FluteRequest $request)
     {
-        breadcrumb()->add(config('app.name'), url('/'))
-            ->add(__('auth.header.register'));
+        breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.register'));
 
         return view('flute::pages.register', [
-            "social" => social()->toDisplay(),
+            'social' => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'register-card');
     }
 
@@ -52,7 +50,7 @@ class AuthController extends BaseController
             return response()->redirect('/');
         } catch (Exception $e) {
             logs()->error($e);
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
 
             return response()->error(500, $message);
         }

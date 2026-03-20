@@ -20,7 +20,15 @@ class UserExistsMiddleware extends BaseMiddleware
 
         $cached = cache()->get($cacheKey);
         if (is_array($cached)) {
-            if ($cached['hidden'] === true && (!user()->isLoggedIn() || (!user()->can('admin.users') && !user()->can('admin.users.view') && user()->id !== $cached['id']))) {
+            if (
+                $cached['hidden'] === true
+                && (
+                    !user()->isLoggedIn()
+                    || !user()->can('admin.users')
+                    && !user()->can('admin.users.view')
+                    && user()->id !== $cached['id']
+                )
+            ) {
                 return $this->error()->custom(__('profile.profile_hidden'), 404);
             }
 
@@ -28,9 +36,13 @@ class UserExistsMiddleware extends BaseMiddleware
         }
 
         if ($isNumeric) {
-            $found = User::query()->where(['id' => (int) $profileId])->fetchOne();
+            $found = User::query()
+                ->where(['id' => (int) $profileId])
+                ->fetchOne();
         } else {
-            $found = User::query()->where(['uri' => (string) $profileId])->fetchOne();
+            $found = User::query()
+                ->where(['uri' => (string) $profileId])
+                ->fetchOne();
         }
 
         if (empty($found)) {
@@ -39,7 +51,15 @@ class UserExistsMiddleware extends BaseMiddleware
 
         cache()->set($cacheKey, ['id' => $found->id, 'hidden' => (bool) $found->hidden], 600);
 
-        if ($found->hidden === true && (!user()->isLoggedIn() || (!user()->can('admin.users') && !user()->can('admin.users.view') && user()->id !== $found->id))) {
+        if (
+            $found->hidden === true
+            && (
+                !user()->isLoggedIn()
+                || !user()->can('admin.users')
+                && !user()->can('admin.users.view')
+                && user()->id !== $found->id
+            )
+        ) {
             return $this->error()->custom(__('profile.profile_hidden'), 404);
         }
 

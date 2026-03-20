@@ -33,11 +33,21 @@ class DatabaseConnection
 {
     public const CACHE_KEY = 'database.schema';
 
-    protected const ENTITIES_DIR = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Database' . DIRECTORY_SEPARATOR . 'Entities';
+    protected const ENTITIES_DIR =
+        BASE_PATH
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'Core'
+            . DIRECTORY_SEPARATOR
+            . 'Database'
+            . DIRECTORY_SEPARATOR
+            . 'Entities';
 
-    protected const SCHEMA_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php';
+    protected const SCHEMA_FILE =
+        BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php';
 
-    protected const SCHEMA_META_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php';
+    protected const SCHEMA_META_FILE =
+        BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php';
 
     protected FluteDatabaseManager $databaseManager;
 
@@ -97,6 +107,7 @@ class DatabaseConnection
         foreach ($migrations as $migration) {
             try {
                 while ($this->migrator->run() !== null) {
+                    continue; // each run() executes one pending migration
                 }
             } catch (MigrationException $e) {
                 $this->migrator->rollback();
@@ -188,7 +199,7 @@ class DatabaseConnection
                 $this->dbal = $this->databaseManager->getDbal();
                 $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
                     logs('database'),
-                    (bool) config('database.debug')
+                    (bool) config('database.debug'),
                 );
                 $this->dbal->setLogger($timingLogger);
             }
@@ -220,7 +231,7 @@ class DatabaseConnection
                 $this->dbal = $this->databaseManager->getDbal();
                 $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
                     logs('database'),
-                    (bool) config('database.debug')
+                    (bool) config('database.debug'),
                 );
                 $this->dbal->setLogger($timingLogger);
             }
@@ -254,7 +265,7 @@ class DatabaseConnection
             $this->orm = new ORM(
                 factory: new \Cycle\ORM\Factory($this->dbal),
                 schema: $ormSchema,
-                commandGenerator: $commandGenerator
+                commandGenerator: $commandGenerator,
             );
 
             $this->ormIntoContainer();
@@ -276,40 +287,40 @@ class DatabaseConnection
         $entityLocator = new TokenizerEntityLocator($classLocator);
 
         $schemaGenerators = [
-            new Schema\Generator\ResetTables(),             // Переконфигурировать схемы таблиц (удаляет столбцы при необходимости)
-            new Annotated\Embeddings($embeddingLocator),    // Распознавание встраиваемых сущностей
-            new Annotated\Entities($entityLocator),         // Идентификация аннотированных сущностей
-            new Annotated\TableInheritance(),               // Настройка наследования таблиц
-            new Annotated\MergeColumns(),                   // Интеграция столбцов из атрибутов
-            new Schema\Generator\GenerateRelations(),       // Определение отношений сущностей
-            new Schema\Generator\GenerateModifiers(),       // Применение модификаторов схемы
-            new Schema\Generator\ValidateEntities(),        // Проверка соответствия сущностей конвенциям
-            new Schema\Generator\RenderTables(),            // Создание схем таблиц
-            new Schema\Generator\RenderRelations(),         // Установка ключей и индексов для отношений
-            new Schema\Generator\RenderModifiers(),         // Реализация модификаторов схемы
-            new Schema\Generator\ForeignKeys(),             // Определение внешних ключей
-            new Annotated\MergeIndexes(),                   // Интеграция индексов из атрибутов
+            new Schema\Generator\ResetTables(), // Переконфигурировать схемы таблиц (удаляет столбцы при необходимости)
+            new Annotated\Embeddings($embeddingLocator), // Распознавание встраиваемых сущностей
+            new Annotated\Entities($entityLocator), // Идентификация аннотированных сущностей
+            new Annotated\TableInheritance(), // Настройка наследования таблиц
+            new Annotated\MergeColumns(), // Интеграция столбцов из атрибутов
+            new Schema\Generator\GenerateRelations(), // Определение отношений сущностей
+            new Schema\Generator\GenerateModifiers(), // Применение модификаторов схемы
+            new Schema\Generator\ValidateEntities(), // Проверка соответствия сущностей конвенциям
+            new Schema\Generator\RenderTables(), // Создание схем таблиц
+            new Schema\Generator\RenderRelations(), // Установка ключей и индексов для отношений
+            new Schema\Generator\RenderModifiers(), // Реализация модификаторов схемы
+            new Schema\Generator\ForeignKeys(), // Определение внешних ключей
+            new Annotated\MergeIndexes(), // Интеграция индексов из атрибутов
             // new \Cycle\Schema\Generator\Migrations\GenerateMigrations(
             //     $this->migrator->getRepository(),
             //     $this->migrator->getConfig()
             // ),
             new Schema\Generator\SyncTables(),
-            new Schema\Generator\GenerateTypecast(),        // Типизация нестроковых столбцов
+            new Schema\Generator\GenerateTypecast(), // Типизация нестроковых столбцов
         ];
 
         $registry = new Registry($this->dbal);
 
         try {
-            return (new Compiler())->compile($registry, $schemaGenerators);
+            return ( new Compiler() )->compile($registry, $schemaGenerators);
         } catch (SyncException $e) {
             logs('database')->warning('Schema sync failed, retrying without SyncTables: ' . $e->getMessage());
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
-                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
+                static fn($generator) => !$generator instanceof Schema\Generator\SyncTables,
             );
 
-            return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
+            return ( new Compiler() )->compile(new Registry($this->dbal), $fallbackGenerators);
         }
     }
 
@@ -347,7 +358,7 @@ class DatabaseConnection
      */
     public function forceRefreshSchema(array $extraModules = []): void
     {
-        logs()->info("Force refreshing ORM schema");
+        logs()->info('Force refreshing ORM schema');
 
         if (file_exists(self::SCHEMA_FILE)) {
             $stale = self::SCHEMA_FILE . '.stale';
@@ -420,7 +431,7 @@ class DatabaseConnection
 
         $this->recompileOrmSchema(false);
 
-        logs()->info("ORM schema refreshed successfully");
+        logs()->info('ORM schema refreshed successfully');
     }
 
     public function forceRefreshSchemaDeferred(array $extraModules = []): void
@@ -475,7 +486,7 @@ class DatabaseConnection
 
         $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
             logs('database'),
-            (bool) config('database.debug')
+            (bool) config('database.debug'),
         );
         $this->dbal->setLogger($timingLogger);
 
@@ -533,9 +544,9 @@ class DatabaseConnection
      */
     protected function getClassLocator(): ClassLocator
     {
-        return (new Tokenizer(new TokenizerConfig([
+        return ( new Tokenizer(new TokenizerConfig([
             'directories' => $this->entitiesDirs,
-        ])))->classLocator();
+        ])) )->classLocator();
     }
 
     /**
@@ -557,7 +568,7 @@ class DatabaseConnection
 
         $defaultDb = $config['default'] ?? 'default';
         $databases = $config['databases'] ?? [];
-        $connections = $config['connections'] ?? ($config['drivers'] ?? []);
+        $connections = $config['connections'] ?? $config['drivers'] ?? [];
 
         $defaultDatabaseConfig = $databases[$defaultDb] ?? null;
         if (!is_array($defaultDatabaseConfig)) {
@@ -566,10 +577,9 @@ class DatabaseConnection
             return $this->migrationDbal;
         }
 
-        $defaultConnectionName = $defaultDatabaseConfig['connection']
-            ?? $defaultDatabaseConfig['write']
-            ?? $defaultDatabaseConfig['driver']
-            ?? $defaultDb;
+        $defaultConnectionName =
+            $defaultDatabaseConfig['connection'] ?? $defaultDatabaseConfig['write'] ?? $defaultDatabaseConfig['driver']
+                ?? $defaultDb;
 
         $filteredConnections = [];
         if (is_string($defaultConnectionName) && isset($connections[$defaultConnectionName])) {
@@ -597,7 +607,7 @@ class DatabaseConnection
         $this->orm = new ORM(
             factory: new \Cycle\ORM\Factory($this->dbal),
             schema: $ormSchema,
-            commandGenerator: $commandGenerator
+            commandGenerator: $commandGenerator,
         );
 
         $this->ormIntoContainer();
@@ -653,9 +663,10 @@ class DatabaseConnection
                 continue;
             }
 
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
-            );
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+                $dir,
+                FilesystemIterator::SKIP_DOTS,
+            ));
 
             foreach ($iterator as $fileInfo) {
                 if (!$fileInfo->isFile() || $fileInfo->getExtension() !== 'php') {
@@ -739,7 +750,12 @@ class DatabaseConnection
                 $this->dbal = $this->databaseManager->getDbal();
             }
 
-            $rows = $this->dbal->database()->select()->from('modules')->columns('key', 'status')->fetchAll();
+            $rows = $this->dbal
+                ->database()
+                ->select()
+                ->from('modules')
+                ->columns('key', 'status')
+                ->fetchAll();
             foreach ($rows as $row) {
                 $key = $row['key'] ?? null;
                 $status = $row['status'] ?? null;
@@ -785,8 +801,8 @@ class DatabaseConnection
      */
     private function dirsEqual(array $a, array $b): bool
     {
-        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
-        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
+        $na = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $b));
 
         return $na === $nb;
     }

@@ -2,8 +2,6 @@
 
 namespace Flute\Admin\Platform\Support;
 
-use Closure;
-
 /**
  * This class represents a list of colors.
  */
@@ -32,21 +30,6 @@ enum Color
         };
     }
 
-    /**
-     * This method returns the color based on the given name.
-     * It is used to maintain backwards compatibility to 13.0.
-     *
-     * @param string $name
-     * @param array  $arguments
-     *
-     * @return Closure|self
-     */
-    public static function __callStatic($name, $arguments)
-    {
-        return collect(Color::cases())
-            ->filter(static fn (Color $color) => $color->name() === $name)
-            ->first() ?? Color::ACCENT;
-    }
     // All available colors
     case INFO;
     case SUCCESS;

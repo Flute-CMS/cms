@@ -123,7 +123,7 @@ abstract class Tabs extends Layout
      */
     public function build(Repository $repository)
     {
-        if (empty($this->variables['slug']) && ($this->variables['lazyload'] ?? true) == true) {
+        if (empty($this->variables['slug']) && ( $this->variables['lazyload'] ?? true ) == true) {
             throw new InvalidArgumentException('Tabs layout must have a slug.');
         }
 
@@ -137,8 +137,8 @@ abstract class Tabs extends Layout
             $layouts = $tab->getLayouts();
 
             $builtLayouts = collect($layouts)
-                ->map(static fn ($layout) => Arr::wrap($layout))
-                ->flatMap(fn (iterable $layoutGroup, string $key) => $this->buildChild($layoutGroup, $key, $repository))
+                ->map(static fn($layout) => Arr::wrap($layout))
+                ->flatMap(fn(iterable $layoutGroup, string $key) => $this->buildChild($layoutGroup, $key, $repository))
                 ->all();
 
             $tabs[$slug] = [
@@ -173,11 +173,7 @@ abstract class Tabs extends Layout
             return true;
         }
 
-        return (bool) ($activeTab === null && $tab->isActive())
-
-
-
-        ;
+        return (bool) ( $activeTab === null && $tab->isActive() );
     }
 
     /**

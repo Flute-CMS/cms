@@ -18,8 +18,13 @@ class BeforeInvoiceCreatedEvent extends Event
 
     protected $additionalData = [];
 
-    public function __construct(string $gatewayName, $amount, ?string $promo = null, ?string $currencyCode = null, array $additionalData = [])
-    {
+    public function __construct(
+        string $gatewayName,
+        $amount,
+        ?string $promo = null,
+        ?string $currencyCode = null,
+        array $additionalData = [],
+    ) {
         $this->gatewayName = $gatewayName;
         $this->amount = $amount;
         $this->promo = $promo;

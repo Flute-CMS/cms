@@ -75,9 +75,10 @@ class PasswordResetComponent extends Component
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

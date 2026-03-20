@@ -35,30 +35,19 @@ class ComposerManager
      */
     public function installPackage(string $package)
     {
-        return $this->runComposer(
-            'require',
-            [
-                'packages' => [$package],
-            ]
-        );
+        return $this->runComposer('require', [
+            'packages' => [$package],
+        ]);
     }
 
     public function install()
     {
-        return $this->runComposer(
-            'install',
-            [
-            ]
-        );
+        return $this->runComposer('install', []);
     }
 
     public function update()
     {
-        return $this->runComposer(
-            'update',
-            [
-            ]
-        );
+        return $this->runComposer('update', []);
     }
 
     /**
@@ -71,12 +60,9 @@ class ComposerManager
      */
     public function removePackage(string $package)
     {
-        return $this->runComposer(
-            'remove',
-            [
-                'packages' => [$package],
-            ]
-        );
+        return $this->runComposer('remove', [
+            'packages' => [$package],
+        ]);
     }
 
     /**
@@ -118,7 +104,6 @@ class ComposerManager
             'results' => $content['packages'],
             'total' => $content['total'],
         ];
-
     }
 
     private function runComposer(string $command, array $extraInput = []): string
@@ -129,20 +114,17 @@ class ComposerManager
         $app = new Application();
         $app->setAutoExit(false);
 
-        $input = new ArrayInput(array_merge(
-            [
-                'command' => $command,
-                '--working-dir' => $this->workingDir(),
-                '--no-interaction' => true,
-                '--no-ansi' => true,
-                '--no-progress' => true,
-                '--optimize-autoloader' => true,
-                '-v' => true,
-                '--ignore-platform-reqs' => true,
-                '--no-scripts' => true,
-            ],
-            $extraInput
-        ));
+        $input = new ArrayInput(array_merge([
+            'command' => $command,
+            '--working-dir' => $this->workingDir(),
+            '--no-interaction' => true,
+            '--no-ansi' => true,
+            '--no-progress' => true,
+            '--optimize-autoloader' => true,
+            '-v' => true,
+            '--ignore-platform-reqs' => true,
+            '--no-scripts' => true,
+        ], $extraInput));
 
         $output = new BufferedOutput();
 
@@ -160,8 +142,12 @@ class ComposerManager
         }
     }
 
-    private function runComposerSafely(Application $app, ArrayInput $input, BufferedOutput $output, string $command): string
-    {
+    private function runComposerSafely(
+        Application $app,
+        ArrayInput $input,
+        BufferedOutput $output,
+        string $command,
+    ): string {
         $lockHandle = null;
         $rollback = null;
         $hadMaintenanceFlag = false;
@@ -176,14 +162,25 @@ class ComposerManager
             $rollback = $this->createRollbackState();
             $vendorBackup = $this->createVendorBackupIfEnabled();
 
-            [$exitCode, $outputContent] = $this->suppressDeprecationsDuring(static function () use ($app, $input, $output) {
+            [$exitCode, $outputContent] = $this->suppressDeprecationsDuring(static function () use (
+                $app,
+                $input,
+                $output,
+            ) {
                 $exitCode = $app->run($input, $output);
 
                 return [$exitCode, $output->fetch()];
             });
 
             if ($exitCode !== 0) {
-                throw new Exception('Composer command failed: "' . $command . '" (exit code ' . $exitCode . '). Output: ' . $outputContent);
+                throw new Exception(
+                    'Composer command failed: "'
+                    . $command
+                    . '" (exit code '
+                    . $exitCode
+                    . '). Output: '
+                    . $outputContent,
+                );
             }
 
             $this->cleanupRollbackState($rollback);
@@ -243,23 +240,25 @@ class ComposerManager
             $app = new Application();
             $app->setAutoExit(false);
 
-            $input = new ArrayInput(
-                [
-                    'command' => 'install',
-                    '--working-dir' => $this->workingDir(),
-                    '--no-interaction' => true,
-                    '--no-ansi' => true,
-                    '--no-progress' => true,
-                    '--optimize-autoloader' => true,
-                    '-v' => true,
-                    '--ignore-platform-reqs' => true,
-                    '--no-scripts' => true,
-                ]
-            );
+            $input = new ArrayInput([
+                'command' => 'install',
+                '--working-dir' => $this->workingDir(),
+                '--no-interaction' => true,
+                '--no-ansi' => true,
+                '--no-progress' => true,
+                '--optimize-autoloader' => true,
+                '-v' => true,
+                '--ignore-platform-reqs' => true,
+                '--no-scripts' => true,
+            ]);
 
             $output = new BufferedOutput();
 
-            [$exitCode, $outputContent] = $this->suppressDeprecationsDuring(static function () use ($app, $input, $output) {
+            [$exitCode, $outputContent] = $this->suppressDeprecationsDuring(static function () use (
+                $app,
+                $input,
+                $output,
+            ) {
                 $exitCode = $app->run($input, $output);
 
                 return [$exitCode, $output->fetch()];
@@ -289,7 +288,7 @@ class ComposerManager
             return $callback();
         } finally {
             if (function_exists('ini_set')) {
-                @ini_set('display_errors', (string)$oldDisplayErrors);
+                @ini_set('display_errors', (string) $oldDisplayErrors);
             }
             error_reporting($oldErrorReporting);
         }
@@ -411,7 +410,10 @@ class ComposerManager
         $payload['force_reason'] = $reason;
         $payload['updated_at'] = date(DATE_ATOM);
 
-        @file_put_contents($this->maintenanceFlagPath(), json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        @file_put_contents($this->maintenanceFlagPath(), json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        ));
         @file_put_contents($this->publicMaintenanceFlagPath(), '1');
     }
 
@@ -499,7 +501,7 @@ class ComposerManager
             }
         }
 
-        usort($dirs, static fn (string $a, string $b): int => filemtime($b) <=> filemtime($a));
+        usort($dirs, static fn(string $a, string $b): int => filemtime($b) <=> filemtime($a));
 
         $toDelete = array_slice($dirs, $keep);
         foreach ($toDelete as $dir) {
@@ -518,11 +520,14 @@ class ComposerManager
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+            RecursiveIteratorIterator::SELF_FIRST,
         );
 
         foreach ($iterator as $item) {
-            $relative = substr(str_replace('\\', '/', $item->getPathname()), strlen(str_replace('\\', '/', $source)) + 1);
+            $relative = substr(
+                str_replace('\\', '/', $item->getPathname()),
+                strlen(str_replace('\\', '/', $source)) + 1,
+            );
             $target = $destination . '/' . $relative;
 
             if ($item->isDir()) {
@@ -594,7 +599,7 @@ class ComposerManager
         if (!empty($rollback['composer_lock']) && is_file($rollback['composer_lock'])) {
             $ok = @copy($rollback['composer_lock'], $workingDir . '/composer.lock');
             $messages[] = $ok ? 'composer.lock restored' : 'composer.lock restore failed';
-        } elseif (($rollback['composer_lock_existed'] ?? true) === false) {
+        } elseif (( $rollback['composer_lock_existed'] ?? true ) === false) {
             $path = $workingDir . '/composer.lock';
             if (is_file($path)) {
                 $ok = @unlink($path);
@@ -635,10 +640,10 @@ class ComposerManager
                 return $handle;
             }
 
-            if ((microtime(true) - $start) >= $timeout) {
+            if (( microtime(true) - $start ) >= $timeout) {
                 @fclose($handle);
 
-                throw new Exception('Composer lock timeout (' . (int)$timeout . 's): ' . $lockPath);
+                throw new Exception('Composer lock timeout (' . (int) $timeout . 's): ' . $lockPath);
             }
 
             usleep(200000);

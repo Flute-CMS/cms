@@ -151,7 +151,7 @@ class FluteValidator
         $attributeKey = $this->prefix . $attribute;
         $customMessage = $this->getCustomMessage($attributeKey, $rule);
 
-        $message = $customMessage ?? __("validator." . ($rule ?: $attribute));
+        $message = $customMessage ?? __('validator.' . ( $rule ?: $attribute ));
 
         $replacements = array_merge([
             ':attribute' => $this->prettyAttribute($attribute),
@@ -162,7 +162,7 @@ class FluteValidator
                 $message = str_replace($search, $replace, $message);
             } elseif (strpos($search, '!') === 0 && $replace) {
                 $pattern = substr($search, 1);
-                $replacement = (substr($replace, -1) !== self::WILD) ? '$1' : '$2';
+                $replacement = substr($replace, -1) !== self::WILD ? '$1' : '$2';
                 $message = preg_replace("/{$pattern}/", $replacement, $message);
             } else {
                 $message = str_replace($search, $replace, $message);

@@ -103,7 +103,13 @@ class ProfileSocialBindController extends BaseController
         $lastLinked = $socialNetwork->linkedAt;
         $now = new DateTime();
 
-        if ($socialNetwork->socialNetwork->cooldownTime > 0 && ($lastLinked && $now->getTimestamp() - $lastLinked->getTimestamp() < $socialNetwork->socialNetwork->cooldownTime)) {
+        if (
+            $socialNetwork->socialNetwork->cooldownTime > 0 && (
+                $lastLinked
+                && ( $now->getTimestamp() - $lastLinked->getTimestamp() )
+                < $socialNetwork->socialNetwork->cooldownTime
+            )
+        ) {
             return redirect()->back()->withErrors(t('profile.errors.social_delay'));
         }
 
@@ -122,7 +128,7 @@ class ProfileSocialBindController extends BaseController
     public function hideSocial(FluteRequest $fluteRequest, string $provider): Response
     {
         try {
-            $this->throttle("profile_change_hide_social");
+            $this->throttle('profile_change_hide_social');
         } catch (Exception $e) {
             return $this->error(__('auth.too_many_requests'));
         }
@@ -150,7 +156,17 @@ class ProfileSocialBindController extends BaseController
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
         $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", " . $origin . "); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_error:' + "
+            . $errorJs
+            . ', '
+            . $origin
+            . '); window.close(); } else { alert('
+            . $errorJs
+            . '); window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 
     /**
@@ -162,6 +178,12 @@ class ProfileSocialBindController extends BaseController
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
         $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', " . $origin . "); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+            . $origin
+            . '); window.close(); } else { window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 }

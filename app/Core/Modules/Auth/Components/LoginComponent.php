@@ -35,11 +35,14 @@ class LoginComponent extends FluteComponent
             try {
                 $this->rememberMe = filter_var($this->rememberMe, FILTER_VALIDATE_BOOLEAN);
 
-                auth()->authenticate([
-                    'login' => $this->loginOrEmail,
-                    'password' => $this->password,
-                    'remember_me' => $this->rememberMe ??= false,
-                ], $this->rememberMe ??= false);
+                auth()->authenticate(
+                    [
+                        'login' => $this->loginOrEmail,
+                        'password' => $this->password,
+                        'remember_me' => $this->rememberMe ??= false,
+                    ],
+                    $this->rememberMe ??= false,
+                );
 
                 toast()->success(__('auth.login_success'))->push();
 
@@ -77,12 +80,7 @@ class LoginComponent extends FluteComponent
         }
 
         try {
-            throttler()->throttle(
-                ['action' => '2fa_verify', 'ip' => request()->getClientIp()],
-                5,
-                300,
-                2
-            );
+            throttler()->throttle(['action' => '2fa_verify', 'ip' => request()->getClientIp()], 5, 300, 2);
         } catch (TooManyRequestsException $e) {
             toast()->error(__('auth.too_many_requests'))->push();
             $this->showTwoFactor = false;
@@ -214,9 +212,10 @@ class LoginComponent extends FluteComponent
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

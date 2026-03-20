@@ -40,33 +40,37 @@ class RedirectsListener
 
     protected static function fetchRedirects(string $uri): array
     {
-        $allRedirects = cache()->callback('flute.redirects.all', static function () {
-            $redirects = Redirect::query()
-                ->load('conditionGroups')
-                ->load('conditionGroups.conditions')
-                ->fetchAll();
+        $allRedirects = cache()->callback(
+            'flute.redirects.all',
+            static function () {
+                $redirects = Redirect::query()
+                    ->load('conditionGroups')
+                    ->load('conditionGroups.conditions')
+                    ->fetchAll();
 
-            if (empty($redirects)) {
-                return [];
-            }
+                if (empty($redirects)) {
+                    return [];
+                }
 
-            $grouped = [];
-            foreach ($redirects as $r) {
-                $grouped[$r->fromUrl][] = [
-                    'id' => $r->id,
-                    'toUrl' => $r->toUrl,
-                    'conditionGroups' => array_map(static fn ($g) => [
-                        'conditions' => array_map(static fn ($c) => [
-                            'type' => $c->type,
-                            'operator' => $c->operator,
-                            'value' => $c->value,
-                        ], $g->conditions),
-                    ], $r->conditionGroups),
-                ];
-            }
+                $grouped = [];
+                foreach ($redirects as $r) {
+                    $grouped[$r->fromUrl][] = [
+                        'id' => $r->id,
+                        'toUrl' => $r->toUrl,
+                        'conditionGroups' => array_map(static fn($g) => [
+                            'conditions' => array_map(static fn($c) => [
+                                'type' => $c->type,
+                                'operator' => $c->operator,
+                                'value' => $c->value,
+                            ], $g->conditions),
+                        ], $r->conditionGroups),
+                    ];
+                }
 
-            return $grouped;
-        }, self::CACHE_TIME);
+                return $grouped;
+            },
+            self::CACHE_TIME,
+        );
 
         return $allRedirects[$uri] ?? [];
     }

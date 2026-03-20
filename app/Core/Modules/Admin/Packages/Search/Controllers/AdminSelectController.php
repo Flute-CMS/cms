@@ -6,13 +6,11 @@ use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Select\Repository;
 use Flute\Admin\Packages\Search\SelectRegistry;
 use Flute\Core\Support\FluteRequest;
-
-use function mb_strlen;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+use function mb_strlen;
 use function trim;
 
 class AdminSelectController
@@ -80,7 +78,7 @@ class AdminSelectController
         $select = $repository->select();
 
         if (!empty($config['scope']) && is_callable($config['scope'])) {
-            ($config['scope'])($select);
+            $config['scope']($select);
         }
 
         $searchFields = $config['searchFields'] ?? [];
@@ -98,11 +96,11 @@ class AdminSelectController
         if ($query === '') {
             $preloadLimit = $config['preloadLimit'] ?? $limit;
             $select->limit($preloadLimit);
-            $select->offset(($page - 1) * $preloadLimit);
+            $select->offset(( $page - 1 ) * $preloadLimit);
             $select->orderBy('id', 'DESC');
         } else {
             $select->limit($limit);
-            $select->offset(($page - 1) * $limit);
+            $select->offset(( $page - 1 ) * $limit);
             if ($displayField) {
                 $select->orderBy($displayField, 'ASC');
             }

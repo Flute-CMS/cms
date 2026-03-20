@@ -52,8 +52,12 @@ class PaymentProcessor
      * @throws PaymentException
      * @return PaymentInvoice The created invoice.
      */
-    public function createInvoice(string $gatewayName, $amount, ?string $promo = null, ?string $currencyCode = null): PaymentInvoice
-    {
+    public function createInvoice(
+        string $gatewayName,
+        $amount,
+        ?string $promo = null,
+        ?string $currencyCode = null,
+    ): PaymentInvoice {
         $gateway = PaymentGateway::findOne([
             'adapter' => $gatewayName,
         ]);
@@ -68,7 +72,10 @@ class PaymentProcessor
 
         $this->dispatcher->dispatch(new BeforePaymentEvent($amount, $promo), BeforePaymentEvent::NAME);
 
-        $event = $this->dispatcher->dispatch(new BeforeInvoiceCreatedEvent($gatewayName, $amount, $promo, $currencyCode, request()->input()), BeforeInvoiceCreatedEvent::NAME);
+        $event = $this->dispatcher->dispatch(
+            new BeforeInvoiceCreatedEvent($gatewayName, $amount, $promo, $currencyCode, request()->input()),
+            BeforeInvoiceCreatedEvent::NAME,
+        );
 
         $amount = $event->getAmount();
         $promo = $event->getPromo();
@@ -182,7 +189,10 @@ class PaymentProcessor
         $database->begin();
 
         try {
-            $invoice = PaymentInvoice::query()->forUpdate()->where(['transactionId' => $transactionId])->fetchOne();
+            $invoice = PaymentInvoice::query()
+                ->forUpdate()
+                ->where(['transactionId' => $transactionId])
+                ->fetchOne();
 
             if (!$invoice) {
                 $database->rollback();
@@ -193,7 +203,7 @@ class PaymentProcessor
             if ($invoice->isPaid) {
                 $database->rollback();
 
-                throw new PaymentException("Invoice is already paid");
+                throw new PaymentException('Invoice is already paid');
             }
 
             $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
@@ -202,24 +212,28 @@ class PaymentProcessor
             $expectedAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
 
             // Gateway receives fee-inclusive amount, so adjust expected for verification
-            $gatewayFee = ($gateway && $gateway->fee > 0) ? $gateway->fee : 0;
+            $gatewayFee = $gateway && $gateway->fee > 0 ? $gateway->fee : 0;
             if ($gatewayFee > 0) {
-                $expectedAmount = round($expectedAmount + ($expectedAmount * $gatewayFee / 100), 2);
+                $expectedAmount = round($expectedAmount + ( ( $expectedAmount * $gatewayFee ) / 100 ), 2);
             }
 
             $tolerancePercent = min((float) config('lk.amount_tolerance_percent', 1), 5);
-            $toleranceAbs = max(0.01, $expectedAmount * ($tolerancePercent / 100));
+            $toleranceAbs = max(0.01, $expectedAmount * ( $tolerancePercent / 100 ));
 
             if ($expectedAmount > 0) {
                 if ($verifyAmount === null) {
-                    logs()->warning("Payment amount verification skipped (null) for transaction {$transactionId}, expected {$expectedAmount}");
+                    logs()->warning(
+                        "Payment amount verification skipped (null) for transaction {$transactionId}, expected {$expectedAmount}",
+                    );
                 } else {
                     $minAllowed = max(0.0, $expectedAmount - $toleranceAbs);
 
                     if ($verifyAmount < $minAllowed) {
                         $database->rollback();
 
-                        throw new PaymentException("Amount too low: expected at least {$minAllowed}, received {$verifyAmount}");
+                        throw new PaymentException(
+                            "Amount too low: expected at least {$minAllowed}, received {$verifyAmount}",
+                        );
                     }
 
                     if (abs($verifyAmount - $expectedAmount) > $toleranceAbs) {
@@ -246,7 +260,7 @@ class PaymentProcessor
             }
 
             if ($gateway && $gateway->bonus > 0) {
-                $gatewayBonus = round(($amount * $gateway->bonus) / 100, 2);
+                $gatewayBonus = round(( $amount * $gateway->bonus ) / 100, 2);
             }
 
             $this->dispatcher->dispatch(new PaymentSuccessEvent($invoice, $user), PaymentSuccessEvent::NAME);
@@ -302,7 +316,7 @@ class PaymentProcessor
     public function calculatePromoBonus(array $promoData, $amount): float
     {
         return match ($promoData['type']) {
-            'percentage' => (float) $amount * ((float) ($promoData['value'] ?? 0) / 100.0),
+            'percentage' => (float) $amount * ( (float) ( $promoData['value'] ?? 0 ) / 100.0 ),
             'amount' => (float) $promoData['value'],
             default => 0,
         };
@@ -339,16 +353,16 @@ class PaymentProcessor
 
         $gatewayAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
         if ($gatewayEntity->fee > 0) {
-            $gatewayAmount = round($gatewayAmount + ($gatewayAmount * $gatewayEntity->fee / 100), 2);
+            $gatewayAmount = round($gatewayAmount + ( ( $gatewayAmount * $gatewayEntity->fee ) / 100 ), 2);
         }
 
         $additional = \Nette\Utils\Json::decode($gatewayEntity->additional, \Nette\Utils\Json::FORCE_ARRAY);
 
         foreach ($additional as $key => $val) {
             $additional[$key] = str_replace(
-                ["{{amount}}", "{{transactionId}}", "{{currency}}"],
+                ['{{amount}}', '{{transactionId}}', '{{currency}}'],
                 [$gatewayAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
-                $val
+                $val,
             );
         }
 
@@ -374,7 +388,10 @@ class PaymentProcessor
             unset($paymentData['keys']);
         }
 
-        $event = $this->dispatcher->dispatch(new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData), BeforeGatewayProcessingEvent::NAME);
+        $event = $this->dispatcher->dispatch(
+            new BeforeGatewayProcessingEvent($invoice, $gatewayEntity, $gateway, $paymentData),
+            BeforeGatewayProcessingEvent::NAME,
+        );
 
         $paymentData = $event->getPaymentData();
         $gateway = $event->getGateway();
@@ -385,7 +402,10 @@ class PaymentProcessor
 
         $response = $gateway->purchase($paymentData)->send();
 
-        $this->dispatcher->dispatch(new AfterGatewayResponseEvent($invoice, $response), AfterGatewayResponseEvent::NAME);
+        $this->dispatcher->dispatch(
+            new AfterGatewayResponseEvent($invoice, $response),
+            AfterGatewayResponseEvent::NAME,
+        );
 
         if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
             // Some gateways use POST-redirect (form submission) instead of simple 302.
@@ -404,8 +424,7 @@ class PaymentProcessor
             return response()->redirect($redirectUrl);
         }
 
-        throw new PaymentException($response->getMessage() ?? ($response->getData()['message'] ?? 'Unknown error'));
-
+        throw new PaymentException($response->getMessage() ?? $response->getData()['message'] ?? 'Unknown error');
     }
 
     /**
@@ -506,7 +525,6 @@ class PaymentProcessor
         }
 
         throw new PaymentException('Unsupported gateway');
-
     }
 
     /**

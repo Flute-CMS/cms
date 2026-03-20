@@ -38,9 +38,7 @@ class BackupScreen extends Screen
         $this->name = __('admin-backup.title');
         $this->description = __('admin-backup.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-backup.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-backup.title'));
 
         $this->loadBackups();
     }
@@ -129,18 +127,19 @@ class BackupScreen extends Screen
                     ->minWidth('140px'),
 
                 TD::make('name', __('admin-backup.table.name'))
-                    ->render(static fn (array $backup) => '<strong>' . e($backup['name']) . '</strong>')
+                    ->render(static fn(array $backup) => '<strong>' . e($backup['name']) . '</strong>')
                     ->minWidth('150px'),
 
                 TD::make('filename', __('admin-backup.table.filename'))
-                    ->render(static fn (array $backup) => '<code class="text-muted">' . e($backup['filename']) . '</code>')
+                    ->render(
+                        static fn(array $backup) => '<code class="text-muted">' . e($backup['filename']) . '</code>',
+                    )
                     ->minWidth('300px'),
 
-                TD::make('size_formatted', __('admin-backup.table.size'))
-                    ->minWidth('100px'),
+                TD::make('size_formatted', __('admin-backup.table.size'))->minWidth('100px'),
 
                 TD::make('date', __('admin-backup.table.date'))
-                    ->render(static fn (array $backup) => date('d.m.Y H:i:s', $backup['date']))
+                    ->render(static fn(array $backup) => date('d.m.Y H:i:s', $backup['date']))
                     ->minWidth('160px'),
 
                 TD::make('actions', __('admin-backup.table.actions'))
@@ -183,9 +182,7 @@ class BackupScreen extends Screen
                             ->size('small')
                             ->fullWidth();
 
-                        return DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list($actions);
+                        return DropDown::make()->icon('ph.regular.dots-three-outline-vertical')->list($actions);
                     }),
             ])
                 ->searchable(['filename', 'name', 'type'])
@@ -220,7 +217,7 @@ class BackupScreen extends Screen
                 Select::make('moduleKey')
                     ->options($options)
                     ->searchable()
-                    ->required()
+                    ->required(),
             )->label(__('admin-backup.modal.select_module')),
         ])
             ->title(__('admin-backup.modal.backup_module_title'))
@@ -242,7 +239,7 @@ class BackupScreen extends Screen
                 Select::make('themeKey')
                     ->options($options)
                     ->searchable()
-                    ->required()
+                    ->required(),
             )->label(__('admin-backup.modal.select_theme')),
         ])
             ->title(__('admin-backup.modal.backup_theme_title'))

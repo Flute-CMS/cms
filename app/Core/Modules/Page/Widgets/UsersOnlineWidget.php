@@ -36,22 +36,30 @@ class UsersOnlineWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $cacheKey = 'flute.widget.users_online.' . $maxDisplay;
 
-        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
-            $users = User::query()
-                ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
-                ->where('hidden', false)
-                ->orderBy(['last_logged' => 'DESC'])
-                ->limit($maxDisplay)
-                ->fetchAll();
+        $userIds = cache()->callback(
+            $cacheKey,
+            static function () use ($maxDisplay) {
+                $users = User::query()
+                    ->where('last_logged', '>=', ( new DateTimeImmutable() )->modify('-10 minutes'))
+                    ->where('hidden', false)
+                    ->orderBy(['last_logged' => 'DESC'])
+                    ->limit($maxDisplay)
+                    ->fetchAll();
 
-            usort($users, static fn ($a, $b) => ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0));
+                usort(
+                    $users,
+                    static fn($a, $b) => (
+                        ( $b->last_logged?->getTimestamp() ?? 0 )
+                        <=> ( $a->last_logged?->getTimestamp() ?? 0 )
+                    ),
+                );
 
-            return array_map(static fn ($user) => $user->id, $users);
-        }, self::CACHE_TIME);
+                return array_map(static fn($user) => $user->id, $users);
+            },
+            self::CACHE_TIME,
+        );
 
-        $onlineUsers = !empty($userIds)
-            ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll()
-            : [];
+        $onlineUsers = !empty($userIds) ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll() : [];
 
         return view('flute::widgets.users-online', [
             'users' => $onlineUsers,
@@ -95,7 +103,7 @@ class UsersOnlineWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10),
+            'max_display' => (int) ( $input['max_display'] ?? 10 ),
         ];
     }
 }

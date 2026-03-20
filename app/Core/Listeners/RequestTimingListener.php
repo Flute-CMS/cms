@@ -2,11 +2,11 @@
 
 namespace Flute\Core\Listeners;
 
-use function defined;
-
 use Flute\Core\Database\DatabaseTimingLogger;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Services\PerformanceStatsService;
+
+use function defined;
 
 use const FLUTE_DB_SETUP_END;
 use const FLUTE_DEFERRED_SAVE_END;
@@ -23,7 +23,7 @@ class RequestTimingListener
         }
 
         $now = microtime(true);
-        $start = defined('FLUTE_ROUTER_START') ? (float) FLUTE_ROUTER_START : ($now - 0.0);
+        $start = defined('FLUTE_ROUTER_START') ? (float) FLUTE_ROUTER_START : $now - 0.0;
         $total = max(0.0, $now - $start);
 
         // Phase timings (may be null if constants are not defined)
@@ -34,10 +34,10 @@ class RequestTimingListener
 
         $db = DatabaseTimingLogger::getTotalTime();
         $dbCount = DatabaseTimingLogger::getTotalCount();
-        $dbPct = $total > 0 ? round(($db / $total) * 100, 1) : 0.0;
+        $dbPct = $total > 0 ? round(( $db / $total ) * 100, 1) : 0.0;
 
         $mem = memory_get_peak_usage(true);
-        $memMb = round($mem / (1024 * 1024), 1);
+        $memMb = round($mem / ( 1024 * 1024 ), 1);
 
         $req = request();
         $path = $req->getRequestUri();
@@ -58,10 +58,14 @@ class RequestTimingListener
             'db_count' => $dbCount,
             'db_pct' => $dbPct,
             'mem_mb' => $memMb,
-            'phase_db_setup_ms' => $dbSetupEnd ? (int) round(($dbSetupEnd - $start) * 1000) : null,
-            'phase_dispatch_ms' => ($dbSetupEnd && $dispatchEnd) ? (int) round(($dispatchEnd - $dbSetupEnd) * 1000) : null,
-            'phase_events_ms' => ($dispatchEnd && $eventsEnd) ? (int) round(($eventsEnd - $dispatchEnd) * 1000) : null,
-            'phase_deferred_ms' => ($eventsEnd && $deferredEnd) ? (int) round(($deferredEnd - $eventsEnd) * 1000) : null,
+            'phase_db_setup_ms' => $dbSetupEnd ? (int) round(( $dbSetupEnd - $start ) * 1000) : null,
+            'phase_dispatch_ms' => $dbSetupEnd && $dispatchEnd
+                ? (int) round(( $dispatchEnd - $dbSetupEnd ) * 1000)
+                : null,
+            'phase_events_ms' => $dispatchEnd && $eventsEnd ? (int) round(( $eventsEnd - $dispatchEnd ) * 1000) : null,
+            'phase_deferred_ms' => $eventsEnd && $deferredEnd
+                ? (int) round(( $deferredEnd - $eventsEnd ) * 1000)
+                : null,
         ];
 
         if ($totalMs >= $thresholdMs || $dbPct >= 40.0) {

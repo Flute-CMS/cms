@@ -19,7 +19,7 @@ abstract class BaseMiddleware implements MiddlewareInterface
     {
         if (request()->expectsJson() || request()->isAjax()) {
             return json([
-                "error" => $message,
+                'error' => $message,
             ], $status);
         }
 

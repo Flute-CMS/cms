@@ -20,7 +20,7 @@ class UserServiceProvider extends AbstractServiceProvider
         $containerBuilder->addDefinitions([
             UserService::class => \DI\autowire(),
             UserNameRenderer::class => \DI\create(),
-            "user" => \DI\get(UserService::class),
+            'user' => \DI\get(UserService::class),
         ]);
     }
 
@@ -37,7 +37,9 @@ class UserServiceProvider extends AbstractServiceProvider
                 }
             } catch (Throwable $e) {
                 if (function_exists('logs')) {
-                    logs('database')->warning('UserServiceProvider: ORM not available during boot: ' . $e->getMessage());
+                    logs('database')->warning(
+                        'UserServiceProvider: ORM not available during boot: ' . $e->getMessage(),
+                    );
                 }
             }
         }

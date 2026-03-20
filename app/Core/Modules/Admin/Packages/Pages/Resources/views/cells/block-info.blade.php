@@ -11,4 +11,4 @@
     @if($block->settings && $block->settings !== '{}')
         <div class="page-block-settings">{{ $block->settings }}</div>
     @endif
-</div> 
+</div>

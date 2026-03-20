@@ -78,6 +78,8 @@ return [
         'map' => 'マップ',
         'players' => 'プレイヤー',
         'game' => 'ゲーム',
+        'status' => 'ステータス',
+        'and_more' => '+:count 人',
     ],
     'db_connection' => [
         'title' => 'DB統合',

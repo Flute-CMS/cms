@@ -44,7 +44,7 @@ class InstallerView
             'step' => $step,
             'steps' => $this->stepViews,
             'totalSteps' => $totalSteps,
-            'progress' => ($step / $totalSteps) * 100,
+            'progress' => ( $step / $totalSteps ) * 100,
             'params' => $this->installerConfig->getParams(),
         ];
 

@@ -32,7 +32,7 @@ class RBACInstaller
         }
 
         // Create roles
-        $adminRole = $this->createRole('admin', "#BAFF68");
+        $adminRole = $this->createRole('admin', '#BAFF68');
         $this->createRole('user');
 
         // Ensure permissions exist
@@ -74,7 +74,7 @@ class RBACInstaller
      * @throws Throwable
      * @return Role The created role.
      */
-    protected function createRole(string $name, string $color = "#ffffff"): Role
+    protected function createRole(string $name, string $color = '#ffffff'): Role
     {
         $role = new Role();
         $role->name = $name;

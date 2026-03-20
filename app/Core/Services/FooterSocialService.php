@@ -18,11 +18,15 @@ class FooterSocialService
 
     public function __construct()
     {
-        $this->performance = (bool) (is_performance());
+        $this->performance = (bool) is_performance();
 
         if ($this->performance) {
             cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
-            $this->footerSocial = cache()->callback(self::CACHE_KEY, fn () => $this->getFooterSocial(), self::CACHE_TIME);
+            $this->footerSocial = cache()->callback(
+                self::CACHE_KEY,
+                fn() => $this->getFooterSocial(),
+                self::CACHE_TIME,
+            );
         } else {
             $this->footerSocial = $this->getFooterSocial();
         }

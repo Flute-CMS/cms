@@ -10,7 +10,7 @@ use Flute\Core\Support\FluteRequest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Route("admin/api/icons", middleware: ['can:admin'])]
+#[Route('admin/api/icons', middleware: ['can:admin'])]
 class IconController extends BaseController
 {
     /**
@@ -31,7 +31,7 @@ class IconController extends BaseController
      *
      * @Get("packages")
      */
-    #[Get("packages")]
+    #[Get('packages')]
     public function getPackages()
     {
         $packages = $this->iconFinder->getPackages();
@@ -49,7 +49,7 @@ class IconController extends BaseController
             ];
         }
 
-        usort($result, static fn ($a, $b) => strcmp($a['category'], $b['category']));
+        usort($result, static fn($a, $b) => strcmp($a['category'], $b['category']));
 
         return $this->jsonCached($result, 86400);
     }
@@ -59,7 +59,7 @@ class IconController extends BaseController
      *
      * @Get("packages/{prefix}")
      */
-    #[Get("packages/{prefix}")]
+    #[Get('packages/{prefix}')]
     public function getIcons(string $prefix, FluteRequest $request)
     {
         $categoryName = $request->input('category');
@@ -88,7 +88,7 @@ class IconController extends BaseController
      *
      * @Get("packages/{prefix}/categories")
      */
-    #[Get("packages/{prefix}/categories")]
+    #[Get('packages/{prefix}/categories')]
     public function getCategories(string $prefix)
     {
         $categories = $this->iconFinder->getCategoriesInPackage($prefix);
@@ -107,7 +107,7 @@ class IconController extends BaseController
      *
      * @Get("all")
      */
-    #[Get("all")]
+    #[Get('all')]
     public function getAllIcons()
     {
         $packages = $this->iconFinder->getPackages();
@@ -135,7 +135,7 @@ class IconController extends BaseController
      *
      * @Get("render")
      */
-    #[Get("render")]
+    #[Get('render')]
     public function renderIcon(FluteRequest $request)
     {
         $path = $request->input('path');
@@ -157,7 +157,7 @@ class IconController extends BaseController
      *
      * @Get("search")
      */
-    #[Get("search")]
+    #[Get('search')]
     public function searchIcons(FluteRequest $request)
     {
         $query = $request->input('q');
@@ -192,7 +192,7 @@ class IconController extends BaseController
             'icons' => [],
         ];
 
-        $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $matchingIcons);
+        $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $matchingIcons);
 
         $paths = array_slice($paths, 0, 300);
 
@@ -216,7 +216,7 @@ class IconController extends BaseController
      *
      * @Get("batch-render")
      */
-    #[Get("batch-render")]
+    #[Get('batch-render')]
     public function batchRenderIcons(FluteRequest $request)
     {
         $paths = $request->input('paths', []);
@@ -229,9 +229,9 @@ class IconController extends BaseController
             $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
 
             $total = count($icons);
-            $icons = array_slice($icons, ($page - 1) * $limit, $limit);
+            $icons = array_slice($icons, ( $page - 1 ) * $limit, $limit);
 
-            $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $icons);
+            $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $icons);
 
             $result = [
                 'prefix' => $prefix,

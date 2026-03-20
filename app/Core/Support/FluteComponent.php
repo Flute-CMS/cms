@@ -130,8 +130,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * @param bool|null $withoutTrigger Whether to hide the trigger element
      * @return void
      */
-    protected function confirm(string $actionKey, string $type, string $message, ?string $title = null, ?string $confirmText = null, ?string $cancelText = null, ?bool $withoutTrigger = false)
-    {
+    protected function confirm(
+        string $actionKey,
+        string $type,
+        string $message,
+        ?string $title = null,
+        ?string $confirmText = null,
+        ?string $cancelText = null,
+        ?bool $withoutTrigger = false,
+    ) {
         $action = $this->request->get('component') ?? '';
         $action = explode('/', $action)[1] ?? '';
 
@@ -165,8 +172,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $fromRequest = $this->request->get('confirmed_action', '');
         $fromRequest = is_string($fromRequest) ? explode(',', $fromRequest) : (array) $fromRequest;
 
-        return \in_array($actionKey, $fromRequest, true)
-            || \in_array($actionKey, $this->confirmedActions, true);
+        return \in_array($actionKey, $fromRequest, true) || \in_array($actionKey, $this->confirmedActions, true);
     }
 
     /**
@@ -285,8 +291,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @return mixed The result of the action if confirmed
      */
-    protected function withConfirmation(string $actionKey, string $type, string $message, callable $action, ?string $title = null, ?string $confirmText = null, ?string $cancelText = null)
-    {
+    protected function withConfirmation(
+        string $actionKey,
+        string $type,
+        string $message,
+        callable $action,
+        ?string $title = null,
+        ?string $confirmText = null,
+        ?string $cancelText = null,
+    ) {
         if (!$this->confirmed($actionKey)) {
             $this->confirm($actionKey, $type, $message, $title, $confirmText, $cancelText);
 
@@ -339,12 +352,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      */
     protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
     {
-        throttler()->throttle(
-            ['action' => $key, request()->ip()],
-            $maxRequest,
-            $perMinute,
-            $burstiness
-        );
+        throttler()->throttle(['action' => $key, request()->ip()], $maxRequest, $perMinute, $burstiness);
     }
 
     /**

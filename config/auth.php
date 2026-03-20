@@ -51,6 +51,11 @@ return array(
             'site_key' => '',
             'secret_key' => '',
         ),
+        'yandex' =>
+        array(
+            'client_key' => '',
+            'server_key' => '',
+        ),
     ),
     'two_factor' =>
     array(

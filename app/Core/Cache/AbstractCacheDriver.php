@@ -89,7 +89,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             $sizeHint = null;
 
             try {
-                $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
+                $sizeHint = is_string($value) ? strlen($value) : ( is_array($value) ? count($value) : null );
             } catch (Throwable) {
             }
             $this->logger->error("Failed to save cache for key: {$key}", [
@@ -195,7 +195,7 @@ abstract class AbstractCacheDriver implements CacheInterface
                     $sizeHint = null;
 
                     try {
-                        $sizeHint = is_string($value) ? strlen($value) : (is_array($value) ? count($value) : null);
+                        $sizeHint = is_string($value) ? strlen($value) : ( is_array($value) ? count($value) : null );
                     } catch (Throwable) {
                     }
                     $this->logger->error("Failed to save cache for key: {$key}", [
@@ -288,7 +288,7 @@ abstract class AbstractCacheDriver implements CacheInterface
 
             return $this->getKeysGeneric($pattern);
         } catch (Exception $e) {
-            $this->logger->error("Error getting cache keys: " . $e->getMessage());
+            $this->logger->error('Error getting cache keys: ' . $e->getMessage());
 
             return [];
         }
@@ -307,8 +307,8 @@ abstract class AbstractCacheDriver implements CacheInterface
     protected function getKeysFromFilesystem(string $pattern): array
     {
         $this->logger->debug(
-            "getKeys() is not supported for FilesystemAdapter (keys are hashed). "
-            . "Pattern '{$pattern}' ignored. Use tagKey()/deleteByTag() for grouped cache invalidation."
+            'getKeys() is not supported for FilesystemAdapter (keys are hashed). '
+            . "Pattern '{$pattern}' ignored. Use tagKey()/deleteByTag() for grouped cache invalidation.",
         );
 
         return [];
@@ -330,16 +330,19 @@ abstract class AbstractCacheDriver implements CacheInterface
 
             if (is_object($redis) && method_exists($redis, 'keys')) {
                 $keys = $redis->keys($pattern);
-                $this->logger->debug("Found " . count($keys) . " keys matching pattern: {$pattern}");
+                $this->logger->debug('Found ' . count($keys) . " keys matching pattern: {$pattern}");
 
                 return $keys;
             }
 
-            $this->logger->warning("Redis instance not found or does not support keys method: " . (is_object($redis) ? $redis::class : gettype($redis)));
+            $this->logger->warning(
+                'Redis instance not found or does not support keys method: '
+                . ( is_object($redis) ? $redis::class : gettype($redis) ),
+            );
 
             return [];
         } catch (Exception $e) {
-            $this->logger->error("Error accessing Redis instance: " . $e->getMessage());
+            $this->logger->error('Error accessing Redis instance: ' . $e->getMessage());
 
             return [];
         }
@@ -353,7 +356,7 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     protected function getKeysGeneric(string $pattern): array
     {
-        $this->logger->warning("Using generic key matching for adapter: " . get_class($this->cache));
+        $this->logger->warning('Using generic key matching for adapter: ' . get_class($this->cache));
 
         if (strpos($pattern, 'module.') === 0 && strpos($pattern, '.files.') !== false) {
             $parts = explode('.', $pattern);
@@ -361,13 +364,17 @@ abstract class AbstractCacheDriver implements CacheInterface
                 $moduleName = $parts[1];
                 $this->logger->debug("Extracted module name from pattern: {$moduleName}");
 
-                $this->logger->warning("Cannot get keys for adapter: " . get_class($this->cache) . ". Module cache clearing may be incomplete.");
+                $this->logger->warning(
+                    'Cannot get keys for adapter: '
+                    . get_class($this->cache)
+                    . '. Module cache clearing may be incomplete.',
+                );
 
                 return [];
             }
         }
 
-        $this->logger->warning("Cannot get keys for adapter: " . get_class($this->cache) . " with pattern: {$pattern}");
+        $this->logger->warning('Cannot get keys for adapter: ' . get_class($this->cache) . " with pattern: {$pattern}");
 
         return [];
     }

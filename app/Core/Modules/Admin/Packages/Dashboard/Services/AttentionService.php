@@ -82,7 +82,7 @@ class AttentionService
         $logDir = BASE_PATH . '/storage/logs';
         $logFiles = glob($logDir . '/cron-*.log');
 
-        if (empty($logFiles) || (time() - max(array_map('filemtime', $logFiles))) > 3600) {
+        if (empty($logFiles) || ( time() - max(array_map('filemtime', $logFiles)) ) > 3600) {
             $this->items[] = [
                 'key' => 'cron',
                 'type' => 'warning',

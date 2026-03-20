@@ -55,7 +55,7 @@ class ThemeActions
         $jsonData = json_encode($updatedColors, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         if ($jsonData === false) {
-            throw new Exception("Failed to encode colors to JSON: " . json_last_error_msg());
+            throw new Exception('Failed to encode colors to JSON: ' . json_last_error_msg());
         }
 
         $tempColorsPath = $colorsPath . '.tmp';
@@ -167,7 +167,7 @@ class ThemeActions
         $this->themeManager->getTheme($themeName);
 
         if ($this->isLastActiveTheme($themeName)) {
-            throw new Exception("Cannot uninstall the last active theme.");
+            throw new Exception('Cannot uninstall the last active theme.');
         }
 
         $event = new ThemeUninstalled($themeName);
@@ -177,7 +177,9 @@ class ThemeActions
             return;
         }
 
-        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(static fn ($theme) => $theme !== $themeName);
+        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(
+            static fn($theme) => $theme !== $themeName,
+        );
 
         if ($this->themeManager->getCurrentTheme() === $themeName) {
             $this->themeManager->fallbackToDefaultTheme();
@@ -237,7 +239,7 @@ class ThemeActions
         $theme = Theme::findOne(['key' => $themeName]);
 
         if ($theme->status === ThemeManager::NOTINSTALLED) {
-            throw new Exception(sprintf("Theme %s is not installed.", $themeName));
+            throw new Exception(sprintf('Theme %s is not installed.', $themeName));
         }
     }
 

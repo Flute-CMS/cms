@@ -76,6 +76,8 @@ return [
         'logo_light' => 'Logo for Light Theme',
         'default_theme' => 'Default Theme',
         'profile_tab_title' => 'Tab',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
     ],
 
     'options' => [
@@ -126,6 +128,8 @@ return [
         'robots' => 'index, nofollow',
         'change_theme' => 'Enable theme change',
         'test_mail' => 'Email for testing',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
     ],
 
     'buttons' => [
@@ -236,6 +240,8 @@ return [
         'db_init_sql' => 'MySQL-only. SQL executed on every new connection (e.g. charset, timezone).',
         'db_compression' => 'MySQL-only. Compresses traffic to remote DB, may increase CPU.',
         'db_reconnect' => 'Retry on lost connection. Can hide transient errors if overused.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
     ],
 
     'examples' => [

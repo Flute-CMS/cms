@@ -12,12 +12,8 @@ class RedisAdapterCacheDriver extends AbstractCacheDriver
     {
         parent::__construct($config, $logger);
 
-        $client = RedisAdapter::createConnection($config["client"]);
+        $client = RedisAdapter::createConnection($config['client']);
 
-        $this->cache = new RedisAdapter(
-            $client,
-            $config["namespace"] ?? '',
-            $config["defaultLifetime"] ?? 0,
-        );
+        $this->cache = new RedisAdapter($client, $config['namespace'] ?? '', $config['defaultLifetime'] ?? 0);
     }
 }

@@ -14,7 +14,7 @@ class ConfigurationService
 
     public function __construct(string $configsPath = '/config')
     {
-        $configsPath = (file_exists(BASE_PATH . 'config-dev')) ? BASE_PATH . 'config-dev' : BASE_PATH . 'config';
+        $configsPath = file_exists(BASE_PATH . 'config-dev') ? BASE_PATH . 'config-dev' : BASE_PATH . 'config';
 
         $this->configsPath = rtrim($configsPath, DIRECTORY_SEPARATOR);
 
@@ -177,7 +177,16 @@ class ConfigurationService
             }
         }
 
-        return BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'config_compiled.php';
+        return (
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'config_compiled.php'
+        );
     }
 
     private function writeCompiledConfig(string $path, array $configFiles): void

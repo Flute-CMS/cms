@@ -37,16 +37,25 @@ trait HtmxControllerTrait
     /**
      * Issue a htmx response with the content of a rendered template block
      */
-    protected function htmxRenderBlock(string $view, string $block, array $parameters = [], ?HtmxResponse $response = null): HtmxResponse
-    {
+    protected function htmxRenderBlock(
+        string $view,
+        string $block,
+        array $parameters = [],
+        ?HtmxResponse $response = null,
+    ): HtmxResponse {
         $response ??= new HtmxResponse();
         if (method_exists($this, 'renderBlock')) {
             return parent::renderBlock($view, $block, $parameters, $response);
         }
         if (!$this->container->has('twig')) {
-            throw new LogicException('You cannot use the "renderBlock" method if the Twig Bundle is not available. Try running "composer require symfony/twig-bundle".');
+            throw new LogicException(
+                'You cannot use the "renderBlock" method if the Twig Bundle is not available. Try running "composer require symfony/twig-bundle".',
+            );
         }
-        $content = $this->container->get('twig')->load($view)->renderBlock($block, $parameters);
+        $content = $this->container
+            ->get('twig')
+            ->load($view)
+            ->renderBlock($block, $parameters);
         $response->setContent($content);
 
         return $response;

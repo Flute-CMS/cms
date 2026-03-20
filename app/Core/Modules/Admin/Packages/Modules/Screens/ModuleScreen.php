@@ -38,9 +38,7 @@ class ModuleScreen extends Screen
         $this->name = __('admin-modules.title');
         $this->description = __('admin-modules.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-modules.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-modules.title'));
 
         $this->loadJS('app/Core/Modules/Admin/Packages/Modules/Resources/assets/js/modules.js');
         $this->loadModules();
@@ -52,35 +50,50 @@ class ModuleScreen extends Screen
             LayoutFactory::view('admin-modules::dropzone'),
 
             Filters::make()
-                ->buttonGroup('module_status', __('admin.filters.status_label'), [
-                    'all' => __('admin.filters.status.all'),
-                    'active' => __('admin-modules.status.active'),
-                    'disabled' => __('admin-modules.status.disabled'),
-                    'not_installed' => __('admin-modules.status.not_installed'),
-                ], 'all')
+                ->buttonGroup(
+                    'module_status',
+                    __('admin.filters.status_label'),
+                    [
+                        'all' => __('admin.filters.status.all'),
+                        'active' => __('admin-modules.status.active'),
+                        'disabled' => __('admin-modules.status.disabled'),
+                        'not_installed' => __('admin-modules.status.not_installed'),
+                    ],
+                    'all',
+                )
                 ->compact(),
 
             LayoutFactory::table('modules', [
                 TD::selection('key'),
                 TD::make('name', __('admin-modules.table.name'))
-                    ->render(static fn (ModuleInformation $module) => view('admin-modules::cells.name', compact('module')))
+                    ->render(static fn(ModuleInformation $module) => view(
+                        'admin-modules::cells.name',
+                        compact('module'),
+                    ))
                     ->minWidth('200px'),
 
                 TD::make('version', __('admin-modules.table.version'))
-                    ->render(static fn (ModuleInformation $module) => view('admin-modules::cells.version', compact('module')))
+                    ->render(static fn(ModuleInformation $module) => view(
+                        'admin-modules::cells.version',
+                        compact('module'),
+                    ))
                     ->minWidth('150px'),
 
                 TD::make('status', __('admin-modules.table.status'))
                     ->render(static function (ModuleInformation $module) {
                         switch ($module->status) {
                             case ModuleManager::ACTIVE:
-                                return '<span class="badge success">'.__('admin-modules.status.active').'</span>';
+                                return '<span class="badge success">' . __('admin-modules.status.active') . '</span>';
                             case ModuleManager::DISABLED:
-                                return '<span class="badge warning">'.__('admin-modules.status.disabled').'</span>';
+                                return '<span class="badge warning">' . __('admin-modules.status.disabled') . '</span>';
                             case ModuleManager::NOTINSTALLED:
-                                return '<span class="badge error">'.__('admin-modules.status.not_installed').'</span>';
+                                return (
+                                    '<span class="badge error">'
+                                    . __('admin-modules.status.not_installed')
+                                    . '</span>'
+                                );
                             default:
-                                return '<span class="badge dark">'.__('admin-modules.status.unknown').'</span>';
+                                return '<span class="badge dark">' . __('admin-modules.status.unknown') . '</span>';
                         }
                     })
                     ->minWidth('100px'),
@@ -91,7 +104,10 @@ class ModuleScreen extends Screen
                     ->render(static function (ModuleInformation $module) {
                         $actions = [];
 
-                        if ($module->status !== ModuleManager::NOTINSTALLED && $module->installedVersion !== $module->version) {
+                        if (
+                            $module->status !== ModuleManager::NOTINSTALLED
+                            && $module->installedVersion !== $module->version
+                        ) {
                             $actions[] = DropDownItem::make(__('admin-modules.actions.update'))
                                 ->method('updateModule', ['key' => $module->key])
                                 ->icon('ph.bold.rocket-launch-bold')
@@ -139,9 +155,7 @@ class ModuleScreen extends Screen
                             ->size('small')
                             ->fullWidth();
 
-                        return DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list($actions);
+                        return DropDown::make()->icon('ph.regular.dots-three-outline-vertical')->list($actions);
                     }),
             ])
                 ->searchable(['key', 'name'])
@@ -189,41 +203,35 @@ class ModuleScreen extends Screen
                 Input::make('name')
                     ->type('text')
                     ->value(__($module->name))
-                    ->readOnly()
-            )
-                ->label(__('admin-modules.modal.module_name')),
+                    ->readOnly(),
+            )->label(__('admin-modules.modal.module_name')),
 
             LayoutFactory::field(
                 Input::make('version')
                     ->type('text')
                     ->value($module->version)
-                    ->readOnly()
-            )
-                ->label(__('admin-modules.modal.module_version')),
+                    ->readOnly(),
+            )->label(__('admin-modules.modal.module_version')),
 
             LayoutFactory::field(
-                TextArea::make('description')
-                    ->value(__($module->description))
-                    ->readOnly(true)
-            )
-                ->label(__('admin-modules.modal.module_description')),
+                TextArea::make('description')->value(__($module->description))->readOnly(true),
+            )->label(__('admin-modules.modal.module_description')),
 
             LayoutFactory::field(
                 Input::make('authors')
                     ->type('text')
                     ->value(implode(', ', $module->authors))
-                    ->readOnly()
-            )
-                ->label(__('admin-modules.modal.module_authors')),
+                    ->readOnly(),
+            )->label(__('admin-modules.modal.module_authors')),
 
-            $module->url ? LayoutFactory::field(
-                Input::make('url')
-                    ->type('url')
-                    ->value($module->url)
-                    ->readOnly()
-            )
-                ->label(__('admin-modules.modal.module_url'))
-            : null,
+            $module->url
+                ? LayoutFactory::field(
+                    Input::make('url')
+                        ->type('url')
+                        ->value($module->url)
+                        ->readOnly(),
+                )->label(__('admin-modules.modal.module_url'))
+                : null,
         ])
             ->title(__('admin-modules.modal.details_title', ['name' => __($module->name)]))
             ->withoutApplyButton()
@@ -295,7 +303,8 @@ class ModuleScreen extends Screen
             $this->flashMessage(__('admin-modules.messages.activated', ['name' => __($module->name)]), 'success');
             $this->triggerSidebarRefresh();
         } catch (Exception $e) {
-            $this->flashMessage(__('admin-modules.messages.activation_error', ['message' => $e->getMessage()]), 'error');
+            $this->flashMessage(__('admin-modules.messages.activation_error', ['message' =>
+                $e->getMessage()]), 'error');
         }
 
         $this->loadModules(true);
@@ -485,7 +494,7 @@ class ModuleScreen extends Screen
             ];
 
             if (isset($statusMap[$status])) {
-                $modules = $modules->filter(static fn ($module) => $module->status === $statusMap[$status]);
+                $modules = $modules->filter(static fn($module) => $module->status === $statusMap[$status]);
             }
         }
 

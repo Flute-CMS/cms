@@ -28,7 +28,7 @@ class ModuleDependencies
     public function checkDependencies(
         array $dependencies,
         Collection $activeModules,
-        Theme $activeTheme
+        Theme $activeTheme,
     ) {
         $this->dependencies = $dependencies;
         $this->activeModules = $activeModules;
@@ -51,7 +51,9 @@ class ModuleDependencies
     {
         if (isset($this->dependencies['php'])) {
             if (!version_compare(PHP_VERSION, $this->dependencies['php'], '>=')) {
-                throw new ModuleDependencyException("PHP version " . $this->dependencies['php'] . " or higher is required.");
+                throw new ModuleDependencyException(
+                    'PHP version ' . $this->dependencies['php'] . ' or higher is required.',
+                );
             }
         }
     }
@@ -65,7 +67,10 @@ class ModuleDependencies
     {
         if (isset($this->dependencies['modules'])) {
             foreach ($this->dependencies['modules'] as $module => $version) {
-                if (!$this->activeModules->offsetExists($module) || version_compare($this->activeModules->get($module)->version, $version, '<')) {
+                if (
+                    !$this->activeModules->offsetExists($module)
+                    || version_compare($this->activeModules->get($module)->version, $version, '<')
+                ) {
                     throw new ModuleDependencyException("Module {$module} version {$version} or higher is required.");
                 }
             }
@@ -81,7 +86,9 @@ class ModuleDependencies
     {
         if (isset($this->dependencies['flute'])) {
             if (!version_compare(App::VERSION, $this->dependencies['flute'], '>=')) {
-                throw new ModuleDependencyException("Flute version " . $this->dependencies['flute'] . " or higher is required.");
+                throw new ModuleDependencyException(
+                    'Flute version ' . $this->dependencies['flute'] . ' or higher is required.',
+                );
             }
         }
     }
@@ -97,7 +104,10 @@ class ModuleDependencies
             $theme = $this->dependencies['theme'];
             $key = key($theme);
 
-            if (!$this->activeTheme->key === $key || version_compare($this->activeTheme->version, $theme->{$key}, '<')) {
+            if (
+                !$this->activeTheme->key === $key
+                || version_compare($this->activeTheme->version, $theme->{$key}, '<')
+            ) {
                 throw new ModuleDependencyException("Theme {$key} version {$theme->{$key}} or higher is required.");
             }
         }
@@ -128,8 +138,13 @@ class ModuleDependencies
     {
         if (isset($this->dependencies['composer'])) {
             foreach ($this->dependencies['composer'] as $package => $version) {
-                if (!InstalledVersions::isInstalled($package) || version_compare(InstalledVersions::getVersion($package), $version, '<')) {
-                    throw new ModuleDependencyException("Composer package {$package} version {$version} or higher is required.");
+                if (
+                    !InstalledVersions::isInstalled($package)
+                    || version_compare(InstalledVersions::getVersion($package), $version, '<')
+                ) {
+                    throw new ModuleDependencyException(
+                        "Composer package {$package} version {$version} or higher is required.",
+                    );
                 }
             }
         }

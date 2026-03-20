@@ -108,7 +108,7 @@ class ModuleCategoryService
         $counts = [];
         foreach ($modules as $module) {
             $cat = $this->getModuleCategory($module);
-            $counts[$cat] = ($counts[$cat] ?? 0) + 1;
+            $counts[$cat] = ( $counts[$cat] ?? 0 ) + 1;
         }
 
         $categories = [];
@@ -149,8 +149,16 @@ class ModuleCategoryService
 
         if (!empty($module['tags'])) {
             foreach ($module['tags'] as $tag) {
-                $tagLower = strtolower(is_array($tag) ? ($tag['name'] ?? '') : (string) $tag);
-                if (in_array($tagLower, [self::CATEGORY_PAYMENT, self::CATEGORY_GAME, self::CATEGORY_CONTENT, self::CATEGORY_SHOP, self::CATEGORY_STEAM, self::CATEGORY_UI, self::CATEGORY_UTILITY])) {
+                $tagLower = strtolower(is_array($tag) ? $tag['name'] ?? '' : (string) $tag);
+                if (in_array($tagLower, [
+                    self::CATEGORY_PAYMENT,
+                    self::CATEGORY_GAME,
+                    self::CATEGORY_CONTENT,
+                    self::CATEGORY_SHOP,
+                    self::CATEGORY_STEAM,
+                    self::CATEGORY_UI,
+                    self::CATEGORY_UTILITY,
+                ])) {
                     return $tagLower;
                 }
             }
@@ -211,7 +219,7 @@ class ModuleCategoryService
         if (mb_strlen($localized) > $maxLength) {
             $localized = mb_substr($localized, 0, $maxLength);
             $lastSpace = mb_strrpos($localized, ' ');
-            if ($lastSpace !== false && $lastSpace > $maxLength * 0.7) {
+            if ($lastSpace !== false && $lastSpace > ( $maxLength * 0.7 )) {
                 $localized = mb_substr($localized, 0, $lastSpace);
             }
             $localized .= '...';

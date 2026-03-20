@@ -12,12 +12,8 @@ class MemcachedAdapterCacheDriver extends AbstractCacheDriver
     {
         parent::__construct($config, $logger);
 
-        $client = MemcachedAdapter::createConnection($config["client"]);
+        $client = MemcachedAdapter::createConnection($config['client']);
 
-        $this->cache = new MemcachedAdapter(
-            $client,
-            $config["namespace"] ?? '',
-            $config["defaultLifetime"] = 0,
-        );
+        $this->cache = new MemcachedAdapter($client, $config['namespace'] ?? '', $config['defaultLifetime'] = 0);
     }
 }

@@ -12,7 +12,6 @@ class TipsServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        is_installed() &&
-            $this->loadRoutesFrom(cms_path('Tips/Routes/tips.php'));
+        is_installed() && $this->loadRoutesFrom(cms_path('Tips/Routes/tips.php'));
     }
 }

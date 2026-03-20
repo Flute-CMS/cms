@@ -43,9 +43,7 @@ class GenerateModuleCommand extends Command
         $moduleNameQuestion = new Question('Please enter the name of the module: ');
         $moduleNameQuestion->setValidator(static function ($answer) {
             if (!preg_match('/^[a-zA-Z]+$/', $answer)) {
-                throw new RuntimeException(
-                    'The module name must contain only English letters without spaces.'
-                );
+                throw new RuntimeException('The module name must contain only English letters without spaces.');
             }
 
             return ucfirst($answer);
@@ -72,10 +70,7 @@ class GenerateModuleCommand extends Command
 
         $components = [];
         foreach ($this->componentTypes as $type => $dir) {
-            $componentQuestion = new ConfirmationQuestion(
-                "Include {$type} component? (y/n) [n]: ",
-                false
-            );
+            $componentQuestion = new ConfirmationQuestion("Include {$type} component? (y/n) [n]: ", false);
             if ($helper->ask($input, $output, $componentQuestion)) {
                 $components[] = $type;
             }
@@ -101,7 +96,7 @@ class GenerateModuleCommand extends Command
             $includeStyles,
             $includeScripts,
             $output,
-            $io
+            $io,
         );
     }
 
@@ -115,7 +110,7 @@ class GenerateModuleCommand extends Command
         bool $includeStyles,
         bool $includeScripts,
         OutputInterface $output,
-        SymfonyStyle $io
+        SymfonyStyle $io,
     ) {
         $baseDir = BASE_PATH . '/app/Modules/' . $moduleName;
 
@@ -149,10 +144,13 @@ class GenerateModuleCommand extends Command
 
         // Add translation directories if needed
         if ($translations) {
-            $directories = array_merge([
-                '/Resources/lang/en',
-                '/Resources/lang/ru',
-            ], $directories);
+            $directories = array_merge(
+                [
+                    '/Resources/lang/en',
+                    '/Resources/lang/ru',
+                ],
+                $directories,
+            );
         }
 
         // Add frontend asset directories if needed
@@ -181,48 +179,36 @@ class GenerateModuleCommand extends Command
         if ($translations) {
             file_put_contents(
                 $baseDir . '/Resources/lang/en/' . strtolower($moduleName) . '.php',
-                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];"
+                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];",
             );
             file_put_contents(
                 $baseDir . '/Resources/lang/ru/' . strtolower($moduleName) . '.php',
-                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];"
+                "<?php\n\nreturn [\n    'module_name' => '{$moduleName}',\n    'description' => '{$description}'\n];",
             );
         }
 
         // Create index view
-        file_put_contents(
-            $baseDir . '/Resources/views/index.blade.php',
-            $this->stubView($moduleName)
-        );
+        file_put_contents($baseDir . '/Resources/views/index.blade.php', $this->stubView($moduleName));
 
         // Create service provider
-        file_put_contents(
-            $baseDir . '/Providers/' . $moduleName . 'Provider.php',
-            $this->stubServiceProvider($moduleName, $translations)
-        );
+        file_put_contents($baseDir . '/Providers/' . $moduleName . 'Provider.php', $this->stubServiceProvider(
+            $moduleName,
+            $translations,
+        ));
 
         $progressBar->advance();
         $progressBar->setMessage('Creating configuration files...');
 
         // Create installer if needed
         if ($installer) {
-            file_put_contents(
-                $baseDir . '/Installer.php',
-                $this->stubInstaller($moduleName)
-            );
+            file_put_contents($baseDir . '/Installer.php', $this->stubInstaller($moduleName));
         }
 
         // Create module.json
-        file_put_contents(
-            $baseDir . '/module.json',
-            $this->stubJson($moduleName, $description, $author)
-        );
+        file_put_contents($baseDir . '/module.json', $this->stubJson($moduleName, $description, $author));
 
         // Create composer.json
-        file_put_contents(
-            $baseDir . '/composer.json',
-            $this->stubComposerJson($moduleName, $description, $author)
-        );
+        file_put_contents($baseDir . '/composer.json', $this->stubComposerJson($moduleName, $description, $author));
 
         $progressBar->advance();
         $progressBar->setMessage('Creating component files...');
@@ -235,17 +221,11 @@ class GenerateModuleCommand extends Command
 
         // 4. Create frontend files if needed
         if ($includeStyles) {
-            file_put_contents(
-                $baseDir . '/Resources/assets/scss/main.scss',
-                $this->stubScss($moduleName)
-            );
+            file_put_contents($baseDir . '/Resources/assets/scss/main.scss', $this->stubScss($moduleName));
         }
 
         if ($includeScripts) {
-            file_put_contents(
-                $baseDir . '/Resources/assets/js/main.js',
-                $this->stubJs($moduleName)
-            );
+            file_put_contents($baseDir . '/Resources/assets/js/main.js', $this->stubJs($moduleName));
         }
 
         $progressBar->finish();
@@ -270,12 +250,9 @@ class GenerateModuleCommand extends Command
             $content = str_replace(
                 ['{{MODULE_NAME}}', '{{MODULE_NAME_LOWER}}'],
                 [$moduleName, strtolower($moduleName)],
-                $content
+                $content,
             );
-            file_put_contents(
-                $baseDir . $dir . '/' . $moduleName . '.php',
-                $content
-            );
+            file_put_contents($baseDir . $dir . '/' . $moduleName . '.php', $content);
 
             return;
         }
@@ -286,12 +263,9 @@ class GenerateModuleCommand extends Command
             $content = str_replace(
                 ['{{MODULE_NAME}}', '{{MODULE_NAME_LOWER}}'],
                 [$moduleName, strtolower($moduleName)],
-                $content
+                $content,
             );
-            file_put_contents(
-                $baseDir . $dir . '/' . $moduleName . 'Widget.php',
-                $content
-            );
+            file_put_contents($baseDir . $dir . '/' . $moduleName . 'Widget.php', $content);
 
             return;
         }
@@ -344,7 +318,7 @@ class GenerateModuleCommand extends Command
                 $description,
                 $author,
             ],
-            $stubFile
+            $stubFile,
         );
     }
 
@@ -357,7 +331,7 @@ class GenerateModuleCommand extends Command
             'require' => [],
             'autoload' => [
                 'psr-4' => [
-                    "Flute\\Modules\\{$name}\\" => "",
+                    "Flute\\Modules\\{$name}\\" => '',
                 ],
             ],
             'authors' => [
@@ -374,7 +348,7 @@ class GenerateModuleCommand extends Command
         return str_replace(
             ['{{MODULE_NAME}}', '{{MODULE_NAME_LOWER}}'],
             [$name, strtolower($name)],
-            file_get_contents($this->getStubPath('view'))
+            file_get_contents($this->getStubPath('view')),
         );
     }
 

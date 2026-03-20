@@ -105,7 +105,7 @@ class ButtonGroup extends Field
         string $yesLabel = '',
         string $noLabel = '',
         ?string $yesIcon = 'ph.bold.check-bold',
-        ?string $noIcon = 'ph.bold.x-bold'
+        ?string $noIcon = 'ph.bold.x-bold',
     ): self {
         return $this->options([
             '1' => [

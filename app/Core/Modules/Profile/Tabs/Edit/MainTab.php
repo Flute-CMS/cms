@@ -22,7 +22,7 @@ class MainTab extends ProfileTab
         return 'ph.bold.gear-bold';
     }
 
-    public function getDescription(): string|null
+    public function getDescription(): ?string
     {
         return __('profile.edit.main.description');
     }

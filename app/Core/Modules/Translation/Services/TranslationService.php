@@ -90,7 +90,7 @@ class TranslationService
             }
         }
 
-        $defaultLocale = $defaultLocale ?: (string) (config('lang.locale') ?? 'en');
+        $defaultLocale = $defaultLocale ?: (string) ( config('lang.locale') ?? 'en' );
 
         if (app()->getLang() !== $defaultLocale) {
             app()->setLang($defaultLocale);
@@ -106,7 +106,10 @@ class TranslationService
 
         $cacheDir = $requestedCacheDir;
         if ($requestedCacheDir) {
-            if (!class_exists('Symfony\\Component\\Config\\ConfigCacheFactory') && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')) {
+            if (
+                !class_exists('Symfony\\Component\\Config\\ConfigCacheFactory')
+                && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')
+            ) {
                 logs()->warning('Symfony Config component is missing; disabling translation catalogue cache.');
                 $cacheDir = null;
             }
@@ -114,7 +117,7 @@ class TranslationService
 
         $this->translator = new Translator($defaultLocale, null, $cacheDir, $debug);
 
-        $this->performance = ($cacheDir !== null);
+        $this->performance = $cacheDir !== null;
 
         $this->translator->addLoader('file', new PhpFileLoader());
         $this->translator->setLocale($defaultLocale);
@@ -218,7 +221,7 @@ class TranslationService
             if (!is_string($rKey)) {
                 continue;
             }
-            if (strpos($rKey, ':') !== 0 && !(substr($rKey, 0, 1) === '%' && substr($rKey, -1) === '%')) {
+            if (strpos($rKey, ':') !== 0 && !( substr($rKey, 0, 1) === '%' && substr($rKey, -1) === '%' )) {
                 $extendedReplacements[':' . $rKey] = $rValue;
                 $extendedReplacements['%' . $rKey . '%'] = $rValue;
             }
@@ -297,22 +300,26 @@ class TranslationService
         }
 
         $cacheKey = 'translation.dir.' . md5($directory);
-        $translationFiles = cache()->callback($cacheKey, static function () use ($directory) {
-            $finder = finder();
-            $finder->files()->in($directory)->name('*.php');
+        $translationFiles = cache()->callback(
+            $cacheKey,
+            static function () use ($directory) {
+                $finder = finder();
+                $finder->files()->in($directory)->name('*.php');
 
-            $files = [];
-            foreach ($finder as $file) {
-                $files[] = [
-                    'path' => $file->getPathname(),
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'mtime' => filemtime($file->getPathname()),
-                ];
-            }
+                $files = [];
+                foreach ($finder as $file) {
+                    $files[] = [
+                        'path' => $file->getPathname(),
+                        'locale' => $file->getRelativePath(),
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'mtime' => filemtime($file->getPathname()),
+                    ];
+                }
 
-            return $files;
-        }, $cacheDuration);
+                return $files;
+            },
+            $cacheDuration,
+        );
 
         if (empty($translationFiles)) {
             $this->loadedDirectories[$directory] = true;
@@ -392,23 +399,44 @@ class TranslationService
      */
     protected function registerKnownTranslationDirectories(): void
     {
-        $dirs = cache()->callback('translation.known_dirs.v2', function () {
-            $result = [];
-            $seen = [];
+        $dirs = cache()->callback(
+            'translation.known_dirs.v2',
+            function () {
+                $result = [];
+                $seen = [];
 
-            $glob = fn (string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
+                $glob = fn(string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
 
-            // Modules
-            $modulesRoot = path('app/Modules');
-            if (is_dir($modulesRoot)) {
-                $patterns = [
-                    $modulesRoot . '/*/Resources/lang',
-                    $modulesRoot . '/*/Admin/Resources/lang',
-                    $modulesRoot . '/*/Admin/Package/Resources/lang',
-                ];
+                // Modules
+                $modulesRoot = path('app/Modules');
+                if (is_dir($modulesRoot)) {
+                    $patterns = [
+                        $modulesRoot . '/*/Resources/lang',
+                        $modulesRoot . '/*/Admin/Resources/lang',
+                        $modulesRoot . '/*/Admin/Package/Resources/lang',
+                    ];
 
-                foreach ($patterns as $pattern) {
-                    foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                    foreach ($patterns as $pattern) {
+                        foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                            if (!is_dir($dir)) {
+                                continue;
+                            }
+
+                            $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                            if (isset($seen[$normalized])) {
+                                continue;
+                            }
+
+                            $seen[$normalized] = true;
+                            $result[] = $normalized;
+                        }
+                    }
+                }
+
+                // Core admin packages
+                $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
+                if (is_dir($adminPkgsRoot)) {
+                    foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
                         if (!is_dir($dir)) {
                             continue;
                         }
@@ -422,30 +450,13 @@ class TranslationService
                         $result[] = $normalized;
                     }
                 }
-            }
 
-            // Core admin packages
-            $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
-            if (is_dir($adminPkgsRoot)) {
-                foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (!is_dir($dir)) {
-                        continue;
-                    }
+                sort($result);
 
-                    $normalized = rtrim(str_replace('\\', '/', $dir), '/');
-                    if (isset($seen[$normalized])) {
-                        continue;
-                    }
-
-                    $seen[$normalized] = true;
-                    $result[] = $normalized;
-                }
-            }
-
-            sort($result);
-
-            return $result;
-        }, self::CACHE_TIME);
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
 
         $this->bulkLoad = true;
         foreach ($dirs as $dir) {
@@ -504,20 +515,24 @@ class TranslationService
 
         $cacheKey = 'translation.core.files.' . $locale;
 
-        $domains = cache()->callback($cacheKey, static function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
+        $domains = cache()->callback(
+            $cacheKey,
+            static function () use ($langDir) {
+                $finder = finder();
+                $finder->files()->in($langDir)->name('*.php');
 
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
+                $result = [];
+                foreach ($finder as $file) {
+                    $result[] = [
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'path' => $file->getPathname(),
+                    ];
+                }
 
-            return $result;
-        }, self::CACHE_TIME);
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
 
         foreach ($domains as $domainInfo) {
             $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
@@ -532,21 +547,25 @@ class TranslationService
 
         $cacheKey = 'translation.core.files';
 
-        $files = cache()->callback($cacheKey, static function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
+        $files = cache()->callback(
+            $cacheKey,
+            static function () use ($langDir) {
+                $finder = finder();
+                $finder->files()->in($langDir)->name('*.php');
 
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
+                $result = [];
+                foreach ($finder as $file) {
+                    $result[] = [
+                        'locale' => $file->getRelativePath(),
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'path' => $file->getPathname(),
+                    ];
+                }
 
-            return $result;
-        }, self::CACHE_TIME);
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
 
         foreach ($files as $file) {
             $translator->addResource('file', $file['path'], $file['locale'], $file['domain']);
@@ -623,7 +642,13 @@ class TranslationService
         }
 
         foreach (array_keys($this->translationDirectories) as $dir) {
-            $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $domain . '.php';
+            $candidate =
+                rtrim($dir, DIRECTORY_SEPARATOR)
+                . DIRECTORY_SEPARATOR
+                . $locale
+                . DIRECTORY_SEPARATOR
+                . $domain
+                . '.php';
             if (file_exists($candidate)) {
                 return $this->domainFileIndex[$locale][$domain] = $candidate;
             }

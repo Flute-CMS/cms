@@ -21,15 +21,19 @@ class RecentPaymentsWidget extends AbstractWidget
 
     public function render(array $settings): string
     {
-        $paymentIds = cache()->callback('flute.widget.recent_payments', static function () {
-            $payments = PaymentInvoice::query()
-                ->where('isPaid', true)
-                ->orderBy('paidAt', 'DESC')
-                ->limit(5)
-                ->fetchAll();
+        $paymentIds = cache()->callback(
+            'flute.widget.recent_payments',
+            static function () {
+                $payments = PaymentInvoice::query()
+                    ->where('isPaid', true)
+                    ->orderBy('paidAt', 'DESC')
+                    ->limit(5)
+                    ->fetchAll();
 
-            return array_map(static fn ($p) => $p->id, $payments);
-        }, self::CACHE_TIME);
+                return array_map(static fn($p) => $p->id, $payments);
+            },
+            self::CACHE_TIME,
+        );
 
         $recentPayments = !empty($paymentIds)
             ? PaymentInvoice::query()

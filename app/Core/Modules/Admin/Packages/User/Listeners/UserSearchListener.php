@@ -26,7 +26,10 @@ class UserSearchListener implements EventSubscriberInterface
             $searchValue = trim(substr($searchValue, 5));
 
             if (empty($searchValue)) {
-                $users = User::query()->orderBy('name', 'asc')->limit(10)->fetchAll();
+                $users = User::query()
+                    ->orderBy('name', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
 
                 foreach ($users as $user) {
                     $event->add($this->createUserSearchResult($user, 1));
@@ -43,11 +46,15 @@ class UserSearchListener implements EventSubscriberInterface
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
         $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
-        $users = User::query()->where(static function ($query) use ($escapedSearch) {
-            $query->orWhere('name', 'LIKE', "%{$escapedSearch}%")
-                ->orWhere('login', 'LIKE', "%{$escapedSearch}%")
-                ->orWhere('email', 'LIKE', "%{$escapedSearch}%");
-        })->limit(10)->fetchAll();
+        $users = User::query()
+            ->where(static function ($query) use ($escapedSearch) {
+                $query
+                    ->orWhere('name', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('login', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('email', 'LIKE', "%{$escapedSearch}%");
+            })
+            ->limit(10)
+            ->fetchAll();
 
         foreach ($users as $user) {
             $relevance = self::calculateRelevance($searchValueLower, $user);
@@ -65,7 +72,7 @@ class UserSearchListener implements EventSubscriberInterface
             url('admin/users/' . $user->id . '/edit'),
             asset($user->avatar ?? config('profile.default_avatar')),
             __('search.category_users'),
-            $relevance
+            $relevance,
         );
     }
 

@@ -89,6 +89,18 @@ return [
         'map' => 'Map',
         'players' => 'Players',
         'game' => 'Game',
+        'status' => 'Status',
+        'and_more' => '+:count more',
+    ],
+
+    'rcon' => [
+        'title' => 'RCON Console',
+        'placeholder' => 'Enter command...',
+        'empty' => 'Enter a command below to get started',
+        'no_rcon' => 'RCON password is not configured for this server.',
+        'no_output' => '(no output)',
+        'empty_command' => 'Enter a command first.',
+        'error' => 'RCON error',
     ],
 
     'db_connection' => [

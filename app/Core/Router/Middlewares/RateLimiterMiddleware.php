@@ -16,8 +16,10 @@ class RateLimiterMiddleware extends BaseMiddleware
 
     protected ?\Symfony\Contracts\Cache\CacheInterface $cache;
 
-    public function __construct(RateLimiterFactory $rateLimiterFactory, ?\Symfony\Contracts\Cache\CacheInterface $cache = null)
-    {
+    public function __construct(
+        RateLimiterFactory $rateLimiterFactory,
+        ?\Symfony\Contracts\Cache\CacheInterface $cache = null,
+    ) {
         $this->rateLimiterFactory = $rateLimiterFactory;
         $this->cache = $cache;
     }
@@ -38,7 +40,7 @@ class RateLimiterMiddleware extends BaseMiddleware
             ],
         ]);
 
-        if (!(bool) ($config['enabled'] ?? true)) {
+        if (!(bool) ( $config['enabled'] ?? true )) {
             return $next($request);
         }
 
@@ -60,7 +62,7 @@ class RateLimiterMiddleware extends BaseMiddleware
                 $interval = (int) $interval . ' seconds';
             }
 
-            $policy = $policyOverride ?: ($config['policy'] ?? 'fixed_window');
+            $policy = $policyOverride ?: $config['policy'] ?? 'fixed_window';
             $opts = [
                 'id' => 'route:' . $this->routeNameOrPath(),
                 'policy' => $policy,
@@ -69,20 +71,19 @@ class RateLimiterMiddleware extends BaseMiddleware
             $tbAmount = isset($args[5]) && is_numeric($args[5]) ? (int) $args[5] : 1;
 
             if ($policy === 'token_bucket') {
-                $opts['limit'] = $limitOverride ?? ($config['limit'] ?? 60); // capacity
+                $opts['limit'] = $limitOverride ?? $config['limit'] ?? 60; // capacity
                 $opts['rate'] = [
-                    'interval' => $interval ?: ($config['interval'] ?? '1 minute'),
+                    'interval' => $interval ?: $config['interval'] ?? '1 minute',
                     'amount' => $tbAmount,
                 ];
             } else {
-                $opts['limit'] = $limitOverride ?? ($config['limit'] ?? 60);
-                $opts['interval'] = $interval ?: ($config['interval'] ?? '1 minute');
+                $opts['limit'] = $limitOverride ?? $config['limit'] ?? 60;
+                $opts['interval'] = $interval ?: $config['interval'] ?? '1 minute';
             }
 
             $storage = $this->cache
                 ? new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache)
-                :
-                throw new RuntimeException('RateLimiter: cache storage is required in production');
+                : throw new RuntimeException('RateLimiter: cache storage is required in production');
 
             $factory = new \Symfony\Component\RateLimiter\RateLimiterFactory($opts, $storage);
         } else {
@@ -99,7 +100,10 @@ class RateLimiterMiddleware extends BaseMiddleware
 
         $response = $next($request);
 
-        if (($config['headers'] ?? true) && (method_exists($response, 'withHeaders') || property_exists($response, 'headers'))) {
+        if (
+            ( $config['headers'] ?? true )
+            && ( method_exists($response, 'withHeaders') || property_exists($response, 'headers') )
+        ) {
             $this->attachHeaders($response, $limit);
         }
 
@@ -108,19 +112,19 @@ class RateLimiterMiddleware extends BaseMiddleware
 
     protected function getLimiterKey(FluteRequest $request, array $args, array $config): string
     {
-        $strategy = $args[0] ?? ($config['by'] ?? 'ip');
+        $strategy = $args[0] ?? $config['by'] ?? 'ip';
         $prefix = $config['key_prefix'] ?? 'rl:';
         $route = $this->routeNameOrPath();
 
         if ($strategy === 'user') {
             $subject = $request->user() ? (string) $request->user()->id : $request->getClientIp();
         } elseif ($strategy === 'ip_user') {
-            $subject = $request->getClientIp() . ':' . ($request->user()->id ?? 'guest');
+            $subject = $request->getClientIp() . ':' . ( $request->user()->id ?? 'guest' );
         } else {
             $subject = $request->getClientIp();
         }
 
-        if (($config['hash_keys'] ?? true)) {
+        if ($config['hash_keys'] ?? true) {
             $algo = \in_array('xxh3', hash_algos(), true) ? 'xxh3' : 'sha256';
             $subject = hash($algo, $subject);
         }

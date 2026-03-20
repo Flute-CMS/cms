@@ -180,8 +180,13 @@ class NotificationService
      * @param string|null $icon The icon of the notification.
      * @throws Throwable
      */
-    public function createButtonNotification(User $user, string $title, string $content, array $buttons, ?string $icon = null): void
-    {
+    public function createButtonNotification(
+        User $user,
+        string $title,
+        string $content,
+        array $buttons,
+        ?string $icon = null,
+    ): void {
         $notification = new Notification();
         $notification->user = $user;
         $notification->title = $title;
@@ -202,8 +207,13 @@ class NotificationService
      * @param string|null $icon The icon of the notification.
      * @throws Throwable
      */
-    public function createFileNotification(User $user, string $title, string $content, string $fileUrl, ?string $icon = null): void
-    {
+    public function createFileNotification(
+        User $user,
+        string $title,
+        string $content,
+        string $fileUrl,
+        ?string $icon = null,
+    ): void {
         $notification = new Notification();
         $notification->user = $user;
         $notification->title = $title;
@@ -411,9 +421,7 @@ class NotificationService
             return $this->cachedTotalCount;
         }
 
-        $this->cachedTotalCount = Notification::query()
-            ->where(['user_id' => user()->id])
-            ->count();
+        $this->cachedTotalCount = Notification::query()->where(['user_id' => user()->id])->count();
 
         return $this->cachedTotalCount;
     }

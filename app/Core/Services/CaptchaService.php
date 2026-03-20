@@ -29,6 +29,8 @@ class CaptchaService
                 return $this->verifyHcaptcha($response);
             case 'turnstile':
                 return $this->verifyTurnstile($response);
+            case 'yandex':
+                return $this->verifyYandex($response);
             default:
                 return false;
         }
@@ -66,6 +68,8 @@ class CaptchaService
                 return config('auth.captcha.hcaptcha.site_key', '');
             case 'turnstile':
                 return config('auth.captcha.turnstile.site_key', '');
+            case 'yandex':
+                return config('auth.captcha.yandex.client_key', '');
             default:
                 return '';
         }
@@ -92,6 +96,8 @@ class CaptchaService
                 return 'https://js.hcaptcha.com/1/api.js';
             case 'turnstile':
                 return 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+            case 'yandex':
+                return 'https://smartcaptcha.cloud.yandex.ru/captcha.js';
             default:
                 return '';
         }
@@ -210,11 +216,11 @@ class CaptchaService
                 return false;
             }
 
-            return !(!empty($expectedAction) && isset($json['action']) && (string) $json['action'] !== $expectedAction)
-
-
-
-            ;
+            return !(
+                !empty($expectedAction)
+                && isset($json['action'])
+                && (string) $json['action'] !== $expectedAction
+            );
         } catch (Exception $e) {
             logs()->error('reCAPTCHA v3 verification failed: ' . $e->getMessage());
 
@@ -327,6 +333,61 @@ class CaptchaService
             return isset($json['success']) && $json['success'] === true;
         } catch (Exception $e) {
             logs()->error('Turnstile verification failed: ' . $e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * Check Yandex SmartCaptcha
+     */
+    protected function verifyYandex(string $response): bool
+    {
+        $secretKey = config('auth.captcha.yandex.server_key');
+
+        if (empty($secretKey)) {
+            return false;
+        }
+
+        $url = 'https://smartcaptcha.cloud.yandex.ru/validate';
+        $data = [
+            'secret' => $secretKey,
+            'token' => $response,
+            'ip' => request()->ip(),
+        ];
+
+        try {
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => [
+                        'Content-Type: application/x-www-form-urlencoded',
+                        'User-Agent: Flute-CMS/1.0',
+                    ],
+                    'content' => http_build_query($data),
+                    'timeout' => 10,
+                ],
+            ]);
+
+            $result = file_get_contents($url, false, $context);
+
+            if ($result === false) {
+                logs()->error('Yandex SmartCaptcha verification failed: Unable to reach verification service');
+
+                return false;
+            }
+
+            $json = json_decode($result, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                logs()->error('Yandex SmartCaptcha verification failed: Invalid JSON response');
+
+                return false;
+            }
+
+            return isset($json['status']) && $json['status'] === 'ok';
+        } catch (Exception $e) {
+            logs()->error('Yandex SmartCaptcha verification failed: ' . $e->getMessage());
 
             return false;
         }

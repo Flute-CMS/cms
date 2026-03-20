@@ -85,7 +85,7 @@ class Filters extends Layout
         array $options,
         mixed $default = null,
         bool $multiple = false,
-        bool $allowEmpty = true
+        bool $allowEmpty = true,
     ): self {
         $this->filters[] = [
             'type' => 'select',
@@ -115,7 +115,7 @@ class Filters extends Layout
         string $label,
         string $type = 'text',
         mixed $default = null,
-        string $placeholder = ''
+        string $placeholder = '',
     ): self {
         $this->filters[] = [
             'type' => 'input',
@@ -283,7 +283,7 @@ class Filters extends Layout
                 if (!empty($filter['valueFrom']) || !empty($filter['valueTo'])) {
                     return true;
                 }
-            } elseif (($filter['value'] ?? null) !== ($filter['default'] ?? null)) {
+            } elseif (( $filter['value'] ?? null ) !== ( $filter['default'] ?? null )) {
                 return true;
             }
         }

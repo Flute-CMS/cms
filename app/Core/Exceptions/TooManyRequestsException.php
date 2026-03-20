@@ -20,7 +20,7 @@ class TooManyRequestsException extends Exception
         string $message = 'Too Many Requests',
         int $estimatedWaitingTime = 0,
         int $code = 0,
-        ?Exception $previous = null
+        ?Exception $previous = null,
     ) {
         $this->estimatedWaitingTime = $estimatedWaitingTime;
 

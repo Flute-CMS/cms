@@ -20,9 +20,9 @@ class FileSystemAdapterCacheDriver extends AbstractCacheDriver
         parent::__construct($config, $logger);
 
         $namespace = $config['namespace'] ?? '';
-        $defaultLifetime = (int) ($config['defaultLifetime'] ?? 0);
-        $directory = (string) ($config['directory'] ?? '');
-        $staleDirectory = (string) ($config['stale_directory'] ?? '');
+        $defaultLifetime = (int) ( $config['defaultLifetime'] ?? 0 );
+        $directory = (string) ( $config['directory'] ?? '' );
+        $staleDirectory = (string) ( $config['stale_directory'] ?? '' );
 
         $this->cache = new FilesystemAdapter($namespace, $defaultLifetime, $directory);
 
@@ -34,7 +34,7 @@ class FileSystemAdapterCacheDriver extends AbstractCacheDriver
             $this->staleCache = new FilesystemAdapter($namespace, $defaultLifetime, $staleDirectory);
         }
 
-        $staleTtl = (int) ($config['stale_ttl'] ?? 0);
+        $staleTtl = (int) ( $config['stale_ttl'] ?? 0 );
         if ($staleTtl > 0) {
             $this->staleTtl = $staleTtl;
         }

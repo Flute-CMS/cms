@@ -45,10 +45,10 @@ class EditorWidget extends AbstractWidget
         ];
     }
 
-    public function render(array $settings): string|null
+    public function render(array $settings): ?string
     {
         $content = transValue($settings['content'] ?? '');
-        $html = (new Parser())->parse($content, false, false);
+        $html = ( new Parser() )->parse($content, false, false);
 
         return view('flute::widgets.editor', [
             'html' => $html,

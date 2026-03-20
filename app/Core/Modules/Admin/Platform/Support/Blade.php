@@ -103,7 +103,7 @@ class Blade
         return static::$compiler ??= new ComponentTagCompiler(
             $compiler->getClassComponentAliases(),
             $compiler->getClassComponentNamespaces(),
-            $compiler
+            $compiler,
         );
     }
 }

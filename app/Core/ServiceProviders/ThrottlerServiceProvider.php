@@ -11,7 +11,7 @@ class ThrottlerServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             ThrottlerService::class => \DI\create(),
-            "throttler" => \DI\get(ThrottlerService::class),
+            'throttler' => \DI\get(ThrottlerService::class),
         ]);
     }
 

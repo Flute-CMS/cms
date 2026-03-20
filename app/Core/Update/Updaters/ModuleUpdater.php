@@ -80,7 +80,7 @@ class ModuleUpdater extends AbstractUpdater
     public function update(array $data): bool
     {
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
-            logs()->error('Module update package file not found: ' . ($data['package_file'] ?? 'null'));
+            logs()->error('Module update package file not found: ' . ( $data['package_file'] ?? 'null' ));
 
             return false;
         }
@@ -315,7 +315,7 @@ class ModuleUpdater extends AbstractUpdater
 
         $directory = opendir($source);
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
@@ -383,7 +383,7 @@ class ModuleUpdater extends AbstractUpdater
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }

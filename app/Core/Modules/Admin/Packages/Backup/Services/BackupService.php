@@ -91,7 +91,7 @@ class BackupService
             }
         }
 
-        usort($backups, static fn ($a, $b) => $b['date'] <=> $a['date']);
+        usort($backups, static fn($a, $b) => $b['date'] <=> $a['date']);
 
         return $backups;
     }
@@ -410,7 +410,11 @@ class BackupService
         $realSourcePath = realpath($sourcePath);
         $realBackupPath = realpath($this->backupPath);
 
-        if ($realSourcePath === false || $realBackupPath === false || !str_starts_with($realSourcePath, $realBackupPath)) {
+        if (
+            $realSourcePath === false
+            || $realBackupPath === false
+            || !str_starts_with($realSourcePath, $realBackupPath)
+        ) {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
         }
 
@@ -500,7 +504,11 @@ class BackupService
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $entryName = $zip->getNameIndex($i);
 
-                if (str_contains($entryName, '..') || str_starts_with($entryName, '/') || str_starts_with($entryName, '\\')) {
+                if (
+                    str_contains($entryName, '..')
+                    || str_starts_with($entryName, '/')
+                    || str_starts_with($entryName, '\\')
+                ) {
                     $zip->close();
 
                     throw new Exception(__('admin-backup.errors.path_traversal_detected'));
@@ -574,7 +582,11 @@ class BackupService
         if (preg_match('/(\d{4}[-_]\d{2}[-_]\d{2}[-_]\d{2}[-_]?\d{2}[-_]?\d{2})/', $dirName, $matches)) {
             $dateStr = str_replace(['_', '-'], [' ', ':'], $matches[1]);
             // Normalize format: 2024 01 01 12:30:00
-            $dateStr = preg_replace('/(\d{4})\s+(\d{2})\s+(\d{2})\s+(\d{2}):?(\d{2}):?(\d{2})/', '$1-$2-$3 $4:$5:$6', $dateStr);
+            $dateStr = preg_replace(
+                '/(\d{4})\s+(\d{2})\s+(\d{2})\s+(\d{2}):?(\d{2}):?(\d{2})/',
+                '$1-$2-$3 $4:$5:$6',
+                $dateStr,
+            );
             $timestamp = strtotime($dateStr);
             if ($timestamp) {
                 return $timestamp;
@@ -616,7 +628,7 @@ class BackupService
     {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+            RecursiveIteratorIterator::SELF_FIRST,
         );
 
         foreach ($iterator as $file) {
@@ -625,9 +637,9 @@ class BackupService
 
             // Skip vendor, node_modules, and cache directories
             if (
-                str_contains($relativePath, '/vendor/') ||
-                str_contains($relativePath, '/node_modules/') ||
-                str_contains($relativePath, '/cache/')
+                str_contains($relativePath, '/vendor/')
+                || str_contains($relativePath, '/node_modules/')
+                || str_contains($relativePath, '/cache/')
             ) {
                 continue;
             }
@@ -648,7 +660,7 @@ class BackupService
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+            RecursiveIteratorIterator::SELF_FIRST,
         );
 
         foreach ($iterator as $item) {
@@ -672,7 +684,7 @@ class BackupService
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($iterator as $item) {
@@ -694,9 +706,10 @@ class BackupService
             return $size;
         }
 
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
-        );
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+            $dir,
+            RecursiveDirectoryIterator::SKIP_DOTS,
+        ));
 
         foreach ($iterator as $file) {
             if ($file->isFile()) {
@@ -712,7 +725,7 @@ class BackupService
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = floor(( $bytes ? log($bytes) : 0 ) / log(1024));
         $pow = min($pow, count($units) - 1);
 
         $bytes /= pow(1024, $pow);

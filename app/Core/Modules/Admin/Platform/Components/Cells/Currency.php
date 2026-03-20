@@ -31,8 +31,8 @@ class Currency extends Component
         $value = number_format($this->value, $this->decimals, $this->decimal_separator, $this->thousands_separator);
 
         return Str::of($value)
-            ->prepend($this->before.' ')
-            ->append(' '.$this->after)
+            ->prepend($this->before . ' ')
+            ->append(' ' . $this->after)
             ->trim()
             ->toString();
     }

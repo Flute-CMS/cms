@@ -19,7 +19,7 @@ class FileUploader
 
     public function __construct(
         Filesystem $filesystem,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->filesystem = $filesystem;
         $this->logger = $logger;
@@ -42,7 +42,10 @@ class FileUploader
 
         // Reject double extensions (e.g., image.php.jpg)
         $originalName = $file->getClientOriginalName();
-        if (preg_match('/\.(php|phtml|php[345s]|phar|exe|sh|bat|cmd|com|scr|vbs|jsp|asp|aspx|cgi|pl|py)\./i', $originalName)) {
+        if (preg_match(
+            '/\.(php|phtml|php[345s]|phar|exe|sh|bat|cmd|com|scr|vbs|jsp|asp|aspx|cgi|pl|py)\./i',
+            $originalName,
+        )) {
             throw new Exception('Suspicious file extension detected.');
         }
 
@@ -98,7 +101,6 @@ class FileUploader
         }
 
         throw new Exception('Invalid image file type.');
-
     }
 
     /**
@@ -134,11 +136,9 @@ class FileUploader
             $this->filesystem->remove($this->getTargetDirectory() . '/' . $fileName);
 
             throw new Exception('Invalid ZIP file.');
-
         }
 
         throw new Exception('Invalid ZIP file type.');
-
     }
 
     /**

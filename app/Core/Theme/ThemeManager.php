@@ -23,7 +23,7 @@ class ThemeManager
 
     protected const CACHE_TIME = 60 * 60; // Cache duration in seconds (1 hour)
 
-    protected const C_KEY_GET = "flute.themes.get";
+    protected const C_KEY_GET = 'flute.themes.get';
 
     public bool $isSafeLoading = false;
 
@@ -61,7 +61,7 @@ class ThemeManager
     public function __construct()
     {
         $this->themesPath = path('app/Themes');
-        $this->performance = (bool) (is_performance());
+        $this->performance = (bool) is_performance();
 
         $this->themes = collect();
         $this->disabledThemes = collect();
@@ -143,7 +143,11 @@ class ThemeManager
     public function getAllThemes(): array
     {
         if (empty($this->allThemes)) {
-            $this->allThemes = cache()->callback('flute.themes.all', static fn () => (array) Theme::query()->load('settings')->fetchAll(), self::CACHE_TIME);
+            $this->allThemes = cache()->callback(
+                'flute.themes.all',
+                static fn() => (array) Theme::query()->load('settings')->fetchAll(),
+                self::CACHE_TIME,
+            );
         }
 
         return $this->allThemes;
@@ -200,7 +204,10 @@ class ThemeManager
             return;
         }
 
-        $themeDirs = array_filter(glob("{$this->themesPath}/*", GLOB_ONLYDIR), static fn ($dir) => basename($dir) !== '.disabled');
+        $themeDirs = array_filter(
+            glob("{$this->themesPath}/*", GLOB_ONLYDIR),
+            static fn($dir) => basename($dir) !== '.disabled',
+        );
 
         foreach ($themeDirs as $dir) {
             $themeName = basename($dir);
@@ -226,7 +233,6 @@ class ThemeManager
                 return $themeData;
             }
             logs('templates')->error("Invalid JSON in theme.json for theme '{$themeName}': " . json_last_error_msg());
-
         } else {
             logs('templates')->error("theme.json not found or not readable for theme '{$themeName}'.");
         }
@@ -245,7 +251,10 @@ class ThemeManager
             return $this->allThemesKeys[$themeName];
         }
 
-        $theme = Theme::query()->load('settings')->where(['key' => $themeName])->fetchOne();
+        $theme = Theme::query()
+            ->load('settings')
+            ->where(['key' => $themeName])
+            ->fetchOne();
 
         if (!$theme) {
             throw new RuntimeException("The theme '{$themeName}' does not exist.");
@@ -279,7 +288,9 @@ class ThemeManager
     public function fallbackToDefaultTheme(): void
     {
         if (!isset($this->currentTheme) || $this->currentTheme !== self::DEFAULT_THEME) {
-            logs('templates')->warning('The theme was switched to "standard" to prevent interface errors. You need to change the theme manually!');
+            logs('templates')->warning(
+                'The theme was switched to "standard" to prevent interface errors. You need to change the theme manually!',
+            );
 
             if (isset($this->themesData[self::DEFAULT_THEME])) {
                 $this->setTheme(self::DEFAULT_THEME);
@@ -332,11 +343,11 @@ class ThemeManager
         $ormAvailable = true;
 
         try {
-            $themesInDB = is_installed()
-                ? $this->getAssocThemes()
-                : [];
+            $themesInDB = is_installed() ? $this->getAssocThemes() : [];
         } catch (Throwable $e) {
-            logs('templates')->warning("Could not load themes from database, using filesystem only: " . $e->getMessage());
+            logs('templates')->warning(
+                'Could not load themes from database, using filesystem only: ' . $e->getMessage(),
+            );
             $themesInDB = [];
             $ormAvailable = false;
         }
@@ -364,21 +375,21 @@ class ThemeManager
                 $newTheme = new Theme();
                 $newTheme->name = $themeData['name'] ?? $themeName;
                 $newTheme->key = $themeName;
-                $newTheme->version = $themeData['version'] ?? "1.0";
-                $newTheme->author = $themeData['author'] ?? "";
-                $newTheme->description = htmlspecialchars($themeData['description'] ?? "");
+                $newTheme->version = $themeData['version'] ?? '1.0';
+                $newTheme->author = $themeData['author'] ?? '';
+                $newTheme->description = htmlspecialchars($themeData['description'] ?? '');
 
                 // Set the theme status
-                $newTheme->status = ($newTheme->key === self::DEFAULT_THEME) ? self::ACTIVE : self::NOTINSTALLED;
+                $newTheme->status = $newTheme->key === self::DEFAULT_THEME ? self::ACTIVE : self::NOTINSTALLED;
 
                 // Add settings from theme.json
                 if (isset($themeData['settings']) && is_array($themeData['settings'])) {
                     foreach ($themeData['settings'] as $key => $value) {
                         $setting = new ThemeSettings();
                         $setting->key = $key;
-                        $setting->name = $value['name'] ?? "";
-                        $setting->description = $value['description'] ?? "";
-                        $setting->value = $value['value'] ?? "";
+                        $setting->name = $value['name'] ?? '';
+                        $setting->description = $value['description'] ?? '';
+                        $setting->value = $value['value'] ?? '';
 
                         $newTheme->addSetting($setting);
                     }
@@ -425,25 +436,32 @@ class ThemeManager
      */
     protected function getAssocThemes(): array
     {
-        $cachedRows = cache()->callback('flute.themes.db_rows', static function () {
-            $themes = Theme::query()->load('settings')->fetchAll();
+        $cachedRows = cache()->callback(
+            'flute.themes.db_rows',
+            static function () {
+                $themes = Theme::query()->load('settings')->fetchAll();
 
-            return array_map(static fn (Theme $t) => [
-                'key' => $t->key,
-                'name' => $t->name,
-                'version' => $t->version,
-                'author' => $t->author,
-                'description' => $t->description,
-                'status' => $t->status,
-                'settings' => array_map(static fn (ThemeSettings $s) => [
-                    'id' => $s->id,
-                    'key' => $s->key,
-                    'name' => $s->name,
-                    'description' => $s->description,
-                    'value' => $s->value,
-                ], is_array($t->settings) ? $t->settings : iterator_to_array($t->settings)),
-            ], $themes);
-        }, self::CACHE_TIME);
+                return array_map(static fn(Theme $t) => [
+                    'key' => $t->key,
+                    'name' => $t->name,
+                    'version' => $t->version,
+                    'author' => $t->author,
+                    'description' => $t->description,
+                    'status' => $t->status,
+                    'settings' => array_map(
+                        static fn(ThemeSettings $s) => [
+                            'id' => $s->id,
+                            'key' => $s->key,
+                            'name' => $s->name,
+                            'description' => $s->description,
+                            'value' => $s->value,
+                        ],
+                        is_array($t->settings) ? $t->settings : iterator_to_array($t->settings),
+                    ),
+                ], $themes);
+            },
+            self::CACHE_TIME,
+        );
 
         $result = [];
         foreach ($cachedRows as $row) {

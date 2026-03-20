@@ -93,6 +93,8 @@ class MainSettingsPackageService
                 'hcaptcha_secret_key' => 'auth.captcha.hcaptcha.secret_key',
                 'turnstile_site_key' => 'auth.captcha.turnstile.site_key',
                 'turnstile_secret_key' => 'auth.captcha.turnstile.secret_key',
+                'yandex_client_key' => 'auth.captcha.yandex.client_key',
+                'yandex_server_key' => 'auth.captcha.yandex.server_key',
                 'default_role' => 'auth.default_role',
                 'two_factor_enabled' => 'auth.two_factor.enabled',
                 'two_factor_force' => 'auth.two_factor.force',
@@ -387,10 +389,10 @@ class MainSettingsPackageService
     {
         if ($currentTab === $this->tabSlugs['localization']) {
             $allLanguages = config('lang.all', []);
-            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : ($allLanguages[0] ?? 'en');
+            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : $allLanguages[0] ?? 'en';
 
             $availableNormal = [];
-            foreach (($inputs['available'] ?? []) as $lang => $val) {
+            foreach ($inputs['available'] ?? [] as $lang => $val) {
                 if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true) {
                     $availableNormal[] = $lang;
                 }
@@ -487,7 +489,7 @@ class MainSettingsPackageService
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
         $rules = $this->getValidationRules()[$currentTab] ?? [];
 
-        if ($currentTab === ($this->tabSlugs['mail'] ?? '')) {
+        if ($currentTab === ( $this->tabSlugs['mail'] ?? '' )) {
             $smtpEnabled = filter_var($filteredData['smtp'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             if (!$smtpEnabled) {
@@ -504,7 +506,7 @@ class MainSettingsPackageService
             return false;
         }
 
-        if ($currentTab === ($this->tabSlugs['main_settings'] ?? '')) {
+        if ($currentTab === ( $this->tabSlugs['main_settings'] ?? '' )) {
             $robotsBefore = trim((string) config('app.robots', ''));
         }
 
@@ -514,7 +516,7 @@ class MainSettingsPackageService
 
         $robotsAfter = isset($inputs['robots']) ? trim((string) $inputs['robots']) : null;
         if (
-            $currentTab === ($this->tabSlugs['main_settings'] ?? '')
+            $currentTab === ( $this->tabSlugs['main_settings'] ?? '' )
             && $robotsBefore !== ''
             && $robotsAfter !== null
             && $robotsAfter !== ''
@@ -526,8 +528,14 @@ class MainSettingsPackageService
         return true;
     }
 
-    public function testDatabaseConnection(string $driver, string $host, int $port, string $database, string $user, ?string $password)
-    {
+    public function testDatabaseConnection(
+        string $driver,
+        string $host,
+        int $port,
+        string $database,
+        string $user,
+        ?string $password,
+    ) {
         try {
             switch ($driver) {
                 case 'mysql':

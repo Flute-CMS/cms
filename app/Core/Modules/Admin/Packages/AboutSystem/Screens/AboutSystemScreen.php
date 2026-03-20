@@ -24,9 +24,7 @@ class AboutSystemScreen extends Screen
      */
     public function mount(): void
     {
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-about-system.labels.home'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-about-system.labels.home'));
     }
 
     /**
@@ -71,7 +69,8 @@ class AboutSystemScreen extends Screen
         }
 
         $chart = new FluteChart();
-        $chart->setType('bar')
+        $chart
+            ->setType('bar')
             ->setHeight(300)
             ->setHorizontal(true)
             ->setColors(['#3b82f6'])
@@ -90,7 +89,8 @@ class AboutSystemScreen extends Screen
         }
 
         $chart = new FluteChart();
-        $chart->setType('bar')
+        $chart
+            ->setType('bar')
             ->setHeight(300)
             ->setHorizontal(true)
             ->setColors(['#10b981'])
@@ -109,7 +109,8 @@ class AboutSystemScreen extends Screen
         }
 
         $chart = new FluteChart();
-        $chart->setType('bar')
+        $chart
+            ->setType('bar')
             ->setHeight(300)
             ->setHorizontal(true)
             ->setColors(['#f59e0b'])
@@ -128,7 +129,8 @@ class AboutSystemScreen extends Screen
         }
 
         $chart = new FluteChart();
-        $chart->setType('bar')
+        $chart
+            ->setType('bar')
             ->setHeight(300)
             ->setHorizontal(true)
             ->setColors(['#8b5cf6'])
@@ -147,7 +149,8 @@ class AboutSystemScreen extends Screen
         }
 
         $chart = new FluteChart();
-        $chart->setType('bar')
+        $chart
+            ->setType('bar')
             ->setHeight(300)
             ->setHorizontal(true)
             ->setColors(['#ef4444'])

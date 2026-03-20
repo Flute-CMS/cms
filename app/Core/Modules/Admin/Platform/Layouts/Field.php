@@ -37,7 +37,7 @@ class Field extends Layout
 
     public function __construct(
         ?\Flute\Admin\Platform\Field $field = null,
-        array $classes = []
+        array $classes = [],
     ) {
         if ($field) {
             $this->field($field);

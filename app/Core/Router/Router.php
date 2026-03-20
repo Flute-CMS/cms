@@ -227,7 +227,13 @@ class Router implements RouterInterface
             $currentName = $modifiedRoute->getName();
 
             if ($currentName !== $originalName) {
-                foreach ([$this->routes, $this->frontCompilableRoutes, $this->adminCompilableRoutes, $this->frontDynamicRoutes, $this->adminDynamicRoutes] as $collection) {
+                foreach ([
+                    $this->routes,
+                    $this->frontCompilableRoutes,
+                    $this->adminCompilableRoutes,
+                    $this->frontDynamicRoutes,
+                    $this->adminDynamicRoutes,
+                ] as $collection) {
                     if ($collection->get($originalName)) {
                         $collection->remove($originalName);
                     }
@@ -317,7 +323,7 @@ class Router implements RouterInterface
      */
     public function view(string $path, string $view, array $options = []): Route
     {
-        return $this->addRoute('GET', $path, static fn () => response()->view($view, $options));
+        return $this->addRoute('GET', $path, static fn() => response()->view($view, $options));
     }
 
     /**
@@ -331,7 +337,7 @@ class Router implements RouterInterface
      */
     public function redirect(string $path, string $destination, int $status = 302): Route
     {
-        return $this->addRoute('GET', $path, static fn () => redirect($destination, $status));
+        return $this->addRoute('GET', $path, static fn() => redirect($destination, $status));
     }
 
     /**
@@ -360,11 +366,15 @@ class Router implements RouterInterface
         $urlMatcher = null;
         $usedCompiledMatcher = false;
 
-        $cacheFile = path('storage/app/cache/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php');
-        $staleCacheDir = (string) (config('cache.stale_directory') ?? '');
+        $cacheFile = path('storage/app/cache/routes_compiled' . ( $isAdmin ? '_admin' : '_front' ) . '.php');
+        $staleCacheDir = (string) ( config('cache.stale_directory') ?? '' );
         $staleCacheFile = '';
         if ($staleCacheDir !== '') {
-            $staleCacheFile = rtrim(str_replace('\\', '/', $staleCacheDir), '/') . '/routes_compiled' . ($isAdmin ? '_admin' : '_front') . '.php';
+            $staleCacheFile =
+                rtrim(str_replace('\\', '/', $staleCacheDir), '/')
+                . '/routes_compiled'
+                . ( $isAdmin ? '_admin' : '_front' )
+                . '.php';
         }
 
         if (!is_debug()) {
@@ -390,7 +400,11 @@ class Router implements RouterInterface
         }
 
         if (!is_debug() && !file_exists($cacheFile)) {
-            SWRQueue::queue('router.routes_compiled.' . ($isAdmin ? 'admin' : 'front'), static function () use ($cacheFile, $staleCacheFile, $compilable): void {
+            SWRQueue::queue('router.routes_compiled.' . ( $isAdmin ? 'admin' : 'front' ), static function () use (
+                $cacheFile,
+                $staleCacheFile,
+                $compilable,
+            ): void {
                 if (file_exists($cacheFile)) {
                     return;
                 }
@@ -425,7 +439,9 @@ class Router implements RouterInterface
                     $dumper = new CompiledUrlMatcherDumper($compilable);
                     $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
                     $compiledSource = (string) $compiledSource;
-                    $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+                    $php =
+                        ( str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource )
+                        . "\nreturn new FluteCompiledRoutes([]);";
 
                     $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
                     if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
@@ -450,14 +466,20 @@ class Router implements RouterInterface
 
             $this->currentRoute = $this->resolveRoute($parameters);
 
-            $onRouteEvent = events()->dispatch(new OnRouteFoundEvent($request, $this->currentRoute), OnRouteFoundEvent::NAME);
+            $onRouteEvent = events()->dispatch(
+                new OnRouteFoundEvent($request, $this->currentRoute),
+                OnRouteFoundEvent::NAME,
+            );
 
             if ($onRouteEvent->isPropagationStopped()) {
                 throw new HttpException($onRouteEvent->getErrorCode(), $onRouteEvent->getErrorMessage());
             }
 
             $middleware = $this->gatherMiddleware();
-            $pipeline = new MiddlewareRunner($middleware, $request, fn ($request) => $this->runRoute($request, $parameters));
+            $pipeline = new MiddlewareRunner($middleware, $request, fn($request) => $this->runRoute(
+                $request,
+                $parameters,
+            ));
 
             $tPipe = microtime(true);
             $response = $pipeline->run();
@@ -469,7 +491,7 @@ class Router implements RouterInterface
         try {
             $parameters = $urlMatcher->match($request->getPathInfo());
             $response = $runMatched($parameters);
-        } catch (ResourceNotFoundException | MethodNotAllowedException $e) {
+        } catch (ResourceNotFoundException|MethodNotAllowedException $e) {
             $handled = false;
 
             // If we used compiled routes and they are stale/out-of-date, retry with in-memory routes.
@@ -479,44 +501,52 @@ class Router implements RouterInterface
                     $parameters = $fallbackMatcher->match($request->getPathInfo());
 
                     // Heal compiled routes cache asynchronously.
-                    SWRQueue::queue('router.routes_compiled.rebuild.' . ($isAdmin ? 'admin' : 'front'), static function () use ($cacheFile, $compilable): void {
-                        $lockFile = $cacheFile . '.lock';
-                        $lockHandle = @fopen($lockFile, 'w+');
-                        if (!$lockHandle) {
-                            return;
-                        }
-
-                        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
-                            @fclose($lockHandle);
-
-                            return;
-                        }
-
-                        try {
-                            $dumper = new CompiledUrlMatcherDumper($compilable);
-                            $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
-                            $compiledSource = (string) $compiledSource;
-                            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
-
-                            @mkdir(dirname($cacheFile), 0o755, true);
-                            $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
-                            if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
-                                @rename($tmp, $cacheFile);
+                    SWRQueue::queue(
+                        'router.routes_compiled.rebuild.' . ( $isAdmin ? 'admin' : 'front' ),
+                        static function () use ($cacheFile, $compilable): void {
+                            $lockFile = $cacheFile . '.lock';
+                            $lockHandle = @fopen($lockFile, 'w+');
+                            if (!$lockHandle) {
+                                return;
                             }
-                        } catch (Throwable $e) {
-                            if (function_exists('logs')) {
-                                logs()->warning($e);
+
+                            if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+                                @fclose($lockHandle);
+
+                                return;
                             }
-                        } finally {
-                            @flock($lockHandle, LOCK_UN);
-                            @fclose($lockHandle);
-                            @unlink($lockFile);
-                        }
-                    });
+
+                            try {
+                                $dumper = new CompiledUrlMatcherDumper($compilable);
+                                $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
+                                $compiledSource = (string) $compiledSource;
+                                $php =
+                                    (
+                                        str_contains($compiledSource, '<?php')
+                                            ? $compiledSource
+                                            : "<?php\n" . $compiledSource
+                                    ) . "\nreturn new FluteCompiledRoutes([]);";
+
+                                @mkdir(dirname($cacheFile), 0o755, true);
+                                $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
+                                if (@file_put_contents($tmp, $php, LOCK_EX) !== false) {
+                                    @rename($tmp, $cacheFile);
+                                }
+                            } catch (Throwable $e) {
+                                if (function_exists('logs')) {
+                                    logs()->warning($e);
+                                }
+                            } finally {
+                                @flock($lockHandle, LOCK_UN);
+                                @fclose($lockHandle);
+                                @unlink($lockFile);
+                            }
+                        },
+                    );
 
                     $response = $runMatched($parameters);
                     $handled = true;
-                } catch (ResourceNotFoundException | MethodNotAllowedException) {
+                } catch (ResourceNotFoundException|MethodNotAllowedException) {
                 }
             }
 
@@ -525,7 +555,7 @@ class Router implements RouterInterface
 
                 try {
                     $parameters = $dynamicMatcher->match($request->getPathInfo());
-                } catch (ResourceNotFoundException | MethodNotAllowedException $dynamicE) {
+                } catch (ResourceNotFoundException|MethodNotAllowedException $dynamicE) {
                     $response = response()->error(404, __('def.page_not_found'));
                     $response->setStatusCode(404);
                 }
@@ -576,7 +606,7 @@ class Router implements RouterInterface
             $compilable->addCollection($this->frontCompilableRoutes);
         }
 
-        $cacheFile = path('storage/app/cache/routes_compiled' . ($admin ? '_admin' : '_front') . '.php');
+        $cacheFile = path('storage/app/cache/routes_compiled' . ( $admin ? '_admin' : '_front' ) . '.php');
         if (file_exists($cacheFile)) {
             return;
         }
@@ -601,7 +631,9 @@ class Router implements RouterInterface
             $dumper = new CompiledUrlMatcherDumper($compilable);
             $compiledSource = $dumper->dump(['class' => 'FluteCompiledRoutes']);
             $compiledSource = (string) $compiledSource;
-            $php = (str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource) . "\nreturn new FluteCompiledRoutes([]);";
+            $php =
+                ( str_contains($compiledSource, '<?php') ? $compiledSource : "<?php\n" . $compiledSource )
+                . "\nreturn new FluteCompiledRoutes([]);";
 
             @mkdir(dirname($cacheFile), 0o755, true);
             $tmp = $cacheFile . '.' . uniqid('routes', true) . '.tmp';
@@ -630,7 +662,7 @@ class Router implements RouterInterface
      */
     public function url(string $name, array $parameters = []): string
     {
-        $generator = new UrlGenerator($this->routes, (new RequestContext())->fromRequest(request()));
+        $generator = new UrlGenerator($this->routes, ( new RequestContext() )->fromRequest(request()));
 
         if (!$this->routes->get($name)) {
             throw new Exception("Route '{$name}' not found.");
@@ -728,10 +760,7 @@ class Router implements RouterInterface
         if (isset($cache[$routeKey])) {
             return $cache[$routeKey];
         }
-        $middleware = array_merge(
-            $this->middlewareGroups['default'],
-            $this->currentRoute->getMiddleware()
-        );
+        $middleware = array_merge($this->middlewareGroups['default'], $this->currentRoute->getMiddleware());
 
         // Remove excluded middleware
         $excluded = $this->currentRoute->getExcludedMiddleware();
@@ -771,7 +800,9 @@ class Router implements RouterInterface
                         $middleware = $this->container->get($middlewareClass);
 
                         if (!$middleware instanceof MiddlewareInterface) {
-                            throw new InvalidArgumentException("Middleware {$middlewareClass} must implement MiddlewareInterface.");
+                            throw new InvalidArgumentException(
+                                "Middleware {$middlewareClass} must implement MiddlewareInterface.",
+                            );
                         }
 
                         return $middleware->handle($request, $next, ...$parameters);
@@ -783,7 +814,9 @@ class Router implements RouterInterface
                         $middleware = $this->container->get($middlewareClass);
 
                         if (!$middleware instanceof MiddlewareInterface) {
-                            throw new InvalidArgumentException("Middleware {$middlewareClass} must implement MiddlewareInterface.");
+                            throw new InvalidArgumentException(
+                                "Middleware {$middlewareClass} must implement MiddlewareInterface.",
+                            );
                         }
 
                         return $middleware->handle($request, $next);
@@ -795,7 +828,6 @@ class Router implements RouterInterface
                 throw new InvalidArgumentException('Invalid middleware specified.');
             }
         }
-
 
         return $cache[$routeKey] = $resolvedMiddleware;
     }
@@ -822,15 +854,20 @@ class Router implements RouterInterface
     {
         $old = $this->groupStack ? end($this->groupStack) : [];
 
-        $new['prefix'] = isset($old['prefix']) ? trim($old['prefix'], '/') . '/' . trim($new['prefix'] ?? '', '/') : ($new['prefix'] ?? '');
+        $new['prefix'] = isset($old['prefix'])
+            ? trim($old['prefix'], '/') . '/' . trim($new['prefix'] ?? '', '/')
+            : $new['prefix'] ?? '';
 
         if (isset($old['middleware'])) {
-            $middleware = array_merge((array) $old['middleware'], (array) ($new['middleware'] ?? []));
+            $middleware = array_merge((array) $old['middleware'], (array) ( $new['middleware'] ?? [] ));
             $new['middleware'] = $middleware;
         }
 
         if (isset($old['excluded_middleware'])) {
-            $excludedMiddleware = array_merge((array) $old['excluded_middleware'], (array) ($new['excluded_middleware'] ?? []));
+            $excludedMiddleware = array_merge(
+                (array) $old['excluded_middleware'],
+                (array) ( $new['excluded_middleware'] ?? [] ),
+            );
             $new['excluded_middleware'] = $excludedMiddleware;
         }
 
@@ -846,7 +883,7 @@ class Router implements RouterInterface
      */
     protected function getGroupAttribute(string $key, $default = null)
     {
-        return $this->groupStack ? ($this->groupStack[count($this->groupStack) - 1][$key] ?? $default) : $default;
+        return $this->groupStack ? $this->groupStack[count($this->groupStack) - 1][$key] ?? $default : $default;
     }
 
     /**
@@ -910,8 +947,9 @@ class Router implements RouterInterface
             $this->registeredDynamicRoutes[$uri] = [];
         }
 
-        $this->registeredDynamicRoutes[$uri] = array_unique(
-            array_merge($this->registeredDynamicRoutes[$uri], $methods)
-        );
+        $this->registeredDynamicRoutes[$uri] = array_unique(array_merge(
+            $this->registeredDynamicRoutes[$uri],
+            $methods,
+        ));
     }
 }

@@ -24,20 +24,12 @@ class DefaultLogFormatter implements LogFormatterInterface
 
         $message = $log->message ?: $this->renderData($log->data);
 
-
-        return sprintf(
-            '<div class="log-item %s">
+        return sprintf('<div class="log-item %s">
                 <span class="log-date">%s</span>
                 <strong class="log-user">%s</strong>:
                 <span class="log-action">%s</span>
                 <span class="log-message">%s</span>
-            </div>',
-            $levelClass,
-            $createdAt,
-            $userName,
-            $action,
-            $message
-        );
+            </div>', $levelClass, $createdAt, $userName, $action, $message);
     }
 
     private function renderData(?array $data): string

@@ -37,12 +37,12 @@ class ThrottlerService
      */
     public function throttle(
         array $criteria,
-        int   $supply,
-        int   $interval,
-        ?int  $rustiness = null,
+        int $supply,
+        int $interval,
+        ?int $rustiness = null,
         ?bool $simulated = null,
-        ?int  $cost = null,
-        ?bool $force = null
+        ?int $cost = null,
+        ?bool $force = null,
     ): float {
         $force = $force !== null && (bool) $force;
 
@@ -52,7 +52,7 @@ class ThrottlerService
 
         $key = $this->generateKey($criteria);
         $rustiness = $rustiness !== null ? (int) $rustiness : 1;
-        $simulated = $simulated !== null && (bool)$simulated;
+        $simulated = $simulated !== null && (bool) $simulated;
         $cost = $cost !== null ? (int) $cost : 1;
         $now = time();
 
@@ -75,7 +75,6 @@ class ThrottlerService
         $estimatedWaitingTimeSeconds = $this->calculateEstimatedWaitingTime($tokensMissing, $bandwidthPerSecond);
 
         throw new TooManyRequestsException('', $estimatedWaitingTimeSeconds);
-
     }
 
     /**
@@ -155,7 +154,7 @@ class ThrottlerService
         int $cost,
         int $now,
         int $capacity,
-        float $bandwidthPerSecond
+        float $bandwidthPerSecond,
     ): void {
         // Calculate the time passed since the last replenishment
         $timePassed = $now - $bucket->getReplenishedAt();
@@ -173,7 +172,7 @@ class ThrottlerService
         // Update the last replenishment time
         $bucket->setReplenishedAt($now);
 
-        $bucket->setExpiresAt($now + floor($capacity / $bandwidthPerSecond * 2));
+        $bucket->setExpiresAt($now + floor(( $capacity / $bandwidthPerSecond ) * 2));
     }
 
     /**

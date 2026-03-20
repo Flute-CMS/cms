@@ -2,5 +2,11 @@
 
 use Flute\Core\Modules\Translation\Controllers\TranslationController;
 
-$router->post('api/translate', [TranslationController::class, 'translate'])->name('translation.translate')->middleware(['throttle', 'csrf']);
-$router->post('admin/api/translate', [TranslationController::class, 'translate'])->name('translation.admin.translate')->middleware('csrf');
+$router
+    ->post('api/translate', [TranslationController::class, 'translate'])
+    ->name('translation.translate')
+    ->middleware(['throttle', 'csrf']);
+$router
+    ->post('admin/api/translate', [TranslationController::class, 'translate'])
+    ->name('translation.admin.translate')
+    ->middleware('csrf');

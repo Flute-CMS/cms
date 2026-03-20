@@ -619,10 +619,10 @@ class NotificationTemplateService
                     'content' => $template->getParsedContent($data),
                     'components' => $template->getParsedComponents($data),
                     'user' => $user,
-                ])
+                ]),
             );
         } catch (Throwable $e) {
-            logs()->error("Failed to send email notification: " . $e->getMessage());
+            logs()->error('Failed to send email notification: ' . $e->getMessage());
         }
     }
 
@@ -651,7 +651,7 @@ class NotificationTemplateService
     {
         foreach ($components as $component) {
             if (is_array($component)) {
-                if (($component['type'] ?? '') === 'actions') {
+                if (( $component['type'] ?? '' ) === 'actions') {
                     return true;
                 }
                 if ($this->hasButtons($component)) {
@@ -672,7 +672,7 @@ class NotificationTemplateService
 
         foreach ($components as $component) {
             if (is_array($component)) {
-                if (($component['type'] ?? '') === 'actions' && isset($component['buttons'])) {
+                if (( $component['type'] ?? '' ) === 'actions' && isset($component['buttons'])) {
                     $buttons = array_merge($buttons, $component['buttons']);
                 } else {
                     $buttons = array_merge($buttons, $this->extractButtons($component));

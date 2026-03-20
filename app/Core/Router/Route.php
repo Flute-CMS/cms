@@ -55,7 +55,7 @@ class Route implements RouteInterface
             [],
             '',
             [],
-            $this->methods
+            $this->methods,
         );
     }
 
@@ -108,7 +108,7 @@ class Route implements RouteInterface
                 return $response;
             }
 
-            throw new Exception("Method {$method} not found in controller ".$controllerInstance::class);
+            throw new Exception("Method {$method} not found in controller " . $controllerInstance::class);
         }
 
         if (is_object($action) && method_exists($action, '__invoke')) {
@@ -171,7 +171,7 @@ class Route implements RouteInterface
     /**
      * Add constraints to route parameters.
      */
-    public function where(string|array $parameter, string|null $pattern = null): self
+    public function where(string|array $parameter, ?string $pattern = null): self
     {
         if (is_array($parameter)) {
             $this->requirements = array_merge($this->requirements, $parameter);
@@ -259,7 +259,7 @@ class Route implements RouteInterface
         if (isset($attributes['prefix'])) {
             $prefix = trim($attributes['prefix'], '/');
             if (!empty($prefix)) {
-                $this->uri = '/'.trim($prefix, '/').'/'.trim(ltrim($this->uri, '/'), '/');
+                $this->uri = '/' . trim($prefix, '/') . '/' . trim(ltrim($this->uri, '/'), '/');
                 $this->symfonyRoute->setPath($this->uri);
             }
         }

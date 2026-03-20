@@ -180,6 +180,16 @@ class Select {
             if (selectedValues.length > 0) {
                 config.value = isMultiple ? selectedValues : selectedValues[0];
             }
+
+            // Auto-set renderSelected if any option has custom html
+            const hasCustomHtml = richOptions.some(o => o.html || o.data?.itemHtml);
+            if (hasCustomHtml && !config.renderSelected) {
+                config.renderSelected = (opt) => {
+                    if (opt.data?.itemHtml) return opt.data.itemHtml;
+                    if (opt.html) return opt.html;
+                    return null;
+                };
+            }
         }
 
         if (select.dataset.allowAdd === 'true') {
@@ -210,45 +220,68 @@ class Select {
 
     collectRichOptions(select) {
         const result = [];
-        for (const opt of select.querySelectorAll('option')) {
-            if (opt.value === '') continue;
+
+        const parseOption = (opt, groupLabel) => {
+            if (opt.value === '') return;
 
             const dataAttr = opt.getAttribute('data-data');
-            if (dataAttr) {
-                try {
-                    const data = JSON.parse(dataAttr);
-                    const option = {
-                        value: opt.value,
-                        label: data.text || opt.textContent.trim(),
-                    };
-                    if (data.optionHtml) {
-                        option.html = data.optionHtml;
-                    }
-                    if (data.icon) {
-                        option.icon = data.icon;
-                    }
-                    if (data.image || data.avatar) {
-                        option.image = data.image || data.avatar;
-                    }
-                    if (data.description || data.email) {
-                        option.description = data.description || data.email;
-                    }
-                    option.data = data;
-                    result.push(option);
-                } catch (e) {
-                    result.push({
-                        value: opt.value,
-                        label: opt.textContent.trim(),
-                    });
+            const dataHtml = opt.getAttribute('data-html');
+
+            if (dataAttr || dataHtml) {
+                let data = {};
+                if (dataAttr) {
+                    try { data = JSON.parse(dataAttr); } catch (e) { /* skip */ }
                 }
+
+                const option = {
+                    value: opt.value,
+                    label: data.text || opt.textContent.trim(),
+                    disabled: opt.disabled,
+                };
+
+                // data-html takes priority, then data-data.optionHtml
+                const html = dataHtml || data.optionHtml;
+                if (html) {
+                    option.html = html;
+                }
+                if (data.icon) {
+                    option.icon = data.icon;
+                }
+                if (data.image || data.avatar) {
+                    option.image = data.image || data.avatar;
+                }
+                if (data.description || data.email) {
+                    option.description = data.description || data.email;
+                }
+                if (groupLabel) {
+                    option.group = groupLabel;
+                }
+                option.data = data;
+                result.push(option);
             } else {
-                result.push({
+                const option = {
                     value: opt.value,
                     label: opt.textContent.trim(),
                     disabled: opt.disabled,
-                });
+                };
+                if (groupLabel) {
+                    option.group = groupLabel;
+                }
+                result.push(option);
+            }
+        };
+
+        for (const child of select.children) {
+            if (child.tagName === 'OPTGROUP') {
+                const groupLabel = child.getAttribute('label') || '';
+                for (const opt of child.querySelectorAll('option')) {
+                    parseOption(opt, groupLabel);
+                }
+            } else if (child.tagName === 'OPTION') {
+                parseOption(child, null);
             }
         }
+
         return result;
     }
 

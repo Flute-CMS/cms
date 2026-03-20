@@ -21,7 +21,7 @@ class AdminServiceProvider extends AbstractServiceProvider
      */
     public function boot(\DI\Container $container): void
     {
-        if (!is_installed() || !is_admin_path() || (is_admin_path() && !user()->can('admin'))) {
+        if (!is_installed() || !is_admin_path() || is_admin_path() && !user()->can('admin')) {
             return;
         }
 

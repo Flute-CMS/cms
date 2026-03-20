@@ -142,7 +142,7 @@ class TwoFactorComponent extends FluteComponent
                 message: __('auth.two_factor.confirm_disable'),
                 type: 'warning',
                 confirmText: __('auth.two_factor.disable'),
-                cancelText: __('def.cancel')
+                cancelText: __('def.cancel'),
             );
 
             return;

@@ -65,8 +65,7 @@ class DatabaseService
      */
     public function getPrimaryConnection(string|array $mods = []): array
     {
-        $databaseConnection = DatabaseConnection::query()
-            ->with('server');
+        $databaseConnection = DatabaseConnection::query()->with('server');
 
         if (is_array($mods)) {
             $databaseConnection->where('mod', 'IN', new Parameter($mods));
@@ -77,11 +76,11 @@ class DatabaseService
         $databaseConnection = $databaseConnection->fetchOne();
 
         if (!$databaseConnection) {
-            throw new Exception("No DatabaseConnection entries found for the specified mods.");
+            throw new Exception('No DatabaseConnection entries found for the specified mods.');
         }
 
         if (!$databaseConnection->server) {
-            throw new Exception("No server associated with the primary DatabaseConnection.");
+            throw new Exception('No server associated with the primary DatabaseConnection.');
         }
 
         return [

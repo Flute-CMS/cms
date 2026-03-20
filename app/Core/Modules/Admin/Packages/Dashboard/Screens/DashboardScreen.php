@@ -73,7 +73,10 @@ class DashboardScreen extends Screen
         $layouts = [];
 
         $basePathResolved = realpath(BASE_PATH) ?: rtrim(BASE_PATH, DIRECTORY_SEPARATOR);
-        $modulesFullPath = rtrim($basePathResolved . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Modules', DIRECTORY_SEPARATOR);
+        $modulesFullPath = rtrim(
+            $basePathResolved . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Modules',
+            DIRECTORY_SEPARATOR,
+        );
 
         if (user()->can('admin.boss')) {
             /** @var IoncubeService $ioncube */

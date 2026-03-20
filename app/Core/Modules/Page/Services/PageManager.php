@@ -67,7 +67,7 @@ class PageManager
         FluteRequest $request,
         UserService $userService,
         LoggerInterface $logger,
-        WidgetManager $widgetManager
+        WidgetManager $widgetManager,
     ) {
         $this->router = $router;
         $this->request = $request;
@@ -91,16 +91,18 @@ class PageManager
             $cacheKey = 'flute.page.route.' . md5($routePath);
 
             $pageId = is_performance()
-                ? cache()->callback($cacheKey, static function () use ($routePath) {
-                    $page = Page::findOne(['route' => $routePath]);
+                ? cache()->callback(
+                    $cacheKey,
+                    static function () use ($routePath) {
+                        $page = Page::findOne(['route' => $routePath]);
 
-                    return $page ? $page->id : null;
-                }, self::PAGE_CACHE_TIME)
+                        return $page ? $page->id : null;
+                    },
+                    self::PAGE_CACHE_TIME,
+                )
                 : null;
 
-            $this->currentPage = $pageId
-                ? Page::findByPK($pageId)
-                : Page::findOne(['route' => $routePath]);
+            $this->currentPage = $pageId ? Page::findByPK($pageId) : Page::findOne(['route' => $routePath]);
 
             if ($this->currentPage) {
                 $this->loadPermissions();
@@ -120,7 +122,7 @@ class PageManager
         }
 
         $widgets = $this->currentPage->getBlocks();
-        $content = "";
+        $content = '';
 
         foreach ($widgets as $widget) {
             try {
@@ -207,7 +209,9 @@ class PageManager
                             'settings' => $settings,
                             'gridstack' => json_decode($block->gridstack, true),
                             'content' => $widgetContent,
-                            'conditions' => $conditionsRaw ? (json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']) : ['auth' => 'all', 'device' => 'all'],
+                            'conditions' => $conditionsRaw
+                                ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
+                                : ['auth' => 'all', 'device' => 'all'],
                         ];
                     } catch (Exception $e) {
                         $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
@@ -247,7 +251,7 @@ class PageManager
                 ->render(json_decode($widgetDb->getSettings(), true));
             WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
-            return $content !== "" ? $content : null;
+            return $content !== '' ? $content : null;
         } catch (Throwable $e) {
             $this->logger->error('Widget render error: ' . $e->getMessage(), [
                 'widget_id' => $widgetId,
@@ -293,9 +297,7 @@ class PageManager
     public function getGlobalBlocks(): array
     {
         try {
-            return GlobalPageBlock::query()
-                ->orderBy('sortOrder', 'ASC')
-                ->fetchAll();
+            return GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll();
         } catch (Throwable $e) {
             $this->logger->error('Failed to load global blocks: ' . $e->getMessage());
 
@@ -321,7 +323,7 @@ class PageManager
                 WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
                 $excludedPathsRaw = $block->getExcludedPaths();
-                $excludedPaths = $excludedPathsRaw ? (json_decode($excludedPathsRaw, true) ?? []) : [];
+                $excludedPaths = $excludedPathsRaw ? json_decode($excludedPathsRaw, true) ?? [] : [];
 
                 $conditionsRaw = $block->getConditions();
 
@@ -333,10 +335,12 @@ class PageManager
                     'content' => $widgetContent,
                     'isSystem' => $widgetName === 'Content',
                     'excludedPaths' => $excludedPaths,
-                    'conditions' => $conditionsRaw ? (json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']) : ['auth' => 'all', 'device' => 'all'],
+                    'conditions' => $conditionsRaw
+                        ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
+                        : ['auth' => 'all', 'device' => 'all'],
                 ];
             } catch (Exception $e) {
-                $this->logger->error("Failed to retrieve global layout widget: " . $e->getMessage());
+                $this->logger->error('Failed to retrieve global layout widget: ' . $e->getMessage());
             }
         }
 
@@ -353,7 +357,7 @@ class PageManager
         // Validate that Content widget exists in global layout
         $hasContent = false;
         foreach ($layout as $item) {
-            if (($item['widgetName'] ?? '') === 'Content') {
+            if (( $item['widgetName'] ?? '' ) === 'Content') {
                 $hasContent = true;
 
                 break;
@@ -370,7 +374,7 @@ class PageManager
             $by = $b['gridstack']['y'] ?? 0;
             $cmp = $ay <=> $by;
 
-            return $cmp !== 0 ? $cmp : (($a['gridstack']['x'] ?? 0) <=> ($b['gridstack']['x'] ?? 0));
+            return $cmp !== 0 ? $cmp : ( $a['gridstack']['x'] ?? 0 ) <=> ( $b['gridstack']['x'] ?? 0 );
         });
 
         // Delete all existing global blocks
@@ -408,7 +412,11 @@ class PageManager
             }
 
             $conditions = $item['conditions'] ?? null;
-            if ($conditions && is_array($conditions) && (($conditions['auth'] ?? 'all') !== 'all' || ($conditions['device'] ?? 'all') !== 'all')) {
+            if (
+                $conditions
+                && is_array($conditions)
+                && ( ( $conditions['auth'] ?? 'all' ) !== 'all' || ( $conditions['device'] ?? 'all' ) !== 'all' )
+            ) {
                 $block->setConditions(Json::encode($conditions));
             } else {
                 $block->setConditions(null);
@@ -470,7 +478,7 @@ class PageManager
             $by = $b['gridstack']['y'] ?? 0;
             $cmp = $ay <=> $by;
 
-            return $cmp !== 0 ? $cmp : (($a['gridstack']['x'] ?? 0) <=> ($b['gridstack']['x'] ?? 0));
+            return $cmp !== 0 ? $cmp : ( $a['gridstack']['x'] ?? 0 ) <=> ( $b['gridstack']['x'] ?? 0 );
         });
 
         foreach ($layout as $item) {
@@ -518,7 +526,11 @@ class PageManager
                 : '{}';
 
             $conditions = $item['conditions'] ?? null;
-            if ($conditions && is_array($conditions) && (($conditions['auth'] ?? 'all') !== 'all' || ($conditions['device'] ?? 'all') !== 'all')) {
+            if (
+                $conditions
+                && is_array($conditions)
+                && ( ( $conditions['auth'] ?? 'all' ) !== 'all' || ( $conditions['device'] ?? 'all' ) !== 'all' )
+            ) {
                 $block->setConditions(Json::encode($conditions));
             } else {
                 $block->setConditions(null);
@@ -721,18 +733,16 @@ class PageManager
             }
         }
 
-        $localContent = !empty($localBlocks)
-            ? $this->renderBlocksAsGrid($localBlocks, false)
-            : '';
+        $localContent = !empty($localBlocks) ? $this->renderBlocksAsGrid($localBlocks, false) : '';
 
         $currentPath = $this->request->getPathInfo();
 
         usort($globalBlocks, static function ($a, $b) {
             $aGs = json_decode($a->gridstack, true) ?? [];
             $bGs = json_decode($b->gridstack, true) ?? [];
-            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
+            $cmp = ( $aGs['y'] ?? 0 ) <=> ( $bGs['y'] ?? 0 );
 
-            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+            return $cmp !== 0 ? $cmp : ( $aGs['x'] ?? 0 ) <=> ( $bGs['x'] ?? 0 );
         });
 
         // Filter out blocks hidden by conditions
@@ -741,7 +751,7 @@ class PageManager
                 return false;
             }
 
-            return !($block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block));
+            return !( $block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block) );
         });
 
         // Recompact to eliminate gaps from filtered blocks
@@ -797,7 +807,10 @@ class PageManager
         $content = '';
 
         // Filter out blocks hidden by conditions
-        $blocks = array_filter($blocks, fn ($block) => $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block));
+        $blocks = array_filter(
+            $blocks,
+            fn($block) => $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block),
+        );
 
         // Recompact to eliminate gaps
         $blocks = $this->recompactBlocks(array_values($blocks));
@@ -805,9 +818,7 @@ class PageManager
         foreach ($blocks as $block) {
             $style = $this->getBlockGridStyle($block);
 
-            $widgetContent = $isGlobal
-                ? $this->safeRenderGlobalBlock($block)
-                : $this->safeRenderBlock($block);
+            $widgetContent = $isGlobal ? $this->safeRenderGlobalBlock($block) : $this->safeRenderBlock($block);
 
             if ($widgetContent !== null && $widgetContent !== '') {
                 $prefix = $isGlobal ? 'global-' : '';
@@ -832,11 +843,7 @@ class PageManager
     {
         $gridstack = json_decode($block->gridstack, true) ?? [];
 
-        return sprintf(
-            'grid-column: %d / span %d;',
-            ($gridstack['x'] ?? 0) + 1,
-            ($gridstack['w'] ?? 1)
-        );
+        return sprintf('grid-column: %d / span %d;', ( $gridstack['x'] ?? 0 ) + 1, $gridstack['w'] ?? 1);
     }
 
     /**
@@ -883,37 +890,41 @@ class PageManager
         }
 
         $pageRoutes = is_performance()
-            ? cache()->callback(self::PAGES_CACHE_KEY, static function () {
-                $pages = Page::findAll();
+            ? cache()->callback(
+                self::PAGES_CACHE_KEY,
+                static function () {
+                    $pages = Page::findAll();
 
-                return array_map(static function ($page) {
-                    $perms = $page->permissions ?? [];
+                    return array_map(static function ($page) {
+                        $perms = $page->permissions ?? [];
 
-                    if (is_object($perms) && method_exists($perms, 'toArray')) {
-                        $perms = $perms->toArray();
-                    } elseif (!is_array($perms)) {
-                        $perms = [];
-                    }
-
-                    $permissions = array_map(static function ($p) {
-                        if (is_object($p)) {
-                            return $p->permission?->name ?? $p->name ?? null;
+                        if (is_object($perms) && method_exists($perms, 'toArray')) {
+                            $perms = $perms->toArray();
+                        } elseif (!is_array($perms)) {
+                            $perms = [];
                         }
 
-                        if (is_array($p)) {
-                            return $p['permission']['name'] ?? $p['name'] ?? null;
-                        }
+                        $permissions = array_map(static function ($p) {
+                            if (is_object($p)) {
+                                return $p->permission?->name ?? $p->name ?? null;
+                            }
 
-                        return null;
-                    }, $perms);
+                            if (is_array($p)) {
+                                return $p['permission']['name'] ?? $p['name'] ?? null;
+                            }
 
-                    return [
-                        'id' => $page->id,
-                        'route' => $page->route,
-                        'permissions' => array_filter($permissions),
-                    ];
-                }, $pages);
-            }, self::PAGES_CACHE_TIME)
+                            return null;
+                        }, $perms);
+
+                        return [
+                            'id' => $page->id,
+                            'route' => $page->route,
+                            'permissions' => array_filter($permissions),
+                        ];
+                    }, $pages);
+                },
+                self::PAGES_CACHE_TIME,
+            )
             : null;
 
         if ($pageRoutes !== null) {
@@ -938,9 +949,9 @@ class PageManager
                 continue;
             }
 
-            $this->router
-                ->get($route, [PageController::class, 'index'])
-                ->middleware('page.permissions:' . implode(',', $permissions));
+            $this->router->get($route, [PageController::class, 'index'])->middleware(
+                'page.permissions:' . implode(',', $permissions),
+            );
         }
     }
 
@@ -1037,9 +1048,9 @@ class PageManager
 
         $permissions = array_filter($page->getPermissions() ?? []);
 
-        $this->router
-            ->get($page->route, [PageController::class, 'index'])
-            ->middleware('page.permissions:' . implode(',', $permissions));
+        $this->router->get($page->route, [PageController::class, 'index'])->middleware(
+            'page.permissions:' . implode(',', $permissions),
+        );
     }
 
     /**
@@ -1106,7 +1117,7 @@ class PageManager
             $hasMatchingRole = false;
 
             foreach ($user->getRoles() as $userRole) {
-                $roleId = is_object($userRole) ? ($userRole->role->id ?? $userRole->id ?? null) : $userRole;
+                $roleId = is_object($userRole) ? $userRole->role->id ?? $userRole->id ?? null : $userRole;
                 if ($roleId !== null && in_array((int) $roleId, $rolesCondition, true)) {
                     $hasMatchingRole = true;
 
@@ -1132,7 +1143,7 @@ class PageManager
             if ($deviceCondition === 'tablet' && !$isTablet) {
                 return true;
             }
-            if ($deviceCondition === 'desktop' && ($isMobile || $isTablet)) {
+            if ($deviceCondition === 'desktop' && ( $isMobile || $isTablet )) {
                 return true;
             }
         }
@@ -1157,9 +1168,9 @@ class PageManager
         usort($blocks, static function ($a, $b) {
             $aGs = json_decode($a->gridstack, true) ?? [];
             $bGs = json_decode($b->gridstack, true) ?? [];
-            $cmp = ($aGs['y'] ?? 0) <=> ($bGs['y'] ?? 0);
+            $cmp = ( $aGs['y'] ?? 0 ) <=> ( $bGs['y'] ?? 0 );
 
-            return $cmp !== 0 ? $cmp : (($aGs['x'] ?? 0) <=> ($bGs['x'] ?? 0));
+            return $cmp !== 0 ? $cmp : ( $aGs['x'] ?? 0 ) <=> ( $bGs['x'] ?? 0 );
         });
 
         // Simple row-based compaction: track the next available Y per column
@@ -1236,11 +1247,7 @@ class PageManager
         // *  → matches any characters except /
         // ?  → matches exactly one character (not /)
         $quoted = preg_quote($pattern, '#');
-        $regex = str_replace(
-            ['\*\*', '\*', '\?'],
-            ['.*', '[^/]*', '[^/]'],
-            $quoted
-        );
+        $regex = str_replace(['\*\*', '\*', '\?'], ['.*', '[^/]*', '[^/]'], $quoted);
 
         return (bool) preg_match('#^' . $regex . '$#', $path);
     }

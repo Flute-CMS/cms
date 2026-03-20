@@ -59,8 +59,11 @@ class UpdateService
     /**
      * UpdateService constructor.
      */
-    public function __construct(ModuleManager $moduleManager, ThemeManager $themeManager, ?Parser $markdownParser = null)
-    {
+    public function __construct(
+        ModuleManager $moduleManager,
+        ThemeManager $themeManager,
+        ?Parser $markdownParser = null,
+    ) {
         $this->moduleManager = $moduleManager;
         $this->themeManager = $themeManager;
         $this->markdownParser = $markdownParser ?? new Parser();
@@ -93,7 +96,7 @@ class UpdateService
      */
     public function getAvailableUpdates(bool $forceRefresh = false): array
     {
-        $cacheKey = self::CACHE_KEY . '_' . $this->channel . ($this->useMockData ? '_mock' : '');
+        $cacheKey = self::CACHE_KEY . '_' . $this->channel . ( $this->useMockData ? '_mock' : '' );
 
         if ($forceRefresh) {
             cache()->delete($cacheKey);
@@ -101,7 +104,7 @@ class UpdateService
             return $this->fetchUpdatesFromApi();
         }
 
-        return cache()->callback($cacheKey, fn () => $this->fetchUpdatesFromApi(), self::CACHE_DURATION);
+        return cache()->callback($cacheKey, fn() => $this->fetchUpdatesFromApi(), self::CACHE_DURATION);
     }
 
     /**
@@ -185,7 +188,7 @@ class UpdateService
             }
 
             if (empty($downloadUrl)) {
-                logs()->error("Download URL not found for {$type} " . ($identifier ?? ''));
+                logs()->error("Download URL not found for {$type} " . ( $identifier ?? '' ));
 
                 return null;
             }
@@ -195,13 +198,15 @@ class UpdateService
                 mkdir($tempDir, 0o755, true);
             }
 
-            $fileName = $tempDir . '/' . ($identifier ?? 'cms') . '-' . ($version ?? $latestVersion) . '.zip';
+            $fileName = $tempDir . '/' . ( $identifier ?? 'cms' ) . '-' . ( $version ?? $latestVersion ) . '.zip';
 
             $client = new Client(['timeout' => 120, 'verify' => true]);
 
             $baseUrl = '';
             if (!preg_match('/^https?:\/\//', $downloadUrl)) {
-                $baseUrl = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL);
+                $baseUrl = str_contains((string) config('app.url'), 'localhost')
+                    ? self::LOCAL_API_UPDATE_URL
+                    : self::UPDATE_API_URL;
             }
 
             // parse ?token safely
@@ -279,7 +284,12 @@ class UpdateService
                 return [];
             }
 
-            $url = (str_contains((string) config('app.url'), 'localhost') ? self::LOCAL_API_UPDATE_URL : self::UPDATE_API_URL) . '/updates';
+            $url =
+                (
+                    str_contains((string) config('app.url'), 'localhost')
+                        ? self::LOCAL_API_UPDATE_URL
+                        : self::UPDATE_API_URL
+                ) . '/updates';
 
             $response = $client->request('GET', $url, [
                 'headers' => [
@@ -299,7 +309,6 @@ class UpdateService
                     'nocache' => time(),
                 ],
             ]);
-
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody(), true);
@@ -401,8 +410,11 @@ class UpdateService
             if (!empty($data['cms']['previous_versions'])) {
                 foreach ($data['cms']['previous_versions'] as $key => $version) {
                     if (!empty($version['changelog'])) {
-                        $data['cms']['previous_versions'][$key]['changelog_html'] =
-                            $this->markdownParser->parse($version['changelog'], false, false);
+                        $data['cms']['previous_versions'][$key]['changelog_html'] = $this->markdownParser->parse(
+                            $version['changelog'],
+                            false,
+                            false,
+                        );
                     }
                 }
             }
@@ -411,15 +423,21 @@ class UpdateService
         if (!empty($data['modules']) && is_array($data['modules'])) {
             foreach ($data['modules'] as $moduleId => $module) {
                 if (!empty($module['changelog'])) {
-                    $data['modules'][$moduleId]['changelog_html'] =
-                        $this->markdownParser->parse($module['changelog'], false, false);
+                    $data['modules'][$moduleId]['changelog_html'] = $this->markdownParser->parse(
+                        $module['changelog'],
+                        false,
+                        false,
+                    );
                 }
 
                 if (!empty($module['previous_versions'])) {
                     foreach ($module['previous_versions'] as $vKey => $version) {
                         if (!empty($version['changelog'])) {
-                            $data['modules'][$moduleId]['previous_versions'][$vKey]['changelog_html'] =
-                                $this->markdownParser->parse($version['changelog'], false, false);
+                            $data['modules'][$moduleId]['previous_versions'][$vKey]['changelog_html'] = $this->markdownParser->parse(
+                                $version['changelog'],
+                                false,
+                                false,
+                            );
                         }
                     }
                 }
@@ -429,15 +447,21 @@ class UpdateService
         if (!empty($data['themes']) && is_array($data['themes'])) {
             foreach ($data['themes'] as $themeId => $theme) {
                 if (!empty($theme['changelog'])) {
-                    $data['themes'][$themeId]['changelog_html'] =
-                        $this->markdownParser->parse($theme['changelog'], false, false);
+                    $data['themes'][$themeId]['changelog_html'] = $this->markdownParser->parse(
+                        $theme['changelog'],
+                        false,
+                        false,
+                    );
                 }
 
                 if (!empty($theme['previous_versions'])) {
                     foreach ($theme['previous_versions'] as $vKey => $version) {
                         if (!empty($version['changelog'])) {
-                            $data['themes'][$themeId]['previous_versions'][$vKey]['changelog_html'] =
-                                $this->markdownParser->parse($version['changelog'], false, false);
+                            $data['themes'][$themeId]['previous_versions'][$vKey]['changelog_html'] = $this->markdownParser->parse(
+                                $version['changelog'],
+                                false,
+                                false,
+                            );
                         }
                     }
                 }

@@ -34,7 +34,8 @@ class Parser
         $breakPlaceholder = "\x00MD_BREAK_" . bin2hex(random_bytes(4)) . "\x00";
         $markdown = preg_replace('/\n{3,}/', "\n" . $breakPlaceholder . "\n", $markdown);
 
-        $this->converter->setSafeMode($safe)
+        $this->converter
+            ->setSafeMode($safe)
             ->setMarkupEscaped($setMarkupEscaped)
             ->setBreaksEnabled(false);
 
@@ -53,7 +54,10 @@ class Parser
      */
     public function isHtml(string $content): bool
     {
-        return (bool) preg_match('/<(?:p|div|h[1-6]|ul|ol|li|table|br|img|a|strong|em|blockquote|pre|hr)\b/i', $content);
+        return (bool) preg_match(
+            '/<(?:p|div|h[1-6]|ul|ol|li|table|br|img|a|strong|em|blockquote|pre|hr)\b/i',
+            $content,
+        );
     }
 
     /**
@@ -87,15 +91,11 @@ class Parser
         // Applying htmlspecialchars here would cause double-encoding (&amp;lt; instead of &lt;).
         $content = preg_replace_callback(
             '/\{\{\s*__\([\'\"]([^\'\"]+)[\'\"]\)\s*\}\}/',
-            static fn ($m) => __($m[1]),
-            $content
+            static fn($m) => __($m[1]),
+            $content,
         );
 
-        return preg_replace_callback(
-            '/\[\[trans:([a-zA-Z0-9_.-]+)]]/',
-            static fn ($m) => __($m[1]),
-            $content
-        );
+        return preg_replace_callback('/\[\[trans:([a-zA-Z0-9_.-]+)]]/', static fn($m) => __($m[1]), $content);
     }
 
     /**
@@ -105,11 +105,38 @@ class Parser
     protected function sanitizeHtml(string $html): string
     {
         $allowedTags = [
-            'p', 'br', 'strong', 'em', 'u', 's', 'a', 'img',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-            'table', 'thead', 'tbody', 'tr', 'th', 'td',
-            'hr', 'div', 'span', 'sub', 'sup', 'mark',
+            'p',
+            'br',
+            'strong',
+            'em',
+            'u',
+            's',
+            'a',
+            'img',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'ul',
+            'ol',
+            'li',
+            'blockquote',
+            'pre',
+            'code',
+            'table',
+            'thead',
+            'tbody',
+            'tr',
+            'th',
+            'td',
+            'hr',
+            'div',
+            'span',
+            'sub',
+            'sup',
+            'mark',
         ];
 
         $allowedAttributes = [
@@ -143,7 +170,7 @@ class Parser
         $previousLibxmlState = libxml_use_internal_errors(true);
         $dom->loadHTML(
             '<?xml encoding="UTF-8"><div id="__sanitize_root__">' . $html . '</div>',
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD,
         );
         libxml_clear_errors();
         libxml_use_internal_errors($previousLibxmlState);
@@ -174,8 +201,12 @@ class Parser
     /**
      * Recursively sanitize a DOM node.
      */
-    private function sanitizeNode(DOMNode $node, array $allowedTags, array $allowedAttributes, array $allowedSchemes): void
-    {
+    private function sanitizeNode(
+        DOMNode $node,
+        array $allowedTags,
+        array $allowedAttributes,
+        array $allowedSchemes,
+    ): void {
         $nodesToRemove = [];
 
         foreach ($node->childNodes as $child) {
@@ -183,7 +214,11 @@ class Parser
                 $tagName = strtolower($child->tagName);
 
                 // Remove disallowed tags but keep their text content
-                if (!in_array($tagName, $allowedTags, true) && $tagName !== 'div' && $child->getAttribute('id') !== '__sanitize_root__') {
+                if (
+                    !in_array($tagName, $allowedTags, true)
+                    && $tagName !== 'div'
+                    && $child->getAttribute('id') !== '__sanitize_root__'
+                ) {
                     $nodesToRemove[] = $child;
 
                     continue;
@@ -266,8 +301,12 @@ class Parser
                             }
 
                             // Allow data:image URIs for img src (excluding svg+xml which can contain JS)
-                            if (!$isSafe && $attrName === 'src' && $tagName === 'img'
-                                && preg_match('/^data:image\/(png|jpe?g|gif|webp);base64,/i', $cleanValue)) {
+                            if (
+                                !$isSafe
+                                && $attrName === 'src'
+                                && $tagName === 'img'
+                                && preg_match('/^data:image\/(png|jpe?g|gif|webp);base64,/i', $cleanValue)
+                            ) {
                                 $isSafe = true;
                             }
 

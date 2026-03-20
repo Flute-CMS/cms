@@ -14,16 +14,15 @@ class CacheWarmupCommand extends Command
 
     protected static $defaultDescription = 'Warms up caches (modules, routes, ORM schema) for CRON mode';
 
-    public function __construct(private CacheWarmupService $warmupService)
-    {
+    public function __construct(
+        private CacheWarmupService $warmupService,
+    ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this
-            ->setName(self::$defaultName)
-            ->setDescription(self::$defaultDescription);
+        $this->setName(self::$defaultName)->setDescription(self::$defaultDescription);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

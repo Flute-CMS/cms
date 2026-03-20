@@ -80,7 +80,7 @@ class HtmxResponse extends \Symfony\Component\HttpFoundation\Response
     private function _setTriggers(string $key, string|array $value): static
     {
         if ($value === '' || $value === []) {
-            throw new InvalidArgumentException("Trigger value MUST be an non-empty string or array");
+            throw new InvalidArgumentException('Trigger value MUST be an non-empty string or array');
         }
         if (is_array($value)) {
             $value = json_encode($value);

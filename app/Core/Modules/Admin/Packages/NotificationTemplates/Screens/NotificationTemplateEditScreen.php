@@ -50,18 +50,16 @@ class NotificationTemplateEditScreen extends Screen
             $this->description = __('admin-notifications.title.edit_description');
         }
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-notifications.title.list'), url('/admin/notification-templates'))
-            ->add($this->template ? $this->template->key : __('admin-notifications.title.edit'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+            __('admin-notifications.title.list'),
+            url('/admin/notification-templates'),
+        )->add($this->template ? $this->template->key : __('admin-notifications.title.edit'));
     }
 
     public function commandBar(): array
     {
         $buttons = [
-            Button::make(__('def.cancel'))
-                ->type(Color::OUTLINE_PRIMARY)
-                ->redirect('/admin/notification-templates'),
+            Button::make(__('def.cancel'))->type(Color::OUTLINE_PRIMARY)->redirect('/admin/notification-templates'),
         ];
 
         if ($this->template?->is_customized) {
@@ -99,9 +97,7 @@ class NotificationTemplateEditScreen extends Screen
             ->badge(count($this->template->getChannels() ?: []));
 
         return [
-            LayoutFactory::tabs($tabs)
-                ->slug('notification-edit')
-                ->pills(),
+            LayoutFactory::tabs($tabs)->slug('notification-edit')->pills(),
         ];
     }
 
@@ -138,7 +134,7 @@ class NotificationTemplateEditScreen extends Screen
         $channels = [];
         foreach ($this->channelOptions as $key => $channel) {
             $channelKey = 'channels_' . $key;
-            if (isset($data[$channelKey]) && ($data[$channelKey] === 'true' || $data[$channelKey] === '1')) {
+            if (isset($data[$channelKey]) && ( $data[$channelKey] === 'true' || $data[$channelKey] === '1' )) {
                 $channels[] = $key;
             }
         }
@@ -155,7 +151,7 @@ class NotificationTemplateEditScreen extends Screen
                 'icon' => $data['icon'] ?: null,
                 'components' => $components,
                 'channels' => $channels,
-                'is_enabled' => ($data['is_enabled'] ?? '0') === '1',
+                'is_enabled' => ( $data['is_enabled'] ?? '0' ) === '1',
             ]);
 
             $this->flashMessage(__('admin-notifications.messages.saved'));
@@ -214,16 +210,14 @@ class NotificationTemplateEditScreen extends Screen
             // Template info bar
             LayoutFactory::block([
                 LayoutFactory::split([
-                    LayoutFactory::field(
-                        Input::make('key')
-                            ->value($this->template->key)
-                            ->readonly()
-                    )->label(__('admin-notifications.fields.key')),
+                    LayoutFactory::field(Input::make('key')->value($this->template->key)->readonly())->label(__(
+                        'admin-notifications.fields.key',
+                    )),
 
                     LayoutFactory::field(
                         Input::make('module')
                             ->value($this->template->module ?? 'core')
-                            ->readonly()
+                            ->readonly(),
                     )->label(__('admin-notifications.fields.module')),
 
                     LayoutFactory::field(
@@ -233,7 +227,7 @@ class NotificationTemplateEditScreen extends Screen
                                 '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                             ])
                             ->value($this->template->is_enabled ? '1' : '0')
-                            ->color('accent')
+                            ->color('accent'),
                     )->label(__('admin-notifications.fields.enabled')),
                 ]),
             ])->addClass('mb-3'),
@@ -247,16 +241,20 @@ class NotificationTemplateEditScreen extends Screen
                             Input::make('title')
                                 ->value($this->template->title)
                                 ->placeholder(__('admin-notifications.placeholders.title'))
-                                ->required()
-                        )->label(__('admin-notifications.fields.title'))->required(),
+                                ->required(),
+                        )
+                            ->label(__('admin-notifications.fields.title'))
+                            ->required(),
 
                         LayoutFactory::field(
                             TextArea::make('content')
                                 ->value($this->template->content)
                                 ->placeholder(__('admin-notifications.placeholders.content'))
                                 ->rows(3)
-                                ->required()
-                        )->label(__('admin-notifications.fields.content'))->required(),
+                                ->required(),
+                        )
+                            ->label(__('admin-notifications.fields.content'))
+                            ->required(),
 
                         LayoutFactory::view('admin-notifications::partials.variables-list', [
                             'variables' => $variables,
@@ -266,7 +264,7 @@ class NotificationTemplateEditScreen extends Screen
                             Input::make('icon')
                                 ->type('icon')
                                 ->value($this->template->icon ?? '')
-                                ->placeholder('ph.bold.bell-bold')
+                                ->placeholder('ph.bold.bell-bold'),
                         )->label(__('admin-notifications.fields.icon')),
                     ])->title(__('admin-notifications.blocks.content')),
 
@@ -275,7 +273,8 @@ class NotificationTemplateEditScreen extends Screen
                         LayoutFactory::view('admin-notifications::partials.buttons-editor', [
                             'buttons' => $buttons,
                         ]),
-                    ])->title(__('admin-notifications.blocks.buttons'))
+                    ])
+                        ->title(__('admin-notifications.blocks.buttons'))
                         ->description(__('admin-notifications.blocks.buttons_description'))
                         ->addClass('mt-3'),
                 ]),
@@ -302,9 +301,9 @@ class NotificationTemplateEditScreen extends Screen
                 'channels' => $this->channelOptions,
                 'enabledChannels' => $enabledChannels,
             ]),
-        ])
-            ->title(__('admin-notifications.blocks.channels'))
-            ->description(__('admin-notifications.blocks.channels_description'));
+        ])->title(__('admin-notifications.blocks.channels'))->description(__(
+            'admin-notifications.blocks.channels_description',
+        ));
     }
 
     protected function extractButtons(?array $components): array
@@ -314,7 +313,7 @@ class NotificationTemplateEditScreen extends Screen
         }
 
         foreach ($components as $component) {
-            if (($component['type'] ?? '') === 'actions' && isset($component['buttons'])) {
+            if (( $component['type'] ?? '' ) === 'actions' && isset($component['buttons'])) {
                 return $component['buttons'];
             }
         }

@@ -44,8 +44,11 @@ class UserNameRenderer
      *
      * The callback receives (User $user) and must return an HTML string (or empty string to skip).
      */
-    public function addGlobalDecorator(callable $callback, string $position = self::POSITION_AFTER, int $priority = self::PRIORITY_NORMAL): self
-    {
+    public function addGlobalDecorator(
+        callable $callback,
+        string $position = self::POSITION_AFTER,
+        int $priority = self::PRIORITY_NORMAL,
+    ): self {
         $this->globalDecorators[] = [
             'callback' => $callback,
             'position' => $position,
@@ -60,8 +63,12 @@ class UserNameRenderer
      *
      * The callback receives (User $user) and must return an HTML string (or empty string to skip).
      */
-    public function addUserDecorator(int $userId, callable $callback, string $position = self::POSITION_AFTER, int $priority = self::PRIORITY_NORMAL): self
-    {
+    public function addUserDecorator(
+        int $userId,
+        callable $callback,
+        string $position = self::POSITION_AFTER,
+        int $priority = self::PRIORITY_NORMAL,
+    ): self {
         $this->userDecorators[$userId][] = [
             'callback' => $callback,
             'position' => $position,
@@ -114,7 +121,7 @@ class UserNameRenderer
             $nameHtml = "<a href=\"{$url}\" class=\"user-name__link\"{$colorStyle}>{$escapedName}</a>";
         }
 
-        $wrapperClass = 'user-name' . ($class ? ' ' . e($class) : '');
+        $wrapperClass = 'user-name' . ( $class ? ' ' . e($class) : '' );
 
         return "<span class=\"{$wrapperClass}\">{$beforeHtml}{$nameHtml}{$afterHtml}</span>";
     }
@@ -140,10 +147,10 @@ class UserNameRenderer
     protected function transformName(string $name, User $user): string
     {
         $transformers = $this->nameTransformers;
-        usort($transformers, static fn ($a, $b) => $b['priority'] <=> $a['priority']);
+        usort($transformers, static fn($a, $b) => $b['priority'] <=> $a['priority']);
 
         foreach ($transformers as $transformer) {
-            $name = ($transformer['callback'])($name, $user);
+            $name = $transformer['callback']($name, $user);
         }
 
         return $name;
@@ -157,7 +164,7 @@ class UserNameRenderer
             $decorators = array_merge($decorators, $this->userDecorators[$user->id]);
         }
 
-        usort($decorators, static fn ($a, $b) => $b['priority'] <=> $a['priority']);
+        usort($decorators, static fn($a, $b) => $b['priority'] <=> $a['priority']);
 
         return $decorators;
     }
@@ -172,7 +179,7 @@ class UserNameRenderer
             }
 
             try {
-                $result = ($decorator['callback'])($user);
+                $result = $decorator['callback']($user);
                 if ($result !== null && $result !== '') {
                     $html .= $result;
                 }

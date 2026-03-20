@@ -200,30 +200,58 @@ class RichText extends Field
         switch ($preset) {
             case 'minimal':
                 $this->toolbar = [
-                    'bold', 'italic', '|',
-                    'unordered-list', 'ordered-list', '|',
-                    'link', '|', 'preview',
+                    'bold',
+                    'italic',
+                    '|',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    '|',
+                    'preview',
                 ];
 
                 break;
             case 'basic':
                 $this->toolbar = [
-                    'bold', 'italic', 'heading', '|',
-                    'quote', 'unordered-list', 'ordered-list', '|',
-                    'link', 'image', '|',
-                    'preview', 'guide',
+                    'bold',
+                    'italic',
+                    'heading',
+                    '|',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    'image',
+                    '|',
+                    'preview',
+                    'guide',
                 ];
 
                 break;
             case 'full':
                 $this->toolbar = [
-                    'bold', 'italic', 'underline', 'strikethrough', 'heading',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    'heading',
                     '|',
-                    'code', 'quote', 'unordered-list', 'ordered-list', 'horizontal-rule',
+                    'code',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    'horizontal-rule',
                     '|',
-                    'text-align', 'text-color', 'highlight',
+                    'text-align',
+                    'text-color',
+                    'highlight',
                     '|',
-                    'link', 'image', 'table', 'youtube',
+                    'link',
+                    'image',
+                    'table',
+                    'youtube',
                     '|',
                     'fullscreen',
                 ];
@@ -232,10 +260,20 @@ class RichText extends Field
             case 'standard':
             default:
                 $this->toolbar = [
-                    'bold', 'italic', 'heading', '|',
-                    'quote', 'unordered-list', 'ordered-list', '|',
-                    'link', 'image', '|',
-                    'preview', 'side-by-side', 'fullscreen',
+                    'bold',
+                    'italic',
+                    'heading',
+                    '|',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    'image',
+                    '|',
+                    'preview',
+                    'side-by-side',
+                    'fullscreen',
                     '|',
                     'guide',
                 ];

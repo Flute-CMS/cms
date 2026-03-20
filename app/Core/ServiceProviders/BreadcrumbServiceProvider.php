@@ -11,7 +11,7 @@ class BreadcrumbServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             BreadcrumbService::class => \DI\create(),
-            "breadcrumb" => \DI\get(BreadcrumbService::class),
+            'breadcrumb' => \DI\get(BreadcrumbService::class),
         ]);
     }
 

@@ -52,10 +52,10 @@ class PageEditScreen extends Screen
             $this->description = __('admin-pages.title.description');
         }
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-pages.title.list'), url('/admin/pages'))
-            ->add($this->pageId ? $this->page->title : __('admin-pages.title.create'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+            __('admin-pages.title.list'),
+            url('/admin/pages'),
+        )->add($this->pageId ? $this->page->title : __('admin-pages.title.create'));
     }
 
     /**
@@ -64,9 +64,7 @@ class PageEditScreen extends Screen
     public function commandBar(): array
     {
         $buttons = [
-            Button::make(__('admin-pages.buttons.cancel'))
-                ->type(Color::OUTLINE_PRIMARY)
-                ->redirect('/admin/pages'),
+            Button::make(__('admin-pages.buttons.cancel'))->type(Color::OUTLINE_PRIMARY)->redirect('/admin/pages'),
         ];
 
         if (user()->can('admin.pages')) {
@@ -103,9 +101,7 @@ class PageEditScreen extends Screen
         }
 
         return [
-            LayoutFactory::tabs($tabs)
-                ->slug('page-edit')
-                ->pills(),
+            LayoutFactory::tabs($tabs)->slug('page-edit')->pills(),
         ];
     }
 
@@ -116,9 +112,7 @@ class PageEditScreen extends Screen
     {
         $fields = [
             LayoutFactory::field(
-                Input::make('widget')
-                    ->type('text')
-                    ->placeholder(__('admin-pages.blocks.fields.widget.placeholder'))
+                Input::make('widget')->type('text')->placeholder(__('admin-pages.blocks.fields.widget.placeholder')),
             )
                 ->label(__('admin-pages.blocks.fields.widget.label'))
                 ->small(__('admin-pages.blocks.fields.widget.help'))
@@ -128,7 +122,7 @@ class PageEditScreen extends Screen
                 TextArea::make('gridstack')
                     ->placeholder(__('admin-pages.blocks.fields.gridstack.placeholder'))
                     ->rows(4)
-                    ->value('{}')
+                    ->value('{}'),
             )
                 ->label(__('admin-pages.blocks.fields.gridstack.label'))
                 ->small(__('admin-pages.blocks.fields.gridstack.help')),
@@ -137,7 +131,7 @@ class PageEditScreen extends Screen
                 TextArea::make('settings')
                     ->placeholder(__('admin-pages.blocks.fields.settings.placeholder'))
                     ->rows(6)
-                    ->value('{}')
+                    ->value('{}'),
             )
                 ->label(__('admin-pages.blocks.fields.settings.label'))
                 ->small(__('admin-pages.blocks.fields.settings.help')),
@@ -168,7 +162,7 @@ class PageEditScreen extends Screen
                 Input::make('widget')
                     ->type('text')
                     ->value($block->widget)
-                    ->placeholder(__('admin-pages.blocks.fields.widget.placeholder'))
+                    ->placeholder(__('admin-pages.blocks.fields.widget.placeholder')),
             )
                 ->label(__('admin-pages.blocks.fields.widget.label'))
                 ->small(__('admin-pages.blocks.fields.widget.help'))
@@ -178,7 +172,7 @@ class PageEditScreen extends Screen
                 TextArea::make('gridstack')
                     ->value($block->gridstack)
                     ->placeholder(__('admin-pages.blocks.fields.gridstack.placeholder'))
-                    ->rows(4)
+                    ->rows(4),
             )
                 ->label(__('admin-pages.blocks.fields.gridstack.label'))
                 ->small(__('admin-pages.blocks.fields.gridstack.help')),
@@ -187,7 +181,7 @@ class PageEditScreen extends Screen
                 TextArea::make('settings')
                     ->value($block->settings)
                     ->placeholder(__('admin-pages.blocks.fields.settings.placeholder'))
-                    ->rows(6)
+                    ->rows(6),
             )
                 ->label(__('admin-pages.blocks.fields.settings.label'))
                 ->small(__('admin-pages.blocks.fields.settings.help')),
@@ -221,7 +215,7 @@ class PageEditScreen extends Screen
 
         // Проверяем уникальность маршрута
         $existingPage = Page::findOne(['route' => $data['route']]);
-        if ($existingPage && (!$this->page || $existingPage->id !== $this->page->id)) {
+        if ($existingPage && ( !$this->page || $existingPage->id !== $this->page->id )) {
             $this->inputError('route', __('admin-pages.messages.route_exists'));
 
             return;
@@ -474,10 +468,12 @@ class PageEditScreen extends Screen
     {
         $canEditPage = user()->can('admin.pages');
 
-        return $this->pageId ? LayoutFactory::split([
-            $this->getMainLayout($canEditPage),
-            $this->getActionsLayout($canEditPage),
-        ])->ratio('70/30') : $this->getMainLayout($canEditPage);
+        return $this->pageId
+            ? LayoutFactory::split([
+                $this->getMainLayout($canEditPage),
+                $this->getActionsLayout($canEditPage),
+            ])->ratio('70/30')
+            : $this->getMainLayout($canEditPage);
     }
 
     private function getMainLayout(bool $canEditPage)
@@ -488,7 +484,7 @@ class PageEditScreen extends Screen
                     ->type('text')
                     ->value($this->page?->route ?? '')
                     ->disabled(!$canEditPage)
-                    ->placeholder(__('admin-pages.fields.route.placeholder'))
+                    ->placeholder(__('admin-pages.fields.route.placeholder')),
             )
                 ->label(__('admin-pages.fields.route.label'))
                 ->small(__('admin-pages.fields.route.help'))
@@ -499,7 +495,7 @@ class PageEditScreen extends Screen
                     ->type('text')
                     ->value($this->page?->title ?? '')
                     ->disabled(!$canEditPage)
-                    ->placeholder(__('admin-pages.fields.title.placeholder'))
+                    ->placeholder(__('admin-pages.fields.title.placeholder')),
             )
                 ->label(__('admin-pages.fields.title.label'))
                 ->small(__('admin-pages.fields.title.help'))
@@ -510,7 +506,7 @@ class PageEditScreen extends Screen
                     ->value($this->page?->description ?? '')
                     ->disabled(!$canEditPage)
                     ->placeholder(__('admin-pages.fields.description.placeholder'))
-                    ->rows(3)
+                    ->rows(3),
             )
                 ->label(__('admin-pages.fields.description.label'))
                 ->small(__('admin-pages.fields.description.help')),
@@ -521,7 +517,7 @@ class PageEditScreen extends Screen
                         ->type('text')
                         ->value($this->page?->keywords ?? '')
                         ->disabled(!$canEditPage)
-                        ->placeholder(__('admin-pages.fields.keywords.placeholder'))
+                        ->placeholder(__('admin-pages.fields.keywords.placeholder')),
                 )
                     ->label(__('admin-pages.fields.keywords.label'))
                     ->small(__('admin-pages.fields.keywords.help')),
@@ -531,7 +527,7 @@ class PageEditScreen extends Screen
                         ->type('text')
                         ->value($this->page?->robots ?? '')
                         ->disabled(!$canEditPage)
-                        ->placeholder(__('admin-pages.fields.robots.placeholder'))
+                        ->placeholder(__('admin-pages.fields.robots.placeholder')),
                 )
                     ->label(__('admin-pages.fields.robots.label'))
                     ->small(__('admin-pages.fields.robots.help')),
@@ -542,14 +538,13 @@ class PageEditScreen extends Screen
                     ->type('text')
                     ->value($this->page?->og_image ?? '')
                     ->disabled(!$canEditPage)
-                    ->placeholder(__('admin-pages.fields.og_image.placeholder'))
+                    ->placeholder(__('admin-pages.fields.og_image.placeholder')),
             )
                 ->label(__('admin-pages.fields.og_image.label'))
                 ->small(__('admin-pages.fields.og_image.help')),
         ];
 
-        return LayoutFactory::block($fields)
-            ->title(__('admin-pages.title.main_info'));
+        return LayoutFactory::block($fields)->title(__('admin-pages.title.main_info'));
     }
 
     private function getActionsLayout(bool $canEditPage)
@@ -575,7 +570,7 @@ class PageEditScreen extends Screen
     {
         return LayoutFactory::table('pageBlocks', [
             TD::make('widget', __('admin-pages.blocks.fields.widget.label'))
-                ->render(static fn (PageBlock $block) => $block->widget)
+                ->render(static fn(PageBlock $block) => $block->widget)
                 ->width('200px'),
 
             TD::make('settings', __('admin-pages.blocks.fields.settings.label'))
@@ -583,16 +578,12 @@ class PageEditScreen extends Screen
                     $settings = json_decode($block->settings ?? '{}', true);
                     $settingsCount = count($settings);
 
-                    return sprintf(
-                        '%d %s',
-                        $settingsCount,
-                        $settingsCount === 1 ? 'setting' : 'settings'
-                    );
+                    return sprintf('%d %s', $settingsCount, $settingsCount === 1 ? 'setting' : 'settings');
                 })
                 ->width('150px'),
 
             TD::make('actions', __('admin-pages.buttons.actions'))
-                ->render(fn (PageBlock $block) => $this->blockActionsDropdown($block))
+                ->render(fn(PageBlock $block) => $this->blockActionsDropdown($block))
                 ->width('100px'),
         ])
             ->searchable([
@@ -614,8 +605,8 @@ class PageEditScreen extends Screen
     private function permissionsLayout()
     {
         $selectedPermissions = array_map(
-            static fn ($permission) => (string) $permission->id,
-            $this->page?->permissions ?? []
+            static fn($permission) => (string) $permission->id,
+            $this->page?->permissions ?? [],
         );
 
         return LayoutFactory::block([
@@ -623,12 +614,9 @@ class PageEditScreen extends Screen
                 Select::make('permissions')
                     ->fromDatabase('permissions', 'name', 'id')
                     ->multiple()
-                    ->value($selectedPermissions)
-            )
-                ->label(__('def.permissions')),
-        ])
-            ->title(__('admin-pages.title.permissions'))
-            ->setVisible($this->pageId);
+                    ->value($selectedPermissions),
+            )->label(__('def.permissions')),
+        ])->title(__('admin-pages.title.permissions'))->setVisible($this->pageId);
     }
 
     /**

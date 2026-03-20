@@ -137,7 +137,7 @@ class DashboardService
      */
     protected function calculateUserMetrics(): array
     {
-        return cache()->callback('admin_dashboard_user_metrics', fn () => $this->doCalculateUserMetrics(), 120);
+        return cache()->callback('admin_dashboard_user_metrics', fn() => $this->doCalculateUserMetrics(), 120);
     }
 
     protected function doCalculateUserMetrics(): array
@@ -204,19 +204,19 @@ class DashboardService
             ->count();
 
         $totalUsersDiff = $totalUsersYesterday > 0
-            ? (($totalUsers - $totalUsersYesterday) / max($totalUsersYesterday, 1)) * 100
+            ? ( ( $totalUsers - $totalUsersYesterday ) / max($totalUsersYesterday, 1) ) * 100
             : 0;
 
         $activeUsersDiff = $activeUsersYesterday > 0
-            ? (($activeUsers - $activeUsersYesterday) / max($activeUsersYesterday, 1)) * 100
+            ? ( ( $activeUsers - $activeUsersYesterday ) / max($activeUsersYesterday, 1) ) * 100
             : 0;
 
         $onlineUsersDiff = $onlineUsersLastWeek > 0
-            ? (($onlineUsers - $onlineUsersLastWeek) / max($onlineUsersLastWeek, 1)) * 100
+            ? ( ( $onlineUsers - $onlineUsersLastWeek ) / max($onlineUsersLastWeek, 1) ) * 100
             : 0;
 
         $newUsersDiff = $newUsersYesterday > 0
-            ? (($newUsersToday - $newUsersYesterday) / max($newUsersYesterday, 1)) * 100
+            ? ( ( $newUsersToday - $newUsersYesterday ) / max($newUsersYesterday, 1) ) * 100
             : 0;
 
         return [
@@ -246,7 +246,7 @@ class DashboardService
     {
         $cacheKey = 'admin_dashboard_user_registration_' . $this->userPeriod;
 
-        return cache()->callback($cacheKey, fn () => $this->doCalculateUserRegistrationData(), 300);
+        return cache()->callback($cacheKey, fn() => $this->doCalculateUserRegistrationData(), 300);
     }
 
     protected function doCalculateUserRegistrationData(): array
@@ -276,7 +276,7 @@ class DashboardService
         $labels = [];
 
         if ($groupBy === 'day') {
-            $startDate = $now->modify('-' . ($periodDays - 1) . ' days')->setTime(0, 0);
+            $startDate = $now->modify('-' . ( $periodDays - 1 ) . ' days')->setTime(0, 0);
 
             for ($i = 0; $i < $pointsCount; $i++) {
                 $dayStart = $startDate->modify("+{$i} day");
@@ -293,10 +293,10 @@ class DashboardService
                     ->count();
             }
         } elseif ($groupBy === 'week') {
-            $startDate = $now->modify('-' . ($pointsCount * 7 - 1) . ' days')->setTime(0, 0);
+            $startDate = $now->modify('-' . ( ( $pointsCount * 7 ) - 1 ) . ' days')->setTime(0, 0);
 
             for ($i = 0; $i < $pointsCount; $i++) {
-                $weekStart = $startDate->modify('+' . ($i * 7) . ' days');
+                $weekStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
                 $weekEnd = $weekStart->modify('+7 days');
                 $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
 
@@ -346,7 +346,7 @@ class DashboardService
     {
         $cacheKey = 'admin_dashboard_payment_metrics_' . $this->paymentPeriod;
 
-        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentMetrics(), 120);
+        return cache()->callback($cacheKey, fn() => $this->doCalculatePaymentMetrics(), 120);
     }
 
     protected function doCalculatePaymentMetrics(): array
@@ -365,7 +365,7 @@ class DashboardService
         $periodStartDb = $periodStart ? $periodStart->setTimezone($dbTz) : null;
 
         // Previous period for comparison
-        $prevPeriodStart = $periodDays !== null ? $today->modify('-' . ($periodDays * 2) . ' days') : null;
+        $prevPeriodStart = $periodDays !== null ? $today->modify('-' . ( $periodDays * 2 ) . ' days') : null;
         $prevPeriodStartDb = $prevPeriodStart ? $prevPeriodStart->setTimezone($dbTz) : null;
 
         // Build base query for period
@@ -375,7 +375,7 @@ class DashboardService
         }
 
         // Successful payments count for period
-        $successfulPayments = (clone $baseQuery)->count();
+        $successfulPayments = ( clone $baseQuery )->count();
 
         // Previous period payments for comparison
         $prevPeriodPayments = 0;
@@ -388,7 +388,7 @@ class DashboardService
         }
 
         // Promo usage for period
-        $promoUsageQuery = (clone $baseQuery)->where('promoCode_id', 'is not', null);
+        $promoUsageQuery = ( clone $baseQuery )->where('promoCode_id', 'is not', null);
         $promoUsage = $promoUsageQuery->count();
 
         // Previous period promo usage
@@ -403,9 +403,9 @@ class DashboardService
         }
 
         // Total revenue for period
-        $totalRevenueQuery = (clone $baseQuery)->buildQuery();
+        $totalRevenueQuery = ( clone $baseQuery )->buildQuery();
         $totalRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-        $totalRevenue = (float) ($totalRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
+        $totalRevenue = (float) ( $totalRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0 );
 
         // Previous period revenue
         $prevPeriodRevenue = 0;
@@ -416,7 +416,7 @@ class DashboardService
                 ->where('paidAt', '<', $periodStartDb)
                 ->buildQuery();
             $prevRevenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-            $prevPeriodRevenue = (float) ($prevRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0);
+            $prevPeriodRevenue = (float) ( $prevRevenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0 );
         }
 
         // Average payment amount
@@ -424,16 +424,16 @@ class DashboardService
 
         // Calculate percentage differences
         $revenueDiff = $prevPeriodRevenue > 0
-            ? (($totalRevenue - $prevPeriodRevenue) / $prevPeriodRevenue) * 100
-            : ($totalRevenue > 0 ? 100 : 0);
+            ? ( ( $totalRevenue - $prevPeriodRevenue ) / $prevPeriodRevenue ) * 100
+            : ( $totalRevenue > 0 ? 100 : 0 );
 
         $paymentsDiff = $prevPeriodPayments > 0
-            ? (($successfulPayments - $prevPeriodPayments) / $prevPeriodPayments) * 100
-            : ($successfulPayments > 0 ? 100 : 0);
+            ? ( ( $successfulPayments - $prevPeriodPayments ) / $prevPeriodPayments ) * 100
+            : ( $successfulPayments > 0 ? 100 : 0 );
 
         $promoUsageDiff = $prevPromoUsage > 0
-            ? (($promoUsage - $prevPromoUsage) / $prevPromoUsage) * 100
-            : ($promoUsage > 0 ? 100 : 0);
+            ? ( ( $promoUsage - $prevPromoUsage ) / $prevPromoUsage ) * 100
+            : ( $promoUsage > 0 ? 100 : 0 );
 
         return [
             'period_revenue' => [
@@ -462,7 +462,7 @@ class DashboardService
     {
         $cacheKey = 'admin_dashboard_payment_chart_' . $this->paymentPeriod;
 
-        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentChartData(), 120);
+        return cache()->callback($cacheKey, fn() => $this->doCalculatePaymentChartData(), 120);
     }
 
     protected function doCalculatePaymentChartData(): array
@@ -496,7 +496,7 @@ class DashboardService
         $labels = [];
 
         if ($groupBy === 'day') {
-            $startDate = $now->modify('-' . ($periodDays - 1) . ' days')->setTime(0, 0);
+            $startDate = $now->modify('-' . ( $periodDays - 1 ) . ' days')->setTime(0, 0);
 
             for ($i = 0; $i < $pointsCount; $i++) {
                 $dayStart = $startDate->modify("+{$i} day");
@@ -524,10 +524,10 @@ class DashboardService
                 $payments[] = (int) $cnt;
             }
         } elseif ($groupBy === 'week') {
-            $startDate = $now->modify('-' . ($pointsCount * 7 - 1) . ' days')->setTime(0, 0);
+            $startDate = $now->modify('-' . ( ( $pointsCount * 7 ) - 1 ) . ' days')->setTime(0, 0);
 
             for ($i = 0; $i < $pointsCount; $i++) {
-                $weekStart = $startDate->modify('+' . ($i * 7) . ' days');
+                $weekStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
                 $weekEnd = $weekStart->modify('+7 days');
                 $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
 
@@ -604,7 +604,7 @@ class DashboardService
     {
         $cacheKey = 'admin_dashboard_payment_methods_' . $this->paymentPeriod;
 
-        return cache()->callback($cacheKey, fn () => $this->doCalculatePaymentMethodsData(), 300);
+        return cache()->callback($cacheKey, fn() => $this->doCalculatePaymentMethodsData(), 300);
     }
 
     protected function doCalculatePaymentMethodsData(): array
@@ -664,9 +664,7 @@ class DashboardService
             'admin-dashboard.metrics.new_users_today' => 'user-plus',
         ]);
 
-        $filters = Filters::make()
-            ->period('user_period')
-            ->compact();
+        $filters = Filters::make()->period('user_period')->compact();
 
         $periodDescription = $this->getUserPeriodDescription();
 
@@ -725,9 +723,7 @@ class DashboardService
 
         $periodDescription = $this->getPeriodDescription();
 
-        $filters = Filters::make()
-            ->period('payment_period')
-            ->compact();
+        $filters = Filters::make()->period('payment_period')->compact();
 
         return [
             'tab' => Tab::make(__('admin-dashboard.tabs.payments'))
@@ -805,9 +801,7 @@ class DashboardService
     protected function getMainTabPlaceholder(): array
     {
         return [
-            'tab' => Tab::make(__('admin-dashboard.tabs.main'))
-                ->icon('ph.regular.users')
-                ->layouts([]),
+            'tab' => Tab::make(__('admin-dashboard.tabs.main'))->icon('ph.regular.users')->layouts([]),
             'vars' => [],
         ];
     }

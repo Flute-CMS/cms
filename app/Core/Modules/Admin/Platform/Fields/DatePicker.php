@@ -217,6 +217,9 @@ class DatePicker extends Field
      */
     public function value($value): self
     {
-        return $this->set('value', ($this->get('disableFromRequest') ? $value : request()->input($this->get('name'), $value)));
+        return $this->set(
+            'value',
+            $this->get('disableFromRequest') ? $value : request()->input($this->get('name'), $value),
+        );
     }
 }

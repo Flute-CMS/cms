@@ -38,10 +38,11 @@ class CsrfMiddleware extends BaseMiddleware
 
     protected function getRequestToken(FluteRequest $request): ?string
     {
-        return $request->input('_csrf_token')
-            ?? $request->headers->get('X-CSRF-Token')
-            ?? $request->input('x-csrf-token')
-            ?? $request->headers->get('x-csrf-token');
+        return (
+            $request->input('_csrf_token') ?? $request->headers->get('X-CSRF-Token') ?? $request->input(
+                'x-csrf-token',
+            ) ?? $request->headers->get('x-csrf-token')
+        );
     }
 
     private function isInstalled(): bool

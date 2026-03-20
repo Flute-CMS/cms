@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Admin\Platform\Fields;
 
@@ -32,12 +32,8 @@ class Sight extends Cell
      */
     public function buildDd($repository)
     {
-        $value = $this->render
-            ? $this->handler($repository)
-            : $repository->getContent($this->name);
+        $value = $this->render ? $this->handler($repository) : $repository->getContent($this->name);
 
-        return $this->render === null
-            ? e($value)
-            : $value;
+        return $this->render === null ? e($value) : $value;
     }
 }

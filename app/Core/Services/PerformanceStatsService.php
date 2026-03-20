@@ -73,7 +73,7 @@ class PerformanceStatsService
 
             if (!isset($stats['routes'][$routeKey])) {
                 if (count($stats['routes']) >= self::MAX_ROUTES) {
-                    uasort($stats['routes'], static fn ($a, $b) => ($a['last_hit'] ?? 0) <=> ($b['last_hit'] ?? 0));
+                    uasort($stats['routes'], static fn($a, $b) => ( $a['last_hit'] ?? 0 ) <=> ( $b['last_hit'] ?? 0 ));
                     array_shift($stats['routes']);
                 }
 
@@ -99,7 +99,7 @@ class PerformanceStatsService
             if (count($stats['routes'][$routeKey]['samples']) > self::MAX_SAMPLES_PER_ROUTE) {
                 $stats['routes'][$routeKey]['samples'] = array_slice(
                     $stats['routes'][$routeKey]['samples'],
-                    -self::MAX_SAMPLES_PER_ROUTE
+                    -self::MAX_SAMPLES_PER_ROUTE,
                 );
             }
 
@@ -132,7 +132,10 @@ class PerformanceStatsService
             foreach ($widgetTimes as $widgetName => $time) {
                 if (!isset($stats['widgets'][$widgetName])) {
                     if (count($stats['widgets']) >= self::MAX_WIDGETS) {
-                        uasort($stats['widgets'], static fn ($a, $b) => ($a['last_hit'] ?? 0) <=> ($b['last_hit'] ?? 0));
+                        uasort(
+                            $stats['widgets'],
+                            static fn($a, $b) => ( $a['last_hit'] ?? 0 ) <=> ( $b['last_hit'] ?? 0 ),
+                        );
                         array_shift($stats['widgets']);
                     }
 
@@ -155,7 +158,7 @@ class PerformanceStatsService
                 if (count($stats['widgets'][$widgetName]['samples']) > self::MAX_SAMPLES_PER_WIDGET) {
                     $stats['widgets'][$widgetName]['samples'] = array_slice(
                         $stats['widgets'][$widgetName]['samples'],
-                        -self::MAX_SAMPLES_PER_WIDGET
+                        -self::MAX_SAMPLES_PER_WIDGET,
                     );
                 }
             }
@@ -184,7 +187,10 @@ class PerformanceStatsService
             foreach ($viewTimes as $viewName => $time) {
                 if (!isset($stats['views'][$viewName])) {
                     if (count($stats['views']) >= self::MAX_VIEWS) {
-                        uasort($stats['views'], static fn ($a, $b) => ($a['last_hit'] ?? 0) <=> ($b['last_hit'] ?? 0));
+                        uasort(
+                            $stats['views'],
+                            static fn($a, $b) => ( $a['last_hit'] ?? 0 ) <=> ( $b['last_hit'] ?? 0 ),
+                        );
                         array_shift($stats['views']);
                     }
 
@@ -205,7 +211,7 @@ class PerformanceStatsService
                 if (count($stats['views'][$viewName]['samples']) > self::MAX_SAMPLES_PER_VIEW) {
                     $stats['views'][$viewName]['samples'] = array_slice(
                         $stats['views'][$viewName]['samples'],
-                        -self::MAX_SAMPLES_PER_VIEW
+                        -self::MAX_SAMPLES_PER_VIEW,
                     );
                 }
             }
@@ -236,7 +242,10 @@ class PerformanceStatsService
 
                 if (!isset($stats['queries'][$queryKey])) {
                     if (count($stats['queries']) >= self::MAX_QUERIES) {
-                        uasort($stats['queries'], static fn ($a, $b) => ($a['last_hit'] ?? 0) <=> ($b['last_hit'] ?? 0));
+                        uasort(
+                            $stats['queries'],
+                            static fn($a, $b) => ( $a['last_hit'] ?? 0 ) <=> ( $b['last_hit'] ?? 0 ),
+                        );
                         array_shift($stats['queries']);
                     }
 
@@ -258,7 +267,7 @@ class PerformanceStatsService
                 if (count($stats['queries'][$queryKey]['samples']) > self::MAX_SAMPLES_PER_QUERY) {
                     $stats['queries'][$queryKey]['samples'] = array_slice(
                         $stats['queries'][$queryKey]['samples'],
-                        -self::MAX_SAMPLES_PER_QUERY
+                        -self::MAX_SAMPLES_PER_QUERY,
                     );
                 }
             }

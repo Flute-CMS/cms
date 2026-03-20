@@ -43,41 +43,41 @@ class Select extends Field implements ComplexFieldConcern
      * Default configuration
      */
     protected array $config = [
-        'mode' => 'static',              // static|database|async
-        'multiple' => false,             // multiple selection mode
-        'maxItems' => 1,                // maximum number of items that can be selected
-        'uiSearch' => null,             // null=auto, true=always, false=never (UI only)
-        'searchThreshold' => 6,         // auto-enable UI search when options > threshold (static mode)
-        'searchable' => false,          // enable search (async mode helper)
-        'minSearchLength' => 2,         // minimum search query length
-        'searchDelay' => 300,           // search delay in milliseconds
-        'preload' => false,             // preload options in async mode
-        'clearButton' => true,          // show clear button
-        'removeButton' => false,        // show remove button
-        'allowEmpty' => false,          // allow empty option
-        'allowAdd' => false,            // allow adding new options
-        'positioning' => 'dropdown',    // dropdown|aligned
-        'plugins' => [],                // default plugins (UI search plugin is enabled dynamically)
-        'renderOption' => null,         // custom option render function
-        'renderItem' => null,           // custom item render function
-        'renderNoResults' => null,      // custom no results render function
-        'filter' => null,               // custom filter function
-        'extraFields' => [],            // extra entity fields to include as option metadata
-        'optionView' => null,           // Blade view name for option rendering
-        'itemView' => null,             // Blade view name for item rendering
+        'mode' => 'static', // static|database|async
+        'multiple' => false, // multiple selection mode
+        'maxItems' => 1, // maximum number of items that can be selected
+        'uiSearch' => null, // null=auto, true=always, false=never (UI only)
+        'searchThreshold' => 6, // auto-enable UI search when options > threshold (static mode)
+        'searchable' => false, // enable search (async mode helper)
+        'minSearchLength' => 2, // minimum search query length
+        'searchDelay' => 300, // search delay in milliseconds
+        'preload' => false, // preload options in async mode
+        'clearButton' => true, // show clear button
+        'removeButton' => false, // show remove button
+        'allowEmpty' => false, // allow empty option
+        'allowAdd' => false, // allow adding new options
+        'positioning' => 'dropdown', // dropdown|aligned
+        'plugins' => [], // default plugins (UI search plugin is enabled dynamically)
+        'renderOption' => null, // custom option render function
+        'renderItem' => null, // custom item render function
+        'renderNoResults' => null, // custom no results render function
+        'filter' => null, // custom filter function
+        'extraFields' => [], // extra entity fields to include as option metadata
+        'optionView' => null, // Blade view name for option rendering
+        'itemView' => null, // Blade view name for item rendering
     ];
 
     /**
      * Database configuration
      */
     protected array $databaseConfig = [
-        'entity' => null,              // entity alias
-        'displayField' => null,        // display field name
-        'valueField' => 'id',          // value field name
-        'searchFields' => [],          // fields to search in
-        'conditions' => [],            // additional query conditions
-        'orderBy' => null,            // order by field and direction
-        'limit' => 20,                // query limit
+        'entity' => null, // entity alias
+        'displayField' => null, // display field name
+        'valueField' => 'id', // value field name
+        'searchFields' => [], // fields to search in
+        'conditions' => [], // additional query conditions
+        'orderBy' => null, // order by field and direction
+        'limit' => 20, // query limit
     ];
 
     /**
@@ -192,8 +192,7 @@ class Select extends Field implements ComplexFieldConcern
      */
     public function options(array $options): self
     {
-        return $this->set('options', $options)
-            ->setConfig('mode', 'static');
+        return $this->set('options', $options)->setConfig('mode', 'static');
     }
 
     /**
@@ -204,7 +203,7 @@ class Select extends Field implements ComplexFieldConcern
         string $displayField,
         ?string $valueField = 'id',
         ?array $searchFields = null,
-        ?array $conditions = null
+        ?array $conditions = null,
     ): self {
         return $this->setDatabaseConfigs([
             'entity' => $entity,
@@ -483,10 +482,10 @@ class Select extends Field implements ComplexFieldConcern
         }
 
         // Set basic attributes
-        $this->set('multiple', $this->getConfig('multiple'))
-            ->set('maxItems', $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1)
-            ->set('mode', $this->getConfig('mode'))
-            ->set('data-positioning', $this->getConfig('positioning', 'dropdown'));
+        $this->set('multiple', $this->getConfig('multiple'))->set(
+            'maxItems',
+            $this->getConfig('multiple') ? $this->getConfig('maxItems', 100) : 1,
+        )->set('mode', $this->getConfig('mode'))->set('data-positioning', $this->getConfig('positioning', 'dropdown'));
 
         // Expose allowAdd flag to template via data attribute
         $this->set('data-allow-add', $this->getConfig('allowAdd') ? 'true' : 'false');
@@ -498,7 +497,7 @@ class Select extends Field implements ComplexFieldConcern
 
         // UI search behavior: true|false|auto
         $uiSearch = $this->getConfig('uiSearch', null);
-        $this->set('data-searchable', $uiSearch === null ? 'auto' : ($uiSearch ? 'true' : 'false'));
+        $this->set('data-searchable', $uiSearch === null ? 'auto' : ( $uiSearch ? 'true' : 'false' ));
         $this->set('data-search-threshold', (string) $this->getConfig('searchThreshold', 6));
 
         // Configure plugins
@@ -538,7 +537,8 @@ class Select extends Field implements ComplexFieldConcern
      */
     protected function configureAsyncMode(): void
     {
-        $this->set('data-search-url', '/admin/select/search')
+        $this
+            ->set('data-search-url', '/admin/select/search')
             ->set('data-search-min-length', $this->getConfig('minSearchLength'))
             ->set('data-search-delay', $this->getConfig('searchDelay'))
             ->set('data-search-fields', json_encode($this->databaseConfig['searchFields']))
@@ -587,7 +587,7 @@ class Select extends Field implements ComplexFieldConcern
         $displayField = $this->databaseConfig['displayField'] ?? 'name';
 
         $ids = is_array($value) ? $value : [$value];
-        $ids = array_filter($ids, static fn ($v) => $v !== '' && $v !== null);
+        $ids = array_filter($ids, static fn($v) => $v !== '' && $v !== null);
         if (empty($ids)) {
             return;
         }
@@ -602,8 +602,8 @@ class Select extends Field implements ComplexFieldConcern
             }
         }
 
-        $optionView = $this->getConfig('optionView') ?? ($config['optionView'] ?? null);
-        $itemView = $this->getConfig('itemView') ?? ($config['itemView'] ?? null);
+        $optionView = $this->getConfig('optionView') ?? $config['optionView'] ?? null;
+        $itemView = $this->getConfig('itemView') ?? $config['itemView'] ?? null;
         $extraFields = $this->getConfig('extraFields', []);
         if (empty($extraFields) && !empty($config['extraFields'])) {
             $extraFields = $config['extraFields'];
@@ -709,8 +709,8 @@ class Select extends Field implements ComplexFieldConcern
             $items = array_filter($items, $filter);
         }
 
-        $optionView = $this->getConfig('optionView') ?? ($config['optionView'] ?? null);
-        $itemView = $this->getConfig('itemView') ?? ($config['itemView'] ?? null);
+        $optionView = $this->getConfig('optionView') ?? $config['optionView'] ?? null;
+        $itemView = $this->getConfig('itemView') ?? $config['itemView'] ?? null;
         $extraFields = $this->getConfig('extraFields', []);
         if (empty($extraFields) && !empty($config['extraFields'])) {
             $extraFields = $config['extraFields'];

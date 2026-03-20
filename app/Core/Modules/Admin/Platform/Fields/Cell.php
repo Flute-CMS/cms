@@ -94,7 +94,7 @@ abstract class Cell
             } elseif ($value instanceof EntityProxyInterface) {
                 $content = $value->{$this->name};
             } else {
-                throw new InvalidArgumentException("Unsupported source type for asComponent.");
+                throw new InvalidArgumentException('Unsupported source type for asComponent.');
             }
 
             $params['_row'] = $value;
@@ -149,9 +149,9 @@ abstract class Cell
         $paramsKeys = Arr::isAssoc($params) ? array_keys($params) : array_values($params);
 
         return collect($parameters)
-            ->filter(static fn (ReflectionParameter $parameter) => !$parameter->isOptional())
-            ->whenEmpty(static fn () => collect($parameters))
-            ->map(static fn (ReflectionParameter $parameter) => $parameter->getName())
+            ->filter(static fn(ReflectionParameter $parameter) => !$parameter->isOptional())
+            ->whenEmpty(static fn() => collect($parameters))
+            ->map(static fn(ReflectionParameter $parameter) => $parameter->getName())
             ->diff($paramsKeys)
             ->last();
     }
@@ -172,7 +172,7 @@ abstract class Cell
             }
         }
 
-        $params = array_map(static fn ($item) => value($item, $value), $params);
+        $params = array_map(static fn($item) => value($item, $value), $params);
 
         return Blade::renderComponent($component, $params);
     }

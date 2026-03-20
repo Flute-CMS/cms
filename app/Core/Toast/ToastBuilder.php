@@ -125,7 +125,7 @@ class ToastBuilder
     private function ensureToast(): void
     {
         if ($this->toast === null) {
-            throw new LogicException("Toast type must be set before setting options.");
+            throw new LogicException('Toast type must be set before setting options.');
         }
     }
 }

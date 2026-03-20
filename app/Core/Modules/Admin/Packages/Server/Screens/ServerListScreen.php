@@ -29,9 +29,7 @@ class ServerListScreen extends Screen
         $this->name = __('admin-server.title.list');
         $this->description = __('admin-server.title.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-server.title.list'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-server.title.list'));
 
         $query = rep(Server::class)->select();
 
@@ -61,94 +59,91 @@ class ServerListScreen extends Screen
         }
 
         $layouts[] = $this->getServerFilters();
-        $layouts[] =
-            LayoutFactory::table('servers', [
-                TD::selection('id'),
-                TD::make('mod')
-                    ->title(__('admin-server.fields.mod.label'))
-                    ->render(static fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
-                    ->width('200px')
-                    ->sort()
-                    ->cantHide(),
+        $layouts[] = LayoutFactory::table('servers', [
+            TD::selection('id'),
+            TD::make('mod')
+                ->title(__('admin-server.fields.mod.label'))
+                ->render(static fn(Server $server) => app(AdminServersService::class)->getGameName($server->mod))
+                ->width('200px')
+                ->sort()
+                ->cantHide(),
 
-                TD::make('name')
-                    ->title(__('admin-server.fields.name.label'))
-                    ->render(static fn (Server $server) => view('admin-server::cells.server', compact('server')))
-                    ->minWidth('200px')
-                    ->cantHide(),
+            TD::make('name')
+                ->title(__('admin-server.fields.name.label'))
+                ->render(static fn(Server $server) => view('admin-server::cells.server', compact('server')))
+                ->minWidth('200px')
+                ->cantHide(),
 
-                TD::make('enabled')
-                    ->title(__('admin-server.fields.enabled.label'))
-                    ->render(static fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
-                    ->popover(__('admin-server.fields.enabled.help')),
+            TD::make('enabled')
+                ->title(__('admin-server.fields.enabled.label'))
+                ->render(static fn(Server $server) => view('admin-server::cells.enabled', compact('server')))
+                ->popover(__('admin-server.fields.enabled.help')),
 
-                TD::make('dbconnections')
-                    ->title(__('admin-server.tabs.db_connections'))
-                    ->render(static fn (Server $server) => view('admin-server::cells.connections', compact('server')))
-                    ->width('200px'),
+            TD::make('dbconnections')
+                ->title(__('admin-server.tabs.db_connections'))
+                ->render(static fn(Server $server) => view('admin-server::cells.connections', compact('server')))
+                ->width('200px'),
 
-                TD::make('createdAt')
-                    ->title(__('admin-server.fields.created_at'))
-                    ->asComponent(DateTime::class)
-                    ->width('200px')
-                    ->sort()
-                    ->cantHide(),
+            TD::make('createdAt')
+                ->title(__('admin-server.fields.created_at'))
+                ->asComponent(DateTime::class)
+                ->width('200px')
+                ->sort()
+                ->cantHide(),
 
-                TD::make('actions')
-                    ->class('actions-col')
-                    ->title(__('admin-server.buttons.actions'))
-                    ->width('200px')
-                    ->alignCenter()
-                    ->render(
-                        static fn (Server $server) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-server.buttons.edit'))
-                                    ->redirect(url('/admin/servers/' . $server->id . '/edit'))
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
+            TD::make('actions')
+                ->class('actions-col')
+                ->title(__('admin-server.buttons.actions'))
+                ->width('200px')
+                ->alignCenter()
+                ->render(static fn(Server $server) => DropDown::make()
+                    ->icon('ph.regular.dots-three-outline-vertical')
+                    ->list([
+                        DropDownItem::make(__('admin-server.buttons.edit'))
+                            ->redirect(url('/admin/servers/' . $server->id . '/edit'))
+                            ->icon('ph.bold.pencil-bold')
+                            ->type(Color::OUTLINE_PRIMARY)
+                            ->size('small')
+                            ->fullWidth(),
 
-                                DropDownItem::make(__('admin-server.buttons.delete'))
-                                    ->confirm(__('admin-server.confirms.delete_server'))
-                                    ->method('delete', ['delete-id' => $server->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
+                        DropDownItem::make(__('admin-server.buttons.delete'))
+                            ->confirm(__('admin-server.confirms.delete_server'))
+                            ->method('delete', ['delete-id' => $server->id])
+                            ->icon('ph.bold.trash-bold')
+                            ->type(Color::OUTLINE_DANGER)
+                            ->size('small')
+                            ->fullWidth(),
+                    ])),
+        ])
+            ->empty('ph.regular.game-controller', __('admin-server.empty.title'), __('admin-server.empty.sub'))
+            ->emptyButton(
+                Button::make(__('admin-server.buttons.add'))
+                    ->icon('ph.bold.plus-bold')
+                    ->redirect(url('/admin/servers/add')),
+            )
+            ->searchable(['name', 'ip', 'port'])
+            ->commands([
+                Button::make(__('admin-server.buttons.add'))
+                    ->icon('ph.bold.plus-bold')
+                    ->redirect(url('/admin/servers/add')),
             ])
-                ->empty('ph.regular.game-controller', __('admin-server.empty.title'), __('admin-server.empty.sub'))
-                ->emptyButton(
-                    Button::make(__('admin-server.buttons.add'))
-                        ->icon('ph.bold.plus-bold')
-                        ->redirect(url('/admin/servers/add'))
-                )
-                ->searchable(['name', 'ip', 'port'])
-                ->commands([
-                    Button::make(__('admin-server.buttons.add'))
-                        ->icon('ph.bold.plus-bold')
-                        ->redirect(url('/admin/servers/add')),
-                ])
-                ->bulkActions([
-                    Button::make(__('admin.bulk.enable_selected'))
-                        ->icon('ph.bold.play-bold')
-                        ->type(Color::OUTLINE_SUCCESS)
-                        ->method('bulkEnable'),
+            ->bulkActions([
+                Button::make(__('admin.bulk.enable_selected'))
+                    ->icon('ph.bold.play-bold')
+                    ->type(Color::OUTLINE_SUCCESS)
+                    ->method('bulkEnable'),
 
-                    Button::make(__('admin.bulk.disable_selected'))
-                        ->icon('ph.bold.power-bold')
-                        ->type(Color::OUTLINE_WARNING)
-                        ->method('bulkDisable'),
+                Button::make(__('admin.bulk.disable_selected'))
+                    ->icon('ph.bold.power-bold')
+                    ->type(Color::OUTLINE_WARNING)
+                    ->method('bulkDisable'),
 
-                    Button::make(__('admin.bulk.delete_selected'))
-                        ->icon('ph.bold.trash-bold')
-                        ->type(Color::OUTLINE_DANGER)
-                        ->confirm(__('admin.confirms.delete_selected'))
-                        ->method('bulkDelete'),
-                ]);
+                Button::make(__('admin.bulk.delete_selected'))
+                    ->icon('ph.bold.trash-bold')
+                    ->type(Color::OUTLINE_DANGER)
+                    ->confirm(__('admin.confirms.delete_selected'))
+                    ->method('bulkDelete'),
+            ]);
 
         return $layouts;
     }
@@ -247,6 +242,6 @@ class ServerListScreen extends Screen
 
         $lastModified = max(array_map('filemtime', $logFiles));
 
-        return (time() - $lastModified) > 3600;
+        return ( time() - $lastModified ) > 3600;
     }
 }

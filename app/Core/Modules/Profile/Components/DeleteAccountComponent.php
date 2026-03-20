@@ -33,7 +33,7 @@ class DeleteAccountComponent extends FluteComponent
                     message: __('profile.edit.main.delete_account.confirm_message'),
                     type: 'error',
                     confirmText: __('def.delete'),
-                    cancelText: __('def.cancel')
+                    cancelText: __('def.cancel'),
                 );
 
                 return;
@@ -53,10 +53,14 @@ class DeleteAccountComponent extends FluteComponent
 
     protected function validateDeleteAccount(): bool
     {
-        return $this->validate([
-            'delete_confirmation' => 'required|in:' . $this->user->login,
-        ], null, [
-            'delete_confirmation.in' => __('profile.edit.main.delete_account.confirmation_error'),
-        ]);
+        return $this->validate(
+            [
+                'delete_confirmation' => 'required|in:' . $this->user->login,
+            ],
+            null,
+            [
+                'delete_confirmation.in' => __('profile.edit.main.delete_account.confirmation_error'),
+            ],
+        );
     }
 }

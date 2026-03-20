@@ -26,7 +26,7 @@ class AdminPackageFactory
     public function __construct(
         EventDispatcher $dispatcher,
         string $packagesPath = 'app/Core/Modules/Admin/Packages',
-        string $baseNamespace = 'Flute\Admin\Packages'
+        string $baseNamespace = 'Flute\Admin\Packages',
     ) {
         $this->dispatcher = $dispatcher;
         $this->packagesPath = rtrim(BASE_PATH . DIRECTORY_SEPARATOR . $packagesPath, DIRECTORY_SEPARATOR);
@@ -53,7 +53,10 @@ class AdminPackageFactory
             return;
         }
 
-        usort($this->packages, static fn (AdminPackageInterface $a, AdminPackageInterface $b) => $a->getPriority() <=> $b->getPriority());
+        usort(
+            $this->packages,
+            static fn(AdminPackageInterface $a, AdminPackageInterface $b) => $a->getPriority() <=> $b->getPriority(),
+        );
 
         foreach ($this->packages as $package) {
             $package->initialize();
@@ -96,7 +99,7 @@ class AdminPackageFactory
 
                 $package = app()->get($className);
 
-                if (($package->getPermissions() && user()->can($package->getPermissions())) || is_cli()) {
+                if ($package->getPermissions() && user()->can($package->getPermissions()) || is_cli()) {
                     $this->registerPackage($package);
                 }
             }
@@ -134,7 +137,7 @@ class AdminPackageFactory
             /** @var AdminPackageInterface $package */
             $package = app()->get($className);
 
-            if (($package->getPermissions() && user()->can($package->getPermissions())) || is_cli()) {
+            if ($package->getPermissions() && user()->can($package->getPermissions()) || is_cli()) {
                 $this->registerPackage($package);
             }
         }
@@ -296,7 +299,7 @@ class AdminPackageFactory
         }
 
         // Filter empty sections
-        $this->menuItemsCache = array_values(array_filter($result, static fn ($s) => !empty($s['items'])));
+        $this->menuItemsCache = array_values(array_filter($result, static fn($s) => !empty($s['items'])));
 
         return $this->menuItemsCache;
     }

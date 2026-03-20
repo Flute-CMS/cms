@@ -63,7 +63,7 @@ class CacheManager
     public function getAdapter(): AbstractCacheDriver
     {
         if ($this->adapter === null) {
-            throw new RuntimeException("Cache adapter has not been created yet.");
+            throw new RuntimeException('Cache adapter has not been created yet.');
         }
 
         return $this->adapter;
@@ -73,20 +73,18 @@ class CacheManager
     {
         $epoch = $this->readEpoch();
 
-        $base = (string) ($config['namespace'] ?? '');
+        $base = (string) ( $config['namespace'] ?? '' );
         $base = preg_replace('/\\.e\\d+$/', '', $base) ?: '';
         $base = trim((string) $base, '.');
 
-        $config['namespace'] = ($base === '' ? 'e' . $epoch : $base . '.e' . $epoch);
+        $config['namespace'] = $base === '' ? 'e' . $epoch : $base . '.e' . $epoch;
 
         return $config;
     }
 
     private function readEpoch(): int
     {
-        $epochFile = defined('BASE_PATH')
-            ? BASE_PATH . 'storage/app/cache_epoch'
-            : 'cache_epoch';
+        $epochFile = defined('BASE_PATH') ? BASE_PATH . 'storage/app/cache_epoch' : 'cache_epoch';
 
         $content = @file_get_contents($epochFile);
         if (!is_string($content) || $content === '') {

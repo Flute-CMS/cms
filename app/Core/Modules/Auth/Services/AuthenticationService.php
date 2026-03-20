@@ -36,11 +36,10 @@ use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nette\Schema\Schema;
 use Nette\Schema\ValidationException;
-
-use function random_bytes;
-
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Throwable;
+
+use function random_bytes;
 
 class AuthenticationService
 {
@@ -64,7 +63,7 @@ class AuthenticationService
         ConfigurationService $config,
         FluteRequest $request,
         SessionInterface $session,
-        CookieService $cookie
+        CookieService $cookie,
     ) {
         $this->validationProcessor = new Processor();
         $this->config = $config;
@@ -199,7 +198,11 @@ class AuthenticationService
             return null;
         }
 
-        $existingTokens = RememberToken::findAll(['user_id' => $user->id, 'userDevice_id' => $device->id, 'userDevice.ip' => $this->request->getClientIp()]);
+        $existingTokens = RememberToken::findAll([
+            'user_id' => $user->id,
+            'userDevice_id' => $device->id,
+            'userDevice.ip' => $this->request->getClientIp(),
+        ]);
 
         foreach ($existingTokens as $token) {
             transaction($token, 'delete')->run();
@@ -220,7 +223,7 @@ class AuthenticationService
             value: $rememberToken,
             expire: $this->config->get('auth.remember_me_duration'),
             httpOnly: true,
-            sameSite: 'Strict'
+            sameSite: 'Strict',
         );
 
         return $rememberToken;
@@ -331,7 +334,7 @@ class AuthenticationService
      */
     public function logout(): void
     {
-        if ($this->config->get('auth.remember_me') && $token = $this->cookie->get('remember_token')) {
+        if ($this->config->get('auth.remember_me') && ( $token = $this->cookie->get('remember_token') )) {
             $rememberToken = RememberToken::findOne(['token' => hash('sha256', $token)]);
 
             if ($rememberToken) {
@@ -382,7 +385,10 @@ class AuthenticationService
             throw $e;
         }
 
-        events()->dispatch(new PasswordResetRequestedEvent($user, $passwordResetToken), PasswordResetRequestedEvent::NAME);
+        events()->dispatch(
+            new PasswordResetRequestedEvent($user, $passwordResetToken),
+            PasswordResetRequestedEvent::NAME,
+        );
 
         return $passwordResetToken;
     }
@@ -464,7 +470,7 @@ class AuthenticationService
                 ['action' => $key, 'ip' => $this->request->getClientIp()],
                 $maxRequest,
                 $perMinute,
-                $burstiness
+                $burstiness,
             );
         } catch (TooManyRequestsException $e) {
             throw $e;

@@ -6,7 +6,9 @@ use Flute\Core\Modules\Payments\Controllers\PaymentsViewController;
 use Flute\Core\Router\Contracts\RouterInterface;
 
 $router->group(['middleware' => ['auth', 'site_mode:balance']], static function (RouterInterface $authRouter) {
-    $authRouter->get("/lk", [PaymentsViewController::class, "index"])->middleware(config('lk.only_modal', false) ? 'htmx' : null);
+    $authRouter->get('/lk', [PaymentsViewController::class, 'index'])->middleware(
+        config('lk.only_modal', false) ? 'htmx' : null,
+    );
     $authRouter->get('/payment/{transaction}', [PaymentsViewController::class, 'processPayment']);
 
     $authRouter->group(['prefix' => '/api/lk', 'middleware' => ['csrf']], static function (RouterInterface $router) {
