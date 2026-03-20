@@ -5,8 +5,8 @@ namespace Flute\Core\Update\Updaters;
 use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
+use Flute\Core\Support\FileUploader;
 use Throwable;
-use ZipArchive;
 
 class CmsUpdater extends AbstractUpdater
 {
@@ -83,15 +83,13 @@ class CmsUpdater extends AbstractUpdater
             mkdir($extractDir, 0o755, true);
         }
 
-        $zip = new ZipArchive();
-        if ($zip->open($packageFile) !== true) {
-            logs()->error('Failed to open update package: ' . $packageFile);
+        try {
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+        } catch (Exception $e) {
+            logs()->error('Failed to extract update package: ' . $e->getMessage());
 
             return false;
         }
-
-        $zip->extractTo($extractDir);
-        $zip->close();
 
         try {
             try {

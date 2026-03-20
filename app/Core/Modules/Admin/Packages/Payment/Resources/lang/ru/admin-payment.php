@@ -50,6 +50,9 @@ return [
         'expires_at' => 'Действует до',
         'user' => 'Пользователь',
         'transaction_id' => 'ID транзакции',
+        'credited' => 'Зачислено',
+        'promo' => 'Промокод',
+        'gateway_bonus' => 'Бонус шлюза',
     ],
     'buttons' => [
         'add_gateway' => 'Добавить шлюз',

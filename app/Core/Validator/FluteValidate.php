@@ -12,6 +12,18 @@ use MadeSimple\Arrays\ArrDots;
 class FluteValidate
 {
     /**
+     * Validates that a string is a safe SQL identifier (table/column name).
+     */
+    private static function validateIdentifier(string $identifier): void
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_.]*$/', $identifier)) {
+            throw new InvalidArgumentException(
+                "Invalid SQL identifier: '{$identifier}'. Only alphanumeric characters, underscores, and dots are allowed.",
+            );
+        }
+    }
+
+    /**
      */
     public static function addRuleSet(FluteValidator $validator)
     {
@@ -1603,6 +1615,7 @@ class FluteValidate
     public static function unique(FluteValidator $validator, $data, $pattern, $rule, $parameters)
     {
         $table = $parameters[0];
+        self::validateIdentifier($table);
 
         foreach (FluteValidator::getValues($data, $pattern) as $attribute => $value) {
             if (null === $value || $value === '') {
@@ -1612,9 +1625,11 @@ class FluteValidate
             $attributeParts = explode('.', $attribute);
             $defaultColumn = end($attributeParts);
             $column = $parameters[1] ?? $defaultColumn;
+            self::validateIdentifier($column);
 
             $except = $parameters[2] ?? null;
             $idColumn = $parameters[3] ?? 'id';
+            self::validateIdentifier($idColumn);
 
             $query = db()->select()->from($table)->where($column, $value);
 
@@ -1650,6 +1665,10 @@ class FluteValidate
         $column = $parameters[1];
         $except = $parameters[2] ?? null;
         $idColumn = $parameters[3] ?? 'id';
+
+        self::validateIdentifier($table);
+        self::validateIdentifier($column);
+        self::validateIdentifier($idColumn);
 
         foreach (FluteValidator::getValues($data, $pattern) as $attribute => $value) {
             if (is_null($value) || $value === '') {

@@ -51,7 +51,9 @@ class GatewayFactory
         try {
             $json = encrypt()->decryptString($encryptedConfig);
         } catch (Throwable $e) {
-            $json = $encryptedConfig;
+            logs()->warning('Gateway config decryption failed, rejecting plaintext fallback: ' . $e->getMessage());
+
+            throw new PaymentException('Failed to decrypt gateway configuration');
         }
 
         $config = \Nette\Utils\Json::decode($json, \Nette\Utils\Json::FORCE_ARRAY);

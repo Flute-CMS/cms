@@ -209,7 +209,7 @@ class RoleListScreen extends Screen
         $roleId = $parameters->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -275,7 +275,7 @@ class RoleListScreen extends Screen
         $roleId = $this->modalParams->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -333,7 +333,7 @@ class RoleListScreen extends Screen
         $roleId = request()->input('id');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
             $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
@@ -363,7 +363,7 @@ class RoleListScreen extends Screen
         foreach (array_reverse($roles) as $index => $roleId) {
             $role = Role::findByPK((int) $roleId['id']);
 
-            if (!$role || $role->priority > user()->getHighestPriority()) {
+            if (!$role || $role->priority >= user()->getHighestPriority()) {
                 continue;
             }
 

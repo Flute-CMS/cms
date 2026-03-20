@@ -385,6 +385,8 @@ class NativeSassCompiler
             CURLOPT_MAXREDIRS => 5,
             CURLOPT_TIMEOUT => 120,
             CURLOPT_USERAGENT => 'Flute-CMS/2.0',
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
         ]);
 
         $data = curl_exec($ch);
@@ -396,19 +398,13 @@ class NativeSassCompiler
 
     private static function extractZip(string $zipFile, string $targetDir): bool
     {
-        if (!class_exists('ZipArchive')) {
+        try {
+            app(\Flute\Core\Support\FileUploader::class)->safeExtractZip($zipFile, $targetDir);
+
+            return true;
+        } catch (\Throwable) {
             return false;
         }
-
-        $zip = new \ZipArchive();
-        if ($zip->open($zipFile) !== true) {
-            return false;
-        }
-
-        $zip->extractTo($targetDir);
-        $zip->close();
-
-        return true;
     }
 
     private static function extractTarGz(string $tarFile, string $targetDir): bool

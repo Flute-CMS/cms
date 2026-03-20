@@ -6,9 +6,9 @@ use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\ModulesManager\ModuleManager;
+use Flute\Core\Support\FileUploader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use ZipArchive;
 
 class ModuleInstallerService
 {
@@ -133,49 +133,13 @@ class ModuleInstallerService
             throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Архив не найден');
         }
 
-        $zip = new ZipArchive();
-
-        if ($zip->open($this->moduleArchivePath) !== true) {
-            throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Не удалось открыть архив');
-        }
-
         $this->moduleExtractPath = $this->tempDir . '/extract-' . $module['slug'] . '-' . time();
 
         if (!is_dir($this->moduleExtractPath)) {
             mkdir($this->moduleExtractPath, 0o755, true);
         }
 
-        // Extract with zip-slip protection
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $entryName = $zip->getNameIndex($i);
-
-            if (
-                str_contains($entryName, '..')
-                || str_starts_with($entryName, '/')
-                || str_starts_with($entryName, '\\')
-            ) {
-                $zip->close();
-
-                throw new Exception(
-                    __('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве',
-                );
-            }
-
-            $targetPath = $this->moduleExtractPath . '/' . $entryName;
-            $realTarget = realpath(dirname($targetPath)) ?: $this->moduleExtractPath;
-            $realExtract = realpath($this->moduleExtractPath);
-
-            if ($realExtract && !str_starts_with($realTarget, $realExtract)) {
-                $zip->close();
-
-                throw new Exception(
-                    __('admin-marketplace.messages.extract_failed') . ': Обнаружена попытка обхода пути в архиве',
-                );
-            }
-        }
-
-        $zip->extractTo($this->moduleExtractPath);
-        $zip->close();
+        app(FileUploader::class)->safeExtractZip($this->moduleArchivePath, $this->moduleExtractPath);
 
         $rootDir = $this->moduleExtractPath;
         $items = scandir($this->moduleExtractPath);

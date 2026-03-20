@@ -50,6 +50,9 @@ return [
         'expires_at' => 'Expires At',
         'user' => 'User',
         'transaction_id' => 'Transaction ID',
+        'credited' => 'Credited',
+        'promo' => 'Promo code',
+        'gateway_bonus' => 'Gateway bonus',
     ],
     'buttons' => [
         'add_gateway' => 'Add Gateway',

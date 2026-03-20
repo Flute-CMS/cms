@@ -1376,7 +1376,26 @@ class TemplateAssets
 
         $host = strtolower($parsed['host'] ?? '');
 
-        return !( $host === '' || filter_var($host, FILTER_VALIDATE_IP) );
+        if ($host === '' || $host === 'localhost') {
+            return false;
+        }
+
+        // Reject raw IP addresses
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        // Resolve hostname and reject private/reserved IPs
+        $ip = gethostbyname($host);
+        if ($ip === $host) {
+            return false; // DNS resolution failed
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

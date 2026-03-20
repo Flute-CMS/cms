@@ -54,19 +54,16 @@ class PaymentPromo
             }
         }
 
-        $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
+        $currentUserId = (int) ( $userId === 0 ? user()->getCurrentUser()->id : $userId );
 
-        // Single query: count total usages and per-user usages at once
-        $usageQuery = PromoCodeUsage::query()->where('promoCode_id', $promoCode->id)->buildQuery();
-        $usageQuery->columns([
-            new \Cycle\Database\Injection\Fragment('COUNT(*) AS total_count'),
-            new \Cycle\Database\Injection\Fragment(
-                "SUM(CASE WHEN user_id = {$currentUserId} THEN 1 ELSE 0 END) AS user_count",
-            ),
-        ]);
-        $usageRow = $usageQuery->run()->fetch();
-        $totalUsages = (int) ( $usageRow['total_count'] ?? 0 );
-        $userUsageCount = (int) ( $usageRow['user_count'] ?? 0 );
+        // Count total usages
+        $totalUsages = (int) PromoCodeUsage::query()->where('promoCode_id', $promoCode->id)->count();
+
+        // Count per-user usages
+        $userUsageCount = (int) PromoCodeUsage::query()
+            ->where('promoCode_id', $promoCode->id)
+            ->where('user_id', $currentUserId)
+            ->count();
 
         if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
             throw new PaymentPromoException(__('lk.promo_limit'));

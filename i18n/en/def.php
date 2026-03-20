@@ -223,6 +223,7 @@
     "choice" => "Choice",
     "other" => "Other",
     "from" => "From",
+    "to" => "To",
     "seconds" => "seconds|second|seconds|seconds",
     "minutes" => "minutes|minute|minutes|minutes",
     "hours" => "hours|hour|hours|hours",

@@ -339,7 +339,8 @@ abstract class Table extends FluteComponent
         if (!empty($this->sortField)) {
             $column = collect($this->columns())->firstWhere('field', $this->sortField);
             if ($column && ( $column['allowSort'] ?? true )) {
-                $query->orderBy($this->sortField, $this->sortDirection);
+                $direction = strtolower($this->sortDirection) === 'desc' ? 'desc' : 'asc';
+                $query->orderBy($column['field'], $direction);
             }
         }
 

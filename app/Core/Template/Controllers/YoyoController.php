@@ -21,7 +21,7 @@ class YoyoController extends BaseController
 
             logs()->error('Error in Yoyo update: ' . $e->getMessage());
 
-            return response()->error(500, $e->getMessage());
+            return response()->error(500, __('def.unknown_error'));
         }
     }
 

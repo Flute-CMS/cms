@@ -147,6 +147,13 @@ class GitHubUpdater
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $filename = $zip->getNameIndex($i);
 
+                // Zip Slip protection
+                if (str_contains($filename, '..') || str_starts_with($filename, '/') || str_contains($filename, "\0")) {
+                    $zip->close();
+
+                    throw new FailedToExtractException($zipFile);
+                }
+
                 foreach ($foldersToExtract as $folder) {
                     $relativePath = substr($filename, strlen($rootFolder));
                     if ($folder === '*' || strpos($relativePath, $folder) === 0) {

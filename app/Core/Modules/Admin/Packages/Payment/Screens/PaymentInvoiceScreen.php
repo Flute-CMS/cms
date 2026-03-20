@@ -14,6 +14,7 @@ use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\PaymentGateway;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Throwable;
 
@@ -31,7 +32,7 @@ class PaymentInvoiceScreen extends Screen
 
     public function mount(): void
     {
-        $query = PaymentInvoice::query();
+        $query = PaymentInvoice::query()->load('promoCode')->load('currency');
 
         // Применяем фильтр статуса
         $status = request()->input('status', 'all');
@@ -45,6 +46,18 @@ class PaymentInvoiceScreen extends Screen
         $gateway = request()->input('gateway');
         if ($gateway) {
             $query->where('gateway', $gateway);
+        }
+
+        // Применяем фильтр дат
+        $dateFrom = request()->input('date_from');
+        $dateTo = request()->input('date_to');
+
+        if ($dateFrom) {
+            $query->where('createdAt', '>=', new DateTimeImmutable($dateFrom . ' 00:00:00'));
+        }
+
+        if ($dateTo) {
+            $query->where('createdAt', '<=', new DateTimeImmutable($dateTo . ' 23:59:59'));
         }
 
         // Применяем фильтр периода
@@ -92,61 +105,161 @@ class PaymentInvoiceScreen extends Screen
 
             LayoutFactory::table('invoices', [
                 TD::selection('id'),
-                // TD::make('id', __('admin-payment.table.id'))
-                //     ->sort()
-                //     ->render(fn (PaymentInvoice $invoice) => $invoice->id)
-                //     ->width('80px'),
 
-                TD::make('user_id', __('admin-payment.table.user'))
+                TD::make('user_id', __('def.user'))
                     ->sort()
                     ->render(static fn(PaymentInvoice $invoice) => view('admin-payment::cells.user-name', [
                         'user' => $invoice->user,
                     ]))
                     ->width('200px'),
 
-                TD::make('gateway', __('admin-payment.table.payment_system'))->sort()->width('200px'),
+                TD::make('gateway', __('admin-payment.table.payment_system'))
+                    ->sort()
+                    ->render(static function (PaymentInvoice $invoice) {
+                        $html = e($invoice->gateway);
+                        if ($invoice->transactionId) {
+                            $tid = e($invoice->transactionId);
+                            $short = mb_strlen($tid) > 16 ? mb_substr($tid, 0, 16) . '…' : $tid;
+                            $html .=
+                                '<br><code data-tooltip="'
+                                . $tid
+                                . '" style="font-size:11px;color:var(--text-500);cursor:help">'
+                                . $short
+                                . '</code>';
+                        }
 
-                TD::make('transactionId', __('admin-payment.table.transaction_id'))->sort()->width('200px'),
+                        return $html;
+                    }),
 
-                TD::make('amount', __('admin-payment.table.amount'))
-                    ->render(
-                        static fn(PaymentInvoice $invoice) => (
-                            number_format($invoice->originalAmount, 2)
+                TD::make('amount', __('def.amount'))
+                    ->sort()
+                    ->render(static function (PaymentInvoice $invoice) {
+                        $paymentCur = e($invoice->currency->code ?? '');
+                        $systemCur = e(config('lk.currency_view', ''));
+                        $orig = number_format($invoice->originalAmount, 2);
+                        $base = $invoice->amount;
+                        $promo = $invoice->promoCode;
+
+                        $promoBonus = 0;
+                        if ($promo && $invoice->isPaid) {
+                            $promoBonus = match ($promo->type) {
+                                'percentage' => round($invoice->originalAmount * ( $promo->value / 100 ), 2),
+                                'amount' => $promo->value,
+                                default => 0,
+                            };
+                        }
+
+                        $gateway = PaymentGateway::findOne(['adapter' => $invoice->gateway]);
+                        $gatewayBonus = 0;
+                        if ($gateway && $gateway->bonus > 0 && $invoice->isPaid) {
+                            $gatewayBonus = round($base * ( $gateway->bonus / 100 ), 2);
+                        }
+
+                        $total = $base + $promoBonus + $gatewayBonus;
+
+                        $html = '<div style="line-height:1.5">';
+                        $html .=
+                            '<span style="font-weight:600;font-size:14px">' . $orig . ' ' . $paymentCur . '</span>';
+
+                        // Base conversion
+                        $html .=
+                            '<br><span style="font-size:12px;color:var(--text-500)">'
+                            . '→ '
+                            . number_format($base, 2)
                             . ' '
-                            . $invoice->currency->code
-                        ),
-                    )
-                    ->width('150px'),
+                            . $systemCur
+                            . '</span>';
 
-                TD::make('isPaid', __('admin-payment.table.status'))
+                        // Promo bonus
+                        if ($promoBonus > 0) {
+                            $promoTip = __('admin-payment.table.promo') . ': ' . $promo->code;
+                            if ($promo->type === 'percentage') {
+                                $promoTip .= ' (' . $promo->value . '%)';
+                            } else {
+                                $promoTip .= ' (+' . number_format($promo->value, 2) . ')';
+                            }
+
+                            $html .=
+                                '<br><span data-tooltip="'
+                                . e($promoTip)
+                                . '" style="font-size:12px;color:var(--success);cursor:help">'
+                                . '+ '
+                                . number_format($promoBonus, 2)
+                                . ' '
+                                . $systemCur
+                                . ' <span class="badge accent" style="font-size:9px;vertical-align:middle">'
+                                . e($promo->code)
+                                . '</span></span>';
+                        }
+
+                        // Gateway bonus
+                        if ($gatewayBonus > 0) {
+                            $html .=
+                                '<br><span data-tooltip="'
+                                . e(__('admin-payment.table.gateway_bonus') . ' ' . $gateway->bonus . '%')
+                                . '"'
+                                . ' style="font-size:12px;color:var(--success);cursor:help">'
+                                . '+ '
+                                . number_format($gatewayBonus, 2)
+                                . ' '
+                                . $systemCur
+                                . '</span>';
+                        }
+
+                        // Total if bonuses exist
+                        if ($promoBonus > 0 || $gatewayBonus > 0) {
+                            $html .=
+                                '<br><span style="font-size:12px;font-weight:600">'
+                                . '= '
+                                . number_format($total, 2)
+                                . ' '
+                                . $systemCur
+                                . '</span>';
+                        }
+
+                        $html .= '</div>';
+
+                        return $html;
+                    }),
+
+                TD::make('isPaid', __('def.status'))
                     ->sort()
                     ->render(static fn(PaymentInvoice $invoice) => view('admin-payment::cells.invoice-status', [
                         'invoice' => $invoice,
-                    ]))
-                    ->width('150px'),
+                    ])),
 
-                TD::make('created_at', __('admin-payment.table.created'))
+                TD::make('created_at', __('def.created_at'))
                     ->sort()
                     ->defaultSort(true, 'desc')
-                    ->render(
-                        static fn(PaymentInvoice $invoice) => Carbon::parse($invoice->createdAt)
-                            ->setTimezone(config('app.timezone', 'UTC'))
-                            ->format('d.m.Y H:i:s'),
-                    )
-                    ->width('200px'),
+                    ->render(static function (PaymentInvoice $invoice) {
+                        $tz = config('app.timezone', 'UTC');
+                        $created = Carbon::parse($invoice->createdAt)->setTimezone($tz);
 
-                TD::make('paid_at', __('admin-payment.table.paid_at'))
-                    ->sort()
-                    ->render(static fn(PaymentInvoice $invoice) => $invoice->paidAt
-                        ? Carbon::parse($invoice->paidAt)
-                            ->setTimezone(config('app.timezone', 'UTC'))
-                            ->format('d.m.Y H:i:s')
-                        : '-')
-                    ->width('200px'),
+                        $html =
+                            '<span data-tooltip="'
+                            . e($created->format('d.m.Y H:i:s'))
+                            . '">'
+                            . $created->format('d.m.Y H:i')
+                            . '</span>';
 
-                TD::make('actions', __('admin-payment.table.actions'))
+                        if ($invoice->paidAt) {
+                            $paid = Carbon::parse($invoice->paidAt)->setTimezone($tz);
+                            $html .=
+                                '<br><span style="font-size:11px;color:var(--success)"'
+                                . ' data-tooltip="'
+                                . e(__('admin-payment.table.paid_at') . ': ' . $paid->format('d.m.Y H:i:s'))
+                                . '">'
+                                . '✓ '
+                                . $paid->format('d.m.Y H:i')
+                                . '</span>';
+                        }
+
+                        return $html;
+                    }),
+
+                TD::make('actions', '')
                     ->render(fn(PaymentInvoice $invoice) => $this->invoiceActionsDropdown($invoice))
-                    ->width('100px'),
+                    ->width(80),
             ])
                 ->empty(
                     'ph.regular.receipt',
@@ -387,6 +500,7 @@ class PaymentInvoiceScreen extends Screen
                 'all',
             )
             ->select('gateway', __('admin-payment.table.payment_system'), $gatewayOptions)
+            ->dateRange('date', __('def.created_at'))
             ->period('period', __('admin.filters.period'), 'all')
             ->compact();
     }

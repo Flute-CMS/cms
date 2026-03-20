@@ -223,7 +223,13 @@ class PaymentProcessor
             if ($expectedAmount > 0) {
                 if ($verifyAmount === null) {
                     logs()->warning(
-                        "Payment amount verification skipped (null) for transaction {$transactionId}, expected {$expectedAmount}",
+                        "Payment amount verification failed (null) for transaction {$transactionId}, expected {$expectedAmount}",
+                    );
+
+                    $database->rollback();
+
+                    throw new PaymentException(
+                        "Amount verification failed: gateway did not return amount for transaction {$transactionId}",
                     );
                 } else {
                     $minAllowed = max(0.0, $expectedAmount - $toleranceAbs);

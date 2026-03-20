@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Backup\Services;
 
 use Exception;
 use Flute\Core\ModulesManager\ModuleManager;
+use Flute\Core\Support\FileUploader;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
@@ -282,30 +283,33 @@ class BackupService
      */
     public function deleteBackup(string $filename, bool $isDirectory = false): bool
     {
-        if ($isDirectory) {
-            $filename = str_replace(['..', "\0"], '', $filename);
-            $path = $this->backupPath . '/' . $filename;
-            $realPath = realpath($path);
-            $realBackup = realpath($this->backupPath);
+        $safeName = basename(str_replace("\0", '', $filename));
 
-            if (!$realPath || !$realBackup || !str_starts_with($realPath, $realBackup)) {
-                throw new Exception(__('admin-backup.errors.backup_not_found'));
-            }
-
-            if (!is_dir($path)) {
-                throw new Exception(__('admin-backup.errors.backup_not_found'));
-            }
-
-            return $this->deleteDirectory($path);
-        }
-
-        $path = $this->backupPath . '/' . basename($filename);
-
-        if (!file_exists($path)) {
+        if ($safeName === '' || $safeName === '.' || $safeName === '..') {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
         }
 
-        return unlink($path);
+        $path = $this->backupPath . '/' . $safeName;
+        $realPath = realpath($path);
+        $realBackup = realpath($this->backupPath);
+
+        if (!$realPath || !$realBackup || !str_starts_with($realPath, $realBackup . DIRECTORY_SEPARATOR)) {
+            throw new Exception(__('admin-backup.errors.backup_not_found'));
+        }
+
+        if ($isDirectory) {
+            if (!is_dir($realPath)) {
+                throw new Exception(__('admin-backup.errors.backup_not_found'));
+            }
+
+            return $this->deleteDirectory($realPath);
+        }
+
+        if (!is_file($realPath)) {
+            throw new Exception(__('admin-backup.errors.backup_not_found'));
+        }
+
+        return unlink($realPath);
     }
 
     /**
@@ -313,13 +317,17 @@ class BackupService
      */
     public function getBackupPath(string $filename): string
     {
-        $path = $this->backupPath . '/' . basename($filename);
+        $safeName = basename(str_replace("\0", '', $filename));
+        $path = $this->backupPath . '/' . $safeName;
 
-        if (!file_exists($path)) {
+        $realPath = realpath($path);
+        $realBackup = realpath($this->backupPath);
+
+        if (!$realPath || !$realBackup || !str_starts_with($realPath, $realBackup . DIRECTORY_SEPARATOR)) {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
         }
 
-        return $path;
+        return $realPath;
     }
 
     /**
@@ -480,8 +488,10 @@ class BackupService
         // For single module/theme, extract to parent and rename
         if (in_array($type, ['module', 'theme'])) {
             $tempDir = sys_get_temp_dir() . '/flute_restore_' . uniqid();
-            $zip->extractTo($tempDir);
+            mkdir($tempDir, 0o755, true);
             $zip->close();
+
+            app(FileUploader::class)->safeExtractZip($zipPath, $tempDir);
 
             // Find the extracted folder
             $extractedDirs = glob($tempDir . '/*', GLOB_ONLYDIR);
@@ -501,31 +511,9 @@ class BackupService
             $this->deleteDirectory($tempDir);
         } else {
             // For full/cms/modules/themes - extract with zip-slip protection
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $entryName = $zip->getNameIndex($i);
-
-                if (
-                    str_contains($entryName, '..')
-                    || str_starts_with($entryName, '/')
-                    || str_starts_with($entryName, '\\')
-                ) {
-                    $zip->close();
-
-                    throw new Exception(__('admin-backup.errors.path_traversal_detected'));
-                }
-
-                $fullPath = realpath($destination) . DIRECTORY_SEPARATOR . $entryName;
-                $realDest = realpath($destination);
-
-                if ($realDest && !str_starts_with(dirname($fullPath), $realDest)) {
-                    $zip->close();
-
-                    throw new Exception(__('admin-backup.errors.path_traversal_detected'));
-                }
-            }
-
-            $zip->extractTo($destination);
             $zip->close();
+
+            app(FileUploader::class)->safeExtractZip($zipPath, $destination);
         }
     }
 

@@ -163,7 +163,7 @@ class FluteValidator
             } elseif (strpos($search, '!') === 0 && $replace) {
                 $pattern = substr($search, 1);
                 $replacement = substr($replace, -1) !== self::WILD ? '$1' : '$2';
-                $message = preg_replace("/{$pattern}/", $replacement, $message);
+                $message = preg_replace('/' . preg_quote($pattern, '/') . '/', $replacement, $message);
             } else {
                 $message = str_replace($search, $replace, $message);
             }

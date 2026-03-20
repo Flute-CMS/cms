@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Flute\Core\Services;
 
+use Flute\Core\Support\FileUploader;
 use PharData;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -139,6 +140,8 @@ class IoncubeService
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_TIMEOUT, 120);
             curl_setopt($ch, CURLOPT_USERAGENT, 'FluteCMS/ioncube-downloader');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
             $ok = curl_exec($ch);
             $err = curl_error($ch);
@@ -176,12 +179,12 @@ class IoncubeService
         $fs->mkdir($outDir);
 
         if (str_ends_with($lower, '.zip') && class_exists(ZipArchive::class)) {
-            $zip = new ZipArchive();
-            if ($zip->open($archivePath) === true) {
-                $zip->extractTo($outDir);
-                $zip->close();
+            try {
+                app(FileUploader::class)->safeExtractZip($archivePath, $outDir);
 
                 return $outDir;
+            } catch (Throwable) {
+                // Fall through to other extraction methods
             }
         }
 

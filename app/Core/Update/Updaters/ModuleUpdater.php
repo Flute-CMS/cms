@@ -7,7 +7,7 @@ use Flute\Core\Composer\ComposerManager;
 use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
-use ZipArchive;
+use Flute\Core\Support\FileUploader;
 
 class ModuleUpdater extends AbstractUpdater
 {
@@ -160,15 +160,13 @@ class ModuleUpdater extends AbstractUpdater
      */
     protected function extractModuleArchive(string $packageFile, string $extractDir)
     {
-        $zip = new ZipArchive();
-        if ($zip->open($packageFile) !== true) {
-            logs()->error('Failed to open module update package: ' . $packageFile);
+        try {
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+        } catch (Exception $e) {
+            logs()->error('Failed to extract module update package: ' . $e->getMessage());
 
             return false;
         }
-
-        $zip->extractTo($extractDir);
-        $zip->close();
 
         $rootDir = $extractDir;
         $items = scandir($extractDir);

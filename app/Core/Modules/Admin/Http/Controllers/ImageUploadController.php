@@ -37,9 +37,11 @@ class ImageUploadController extends BaseController
                 'url' => (string) url($path),
             ]);
         } catch (Exception $e) {
+            logs()->error('Image upload failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
+                'message' => __('def.upload_error'),
             ], 400);
         }
     }

@@ -4,7 +4,7 @@ namespace Flute\Core\Update\Updaters;
 
 use Exception;
 use Flute\Core\Database\Entities\Theme;
-use ZipArchive;
+use Flute\Core\Support\FileUploader;
 
 class ThemeUpdater extends AbstractUpdater
 {
@@ -72,15 +72,13 @@ class ThemeUpdater extends AbstractUpdater
         }
 
         // Распаковываем архив
-        $zip = new ZipArchive();
-        if ($zip->open($packageFile) !== true) {
-            logs()->error('Failed to open theme update package: ' . $packageFile);
+        try {
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+        } catch (Exception $e) {
+            logs()->error('Failed to extract theme update package: ' . $e->getMessage());
 
             return false;
         }
-
-        $zip->extractTo($extractDir);
-        $zip->close();
 
         // Определяем корневую директорию в архиве, может содержать один корневой каталог
         $rootDir = $extractDir;
