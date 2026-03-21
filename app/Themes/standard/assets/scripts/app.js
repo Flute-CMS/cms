@@ -1023,10 +1023,7 @@ class NotificationManager {
     _reloadLists() {
         document.querySelectorAll('[data-notification-list]').forEach(list => {
             if (typeof htmx !== 'undefined' && list.hasAttribute('hx-get')) {
-                // Only reload visible list, mark hidden for reload on next switch
-                if (list.style.display !== 'none') {
-                    htmx.trigger(list, 'load');
-                }
+                htmx.trigger(list, 'load');
             }
         });
         this.updateBadges();
@@ -1177,9 +1174,8 @@ class NotificationManager {
 
                 if (hasNew) {
                     this.playNotificationSound();
+                    this._reloadLists();
                 }
-
-                if (this.isOpen) this._reloadLists();
             })
             .catch(() => {});
     }
@@ -1391,6 +1387,39 @@ class TooltipManager {
 
         htmx.on("htmx:beforeSwap", () => {
             this.hideAllTooltips();
+        });
+
+        // Close all portaled dropdowns/popups on page swap to prevent orphaned elements
+        htmx.on("htmx:beforeSwap", (event) => {
+            if (event.detail.target && event.detail.target.tagName && event.detail.target.tagName.toLowerCase() === "main") {
+                // Close data-dropdown elements (DropdownManager)
+                this.dropdowns.closeAllDropdowns(true);
+
+                // Close profile dropdown (ProfileDropdownManager)
+                if (typeof profileDropdown !== "undefined" && profileDropdown) {
+                    profileDropdown.closeDropdown();
+                    profileDropdown.restoreToParent();
+                }
+
+                // Close navbar morph dropdown (NavbarMorphDropdown)
+                if (typeof navbarMorphDropdown !== "undefined" && navbarMorphDropdown) {
+                    navbarMorphDropdown.cancelClose();
+                    if (navbarMorphDropdown.dropdown) {
+                        navbarMorphDropdown.dropdown.classList.remove("is-open");
+                        navbarMorphDropdown.contents?.forEach(c => c.classList.remove("is-active"));
+                    }
+                    if (navbarMorphDropdown.navbar) {
+                        navbarMorphDropdown.navbar.classList.remove("dropdown-open");
+                    }
+                    navbarMorphDropdown.triggers?.forEach(t => t.classList.remove("is-active"));
+                    navbarMorphDropdown.isOpen = false;
+                    navbarMorphDropdown.activeId = null;
+                    navbarMorphDropdown.resetDropdownPosition();
+                    navbarMorphDropdown.restoreFromPortal();
+                }
+
+                document.body.classList.remove("no-scroll");
+            }
         });
 
         document.addEventListener("visibilitychange", () => {
@@ -2011,10 +2040,37 @@ class DropdownManager {
         }
     }
 
-    closeAllDropdowns() {
+    closeAllDropdowns(immediate = false) {
         $("[data-dropdown].active").each((_, element) => {
-            this.closeDropdown($(element));
+            if (immediate) {
+                this.closeDropdownImmediate($(element));
+            } else {
+                this.closeDropdown($(element));
+            }
         });
+    }
+
+    closeDropdownImmediate($menu) {
+        if (!$menu || !$menu.length) return;
+
+        try {
+            $menu.removeClass("active").hide();
+
+            const cleanup = $menu.data("autoUpdateCleanup");
+            if (cleanup && typeof cleanup === "function") {
+                cleanup();
+                $menu.removeData("autoUpdateCleanup");
+            }
+
+            const $originalParent = $menu.data("originalParent");
+            if ($originalParent && $originalParent.length && $.contains(document, $originalParent[0])) {
+                $menu.appendTo($originalParent);
+            }
+            $menu.removeData("originalParent");
+        } catch (error) {
+            console.error("Error closing dropdown:", error);
+            $menu.hide();
+        }
     }
 }
 

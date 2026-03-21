@@ -1,7 +1,9 @@
 php-version = "8.2"
 
 [source]
-paths = ["app/Core", "app/Modules"]
+paths = ["app/Core"]
+# To analyse custom modules too, run:
+#   vendor/bin/mago analyze app/Modules
 excludes = [
     "app/Core/Database/Entities",
     "app/**/views/**/*.blade.php",
