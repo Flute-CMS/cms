@@ -56,4 +56,8 @@
         "csv" => "CSV file",
         "excel" => "Excel file",
     ],
+    "empty" => [
+        "title" => "No data",
+        "description" => "There is no data to display yet.",
+    ],
 ];

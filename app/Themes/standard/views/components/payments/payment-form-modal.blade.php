@@ -80,7 +80,7 @@
 
                     <div class="steps-content">
                         {{-- Step 1: Amount --}}
-                        <div class="step-panel active" id="steps__lk-amount">
+                        <div class="step-panel active" id="steps__lk-amount" data-steps-validate="validateLkAmount">
                             @if (!$singleCurrency)
                                 <div class="lk-currency-bar" role="radiogroup"
                                     aria-label="{{ __('lk.select_currency') }}">
@@ -122,7 +122,7 @@
                         </div>
 
                         {{-- Step 2: Payment method --}}
-                        <div class="step-panel" id="steps__lk-method">
+                        <div class="step-panel" id="steps__lk-method" data-steps-validate="validateLkMethod">
                             @foreach ($currencyGateways as $currCode => $gateways)
                                 @php $isCurrent = $currCode === $currency; @endphp
                                 <div class="lk-gw-grid {{ count($gateways) === 1 ? 'is-single' : '' }}"

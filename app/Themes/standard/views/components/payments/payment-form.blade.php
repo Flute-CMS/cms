@@ -80,7 +80,7 @@
 
                     <div class="steps-content">
                         {{-- Step 1: Amount --}}
-                        <div class="step-panel active" id="steps__lk-amount">
+                        <div class="step-panel active" id="steps__lk-amount" data-steps-validate="validateLkAmount">
                             <section class="lk-card">
                                 <div class="lk-card__head">
                                     <div class="lk-card__title">
@@ -129,7 +129,7 @@
                         </div>
 
                         {{-- Step 2: Payment method --}}
-                        <div class="step-panel" id="steps__lk-method">
+                        <div class="step-panel" id="steps__lk-method" data-steps-validate="validateLkMethod">
                             <section class="lk-card">
                                 <div class="lk-card__head">
                                     <div class="lk-card__title">

@@ -34,6 +34,9 @@ return [
             'label' => 'Author',
             'placeholder' => 'Enter theme author',
         ],
+        'url' => [
+            'label' => 'URL',
+        ],
     ],
     'buttons' => [
         'save' => 'Save',
@@ -49,6 +52,7 @@ return [
         'active' => 'Active',
         'inactive' => 'Inactive',
         'not_installed' => 'Not Installed',
+        'unknown' => 'Unknown',
     ],
     'confirms' => [
         'delete' => 'Are you sure you want to delete this theme?',
@@ -69,5 +73,10 @@ return [
         'enable_error' => 'Error enabling theme: :message',
         'disable_success' => 'Theme disabled successfully.',
         'disable_error' => 'Error disabling theme: :message',
+    ],
+    'modals' => [
+        'details' => [
+            'title' => 'Theme Details',
+        ],
     ],
 ];

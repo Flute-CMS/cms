@@ -5,7 +5,8 @@
  * - HTMX integration: lazy-load step panels via hx-get
  * - Keyboard: arrow keys, Home/End
  * - Navigation: data-steps-next / data-steps-prev buttons
- * - Events dispatched: steps:change, steps:complete
+ * - Validation: data-steps-validate on step-panel (HTML5 + custom)
+ * - Events dispatched: steps:change, steps:complete, steps:before-change
  */
 
 (() => {
@@ -94,6 +95,86 @@
         });
     };
 
+    // ---- Built-in validation ----
+
+    /**
+     * Shake a field wrapper to indicate an error.
+     * Looks for closest [data-field], .input-wrapper, or .form-field parent.
+     */
+    const shakeEl = (el) => {
+        if (!el) return;
+        const wrapper = el.closest('[data-field], .input-wrapper, .form-field') || el.parentElement;
+        if (!wrapper) return;
+        wrapper.classList.add('steps-field--error');
+        setTimeout(() => wrapper.classList.remove('steps-field--error'), 1500);
+    };
+
+    /**
+     * Validate a step panel before leaving it (moving forward).
+     * Supports two modes:
+     *
+     * 1. HTML5 mode (data-steps-validate without value):
+     *    Checks all inputs with [required], respects minlength/maxlength/pattern.
+     *    Shows toast from data-steps-error attribute on the input.
+     *
+     * 2. Custom mode (data-steps-validate="functionName"):
+     *    Calls window[functionName](panel) which must return:
+     *      - true  → valid
+     *      - false → invalid (no toast, consumer handles it)
+     *      - string → invalid, string is used as toast error message
+     *
+     * @returns {boolean} true if valid or no validation needed
+     */
+    const validatePanel = (panel) => {
+        if (!panel) return true;
+
+        const attr = panel.getAttribute('data-steps-validate');
+        if (attr === null) return true; // no validation
+
+        // Custom validator function
+        if (attr && attr !== '' && attr !== 'true') {
+            const fn = window[attr];
+            if (typeof fn === 'function') {
+                const result = fn(panel);
+                if (result === true) return true;
+                if (typeof result === 'string' && result) {
+                    if (typeof toast === 'function') toast(result, 'error');
+                }
+                return false;
+            }
+        }
+
+        // HTML5 constraint validation
+        const inputs = panel.querySelectorAll('input[required], textarea[required], select[required]');
+        let firstInvalid = null;
+
+        for (let i = 0; i < inputs.length; i++) {
+            const input = inputs[i];
+            // Skip hidden/disabled
+            if (input.disabled || input.type === 'hidden') continue;
+            // Check if closest step-panel is this panel (not nested)
+            if (input.closest('.step-panel') !== panel) continue;
+
+            if (!input.checkValidity()) {
+                shakeEl(input);
+                if (!firstInvalid) firstInvalid = input;
+
+                // Show error toast from data-steps-error attribute
+                const msg = input.getAttribute('data-steps-error');
+                if (msg && typeof toast === 'function') {
+                    toast(msg, 'error');
+                }
+            }
+        }
+
+        if (firstInvalid) {
+            firstInvalid.focus();
+            return false;
+        }
+
+        return true;
+    };
+
     // ---- Core: activate step ----
 
     const activateStep = (container, targetItem, options) => {
@@ -123,6 +204,18 @@
 
         const stepId = targetItem.getAttribute('data-step-id');
         const stepsId = getStepsId(container);
+
+        // Built-in validation: validate current panel when moving forward
+        const movingForward = targetIdx > activeIdx;
+        if (movingForward && !options.force) {
+            const activeItem = activeIdx >= 0 ? items[activeIdx] : null;
+            const activeStepId = activeItem?.getAttribute('data-step-id');
+            const activePanel = activeStepId ? getStepPanel(container, activeStepId) : null;
+
+            if (!validatePanel(activePanel)) {
+                return false;
+            }
+        }
 
         // Dispatch cancelable before-change event
         const beforeEvent = new CustomEvent('steps:before-change', {
@@ -356,7 +449,7 @@
             const item = container.querySelector(
                 `.step-item[data-step-heading="${stepName}"]`,
             );
-            return activateStep(container, item);
+            return activateStep(container, item, { force: true });
         },
 
         goToIndex(container, index) {

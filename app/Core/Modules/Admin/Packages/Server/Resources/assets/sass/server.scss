@@ -1,3 +1,271 @@
+// ─── Rank Pack Select Option ───
+.rank-pack-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+
+    &__name {
+        font-weight: 500;
+    }
+
+    &__previews {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2xs);
+
+        img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+    }
+}
+
+// ─── Ranks Card ───
+.ranks-card {
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        padding: var(--space-md);
+        border: 1px solid var(--transp-1);
+        border-radius: var(--border05);
+        background: var(--background);
+    }
+
+    &__title {
+        font-size: var(--p);
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    &__desc {
+        font-size: var(--small);
+        color: var(--text-400);
+        margin-top: var(--space-2xs);
+    }
+
+    &__toggle {
+        flex-shrink: 0;
+    }
+
+    &__preview-inline {
+        padding: var(--space-md);
+        border: 1px solid var(--transp-1);
+        border-radius: var(--border05);
+        background: var(--background);
+    }
+
+    &__preview-label {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-400);
+        margin-bottom: var(--space-sm);
+    }
+
+    &__preview-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+
+    &__premier-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    &__premier-range {
+        font-size: var(--small);
+        color: var(--text-400);
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// ─── Premier Rank Badges (preview) ───
+.ranks-card__preview-inline .premier-rank {
+    font-weight: 700;
+    padding: 2px 4px 2px 10px;
+    transform: skewX(-10deg);
+    display: inline-block;
+    width: 64px;
+    height: 22px;
+    line-height: 18px;
+    text-align: center;
+    font-size: 11px;
+    position: relative;
+    flex-shrink: 0;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 3px;
+    }
+
+    &::before {
+        left: 5px;
+    }
+
+    &::after {
+        left: 0;
+    }
+
+    &.gray-rank {
+        background: #2f2f2f;
+        color: #a0a0a0;
+
+        &::before,
+        &::after {
+            background: #a0a0a0;
+        }
+    }
+
+    &.wblue-rank {
+        background: #1a2f4f;
+        color: #b3c9ff;
+
+        &::before,
+        &::after {
+            background: #b3c9ff;
+        }
+    }
+
+    &.blue-rank {
+        background: #1f2758;
+        color: #697ce9;
+
+        &::before,
+        &::after {
+            background: #697ce9;
+        }
+    }
+
+    &.purple-rank {
+        background: #422158;
+        color: #ba69f2;
+
+        &::before,
+        &::after {
+            background: #ba69f2;
+        }
+    }
+
+    &.pink-rank {
+        background: #5a005e;
+        color: #df16ec;
+
+        &::before,
+        &::after {
+            background: #df16ec;
+        }
+    }
+
+    &.red-rank {
+        background: #590c03;
+        color: #ec4143;
+
+        &::before,
+        &::after {
+            background: #ec4143;
+        }
+    }
+
+    &.gold-rank {
+        background: #4c3900;
+        color: #fdd608;
+
+        &::before,
+        &::after {
+            background: #fdd608;
+        }
+    }
+}
+
+// ─── Rank Upload ───
+.rank-upload {
+    position: relative;
+    border-top: 1px solid var(--transp-1);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+
+    &:hover,
+    &.is-dragover {
+        .rank-upload__icon {
+            color: var(--accent);
+        }
+    }
+
+    input[type='file'] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 1;
+    }
+
+    &__info {
+        flex: 1;
+        min-width: 0;
+
+        strong {
+            display: block;
+            font-size: var(--p-small);
+            font-weight: 500;
+        }
+
+        span {
+            font-size: var(--small);
+            color: var(--text-400);
+        }
+    }
+
+    &__icon {
+        font-size: var(--h6);
+        color: var(--text-400);
+        flex-shrink: 0;
+        transition: color var(--transition);
+    }
+
+    &__btn {
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+
+        &:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    }
+
+    &.is-uploading {
+        pointer-events: none;
+    }
+
+    &__spinner {
+        display: block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--transp-2);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: rank-spin 0.6s linear infinite;
+    }
+}
+
+@keyframes rank-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .cron-warning__desc {
     margin: 4px 0 var(--space-sm);
 }

@@ -92,4 +92,5 @@
     "step_confirm" => "Подтверждение",
     "step_next" => "Далее",
     "step_back" => "Назад",
+    "promo_invalid_percentage" => "Некорректный процент скидки промокода",
 ];

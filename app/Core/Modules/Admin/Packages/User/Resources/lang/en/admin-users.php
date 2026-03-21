@@ -167,6 +167,7 @@ return [
         'terminate_session' => 'Are you sure you want to terminate this session?',
         'delete_social' => 'Are you sure you want to delete this social network?',
         'unblock_user' => 'Are you sure you want to unblock the user?',
+        'delete_social_network' => 'Are you sure you want to delete this social network?',
     ],
     'modals' => [
         'block_user' => [
@@ -211,6 +212,8 @@ return [
         'no_email' => 'User has no email address.',
         'pending_email_applied' => 'New email applied successfully.',
         'pending_email_cancelled' => 'Email change cancelled.',
+        'no_permission_reset_password' => 'You do not have permission to reset passwords.',
+        'password_reset_success' => 'Password reset successfully.',
     ],
     'status' => [
         'forever' => 'Forever',

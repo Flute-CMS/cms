@@ -209,6 +209,7 @@ return [
         'yandex_server_key' => 'Введите серверный ключ Yandex SmartCaptcha',
         'default_role_placeholder' => 'Без роли',
         'two_factor_issuer' => 'напр. Мой сайт',
+        'remember_me_duration' => 'напр. 43200',
     ],
     'buttons' => [
         'clear_cache' => 'Очистить кеш',
@@ -374,6 +375,7 @@ return [
         'robots' => 'Индексация сайта в поисковых системах',
         'keywords' => 'Пример: public, myproject, cs2',
         'prefix' => 'Ввод префикса является НЕОБЯЗАТЕЛЬНЫМ. Система сама найдет префиксы если нужно.',
+        'db_prefix' => 'напр. flute_',
     ],
     'modals' => [
         'add_database' => 'Добавить новую базу данных',

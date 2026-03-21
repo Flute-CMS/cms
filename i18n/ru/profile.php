@@ -87,6 +87,7 @@ return [
                 'save_changes_success' => 'Пароль успешно изменен.',
                 'current_password_incorrect' => 'Неверный текущий пароль.',
                 'passwords_do_not_match' => 'Пароли не совпадают.',
+                'login_and_email_required' => 'Логин и email обязательны для установки пароля.',
             ],
 
             'delete_account' => [
@@ -268,4 +269,13 @@ return [
         'unban_confirm' => 'Вы уверены, что хотите разблокировать этого пользователя?',
         'clear_sessions_confirm' => 'Вы уверены, что хотите сбросить все сессии этого пользователя?',
     ],
+    'errors' => [
+        'social_binded' => 'Эта социальная сеть уже привязана к другому аккаунту.',
+        'social_delay' => 'Подождите перед повторной привязкой социальной сети.',
+    ],
+    'banner_alt' => 'Баннер профиля :name',
+    'avatar_alt' => 'Аватар :name',
+    'social_networks' => 'Социальные сети',
+    'visit_social' => 'Перейти в :network',
+    'profile_tabs' => 'Вкладки профиля',
 ];

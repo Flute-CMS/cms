@@ -102,4 +102,10 @@ return [
         "alert_enable" => "Enable Now",
         "alert_dismiss" => "Maybe Later",
     ],
+    "too_many_requests" => "Too many requests. Please try again later.",
+    "register_success" => "Registration successful!",
+    "login_to_access" => "Log in to access this page.",
+    "errors" => [
+        "social_binded" => "This social network is already linked to another account.",
+    ],
 ];

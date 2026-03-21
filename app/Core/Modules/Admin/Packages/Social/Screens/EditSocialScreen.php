@@ -57,6 +57,12 @@ class EditSocialScreen extends Screen
     {
         $this->id = (int) request()->attributes->get('id');
 
+        // Read driverKey from request (sent by Yoyo select on change)
+        $requestDriverKey = request()->input('driverKey');
+        if (is_array($requestDriverKey)) {
+            $requestDriverKey = $requestDriverKey[0] ?? null;
+        }
+
         if ($this->id) {
             $this->social = rep(SocialNetwork::class)->findByPK($this->id);
 
@@ -75,9 +81,7 @@ class EditSocialScreen extends Screen
 
             $this->name = __('admin-social.title.edit', ['name' => $this->social->key]);
 
-            if (!$this->driverKey) {
-                $this->driverKey = $this->social->key;
-            }
+            $this->driverKey = $requestDriverKey ?: $this->social->key;
         } else {
             breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
                 __('admin-social.title.social'),
@@ -85,6 +89,7 @@ class EditSocialScreen extends Screen
             )->add(__('admin-social.title.create'));
 
             $this->name = __('admin-social.title.create');
+            $this->driverKey = $requestDriverKey;
         }
     }
 

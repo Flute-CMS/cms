@@ -129,5 +129,6 @@ return [
         'module_not_found' => 'Module not found',
         'flute_key_not_set' => 'Flute API key is not set. Please set it in the main settings.',
         'refresh_success' => 'Modules refreshed successfully',
+        'rollback_success' => 'Module rolled back successfully',
     ],
 ];

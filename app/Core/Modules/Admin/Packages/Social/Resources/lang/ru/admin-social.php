@@ -13,6 +13,7 @@ return [
         'registration' => 'Регистрация',
         'status' => 'Статус',
         'actions' => 'Действия',
+        'allow_register' => 'Регистрация',
     ],
     'fields' => [
         'icon' => [
@@ -43,6 +44,9 @@ return [
         ],
         'client_secret' => [
             'label' => 'Client Secret',
+        ],
+        'enabled' => [
+            'label' => 'Включено',
         ],
     ],
     'buttons' => [

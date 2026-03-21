@@ -204,4 +204,17 @@ return [
             'card_text'  => 'Мы завершим настройку и подготовим сайт к первым посетителям.',
         ],
     ],
+    'customize' => [
+        'languages_heading'   => 'Выбор языка',
+        'languages_subtitle'  => 'Выберите язык для вашего сайта.',
+        'current_language'    => 'текущий',
+        'modules_heading'     => 'Модули',
+        'modules_subtitle'    => 'Выберите модули для установки вместе с сайтом.',
+        'modules_no_key'      => 'API-ключ не задан',
+        'modules_no_key_desc' => 'Настройте API-ключ Flute в настройках, чтобы просматривать доступные модули.',
+        'modules_search'      => 'Поиск модулей...',
+        'recommended'         => 'Рекомендуемые',
+        'modules_not_found'   => 'Модули не найдены.',
+        'modules_empty'       => 'Нет доступных модулей.',
+    ],
 ];

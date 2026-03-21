@@ -271,7 +271,7 @@ $step-connector-thickness: 2px;
 .steps-content {
     position: relative;
 
-    > .step-panel {
+    >.step-panel {
         display: none;
 
         &.active {
@@ -481,6 +481,34 @@ $step-connector-thickness: 2px;
 
     .step-item:not(.active):not(.is-disabled):not(.is-locked) .step-item__trigger:hover {
         background: var(--transp-1);
+    }
+}
+
+.steps-field--error {
+    animation: stepShake 0.3s ease;
+
+    .input__field-container,
+    .input__field,
+    textarea.input {
+        border-color: var(--error) !important;
+    }
+}
+
+@keyframes stepShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-4px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(4px);
     }
 }
 

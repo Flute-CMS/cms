@@ -109,6 +109,7 @@ return [
         'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
         'default_theme' => 'Default Theme',
         'default_role' => 'Default Registration Role',
+        'no_role' => 'No role',
         'two_factor_enabled' => 'Enable Two-Factor Authentication',
         'two_factor_force' => 'Force 2FA for All Users',
         'two_factor_issuer' => '2FA Issuer Name',
@@ -210,6 +211,7 @@ return [
         'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
         'default_role_placeholder' => 'No role',
         'two_factor_issuer' => 'e.g. My Website',
+        'remember_me_duration' => 'e.g. 43200',
     ],
 
     'buttons' => [
@@ -382,6 +384,7 @@ return [
         'robots' => 'Site indexing in search engines',
         'keywords' => 'Example: public, myproject, cs2',
         'prefix' => 'Entering a prefix is OPTIONAL. The system will find prefixes automatically if needed.',
+        'db_prefix' => 'e.g. flute_',
     ],
 
     'modals' => [

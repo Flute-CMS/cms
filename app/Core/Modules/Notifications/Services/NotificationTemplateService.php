@@ -510,9 +510,21 @@ class NotificationTemplateService
             'push' => [
                 'name' => __('admin-notifications.channels.push'),
                 'icon' => 'ph.bold.device-mobile-bold',
-                'enabled' => false, // Placeholder
+                'enabled' => $this->isPushServiceAvailable(),
             ],
         ];
+    }
+
+    /**
+     * Check if push notification service is available.
+     */
+    protected function isPushServiceAvailable(): bool
+    {
+        try {
+            return app()->has('push.service');
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -636,12 +648,21 @@ class NotificationTemplateService
     }
 
     /**
-     * Send push notification.
+     * Send push notification via registered push service.
      */
     protected function sendPush(NotificationTemplate $template, User $user, array $data): void
     {
-        // Implementation depends on push notification service
-        // This is a placeholder for future implementation
+        try {
+            $pushService = app('push.service');
+            $pushService->sendToUser(
+                $user,
+                $template->getParsedTitle($data),
+                $template->getParsedContent($data),
+                $template->icon,
+            );
+        } catch (Throwable) {
+            // Push service not available or send failed
+        }
     }
 
     /**

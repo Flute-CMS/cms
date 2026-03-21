@@ -167,6 +167,7 @@ return [
         'terminate_session' => 'Вы уверены, что хотите завершить эту сессию?',
         'delete_social' => 'Вы уверены, что хотите удалить эту социальную сеть?',
         'unblock_user' => 'Вы уверены, что хотите разблокировать пользователя?',
+        'delete_social_network' => 'Вы уверены, что хотите удалить эту социальную сеть?',
     ],
     'modals' => [
         'block_user' => [
@@ -211,6 +212,8 @@ return [
         'no_email' => 'У пользователя нет email-адреса.',
         'pending_email_applied' => 'Новый email успешно применён.',
         'pending_email_cancelled' => 'Смена email отменена.',
+        'no_permission_reset_password' => 'У вас нет прав для сброса паролей.',
+        'password_reset_success' => 'Пароль успешно сброшен.',
     ],
     'status' => [
         'forever' => 'Навсегда',

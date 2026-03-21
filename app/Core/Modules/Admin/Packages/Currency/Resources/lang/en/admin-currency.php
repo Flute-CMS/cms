@@ -68,6 +68,7 @@ return [
         'default_currency_delete' => 'Cannot delete the default currency.',
         'no_permission.manage' => 'You do not have permission to manage currencies.',
         'no_permission.delete' => 'You do not have permission to delete currencies.',
+        'invalid_payment_gateways' => 'One or more selected payment gateways are invalid.',
     ],
 
     'empty' => [

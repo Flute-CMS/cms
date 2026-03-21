@@ -92,6 +92,7 @@ return [
         ],
         'image' => [
             'label' => 'Изображение',
+            'placeholder' => 'Введите URL изображения',
         ],
         'description' => [
             'label' => 'Описание',

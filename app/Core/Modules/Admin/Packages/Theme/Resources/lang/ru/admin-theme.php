@@ -34,6 +34,9 @@ return [
             'label' => 'Автор',
             'placeholder' => 'Введите автора шаблона',
         ],
+        'url' => [
+            'label' => 'URL',
+        ],
     ],
     'buttons' => [
         'save' => 'Сохранить',
@@ -49,6 +52,7 @@ return [
         'active' => 'Активно',
         'inactive' => 'Неактивно',
         'not_installed' => 'Не установлен',
+        'unknown' => 'Неизвестно',
     ],
     'confirms' => [
         'delete' => 'Вы уверены, что хотите удалить этот шаблон?',
@@ -69,5 +73,10 @@ return [
         'enable_error' => 'Ошибка при включении: :message',
         'disable_success' => 'Шаблон успешно отключен.',
         'disable_error' => 'Ошибка при отключении: :message',
+    ],
+    'modals' => [
+        'details' => [
+            'title' => 'Детали шаблона',
+        ],
     ],
 ];

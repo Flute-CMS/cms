@@ -92,4 +92,5 @@
     "step_confirm"            => "Confirmation",
     "step_next"               => "Next",
     "step_back"               => "Back",
+    "promo_invalid_percentage" => "Invalid promo code discount percentage",
 ];

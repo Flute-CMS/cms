@@ -587,6 +587,7 @@ class SocialService implements SocialServiceInterface
             'Hybridauth\\Provider\\Yandex' => $hybridPath . DIRECTORY_SEPARATOR . 'Yandex.php',
             'Hybridauth\\Provider\\HttpsSteam' => $hybridPath . DIRECTORY_SEPARATOR . 'HttpsSteam.php',
             'Hybridauth\\Provider\\Telegram' => $hybridPath . DIRECTORY_SEPARATOR . 'Telegram.php',
+            'Hybridauth\\Provider\\Minecraft' => $hybridPath . DIRECTORY_SEPARATOR . 'Minecraft.php',
         ]);
 
         $loader->register();

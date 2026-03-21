@@ -42,3 +42,4 @@ tools/tiptap-build/node_modules/
 /public/meta.json
 reference/
 mago-baseline
+storage/app/vapid_keys.json

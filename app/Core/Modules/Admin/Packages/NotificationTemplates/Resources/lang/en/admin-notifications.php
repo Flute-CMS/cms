@@ -25,6 +25,8 @@ return [
         'blocks' => [
             'recipients' => 'Recipients',
             'recipients_description' => 'Choose who will receive the notification',
+            'channels' => 'Delivery channels',
+            'channels_description' => 'Choose how to deliver the notification',
             'content' => 'Notification',
             'content_description' => 'Configure the notification message',
         ],

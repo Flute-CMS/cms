@@ -81,6 +81,8 @@ class ServerEditScreen extends Screen
             __('admin-server.title.list'),
             url('/admin/servers'),
         )->add($this->serverId ? $this->server->name : __('admin-server.title.create'));
+
+        $this->loadJS('app/Core/Modules/Admin/Packages/Server/Resources/assets/js/rank-upload.js');
     }
 
     /**
@@ -479,6 +481,27 @@ class ServerEditScreen extends Screen
             } else {
                 $this->flashMessage(__('admin-server.messages.server_updated'), 'success');
             }
+        } catch (Exception $e) {
+            $this->flashMessage($e->getMessage(), 'error');
+        }
+    }
+
+    /**
+     * Upload custom rank pack archive.
+     */
+    public function uploadRankPack()
+    {
+        $file = request()->files->get('ranks_archive');
+
+        if (!$file || !$file->isValid()) {
+            $this->flashMessage(__('admin-server.ranks_upload.no_file'), 'error');
+
+            return;
+        }
+
+        try {
+            $packName = $this->serversService->uploadRankPack($file);
+            $this->flashMessage(__('admin-server.ranks_upload.success', ['name' => $packName]), 'success');
         } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
@@ -1004,6 +1027,35 @@ class ServerEditScreen extends Screen
             : $this->getMainLayout($canEditServer);
     }
 
+    private function getCurrentRankPack(): string
+    {
+        return request()->input('ranks') ?? $this->server?->ranks ?? 'default';
+    }
+
+    private function getCurrentRankFormat(): string
+    {
+        $rankPack = $this->getCurrentRankPack();
+        $fromRequest = request()->input('ranks');
+
+        // If rank pack was just changed via Yoyo, auto-detect best format
+        if ($fromRequest !== null) {
+            return $this->serversService->detectBestFormat(path('public/assets/img/ranks/' . $rankPack));
+        }
+
+        return $this->server?->ranks_format ?? 'webp';
+    }
+
+    private function isPremierRanks(): bool
+    {
+        $fromRequest = request()->input('ranks_premier');
+
+        if ($fromRequest !== null) {
+            return filter_var($fromRequest, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return (bool) ( $this->server?->ranks_premier ?? false );
+    }
+
     private function getMainLayout(bool $canEditServer)
     {
         $fields = [
@@ -1066,40 +1118,43 @@ class ServerEditScreen extends Screen
                     ->small(__('admin-server.fields.display_ip.help')),
             ]),
 
-            LayoutFactory::columns([
-                LayoutFactory::field(
-                    Select::make('ranks')
-                        ->options($this->serversService->getListRanks())
-                        ->value($this->server?->ranks ?? 'default')
-                        ->placeholder(__('admin-server.fields.ranks.placeholder')),
-                )
-                    ->label(__('admin-server.fields.ranks.label'))
-                    ->small(__('admin-server.fields.ranks.help'))
-                    ->required(),
-
-                LayoutFactory::field(
-                    Select::make('ranks_format')
-                        ->options($this->ranksFormats)
-                        ->aligned()
-                        ->value($this->server?->ranks_format ?? 'webp')
-                        ->placeholder(__('admin-server.fields.ranks_format.placeholder')),
-                )
-                    ->label(__('admin-server.fields.ranks_format.label'))
-                    ->small(__('admin-server.fields.ranks_format.help'))
-                    ->required(),
-
-                LayoutFactory::field(
-                    ButtonGroup::make('ranks_premier')
-                        ->options([
-                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
-                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.crown-bold'],
-                        ])
-                        ->value($this->server?->ranks_premier ?? false ? '1' : '0')
-                        ->color('accent'),
-                )
-                    ->label(__('admin-server.fields.ranks_premier.label'))
-                    ->small(__('admin-server.fields.ranks_premier.help')),
+            LayoutFactory::view('admin-server::partials.ranks-card-header', [
+                'isPremier' => $this->isPremierRanks(),
+                'premierValue' => $this->server?->ranks_premier ?? false ? '1' : '0',
             ]),
+
+            ...(
+                $this->isPremierRanks()
+                    ? [
+                        LayoutFactory::view('admin-server::partials.ranks-premier-preview'),
+                    ] : [
+                        LayoutFactory::split([
+                            LayoutFactory::field(
+                                Select::make('ranks')
+                                    ->options($this->serversService->getListRanks())
+                                    ->value($this->getCurrentRankPack())
+                                    ->yoyo()
+                                    ->placeholder(__('admin-server.fields.ranks.placeholder')),
+                            )
+                                ->label(__('admin-server.fields.ranks.label'))
+                                ->small(__('admin-server.fields.ranks.help'))
+                                ->required(),
+
+                            LayoutFactory::field(
+                                Select::make('ranks_format')
+                                    ->options($this->ranksFormats)
+                                    ->aligned()
+                                    ->value($this->getCurrentRankFormat())
+                                    ->placeholder(__('admin-server.fields.ranks_format.placeholder')),
+                            )
+                                ->label(__('admin-server.fields.ranks_format.label'))
+                                ->small(__('admin-server.fields.ranks_format.help'))
+                                ->required(),
+                        ]),
+
+                        LayoutFactory::view('admin-server::partials.rank-upload'),
+                    ]
+            ),
 
             LayoutFactory::split([
                 LayoutFactory::field(

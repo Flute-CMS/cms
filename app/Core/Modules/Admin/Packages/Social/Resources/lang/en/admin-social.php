@@ -13,6 +13,7 @@ return [
         'registration' => 'Registration',
         'status' => 'Status',
         'actions' => 'Actions',
+        'allow_register' => 'Registration',
     ],
     'fields' => [
         'icon' => [
@@ -43,6 +44,9 @@ return [
         ],
         'client_secret' => [
             'label' => 'Client Secret',
+        ],
+        'enabled' => [
+            'label' => 'Enabled',
         ],
     ],
     'buttons' => [

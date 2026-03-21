@@ -204,4 +204,17 @@ return [
             'card_text'  => 'We\'ll finalize the setup and prepare your site for its first visitors.',
         ],
     ],
+    'customize' => [
+        'languages_heading'   => 'Choose Language',
+        'languages_subtitle'  => 'Select the language for your site.',
+        'current_language'    => 'current',
+        'modules_heading'     => 'Modules',
+        'modules_subtitle'    => 'Select modules to install with your site.',
+        'modules_no_key'      => 'API Key Not Set',
+        'modules_no_key_desc' => 'Set up the Flute API key in settings to browse available modules.',
+        'modules_search'      => 'Search modules...',
+        'recommended'         => 'Recommended',
+        'modules_not_found'   => 'No modules found.',
+        'modules_empty'       => 'No modules available.',
+    ],
 ];

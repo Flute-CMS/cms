@@ -25,6 +25,8 @@ return [
         'blocks' => [
             'recipients' => 'Получатели',
             'recipients_description' => 'Выберите, кто получит уведомление',
+            'channels' => 'Каналы доставки',
+            'channels_description' => 'Выберите, через какие каналы отправить уведомление',
             'content' => 'Уведомление',
             'content_description' => 'Настройте сообщение уведомления',
         ],

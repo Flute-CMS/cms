@@ -1156,6 +1156,27 @@ class NotificationManager {
             .catch(() => {});
     }
 
+    _isPopupShownGlobally(id) {
+        try {
+            const shown = JSON.parse(localStorage.getItem('flute_popup_shown') || '{}');
+            if (shown[id] && Date.now() - shown[id] < 30000) return true;
+        } catch {}
+        return false;
+    }
+
+    _markPopupShownGlobally(id) {
+        try {
+            const shown = JSON.parse(localStorage.getItem('flute_popup_shown') || '{}');
+            shown[id] = Date.now();
+            // Keep only last 20 entries
+            const keys = Object.keys(shown);
+            if (keys.length > 20) {
+                for (const k of keys.slice(0, keys.length - 20)) delete shown[k];
+            }
+            localStorage.setItem('flute_popup_shown', JSON.stringify(shown));
+        } catch {}
+    }
+
     fetchAndShowPopups() {
         this.apiFetch('api/notifications/unread')
             .then(r => r.json())
@@ -1166,7 +1187,8 @@ class NotificationManager {
                     if (!this.knownIds.has(n.id)) {
                         this.knownIds.add(n.id);
                         hasNew = true;
-                        if (this.popupEnabled) {
+                        if (this.popupEnabled && !this._isPopupShownGlobally(n.id)) {
+                            this._markPopupShownGlobally(n.id);
                             this.showNotificationPopup(n);
                         }
                     }
@@ -1249,19 +1271,19 @@ class NotificationManager {
             this.dismissPopup(popup, notification.id);
         });
 
-        // Click → navigate
+        // Click → navigate (mark as read since user interacted)
         popup.addEventListener('click', () => {
             if (notification.url && notification.type !== 'button') {
                 window.location.href = u(notification.url);
             }
-            this.dismissPopup(popup, notification.id);
+            this.dismissPopup(popup, notification.id, true);
         });
 
-        // Auto-dismiss after 6s
+        // Auto-dismiss after 6s (don't mark as read)
         popup._dismissTimer = setTimeout(() => this.dismissPopup(popup, notification.id), 6000);
     }
 
-    dismissPopup(popup, id) {
+    dismissPopup(popup, id, markRead = false) {
         if (popup._dismissed) return;
         popup._dismissed = true;
 
@@ -1269,8 +1291,7 @@ class NotificationManager {
         popup.classList.remove('is-visible');
         popup.classList.add('is-hiding');
 
-        // Mark as read via API + sync dropdown
-        if (id) {
+        if (markRead && id) {
             this.apiFetch(`api/notifications/${id}`, 'PUT')
                 .then(() => {
                     this.markItemReadInDOM(id);

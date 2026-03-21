@@ -74,6 +74,7 @@ return [
         'item_updated' => 'Navigation item updated successfully.',
         'item_deleted' => 'Navigation item deleted successfully.',
         'item_not_found' => 'Navigation item not found.',
+        'item_has_children' => 'Cannot delete item with child elements.',
     ],
     'empty' => [
         'title' => 'No navigation items',

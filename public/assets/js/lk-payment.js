@@ -762,35 +762,29 @@
     }
 
     // ── Step mode integration ────────────────────────────────
+    // Validation is handled by steps.js via data-steps-validate on each panel.
+    // We only register global validator functions and the recalc listener.
     if (cfg.stepMode) {
-        // Block step change if current step validation fails
-        root.addEventListener('steps:before-change', function (e) {
-            var fromName = e.detail && e.detail.fromName;
-
-            // Step 1: require valid amount
-            if (fromName === 'lk-amount') {
-                var raw = amountInput ? amountInput.value.replace(/[\s\u00A0]/g, '').replace(',', '.') : '';
-                var val = parseFloat(raw) || 0;
-                var min = getEffectiveMin();
-                if (val <= 0 || (min > 0 && val < min)) {
-                    if (amountInput) {
-                        amountInput.focus();
-                        amountInput.classList.add('is-error');
-                        setTimeout(function () { amountInput.classList.remove('is-error'); }, 1500);
-                    }
-                    e.preventDefault();
-                    return;
+        // Step 1 validator: require valid amount
+        window.validateLkAmount = function () {
+            var raw = amountInput ? amountInput.value.replace(/[\s\u00A0]/g, '').replace(',', '.') : '';
+            var val = parseFloat(raw) || 0;
+            var min = getEffectiveMin();
+            if (val <= 0 || (min > 0 && val < min)) {
+                if (amountInput) {
+                    amountInput.focus();
+                    amountInput.classList.add('is-error');
+                    setTimeout(function () { amountInput.classList.remove('is-error'); }, 1500);
                 }
+                return false;
             }
+            return true;
+        };
 
-            // Step 2: require gateway selected
-            if (fromName === 'lk-method') {
-                if (!state.gateway) {
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
+        // Step 2 validator: require gateway selected
+        window.validateLkMethod = function () {
+            return !!state.gateway;
+        };
 
         // Recalculate receipt when entering confirmation step
         root.addEventListener('steps:change', function (e) {

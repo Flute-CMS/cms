@@ -78,6 +78,7 @@
     "details" => "Details",
     "preview" => "Preview",
     "select_file" => "Select file",
+    "select_icon" => "Select icon",
     "choose" => "Choose",
     "upload_file" => "Upload file",
     "upload_image" => "Upload image",
@@ -299,5 +300,13 @@
     "free" => "Free",
     "square" => "Square",
     "landscape" => "Landscape",
-    "portrait" => "Portrait"
+    "portrait" => "Portrait",
+    "access_denied" => "Access denied",
+    "invalid_data" => "Invalid data",
+    "no_permission" => "No permission",
+    "not_found" => "Not found",
+    "unknown" => "Unknown",
+    "unknown_reason" => "Unknown reason",
+    "upload_error" => "Upload error",
+    "language_select" => "Select language"
 ];

@@ -3,6 +3,7 @@
 namespace Flute\Admin\Packages\NotificationTemplates\Screens;
 
 use Flute\Admin\Platform\Actions\Button;
+use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\TextArea;
@@ -12,6 +13,7 @@ use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Modules\Notifications\Services\NotificationService;
+use Flute\Core\Modules\Notifications\Services\NotificationTemplateService;
 use Throwable;
 
 class NotificationBroadcastScreen extends Screen
@@ -40,7 +42,7 @@ class NotificationBroadcastScreen extends Screen
             Button::make(__('def.send'))
                 ->type(Color::PRIMARY)
                 ->icon('ph.bold.paper-plane-tilt-bold')
-                ->confirm(__('admin-notifications.broadcast.confirm_send'))
+                ->confirm(__('admin-notifications.broadcast.confirm_send'), 'info')
                 ->method('send'),
         ];
     }
@@ -83,6 +85,7 @@ class NotificationBroadcastScreen extends Screen
                         ->label(__('admin-notifications.broadcast.users'))
                         ->required()
                     : null,
+                LayoutFactory::columns($this->buildChannelFields()),
             ]))
                 ->title(__('admin-notifications.broadcast.blocks.recipients'))
                 ->description(__('admin-notifications.broadcast.blocks.recipients_description'))
@@ -138,6 +141,21 @@ class NotificationBroadcastScreen extends Screen
         $icon = request()->input('icon') ?: 'ph.bold.bell-bold';
         $url = request()->input('url') ?: null;
 
+        $channels = [];
+        if (request()->input('channel_inapp')) {
+            $channels[] = 'inapp';
+        }
+        if (request()->input('channel_email')) {
+            $channels[] = 'email';
+        }
+        if (request()->input('channel_push')) {
+            $channels[] = 'push';
+        }
+
+        if (empty($channels)) {
+            $channels = ['inapp'];
+        }
+
         if (empty($title) || empty($content)) {
             $this->flashMessage(__('validator.required', ['attribute' => __(
                 'admin-notifications.broadcast.notification_title',
@@ -157,9 +175,33 @@ class NotificationBroadcastScreen extends Screen
         $notificationService = app(NotificationService::class);
         $count = 0;
 
+        $hasEmail = in_array('email', $channels, true) && function_exists('email');
+        $hasPush = in_array('push', $channels, true);
+        $hasInApp = in_array('inapp', $channels, true);
+
+        $pushService = null;
+        if ($hasPush) {
+            try {
+                $pushService = app('push.service');
+            } catch (Throwable) {
+                $hasPush = false;
+            }
+        }
+
         foreach ($users as $user) {
             try {
-                $notificationService->createTextNotification($user, $title, $content, $icon);
+                if ($hasInApp) {
+                    $notificationService->createTextNotification($user, $title, $content, $icon);
+                }
+
+                if ($hasEmail && ( $user->email ?? null )) {
+                    $this->sendEmailNotification($user, $title, $content);
+                }
+
+                if ($hasPush && $pushService) {
+                    $pushService->sendToUser($user, $title, $content, $icon, $url);
+                }
+
                 $count++;
             } catch (Throwable $e) {
                 logs()->error($e);
@@ -167,6 +209,51 @@ class NotificationBroadcastScreen extends Screen
         }
 
         $this->flashMessage(__('admin-notifications.broadcast.sent', ['count' => $count]));
+    }
+
+    protected function sendEmailNotification(User $user, string $title, string $content): void
+    {
+        if (!function_exists('email') || !$user->email) {
+            return;
+        }
+
+        email()->send(
+            $user->email,
+            strip_tags($title),
+            view('notifications::emails.notification', [
+                'title' => $title,
+                'content' => $content,
+                'components' => [],
+                'user' => $user,
+            ]),
+        );
+    }
+
+    protected function buildChannelFields(): array
+    {
+        $channels = app(NotificationTemplateService::class)->getChannels();
+        $fields = [];
+
+        foreach ($channels as $key => $channel) {
+            if (!$channel['enabled'] && $key !== 'inapp') {
+                continue;
+            }
+
+            if ($key === 'telegram') {
+                continue;
+            }
+
+            $fields[] = LayoutFactory::blank([
+                LayoutFactory::field(
+                    CheckBox::make('channel_' . $key)
+                        ->label($channel['name'])
+                        ->checked($key === 'inapp')
+                        ->sendTrueOrFalse(),
+                ),
+            ]);
+        }
+
+        return $fields;
     }
 
     protected function resolveRecipients(string $target): array

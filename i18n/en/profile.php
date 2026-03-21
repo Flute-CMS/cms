@@ -87,6 +87,7 @@ return [
                 "save_changes_success" => "Password changed successfully.",
                 "current_password_incorrect" => "Current password is incorrect.",
                 "passwords_do_not_match"      => "Passwords do not match.",
+                "login_and_email_required"    => "Login and email are required to set a password.",
             ],
 
             "delete_account" => [
@@ -271,4 +272,13 @@ return [
         "unban_confirm" => "Are you sure you want to unban this user?",
         "clear_sessions_confirm" => "Are you sure you want to clear all sessions for this user?",
     ],
+    "errors" => [
+        "social_binded" => "This social network is already linked to another account.",
+        "social_delay" => "Please wait before linking a social network again.",
+    ],
+    "banner_alt" => "Profile banner of :name",
+    "avatar_alt" => "Avatar of :name",
+    "social_networks" => "Social networks",
+    "visit_social" => "Visit :network",
+    "profile_tabs" => "Profile tabs",
 ];

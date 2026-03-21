@@ -259,6 +259,9 @@ return [
         'connection_success' => 'Successfully connected to the server.',
         'connection_failed' => 'Failed to connect to the server',
         'connection_no_response' => 'Server is not responding to queries.',
+        'servers_enabled' => 'Selected servers have been enabled.',
+        'servers_disabled' => 'Selected servers have been disabled.',
+        'servers_deleted' => 'Selected servers have been deleted.',
     ],
 
     'cron_warning' => [
@@ -285,5 +288,25 @@ return [
 
     'confirms' => [
         'delete_server' => 'Are you sure you want to delete this server? This action cannot be undone.',
+    ],
+
+    'ranks_section' => [
+        'title' => 'Rank System',
+        'description' => 'Premier ranks use the CS2 rating system instead of classic rank icons',
+        'preview' => 'Preview',
+    ],
+
+    'ranks_upload' => [
+        'dropzone' => 'Upload custom rank pack',
+        'hint' => 'ZIP with images (0.webp, 1.webp, …, 18.webp)',
+        'button' => 'Upload',
+        'no_file' => 'No file selected or file is invalid.',
+        'success' => 'Rank pack ":name" uploaded successfully.',
+        'invalid_archive' => 'Invalid ZIP archive.',
+        'multiple_dirs' => 'Archive must contain files in a single folder.',
+        'no_images' => 'No rank images found in the archive.',
+        'non_image_file' => 'Archive contains an invalid file: :file',
+        'uploading' => 'Uploading…',
+        'error' => 'Failed to upload archive',
     ],
 ];
