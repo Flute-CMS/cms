@@ -46,8 +46,11 @@
         var isRichtext = input.hasAttribute('data-editor');
         var originalName = input.getAttribute('data-translatable-name') || input.getAttribute('name');
 
-        // Parse initial value
-        var values = parseValue(input.value || (isTextarea ? input.textContent : ''), defaultLang);
+        // Parse initial value — prefer data attribute for inputs (avoids HTML quote escaping issues)
+        var rawValue = input.getAttribute('data-translatable-value')
+            || input.value
+            || (isTextarea ? input.textContent : '');
+        var values = parseValue(rawValue, defaultLang);
 
         // Create hidden field to hold JSON
         var hidden = document.createElement('input');
@@ -161,7 +164,8 @@
                 var inst = getRichtextInstance(input);
                 if (inst) {
                     clearInterval(checkEditorInterval);
-                    var origOnUpdate = inst.editor.options.onUpdate;
+                    // Set the correct language content (not raw JSON)
+                    inst.editor.commands.setContent(values[activeLang] || '');
                     inst.editor.on('update', function (params) {
                         values[activeLang] = params.editor.getHTML();
                         syncHidden();

@@ -22,6 +22,8 @@ class UpdateScreen extends Screen
 
     public $description = 'admin-update.description';
 
+    public ?string $permission = 'admin.system';
+
     /**
      */
     protected UpdateService $updateService;

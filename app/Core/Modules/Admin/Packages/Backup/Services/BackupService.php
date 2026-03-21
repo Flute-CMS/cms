@@ -283,11 +283,14 @@ class BackupService
      */
     public function deleteBackup(string $filename, bool $isDirectory = false): bool
     {
-        $safeName = basename(str_replace("\0", '', $filename));
+        $cleanName = str_replace(["\0", "\\"], ['', '/'], $filename);
+        $cleanName = trim($cleanName, '/');
 
-        if ($safeName === '' || $safeName === '.' || $safeName === '..') {
+        if ($cleanName === '' || str_contains($cleanName, '..')) {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
         }
+
+        $safeName = $isDirectory ? $cleanName : basename($cleanName);
 
         $path = $this->backupPath . '/' . $safeName;
         $realPath = realpath($path);
@@ -421,7 +424,7 @@ class BackupService
         if (
             $realSourcePath === false
             || $realBackupPath === false
-            || !str_starts_with($realSourcePath, $realBackupPath)
+            || !str_starts_with($realSourcePath, $realBackupPath . DIRECTORY_SEPARATOR)
         ) {
             throw new Exception(__('admin-backup.errors.backup_not_found'));
         }
@@ -588,6 +591,10 @@ class BackupService
     protected function getRestoreDestination(string $type, string $dirName): ?string
     {
         $name = $this->extractNameFromDirBackup($dirName);
+
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $name)) {
+            throw new Exception('Invalid backup name: ' . $name);
+        }
 
         return match ($type) {
             'modules' => path('app/Modules/' . $name),

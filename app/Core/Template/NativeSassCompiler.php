@@ -264,6 +264,11 @@ class NativeSassCompiler
     public static function downloadBinary(?string $version = null): bool
     {
         $version = $version ?? '1.98.0';
+
+        if (!preg_match('/^\d+\.\d+\.\d+$/', $version)) {
+            return false;
+        }
+
         $platform = self::detectPlatform();
 
         if ($platform === null) {

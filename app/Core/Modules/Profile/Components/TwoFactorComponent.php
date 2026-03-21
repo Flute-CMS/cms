@@ -18,7 +18,15 @@ class TwoFactorComponent extends FluteComponent
 
     protected TwoFactorService $twoFactorService;
 
-    protected array $excludesVariables = ['tempSecret', 'tempRecoveryCodes'];
+    protected array $excludesVariables = [
+        'redirectTo',
+        'confirmedActions',
+        'tempSecret',
+        'tempRecoveryCodes',
+        'user',
+        'showSetup',
+        'showRecoveryCodes',
+    ];
 
     public function mount()
     {

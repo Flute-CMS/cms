@@ -446,7 +446,7 @@
 
 <script>
     (function() {
-        var themeData = {!! json_encode($themeCustomization, JSON_UNESCAPED_UNICODE) !!};
+        var themeData = {!! json_encode($themeCustomization, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!};
         window.__themeCustomization = themeData;
 
         var root = document.documentElement;

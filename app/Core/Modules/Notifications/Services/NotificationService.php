@@ -163,7 +163,7 @@ class NotificationService
     {
         $notification = new Notification();
         $notification->user = $user;
-        $notification->title = $title;
+        $notification->title = strip_tags($title, '<b><i><strong><em>');
         $notification->content = $content;
         $notification->type = 'text';
         $notification->icon = $icon;

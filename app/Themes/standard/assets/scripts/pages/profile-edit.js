@@ -247,7 +247,9 @@ $(document).on('click', '[data-connect]', function (e) {
                 // notyf.success(event.data);
                 location.reload();
             } else if (event.data && event.data.startsWith('authorization_error:')) {
-                notyf.error(event.data.split(':')[1]);
+                const errText = document.createElement('span');
+                errText.textContent = event.data.split(':')[1];
+                notyf.error(errText.textContent);
             }
         });
 

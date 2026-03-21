@@ -10,8 +10,7 @@ class HeadersListener
     {
         $response = $event->getResponse();
 
-        // CSP disabled: modules load external scripts/styles that break strict policies
-        // $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http: blob:; font-src 'self' data:; connect-src 'self' https: http:; media-src 'self'; object-src 'none'; worker-src 'self' blob:; frame-src 'self'; frame-ancestors 'self';");
+        $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'; object-src 'none';");
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');

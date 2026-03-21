@@ -22,7 +22,7 @@ class RustRconDriver implements RconDriverInterface
         $socket = $this->connect($ip, $port, $password, $timeout);
 
         try {
-            $identifier = mt_rand(1, 999999);
+            $identifier = random_int(1, 999999);
 
             $payload = json_encode([
                 'Identifier' => $identifier,

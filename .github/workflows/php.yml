@@ -15,16 +15,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install GitHub CLI
-        run: sudo apt-get update && sudo apt-get install -y gh
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
+          tools: composer:v2
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
 
       - name: Cache Composer packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -34,11 +38,14 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-dev --no-progress
 
+      - name: Security audit
+        run: composer audit --no-dev
+
       - name: Archive project with vendor
         run: |
           mkdir -p release
           ARCHIVE_NAME="flute-cms-with-vendor-${GITHUB_REF_NAME}.zip"
-          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*"
+          zip -r "release/$ARCHIVE_NAME" . -x "*.git*" "release/*" "config-dev/*" "storage/logs/*" "storage/backup/*"
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
 
       - name: Upload archive to existing GitHub release

@@ -23,6 +23,8 @@ class LogsScreen extends Screen
      */
     public $description = 'admin-logs.description';
 
+    public ?string $permission = 'admin.system';
+
     /**
      * Selected log file
      *

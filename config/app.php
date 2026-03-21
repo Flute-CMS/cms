@@ -39,7 +39,7 @@ return array(
     'robots' => 'index, follow',
     'logo_light' => 'assets/img/logo-light.svg',
     'trusted_proxies' => [
-        '*',
+        'REMOTE_ADDR',
     ],
     'trusted_hosts' => [
     ],

@@ -161,7 +161,12 @@ abstract class Table extends Layout
                 $this->sortDirection = 'asc';
             }
         } else {
-            $this->sortColumn = ltrim($requestSort, '-');
+            $candidateColumn = ltrim($requestSort, '-');
+            $allowedColumns = $columns
+                ->map(static fn(TD $column) => $column->getName())
+                ->filter()
+                ->toArray();
+            $this->sortColumn = in_array($candidateColumn, $allowedColumns, true) ? $candidateColumn : '';
             $this->sortDirection = str_starts_with($requestSort, '-') ? 'desc' : 'asc';
         }
 

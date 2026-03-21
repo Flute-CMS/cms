@@ -13,6 +13,8 @@ use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceScreen extends Screen
 {
+    public ?string $permission = 'admin.modules';
+
     /**
      * @var array
      */

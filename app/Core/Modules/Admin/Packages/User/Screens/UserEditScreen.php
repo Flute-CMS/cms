@@ -188,6 +188,94 @@ class UserEditScreen extends Screen
     }
 
     /**
+     * Manually verify user's email.
+     */
+    public function verifyUserEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        $this->user->verified = true;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.email_verified'), 'success');
+        $this->initUser();
+    }
+
+    /**
+     * Send verification email to user.
+     */
+    public function sendVerificationEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        if (!$this->user->email) {
+            $this->flashMessage(__('admin-users.messages.no_email'), 'error');
+
+            return;
+        }
+
+        try {
+            template()->addNamespace('flute', path('app/Themes/standard/views'));
+            $verificationToken = auth()->createVerificationToken($this->user)->rawToken;
+            $html = template()->render('flute::emails.confirmation', [
+                'url' => url('confirm/' . $verificationToken),
+                'name' => $this->user->name,
+            ]);
+            email()->send($this->user->email, __('auth.confirmation.subject'), $html);
+            $this->flashMessage(__('admin-users.messages.verification_sent'), 'success');
+        } catch (\Throwable $e) {
+            $this->flashMessage($e->getMessage(), 'error');
+        }
+    }
+
+    /**
+     * Apply pending email immediately (admin override).
+     */
+    public function applyPendingEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        if (empty($this->user->pendingEmail)) {
+            return;
+        }
+
+        $this->user->email = $this->user->pendingEmail;
+        $this->user->pendingEmail = null;
+        $this->user->verified = true;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.pending_email_applied'), 'success');
+        $this->initUser();
+    }
+
+    /**
+     * Cancel pending email change.
+     */
+    public function cancelPendingEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        $this->user->pendingEmail = null;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.pending_email_cancelled'), 'success');
+        $this->initUser();
+    }
+
+    /**
      * Block user.
      */
     public function blockUser()
@@ -263,6 +351,12 @@ class UserEditScreen extends Screen
         $user = rep(User::class)->findByPK($userId);
         if (!$user) {
             $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
+
+            return;
+        }
+
+        if (!user()->can($user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
         }
@@ -651,6 +745,15 @@ class UserEditScreen extends Screen
                     ->label(__('admin-users.fields.email.label'))
                     ->required(),
 
+                ...(
+                    $this->hasEmailActions()
+                        ? [
+                            LayoutFactory::view('admin-users::partials.email-actions', [
+                                'user' => $this->user,
+                            ]),
+                        ] : []
+                ),
+
                 LayoutFactory::split([
                     LayoutFactory::field(
                         Input::make('uri')
@@ -1008,5 +1111,18 @@ class UserEditScreen extends Screen
                     ->size('small')
                     ->fullWidth(),
             ]);
+    }
+
+    protected function hasEmailActions(): bool
+    {
+        if (!$this->user || !user()->can($this->user)) {
+            return false;
+        }
+
+        return (
+            !empty($this->user->pendingEmail)
+            || !$this->user->verified && !empty($this->user->email)
+            || config('auth.registration.confirm_email')
+        );
     }
 }

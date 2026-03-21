@@ -326,6 +326,9 @@ class AuthenticationService
             throw $e;
         }
 
+        // Store raw token for URL (entity->token contains hash for DB)
+        $verificationToken->rawToken = $verificationTokenValue;
+
         return $verificationToken;
     }
 
@@ -626,13 +629,6 @@ class AuthenticationService
         $user->avatar = $this->config->get('profile.default_avatar');
         $user->banner = $this->config->get('profile.default_banner');
         $user->verified = !$this->config->get('auth.registration.confirm_email');
-
-        foreach ($userData as $key => $value) {
-            if (property_exists($user, $key) && in_array($key, ['email', 'login', 'name', 'password'])) {
-                continue;
-            }
-            $user->$key = $value;
-        }
 
         $user->setPassword($userData->password);
 

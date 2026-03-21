@@ -12,6 +12,25 @@ use Nette\Schema\ValidationException;
 
 class PaymentComponent extends FluteComponent
 {
+    protected array $excludesVariables = [
+        'redirectTo',
+        'confirmedActions',
+        'gatewayFee',
+        'gatewayFeeAmount',
+        'gatewayBonus',
+        'gatewayBonusAmount',
+        'currencyExchangeRates',
+        'currencyGateways',
+        'currencyMinimumAmounts',
+        'gatewayMinimumAmounts',
+        'currencyPresets',
+        'currencies',
+        'amountToReceive',
+        'amountToPay',
+        'promoDetails',
+        'promoIsValid',
+    ];
+
     public ?string $gateway = null;
 
     public ?string $currency = null;

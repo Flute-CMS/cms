@@ -205,6 +205,23 @@ class IoncubeService
                     $phar = new PharData($tarPath);
                     $phar->extractTo($outDir, null, true);
 
+                    $realOutDir = realpath($outDir);
+                    if ($realOutDir !== false) {
+                        $iterator = new \RecursiveIteratorIterator(
+                            new \RecursiveDirectoryIterator($realOutDir, \FilesystemIterator::SKIP_DOTS),
+                            \RecursiveIteratorIterator::SELF_FIRST,
+                        );
+                        foreach ($iterator as $item) {
+                            $realItemPath = realpath($item->getPathname());
+                            if (
+                                $realItemPath === false
+                                || !str_starts_with($realItemPath, $realOutDir . DIRECTORY_SEPARATOR)
+                            ) {
+                                $fs->remove($realItemPath ?: $item->getPathname());
+                            }
+                        }
+                    }
+
                     return $outDir;
                 } catch (Throwable) {
                     return null;

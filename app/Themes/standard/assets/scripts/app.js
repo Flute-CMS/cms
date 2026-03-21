@@ -178,15 +178,16 @@ class FluteApp {
             }
         });
 
-        // Scroll to top and handle navbar on page change
+        // Scroll to top instantly before swap to avoid blank space on short pages
+        htmx.on("htmx:beforeSwap", (event) => {
+            if (event.detail.target && event.detail.target.tagName && event.detail.target.tagName.toLowerCase() === "main") {
+                window.scrollTo({ top: 0, behavior: "instant" });
+            }
+        });
+
+        // Handle navbar on page change
         htmx.on("htmx:afterSwap", (event) => {
             if (event.detail.target.tagName.toLowerCase() === "main") {
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: "smooth",
-                    });
-                }, 20);
 
                 const navbarItems = document.querySelectorAll(
                     ".navbar__items-item"
@@ -227,7 +228,7 @@ class FluteApp {
         htmx.on("htmx:historyRestore", () => {
             window.scrollTo({
                 top: 0,
-                behavior: "smooth",
+                behavior: "instant",
             });
 
             const navbarItems = document.querySelectorAll(
@@ -624,8 +625,9 @@ class NotificationManager {
         window.addEventListener('delayed-redirect', (event) => {
             try {
                 const { url, delay } = event.detail;
-                if (url && delay) {
-                    setTimeout(() => { window.location.href = url; }, delay);
+                const safeUrl = String(url || '');
+                if (safeUrl && delay && /^(https?:\/\/|\/)/.test(safeUrl)) {
+                    setTimeout(() => { window.location.href = safeUrl; }, delay);
                 }
             } catch (error) {
                 console.error('Error handling delayed redirect:', error);
@@ -775,7 +777,7 @@ class NotificationManager {
             const item = e.target.closest('.notification-item');
             if (item && !e.target.closest('.notification-btn') && !e.target.closest('.notification-file-link')) {
                 const url = item.getAttribute('data-url');
-                if (url) window.location.href = url;
+                if (url && /^(https?:\/\/|\/)/.test(url)) window.location.href = url;
                 return;
             }
 
@@ -1506,22 +1508,42 @@ class TooltipManager {
         });
     }
 
+    escapeHtmlForTooltip(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     updateTooltipContent(element) {
         if (!element || !this.tooltipEl) return;
 
         const tooltipText = element.getAttribute("data-tooltip");
         let content;
+        let isHtmlContent = false;
 
         try {
-            const el = document.querySelector(tooltipText);
-            content = el ? el.innerHTML : tooltipText;
+            if (tooltipText && tooltipText.startsWith('#')) {
+                const el = document.querySelector(tooltipText);
+                if (el) {
+                    content = el.innerHTML;
+                    isHtmlContent = true;
+                } else {
+                    content = tooltipText;
+                }
+            } else {
+                content = tooltipText;
+            }
         } catch {
             content = tooltipText;
         }
 
         if (content !== this.lastTooltipContent) {
             this.lastTooltipContent = content;
-            this.tooltipEl.innerHTML = content;
+            if (isHtmlContent) {
+                this.tooltipEl.innerHTML = content;
+            } else {
+                this.tooltipEl.textContent = content;
+            }
 
             this.updateTooltipPosition(element);
         }
@@ -1572,10 +1594,20 @@ class TooltipManager {
         const tooltipPlacement =
             element.getAttribute("data-tooltip-placement") ?? "top";
         let content;
+        let isHtmlContent = false;
 
         try {
-            const el = document.querySelector(tooltipText);
-            content = el ? el.innerHTML : tooltipText;
+            if (tooltipText && tooltipText.startsWith('#')) {
+                const el = document.querySelector(tooltipText);
+                if (el) {
+                    content = el.innerHTML;
+                    isHtmlContent = true;
+                } else {
+                    content = tooltipText;
+                }
+            } else {
+                content = tooltipText;
+            }
         } catch {
             content = tooltipText;
         }
@@ -1588,7 +1620,11 @@ class TooltipManager {
             document.body.appendChild(this.tooltipEl);
         }
 
-        this.tooltipEl.innerHTML = content;
+        if (isHtmlContent) {
+            this.tooltipEl.innerHTML = content;
+        } else {
+            this.tooltipEl.textContent = content;
+        }
         this.tooltipEl.classList.add("show");
         this.activeElement = element;
 

@@ -17,6 +17,8 @@ use Nette\Schema\ValidationException;
 
 class LoginComponent extends FluteComponent
 {
+    protected array $excludesVariables = ['redirectTo', 'confirmedActions', 'pendingUserId', 'showTwoFactor'];
+
     public ?string $loginOrEmail = null;
 
     public ?string $password = null;

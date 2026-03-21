@@ -68,12 +68,80 @@ class EditMainComponent extends FluteComponent
     {
         if ($this->validateSaveMain()) {
             try {
+                $newEmail = $this->email;
+                $emailChanged = $newEmail && $newEmail !== $this->user->email;
+
+                // Don't let updateUserMainInfo touch email — we handle it via pending flow
+                $this->email = $this->user->email;
                 $this->updateUserMainInfo();
+
+                if ($emailChanged) {
+                    if (config('auth.registration.confirm_email')) {
+                        $this->user->pendingEmail = $newEmail;
+                    } else {
+                        $this->user->email = $newEmail;
+                    }
+                }
+
                 user()->updateUser($this->user);
-                $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
+
+                if ($emailChanged && config('auth.registration.confirm_email')) {
+                    $this->sendPendingEmailConfirmation($newEmail);
+                    $this->flashMessage(__('profile.edit.main.basic_information.email_confirmation_sent'), 'success');
+                } else {
+                    $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
+                }
             } catch (Exception $e) {
                 $this->inputError('name', $e->getMessage());
             }
+        }
+    }
+
+    /**
+     * Cancel a pending email change.
+     */
+    public function cancelPendingEmail()
+    {
+        $this->user->pendingEmail = null;
+        user()->updateUser($this->user);
+        $this->flashMessage(__('profile.edit.main.basic_information.pending_email_cancelled'), 'success');
+    }
+
+    /**
+     * Resend the pending email confirmation.
+     */
+    public function resendPendingEmail()
+    {
+        if (!$this->user->pendingEmail) {
+            return;
+        }
+
+        try {
+            throttler()->throttle(['action' => 'resend_pending_email', 'user' => $this->user->id], 3, 300, 1);
+        } catch (\Throwable $e) {
+            $this->flashMessage(__('def.too_many_requests'), 'error');
+
+            return;
+        }
+
+        $this->sendPendingEmailConfirmation($this->user->pendingEmail);
+        $this->flashMessage(__('profile.edit.main.basic_information.email_confirmation_sent'), 'success');
+    }
+
+    /**
+     * Send confirmation email to the pending address.
+     */
+    protected function sendPendingEmailConfirmation(string $newEmail): void
+    {
+        try {
+            $verificationToken = auth()->createVerificationToken($this->user)->rawToken;
+            $html = template()->render('flute::emails.confirmation', [
+                'url' => url('confirm-email/' . $verificationToken),
+                'name' => $this->user->name,
+            ]);
+            email()->send($newEmail, __('auth.confirmation.subject'), $html);
+        } catch (\Throwable $e) {
+            logs()->warning('Failed to send pending email confirmation: ' . $e->getMessage());
         }
     }
 
@@ -195,15 +263,6 @@ class EditMainComponent extends FluteComponent
     protected function updateUserMainInfo()
     {
         $this->user->name = $this->name;
-
-        if ($this->email !== $this->user->email) {
-            $this->user->email = $this->email;
-
-            if (config('auth.registration.confirm_email')) {
-                $this->user->verified = false;
-            }
-        }
-
         $this->user->login = $this->login;
 
         if ($this->uri) {

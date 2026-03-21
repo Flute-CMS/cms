@@ -14,6 +14,8 @@ use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceProductScreen extends Screen
 {
+    public ?string $permission = 'admin.modules';
+
     public string $slugParam = '';
 
     public array $module = [];

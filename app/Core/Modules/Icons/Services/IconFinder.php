@@ -57,11 +57,23 @@ class IconFinder
     {
         if (Str::contains($name, 'svg')) {
             $decoded = html_entity_decode($name, ENT_QUOTES | ENT_HTML5);
-            if (
-                Str::startsWith(trim($decoded), '<svg')
-                && Str::contains($decoded, ['</svg>'])
-                && !Str::contains(strtolower($decoded), ['<script', 'onload=', 'onerror='])
-            ) {
+            if (Str::startsWith(trim($decoded), '<svg') && Str::contains($decoded, ['</svg>'])) {
+                $lower = strtolower($decoded);
+                if (
+                    preg_match('/\bon\w+\s*=/i', $lower)
+                    || Str::contains($lower, [
+                        '<script',
+                        'javascript:',
+                        'data:text/html',
+                        '<iframe',
+                        '<object',
+                        '<embed',
+                        '<form',
+                    ])
+                ) {
+                    return null;
+                }
+
                 return $decoded;
             }
         }

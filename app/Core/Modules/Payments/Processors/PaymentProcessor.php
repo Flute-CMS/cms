@@ -633,8 +633,9 @@ class PaymentProcessor
                 }
             }
 
+            $lookupCount = 0;
             foreach ($source as $value) {
-                $resolved = $this->resolveTransactionIdFromValue($value);
+                $resolved = $this->resolveTransactionIdFromValue($value, $lookupCount);
                 if ($resolved !== '') {
                     return $resolved;
                 }
@@ -646,12 +647,17 @@ class PaymentProcessor
 
     /**
      * Best-effort recursive extraction for unknown gateway payload shapes.
+     * Limited to 20 DB lookups to prevent DoS.
      */
-    private function resolveTransactionIdFromValue($value): string
+    private function resolveTransactionIdFromValue($value, int &$lookupCount): string
     {
+        if ($lookupCount >= 20) {
+            return '';
+        }
+
         if (is_array($value)) {
             foreach ($value as $nested) {
-                $resolved = $this->resolveTransactionIdFromValue($nested);
+                $resolved = $this->resolveTransactionIdFromValue($nested, $lookupCount);
                 if ($resolved !== '') {
                     return $resolved;
                 }
@@ -669,12 +675,18 @@ class PaymentProcessor
             return '';
         }
 
+        $lookupCount++;
         if (PaymentInvoice::findOne(['transactionId' => $text])) {
             return $text;
         }
 
         if (preg_match_all('/\d{8,}/', $text, $matches)) {
             foreach ($matches[0] as $digitsCandidate) {
+                $lookupCount++;
+                if ($lookupCount >= 20) {
+                    return '';
+                }
+
                 if (PaymentInvoice::findOne(['transactionId' => $digitsCandidate])) {
                     return $digitsCandidate;
                 }

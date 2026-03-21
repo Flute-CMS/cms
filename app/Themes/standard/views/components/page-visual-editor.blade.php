@@ -91,7 +91,7 @@
             <section class="ve__section">
                 <h4 class="ve__section-title">{{ __('page-edit.font_family') }}</h4>
                 <div class="ve__font-cards" id="ve-font-cards" data-variable="--font">
-                    @foreach (['Manrope', 'Inter', 'Roboto', 'Open Sans', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Rubik', 'Work Sans', 'DM Sans', 'Outfit', 'Plus Jakarta Sans', 'Space Grotesk', 'Lexend', 'Sora', 'Urbanist', 'Figtree', 'Lato'] as $font)
+                    @foreach (['Manrope', 'Inter', 'Roboto', 'Open Sans', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Rubik', 'Work Sans', 'DM Sans', 'Outfit', 'Plus Jakarta Sans', 'Space Grotesk', 'Lexend', 'Sora', 'Urbanist', 'Figtree', 'Lato', 'Onest', 'Albert Sans', 'Instrument Sans', 'Gabarito', 'Geologica', 'Red Hat Display', 'Bricolage Grotesque', 'Anybody', 'Quicksand', 'Barlow', 'Karla', 'Familjen Grotesk', 'Titillium Web', 'Hanken Grotesk', 'Wix Madefor Display', 'Atkinson Hyperlegible'] as $font)
                         <label class="ve__font-card{{ $font === 'Manrope' ? ' active' : '' }}" data-font="{{ $font }}">
                             <input type="radio" name="ve-font-family" value="{{ $font }}" {{ $font === 'Manrope' ? 'checked' : '' }} />
                             <span class="ve__font-card-preview">Aa</span>
@@ -109,7 +109,7 @@
                         <span class="ve__font-card-preview">Aa</span>
                         <span class="ve__font-card-name">{{ __('page-edit.same_as_body') }}</span>
                     </label>
-                    @foreach (['Manrope', 'Inter', 'Roboto', 'Montserrat', 'Poppins', 'Raleway', 'Rubik', 'Work Sans', 'DM Sans', 'Playfair Display', 'Merriweather', 'Lora'] as $font)
+                    @foreach (['Manrope', 'Inter', 'Roboto', 'Montserrat', 'Poppins', 'Raleway', 'Rubik', 'Work Sans', 'DM Sans', 'Playfair Display', 'Merriweather', 'Lora', 'Bebas Neue', 'Oswald', 'Fjalla One', 'Archivo Black', 'Unbounded', 'Red Hat Display', 'Bricolage Grotesque', 'Gabarito', 'Barlow Condensed', 'Righteous', 'Bungee', 'Spectral', 'Crimson Text', 'Familjen Grotesk', 'Comfortaa', 'Wix Madefor Display'] as $font)
                         <label class="ve__font-card" data-font="{{ $font }}">
                             <input type="radio" name="ve-heading-font" value="{{ $font }}" />
                             <span class="ve__font-card-preview">Aa</span>

@@ -85,7 +85,7 @@ class ProfileRedirectController extends BaseController
             return null;
         }
 
-        $target = trim($target);
+        $target = preg_replace('/\A[\pZ\pC]+|[\pZ\pC]+\z/u', '', $target);
 
         if ($target === '') {
             return null;

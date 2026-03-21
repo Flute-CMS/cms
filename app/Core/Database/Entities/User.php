@@ -56,6 +56,9 @@ class User extends ActiveRecord
     public ?string $email = null;
 
     #[Column(type: "string", nullable: true)]
+    public ?string $pendingEmail = null;
+
+    #[Column(type: "string", nullable: true)]
     public ?string $password = null;
 
     #[Column(type: "boolean", default: false)]

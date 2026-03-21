@@ -48,4 +48,5 @@ if (config('app.auth_enabled', true)) {
 $router->get('/social/{provider}', [SocialAuthController::class, 'redirectToProvider']);
 $router->post('/logout', [AuthController::class, 'getLogout'])->middleware(['auth', 'csrf']);
 $router->get('/confirm/{token}', [AuthController::class, 'getConfirmation']);
+$router->get('/confirm-email/{token}', [AuthController::class, 'confirmEmailChange']);
 $router->get('api/auth/check', [AuthController::class, 'authCheck'])->name('api.auth.check');

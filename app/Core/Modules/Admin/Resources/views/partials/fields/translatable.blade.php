@@ -5,8 +5,16 @@
     $isMultilang = count($langs) >= 2;
     $defaultLang = config('lang.locale', 'en');
     $fieldType = $type ?? 'text';
-    // For single-lang mode, resolve JSON to plain string
-    $plainValue = $isMultilang ? $value : transValue($value);
+    $plainValue = transValue($value);
+
+    // For multilang: extract default language content for initial display
+    $initialDisplay = $plainValue;
+    if ($isMultilang && $value && is_string($value)) {
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            $initialDisplay = $decoded[$defaultLang] ?? reset($decoded) ?: '';
+        }
+    }
 @endphp
 
 @if ($isMultilang)
@@ -19,11 +27,12 @@
                     id="{{ $inputId }}"
                     data-translatable-input
                     data-translatable-name="{{ $name }}"
+                    data-translatable-value="{{ $value }}"
                     class="textarea__field"
                     @if($placeholder) placeholder="{{ $placeholder }}" @endif
                     @if(isset($disabled) && $disabled) disabled @endif
                     @if(isset($readonly) && $readonly) readonly @endif
-                >{{ $value }}</textarea>
+                >{{ $initialDisplay }}</textarea>
             </div>
         @else
             <div class="input__field-container @if($hasError) has-error @endif">
@@ -31,7 +40,8 @@
                     id="{{ $inputId }}"
                     data-translatable-input
                     data-translatable-name="{{ $name }}"
-                    value="{{ $value }}"
+                    data-translatable-value="{{ $value }}"
+                    value="{{ $initialDisplay }}"
                     @if($placeholder) placeholder="{{ $placeholder }}" @endif
                     @if(isset($disabled) && $disabled) disabled @endif
                     @if(isset($readonly) && $readonly) readonly @endif

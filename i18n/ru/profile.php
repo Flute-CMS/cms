@@ -47,6 +47,12 @@ return [
 
                 'save_changes' => 'Сохранить изменения',
                 'save_changes_success' => 'Основная информация успешно обновлена.',
+                'email_confirmation_sent' => 'На новый email отправлено письмо с подтверждением.',
+                'pending_email_notice' => 'Ожидает подтверждения: :email',
+                'pending_email_cancelled' => 'Смена email отменена.',
+                'resend_confirmation' => 'Отправить повторно',
+                'cancel_change' => 'Отменить',
+                'email_changed_success' => 'Email успешно изменён.',
             ],
 
             'profile_images' => [

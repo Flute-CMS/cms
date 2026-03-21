@@ -19,6 +19,8 @@ class AboutSystemScreen extends Screen
      */
     protected ?string $description = null;
 
+    public ?string $permission = 'admin.system';
+
     /**
      * Mount the screen
      */

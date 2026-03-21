@@ -324,12 +324,13 @@ abstract class Table extends FluteComponent
                             }
                         }
 
+                        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValue);
                         if (!empty($column['searchFields']) && is_array($column['searchFields'])) {
                             foreach ($column['searchFields'] as $field) {
-                                $q->orWhere($field, 'like', '%' . $searchValue . '%');
+                                $q->orWhere($field, 'like', '%' . $escapedSearch . '%');
                             }
                         } elseif (!empty($column['field'])) {
-                            $q->orWhere($column['field'], 'like', '%' . $searchValue . '%');
+                            $q->orWhere($column['field'], 'like', '%' . $escapedSearch . '%');
                         }
                     }
                 });

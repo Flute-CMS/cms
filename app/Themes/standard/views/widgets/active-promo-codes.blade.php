@@ -16,7 +16,7 @@
                         <span class="promo-codes__value">{{ $promoCode->code }}</span>
                         <button type="button"
                             class="promo-codes__copy"
-                            onclick="copyToClipboard({{ json_encode($promoCode->code) }}); notyf.success({{ json_encode(__('widgets.promo_code_copy_success')) }})"
+                            onclick="copyToClipboard({{ json_encode($promoCode->code, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}); notyf.success({{ json_encode(__('widgets.promo_code_copy_success'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }})"
                             data-tooltip="{{ __('def.copy') }}">
                             <x-icon path="ph.regular.copy" />
                         </button>

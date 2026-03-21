@@ -142,7 +142,11 @@ class PaymentService
         $promoCode->clearRoles();
 
         if (!empty($roleIds)) {
-            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array($role->id, $roleIds));
+            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array(
+                $role->id,
+                array_map('intval', $roleIds),
+                true,
+            ));
 
             foreach ($selectedRoles as $role) {
                 $promoCode->addRole($role);

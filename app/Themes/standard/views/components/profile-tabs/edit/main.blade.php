@@ -36,6 +36,26 @@
                         <x-fields.input type="email" name="email" id="email"
                             value="{{ $email ?? $user->email }}" required
                             placeholder="{{ __('profile.edit.main.basic_information.fields.email_placeholder') }}" />
+                        @if (!empty($user->pendingEmail))
+                            <div class="pending-email-notice mt-2">
+                                <x-alert type="info" class="mb-0">
+                                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                        <span>
+                                            <x-icon path="ph.regular.envelope-simple" />
+                                            {{ __('profile.edit.main.basic_information.pending_email_notice', ['email' => $user->pendingEmail]) }}
+                                        </span>
+                                        <span class="d-flex gap-2">
+                                            <x-button type="outline" size="small" yoyo:post="resendPendingEmail" yoyo:on="click" withLoading>
+                                                {{ __('profile.edit.main.basic_information.resend_confirmation') }}
+                                            </x-button>
+                                            <x-button type="outline-error" size="small" yoyo:post="cancelPendingEmail" yoyo:on="click" withLoading>
+                                                {{ __('profile.edit.main.basic_information.cancel_change') }}
+                                            </x-button>
+                                        </span>
+                                    </div>
+                                </x-alert>
+                            </div>
+                        @endif
                     </x-forms.field>
                 </div>
                 <div class="col-md-6">

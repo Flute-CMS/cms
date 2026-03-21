@@ -205,7 +205,11 @@ class AdminUsersService
         $user->clearRoles();
 
         if ($hasBossAccess) {
-            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array($role->id, $roleIds));
+            $selectedRoles = array_filter(Role::findAll(), static fn($role) => in_array(
+                $role->id,
+                array_map('intval', $roleIds),
+                true,
+            ));
 
             foreach ($selectedRoles as $role) {
                 $user->addRole($role);
@@ -220,7 +224,10 @@ class AdminUsersService
             if (!empty($roleIds)) {
                 $allowedRoles = array_filter(
                     Role::findAll(),
-                    static fn($role) => in_array($role->id, $roleIds) && $role->priority < $userHighestPriority,
+                    static fn($role) => (
+                        in_array($role->id, array_map('intval', $roleIds), true)
+                        && $role->priority < $userHighestPriority
+                    ),
                 );
 
                 foreach ($allowedRoles as $role) {
@@ -327,8 +334,24 @@ class AdminUsersService
         if (!empty($data['uri'])) {
             $user->uri = $data['uri'];
         }
-        if (!empty($data['email'])) {
-            $user->email = $data['email'];
+        if (!empty($data['email']) && $data['email'] !== $user->email) {
+            if (config('auth.registration.confirm_email')) {
+                $user->pendingEmail = $data['email'];
+
+                try {
+                    template()->addNamespace('flute', path('app/Themes/standard/views'));
+                    $verificationToken = auth()->createVerificationToken($user)->rawToken;
+                    $html = template()->render('flute::emails.confirmation', [
+                        'url' => url('confirm-email/' . $verificationToken),
+                        'name' => $user->name,
+                    ]);
+                    email()->send($data['email'], __('auth.confirmation.subject'), $html);
+                } catch (\Throwable $e) {
+                    logs()->warning('Failed to send email change confirmation from admin: ' . $e->getMessage());
+                }
+            } else {
+                $user->email = $data['email'];
+            }
         }
         $user->balance = floatval($data['balance']);
         $user->verified = isset($data['verified']) ? filter_var($data['verified'], FILTER_VALIDATE_BOOLEAN) : false;

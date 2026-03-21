@@ -89,7 +89,7 @@ class EmailService
         try {
             $user = $event->getUser();
 
-            $verificationToken = auth()->createVerificationToken($user)->token;
+            $verificationToken = auth()->createVerificationToken($user)->rawToken;
 
             $template = template()->render('flute::emails.confirmation', [
                 'url' => url('confirm/' . $verificationToken)->get(),

@@ -111,7 +111,9 @@ class UserNameRenderer
         $afterHtml = $this->renderDecorators($decorators, self::POSITION_AFTER, $user);
 
         $roleColor = $withColor ? $this->getUserRoleColor($user) : null;
-        $colorStyle = $roleColor ? " style=\"color: {$roleColor}\"" : '';
+        $colorStyle = $roleColor && preg_match('/^#[0-9A-Fa-f]{6}$/', $roleColor)
+            ? ' style="color: ' . e($roleColor) . '"'
+            : '';
         $escapedName = e($name);
 
         $nameHtml = "<span class=\"user-name__text\"{$colorStyle}>{$escapedName}</span>";

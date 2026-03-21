@@ -6,7 +6,13 @@ const GOOGLE_FONTS = [
     'Manrope', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins',
     'Nunito', 'Raleway', 'Ubuntu', 'Rubik', 'Work Sans', 'DM Sans', 'Outfit',
     'Plus Jakarta Sans', 'Space Grotesk', 'Lexend', 'Sora', 'Urbanist', 'Figtree',
-    'Playfair Display', 'Merriweather', 'Lora'
+    'Playfair Display', 'Merriweather', 'Lora',
+    'Bebas Neue', 'Oswald', 'Fjalla One', 'Archivo Black', 'Bricolage Grotesque',
+    'Red Hat Display', 'Unbounded', 'Instrument Sans', 'Gabarito', 'Anybody',
+    'Albert Sans', 'Onest', 'Geologica',
+    'Quicksand', 'Barlow', 'Barlow Condensed', 'Karla', 'Righteous',
+    'Familjen Grotesk', 'Titillium Web', 'Spectral', 'Crimson Text', 'Bungee',
+    'Hanken Grotesk', 'Wix Madefor Display', 'Atkinson Hyperlegible', 'Comfortaa'
 ];
 
 /**
@@ -16,111 +22,159 @@ const GOOGLE_FONTS = [
 const COLOR_PRESETS = {
     standard: {
         name: 'Standard',
-        font: 'Manrope', headingFont: 'inherit',
-        dark:  { '--accent': '#A5FF75', '--primary': '#e8e8ed', '--secondary': '#1e1e22', '--background': '#121214', '--text': '#e8e8ed' },
-        light: { '--accent': '#34c759', '--primary': '#1d1d1f', '--secondary': '#f5f5f7', '--background': '#ffffff', '--text': '#1d1d1f' }
+        font: 'Manrope', headingFont: 'inherit', radius: 1,
+        dark:  { '--accent': '#8AD86A', '--primary': '#e8e8ed', '--secondary': '#1e1e22', '--background': '#121214', '--text': '#e8e8ed' },
+        light: { '--accent': '#2EA84D', '--primary': '#1d1d1f', '--secondary': '#f5f5f7', '--background': '#ffffff', '--text': '#1d1d1f' }
     },
     youtube: {
         name: 'YouTube',
-        font: 'Roboto', headingFont: 'inherit',
-        dark:  { '--accent': '#FF0000', '--primary': '#F1F1F1', '--secondary': '#1F1F1F', '--background': '#0F0F0F', '--text': '#F1F1F1' },
-        light: { '--accent': '#FF0000', '--primary': '#0F0F0F', '--secondary': '#F2F2F2', '--background': '#FFFFFF', '--text': '#0F0F0F' }
+        font: 'Roboto', headingFont: 'Oswald', radius: 0.75,
+        dark:  { '--accent': '#DA3633', '--primary': '#F1F1F1', '--secondary': '#1F1F1F', '--background': '#0F0F0F', '--text': '#F1F1F1' },
+        light: { '--accent': '#CC2D2A', '--primary': '#0F0F0F', '--secondary': '#F2F2F2', '--background': '#FFFFFF', '--text': '#0F0F0F' }
     },
     claude: {
         name: 'Claude',
-        font: 'Sora', headingFont: 'inherit',
-        dark:  { '--accent': '#D97706', '--primary': '#EEECE7', '--secondary': '#22201D', '--background': '#1A1816', '--text': '#EEECE7' },
-        light: { '--accent': '#D97706', '--primary': '#2D2B28', '--secondary': '#F5F3EE', '--background': '#FFFBF5', '--text': '#2D2B28' }
+        font: 'Sora', headingFont: 'inherit', radius: 1.25,
+        dark:  { '--accent': '#C4870E', '--primary': '#EEECE7', '--secondary': '#22201D', '--background': '#1A1816', '--text': '#EEECE7' },
+        light: { '--accent': '#B37A0A', '--primary': '#2D2B28', '--secondary': '#F5F3EE', '--background': '#FFFBF5', '--text': '#2D2B28' }
     },
     openai: {
         name: 'OpenAI',
-        font: 'Inter', headingFont: 'inherit',
-        dark:  { '--accent': '#10A37F', '--primary': '#ECECEC', '--secondary': '#1A1A1A', '--background': '#0D0D0D', '--text': '#ECECEC' },
-        light: { '--accent': '#10A37F', '--primary': '#1A1A1A', '--secondary': '#F7F7F8', '--background': '#FFFFFF', '--text': '#1A1A1A' }
+        font: 'Albert Sans', headingFont: 'Hanken Grotesk', radius: 1,
+        dark:  { '--accent': '#1A8A6A', '--primary': '#ECECEC', '--secondary': '#1A1A1A', '--background': '#0D0D0D', '--text': '#ECECEC' },
+        light: { '--accent': '#16795C', '--primary': '#1A1A1A', '--secondary': '#F7F7F8', '--background': '#FFFFFF', '--text': '#1A1A1A' }
     },
     discord: {
         name: 'Discord',
-        font: 'DM Sans', headingFont: 'inherit',
-        dark:  { '--accent': '#5865F2', '--primary': '#DBDEE1', '--secondary': '#2B2D31', '--background': '#1E1F22', '--text': '#DBDEE1' },
-        light: { '--accent': '#5865F2', '--primary': '#2E3338', '--secondary': '#F2F3F5', '--background': '#FFFFFF', '--text': '#2E3338' }
+        font: 'DM Sans', headingFont: 'Red Hat Display', radius: 0.5,
+        dark:  { '--accent': '#6B74D6', '--primary': '#DBDEE1', '--secondary': '#2B2D31', '--background': '#1E1F22', '--text': '#DBDEE1' },
+        light: { '--accent': '#4E58C5', '--primary': '#2E3338', '--secondary': '#F2F3F5', '--background': '#FFFFFF', '--text': '#2E3338' }
     },
     spotify: {
         name: 'Spotify',
-        font: 'Figtree', headingFont: 'inherit',
-        dark:  { '--accent': '#1DB954', '--primary': '#FFFFFF', '--secondary': '#1A1A1A', '--background': '#121212', '--text': '#FFFFFF' },
-        light: { '--accent': '#1DB954', '--primary': '#191414', '--secondary': '#F6F6F6', '--background': '#FFFFFF', '--text': '#191414' }
+        font: 'Figtree', headingFont: 'Bebas Neue', radius: 0.625,
+        dark:  { '--accent': '#1A9E49', '--primary': '#F0F0F0', '--secondary': '#1A1A1A', '--background': '#121212', '--text': '#F0F0F0' },
+        light: { '--accent': '#178C40', '--primary': '#191414', '--secondary': '#F6F6F6', '--background': '#FFFFFF', '--text': '#191414' }
     },
     github: {
         name: 'GitHub',
-        font: 'Inter', headingFont: 'inherit',
-        dark:  { '--accent': '#2F81F7', '--primary': '#E6EDF3', '--secondary': '#161B22', '--background': '#0D1117', '--text': '#E6EDF3' },
-        light: { '--accent': '#0969DA', '--primary': '#1F2328', '--secondary': '#F6F8FA', '--background': '#FFFFFF', '--text': '#1F2328' }
+        font: 'Inter', headingFont: 'inherit', radius: 0.5,
+        dark:  { '--accent': '#4B8FD4', '--primary': '#E6EDF3', '--secondary': '#161B22', '--background': '#0D1117', '--text': '#E6EDF3' },
+        light: { '--accent': '#1167B8', '--primary': '#1F2328', '--secondary': '#F6F8FA', '--background': '#FFFFFF', '--text': '#1F2328' }
     },
     linear: {
         name: 'Linear',
-        font: 'Inter', headingFont: 'inherit',
-        dark:  { '--accent': '#5E6AD2', '--primary': '#EEEEF0', '--secondary': '#1A1A1F', '--background': '#111113', '--text': '#EEEEF0' },
-        light: { '--accent': '#5E6AD2', '--primary': '#1A1A1A', '--secondary': '#F5F5F7', '--background': '#FBFBFB', '--text': '#1A1A1A' }
+        font: 'Instrument Sans', headingFont: 'inherit', radius: 0.625,
+        dark:  { '--accent': '#7078C4', '--primary': '#EEEEF0', '--secondary': '#1A1A1F', '--background': '#111113', '--text': '#EEEEF0' },
+        light: { '--accent': '#5159AB', '--primary': '#1A1A1A', '--secondary': '#F5F5F7', '--background': '#FBFBFB', '--text': '#1A1A1A' }
     },
     stripe: {
         name: 'Stripe',
-        font: 'Plus Jakarta Sans', headingFont: 'inherit',
-        dark:  { '--accent': '#635BFF', '--primary': '#EFF4F8', '--secondary': '#0E2A47', '--background': '#0A2540', '--text': '#EFF4F8' },
-        light: { '--accent': '#635BFF', '--primary': '#0A2540', '--secondary': '#F6F9FC', '--background': '#FFFFFF', '--text': '#0A2540' }
+        font: 'Plus Jakarta Sans', headingFont: 'Wix Madefor Display', radius: 0.75,
+        dark:  { '--accent': '#7A74E0', '--primary': '#EFF4F8', '--secondary': '#0E2A47', '--background': '#0A2540', '--text': '#EFF4F8' },
+        light: { '--accent': '#564FD6', '--primary': '#0A2540', '--secondary': '#F6F9FC', '--background': '#FFFFFF', '--text': '#0A2540' }
     },
     notion: {
         name: 'Notion',
-        font: 'Inter', headingFont: 'Lora',
-        dark:  { '--accent': '#EB5757', '--primary': '#E0E0E0', '--secondary': '#252525', '--background': '#191919', '--text': '#E0E0E0' },
-        light: { '--accent': '#EB5757', '--primary': '#37352F', '--secondary': '#F7F6F3', '--background': '#FFFFFF', '--text': '#37352F' }
+        font: 'Inter', headingFont: 'Lora', radius: 0.375,
+        dark:  { '--accent': '#C96060', '--primary': '#E0E0E0', '--secondary': '#252525', '--background': '#191919', '--text': '#E0E0E0' },
+        light: { '--accent': '#C04A4A', '--primary': '#37352F', '--secondary': '#F7F6F3', '--background': '#FFFFFF', '--text': '#37352F' }
     },
     vercel: {
         name: 'Vercel',
-        font: 'Inter', headingFont: 'inherit',
-        dark:  { '--accent': '#FFFFFF', '--primary': '#EDEDED', '--secondary': '#111111', '--background': '#000000', '--text': '#EDEDED' },
-        light: { '--accent': '#000000', '--primary': '#000000', '--secondary': '#FAFAFA', '--background': '#FFFFFF', '--text': '#000000' }
+        font: 'Onest', headingFont: 'inherit', radius: 0.5,
+        dark:  { '--accent': '#E0E0E0', '--primary': '#EDEDED', '--secondary': '#111111', '--background': '#000000', '--text': '#EDEDED' },
+        light: { '--accent': '#1A1A1A', '--primary': '#000000', '--secondary': '#FAFAFA', '--background': '#FFFFFF', '--text': '#000000' }
     },
     dracula: {
         name: 'Dracula',
-        font: 'Rubik', headingFont: 'inherit',
-        dark:  { '--accent': '#BD93F9', '--primary': '#F8F8F2', '--secondary': '#343746', '--background': '#282A36', '--text': '#F8F8F2' },
-        light: { '--accent': '#9B6BDF', '--primary': '#282A36', '--secondary': '#F8F8F2', '--background': '#FFFFFF', '--text': '#282A36' }
+        font: 'Rubik', headingFont: 'Unbounded', radius: 1,
+        dark:  { '--accent': '#A985D6', '--primary': '#F8F8F2', '--secondary': '#343746', '--background': '#282A36', '--text': '#F8F8F2' },
+        light: { '--accent': '#8560C0', '--primary': '#282A36', '--secondary': '#F8F8F2', '--background': '#FFFFFF', '--text': '#282A36' }
     },
     nord: {
         name: 'Nord',
-        font: 'Nunito', headingFont: 'inherit',
-        dark:  { '--accent': '#88C0D0', '--primary': '#ECEFF4', '--secondary': '#3B4252', '--background': '#2E3440', '--text': '#ECEFF4' },
-        light: { '--accent': '#5E81AC', '--primary': '#2E3440', '--secondary': '#E5E9F0', '--background': '#ECEFF4', '--text': '#2E3440' }
+        font: 'Nunito', headingFont: 'Comfortaa', radius: 1.125,
+        dark:  { '--accent': '#7BB0BE', '--primary': '#ECEFF4', '--secondary': '#3B4252', '--background': '#2E3440', '--text': '#ECEFF4' },
+        light: { '--accent': '#527594', '--primary': '#2E3440', '--secondary': '#E5E9F0', '--background': '#ECEFF4', '--text': '#2E3440' }
     },
     rose: {
         name: 'Rosé Pine',
-        font: 'Urbanist', headingFont: 'Playfair Display',
-        dark:  { '--accent': '#c4a7e7', '--primary': '#e0def4', '--secondary': '#26233a', '--background': '#191724', '--text': '#e0def4' },
-        light: { '--accent': '#907aa9', '--primary': '#575279', '--secondary': '#f2e9e1', '--background': '#faf4ed', '--text': '#575279' }
+        font: 'Urbanist', headingFont: 'Playfair Display', radius: 1,
+        dark:  { '--accent': '#b196d0', '--primary': '#e0def4', '--secondary': '#26233a', '--background': '#191724', '--text': '#e0def4' },
+        light: { '--accent': '#7d6a96', '--primary': '#575279', '--secondary': '#f2e9e1', '--background': '#faf4ed', '--text': '#575279' }
     },
     catppuccin: {
         name: 'Catppuccin',
-        font: 'Outfit', headingFont: 'inherit',
-        dark:  { '--accent': '#cba6f7', '--primary': '#cdd6f4', '--secondary': '#313244', '--background': '#1e1e2e', '--text': '#cdd6f4' },
-        light: { '--accent': '#8839ef', '--primary': '#4c4f69', '--secondary': '#e6e9ef', '--background': '#eff1f5', '--text': '#4c4f69' }
+        font: 'Outfit', headingFont: 'Gabarito', radius: 1.25,
+        dark:  { '--accent': '#b493d6', '--primary': '#cdd6f4', '--secondary': '#313244', '--background': '#1e1e2e', '--text': '#cdd6f4' },
+        light: { '--accent': '#7432c9', '--primary': '#4c4f69', '--secondary': '#e6e9ef', '--background': '#eff1f5', '--text': '#4c4f69' }
     },
     sunset: {
         name: 'Sunset',
-        font: 'Lexend', headingFont: 'inherit',
-        dark:  { '--accent': '#FF6B35', '--primary': '#FFF0E5', '--secondary': '#1C1410', '--background': '#120E0A', '--text': '#FFF0E5' },
-        light: { '--accent': '#E85D26', '--primary': '#2D1F14', '--secondary': '#FFF5EE', '--background': '#FFFAF5', '--text': '#2D1F14' }
+        font: 'Lexend', headingFont: 'Oswald', radius: 0.75,
+        dark:  { '--accent': '#D4713A', '--primary': '#F5E8DC', '--secondary': '#1C1410', '--background': '#120E0A', '--text': '#F5E8DC' },
+        light: { '--accent': '#BF5A22', '--primary': '#2D1F14', '--secondary': '#FFF5EE', '--background': '#FFFAF5', '--text': '#2D1F14' }
     },
     ocean: {
         name: 'Ocean',
-        font: 'Space Grotesk', headingFont: 'inherit',
-        dark:  { '--accent': '#06B6D4', '--primary': '#E0FCFF', '--secondary': '#0C2D3E', '--background': '#061E2C', '--text': '#E0FCFF' },
-        light: { '--accent': '#0891B2', '--primary': '#164E63', '--secondary': '#ECFEFF', '--background': '#F8FFFE', '--text': '#164E63' }
+        font: 'Space Grotesk', headingFont: 'Bricolage Grotesque', radius: 0.875,
+        dark:  { '--accent': '#3A9FB3', '--primary': '#D6EFF3', '--secondary': '#0C2D3E', '--background': '#061E2C', '--text': '#D6EFF3' },
+        light: { '--accent': '#0E7A8F', '--primary': '#164E63', '--secondary': '#EBF8FA', '--background': '#F8FFFE', '--text': '#164E63' }
     },
     golden: {
         name: 'Black & Gold',
-        font: 'Montserrat', headingFont: 'Playfair Display',
-        dark:  { '--accent': '#F5C842', '--primary': '#FAF0D0', '--secondary': '#0C0A06', '--background': '#05050A', '--text': '#FAF0D0' },
-        light: { '--accent': '#C49B20', '--primary': '#1A1608', '--secondary': '#FEFCE8', '--background': '#FFFEF5', '--text': '#1A1608' }
+        font: 'Montserrat', headingFont: 'Playfair Display', radius: 0.375,
+        dark:  { '--accent': '#D4AD3A', '--primary': '#F0E6C8', '--secondary': '#0C0A06', '--background': '#05050A', '--text': '#F0E6C8' },
+        light: { '--accent': '#A6841C', '--primary': '#1A1608', '--secondary': '#FEFCE8', '--background': '#FFFEF5', '--text': '#1A1608' }
+    },
+    neon: {
+        name: 'Neon',
+        font: 'Geologica', headingFont: 'Comfortaa', radius: 1.5,
+        dark:  { '--accent': '#3CC9A8', '--primary': '#D6F0EA', '--secondary': '#0D1B2A', '--background': '#060D16', '--text': '#D6F0EA' },
+        light: { '--accent': '#1F9B7E', '--primary': '#0D1B2A', '--secondary': '#EDF8F4', '--background': '#FFFFFF', '--text': '#0D1B2A' }
+    },
+    brutalist: {
+        name: 'Brutalist',
+        font: 'Anybody', headingFont: 'Archivo Black', radius: 0,
+        dark:  { '--accent': '#D44468', '--primary': '#F0F0F0', '--secondary': '#1A1A1A', '--background': '#000000', '--text': '#F0F0F0' },
+        light: { '--accent': '#C03558', '--primary': '#0A0A0A', '--secondary': '#F0F0F0', '--background': '#FFFFFF', '--text': '#0A0A0A' }
+    },
+    gaming: {
+        name: 'Gaming',
+        font: 'Red Hat Display', headingFont: 'Fjalla One', radius: 0.625,
+        dark:  { '--accent': '#8B5CC6', '--primary': '#E8DEFA', '--secondary': '#18102B', '--background': '#0E0820', '--text': '#E8DEFA' },
+        light: { '--accent': '#6535A8', '--primary': '#1E103A', '--secondary': '#F3EDFF', '--background': '#FAFAFE', '--text': '#1E103A' }
+    },
+    vapor: {
+        name: 'Vaporwave',
+        font: 'Gabarito', headingFont: 'Unbounded', radius: 1.5,
+        dark:  { '--accent': '#D480B0', '--primary': '#E0CCEB', '--secondary': '#1A0A2E', '--background': '#0F0620', '--text': '#E0CCEB' },
+        light: { '--accent': '#AD3A72', '--primary': '#2D1049', '--secondary': '#F8EDF5', '--background': '#FFF5FC', '--text': '#2D1049' }
+    },
+    arctic: {
+        name: 'Arctic',
+        font: 'Hanken Grotesk', headingFont: 'Bricolage Grotesque', radius: 0.75,
+        dark:  { '--accent': '#5BA3D4', '--primary': '#E2E8F0', '--secondary': '#1E293B', '--background': '#0F172A', '--text': '#E2E8F0' },
+        light: { '--accent': '#1872A8', '--primary': '#0F172A', '--secondary': '#F1F5F9', '--background': '#F8FAFC', '--text': '#0F172A' }
+    },
+    rust: {
+        name: 'Rust',
+        font: 'Bricolage Grotesque', headingFont: 'Oswald', radius: 0.5,
+        dark:  { '--accent': '#C4600E', '--primary': '#F0DFD0', '--secondary': '#1C1108', '--background': '#120B04', '--text': '#F0DFD0' },
+        light: { '--accent': '#A5390E', '--primary': '#1C1108', '--secondary': '#FFF7ED', '--background': '#FFFCF5', '--text': '#1C1108' }
+    },
+    matrix: {
+        name: 'Matrix',
+        font: 'Space Grotesk', headingFont: 'Bebas Neue', radius: 0.25,
+        dark:  { '--accent': '#3DA65C', '--primary': '#C8EDD8', '--secondary': '#052E16', '--background': '#021208', '--text': '#C8EDD8' },
+        light: { '--accent': '#1D7035', '--primary': '#052E16', '--secondary': '#EFF8F2', '--background': '#FAFFFE', '--text': '#052E16' }
+    },
+    editorial: {
+        name: 'Editorial',
+        font: 'Familjen Grotesk', headingFont: 'Spectral', radius: 0.25,
+        dark:  { '--accent': '#C9A87C', '--primary': '#E8E0D6', '--secondary': '#1E1B18', '--background': '#141210', '--text': '#E8E0D6' },
+        light: { '--accent': '#8B6F4E', '--primary': '#2C2520', '--secondary': '#F5F0EB', '--background': '#FDFAF6', '--text': '#2C2520' }
     }
 };
 
@@ -341,6 +395,19 @@ class VisualEditor {
                 preview.style.background = colors[variable];
             }
         });
+
+        // Apply border radius from preset
+        if (preset.radius !== undefined) {
+            const r = preset.radius;
+            this.setProperty('--border1', r + 'rem');
+            this.setProperty('--border05', (r / 2) + 'rem');
+            const slider = document.getElementById('ve-border-radius');
+            if (slider) {
+                slider.value = r;
+                this.updateSliderDisplay(slider, r, 'rem');
+            }
+            this.updateBorderPreview();
+        }
 
         // Apply paired fonts from preset
         if (preset.font) {

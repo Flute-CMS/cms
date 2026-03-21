@@ -90,7 +90,11 @@ class AdminServersService
         $server->ip = $data['ip'];
         $server->port = (int) $data['port'];
         $server->mod = $data['mod'];
-        $server->rcon = $data['rcon'] ?? null;
+        if (!empty($data['rcon'])) {
+            $server->rcon = $data['rcon'];
+        } elseif (!$server->rcon) {
+            $server->rcon = null;
+        }
         $server->display_ip = $data['display_ip'] ?? null;
         $server->enabled = filter_var($data['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $server->ranks = $data['ranks'] ?? 'default';

@@ -70,6 +70,41 @@ class AuthController extends BaseController
         }
     }
 
+    public function confirmEmailChange(FluteRequest $request, string $token)
+    {
+        try {
+            $verificationToken = \Flute\Core\Database\Entities\VerificationToken::query()
+                ->where(['token' => hash('sha256', $token)])
+                ->load(['user'])
+                ->fetchOne();
+
+            if ($verificationToken === null || $verificationToken->expiresAt < new \DateTime()) {
+                return response()->error(404, __('auth.confirmation.verify_old'));
+            }
+
+            $user = $verificationToken->user;
+
+            if (empty($user->pendingEmail)) {
+                transaction($verificationToken, 'delete')->run();
+
+                return response()->error(404, __('auth.confirmation.verify_old'));
+            }
+
+            $user->email = $user->pendingEmail;
+            $user->pendingEmail = null;
+            $user->verified = true;
+
+            transaction($user)->run();
+            transaction($verificationToken, 'delete')->run();
+
+            flash()->add('success', __('profile.edit.main.basic_information.email_changed_success'));
+
+            return response()->redirect('/');
+        } catch (Exception $e) {
+            return response()->error(404, __('auth.confirmation.verify_old'));
+        }
+    }
+
     public function authCheck(): Response
     {
         return response()->make('', Response::HTTP_NO_CONTENT);

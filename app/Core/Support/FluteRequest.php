@@ -132,7 +132,7 @@ class FluteRequest extends Request
         $data = array_merge($this->attributes->all(), $this->query->all(), $this->request->all());
 
         if ($this->isJson()) {
-            $jsonData = json_decode($this->getContent(), true) ?? [];
+            $jsonData = json_decode($this->getContent(), true, 32) ?? [];
             $data = array_merge($data, $jsonData);
         }
 

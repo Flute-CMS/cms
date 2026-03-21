@@ -69,6 +69,8 @@ return [
         ],
         'email' => [
             'label' => 'Email',
+            'pending' => 'Pending confirmation: :email',
+            'confirm_enabled' => 'Email confirmation enabled — a verification email will be sent on change',
         ],
         'uri' => [
             'label' => 'URI',
@@ -85,6 +87,7 @@ return [
         'verified' => [
             'label' => 'Verified',
             'help' => 'Check if the user has been verified',
+            'not_verified_hint' => 'Email not verified — you can verify manually or send a confirmation email',
         ],
         'approved' => [
             'label' => 'Approved',
@@ -146,6 +149,12 @@ return [
         'save_social' => 'Save',
         'hide' => 'Hide',
         'show' => 'Show',
+        'verify_email' => 'Verify',
+        'verify_email_hint' => 'Verify email manually without sending a letter',
+        'send_verification' => 'Send email',
+        'apply_pending_email' => 'Apply',
+        'apply_pending_email_hint' => 'Apply new email without confirmation',
+        'cancel_pending_email' => 'Cancel change',
     ],
     'sections' => [
         'main_info' => 'Main Information',
@@ -197,6 +206,11 @@ return [
         'social_not_found' => 'Social network not found.',
         'session_not_found' => 'Session not found.',
         'session_terminated' => 'Session terminated successfully.',
+        'email_verified' => 'User email verified.',
+        'verification_sent' => 'Verification email sent.',
+        'no_email' => 'User has no email address.',
+        'pending_email_applied' => 'New email applied successfully.',
+        'pending_email_cancelled' => 'Email change cancelled.',
     ],
     'status' => [
         'forever' => 'Forever',

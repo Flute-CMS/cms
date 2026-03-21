@@ -69,6 +69,8 @@ return [
         ],
         'email' => [
             'label' => 'Email',
+            'pending' => 'Ожидает подтверждения: :email',
+            'confirm_enabled' => 'Подтверждение email включено — при смене будет отправлено письмо',
         ],
         'uri' => [
             'label' => 'URI',
@@ -85,6 +87,7 @@ return [
         'verified' => [
             'label' => 'Верифицирован',
             'help' => 'Отметьте, если пользователь прошёл верификацию',
+            'not_verified_hint' => 'Email не подтверждён — можно верифицировать вручную или отправить письмо',
         ],
         'approved' => [
             'label' => 'Подтверждён',
@@ -146,6 +149,12 @@ return [
         'save_social' => 'Сохранить',
         'hide' => 'Скрыть',
         'show' => 'Показать',
+        'verify_email' => 'Верифицировать',
+        'verify_email_hint' => 'Подтвердить email вручную без письма',
+        'send_verification' => 'Отправить письмо',
+        'apply_pending_email' => 'Применить',
+        'apply_pending_email_hint' => 'Применить новый email без подтверждения',
+        'cancel_pending_email' => 'Отменить смену',
     ],
     'sections' => [
         'main_info' => 'Основная информация',
@@ -197,6 +206,11 @@ return [
         'social_not_found' => 'Социальная сеть не найдена.',
         'session_not_found' => 'Сессия не найдена.',
         'session_terminated' => 'Сессия успешно завершена.',
+        'email_verified' => 'Email пользователя верифицирован.',
+        'verification_sent' => 'Письмо с подтверждением отправлено.',
+        'no_email' => 'У пользователя нет email-адреса.',
+        'pending_email_applied' => 'Новый email успешно применён.',
+        'pending_email_cancelled' => 'Смена email отменена.',
     ],
     'status' => [
         'forever' => 'Навсегда',

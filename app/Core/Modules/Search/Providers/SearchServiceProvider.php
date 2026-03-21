@@ -45,7 +45,7 @@ class SearchServiceProvider extends AbstractServiceProvider
         }
 
         $foundUsers = User::query()
-            ->where('name', 'like', "%{$value}%")
+            ->where('name', 'like', '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value) . '%')
             ->limit(20)
             ->fetchAll();
 

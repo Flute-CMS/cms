@@ -147,9 +147,12 @@ window.addEventListener('htmx:pushedIntoHistory', (evt) => {
 
 window.addEventListener('delayed-redirect', function (event) {
     const { url, delay } = event.detail;
-    setTimeout(() => {
-        window.location.href = url;
-    }, delay);
+    const safeUrl = String(url || '');
+    if (safeUrl && delay && /^(https?:\/\/|\/)/.test(safeUrl)) {
+        setTimeout(() => {
+            window.location.href = safeUrl;
+        }, delay);
+    }
 });
 
 $(document).on('click', '[data-modal-close]', function (e) {

@@ -5,6 +5,14 @@
     $isMultilang = count($langs) >= 2;
     $defaultLang = config('lang.locale', 'en');
     $plainValue = $isMultilang ? $value : transValue($value);
+
+    // For multilang richtext: parse JSON and give editor the default language content,
+    // store full JSON in data-attribute for JS to read
+    $editorInitialContent = $plainValue;
+    if ($isMultilang && $value) {
+        $decoded = is_string($value) ? json_decode($value, true) : null;
+        $editorInitialContent = is_array($decoded) ? ($decoded[$defaultLang] ?? reset($decoded) ?: '') : $value;
+    }
 @endphp
 
 @if ($isMultilang)
@@ -21,12 +29,13 @@
                 id="{{ $inputId }}"
                 data-translatable-input
                 data-translatable-name="{{ $name }}"
+                data-translatable-value="{{ $value }}"
                 data-editor="richtext"
                 data-height="{{ $height ?? 300 }}"
                 {!! isset($spellcheck) ? ' data-spellcheck="' . ($spellcheck ? 'true' : 'false') . '"' : '' !!}
                 {!! isset($enableImageUpload) && $enableImageUpload ? ' data-upload="true"' : '' !!}
                 {!! isset($imageUploadEndpoint) ? ' data-upload-url="' . $imageUploadEndpoint . '"' : '' !!}
-            >{{ $value }}</textarea>
+            >{{ $editorInitialContent }}</textarea>
 
             @error($name)
                 <span class="input__error">{{ $message }}</span>

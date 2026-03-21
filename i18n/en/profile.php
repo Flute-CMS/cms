@@ -47,6 +47,12 @@ return [
 
                 "save_changes"         => "Save changes",
                 "save_changes_success" => "Basic information updated successfully.",
+                "email_confirmation_sent" => "A confirmation email has been sent to the new address.",
+                "pending_email_notice" => "Pending confirmation: :email",
+                "pending_email_cancelled" => "Email change cancelled.",
+                "resend_confirmation" => "Resend",
+                "cancel_change" => "Cancel",
+                "email_changed_success" => "Email changed successfully.",
             ],
 
             "profile_images" => [

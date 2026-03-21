@@ -42,13 +42,14 @@ jobs:
           tools: composer:v2
           
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
-        
-      - name: Run full test suite
-        run: |
-          # TODO: Add actual PHPUnit tests when available
-          # vendor/bin/phpunit
-          
+        run: composer install --prefer-dist --no-progress
+
+      - name: Security audit
+        run: composer audit
+
+      - name: Lint & format check
+        run: composer test
+
       - name: Calculate new version
         id: version
         run: |
@@ -188,7 +189,11 @@ jobs:
             -x "tests/*" \
             -x "*.md" \
             -x "phpstan.neon" \
-            -x ".php-cs-fixer.*"
+            -x ".php-cs-fixer.*" \
+            -x "config-dev/*" \
+            -x "storage/logs/*" \
+            -x "storage/backup/*" \
+            -x "mago-baseline.toml"
             
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
           
