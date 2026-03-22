@@ -174,41 +174,45 @@ class IconController extends BaseController
 
         $cacheKey = 'icons.search.' . md5("{$prefix}.{$category}.{$query}");
 
-        $result = cache()->callback($cacheKey, function () use ($prefix, $category, $query) {
-            $allIcons = $this->iconFinder->getIconsInPackage($prefix, $category);
-            $query = strtolower($query);
+        $result = cache()->callback(
+            $cacheKey,
+            function () use ($prefix, $category, $query) {
+                $allIcons = $this->iconFinder->getIconsInPackage($prefix, $category);
+                $query = strtolower($query);
 
-            $matchingIcons = [];
-            foreach ($allIcons as $icon) {
-                $iconName = strtolower(str_replace('-', ' ', $icon));
-                if (str_contains($iconName, $query)) {
-                    $matchingIcons[] = $icon;
+                $matchingIcons = [];
+                foreach ($allIcons as $icon) {
+                    $iconName = strtolower(str_replace('-', ' ', $icon));
+                    if (str_contains($iconName, $query)) {
+                        $matchingIcons[] = $icon;
+                    }
                 }
-            }
 
-            $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $matchingIcons);
-            $paths = array_slice($paths, 0, 300);
+                $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $matchingIcons);
+                $paths = array_slice($paths, 0, 300);
 
-            $icons = [];
-            foreach ($paths as $path) {
-                $svg = $this->iconFinder->loadFile($path);
-                if ($svg) {
-                    $icons[] = [
-                        'path' => $path,
-                        'svg' => $svg,
-                        'displayName' => $this->getDisplayNameFromPath($path),
-                    ];
+                $icons = [];
+                foreach ($paths as $path) {
+                    $svg = $this->iconFinder->loadFile($path);
+                    if ($svg) {
+                        $icons[] = [
+                            'path' => $path,
+                            'svg' => $svg,
+                            'displayName' => $this->getDisplayNameFromPath($path),
+                        ];
+                    }
                 }
-            }
 
-            return [
-                'prefix' => $prefix,
-                'query' => $query,
-                'category' => $category,
-                'total' => count($matchingIcons),
-                'icons' => $icons,
-            ];
-        }, 3600);
+                return [
+                    'prefix' => $prefix,
+                    'query' => $query,
+                    'category' => $category,
+                    'total' => count($matchingIcons),
+                    'icons' => $icons,
+                ];
+            },
+            3600,
+        );
 
         return $this->jsonCached($result);
     }
@@ -236,34 +240,38 @@ class IconController extends BaseController
         if ($prefix) {
             $cacheKey = "icons.batch.{$prefix}.{$category}.{$limit}.{$page}";
 
-            $result = cache()->callback($cacheKey, function () use ($prefix, $category, $limit, $page) {
-                $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
-                $total = count($icons);
-                $icons = array_slice($icons, ($page - 1) * $limit, $limit);
-                $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $icons);
+            $result = cache()->callback(
+                $cacheKey,
+                function () use ($prefix, $category, $limit, $page) {
+                    $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
+                    $total = count($icons);
+                    $icons = array_slice($icons, ( $page - 1 ) * $limit, $limit);
+                    $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $icons);
 
-                $rendered = [];
-                foreach ($paths as $path) {
-                    $svg = $this->iconFinder->loadFile($path);
-                    if ($svg) {
-                        $rendered[] = [
-                            'path' => $path,
-                            'svg' => $svg,
-                            'displayName' => $this->getDisplayNameFromPath($path),
-                        ];
+                    $rendered = [];
+                    foreach ($paths as $path) {
+                        $svg = $this->iconFinder->loadFile($path);
+                        if ($svg) {
+                            $rendered[] = [
+                                'path' => $path,
+                                'svg' => $svg,
+                                'displayName' => $this->getDisplayNameFromPath($path),
+                            ];
+                        }
                     }
-                }
 
-                return [
-                    'prefix' => $prefix,
-                    'category' => $category,
-                    'page' => $page,
-                    'limit' => $limit,
-                    'total' => $total,
-                    'totalPages' => (int) ceil($total / $limit),
-                    'icons' => $rendered,
-                ];
-            }, 86400);
+                    return [
+                        'prefix' => $prefix,
+                        'category' => $category,
+                        'page' => $page,
+                        'limit' => $limit,
+                        'total' => $total,
+                        'totalPages' => (int) ceil($total / $limit),
+                        'icons' => $rendered,
+                    ];
+                },
+                86400,
+            );
 
             return $this->jsonCached($result, 86400);
         }
@@ -321,7 +329,7 @@ class IconController extends BaseController
 
         if ($prefix === 'fa' || $prefix === 'tb') {
             // fa.folder.icon / tb.outline.icon
-            $name = $parts[2] ?? ($parts[1] ?? '');
+            $name = $parts[2] ?? $parts[1] ?? '';
 
             return ucfirst(str_replace('-', ' ', $name));
         }

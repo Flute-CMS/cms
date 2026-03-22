@@ -54,7 +54,8 @@ class HeadersListener
         // Boosted GET navigations (clicking hx-boost links) — allow short private cache
         // so that hover-prefetch → click works instantly from browser cache.
         // Non-boosted HTMX requests (Yoyo components, polling) stay no-store.
-        $isBoostedGet = request()->htmx()->isBoosted()
+        $isBoostedGet =
+            request()->htmx()->isBoosted()
             && request()->getMethod() === 'GET'
             && !$justLoggedInRecent
             && !is_development();
@@ -81,14 +82,20 @@ class HeadersListener
                     'private' => true,
                     'max_age' => 300,
                 ]);
-                $response->headers->set('Cache-Control', $response->headers->get('Cache-Control') . ', stale-while-revalidate=600');
+                $response->headers->set(
+                    'Cache-Control',
+                    $response->headers->get('Cache-Control') . ', stale-while-revalidate=600',
+                );
             } else {
                 $response->setCache([
                     'public' => true,
                     'max_age' => 900,
                     's_maxage' => 1800,
                 ]);
-                $response->headers->set('Cache-Control', $response->headers->get('Cache-Control') . ', stale-while-revalidate=86400');
+                $response->headers->set(
+                    'Cache-Control',
+                    $response->headers->get('Cache-Control') . ', stale-while-revalidate=86400',
+                );
             }
         } else {
             if (!$response->headers->has('Cache-Control') || $response->headers->get('Cache-Control') === 'no-cache') {
