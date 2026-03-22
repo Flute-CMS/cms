@@ -190,6 +190,26 @@ return [
     "excluded_paths_placeholder" => "/шлях/для/приховання",
     "add_path"              => "Додати",
 
+    // Умови видимості
+    "conditions"            => "Видимість",
+    "conditions_desc"       => "Налаштуйте умови, за яких віджет буде показаний або прихований.",
+    "cond_auth_label"       => "Стан користувача",
+    "cond_device_label"     => "Тип пристрою",
+    "auth_all"              => "Усі",
+    "cond_guests"           => "Гості",
+    "cond_auth"             => "Авторизовані",
+    "cond_desktop"          => "ПК",
+    "cond_tablet"           => "Планшет",
+    "cond_mobile"           => "Мобільні",
+    "device_all"            => "Усі пристрої",
+    "preview_device"        => "Попередній перегляд пристрою",
+    "only_for"              => "Тільки для",
+    "hidden_in_preview"     => "Приховано у цьому режимі",
+    "cond_roles_label"      => "Ролі",
+    "cond_roles_hint"       => "Залиште порожнім, щоб показувати для всіх ролей",
+    "cond_roles_short"      => "ролей",
+    "cond_no_roles"         => "Немає доступних ролей",
+
     // Image upload (visual editor)
     "bg_image"              => "Background Image",
     "bg_image_dark"         => "Dark Theme",

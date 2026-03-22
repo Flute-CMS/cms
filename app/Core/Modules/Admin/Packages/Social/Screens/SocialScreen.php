@@ -45,7 +45,7 @@ class SocialScreen extends Screen
                     ->popover(__('admin-social.fields.cooldown_time.popover'))
                     ->render(static fn(SocialNetwork $social) => $social->cooldownTime
                         ? CarbonInterval::seconds($social->cooldownTime)->cascade()->forHumans()
-                        : 'Не ограничено'),
+                        : __('admin-social.table.no_limit')),
 
                 TD::make('allow_to_register', __('admin-social.table.registration'))
                     ->popover(__('admin-social.fields.allow_register.help'))
@@ -230,6 +230,7 @@ class SocialScreen extends Screen
     {
         try {
             cache()->deleteImmediately('available_social_drivers');
+            cache()->deleteImmediately('flute.social_networks');
             cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails

@@ -68,7 +68,7 @@ class Router implements RouterInterface
     protected array $middlewareGroups = [
         'web' => ['csrf', 'throttle'],
         'api' => ['throttle', 'ban.check'],
-        'default' => ['ban.check', 'throttle', 'maintenance'],
+        'default' => ['maintenance', 'throttle', 'ban.check'],
     ];
 
     protected array $groupStack = [];

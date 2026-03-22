@@ -14,7 +14,7 @@ class NavbarService
 
     protected const CACHE_TIME = 24 * 60 * 60;
 
-    protected array $cachedNavbarItems;
+    protected ?array $cachedNavbarItems = null;
 
     protected bool $performance;
 
@@ -26,14 +26,30 @@ class NavbarService
 
     public function __construct(NavbarItemFormat $format, Agent $agent)
     {
-        if (!is_installed()) {
-            return;
-        }
-
-        $this->performance = is_performance();
-
         $this->format = $format;
         $this->agent = $agent;
+
+        if (is_installed()) {
+            $this->performance = is_performance();
+        } else {
+            $this->performance = false;
+        }
+    }
+
+    /**
+     * Lazily loads navbar items from cache/DB on first access.
+     */
+    protected function loadItems(): array
+    {
+        if ($this->cachedNavbarItems !== null) {
+            return $this->cachedNavbarItems;
+        }
+
+        if (!is_installed()) {
+            $this->cachedNavbarItems = [];
+
+            return $this->cachedNavbarItems;
+        }
 
         $cacheKey =
             self::CACHE_KEY
@@ -47,6 +63,8 @@ class NavbarService
         $cacheTime = is_development() ? 30 : self::CACHE_TIME;
         cache()->tagKey(self::CACHE_TAG, $cacheKey);
         $this->cachedNavbarItems = cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), $cacheTime);
+
+        return $this->cachedNavbarItems;
     }
 
     /**
@@ -56,6 +74,8 @@ class NavbarService
      */
     public function add(NavbarItem $item): self
     {
+        $this->loadItems();
+
         if ($this->hasAccess($item)) {
             $this->cachedNavbarItems[] = $this->format->format($item);
         }
@@ -70,7 +90,7 @@ class NavbarService
      */
     public function all(bool $ignoreAuth = false): array
     {
-        return $ignoreAuth ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
+        return $ignoreAuth ? $this->getDefaultNavbarItems(true) : $this->loadItems();
     }
 
     /**

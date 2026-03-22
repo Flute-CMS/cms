@@ -190,6 +190,26 @@ return [
     "excluded_paths_placeholder" => "/caminho/para/ocultar",
     "add_path"              => "Adicionar",
 
+    // Condições de visibilidade
+    "conditions"            => "Visibilidade",
+    "conditions_desc"       => "Defina condições para mostrar ou ocultar este widget.",
+    "cond_auth_label"       => "Estado do usuário",
+    "cond_device_label"     => "Tipo de dispositivo",
+    "auth_all"              => "Todos",
+    "cond_guests"           => "Visitantes",
+    "cond_auth"             => "Autenticados",
+    "cond_desktop"          => "Desktop",
+    "cond_tablet"           => "Tablet",
+    "cond_mobile"           => "Celular",
+    "device_all"            => "Todos os dispositivos",
+    "preview_device"        => "Pré-visualização do dispositivo",
+    "only_for"              => "Apenas para",
+    "hidden_in_preview"     => "Oculto nesta visualização",
+    "cond_roles_label"      => "Funções",
+    "cond_roles_hint"       => "Deixe vazio para mostrar para todas as funções",
+    "cond_roles_short"      => "funções",
+    "cond_no_roles"         => "Nenhuma função disponível",
+
     // Image upload (visual editor)
     "bg_image"              => "Background Image",
     "bg_image_dark"         => "Dark Theme",

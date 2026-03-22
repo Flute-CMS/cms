@@ -188,6 +188,11 @@ return [
             'show_description' => 'Показать соц.сеть для других пользователей',
             'hide_description' => 'Скрыть соц.сеть от других пользователей',
             'last_social_network' => 'Чтобы отвязать соц.сеть, установите пароль.',
+            'linked' => 'Привязана',
+            'not_linked' => 'Не привязана',
+            'linked_at' => 'Привязана :date',
+            'visible' => 'Видна другим',
+            'hidden' => 'Скрыта',
         ],
         'payments' => [
             'title' => 'Платежи',
@@ -213,6 +218,23 @@ return [
         ],
         'upload_directory_error' => 'Каталог для загрузок не существует.',
         'upload_failed' => 'Не удалось загрузить :field.',
+        'balance_history' => [
+            'title' => 'История баланса',
+            'description' => 'Все операции с балансом: пополнения, покупки и возвраты.',
+            'table' => [
+                'type' => 'Тип',
+                'description' => 'Описание',
+                'amount' => 'Сумма',
+                'date' => 'Дата',
+            ],
+            'types' => [
+                'topup' => 'Пополнение',
+                'purchase' => 'Покупка',
+                'refund' => 'Возврат',
+                'admin' => 'Администратор',
+            ],
+            'no_description' => 'Без описания',
+        ],
     ],
 
     'two_factor' => [
@@ -252,7 +274,9 @@ return [
         'ban_until' => 'Заблокировать до',
         'ban_until_hint' => 'Оставьте пустым для бессрочной блокировки',
         'balance_added' => 'Баланс пополнен на :amount',
+        'balance_added_by' => 'Начислено администратором :admin',
         'balance_removed' => 'С баланса снято :amount',
+        'balance_removed_by' => 'Снято администратором :admin',
         'user_banned' => 'Пользователь заблокирован',
         'user_unbanned' => 'Пользователь разблокирован',
         'user_verified' => 'Email подтверждён',

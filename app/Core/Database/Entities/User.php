@@ -161,7 +161,7 @@ class User extends ActiveRecord
 
     public function setPassword(string $password) : void
     {
-        $this->password = password_hash($password, PASSWORD_BCRYPT);
+        $this->password = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $this->password_updated_at = new \DateTimeImmutable();
     }
 
@@ -200,7 +200,7 @@ class User extends ActiveRecord
     public function getSocialNetwork(string $socialNetworkName) : ?UserSocialNetwork
     {
         foreach ($this->socialNetworks as $socialNetwork) {
-            if ($socialNetwork->socialNetwork->key === $socialNetworkName) {
+            if ($socialNetwork->socialNetwork?->key === $socialNetworkName) {
                 return $socialNetwork;
             }
         }
@@ -210,7 +210,7 @@ class User extends ActiveRecord
     public function hasSocialNetwork(string $socialNetworkName) : bool
     {
         foreach ($this->socialNetworks as $socialNetwork) {
-            if ($socialNetwork->socialNetwork->key === $socialNetworkName) {
+            if ($socialNetwork->socialNetwork?->key === $socialNetworkName) {
                 return true;
             }
         }
@@ -221,7 +221,7 @@ class User extends ActiveRecord
     {
         $this->socialNetworks = array_filter(
             $this->socialNetworks,
-            fn ($socialNetwork) => $socialNetwork->socialNetwork->key !== $socialNetworkName
+            fn ($socialNetwork) => $socialNetwork->socialNetwork?->key !== $socialNetworkName
         );
     }
 
@@ -255,6 +255,9 @@ class User extends ActiveRecord
     {
         $now = new \DateTimeImmutable();
         $lastLogged = $this->last_logged instanceof \DateTimeImmutable ? $this->last_logged : ($this->last_logged ? new \DateTimeImmutable($this->last_logged) : null);
+        if ($lastLogged === null) {
+            return false;
+        }
         $interval = $now->getTimestamp() - $lastLogged->getTimestamp();
         return $interval <= self::IS_ONLINE_TIME;
     }

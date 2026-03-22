@@ -72,24 +72,26 @@ return [
             'help' => 'Display name shown to users on the payment page',
         ],
         'method' => [
-            'label' => 'Method',
+            'label' => 'HTTP Method',
             'placeholder' => 'Enter method',
+            'help' => 'If the payment provider asks for the notification method (HTTP method), select POST. Almost all providers use it.',
         ],
         'handle_url' => [
-            'label' => 'Webhook URL',
+            'label' => 'Webhook / Notification URL',
             'placeholder' => 'Enter handle URL',
-            'help' => 'URL for receiving payment notifications from the provider',
+            'help' => 'Copy and paste this URL into your payment provider\'s dashboard in the "Webhook URL", "Notification URL", "Result URL" or "HTTP notifications" field. This is the address where the payment system will send successful payment notifications.',
         ],
         'success_url' => [
-            'label' => 'Success URL',
+            'label' => 'Success URL (success page)',
             'placeholder' => 'Enter success URL',
-            'help' => 'User is redirected here after successful payment',
+            'help' => 'Paste into the "Success URL", "Return URL" or "Redirect URL on success" field in your payment provider settings. The user will be redirected here after a successful payment.',
         ],
         'fail_url' => [
-            'label' => 'Fail URL',
+            'label' => 'Fail URL (error page)',
             'placeholder' => 'Enter fail URL',
-            'help' => 'User is redirected here if payment fails',
+            'help' => 'Paste into the "Fail URL", "Cancel URL" or "Redirect URL on error" field. The user will be redirected here if the payment fails or is cancelled.',
         ],
+        'gateway_urls_alert' => 'Copy these URLs and paste them into your payment provider\'s settings (provider dashboard). Without this, payments will not be processed!',
         'image' => [
             'label' => 'Image',
             'placeholder' => 'Enter image URL',

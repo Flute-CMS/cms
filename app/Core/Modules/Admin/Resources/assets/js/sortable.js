@@ -244,7 +244,7 @@ if (typeof Sortable === 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         initializeSortables();
 
-        document.body.addEventListener('htmx:beforeSwap', evt => destroySortablesIn(evt.target));
+        document.body.addEventListener('htmx:beforeSwap', evt => destroySortablesIn(evt.detail && evt.detail.target ? evt.detail.target : evt.target));
         document.body.addEventListener('htmx:beforeCleanupElement', evt => destroySortablesIn(evt.target));
         document.body.addEventListener('htmx:afterSettle', evt => {
             initializeSortables(evt.detail.target);

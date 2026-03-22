@@ -308,5 +308,6 @@
     "unknown" => "Unknown",
     "unknown_reason" => "Unknown reason",
     "upload_error" => "Upload error",
-    "language_select" => "Select language"
+    "language_select" => "Select language",
+    "auth_required" => "Authentication required"
 ];

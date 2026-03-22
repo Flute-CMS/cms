@@ -343,8 +343,6 @@ final class App
         // Optional global profiler (only runs if enabled in config/profiler.php)
         GlobalProfiler::start();
 
-        $this->get(DatabaseConnection::class)->recompileIfNeeded();
-
         if (!defined('FLUTE_DB_SETUP_END')) {
             define('FLUTE_DB_SETUP_END', microtime(true));
         }

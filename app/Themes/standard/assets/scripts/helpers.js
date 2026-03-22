@@ -26,8 +26,27 @@ function isMobileDevice() {
     return window.innerWidth <= 768;
 }
 
+// Track FilePond instances for proper lifecycle (destroy before morph swap).
+const _filePondInstances = new WeakMap();
+
+function destroyFilePondsIn(scope) {
+    if (typeof FilePond === 'undefined' || !scope) return;
+    const wrappers = [];
+    if (scope.matches?.('.input-wrapper')) wrappers.push(scope);
+    scope.querySelectorAll?.('.input-wrapper').forEach(w => wrappers.push(w));
+    wrappers.forEach(wrapper => {
+        const pond = _filePondInstances.get(wrapper);
+        if (pond) {
+            try { pond.destroy(); } catch (_) {}
+            _filePondInstances.delete(wrapper);
+        }
+    });
+}
+
 function initializeFilePondElement(element) {
-    if (!element.classList.contains('filepond') || element.filepond) return;
+    if (!element.classList.contains('filepond')) return;
+    const wrapper = element.closest('.input-wrapper') || element.closest('.form-field') || element.parentElement;
+    if (!wrapper || _filePondInstances.has(wrapper)) return;
     const defaultFile = element.dataset.defaultFile || null;
 
     let filePondOptions = {
@@ -145,6 +164,7 @@ function initializeFilePondElement(element) {
     }
 
     var pond = FilePond.create(element, filePondOptions);
+    _filePondInstances.set(wrapper, pond);
 
     // Image crop integration — hook onaddfile to open Cropper.js modal
     if (hasCrop && cropContainer && typeof window.ImageCropper !== 'undefined') {
@@ -173,7 +193,7 @@ function initializeFilePondElement(element) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+function _registerFilePondPlugins() {
     if (typeof FilePond !== 'undefined' && !window.filePondPluginsRegistered) {
         const plugins = [];
         if (typeof FilePondPluginImagePreview !== 'undefined') plugins.push(FilePondPluginImagePreview);
@@ -185,36 +205,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    (typeof requestIdleCallback === 'function' ? requestIdleCallback : setTimeout)(_registerFilePondPlugins);
 });
+
+// Destroy FilePond instances BEFORE swap (especially morph) so that the
+// original <input> elements are restored and the morph algorithm can
+// reconcile old DOM with new server HTML without layout breakage.
+document.body.addEventListener('htmx:beforeSwap', function (evt) {
+    const target = evt.detail.target;
+    if (target) destroyFilePondsIn(target);
+});
+
+// Also clean up per-element (Yoyo morph removes individual nodes).
+document.body.addEventListener('htmx:beforeCleanupElement', function (evt) {
+    destroyFilePondsIn(evt.target);
+});
+
+// Re-initialize FilePond after HTMX settles the new DOM.
+// htmx:load fires on every element loaded into the DOM (initial + swaps) —
+// most reliable hook for catching new filepond inputs.
+function _initFilePondsIn(el) {
+    if (!el) return;
+    if (el.matches && el.matches('input.filepond')) initializeFilePondElement(el);
+    else if (el.querySelectorAll) el.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
+}
 
 document.body.addEventListener('htmx:load', function (evt) {
-    const swappedContent = evt.detail.elt;
-    if (swappedContent) {
-        if (swappedContent.matches && swappedContent.matches('input.filepond')) {
-            initializeFilePondElement(swappedContent);
-        } else if (swappedContent.querySelectorAll) {
-            swappedContent.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
-        }
-    }
-});
-
-document.body.addEventListener('htmx:afterSwap', function (evt) {
-    const swappedContent = evt.detail.elt;
-    if (swappedContent) {
-        setTimeout(() => {
-            if (swappedContent.matches && swappedContent.matches('input.filepond')) {
-                initializeFilePondElement(swappedContent);
-            } else if (swappedContent.querySelectorAll) {
-                swappedContent.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
-            }
-        }, 50);
-    }
+    _initFilePondsIn(evt.detail.elt);
 });
 
 document.body.addEventListener('htmx:afterSettle', function (evt) {
-    document.querySelectorAll('input.filepond').forEach((input) => {
-        if (!input.filepond) {
-            initializeFilePondElement(input);
-        }
-    });
+    _initFilePondsIn(evt.detail && evt.detail.target ? evt.detail.target : evt.target);
 });

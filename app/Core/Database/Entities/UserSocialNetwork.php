@@ -11,7 +11,7 @@ use Cycle\Annotated\Annotation\Table\Index;
 
 #[Entity]
 #[Table(indexes: [
-    new Index(columns: ["value"], unique: true)
+    new Index(columns: ["socialNetwork_id", "value"], unique: true)
 ])]
 class UserSocialNetwork extends ActiveRecord
 {

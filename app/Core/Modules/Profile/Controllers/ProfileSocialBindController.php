@@ -44,17 +44,23 @@ class ProfileSocialBindController extends BaseController
             $userSocialNetwork->user = user()->getCurrentUser();
             $userSocialNetwork->socialNetwork = SocialNetwork::findOne(['key' => ucfirst($provider)]);
 
-            if ($token) {
-                $userSocialNetwork->additional = json_encode($token);
+            $additionalData = $token ? json_decode(json_encode($token), true) : [];
+
+            if (!empty($userProfile->photoURL)) {
+                $additionalData['photoUrl'] = $userProfile->photoURL;
             }
 
-            if ($userSocialNetwork->socialNetwork->key === 'Discord' && !empty($userSocialNetwork->value)) {
+            if (!empty($additionalData)) {
+                $userSocialNetwork->additional = json_encode($additionalData);
+            }
+
+            if ($userSocialNetwork->socialNetwork?->key === 'Discord' && !empty($userSocialNetwork->value)) {
                 $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
             }
 
             transaction($userSocialNetwork)->run();
 
-            if ($userSocialNetwork->socialNetwork->key === 'Discord') {
+            if ($userSocialNetwork->socialNetwork?->key === 'Discord') {
                 $user = user()->get(user()->id, true);
 
                 app()->get(DiscordService::class)->linkRoles($user, $user->roles);
@@ -84,7 +90,16 @@ class ProfileSocialBindController extends BaseController
      */
     public function unbindSocial(FluteRequest $fluteRequest, string $provider): Response
     {
-        $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
+        $socialNetworkEntity = SocialNetwork::findOne(['key' => $provider]);
+
+        if (!$socialNetworkEntity) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
+        $socialNetwork = UserSocialNetwork::findOne([
+            'user_id' => user()->id,
+            'socialNetwork_id' => $socialNetworkEntity->id,
+        ]);
 
         $countSocialNetworks = UserSocialNetwork::query()->where(['user_id' => user()->id])->count();
 
@@ -104,10 +119,10 @@ class ProfileSocialBindController extends BaseController
         $now = new DateTime();
 
         if (
-            $socialNetwork->socialNetwork->cooldownTime > 0 && (
+            $socialNetwork->socialNetwork?->cooldownTime > 0 && (
                 $lastLinked
                 && ( $now->getTimestamp() - $lastLinked->getTimestamp() )
-                < $socialNetwork->socialNetwork->cooldownTime
+                < $socialNetwork->socialNetwork?->cooldownTime
             )
         ) {
             return redirect()->back()->withErrors(t('profile.errors.social_delay'));
@@ -133,7 +148,16 @@ class ProfileSocialBindController extends BaseController
             return $this->error(__('auth.too_many_requests'));
         }
 
-        $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
+        $socialNetworkEntity = SocialNetwork::findOne(['key' => $provider]);
+
+        if (!$socialNetworkEntity) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
+        $socialNetwork = UserSocialNetwork::findOne([
+            'user_id' => user()->id,
+            'socialNetwork_id' => $socialNetworkEntity->id,
+        ]);
 
         if ($socialNetwork === null) {
             return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));

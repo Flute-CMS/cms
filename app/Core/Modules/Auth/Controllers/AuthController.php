@@ -38,7 +38,7 @@ class AuthController extends BaseController
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'register-card');
     }
 
-    public function getLogout(FluteRequest $request)
+    public function logout(FluteRequest $request)
     {
         try {
             auth()->logout();

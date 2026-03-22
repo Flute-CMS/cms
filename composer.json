@@ -128,12 +128,6 @@
 		"fix": "vendor/bin/mago format",
 		"optimize": [
 			"php flute cache:clear"
-		],
-		"post-install-cmd": [
-			"@php scripts/install-sass.php"
-		],
-		"post-update-cmd": [
-			"@php scripts/install-sass.php"
 		]
 	},
 	"config": {

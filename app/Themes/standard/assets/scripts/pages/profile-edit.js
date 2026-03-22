@@ -244,8 +244,12 @@ $(document).on('click', '[data-connect]', function (e) {
             if (event.origin !== window.location.origin) return;
 
             if (event.data === 'authorization_success') {
-                // notyf.success(event.data);
-                location.reload();
+                const socialsComponent = document.querySelector('[yoyo\\:name="profile-edit-socials"]');
+                if (socialsComponent) {
+                    htmx.trigger(socialsComponent, 'refresh');
+                } else {
+                    location.reload();
+                }
             } else if (event.data && event.data.startsWith('authorization_error:')) {
                 const errText = document.createElement('span');
                 errText.textContent = event.data.split(':')[1];

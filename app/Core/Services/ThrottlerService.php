@@ -59,13 +59,28 @@ class ThrottlerService
         $capacity = $this->calculateCapacity($supply, $rustiness);
         $bandwidthPerSecond = $this->calculateBandwidthPerSecond($supply, $interval);
 
-        $bucket = $this->getBucket($key, $now, $capacity);
+        $database = db();
+        $database->begin();
 
-        $accepted = $bucket->getTokens() >= $cost;
+        try {
+            $bucket = $this->getBucket($key, $now, $capacity);
 
-        if (!$simulated) {
-            $this->updateBucket($bucket, $accepted, $cost, $now, $capacity, $bandwidthPerSecond);
-            $this->storeBucket($bucket);
+            $accepted = $bucket->getTokens() >= $cost;
+
+            if (!$simulated) {
+                $this->updateBucket($bucket, $accepted, $cost, $now, $capacity, $bandwidthPerSecond);
+                $this->storeBucket($bucket);
+            }
+
+            $database->commit();
+        } catch (TooManyRequestsException $e) {
+            $database->rollback();
+
+            throw $e;
+        } catch (\Throwable $e) {
+            $database->rollback();
+
+            throw $e;
         }
 
         if ($accepted) {

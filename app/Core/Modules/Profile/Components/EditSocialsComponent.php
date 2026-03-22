@@ -46,9 +46,8 @@ class EditSocialsComponent extends FluteComponent
             return;
         }
         transaction($socialNetwork, 'delete')->run();
+        $user->removeSocialNetwork($this->socialKey);
         $this->flashMessage(__('profile.social_deleted'), 'success');
-
-        $this->redirectTo(url('profile/settings')->addParams(['tab' => 'social']), 500);
     }
 
     public function render()

@@ -20,6 +20,16 @@ class HeadersListener
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
+        // Link headers for 103 Early Hints (picked up by CDNs like Cloudflare)
+        $contentType = (string) $response->headers->get('Content-Type', '');
+        if (str_contains($contentType, 'text/html') || !$response->headers->has('Content-Type')) {
+            $linkHeaders = [
+                '</assets/fonts/manrope/Manrope-Regular.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin',
+                '</assets/fonts/manrope/Manrope-Medium.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin',
+            ];
+            $response->headers->set('Link', implode(', ', $linkHeaders), false);
+        }
+
         $appKey = (string) config('app.key');
         if (empty($appKey)) {
             logs()->warning('Application key (app.key) is not set. Using fallback for auth token HMAC.');
@@ -41,14 +51,26 @@ class HeadersListener
         $justLoggedInAt = session()->get('just_logged_in_at');
         $justLoggedInRecent = is_int($justLoggedInAt) && $justLoggedInAt > ( time() - 10 );
 
-        if (
+        // Boosted GET navigations (clicking hx-boost links) — allow short private cache
+        // so that hover-prefetch → click works instantly from browser cache.
+        // Non-boosted HTMX requests (Yoyo components, polling) stay no-store.
+        $isBoostedGet = request()->htmx()->isBoosted()
+            && request()->getMethod() === 'GET'
+            && !$justLoggedInRecent
+            && !is_development();
+
+        if ($isBoostedGet) {
+            $response->setCache([
+                'private' => true,
+                'max_age' => 5,
+            ]);
+        } elseif (
             $justLoggedInRecent
             || request()->htmx()->isHtmxRequest()
             || request()->htmx()->isBoosted()
             || is_development()
         ) {
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
-            $response->headers->set('Pragma', 'no-cache');
             $response->headers->set('Expires', '0');
             if ($justLoggedInRecent) {
                 session()->remove('just_logged_in_at');
@@ -59,12 +81,14 @@ class HeadersListener
                     'private' => true,
                     'max_age' => 300,
                 ]);
+                $response->headers->set('Cache-Control', $response->headers->get('Cache-Control') . ', stale-while-revalidate=600');
             } else {
                 $response->setCache([
                     'public' => true,
                     'max_age' => 900,
                     's_maxage' => 1800,
                 ]);
+                $response->headers->set('Cache-Control', $response->headers->get('Cache-Control') . ', stale-while-revalidate=86400');
             }
         } else {
             if (!$response->headers->has('Cache-Control') || $response->headers->get('Cache-Control') === 'no-cache') {
@@ -84,19 +108,28 @@ class HeadersListener
             }
         }
 
-        if ($response->getStatusCode() === 200 && !$response->headers->has('ETag')) {
+        // ETag is useful only for conditional requests (304 Not Modified).
+        // Skip when Cache-Control already prevents caching or max_age is very short.
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+        $hasNoCacheDirective = str_contains($cacheControl, 'no-store') || str_contains($cacheControl, 'no-cache');
+
+        if ($response->getStatusCode() === 200 && !$response->headers->has('ETag') && !$hasNoCacheDirective) {
             $content = $response->getContent();
             if ($content !== false && strlen($content) < 512000) {
                 $response->setEtag(md5($content));
             }
         }
 
-        $varyHeaders = array_unique(array_merge($response->getVary(), [
-            'HX-Request',
-            'HX-Boosted',
-            'Cookie',
-            'Authorization',
-        ]));
+        // Vary: Cookie effectively disables CDN caching for anonymous users
+        // (each session cookie = unique cache entry). Only add it for authenticated users.
+        $varyHeaders = ['HX-Request', 'HX-Boosted'];
+
+        if (user()->isLoggedIn()) {
+            $varyHeaders[] = 'Cookie';
+            $varyHeaders[] = 'Authorization';
+        }
+
+        $varyHeaders = array_unique(array_merge($response->getVary(), $varyHeaders));
         $response->setVary($varyHeaders, false);
     }
 }

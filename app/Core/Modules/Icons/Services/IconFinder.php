@@ -128,12 +128,28 @@ class IconFinder
      */
     public function getIconsInPackage(string $prefix, ?string $category = null): array
     {
-        $cacheKey = $prefix . '|' . ( $category ?? '*' );
+        $cacheKey = 'icons.list.' . $prefix . '.' . ( $category ?? '_all' );
 
         if (isset(self::$iconListCache[$cacheKey])) {
             return self::$iconListCache[$cacheKey];
         }
 
+        if (function_exists('cache')) {
+            $icons = cache()->callback($cacheKey, fn() => $this->scanIconsInPackage($prefix, $category), 86400);
+        } else {
+            $icons = $this->scanIconsInPackage($prefix, $category);
+        }
+
+        self::$iconListCache[$cacheKey] = $icons;
+
+        return $icons;
+    }
+
+    /**
+     * Scan filesystem for icons in the specified package.
+     */
+    protected function scanIconsInPackage(string $prefix, ?string $category = null): array
+    {
         $dir = $this->directories->get($prefix);
 
         if (!$dir) {
@@ -167,8 +183,6 @@ class IconFinder
         } catch (Exception $e) {
         }
 
-        self::$iconListCache[$cacheKey] = $icons;
-
         return $icons;
     }
 
@@ -180,12 +194,35 @@ class IconFinder
      */
     public function getCategoriesInPackage(string $prefix): array
     {
-        $categories = [];
+        $cacheKey = 'icons.categories.' . $prefix;
+
+        if (isset(self::$iconListCache[$cacheKey])) {
+            return self::$iconListCache[$cacheKey];
+        }
+
+        if (function_exists('cache')) {
+            $result = cache()->callback($cacheKey, fn() => $this->scanCategoriesInPackage($prefix), 86400);
+        } else {
+            $result = $this->scanCategoriesInPackage($prefix);
+        }
+
+        self::$iconListCache[$cacheKey] = $result;
+
+        return $result;
+    }
+
+    /**
+     * Scan filesystem for categories in the specified package.
+     */
+    protected function scanCategoriesInPackage(string $prefix): array
+    {
         $dir = $this->directories->get($prefix);
 
         if (!$dir) {
-            return $categories;
+            return [];
         }
+
+        $categories = [];
 
         try {
             if (is_dir($dir)) {
@@ -229,26 +266,14 @@ class IconFinder
 
         $path = $dir . DIRECTORY_SEPARATOR . $file . '.svg';
 
-        if (isset(self::$fileContentCache[$path])) {
+        if (array_key_exists($path, self::$fileContentCache)) {
             return self::$fileContentCache[$path];
         }
 
-        if (!is_file($path)) {
-            self::$fileContentCache[$path] = null;
+        $content = @file_get_contents($path);
+        self::$fileContentCache[$path] = $content ?: null;
 
-            return null;
-        }
-
-        try {
-            $content = file_get_contents($path);
-            if ($content !== false) {
-                self::$fileContentCache[$path] = $content;
-            }
-
-            return $content ?: null;
-        } catch (Exception) {
-            return null;
-        }
+        return self::$fileContentCache[$path];
     }
 
     /**

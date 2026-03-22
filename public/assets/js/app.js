@@ -1,7 +1,9 @@
 var driver = window.driver?.js?.driver;
 var widgetConfigs = [];
 
-var csrfToken = $('meta[name="csrf-token"]').attr('content');
+function csrfToken() {
+    return $('meta[name="csrf-token"]').attr('content');
+}
 
 // document.addEventListener('resume', () => {
 //     window.location.reload();
@@ -20,7 +22,7 @@ htmx.onLoad(() => {
 
     $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
         if (options.type !== 'GET') {
-            jqXHR.setRequestHeader('X-CSRF-Token', csrfToken);
+            jqXHR.setRequestHeader('X-CSRF-Token', csrfToken());
         }
     });
 });
@@ -189,7 +191,7 @@ async function batchTranslate(elements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken,
+                'X-CSRF-Token': csrfToken(),
             },
             body: JSON.stringify({
                 translations: translationsNeeded.map(

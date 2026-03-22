@@ -19,6 +19,7 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\BalanceHistory;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserActionLog;
@@ -47,6 +48,8 @@ class UserEditScreen extends Screen
     public $actionHistory;
 
     public $depositHistory;
+
+    public $balanceHistory;
 
     public $socialNetworks;
 
@@ -133,6 +136,11 @@ class UserEditScreen extends Screen
                     ->icon('ph.bold.money-wavy-bold')
                     ->layouts([$this->depositHistoryLayout()])
                     ->badge(sizeof($this->depositHistory)),
+
+                Tab::make(__('admin-users.tabs.balance_history'))
+                    ->icon('ph.bold.clock-counter-clockwise-bold')
+                    ->layouts([$this->balanceHistoryLayout()])
+                    ->badge(sizeof($this->balanceHistory)),
 
                 Tab::make(__('admin-users.tabs.action_history'))
                     ->icon('ph.bold.clock-counter-clockwise-bold')
@@ -671,6 +679,10 @@ class UserEditScreen extends Screen
         $this->userDevices = $this->user->userDevices;
         $this->actionHistory = array_reverse($this->user->actionLogs);
         $this->depositHistory = array_reverse($this->user->invoices);
+        $this->balanceHistory = BalanceHistory::query()
+            ->where('user_id', '=', (string) $this->user->id)
+            ->orderBy('created_at', 'DESC')
+            ->fetchAll();
         $this->socialNetworks = $this->user->socialNetworks;
 
         $this->name = __('admin-users.title.edit', ['name' => $this->user->name]);
@@ -951,7 +963,7 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('socialNetworks', [
             TD::make('socialNetwork.key', __('admin-users.table.social_network'))
-                ->render(static fn(UserSocialNetwork $network) => $network->socialNetwork->key)
+                ->render(static fn(UserSocialNetwork $network) => $network->socialNetwork?->key ?? '-')
                 ->width('200px'),
 
             TD::make('value', __('admin-users.table.value'))
@@ -1078,6 +1090,46 @@ class UserEditScreen extends Screen
                     return $invoice->paidAt->setTimezone($tz)->format('d.m.Y H:i');
                 })
                 ->width('200px'),
+        ]);
+    }
+
+    private function balanceHistoryLayout()
+    {
+        return LayoutFactory::table('balanceHistory', [
+            TD::make('type', __('admin-users.table.type'))
+                ->render(static fn(BalanceHistory $row) => '<span class="badge ' . match ($row->type) {
+                    'topup' => 'success',
+                    'purchase' => 'error',
+                    'refund' => 'info',
+                    'admin' => $row->amount >= 0 ? 'success' : 'warning',
+                    default => '',
+                } . '">' . __('profile.edit.balance_history.types.' . $row->type) . '</span>')
+                ->width('120px'),
+
+            TD::make('amount', __('admin-users.table.amount'))
+                ->render(static fn(BalanceHistory $row) => '<strong style="color:' . ($row->amount >= 0 ? 'var(--success)' : 'var(--error)') . '">'
+                    . ($row->amount >= 0 ? '+' : '') . number_format($row->amount, 2) . ' ' . config('lk.currency_view')
+                    . '</strong>')
+                ->width('130px'),
+
+            TD::make('balanceAfter', __('admin-users.table.balance_after'))
+                ->render(static fn(BalanceHistory $row) => number_format($row->balanceAfter, 2) . ' ' . config('lk.currency_view'))
+                ->width('130px'),
+
+            TD::make('source', __('admin-users.table.source'))
+                ->render(static fn(BalanceHistory $row) => $row->source ?? '-')
+                ->width('120px'),
+
+            TD::make('description', __('admin-users.table.description'))
+                ->render(static fn(BalanceHistory $row) => $row->description ?? '-'),
+
+            TD::make('createdAt', __('admin-users.table.date'))
+                ->render(static function (BalanceHistory $row) {
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $row->createdAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
+                ->width('160px'),
         ]);
     }
 

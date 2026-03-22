@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Roles\Screens;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -184,9 +185,9 @@ class RoleListScreen extends Screen
         $role->clearPermissions();
 
         if (!empty($data['permissions'])) {
-            foreach ($data['permissions'] as $permissionId) {
-                $permission = Permission::findOne(['name' => $permissionId]);
-                if ($permission && user()->can($permission->name)) {
+            $permissions = Permission::query()->where('name', 'IN', new Parameter($data['permissions']))->fetchAll();
+            foreach ($permissions as $permission) {
+                if (user()->can($permission->name)) {
                     $role->addPermission($permission);
                 }
             }
@@ -307,9 +308,9 @@ class RoleListScreen extends Screen
         $role->clearPermissions();
 
         if (!empty($data['permissions'])) {
-            foreach ($data['permissions'] as $permissionId) {
-                $permission = Permission::findOne(['name' => $permissionId]);
-                if ($permission && user()->can($permission->name)) {
+            $permissions = Permission::query()->where('name', 'IN', new Parameter($data['permissions']))->fetchAll();
+            foreach ($permissions as $permission) {
+                if (user()->can($permission->name)) {
                     $role->addPermission($permission);
                 }
             }
@@ -360,8 +361,16 @@ class RoleListScreen extends Screen
 
     private function reorderRoles(array $roles)
     {
-        foreach (array_reverse($roles) as $index => $roleId) {
-            $role = Role::findByPK((int) $roleId['id']);
+        $roleIds = array_map(fn($r) => (int) $r['id'], array_reverse($roles));
+        $allRoles = Role::query()->where('id', 'IN', new Parameter($roleIds))->fetchAll();
+        $rolesById = [];
+        foreach ($allRoles as $role) {
+            $rolesById[$role->id] = $role;
+        }
+
+        foreach (array_reverse($roles) as $index => $roleData) {
+            $roleId = (int) $roleData['id'];
+            $role = $rolesById[$roleId] ?? null;
 
             if (!$role || $role->priority >= user()->getHighestPriority()) {
                 continue;

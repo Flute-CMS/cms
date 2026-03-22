@@ -46,12 +46,14 @@ class FluteApp {
         this.confirmations = new ConfirmationManager();
 
         this.nprogressTimeout = null;
+        this.nprogressSafetyTimeout = null;
         this.authToken = null;
         this.authTokenInitialized = false;
         this.authCheckInterval = null;
 
         this.initEvents();
         this.initAuthCheck();
+        this.initVisibilityPolling();
     }
 
     initEvents() {
@@ -66,6 +68,7 @@ class FluteApp {
         this.authToken = document
             .querySelector('meta[name="auth-token"]')
             ?.getAttribute("content");
+        this._authCheckPending = false;
 
         if (this.authToken) {
             this.authCheckInterval = setInterval(
@@ -80,8 +83,12 @@ class FluteApp {
     }
 
     checkAuthStatus() {
+        if (document.hidden || this._authCheckPending) return;
+
+        this._authCheckPending = true;
         fetch(u("api/auth/check"), {
             method: "HEAD",
+            priority: "low",
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
             },
@@ -91,7 +98,45 @@ class FluteApp {
             })
             .catch((error) => {
                 console.error("Ошибка проверки статуса авторизации:", error);
+            })
+            .finally(() => {
+                this._authCheckPending = false;
             });
+    }
+
+    initVisibilityPolling() {
+        this._pollTimer = null;
+        this._pollInterval = 15000;
+
+        const tick = () => {
+            if (!document.hidden) {
+                document.body.dispatchEvent(new CustomEvent('visibilityPoll'));
+            }
+        };
+
+        const start = () => {
+            if (!this._pollTimer) {
+                this._pollTimer = setInterval(tick, this._pollInterval);
+            }
+        };
+
+        const stop = () => {
+            if (this._pollTimer) {
+                clearInterval(this._pollTimer);
+                this._pollTimer = null;
+            }
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stop();
+            } else {
+                tick();
+                start();
+            }
+        });
+
+        start();
     }
 
     checkAuthToken(response) {
@@ -293,8 +338,8 @@ class FluteApp {
         // NProgress integration
         htmx.on("htmx:beforeRequest", (e) => this.handleNProgress(e, "start"));
         htmx.on("htmx:afterRequest", (e) => this.handleNProgress(e, "done"));
-        htmx.on("htmx:sendError", (e) => this.handleNProgress(e, "done"));
-        htmx.on("htmx:historyRestore", NProgress.remove);
+        htmx.on("htmx:sendError", (e) => this.nprogressFinish());
+        htmx.on("htmx:historyRestore", () => this.nprogressFinish());
 
         const ensureScrollUnlocked = () => {
             document.body.classList.remove("no-scroll");
@@ -426,28 +471,36 @@ class FluteApp {
         htmx.on("htmx:afterSettle", () => restoreFocusedInput());
     }
 
-    // NProgress handling during HTMX requests
-    handleNProgress(event, action) {
-        const PROGRESS_DELAY = 150;
-        const triggerElement = event.detail.elt;
-        const xhr = event.detail.xhr;
+    // NProgress handling during HTMX requests.
+    // Only shows for requests longer than PROGRESS_DELAY to avoid flicker.
+    // Safety timeout auto-finishes after SAFETY_TIMEOUT to prevent infinite spin.
+    nprogressFinish() {
+        clearTimeout(this.nprogressTimeout);
+        this.nprogressTimeout = null;
+        clearTimeout(this.nprogressSafetyTimeout);
+        this.nprogressSafetyTimeout = null;
+        NProgress.done();
+    }
 
-        if (
-            !triggerElement.hasAttribute("data-noprogress") &&
-            xhr.status !== 304
-        ) {
-            if (action === "start") {
-                if (!this.nprogressTimeout) {
-                    this.nprogressTimeout = setTimeout(() => {
-                        NProgress.start();
-                        this.nprogressTimeout = null;
-                    }, PROGRESS_DELAY);
-                }
-            } else if (action === "done") {
-                clearTimeout(this.nprogressTimeout);
-                this.nprogressTimeout = null;
-                NProgress.done();
+    handleNProgress(event, action) {
+        const PROGRESS_DELAY = 200;
+        const SAFETY_TIMEOUT = 15000;
+        const triggerElement = event.detail?.elt;
+
+        if (triggerElement && triggerElement.hasAttribute("data-noprogress")) return;
+
+        if (action === "start") {
+            if (!this.nprogressTimeout) {
+                this.nprogressTimeout = setTimeout(() => {
+                    NProgress.start();
+                    this.nprogressTimeout = null;
+
+                    clearTimeout(this.nprogressSafetyTimeout);
+                    this.nprogressSafetyTimeout = setTimeout(() => this.nprogressFinish(), SAFETY_TIMEOUT);
+                }, PROGRESS_DELAY);
             }
+        } else if (action === "done") {
+            this.nprogressFinish();
         }
     }
 }
@@ -1223,7 +1276,11 @@ class NotificationManager {
         // Icon
         let iconHtml;
         if (notification.icon && (notification.icon.startsWith('http://') || notification.icon.startsWith('https://'))) {
-            iconHtml = `<img src="${notification.icon}" alt="" loading="lazy">`;
+            const img = document.createElement('img');
+            img.src = notification.icon;
+            img.alt = '';
+            img.loading = 'lazy';
+            iconHtml = img.outerHTML;
         } else {
             iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,224a8,8,0,0,1-8,8H96a8,8,0,1,1,0-16h64A8,8,0,0,1,168,224Zm53.85-32A15.8,15.8,0,0,1,208,200H48a16,16,0,0,1-8.84-29.35l5.18-3.47A48.23,48.23,0,0,0,65.11,132V104a63,63,0,0,1,126,0v28a48.28,48.28,0,0,0,20.77,35.18l5.18,3.47A15.84,15.84,0,0,1,221.85,192Z"/></svg>`;
         }
@@ -2438,7 +2495,7 @@ class ConfirmationManager {
         let cancelHandled = false;
 
         // Confirm action
-        $confirmButton.on("click", () => {
+        $confirmButton.off("click").on("click", () => {
             if (confirmHandled) return;
             confirmHandled = true;
 
@@ -2462,7 +2519,7 @@ class ConfirmationManager {
             cancelHandled = false;
         });
 
-        $cancelButton.on("click", () => {
+        $cancelButton.off("click").on("click", () => {
             if (cancelHandled) return;
             cancelHandled = true;
 
@@ -2552,7 +2609,7 @@ class ConfirmationManager {
                 "X-HX-Request": "true",
                 "X-Csrf-Token": document
                     .querySelector('meta[name="csrf-token"]')
-                    .getAttribute("content"),
+                    ?.getAttribute("content") ?? '',
             };
 
             const componentName = yoyoComponent.getAttribute("yoyo:name");

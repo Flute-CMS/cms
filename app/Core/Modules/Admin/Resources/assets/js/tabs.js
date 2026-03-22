@@ -572,7 +572,6 @@ if (typeof htmx !== 'undefined') {
         if (selectAttr && !document.querySelector(targetAttr)) {
             const selectTarget = document.querySelector(selectAttr);
             if (selectTarget) {
-                console.log('Found select target, using as fallback');
                 element.setAttribute('hx-target', selectAttr);
             }
         }
@@ -924,13 +923,6 @@ document.addEventListener('click', function (e) {
 }, true);
 
 // (Removed old workaround that temporarily removed hx-get; we now block requests via capture + stopPropagation above.)
-
-window.addEventListener('resize', function () {
-    const containers = document.querySelectorAll('.tabs-container');
-    containers.forEach(function (container) {
-        updateUnderline(container);
-    });
-});
 
 // ── Central component re-initialization for ALL HTMX swaps ──
 // This single handler replaces individual htmx listeners that were previously

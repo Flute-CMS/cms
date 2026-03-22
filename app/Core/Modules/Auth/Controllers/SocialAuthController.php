@@ -24,12 +24,14 @@ class SocialAuthController extends BaseController
 
                 $redirectUrl = redirect('/profile/settings?tab=social')->getTargetUrl();
 
+                $redirectUrlJs = json_encode($redirectUrl);
+
                 return response()->make(
                     "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
                     . $origin
-                    . "); window.close(); } else { window.location = '"
-                    . $redirectUrl
-                    . "'; }</script>",
+                    . '); window.close(); } else { window.location = '
+                    . $redirectUrlJs
+                    . '; }</script>',
                 );
             }
 
@@ -42,16 +44,41 @@ class SocialAuthController extends BaseController
             flash()->add('success', __('auth.login_success'));
 
             $redirectUrl = redirect('/')->getTargetUrl();
+            $redirectUrlJs = json_encode($redirectUrl);
 
             return response()->make(
                 "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
                 . $origin
-                . "); window.close(); } else { window.location = '"
-                . $redirectUrl
-                . "'; }</script>",
+                . '); window.close(); } else { window.location = '
+                . $redirectUrlJs
+                . '; }</script>',
             );
         } catch (NeedRegistrationException $e) {
-            return $this->socialError('This function is not supported yet.', $request);
+            $profile = $e->getProfile();
+            $socialNetwork = $e->getSocialNetwork();
+
+            $payload = json_encode([
+                'identifier' => $profile->identifier,
+                'displayName' => $profile->displayName,
+                'email' => $profile->email,
+                'photoURL' => $profile->photoURL,
+                'profileURL' => $profile->profileURL,
+                'social_id' => $socialNetwork->id,
+                'provider_key' => $socialNetwork->key,
+                'issued_at' => time(),
+            ]);
+
+            session()->set('social_supplement', encrypt()->encrypt($payload));
+
+            $redirectUrl = json_encode(url('/social/supplement')->get());
+
+            return response()->make(
+                '<script>if (window.opener) { window.opener.location = '
+                . $redirectUrl
+                . '; window.close(); } else { window.location = '
+                . $redirectUrl
+                . '; }</script>',
+            );
         } catch (UserNotFoundException $e) {
             return $this->socialError(__('auth.errors.user_not_found'), $request);
         } catch (SocialNotFoundException $e) {
@@ -75,12 +102,14 @@ class SocialAuthController extends BaseController
         $redirectUrl = redirect('/')->getTargetUrl();
         $origin = json_encode($this->getSiteOrigin());
 
+        $redirectUrlJs = json_encode($redirectUrl);
+
         return response()->make(
             "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
             . $origin
-            . "); window.close(); } else { window.location = '"
-            . $redirectUrl
-            . "'; }</script>",
+            . '); window.close(); } else { window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
         );
     }
 

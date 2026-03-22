@@ -9,7 +9,7 @@
             <div class="user-mini-profile-main" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
                 <div class="user-mini-profile-cover">
                     <img src="{{ asset($user->banner ?? config('profile.default_banner')) }}" alt=""
-                        loading="lazy">
+                        loading="lazy" decoding="async">
                 </div>
 
                 <div class="user-mini-profile-body">
@@ -17,7 +17,7 @@
                         <div class="user-mini-profile-avatar-wrapper">
                             <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-avatar">
                                 <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}"
-                                    alt="{{ $user->name }}" loading="lazy">
+                                    alt="{{ $user->name }}" loading="lazy" decoding="async">
                             </a>
                             @if (user()->can('admin.boss'))
                                 <span class="user-mini-profile-crown" aria-hidden="true" data-tooltip="Boss of the gym">

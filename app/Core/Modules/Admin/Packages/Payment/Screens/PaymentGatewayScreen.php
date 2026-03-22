@@ -168,6 +168,8 @@ class PaymentGatewayScreen extends Screen
             $gateway->enabled = !$gateway->enabled;
             $gateway->saveOrFail();
 
+            cache()->delete('flute.payment_gateways');
+
             $this->flashMessage(
                 $gateway->enabled
                     ? __('admin-payment.messages.gateway_enabled')
@@ -198,6 +200,9 @@ class PaymentGatewayScreen extends Screen
 
         try {
             $this->paymentService->deleteGateway($gateway);
+
+            cache()->delete('flute.payment_gateways');
+
             $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
 
             $this->gateways = rep(PaymentGateway::class)->findAll();
@@ -225,6 +230,7 @@ class PaymentGatewayScreen extends Screen
                 // continue
             }
         }
+        cache()->delete('flute.payment_gateways');
         $this->gateways = rep(PaymentGateway::class)->findAll();
         $this->metrics = $this->calculateMetrics();
         $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
@@ -249,6 +255,7 @@ class PaymentGatewayScreen extends Screen
                 // continue
             }
         }
+        cache()->delete('flute.payment_gateways');
         $this->gateways = rep(PaymentGateway::class)->findAll();
         $this->metrics = $this->calculateMetrics();
         $this->flashMessage(__('admin-payment.messages.gateway_enabled'), 'success');
@@ -273,6 +280,7 @@ class PaymentGatewayScreen extends Screen
                 // continue
             }
         }
+        cache()->delete('flute.payment_gateways');
         $this->gateways = rep(PaymentGateway::class)->findAll();
         $this->metrics = $this->calculateMetrics();
         $this->flashMessage(__('admin-payment.messages.gateway_disabled'), 'warning');
@@ -291,13 +299,6 @@ class PaymentGatewayScreen extends Screen
         $gateways = $this->gateways;
         $totalGateways = count($gateways);
         $activeGateways = 0;
-        $todayTransactions = 0;
-        $todayRevenue = 0;
-        $totalTransactions = 0;
-        $totalRevenue = 0;
-
-        $yesterdayTransactions = 0;
-        $yesterdayRevenue = 0;
         $lastMonthGateways = 0;
 
         foreach ($gateways as $gateway) {
@@ -308,22 +309,53 @@ class PaymentGatewayScreen extends Screen
             if ($gateway->createdAt <= $lastMonth) {
                 $lastMonthGateways++;
             }
+        }
 
-            $invoices = rep(PaymentInvoice::class)->findAll(['gateway' => $gateway->adapter]);
-            foreach ($invoices as $invoice) {
-                if ($invoice->isPaid) {
-                    $totalTransactions++;
-                    $totalRevenue += $invoice->amount;
+        // Use SQL aggregates instead of loading all invoices into memory
+        $todayStr = $today->format('Y-m-d H:i:s');
+        $yesterdayStr = $yesterday->format('Y-m-d H:i:s');
 
-                    if ($invoice->paidAt > $today) {
-                        $todayTransactions++;
-                        $todayRevenue += $invoice->amount;
-                    } elseif ($invoice->paidAt > $yesterday && $invoice->paidAt <= $today) {
-                        $yesterdayTransactions++;
-                        $yesterdayRevenue += $invoice->amount;
-                    }
-                }
+        $query = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->buildQuery();
+
+        $query->columns([
+            'gateway',
+            new \Cycle\Database\Injection\Fragment('COUNT(*) as total_count'),
+            new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount), 0) as total_revenue'),
+            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN paid_at >= '{$todayStr}' THEN 1 ELSE 0 END) as today_count"),
+            new \Cycle\Database\Injection\Fragment("COALESCE(SUM(CASE WHEN paid_at >= '{$todayStr}' THEN amount ELSE 0 END), 0) as today_revenue"),
+            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN 1 ELSE 0 END) as yesterday_count"),
+            new \Cycle\Database\Injection\Fragment("COALESCE(SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN amount ELSE 0 END), 0) as yesterday_revenue"),
+        ]);
+        $query->groupBy('gateway');
+        $rows = $query->fetchAll();
+
+        // Build a lookup by gateway adapter
+        $metricsByGateway = [];
+        foreach ($rows as $row) {
+            $metricsByGateway[$row['gateway']] = $row;
+        }
+
+        // Sum only for gateways currently in the list
+        $totalTransactions = 0;
+        $totalRevenue = 0;
+        $todayTransactions = 0;
+        $todayRevenue = 0;
+        $yesterdayTransactions = 0;
+        $yesterdayRevenue = 0;
+
+        foreach ($gateways as $gateway) {
+            $m = $metricsByGateway[$gateway->adapter] ?? null;
+            if ($m === null) {
+                continue;
             }
+            $totalTransactions += (int) $m['total_count'];
+            $totalRevenue += (float) $m['total_revenue'];
+            $todayTransactions += (int) $m['today_count'];
+            $todayRevenue += (float) $m['today_revenue'];
+            $yesterdayTransactions += (int) $m['yesterday_count'];
+            $yesterdayRevenue += (float) $m['yesterday_revenue'];
         }
 
         $gatewaysDiff = $lastMonthGateways > 0

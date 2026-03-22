@@ -197,9 +197,7 @@ class PageManager
                         $settings = json_decode($block->getSettings(), true);
                         $widgetName = $block->getWidget();
 
-                        $startTime = microtime(true);
-                        $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
-                        WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+                        $widgetContent = $this->renderWidgetCached($widgetName, $settings);
 
                         $conditionsRaw = $block->getConditions();
 
@@ -296,8 +294,20 @@ class PageManager
      */
     public function getGlobalBlocks(): array
     {
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
         try {
-            return GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll();
+            $cached = is_performance()
+                ? cache()->callback(
+                    self::GLOBAL_LAYOUT_CACHE_KEY,
+                    fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
+                    self::GLOBAL_LAYOUT_CACHE_TIME,
+                )
+                : GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll();
+
+            return $cached;
         } catch (Throwable $e) {
             $this->logger->error('Failed to load global blocks: ' . $e->getMessage());
 
@@ -318,9 +328,7 @@ class PageManager
                 $settings = json_decode($block->getSettings(), true) ?? [];
                 $widgetName = $block->getWidget();
 
-                $startTime = microtime(true);
-                $widgetContent = $this->widgetManager->getWidget($widgetName)->render($settings);
-                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+                $widgetContent = $this->renderWidgetCached($widgetName, $settings);
 
                 $excludedPathsRaw = $block->getExcludedPaths();
                 $excludedPaths = $excludedPathsRaw ? json_decode($excludedPathsRaw, true) ?? [] : [];
@@ -815,8 +823,11 @@ class PageManager
         // Recompact to eliminate gaps
         $blocks = $this->recompactBlocks(array_values($blocks));
 
+        // Build row map: unique y-values → CSS Grid row numbers
+        $rowMap = $this->buildGridRowMap($blocks);
+
         foreach ($blocks as $block) {
-            $style = $this->getBlockGridStyle($block);
+            $style = $this->getBlockGridStyle($block, $rowMap);
 
             $widgetContent = $isGlobal ? $this->safeRenderGlobalBlock($block) : $this->safeRenderBlock($block);
 
@@ -835,15 +846,94 @@ class PageManager
     }
 
     /**
+     * Render a widget with optional HTML caching based on widget's getCacheTime().
+     */
+    protected function renderWidgetCached(string $widgetName, array $settings): ?string
+    {
+        $widget = $this->widgetManager->getWidget($widgetName);
+        $cacheTime = method_exists($widget, 'getCacheTime') ? $widget->getCacheTime() : 0;
+
+        if ($cacheTime > 0) {
+            $cacheKey = 'widget.html.' . $widgetName . '.' . md5(json_encode($settings));
+
+            return cache()->callback($cacheKey, function () use ($widget, $widgetName, $settings) {
+                $startTime = microtime(true);
+                $html = $widget->render($settings);
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+                return $html;
+            }, $cacheTime);
+        }
+
+        $startTime = microtime(true);
+        $html = $widget->render($settings);
+        WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+        return $html;
+    }
+
+    /**
      * Get CSS grid style for a block.
      *
      * @param PageBlock|GlobalPageBlock $block
+     * @param array<int,int> $rowMap  Gridstack-y → CSS grid row number
      */
-    protected function getBlockGridStyle($block): string
+    protected function getBlockGridStyle($block, array $rowMap = []): string
     {
         $gridstack = json_decode($block->gridstack, true) ?? [];
 
-        return sprintf('grid-column: %d / span %d;', ( $gridstack['x'] ?? 0 ) + 1, $gridstack['w'] ?? 1);
+        $col = ($gridstack['x'] ?? 0) + 1;
+        $colSpan = $gridstack['w'] ?? 1;
+        $style = sprintf('grid-column: %d / span %d;', $col, $colSpan);
+
+        if (!empty($rowMap)) {
+            $y = $gridstack['y'] ?? 0;
+            $h = $gridstack['h'] ?? 1;
+
+            $startRow = $rowMap[$y] ?? 1;
+
+            // How many CSS Grid rows does this widget span?
+            // Find the last row boundary before y + h
+            $endY = $y + $h;
+            $rowSpan = 1;
+            foreach ($rowMap as $gy => $gr) {
+                if ($gy > $y && $gy < $endY) {
+                    $rowSpan = $gr - $startRow + 1;
+                }
+            }
+
+            $style .= $rowSpan > 1
+                ? sprintf(' grid-row: %d / span %d;', $startRow, $rowSpan)
+                : sprintf(' grid-row: %d;', $startRow);
+        }
+
+        return $style;
+    }
+
+    /**
+     * Build a map from gridstack y-values to CSS Grid row numbers.
+     *
+     * Collects all unique y-start positions across blocks and assigns
+     * sequential CSS Grid row numbers (1, 2, 3, …).
+     */
+    private function buildGridRowMap(array $blocks): array
+    {
+        $yValues = [];
+        foreach ($blocks as $block) {
+            $gs = json_decode($block->gridstack, true) ?? [];
+            $yValues[] = $gs['y'] ?? 0;
+        }
+
+        $yValues = array_unique($yValues);
+        sort($yValues);
+
+        $map = [];
+        $row = 1;
+        foreach ($yValues as $y) {
+            $map[$y] = $row++;
+        }
+
+        return $map;
     }
 
     /**
@@ -855,9 +945,7 @@ class PageManager
             $settings = json_decode($block->getSettings(), true) ?? [];
             $widgetName = $block->getWidget();
 
-            $startTime = microtime(true);
-            $content = $this->widgetManager->getWidget($widgetName)->render($settings);
-            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+            $content = $this->renderWidgetCached($widgetName, $settings);
 
             return $content;
         } catch (Throwable $e) {
@@ -1001,9 +1089,7 @@ class PageManager
             $settings = json_decode($block->getSettings(), true) ?? [];
             $widgetName = $block->getWidget();
 
-            $startTime = microtime(true);
-            $content = $this->widgetManager->getWidget($widgetName)->render($settings);
-            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+            $content = $this->renderWidgetCached($widgetName, $settings);
 
             return $content;
         } catch (Throwable $e) {

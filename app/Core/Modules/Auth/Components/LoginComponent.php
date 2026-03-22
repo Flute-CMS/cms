@@ -53,6 +53,7 @@ class LoginComponent extends FluteComponent
                 $this->redirectTo(url('/'), 1500);
             } catch (TwoFactorRequiredException $e) {
                 session()->set('2fa_pending_user_id', $e->getUser()->id);
+                session()->set('2fa_pending_time', time());
                 $this->pendingUserId = $e->getUser()->id;
                 $this->showTwoFactor = true;
             } catch (ValidationException $e) {
@@ -92,9 +93,14 @@ class LoginComponent extends FluteComponent
         }
 
         $sessionUserId = session()->get('2fa_pending_user_id');
-        if (!$sessionUserId) {
+        $pendingTime = session()->get('2fa_pending_time', 0);
+
+        if (!$sessionUserId || ( time() - $pendingTime ) > 300) {
+            session()->remove('2fa_pending_user_id');
+            session()->remove('2fa_pending_time');
             $this->showTwoFactor = false;
             $this->pendingUserId = null;
+            toast()->error(__('auth.two_factor.expired'))->push();
 
             return;
         }
@@ -139,6 +145,7 @@ class LoginComponent extends FluteComponent
         $this->pendingUserId = null;
         $this->twoFactorCode = null;
         session()->remove('2fa_pending_user_id');
+        session()->remove('2fa_pending_time');
     }
 
     public function render()

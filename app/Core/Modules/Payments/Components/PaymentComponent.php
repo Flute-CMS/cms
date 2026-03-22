@@ -295,7 +295,7 @@ class PaymentComponent extends FluteComponent
 
     protected function loadCurrenciesAndGateways(): void
     {
-        $currencies = Currency::findAll();
+        $currencies = cache()->callback('flute.currencies', static fn() => Currency::findAll(), 3600);
 
         foreach ($currencies as $currency) {
             $code = $currency->code;

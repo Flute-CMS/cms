@@ -33,8 +33,8 @@ class FooterListScreen extends Screen
 
     public function mount(): void
     {
-        // $this->name = __('admin-footer.title');
-        // $this->description = __('admin-footer.description');
+        $this->name = __('admin-footer.title');
+        $this->description = __('admin-footer.description');
 
         breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-footer.title'));
 
@@ -385,7 +385,7 @@ class FooterListScreen extends Screen
         }
 
         if (!empty($footerItem->children)) {
-            $this->flashMessage('Невозможно удалить элемент футера, так как у него есть дочерние элементы.', 'warning');
+            $this->flashMessage(__('admin-footer.messages.item_has_children'), 'warning');
 
             return;
         }

@@ -272,7 +272,9 @@ class UserListScreen extends Screen
                                                     ->type(Color::OUTLINE_DANGER)
                                                     ->icon('ph.regular.trash')
                                                     ->size('small')
-                                                    ->method('deleteUser'),
+                                                    ->method('deleteUser', [
+                                                        'id' => $user->id,
+                                                    ]),
                                             ]) : null
                                 )),
                         ])
@@ -301,6 +303,12 @@ class UserListScreen extends Screen
     public function deleteUser()
     {
         $user = User::findByPK(intval(request()->input('id')));
+
+        if (!$user) {
+            $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
+
+            return;
+        }
 
         if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');

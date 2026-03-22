@@ -27,7 +27,7 @@
                             itemtype="https://schema.org/SiteNavigationElement">
                             <a href="{{ $child_item['url'] }}"
                                 @if ($child_item['new_tab']) target="_blank" rel="noopener" @endif itemprop="url"
-                                aria-label="{!! transValue($child_item['title']) !!}">
+                                aria-label="{{ transValue($child_item['title']) }}">
                                 <x-icon path="ph.bold.arrow-up-right-bold" aria-hidden="true" class="footer__items-item-goto" />
                                 @if (!empty($child_item['icon']))
                                     <x-icon path="{{ $child_item['icon'] }}"/>

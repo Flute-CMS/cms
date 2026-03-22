@@ -283,4 +283,5 @@ return [
     'updated' => 'Yangilangan',
     'created' => 'Yaratilgan',
     'deleted' => "O'chirilgan",
+    'auth_required' => 'Autentifikatsiya talab qilinadi',
 ];

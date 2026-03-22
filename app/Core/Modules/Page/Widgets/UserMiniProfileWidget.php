@@ -41,6 +41,11 @@ class UserMiniProfileWidget extends AbstractWidget
         return 'users';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.user_mini_profile_desc';
+    }
+
     /**
      * Returns the default width for gridstack.
      */

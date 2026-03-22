@@ -90,6 +90,7 @@ return [
         'social_updated' => 'Social network updated successfully.',
         'social_deleted' => 'Social network deleted successfully.',
         'social_not_found' => 'Social network not found.',
+        'item_has_children' => 'Cannot delete footer item because it has child elements.',
     ],
 
     'empty' => [

@@ -66,4 +66,13 @@ return [
     ],
 
     "no_payments" => "No payments",
+
+    "users_new_desc" => "Users who registered in the last 7 days",
+    "users_online_desc" => "Users currently browsing the site",
+    "users_today_desc" => "Users who visited the site today",
+    "recent_payments_desc" => "Latest successful payments on the site",
+    "top_donors_desc" => "Users with the highest total donations",
+    "active_promos_desc" => "Active promo codes available for use",
+    "user_mini_profile_desc" => "Current user's profile card",
+    "editor_desc" => "Custom text block with rich-text editor",
 ];

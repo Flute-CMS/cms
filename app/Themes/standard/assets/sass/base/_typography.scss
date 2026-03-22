@@ -1,6 +1,6 @@
 :root {
-    --font: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-header: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font: 'Manrope', 'Manrope Fallback', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-header: 'Manrope', 'Manrope Fallback', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 
     --font-scale: 1.15;

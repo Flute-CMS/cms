@@ -112,7 +112,11 @@ class TablePaymentsComponent extends Table
 
     protected function loadGatewayNames(): void
     {
-        $gateways = PaymentGateway::query()->fetchAll();
+        $gateways = cache()->callback(
+            'flute.payment_gateways',
+            static fn() => PaymentGateway::query()->fetchAll(),
+            3600,
+        );
 
         foreach ($gateways as $gw) {
             $this->gatewayNames[$gw->adapter] = $gw->name;

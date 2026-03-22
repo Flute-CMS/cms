@@ -59,7 +59,13 @@ class CsrfMiddleware extends BaseMiddleware
         $enabled = (bool) config('app.csrf_enabled');
 
         if (!$enabled) {
-            logs()->warning('CSRF protection is disabled via configuration. This is a security risk in production.');
+            static $warned = false;
+            if (!$warned) {
+                logs()->warning(
+                    'CSRF protection is disabled via configuration. This is a security risk in production.',
+                );
+                $warned = true;
+            }
         }
 
         return $enabled;

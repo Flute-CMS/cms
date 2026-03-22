@@ -4,7 +4,7 @@ namespace Flute\Core\Cache;
 
 use Exception;
 use Flute\Core\Cache\Contracts\CacheInterface;
-use Psr\Cache\CacheItemInterface;
+use Flute\Core\Services\FileLockService;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -12,45 +12,43 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Throwable;
 
 /**
- * Abstract class that describes the basic functionality for cache drivers
+ * Abstract class that describes the basic functionality for cache drivers.
+ *
+ * Includes built-in SWR (stale-while-revalidate) support when $staleCache
+ * is configured by a concrete driver. Stale data is served immediately
+ * while fresh data is recomputed in the background after the response is sent.
  */
 abstract class AbstractCacheDriver implements CacheInterface
 {
-    /**
-     * Cache configuration array
-     */
     protected array $config;
 
-    /**
-     * Cache adapter instance
-     */
     protected AdapterInterface $cache;
 
     /**
-     * Logger instance
+     * Optional secondary cache adapter for stale data (SWR).
+     * Concrete drivers set this in their constructors.
      */
-    protected LoggerInterface $logger;
+    protected ?AdapterInterface $staleCache = null;
 
     /**
-     * Class constructor, initializes configuration array and logger
+     * TTL for stale cache entries (default 24 hours).
      */
+    protected int $staleTtl = 86400;
+
+    protected LoggerInterface $logger;
+
     public function __construct(array $config, LoggerInterface $logger)
     {
         $this->config = $config;
         $this->logger = $logger;
     }
 
-    /**
-     * Get cache adapter instance
-     */
     public function getAdapter(): AdapterInterface
     {
         return $this->cache;
     }
 
     /**
-     * Get value from cache by key
-     *
      * @param mixed $default
      * @throws InvalidArgumentException
      * @return mixed
@@ -63,8 +61,6 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Set value in cache by key
-     *
      * @param mixed $value
      * @throws InvalidArgumentException
      */
@@ -75,10 +71,6 @@ abstract class AbstractCacheDriver implements CacheInterface
         $item->set($value);
         if ($ttl > 0) {
             $item->expiresAfter($ttl);
-        }
-
-        if (!$item instanceof CacheItemInterface) {
-            return false;
         }
 
         $result = $this->cache->save($item);
@@ -100,50 +92,74 @@ abstract class AbstractCacheDriver implements CacheInterface
             ]);
         }
 
+        $this->saveToStale($key, $value, $ttl);
+
         return $result;
     }
 
     /**
-     * Delete value from cache by key
+     * Delete value from main cache. If stale cache is configured, the current
+     * value is preserved in stale for SWR revalidation.
      *
      * @throws InvalidArgumentException
      */
     public function delete(string $key): bool
     {
+        if ($this->staleCache) {
+            try {
+                $item = $this->cache->getItem($key);
+                if ($item->isHit()) {
+                    $this->saveToStale($key, $item->get(), 0);
+                }
+            } catch (Throwable) {
+            }
+        }
+
         return $this->cache->deleteItem($key);
     }
 
     /**
-     * Delete a cache key immediately, bypassing SWR (stale-while-revalidate).
-     * Base implementation is identical to delete(). Drivers with stale cache
-     * should override this to also remove from stale.
+     * Delete a cache key from both main and stale caches immediately.
+     * Unlike delete(), this does NOT preserve the value in stale cache.
+     * Use this when admin explicitly changes data and must see fresh results.
      *
      * @throws InvalidArgumentException
      */
     public function deleteImmediately(string $key): bool
     {
-        return $this->delete($key);
+        if ($this->staleCache) {
+            try {
+                $this->staleCache->deleteItem($key);
+            } catch (Throwable) {
+            }
+        }
+
+        return $this->cache->deleteItem($key);
     }
 
     /**
-     * Clear all cache
+     * Clear all cache. Flushes SWR queue and clears stale cache too.
      */
     public function clear(): bool
     {
+        SWRQueue::flush();
+
+        if ($this->staleCache) {
+            try {
+                $this->staleCache->clear();
+            } catch (Throwable) {
+            }
+        }
+
         return $this->cache->clear();
     }
 
-    /**
-     * Commit changes in cache
-     */
     public function commit(): bool
     {
         return $this->cache->commit();
     }
 
     /**
-     * Check if item exists in cache by key
-     *
      * @throws InvalidArgumentException
      */
     public function has(string $key): bool
@@ -156,6 +172,8 @@ abstract class AbstractCacheDriver implements CacheInterface
     /**
      * Execute callback and save result in cache if key doesn't exist.
      * Uses file locking to prevent cache stampede (thundering herd).
+     * When stale cache is available and app is in production mode,
+     * serves stale data immediately and queues background revalidation.
      *
      * @throws InvalidArgumentException
      * @return mixed
@@ -163,18 +181,32 @@ abstract class AbstractCacheDriver implements CacheInterface
     public function callback(string $key, callable $callback, int $ttl = 0)
     {
         $item = $this->cache->getItem($key);
-
         if ($item->isHit()) {
             return $item->get();
         }
 
-        $lockDir = path('storage/app/cache/locks');
+        // SWR: if stale data exists and we're in production, serve stale
+        // and queue background revalidation after response is sent.
+        if ($this->staleCache) {
+            $staleItem = $this->staleCache->getItem($key);
+            if ($staleItem->isHit() && function_exists('is_debug') && !is_debug()) {
+                SWRQueue::queue('cache.revalidate.' . md5($key), function () use ($key, $callback, $ttl): void {
+                    $this->revalidate($key, $callback, $ttl);
+                });
+
+                return $staleItem->get();
+            }
+        }
+
+        // Stampede protection: acquire lock before computing value.
+        $lockDir = function_exists('path') ? path('storage/app/cache/locks') : 'storage/app/cache/locks';
         $lockFile = $lockDir . '/' . md5($key) . '.lock';
 
-        $lockHandle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
+        $lockHandle = FileLockService::acquireLock($lockFile);
 
         if ($lockHandle !== false) {
             try {
+                // Double-check after acquiring lock.
                 $item = $this->cache->getItem($key);
                 if ($item->isHit()) {
                     return $item->get();
@@ -187,31 +219,16 @@ abstract class AbstractCacheDriver implements CacheInterface
                     $item->expiresAfter($ttl);
                 }
 
-                $saveResult = $this->cache->save($item);
-
-                if (!$saveResult) {
-                    $adapter = is_object($this->cache) ? get_class($this->cache) : gettype($this->cache);
-                    $type = is_object($value) ? $value::class : gettype($value);
-                    $sizeHint = null;
-
-                    try {
-                        $sizeHint = is_string($value) ? strlen($value) : ( is_array($value) ? count($value) : null );
-                    } catch (Throwable) {
-                    }
-                    $this->logger->error("Failed to save cache for key: {$key}", [
-                        'adapter' => $adapter,
-                        'ttl' => $ttl,
-                        'value_type' => $type,
-                        'value_size_hint' => $sizeHint,
-                    ]);
-                }
+                $this->cache->save($item);
+                $this->saveToStale($key, $value, $ttl);
 
                 return $value;
             } finally {
-                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+                FileLockService::releaseLock($lockHandle);
             }
         }
 
+        // Lock not acquired — another process is computing. Check cache once more.
         $item = $this->cache->getItem($key);
         if ($item->isHit()) {
             return $item->get();
@@ -222,21 +239,30 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     /**
      * Register a cache key under a tag for grouped invalidation.
-     * The tag registry itself is stored as a regular cache item.
+     * Uses file locking for atomic read-modify-write.
+     * Tag registry has a 7-day TTL to prevent unbounded growth.
      */
     public function tagKey(string $tag, string $key): void
     {
         $registryKey = '_tag_registry.' . $tag;
 
-        try {
+        $doRegister = function () use ($registryKey, $key): void {
             $item = $this->cache->getItem($registryKey);
             $keys = $item->isHit() ? (array) $item->get() : [];
 
             if (!in_array($key, $keys, true)) {
                 $keys[] = $key;
                 $item->set($keys);
+                $item->expiresAfter(604800); // 7 days
                 $this->cache->save($item);
             }
+        };
+
+        $lockDir = function_exists('path') ? path('storage/app/cache/locks') : 'storage/app/cache/locks';
+        $lockFile = $lockDir . '/tag_' . md5($tag) . '.lock';
+
+        try {
+            FileLockService::withLockOrFallback($lockFile, $doRegister, $doRegister, 2.0);
         } catch (Throwable $e) {
             $this->logger->warning("Failed to register cache key '{$key}' under tag '{$tag}': " . $e->getMessage());
         }
@@ -244,7 +270,7 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     /**
      * Delete all cache keys registered under the given tag and the registry itself.
-     * Uses deleteImmediately() so stale cache is also cleared (admin sees fresh data).
+     * Uses deleteImmediately() so stale cache is also cleared.
      */
     public function deleteByTag(string $tag): void
     {
@@ -261,16 +287,17 @@ abstract class AbstractCacheDriver implements CacheInterface
                 }
             }
 
+            // Delete registry from both main and stale.
             $this->cache->deleteItem($registryKey);
+            if ($this->staleCache) {
+                $this->staleCache->deleteItem($registryKey);
+            }
         } catch (Throwable $e) {
             $this->logger->warning("Failed to delete cache by tag '{$tag}': " . $e->getMessage());
         }
     }
 
     /**
-     * Get all cache keys matching a pattern
-     *
-     * @param string $pattern Pattern to match keys against
      * @return array Array of matching keys
      */
     public function getKeys(string $pattern): array
@@ -295,13 +322,60 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Get keys from filesystem adapter.
-     *
-     * Note: Symfony FilesystemAdapter stores cache items using hashed filenames,
-     * so pattern matching against original key names is not possible.
-     * Use tagKey()/deleteByTag() instead for grouped invalidation.
-     *
-     * @param string $pattern Pattern to match keys against
+     * Revalidate a cache key in the background (called by SWR queue).
+     */
+    protected function revalidate(string $key, callable $callback, int $ttl = 0): void
+    {
+        try {
+            $item = $this->cache->getItem($key);
+            if ($item->isHit()) {
+                return;
+            }
+
+            $value = $callback();
+
+            $item->set($value);
+            if ($ttl > 0) {
+                $item->expiresAfter($ttl);
+            }
+
+            $this->cache->save($item);
+            $this->saveToStale($key, $value, $ttl);
+        } catch (Throwable $e) {
+            if (function_exists('logs')) {
+                logs()->warning($e);
+            }
+        }
+    }
+
+    /**
+     * Save a value to the stale cache (if configured).
+     */
+    protected function saveToStale(string $key, $value, int $ttl = 0): void
+    {
+        if (!$this->staleCache) {
+            return;
+        }
+
+        try {
+            $item = $this->staleCache->getItem($key);
+            $item->set($value);
+            $item->expiresAfter($this->resolveStaleTtl($ttl));
+            $this->staleCache->save($item);
+        } catch (Throwable) {
+        }
+    }
+
+    protected function resolveStaleTtl(int $ttl): int
+    {
+        if ($ttl <= 0) {
+            return $this->staleTtl;
+        }
+
+        return max($ttl, $this->staleTtl);
+    }
+
+    /**
      * @return array Always returns empty array for filesystem adapter
      */
     protected function getKeysFromFilesystem(string $pattern): array
@@ -315,9 +389,8 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Get keys from Redis adapter
+     * Get keys from Redis adapter using SCAN (non-blocking).
      *
-     * @param string $pattern Pattern to match keys against
      * @return array Array of matching keys
      */
     protected function getKeysFromRedis(string $pattern): array
@@ -328,17 +401,40 @@ abstract class AbstractCacheDriver implements CacheInterface
             $redisProperty->setAccessible(true);
             $redis = $redisProperty->getValue($this->cache);
 
-            if (is_object($redis) && method_exists($redis, 'keys')) {
-                $keys = $redis->keys($pattern);
-                $this->logger->debug('Found ' . count($keys) . " keys matching pattern: {$pattern}");
+            if (!is_object($redis)) {
+                $this->logger->warning('Redis instance not found: ' . gettype($redis));
+
+                return [];
+            }
+
+            // Prefer SCAN over KEYS to avoid blocking Redis.
+            if (method_exists($redis, 'scan')) {
+                $keys = [];
+                $iterator = null;
+
+                // phpredis: scan(&$iterator, $pattern, $count) returns array|false
+                // Loop until iterator becomes 0 (scan complete).
+                do {
+                    $result = $redis->scan($iterator, $pattern, 100);
+                    if (is_array($result)) {
+                        $keys = array_merge($keys, $result);
+                    }
+                } while ($iterator !== 0 && $iterator !== null && $iterator !== false);
+
+                $this->logger->debug('Found ' . count($keys) . " keys matching pattern: {$pattern} (via SCAN)");
 
                 return $keys;
             }
 
-            $this->logger->warning(
-                'Redis instance not found or does not support keys method: '
-                . ( is_object($redis) ? $redis::class : gettype($redis) ),
-            );
+            // Fallback to KEYS only if SCAN is unavailable (e.g., Predis without scan).
+            if (method_exists($redis, 'keys')) {
+                $keys = $redis->keys($pattern);
+                $this->logger->debug('Found ' . count($keys) . " keys matching pattern: {$pattern} (via KEYS)");
+
+                return is_array($keys) ? $keys : [];
+            }
+
+            $this->logger->warning('Redis instance does not support scan or keys method: ' . $redis::class);
 
             return [];
         } catch (Exception $e) {
@@ -349,9 +445,6 @@ abstract class AbstractCacheDriver implements CacheInterface
     }
 
     /**
-     * Generic method to get keys for adapters without specific implementation
-     *
-     * @param string $pattern Pattern to match keys against
      * @return array Array of matching keys
      */
     protected function getKeysGeneric(string $pattern): array

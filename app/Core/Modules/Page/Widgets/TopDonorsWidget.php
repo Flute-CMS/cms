@@ -36,6 +36,16 @@ class TopDonorsWidget extends AbstractWidget
         return 'users';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.top_donors_desc';
+    }
+
+    public function getCacheTime(): int
+    {
+        return self::CACHE_TIME;
+    }
+
     public function getDefaultWidth(): int
     {
         return 3;
@@ -71,9 +81,9 @@ class TopDonorsWidget extends AbstractWidget
 
     private function getTopDonors(int $limit = 5): array
     {
-        $cacheKey = 'flute.widget.top_donors.' . $limit;
+        $cacheKey = 'flute.widget.top_donors.full.' . $limit;
 
-        $cachedData = cache()->callback(
+        return cache()->callback(
             $cacheKey,
             static function () use ($limit) {
                 $query = PaymentInvoice::query()->where('isPaid', true)->buildQuery();
@@ -92,37 +102,33 @@ class TopDonorsWidget extends AbstractWidget
                     return [];
                 }
 
-                return array_map(static fn($r) => [
+                $donorData = array_map(static fn($r) => [
                     'user_id' => (int) $r['user_id'],
                     'total' => (float) $r['total'],
                 ], $results);
+
+                $userIds = array_column($donorData, 'user_id');
+                $userList = User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll();
+
+                $usersById = [];
+                foreach ($userList as $u) {
+                    $usersById[$u->id] = $u;
+                }
+
+                $users = [];
+                foreach ($donorData as $data) {
+                    $u = $usersById[$data['user_id']] ?? null;
+                    if ($u) {
+                        $users[] = [
+                            'user' => $u,
+                            'donated' => $data['total'],
+                        ];
+                    }
+                }
+
+                return $users;
             },
             self::CACHE_TIME,
         );
-
-        if (empty($cachedData)) {
-            return [];
-        }
-
-        $userIds = array_column($cachedData, 'user_id');
-        $userList = User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll();
-
-        $usersById = [];
-        foreach ($userList as $u) {
-            $usersById[$u->id] = $u;
-        }
-
-        $users = [];
-        foreach ($cachedData as $data) {
-            $u = $usersById[$data['user_id']] ?? null;
-            if ($u) {
-                $users[] = [
-                    'user' => $u,
-                    'donated' => $data['total'],
-                ];
-            }
-        }
-
-        return $users;
     }
 }

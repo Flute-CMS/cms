@@ -233,8 +233,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.querySelectorAll('input.filepond').forEach(initializeFilePondElement);
-    // Clean up per-element (Yoyo morph) but NOT on beforeSwap —
-    // destroying before swap causes a visible native-input flash.
+    // Destroy FilePond instances BEFORE swap (especially morph) so that the
+    // original <input> elements are restored and the morph algorithm can
+    // reconcile old DOM with new server HTML without layout breakage.
+    document.body.addEventListener('htmx:beforeSwap', e => {
+        if (e.detail && e.detail.target) destroyFilePondsIn(e.detail.target);
+    });
+    // Also clean up per-element (Yoyo morph removes individual nodes).
     document.body.addEventListener('htmx:beforeCleanupElement', e => destroyFilePondsIn(e.target));
 });
 

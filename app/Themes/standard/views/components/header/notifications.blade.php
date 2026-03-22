@@ -6,7 +6,7 @@
 
         <span class="navbar__notifications-dot" id="notification-dot"
             hx-get="{{ url('api/notifications/has-unread') }}"
-            hx-trigger="load, every 15s, notificationsUpdated from:body"
+            hx-trigger="load, notificationsUpdated from:body, visibilityPoll from:body"
             hx-target="this"
             hx-swap="none"
             data-disable-loading-states

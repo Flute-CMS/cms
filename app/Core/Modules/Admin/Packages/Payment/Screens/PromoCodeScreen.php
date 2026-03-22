@@ -631,16 +631,6 @@ class PromoCodeScreen extends Screen
     }
 
     /**
-     * Получение данных для таблицы.
-     */
-    public function query(): array
-    {
-        return [
-            'promoCodes' => $this->paymentService->getAllPromoCodes(),
-        ];
-    }
-
-    /**
      * Получить компонент фильтров для промо-кодов.
      */
     private function getPromoFilters(): Filters
@@ -673,42 +663,80 @@ class PromoCodeScreen extends Screen
 
         $totalCodes = count($promoCodes);
         $activeCodes = 0;
+        $lastMonthCodes = 0;
+
+        // Use SQL aggregates instead of loading all usages into memory
+        $todayStr = $today->format('Y-m-d H:i:s');
+        $yesterdayStr = $yesterday->format('Y-m-d H:i:s');
+
+        $prefix = db()->getPrefix();
+        $usagesTable = $prefix . 'promo_code_usages';
+        $invoicesTable = $prefix . 'payment_invoices';
+
+        $rows = db()->query("SELECT u.promoCode_id,
+                COUNT(*) as total_usage_count,
+                SUM(CASE WHEN i.is_paid = 1 THEN 1 ELSE 0 END) as paid_count,
+                COALESCE(SUM(CASE WHEN i.is_paid = 1 THEN i.amount ELSE 0 END), 0) as paid_amount,
+                SUM(CASE WHEN i.is_paid = 1 AND u.used_at >= ? THEN 1 ELSE 0 END) as today_paid_count,
+                COALESCE(SUM(CASE WHEN i.is_paid = 1 AND u.used_at >= ? THEN i.original_amount ELSE 0 END), 0) as today_original_amount,
+                SUM(CASE WHEN i.is_paid = 1 AND u.used_at >= ? AND u.used_at < ? THEN 1 ELSE 0 END) as yesterday_paid_count,
+                COALESCE(SUM(CASE WHEN i.is_paid = 1 AND u.used_at >= ? AND u.used_at < ? THEN i.original_amount ELSE 0 END), 0) as yesterday_original_amount
+            FROM {$usagesTable} u
+            INNER JOIN {$invoicesTable} i ON i.id = u.invoice_id
+            GROUP BY u.promoCode_id", [
+            $todayStr,
+            $todayStr,
+            $yesterdayStr,
+            $todayStr,
+            $yesterdayStr,
+            $todayStr,
+        ])->fetchAll();
+
+        // Build lookup by promo code ID
+        $statsByCodeId = [];
+        foreach ($rows as $row) {
+            $statsByCodeId[$row['promoCode_id']] = $row;
+        }
+
         $totalUsages = 0;
         $totalDiscountAmount = 0;
         $todayUsages = 0;
         $todayDiscountAmount = 0;
-
         $yesterdayUsages = 0;
         $yesterdayDiscountAmount = 0;
-        $lastMonthCodes = 0;
 
         foreach ($promoCodes as $code) {
-            $stats = $this->paymentService->getPromoCodeStats($code);
+            $s = $statsByCodeId[$code->id] ?? null;
+            $codeUsageCount = $s ? (int) $s['total_usage_count'] : 0;
 
-            if (!$stats['is_expired'] && ( $stats['remaining_usages'] === null || $stats['remaining_usages'] > 0 )) {
+            if ($s !== null) {
+                $totalDiscountAmount += (float) $s['paid_amount'];
+
+                // Calculate discount amounts based on promo code type
+                $todayUsages += (int) $s['today_paid_count'];
+                $yesterdayUsages += (int) $s['yesterday_paid_count'];
+
+                $todayDiscountAmount += match ($code->type) {
+                    'percentage' => (float) $s['today_original_amount'] * ( $code->value / 100 ),
+                    'amount' => $code->value * (int) $s['today_paid_count'],
+                    default => 0,
+                };
+
+                $yesterdayDiscountAmount += match ($code->type) {
+                    'percentage' => (float) $s['yesterday_original_amount'] * ( $code->value / 100 ),
+                    'amount' => $code->value * (int) $s['yesterday_paid_count'],
+                    default => 0,
+                };
+            }
+
+            $isExpired = $code->expires_at !== null && $code->expires_at < $now;
+            $remainingUsages = $code->max_usages !== null ? $code->max_usages - $codeUsageCount : null;
+
+            if (!$isExpired && ( $remainingUsages === null || $remainingUsages > 0 )) {
                 $activeCodes++;
             }
 
-            $totalUsages += $stats['total_usages'];
-            $totalDiscountAmount += $stats['total_amount'];
-
-            foreach ($code->usages as $usage) {
-                if ($usage->invoice->isPaid) {
-                    $bonusAmount = match ($code->type) {
-                        'percentage' => $usage->invoice->originalAmount * ( $code->value / 100 ),
-                        'amount' => $code->value,
-                        default => 0,
-                    };
-
-                    if ($usage->used_at > $today) {
-                        $todayUsages++;
-                        $todayDiscountAmount += $bonusAmount;
-                    } elseif ($usage->used_at > $yesterday && $usage->used_at <= $today) {
-                        $yesterdayUsages++;
-                        $yesterdayDiscountAmount += $bonusAmount;
-                    }
-                }
-            }
+            $totalUsages += $codeUsageCount;
 
             if ($code->createdAt <= $lastMonth) {
                 $lastMonthCodes++;

@@ -18,7 +18,7 @@
                         <img class="recent-payments__avatar"
                             src="{{ asset($payment->user->avatar ?? config('profile.default_avatar')) }}"
                             alt="{{ $payment->user->name }}"
-                            loading="lazy">
+                            loading="lazy" decoding="async">
                         <div class="recent-payments__info">
                             <span class="recent-payments__name">{!! $payment->user->getDisplayName() !!}</span>
                             <span class="recent-payments__time">

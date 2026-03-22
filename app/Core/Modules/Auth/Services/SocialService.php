@@ -29,7 +29,7 @@ class SocialService implements SocialServiceInterface
     /**
      * Settings that should be stored on provider root level, not inside "keys".
      */
-    private array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
+    private array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token', 'proxy'];
 
     /**
      * Class constructor.
@@ -70,7 +70,11 @@ class SocialService implements SocialServiceInterface
      */
     public function registerSocials()
     {
-        $providers = SocialNetwork::findAll(['enabled' => true]);
+        $providers = cache()->callback(
+            'flute.social_networks',
+            static fn() => SocialNetwork::findAll(['enabled' => true]),
+            3600,
+        );
 
         foreach ($providers as $socialNetwork) {
             $this->registerSocial($socialNetwork);
@@ -234,7 +238,7 @@ class SocialService implements SocialServiceInterface
         }
 
         if ($this->requiresAdditionalRegistration()) {
-            throw new NeedRegistrationException($authData['profile']);
+            throw new NeedRegistrationException($authData['profile'], $social['entity']);
         }
 
         return $this->registerNewUser($authData['profile'], $social['entity']);
@@ -332,6 +336,17 @@ class SocialService implements SocialServiceInterface
             $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
         }
 
+        $additionalData = [];
+        if (!empty($userProfile->photoURL)) {
+            $additionalData['photoUrl'] = $userProfile->photoURL;
+        }
+        if (!empty($userProfile->data) && is_array($userProfile->data)) {
+            $additionalData = array_merge($additionalData, $userProfile->data);
+        }
+        if (!empty($additionalData)) {
+            $userSocialNetwork->setAdditional($additionalData);
+        }
+
         try {
             transaction([$user, $userSocialNetwork])->run();
         } catch (\Cycle\Database\Exception\StatementException\ConstrainException $e) {
@@ -427,8 +442,15 @@ class SocialService implements SocialServiceInterface
                 $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
             }
 
-            if ($token) {
-                $userSocialNetwork->additional = json_encode($token);
+            $additionalData = $token ? json_decode(json_encode($token), true) : [];
+            if (!empty($profile->photoURL)) {
+                $additionalData['photoUrl'] = $profile->photoURL;
+            }
+            if (!empty($profile->data) && is_array($profile->data)) {
+                $additionalData = array_merge($additionalData, $profile->data);
+            }
+            if (!empty($additionalData)) {
+                $userSocialNetwork->additional = json_encode($additionalData);
             }
 
             try {
@@ -452,8 +474,15 @@ class SocialService implements SocialServiceInterface
                 $userSocialNetwork->url = 'https://discord.com/users/' . $userSocialNetwork->value;
             }
 
-            if ($token) {
-                $userSocialNetwork->additional = json_encode($token);
+            $additionalData = $token ? json_decode(json_encode($token), true) : [];
+            if (!empty($profile->photoURL)) {
+                $additionalData['photoUrl'] = $profile->photoURL;
+            }
+            if (!empty($profile->data) && is_array($profile->data)) {
+                $additionalData = array_merge($additionalData, $profile->data);
+            }
+            if (!empty($additionalData)) {
+                $userSocialNetwork->additional = json_encode($additionalData);
             }
 
             try {
@@ -545,7 +574,11 @@ class SocialService implements SocialServiceInterface
      */
     private function initializeProviders(): void
     {
-        $providers = SocialNetwork::findAll(['enabled' => true]);
+        $providers = cache()->callback(
+            'flute.social_networks',
+            static fn() => SocialNetwork::findAll(['enabled' => true]),
+            3600,
+        );
 
         foreach ($providers as $socialNetwork) {
             $this->registerSocial($socialNetwork);
@@ -703,6 +736,35 @@ class SocialService implements SocialServiceInterface
             $settings['scope'] ??= 'email';
             $settings['fields'] ??= 'photo_max,screen_name';
             $settings['version'] ??= '5.199';
+        }
+
+        if (!empty($settings['proxy'])) {
+            $proxyUrl = $settings['proxy'];
+            $parsed = parse_url($proxyUrl);
+
+            $curlProxy = [];
+
+            if (!empty($parsed['user'])) {
+                $credentials = $parsed['user'];
+                if (!empty($parsed['pass'])) {
+                    $credentials .= ':' . $parsed['pass'];
+                }
+                $curlProxy[CURLOPT_PROXYUSERPWD] = $credentials;
+
+                // Rebuild proxy URL without credentials
+                $scheme = !empty($parsed['scheme']) ? $parsed['scheme'] . '://' : '';
+                $host = $parsed['host'] ?? '';
+                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
+                $proxyUrl = $scheme . $host . $port;
+            }
+
+            $curlProxy[CURLOPT_PROXY] = $proxyUrl;
+
+            $settings['curl_options'] = array_replace(
+                $settings['curl_options'] ?? [],
+                $curlProxy,
+            );
+            unset($settings['proxy']);
         }
 
         return $settings;

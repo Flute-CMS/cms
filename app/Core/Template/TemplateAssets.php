@@ -43,8 +43,6 @@ class TemplateAssets
 
     protected TemplateScssCompiler $scssCompiler;
 
-    protected NativeSassCompiler $nativeSassCompiler;
-
     protected Template $template;
 
     protected string $context = 'main';
@@ -111,11 +109,6 @@ class TemplateAssets
         $this->scssCompiler->setOutputStyle($this->minifyAssets ? OutputStyle::COMPRESSED : OutputStyle::EXPANDED);
 
         $this->scssCompiler->addImportPath(path('app'));
-
-        $this->nativeSassCompiler = new NativeSassCompiler();
-        $this->nativeSassCompiler->setOutputStyle(
-            $this->minifyAssets ? OutputStyle::COMPRESSED : OutputStyle::EXPANDED,
-        );
     }
 
     /**
@@ -309,37 +302,6 @@ class TemplateAssets
     /**
      * Gather SCSS contents with fallback support.
      */
-    protected function gatherScssContents(string $mainScssPath): array
-    {
-        $scssContents = [];
-
-        // Load shared partials first
-        $partialsContent = $this->loadSharedPartials();
-        $scssContents[] = $partialsContent;
-
-        // Main SCSS content
-        $mainScssContent = file_get_contents($mainScssPath);
-        if ($mainScssContent === false) {
-            logs()->error("Unable to read SCSS file: {$mainScssPath}");
-
-            return [];
-        }
-        $scssContents[] = $mainScssContent;
-
-        // Additional SCSS files for context
-        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-            if (file_exists($additionalFile)) {
-                $additionalContent = file_get_contents($additionalFile);
-                if ($additionalContent !== false) {
-                    $scssContents[] = $additionalContent;
-                } else {
-                    logs()->warning("Unable to read additional SCSS file: {$additionalFile}");
-                }
-            }
-        }
-
-        return $scssContents;
-    }
 
     /**
      * Processes an external asset URL (CSS, JS, or image), caching it locally if it's not already present.
@@ -398,7 +360,7 @@ class TemplateAssets
             case 'js':
                 return "<script src=\"{$url}\" defer></script>";
             case 'img':
-                return "<img src=\"{$url}\" alt=\"\" loading=\"lazy\">";
+                return "<img src=\"{$url}\" alt=\"\" loading=\"lazy\" decoding=\"async\">";
             default:
                 return '';
         }
@@ -985,11 +947,6 @@ class TemplateAssets
     private function compileScssToCacheFile(string $scssPath, string $cssFullPath): void
     {
         $importPaths = [dirname($scssPath)];
-        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-            if (file_exists($additionalFile)) {
-                $importPaths[] = dirname($additionalFile);
-            }
-        }
         foreach ($this->additionalPartials as $partial) {
             $partialPath = path($partial);
             if (file_exists($partialPath)) {
@@ -1007,11 +964,20 @@ class TemplateAssets
             }
         }
 
-        // Sync import paths to native compiler
-        $this->nativeSassCompiler->setImportPaths(array_merge($baseImportPaths, $importPaths));
+        // Build a master SCSS that @import's each file by absolute path.
+        // scssphp resolves each file's own @import's relative to its directory,
+        // so _card.scss in the theme won't collide with _card.scss in a module.
+        $partialsContent = $this->loadSharedPartials();
+        $masterScss = $partialsContent . "\n";
+        $masterScss .= '@import "' . str_replace('\\', '/', $scssPath) . '";' . "\n";
 
-        $scssContents = $this->gatherScssContents($scssPath);
-        $css = $this->compileScss($scssContents);
+        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
+            if (file_exists($additionalFile)) {
+                $masterScss .= '@import "' . str_replace('\\', '/', $additionalFile) . '";' . "\n";
+            }
+        }
+
+        $css = $this->compileScss($masterScss);
 
         if ($css !== '') {
             $this->saveAsset($cssFullPath, $css);
@@ -1034,6 +1000,15 @@ class TemplateAssets
             $this->compilationCache[$depsCacheKey] = $paths;
         }
 
+        // In performance mode, cache the max mtime for 60s to avoid stat-ing 48+ files per request
+        if (is_performance() && !$this->debugMode) {
+            $mtimeCacheKey = 'scss_mtime_' . md5($scssPath);
+            $cached = cache()->get($mtimeCacheKey);
+            if ($cached !== null) {
+                return (int) $cached;
+            }
+        }
+
         $maxMtime = 0;
 
         foreach ($paths as $path) {
@@ -1041,6 +1016,10 @@ class TemplateAssets
             if ($mtime > $maxMtime) {
                 $maxMtime = $mtime;
             }
+        }
+
+        if (is_performance() && !$this->debugMode) {
+            cache()->set($mtimeCacheKey, $maxMtime, 60);
         }
 
         return $maxMtime;
@@ -1146,20 +1125,12 @@ class TemplateAssets
         return array_values(array_unique($candidates));
     }
 
-    /**
-     * Compiles SCSS contents into CSS, catching any compilation errors.
-     *
-     * @param array $scssContents An array of SCSS content strings.
-     * @return string The compiled CSS string.
-     */
-    private function compileScss(array $scssContents): string
+    private function compileScss(string $scssContent): string
     {
-        $scssContent = implode("\n", $scssContents);
-
         $start = microtime(true);
 
         try {
-            $css = $this->nativeSassCompiler->compile($scssContent, $this->scssCompiler);
+            $css = $this->scssCompiler->compileString($scssContent)->getCss();
 
             self::$assetsCompileTime += microtime(true) - $start;
 

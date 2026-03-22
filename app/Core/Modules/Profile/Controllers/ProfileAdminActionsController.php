@@ -39,7 +39,9 @@ class ProfileAdminActionsController extends BaseController
         $amount = (float) $request->input('amount');
 
         try {
-            user()->topup($amount, $targetUser);
+            user()->topup($amount, $targetUser, 'admin', __('profile.admin_actions.balance_added_by', [
+                'admin' => user()->getCurrentUser()->name,
+            ]));
 
             $this->toast(__('profile.admin_actions.balance_added', ['amount' => $amount]), 'success');
 
@@ -81,7 +83,9 @@ class ProfileAdminActionsController extends BaseController
 
         try {
             if ($amount > 0) {
-                user()->unbalance($amount, $targetUser);
+                user()->unbalance($amount, $targetUser, 'admin', __('profile.admin_actions.balance_removed_by', [
+                    'admin' => user()->getCurrentUser()->name,
+                ]));
             }
 
             $this->toast(__('profile.admin_actions.balance_removed', ['amount' => $amount]), 'success');

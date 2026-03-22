@@ -152,6 +152,20 @@ class Minecraft extends OAuth2
     }
 
     /**
+     * Get proxy curl options from provider config (if set).
+     */
+    private function getProxyCurlOptions(): array
+    {
+        if ($this->config->exists('curl_options')) {
+            $opts = $this->config->get('curl_options');
+
+            return array_intersect_key($opts, array_flip([CURLOPT_PROXY, CURLOPT_PROXYUSERPWD]));
+        }
+
+        return [];
+    }
+
+    /**
      * POST JSON to an external API and return decoded response.
      */
     private function httpPost(string $url, array $data): array
@@ -159,7 +173,7 @@ class Minecraft extends OAuth2
         $json = json_encode($data);
 
         $curl = curl_init($url);
-        curl_setopt_array($curl, [
+        curl_setopt_array($curl, array_replace([
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $json,
             CURLOPT_RETURNTRANSFER => true,
@@ -169,7 +183,7 @@ class Minecraft extends OAuth2
             ],
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        ], $this->getProxyCurlOptions()));
 
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -195,7 +209,7 @@ class Minecraft extends OAuth2
     private function httpGet(string $url, string $bearerToken): array
     {
         $curl = curl_init($url);
-        curl_setopt_array($curl, [
+        curl_setopt_array($curl, array_replace([
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $bearerToken,
@@ -203,7 +217,7 @@ class Minecraft extends OAuth2
             ],
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        ], $this->getProxyCurlOptions()));
 
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);

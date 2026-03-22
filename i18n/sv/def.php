@@ -283,4 +283,5 @@ return [
     'updated' => 'Uppdaterad',
     'created' => 'Skapad',
     'deleted' => 'Raderad',
+    'auth_required' => 'Inloggning krävs',
 ];

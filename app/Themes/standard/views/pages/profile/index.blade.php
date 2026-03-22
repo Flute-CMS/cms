@@ -251,7 +251,7 @@
                                                             aria-label="{{ __('profile.visit_social', ['network' => $social->name]) }}"
                                                             itemprop="sameAs">
                                                             <div class="profile__socials-item-icon">
-                                                                <x-icon path="{{ $social->socialNetwork->icon }}"
+                                                                <x-icon path="{{ $social->socialNetwork?->icon }}"
                                                                     aria-hidden="true" />
                                                             </div>
                                                         </a>

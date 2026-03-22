@@ -280,7 +280,6 @@ window.FluteRichText.BubbleManager = class {
         // Size buttons: direct transaction to avoid focus() losing NodeSelection
         bubble.querySelectorAll('[data-size]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
-                console.log('[RichText] size click', btn.dataset.size, 'editor:', !!self._editor, 'sel:', self._editor && self._editor.state.selection.constructor.name);
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -317,7 +316,6 @@ window.FluteRichText.BubbleManager = class {
         // Alignment buttons: set textAlign on parent paragraph via transaction
         bubble.querySelectorAll('[data-img-align]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
-                console.log('[RichText] align click', btn.dataset.imgAlign);
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -337,7 +335,6 @@ window.FluteRichText.BubbleManager = class {
 
         var delBtn = bubble.querySelector('[data-bubble="delete"]');
         if (delBtn) delBtn.addEventListener('click', function (e) {
-            console.log('[RichText] delete click');
             e.preventDefault();
             e.stopPropagation();
             var ed = self._editor;

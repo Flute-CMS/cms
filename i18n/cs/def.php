@@ -283,4 +283,5 @@ return [
     'updated' => 'Aktualizováno',
     'created' => 'Vytvořeno',
     'deleted' => 'Smazáno',
+    'auth_required' => 'Vyžadováno přihlášení',
 ];

@@ -190,6 +190,26 @@ return [
     "excluded_paths_placeholder" => "/cesta/ke/skrytí",
     "add_path"              => "Přidat",
 
+    // Podmínky viditelnosti
+    "conditions"            => "Viditelnost",
+    "conditions_desc"       => "Nastavte podmínky pro zobrazení nebo skrytí tohoto widgetu.",
+    "cond_auth_label"       => "Stav uživatele",
+    "cond_device_label"     => "Typ zařízení",
+    "auth_all"              => "Všichni",
+    "cond_guests"           => "Hosté",
+    "cond_auth"             => "Přihlášení",
+    "cond_desktop"          => "Počítač",
+    "cond_tablet"           => "Tablet",
+    "cond_mobile"           => "Mobil",
+    "device_all"            => "Všechna zařízení",
+    "preview_device"        => "Náhled zařízení",
+    "only_for"              => "Pouze pro",
+    "hidden_in_preview"     => "Skryto v tomto zobrazení",
+    "cond_roles_label"      => "Role",
+    "cond_roles_hint"       => "Ponechte prázdné pro zobrazení všem rolím",
+    "cond_roles_short"      => "rolí",
+    "cond_no_roles"         => "Žádné dostupné role",
+
     // Image upload (visual editor)
     "bg_image"              => "Background Image",
     "bg_image_dark"         => "Dark Theme",

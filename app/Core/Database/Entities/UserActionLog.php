@@ -16,6 +16,8 @@ use Cycle\ORM\Entity\Behavior;
 #[Table(
     indexes: [
         new Index(columns: ["user_id", "created_at"]),
+        new Index(columns: ["action"]),
+        new Index(columns: ["level"]),
     ]
 )]
 #[Behavior\CreatedAt(

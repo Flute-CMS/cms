@@ -3,6 +3,7 @@
 namespace Flute\Core\Services;
 
 use DateTimeImmutable;
+use Flute\Core\Database\Entities\BalanceHistory;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Exceptions\BalanceNotEnoughException;
@@ -296,9 +297,12 @@ class UserService
      *
      * @param float $sum Amount to add.
      * @param User|null $user User to add balance to. If null, the current user is used.
+     * @param string|null $source Module/service that initiated the operation (e.g., "payment", "admin", "shop").
+     * @param string|null $description Human-readable description for balance history.
+     * @param BalanceHistoryMeta|null $meta Typed metadata for balance history.
      * @throws Throwable
      */
-    public function topup(float $sum, ?User $user = null): void
+    public function topup(float $sum, ?User $user = null, ?string $source = null, ?string $description = null, ?BalanceHistoryMeta $meta = null): void
     {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
@@ -310,13 +314,27 @@ class UserService
             throw new UserNotFoundException();
         }
 
-        $balanceUser = User::query()
-            ->forUpdate()
-            ->where(['id' => $balanceUser->id])
-            ->fetchOne();
+        $database = db();
+        $database->begin();
+        try {
+            $balanceUser = User::query()
+                ->forUpdate()
+                ->where(['id' => $balanceUser->id])
+                ->fetchOne();
 
-        $balanceUser->balance += $sum;
-        transaction($balanceUser)->run();
+            $balanceUser->balance += $sum;
+            transaction($balanceUser)->run();
+            $database->commit();
+        } catch (\Throwable $e) {
+            $database->rollback();
+            throw $e;
+        }
+
+        try {
+            app(BalanceHistoryService::class)->topup($balanceUser, $sum, $balanceUser->balance, $source ?? 'payment', $description, $meta);
+        } catch (\Throwable $e) {
+            logs()->error('Balance history record failed: ' . $e->getMessage());
+        }
 
         if (function_exists('notify')) {
             try {
@@ -338,10 +356,13 @@ class UserService
      *
      * @param float $sum Amount to deduct.
      * @param User|null $user User to deduct balance from. If null, the current user is used.
+     * @param string|null $source Module/service that initiated the operation (e.g., "shop", "clans", "admin").
+     * @param string|null $description Human-readable description for balance history.
+     * @param BalanceHistoryMeta|null $meta Typed metadata for balance history.
      * @throws BalanceNotEnoughException
      * @throws Throwable
      */
-    public function unbalance(float $sum, ?User $user = null): void
+    public function unbalance(float $sum, ?User $user = null, ?string $source = null, ?string $description = null, ?BalanceHistoryMeta $meta = null): void
     {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
@@ -354,19 +375,36 @@ class UserService
         }
 
         // Re-fetch with row lock to prevent race conditions
-        $balanceUser = User::query()
-            ->forUpdate()
-            ->where(['id' => $balanceUser->id])
-            ->fetchOne();
+        $database = db();
+        $database->begin();
+        try {
+            $balanceUser = User::query()
+                ->forUpdate()
+                ->where(['id' => $balanceUser->id])
+                ->fetchOne();
 
-        if ($balanceUser->balance < $sum) {
-            $neededSum = $sum - $balanceUser->balance;
+            if ($balanceUser->balance < $sum) {
+                $neededSum = $sum - $balanceUser->balance;
+                $database->rollback();
 
-            throw ( new BalanceNotEnoughException() )->setNeededSum($neededSum);
+                throw ( new BalanceNotEnoughException() )->setNeededSum($neededSum);
+            }
+
+            $balanceUser->balance -= $sum;
+            transaction($balanceUser)->run();
+            $database->commit();
+        } catch (BalanceNotEnoughException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $database->rollback();
+            throw $e;
         }
 
-        $balanceUser->balance -= $sum;
-        transaction($balanceUser)->run();
+        try {
+            app(BalanceHistoryService::class)->purchase($balanceUser, $sum, $balanceUser->balance, $source ?? 'system', $description, $meta);
+        } catch (\Throwable $e) {
+            logs()->error('Balance history record failed: ' . $e->getMessage());
+        }
 
         // Dispatch user changed event
         events()->dispatch(new UserChangedEvent($balanceUser), UserChangedEvent::NAME);

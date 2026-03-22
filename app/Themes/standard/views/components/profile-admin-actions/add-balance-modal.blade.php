@@ -1,8 +1,9 @@
 <form class="profile-admin-modal" hx-post="{{ url('api/profile/' . $user->id . '/add-balance') }}"
     hx-swap="none" hx-on::after-request="if(event.detail.successful) { closeModal('profile-add-balance-modal'); setTimeout(() => location.reload(), 300); }">
+    @csrf
     <div class="profile-admin-modal__info">
         <div class="profile-admin-modal__user">
-            <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="profile-admin-modal__avatar">
+            <img src="{{ url($user->avatar) }}" alt="{{ $user->name }}" class="profile-admin-modal__avatar" loading="lazy" decoding="async">
             <div class="profile-admin-modal__user-details">
                 <span class="profile-admin-modal__name">{!! $user->getDisplayName() !!}</span>
                 <span class="profile-admin-modal__balance" data-profile-balance>

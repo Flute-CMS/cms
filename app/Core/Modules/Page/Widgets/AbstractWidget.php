@@ -102,6 +102,15 @@ abstract class AbstractWidget implements WidgetInterface
     }
 
     /**
+     * Returns the cache time in seconds for the rendered HTML.
+     * Return 0 to disable HTML caching (e.g., for user-dependent widgets).
+     */
+    public function getCacheTime(): int
+    {
+        return 0;
+    }
+
+    /**
      * Returns the category of the widget.
      */
     public function getCategory(): string

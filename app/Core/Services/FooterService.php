@@ -13,20 +13,32 @@ class FooterService
 
     protected const CACHE_TIME = 24 * 60 * 60;
 
-    protected array $cachedItems;
+    protected ?array $cachedItems = null;
 
     protected bool $performance;
 
     /**
      * Constructor method
-     * Initializes the format class and sets the default footer items
+     * Initializes the format class; DB/cache loading is deferred to first access.
      */
     public function __construct()
     {
         $this->performance = (bool) is_performance();
+    }
+
+    /**
+     * Lazily loads footer items from cache/DB on first access.
+     */
+    protected function loadItems(): array
+    {
+        if ($this->cachedItems !== null) {
+            return $this->cachedItems;
+        }
 
         cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
         $this->cachedItems = cache()->callback(self::CACHE_KEY, fn() => $this->getDefaultItems(), self::CACHE_TIME);
+
+        return $this->cachedItems;
     }
 
     /**
@@ -36,6 +48,7 @@ class FooterService
      */
     public function add(FooterItem $item): self
     {
+        $this->loadItems();
         $this->cachedItems[] = $this->format($item);
 
         return $this;
@@ -54,7 +67,7 @@ class FooterService
      */
     public function all(): array
     {
-        return $this->cachedItems;
+        return $this->loadItems();
     }
 
     public function format(FooterItem $FooterItem): array

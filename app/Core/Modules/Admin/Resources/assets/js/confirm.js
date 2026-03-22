@@ -201,13 +201,13 @@ class ConfirmationManager {
             setTimeout(resetConfirmState, 300);
         });
 
-        $confirmButton.on('click', () => {
+        $confirmButton.off('click').on('click', () => {
             if (confirmHandled) return;
             confirmHandled = true;
-            
+
             $confirmButton.off('click');
             $cancelButton.off('click');
-            
+
             closeModal('confirmation-dialog');
 
             if (typeof onConfirm === 'function') {
@@ -217,13 +217,13 @@ class ConfirmationManager {
             setTimeout(resetConfirmState, 300);
         });
 
-        $cancelButton.on('click', () => {
+        $cancelButton.off('click').on('click', () => {
             if (cancelHandled) return;
             cancelHandled = true;
-            
+
             $confirmButton.off('click');
             $cancelButton.off('click');
-            
+
             closeModal('confirmation-dialog');
 
             if (typeof onCancel === 'function') {
@@ -266,7 +266,7 @@ class ConfirmationManager {
                 'HX-Trigger': 'screen-container-1',
                 'X-Csrf-Token': document
                     .querySelector('meta[name="csrf-token"]')
-                    .getAttribute('content'),
+                    ?.getAttribute('content') ?? '',
             };
 
             const componentName = yoyoComponent.getAttribute('yoyo:name');
@@ -351,10 +351,12 @@ class ConfirmationManager {
 
                             if (responseEl) {
                                 yoyoComponent.outerHTML = responseEl.outerHTML;
-                                YoyoEngine.trigger(yoyoComponent, action);
-                                htmx.process(
-                                    document.querySelector(targetSelector),
-                                );
+                                // Re-query the new element (outerHTML detaches the old node)
+                                const newComponent = document.querySelector(targetSelector);
+                                if (newComponent) {
+                                    YoyoEngine.trigger(newComponent, action);
+                                    htmx.process(newComponent);
+                                }
                             }
                         } else {
                             YoyoEngine.trigger(yoyoComponent, action);

@@ -96,6 +96,11 @@ class ActivePromoCodesWidget extends AbstractWidget
         return 'payments';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.active_promos_desc';
+    }
+
     public function getDefaultWidth(): int
     {
         return 3;

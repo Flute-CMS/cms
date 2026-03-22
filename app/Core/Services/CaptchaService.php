@@ -130,7 +130,7 @@ class CaptchaService
                         'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10,
+                    'timeout' => 5,
                 ],
             ]);
 
@@ -188,7 +188,7 @@ class CaptchaService
                         'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10,
+                    'timeout' => 5,
                 ],
             ]);
 
@@ -255,7 +255,7 @@ class CaptchaService
                         'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10,
+                    'timeout' => 5,
                 ],
             ]);
 
@@ -310,7 +310,7 @@ class CaptchaService
                         'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10,
+                    'timeout' => 5,
                 ],
             ]);
 
@@ -365,7 +365,7 @@ class CaptchaService
                         'User-Agent: Flute-CMS/1.0',
                     ],
                     'content' => http_build_query($data),
-                    'timeout' => 10,
+                    'timeout' => 5,
                 ],
             ]);
 

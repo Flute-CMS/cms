@@ -36,7 +36,7 @@
                         @if ($slide['type'] === 'video')
                             <video src="{{ $slide['media'] }}" autoplay muted loop></video>
                         @elseif($slide['type'] === 'gif' || $slide['type'] === 'image')
-                            <img src="{{ $slide['media'] }}" alt="{{ $slide['title'] }}" />
+                            <img src="{{ $slide['media'] }}" alt="{{ $slide['title'] }}" loading="lazy" decoding="async" />
                         @endif
                     </div>
                     <div class="slide-content">

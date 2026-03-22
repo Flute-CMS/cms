@@ -190,6 +190,26 @@ return [
     "excluded_paths_placeholder" => "/yashirish/uchun/yol",
     "add_path"              => "Qo'shish",
 
+    // Ko'rinish shartlari
+    "conditions"            => "Ko'rinish",
+    "conditions_desc"       => "Ushbu vidjetni ko'rsatish yoki yashirish shartlarini belgilang.",
+    "cond_auth_label"       => "Foydalanuvchi holati",
+    "cond_device_label"     => "Qurilma turi",
+    "auth_all"              => "Hammasi",
+    "cond_guests"           => "Mehmonlar",
+    "cond_auth"             => "Avtorizatsiyalangan",
+    "cond_desktop"          => "Kompyuter",
+    "cond_tablet"           => "Planshet",
+    "cond_mobile"           => "Mobil",
+    "device_all"            => "Barcha qurilmalar",
+    "preview_device"        => "Qurilma ko'rinishi",
+    "only_for"              => "Faqat uchun",
+    "hidden_in_preview"     => "Bu ko'rinishda yashirin",
+    "cond_roles_label"      => "Rollar",
+    "cond_roles_hint"       => "Barcha rollar uchun ko'rsatish uchun bo'sh qoldiring",
+    "cond_roles_short"      => "rollar",
+    "cond_no_roles"         => "Mavjud rollar yo'q",
+
     // Image upload (visual editor)
     "bg_image"              => "Background Image",
     "bg_image_dark"         => "Dark Theme",

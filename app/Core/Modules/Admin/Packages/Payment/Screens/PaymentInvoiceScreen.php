@@ -78,7 +78,7 @@ class PaymentInvoiceScreen extends Screen
         }
 
         $this->invoices = $query;
-        $this->metrics = $this->calculateMetrics();
+        $this->metrics = cache()->callback('payment_invoice_metrics', fn() => $this->calculateMetrics(), 60);
 
         $this->name = __('admin-payment.title.invoices');
         $this->description = __('admin-payment.title.invoices_description');

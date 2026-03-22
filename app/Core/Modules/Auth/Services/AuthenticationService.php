@@ -218,12 +218,14 @@ class AuthenticationService
 
         transaction($tokenEntity)->run();
 
+        $isSecure = str_starts_with(config('app.url', ''), 'https');
         $this->cookie->set(
             name: 'remember_token',
             value: $rememberToken,
             expire: $this->config->get('auth.remember_me_duration'),
             httpOnly: true,
             sameSite: 'Strict',
+            secure: $isSecure,
         );
 
         return $rememberToken;
@@ -438,6 +440,9 @@ class AuthenticationService
         $user = $passwordResetToken->user;
         $user->setPassword($newPassword);
 
+        $database = db();
+        $database->begin();
+
         try {
             transaction($passwordResetToken, 'delete')->run();
             transaction($user)->run();
@@ -447,12 +452,17 @@ class AuthenticationService
                 transaction($existingToken, 'delete')->run();
             }
 
+            $database->commit();
+
+            // Notifications outside transaction
             if (function_exists('notify')) {
                 notify('core.password_changed', $user, [
                     'time' => date('d.m.Y H:i'),
                 ]);
             }
         } catch (Throwable $e) {
+            $database->rollback();
+
             throw $e;
         }
     }

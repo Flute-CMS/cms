@@ -83,7 +83,11 @@
 
                             <td @class(['table-cell', 'text-' . $align])
                                 @if ($width) width="{{ $width }}" @endif>
-                                {!! $row[$column['field']] !!}
+                                @if (!empty($column['raw']) || !empty($column['renderer']))
+                                    {!! $row[$column['field']] !!}
+                                @else
+                                    {{ $row[$column['field']] }}
+                                @endif
                             </td>
                         @endforeach
                     </tr>

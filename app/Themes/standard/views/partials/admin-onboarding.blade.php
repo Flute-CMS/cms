@@ -88,7 +88,7 @@
                     <div class="admin-onboarding__slide active">
                         <div class="admin-onboarding__slide-image">
                             <img src="@asset('assets/img/onboarding/new-design.png')"
-                                alt="{{ __('onboarding.new_design') }}">
+                                alt="{{ __('onboarding.new_design') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.design_description_1') }}</p>
@@ -98,7 +98,7 @@
                     <div class="admin-onboarding__slide">
                         <div class="admin-onboarding__slide-image">
                             <img src="@asset('assets/img/onboarding/dynamic.png')"
-                                alt="{{ __('onboarding.dynamic_loading') }}">
+                                alt="{{ __('onboarding.dynamic_loading') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.dynamic_description_1') }}</p>
@@ -108,7 +108,7 @@
                     <div class="admin-onboarding__slide">
                         <div class="admin-onboarding__slide-image">
                             <img src="@asset('assets/img/onboarding/page-editor.png')"
-                                alt="{{ __('onboarding.page_editor') }}">
+                                alt="{{ __('onboarding.page_editor') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.editor_description_1') }}</p>
@@ -118,7 +118,7 @@
                     <div class="admin-onboarding__slide">
                         <div class="admin-onboarding__slide-image">
                             <img src="@asset('assets/img/onboarding/colors.png')"
-                                alt="{{ __('onboarding.dynamic_colors') }}">
+                                alt="{{ __('onboarding.dynamic_colors') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.colors_description_1') }}</p>
@@ -128,7 +128,7 @@
                     <div class="admin-onboarding__slide">
                         <div class="admin-onboarding__slide-image">
                             <img src="@asset('assets/img/onboarding/admin.png')"
-                                alt="{{ __('onboarding.improved_admin') }}">
+                                alt="{{ __('onboarding.improved_admin') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.admin_description_1') }}</p>
@@ -137,7 +137,7 @@
                     </div>
                     <div class="admin-onboarding__slide">
                         <div class="admin-onboarding__slide-image">
-                            <img src="@asset('assets/img/onboarding/ready.png')" alt="{{ __('onboarding.start_using') }}">
+                            <img src="@asset('assets/img/onboarding/ready.png')" alt="{{ __('onboarding.start_using') }}" loading="lazy" decoding="async">
                         </div>
                         <div class="admin-onboarding__slide-content">
                             <p>{{ __('onboarding.ready_description_1') }}</p>

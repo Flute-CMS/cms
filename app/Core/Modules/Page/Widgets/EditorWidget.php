@@ -61,6 +61,11 @@ class EditorWidget extends AbstractWidget
         return 'general';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.editor_desc';
+    }
+
     public function getDefaultWidth(): int
     {
         return 12;

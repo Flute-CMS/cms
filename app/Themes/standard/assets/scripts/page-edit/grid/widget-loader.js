@@ -203,7 +203,7 @@ class WidgetLoader {
     async renderWidgetsBatch(widgetElements) {
         if (widgetElements.length === 0) return;
 
-        const CHUNK_SIZE = 4;
+        const CHUNK_SIZE = 8;
         const chunks = [];
         for (let i = 0; i < widgetElements.length; i += CHUNK_SIZE) {
             chunks.push(widgetElements.slice(i, i + CHUNK_SIZE));

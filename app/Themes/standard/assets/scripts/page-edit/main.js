@@ -619,7 +619,117 @@ class PageEditor {
     }
 
     autoPositionGrid() {
-        this.gridController.compact();
+        const gs = this.gridController.gsGrid;
+        if (!gs) return;
+
+        const items = gs.getGridItems();
+        if (!items.length) return;
+
+        const COLS = 12;
+
+        // 1. Compact vertically — removes vertical gaps
+        gs.compact();
+
+        // 2. Read positions after compact
+        const allNodes = items.map(el => el.gridstackNode).filter(Boolean);
+
+        // 3. Group by y-start (same top edge = same visual row)
+        const rowMap = new Map();
+        for (const n of allNodes) {
+            if (!rowMap.has(n.y)) rowMap.set(n.y, []);
+            rowMap.get(n.y).push(n);
+        }
+
+        // Track updated positions so later rows see correct blocking
+        const pos = new Map(); // node → { x, w }
+        const getX = (n) => pos.has(n) ? pos.get(n).x : n.x;
+        const getW = (n) => pos.has(n) ? pos.get(n).w : n.w;
+
+        // Process rows top-to-bottom
+        const sortedYs = [...rowMap.keys()].sort((a, b) => a - b);
+
+        gs.batchUpdate();
+
+        for (const rowY of sortedYs) {
+            const rowNodes = rowMap.get(rowY).sort((a, b) => a.x - b.x);
+            const rowH = Math.max(...rowNodes.map(n => n.h));
+
+            // Columns our row currently occupies
+            const ourCols = new Set();
+            for (const n of rowNodes) {
+                for (let c = n.x; c < n.x + n.w; c++) ourCols.add(c);
+            }
+
+            // Find columns blocked by OTHER rows' widgets that overlap vertically
+            const blocked = new Array(COLS).fill(false);
+            for (const n of allNodes) {
+                if (n.y === rowY) continue;
+                if (n.y < rowY + rowH && n.y + n.h > rowY) {
+                    const nx = getX(n), nw = getW(n);
+                    for (let c = nx; c < Math.min(nx + nw, COLS); c++) {
+                        if (!ourCols.has(c)) blocked[c] = true;
+                    }
+                }
+            }
+
+            // Find contiguous free range that spans our widgets
+            const rowMinX = rowNodes[0].x;
+            const rowMaxX = rowNodes[rowNodes.length - 1].x
+                          + rowNodes[rowNodes.length - 1].w;
+
+            let startX = rowMinX;
+            while (startX > 0 && !blocked[startX - 1]) startX--;
+
+            let endX = rowMaxX;
+            while (endX < COLS && !blocked[endX]) endX++;
+
+            const availW = endX - startX;
+            const totalW = rowNodes.reduce((s, n) => s + n.w, 0);
+            const gap = availW - totalW;
+
+            if (gap <= 0) {
+                // Just close internal x-gaps
+                let x = startX;
+                for (const n of rowNodes) {
+                    gs.update(n.el, { x });
+                    pos.set(n, { x, w: n.w });
+                    x += n.w;
+                }
+                continue;
+            }
+
+            // Distribute extra space proportionally to widget width
+            const shares = rowNodes.map(n =>
+                Math.max(0, Math.round(gap * n.w / totalW))
+            );
+            let sum = shares.reduce((a, b) => a + b, 0);
+            for (let i = 0; sum < gap; i = (i + 1) % shares.length) {
+                shares[i]++; sum++;
+            }
+            for (let i = shares.length - 1; sum > gap;
+                 i = (i - 1 + shares.length) % shares.length) {
+                if (shares[i] > 0) { shares[i]--; sum--; }
+            }
+
+            let x = startX;
+            rowNodes.forEach((n, i) => {
+                const newW = n.w + shares[i];
+                gs.update(n.el, { x, w: newW });
+                n.el._cols = newW;
+                pos.set(n, { x, w: newW });
+                x += newW;
+            });
+        }
+
+        gs.batchUpdate(false);
+
+        // Resize widgets to content after layout shift
+        setTimeout(() => this.gridController.resizeAllToContent(), 100);
+
+        this.gridController._emitChange();
+        this.gridController.eventBus.emit(
+            this.gridController.events.GRID_COMPACTED
+        );
     }
 
     addContentWidget() {

@@ -36,7 +36,7 @@
                                 data-user-card
                                 class="top-donors__podium-item top-donors__podium-item--{{ $place }}">
                                 <div class="top-donors__podium-avatar" data-place="{{ $place }}">
-                                    <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" loading="lazy">
+                                    <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" loading="lazy" decoding="async">
                                     <span class="top-donors__podium-place">{{ $place }}</span>
                                 </div>
                                 <span class="top-donors__podium-name">{!! $user->getDisplayName() !!}</span>
@@ -63,7 +63,7 @@
                                 class="top-donors__list-item">
                                 <span class="top-donors__list-rank">{{ $position }}</span>
                                 <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
-                                    class="top-donors__list-avatar" loading="lazy">
+                                    class="top-donors__list-avatar" loading="lazy" decoding="async">
                                 <span class="top-donors__list-name">{!! $user->getDisplayName() !!}</span>
                                 @if ($showAmount)
                                     <span class="top-donors__list-amount">
@@ -89,7 +89,7 @@
                             class="top-donors__list-item {{ $position <= 3 ? 'top-donors__list-item--' . $position : '' }}">
                             <span class="top-donors__list-rank">{{ $position }}</span>
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
-                                class="top-donors__list-avatar" loading="lazy">
+                                class="top-donors__list-avatar" loading="lazy" decoding="async">
                             <span class="top-donors__list-name">{!! $user->getDisplayName() !!}</span>
                             @if ($showAmount)
                                 <span class="top-donors__list-amount">
@@ -113,7 +113,7 @@
                             data-user-card
                             class="top-donors__compact-item {{ $position <= 3 ? 'top-donors__compact-item--' . $position : '' }}"
                             data-tooltip="{{ $user->name }}{{ $showAmount ? ' — ' . number_format($donated, 0, '', ' ') . ' ' . config('lk.currency_view') : '' }}">
-                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" loading="lazy">
+                            <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" loading="lazy" decoding="async">
                             @if ($position <= 3)
                                 <span class="top-donors__compact-badge">{{ $position }}</span>
                             @endif

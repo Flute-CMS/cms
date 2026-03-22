@@ -283,4 +283,5 @@ return [
     'updated' => 'Atualizado',
     'created' => 'Criado',
     'deleted' => 'Excluído',
+    'auth_required' => 'Autenticação necessária',
 ];

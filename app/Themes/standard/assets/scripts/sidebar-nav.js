@@ -69,14 +69,18 @@ class SidebarNav {
             }
         });
 
+        let _resizeTimer;
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 991 && this.isMobileOpen) {
-                this.closeMobile();
-            }
-            this.hideFloatingDropdown();
-            // Update state on resize to handle mobile/desktop transitions
-            this.updateState();
-        });
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(() => {
+                if (window.innerWidth > 991 && this.isMobileOpen) {
+                    this.closeMobile();
+                }
+                this.hideFloatingDropdown();
+                // Update state on resize to handle mobile/desktop transitions
+                this.updateState();
+            }, 50);
+        }, { passive: true });
 
         document.body.addEventListener('htmx:afterSwap', () => {
             setTimeout(() => this.updateActiveItems(), 50);

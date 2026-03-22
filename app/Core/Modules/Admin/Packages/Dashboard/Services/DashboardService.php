@@ -272,60 +272,70 @@ class DashboardService
             $dateFormat = 'M Y';
         }
 
-        $registrations = [];
+        // Build bucket boundaries and labels
+        $buckets = [];
         $labels = [];
 
         if ($groupBy === 'day') {
             $startDate = $now->modify('-' . ( $periodDays - 1 ) . ' days')->setTime(0, 0);
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $dayStart = $startDate->modify("+{$i} day");
-                $dayEnd = $dayStart->modify('+1 day');
-                $labels[] = Carbon::parse($dayStart)->translatedFormat($dateFormat);
-
-                $dayStartDb = $dayStart->setTimezone($dbTz);
-                $dayEndDb = $dayEnd->setTimezone($dbTz);
-
-                $registrations[] = User::query()
-                    ->where('isTemporary', false)
-                    ->where('createdAt', '>=', $dayStartDb)
-                    ->where('createdAt', '<', $dayEndDb)
-                    ->count();
+                $bucketStart = $startDate->modify("+{$i} day");
+                $bucketEnd = $bucketStart->modify('+1 day');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
         } elseif ($groupBy === 'week') {
             $startDate = $now->modify('-' . ( ( $pointsCount * 7 ) - 1 ) . ' days')->setTime(0, 0);
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $weekStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
-                $weekEnd = $weekStart->modify('+7 days');
-                $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
-
-                $weekStartDb = $weekStart->setTimezone($dbTz);
-                $weekEndDb = $weekEnd->setTimezone($dbTz);
-
-                $registrations[] = User::query()
-                    ->where('isTemporary', false)
-                    ->where('createdAt', '>=', $weekStartDb)
-                    ->where('createdAt', '<', $weekEndDb)
-                    ->count();
+                $bucketStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
+                $bucketEnd = $bucketStart->modify('+7 days');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
         } else {
             $startDate = $now->modify('-' . $pointsCount . ' months');
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $monthStart = $startDate->modify('+' . $i . ' month');
-                $monthEnd = $monthStart->modify('+1 month');
-                $labels[] = Carbon::parse($monthStart)->translatedFormat($dateFormat);
-
-                $monthStartDb = $monthStart->setTimezone($dbTz);
-                $monthEndDb = $monthEnd->setTimezone($dbTz);
-
-                $registrations[] = User::query()
-                    ->where('isTemporary', false)
-                    ->where('createdAt', '>=', $monthStartDb)
-                    ->where('createdAt', '<', $monthEndDb)
-                    ->count();
+                $bucketStart = $startDate->modify('+' . $i . ' month');
+                $bucketEnd = $bucketStart->modify('+1 month');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
+        }
+
+        // Single query with CASE expressions for each bucket
+        $rangeStartDt = $buckets[0]['start'];
+        $rangeEndDt = $buckets[count($buckets) - 1]['end'];
+
+        $caseFragments = [];
+        foreach ($buckets as $idx => $bucket) {
+            $s = $bucket['start']->format('Y-m-d H:i:s');
+            $e = $bucket['end']->format('Y-m-d H:i:s');
+            $caseFragments[] = new \Cycle\Database\Injection\Fragment(
+                "SUM(CASE WHEN created_at >= '{$s}' AND created_at < '{$e}' THEN 1 ELSE 0 END) as cnt_{$idx}",
+            );
+        }
+
+        $query = User::query()
+            ->where('isTemporary', false)
+            ->where('createdAt', '>=', $rangeStartDt)
+            ->where('createdAt', '<', $rangeEndDt)
+            ->buildQuery();
+
+        $query->columns($caseFragments);
+        $row = $query->limit(1)->fetchAll()[0] ?? [];
+
+        $registrations = [];
+        foreach ($buckets as $idx => $bucket) {
+            $registrations[] = (int) ( $row["cnt_{$idx}"] ?? 0 );
         }
 
         return [
@@ -475,111 +485,88 @@ class DashboardService
 
         // Determine grouping strategy based on period
         if ($periodDays <= 14) {
-            // Daily grouping for up to 2 weeks
             $groupBy = 'day';
             $pointsCount = $periodDays;
             $dateFormat = 'D';
         } elseif ($periodDays <= 90) {
-            // Weekly grouping for up to 3 months
             $groupBy = 'week';
             $pointsCount = (int) ceil($periodDays / 7);
             $dateFormat = 'd M';
         } else {
-            // Monthly grouping for longer periods
             $groupBy = 'month';
             $pointsCount = (int) ceil($periodDays / 30);
             $dateFormat = 'M Y';
         }
 
-        $revenue = [];
-        $payments = [];
+        // Build bucket boundaries and labels
+        $buckets = [];
         $labels = [];
 
         if ($groupBy === 'day') {
             $startDate = $now->modify('-' . ( $periodDays - 1 ) . ' days')->setTime(0, 0);
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $dayStart = $startDate->modify("+{$i} day");
-                $dayEnd = $dayStart->modify('+1 day');
-                $labels[] = Carbon::parse($dayStart)->translatedFormat($dateFormat);
-
-                $dayStartDb = $dayStart->setTimezone($dbTz);
-                $dayEndDb = $dayEnd->setTimezone($dbTz);
-
-                $revenueQuery = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $dayStartDb)
-                    ->where('paidAt', '<', $dayEndDb)
-                    ->buildQuery();
-                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
-
-                $cnt = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $dayStartDb)
-                    ->where('paidAt', '<', $dayEndDb)
-                    ->count();
-
-                $revenue[] = (float) $sum;
-                $payments[] = (int) $cnt;
+                $bucketStart = $startDate->modify("+{$i} day");
+                $bucketEnd = $bucketStart->modify('+1 day');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
         } elseif ($groupBy === 'week') {
             $startDate = $now->modify('-' . ( ( $pointsCount * 7 ) - 1 ) . ' days')->setTime(0, 0);
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $weekStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
-                $weekEnd = $weekStart->modify('+7 days');
-                $labels[] = Carbon::parse($weekStart)->translatedFormat($dateFormat);
-
-                $weekStartDb = $weekStart->setTimezone($dbTz);
-                $weekEndDb = $weekEnd->setTimezone($dbTz);
-
-                $revenueQuery = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $weekStartDb)
-                    ->where('paidAt', '<', $weekEndDb)
-                    ->buildQuery();
-                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
-
-                $cnt = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $weekStartDb)
-                    ->where('paidAt', '<', $weekEndDb)
-                    ->count();
-
-                $revenue[] = (float) $sum;
-                $payments[] = (int) $cnt;
+                $bucketStart = $startDate->modify('+' . ( $i * 7 ) . ' days');
+                $bucketEnd = $bucketStart->modify('+7 days');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
         } else {
-            // Monthly grouping
             $startDate = $now->modify('-' . $pointsCount . ' months');
-
             for ($i = 0; $i < $pointsCount; $i++) {
-                $monthStart = $startDate->modify('+' . $i . ' month');
-                $monthEnd = $monthStart->modify('+1 month');
-                $labels[] = Carbon::parse($monthStart)->translatedFormat($dateFormat);
-
-                $monthStartDb = $monthStart->setTimezone($dbTz);
-                $monthEndDb = $monthEnd->setTimezone($dbTz);
-
-                $revenueQuery = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $monthStartDb)
-                    ->where('paidAt', '<', $monthEndDb)
-                    ->buildQuery();
-                $revenueQuery->columns([new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount),0) as sum')]);
-                $sum = $revenueQuery->limit(1)->fetchAll()[0]['sum'] ?? 0;
-
-                $cnt = PaymentInvoice::query()
-                    ->where('isPaid', true)
-                    ->where('paidAt', '>=', $monthStartDb)
-                    ->where('paidAt', '<', $monthEndDb)
-                    ->count();
-
-                $revenue[] = (float) $sum;
-                $payments[] = (int) $cnt;
+                $bucketStart = $startDate->modify('+' . $i . ' month');
+                $bucketEnd = $bucketStart->modify('+1 month');
+                $labels[] = Carbon::parse($bucketStart)->translatedFormat($dateFormat);
+                $buckets[] = [
+                    'start' => $bucketStart->setTimezone($dbTz),
+                    'end' => $bucketEnd->setTimezone($dbTz),
+                ];
             }
+        }
+
+        // Build a single query with CASE expressions for each bucket
+        $rangeStartDt = $buckets[0]['start'];
+        $rangeEndDt = $buckets[count($buckets) - 1]['end'];
+
+        $caseFragments = [];
+        foreach ($buckets as $idx => $bucket) {
+            $s = $bucket['start']->format('Y-m-d H:i:s');
+            $e = $bucket['end']->format('Y-m-d H:i:s');
+            $caseFragments[] = new \Cycle\Database\Injection\Fragment(
+                "COALESCE(SUM(CASE WHEN paid_at >= '{$s}' AND paid_at < '{$e}' THEN amount ELSE 0 END), 0) as sum_{$idx}",
+            );
+            $caseFragments[] = new \Cycle\Database\Injection\Fragment(
+                "SUM(CASE WHEN paid_at >= '{$s}' AND paid_at < '{$e}' THEN 1 ELSE 0 END) as cnt_{$idx}",
+            );
+        }
+
+        $query = PaymentInvoice::query()
+            ->where('isPaid', true)
+            ->where('paidAt', '>=', $rangeStartDt)
+            ->where('paidAt', '<', $rangeEndDt)
+            ->buildQuery();
+
+        $query->columns($caseFragments);
+        $row = $query->limit(1)->fetchAll()[0] ?? [];
+
+        $revenue = [];
+        $payments = [];
+        foreach ($buckets as $idx => $bucket) {
+            $revenue[] = (float) ( $row["sum_{$idx}"] ?? 0 );
+            $payments[] = (int) ( $row["cnt_{$idx}"] ?? 0 );
         }
 
         return [

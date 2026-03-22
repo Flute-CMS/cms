@@ -110,9 +110,10 @@ $(document).ready(function () {
 		}
 	};
 
-	// HTMX: destroy BEFORE swap so the old DOM gets cleaned up
+	// HTMX: destroy BEFORE swap so the old DOM gets cleaned up.
+	// Use evt.detail.target (the swap target), not evt.target (the trigger element).
 	document.body.addEventListener("htmx:beforeSwap", function (evt) {
-		var el = evt.target;
+		var el = evt.detail && evt.detail.target ? evt.detail.target : null;
 		if (!el) return;
 		destroyDatePickers(el);
 	});
@@ -141,6 +142,10 @@ $(document).ready(function () {
 				wrapper._fp = null;
 			}
 			wrapper._fpInit = false;
+			// Remove flatpickr DOM artifacts that destroy() may leave behind during morph
+			if (wrapper.querySelectorAll) {
+				wrapper.querySelectorAll(".flatpickr-calendar").forEach(function (c) { c.remove(); });
+			}
 		});
 	}
 });

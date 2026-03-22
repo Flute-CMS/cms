@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
-use Cycle\Database\Injection\Parameter;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 
@@ -25,30 +24,21 @@ class UsersNewWidget extends AbstractWidget
         $maxDisplay = min($settings['max_display'] ?? 50, 100);
         $cacheKey = 'flute.widget.users_new.' . $maxDisplay;
 
-        $userIds = cache()->callback(
+        $users = cache()->callback(
             $cacheKey,
             static function () use ($maxDisplay) {
-                $users = User::query()
+                return User::query()
                     ->where('createdAt', '>=', ( new DateTimeImmutable() )->modify('-7 day'))
                     ->where('hidden', false)
                     ->orderBy('createdAt', 'DESC')
                     ->limit($maxDisplay)
                     ->fetchAll();
-
-                return array_map(static fn($u) => $u->id, $users);
             },
             self::CACHE_TIME,
         );
 
-        $newUsers = !empty($userIds)
-            ? User::query()
-                ->where('id', 'IN', new Parameter($userIds))
-                ->orderBy('createdAt', 'DESC')
-                ->fetchAll()
-            : [];
-
         return view('flute::widgets.users-new', [
-            'users' => $newUsers,
+            'users' => $users,
             'display_type' => $settings['display_type'] ?? 'text',
         ])->render();
     }
@@ -74,6 +64,16 @@ class UsersNewWidget extends AbstractWidget
     public function getCategory(): string
     {
         return 'users';
+    }
+
+    public function getDescription(): string
+    {
+        return 'widgets.users_new_desc';
+    }
+
+    public function getCacheTime(): int
+    {
+        return self::CACHE_TIME;
     }
 
     public function getDefaultWidth(): int

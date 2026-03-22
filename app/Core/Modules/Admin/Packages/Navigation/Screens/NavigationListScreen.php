@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\Navigation\Screens;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
@@ -271,9 +272,9 @@ class NavigationListScreen extends Screen
         $navbarItem->save();
 
         if (!empty($roles)) {
-            foreach ($roles as $roleId) {
-                $role = Role::findByPK($roleId);
-                if ($role && user()->getHighestPriority() >= $role->priority) {
+            $fetchedRoles = Role::query()->where('id', 'IN', new Parameter($roles))->fetchAll();
+            foreach ($fetchedRoles as $role) {
+                if (user()->getHighestPriority() >= $role->priority) {
                     $navbarItem->addRole($role);
                 }
             }
@@ -478,9 +479,9 @@ class NavigationListScreen extends Screen
         $navbarItem->clearRoles();
 
         if (!empty($roles)) {
-            foreach ($roles as $roleId) {
-                $role = Role::findByPK($roleId);
-                if ($role && user()->getHighestPriority() >= $role->priority) {
+            $fetchedRoles = Role::query()->where('id', 'IN', new Parameter($roles))->fetchAll();
+            foreach ($fetchedRoles as $role) {
+                if (user()->getHighestPriority() >= $role->priority) {
                     $navbarItem->addRole($role);
                 }
             }

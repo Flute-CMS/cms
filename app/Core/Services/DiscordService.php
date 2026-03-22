@@ -15,9 +15,21 @@ class DiscordService
 
     private $client;
 
-    public function __construct(Client $client)
+    public function __construct(?Client $client = null)
     {
-        $this->client = $client;
+        $proxyConfig = [];
+
+        if ($client === null) {
+            $social = $this->getSocialNetworkByKey('Discord');
+            if ($social) {
+                $proxyConfig = $social->getGuzzleProxyConfig();
+            }
+        }
+
+        $this->client = $client ?? new Client(array_merge([
+            'timeout' => 10.0,
+            'connect_timeout' => 3.0,
+        ], $proxyConfig));
     }
 
     public function clearRoles(User $user)
@@ -147,53 +159,29 @@ class DiscordService
             return false;
         }
 
-        if (sizeof($roles) > 0) {
-            foreach ($roles as $key => $role) {
-                try {
-                    $this->client->request('PUT', $url, [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $accessToken,
-                            'Accept' => 'application/json',
-                        ],
-                        'json' => [
-                            'platform_name' => config('app.name'),
-                            'metadata' => [
-                                'role_id' => $role->id,
-                            ],
-                        ],
-                    ]);
+        // Each PUT overwrites the entire metadata, so only the last role matters.
+        // Send a single request instead of looping with sleep(5) per role.
+        $lastRole = !empty($roles) ? end($roles) : null;
+        $roleId = $lastRole ? $lastRole->id : 0;
 
-                    if (isset($roles[$key + 1])) {
-                        sleep(5);
-                    }
-                } catch (ClientException $e) {
-                    logs()->error($e);
-
-                    if (is_debug()) {
-                        throw $e;
-                    }
-                }
-            }
-        } else {
-            try {
-                $this->client->request('PUT', $url, [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $accessToken,
-                        'Accept' => 'application/json',
+        try {
+            $this->client->request('PUT', $url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'platform_name' => config('app.name'),
+                    'metadata' => [
+                        'role_id' => $roleId,
                     ],
-                    'json' => [
-                        'platform_name' => config('app.name'),
-                        'metadata' => [
-                            'role_id' => 0,
-                        ],
-                    ],
-                ]);
-            } catch (ClientException $e) {
-                logs()->error($e);
+                ],
+            ]);
+        } catch (ClientException $e) {
+            logs()->error($e);
 
-                if (is_debug()) {
-                    throw $e;
-                }
+            if (is_debug()) {
+                throw $e;
             }
         }
 

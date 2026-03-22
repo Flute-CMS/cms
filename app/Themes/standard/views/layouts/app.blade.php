@@ -169,6 +169,9 @@
         {!! $sections['head'] !!}
     @endif
 
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+
     <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="alternate" href="{{ url()->current() }}" hreflang="x-default">
@@ -179,7 +182,8 @@
 
     @include('flute::partials.background')
 
-    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'>
+    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css' media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'></noscript>
 
     @stack('styles')
 
@@ -197,15 +201,17 @@
     @endif
 
     @if (!$isPartialRequest)
-        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin fetchpriority="high">
         <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
-        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
+        <link rel="preload" href="@asset('assets/fonts/manrope/manrope.css')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')"></noscript>
         <link rel="preload" href="@asset('animate')" as="style"
             onload="this.onload=null;this.rel='stylesheet'">
         <noscript>
             <link rel="stylesheet" href="@asset('animate')" type='text/css'>
         </noscript>
-        <link rel="stylesheet" href="@asset('grid')" type='text/css'>
+        <link rel="preload" href="@asset('grid')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="@asset('grid')" type='text/css'></noscript>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">
 
@@ -213,16 +219,20 @@
 
         @at(tt('assets/sass/app.scss'))
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/response-targets.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/htmx/response-targets.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer fetchpriority="low"></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer fetchpriority="low"></script>
 
-        @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode(false) @endphp
+            });
+        </script>
     @endif
 
     @include('flute::partials.colors')
@@ -249,13 +259,16 @@
                     ms2.setAttribute('content', bg)
                 }
             }
-            document.addEventListener('DOMContentLoaded', updateThemeColor);
-            var o = new MutationObserver(updateThemeColor);
+            var cb = typeof requestIdleCallback === 'function'
+                ? function(fn) { requestIdleCallback(fn) }
+                : function(fn) { setTimeout(fn, 1) };
+            cb(updateThemeColor);
+            var o = new MutationObserver(function() { cb(updateThemeColor) });
             o.observe(document.documentElement, {
                 attributes: true,
                 attributeFilter: ['data-theme']
             });
-            window.addEventListener('flute:theme-changed', updateThemeColor);
+            window.addEventListener('flute:theme-changed', function() { cb(updateThemeColor) });
         })();
     </script>
 </head>
@@ -404,17 +417,79 @@
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
         <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-plugin-image-preview.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-type.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-size.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-plugin-image-exif-orientation.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond.js')" defer></script>
-        <script src="@asset('assets/js/libs/cropper.js')" defer></script>
-        <script src="@asset('assets/js/libs/notyf.js')" defer></script>
+        <script src="@asset('assets/js/libs/notyf.js')" defer fetchpriority="low"></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
-        <script src="@asset('assets/js/libs/tiptap-editor.js')" defer></script>
+        <script src="@asset('assets/js/libs/flute-select.js')" defer fetchpriority="low"></script>
 
-        <script src="@asset('assets/js/libs/flute-select.js')" defer></script>
+        {{-- On-demand heavy libs: loaded when their trigger elements appear in DOM --}}
+        <script>
+        (function(){
+            var loaded = {};
+            function load(srcs, cb) {
+                var i = 0;
+                function next() {
+                    if (i >= srcs.length) { if (cb) cb(); return; }
+                    var src = srcs[i++];
+                    if (loaded[src]) { next(); return; }
+                    loaded[src] = true;
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.onload = next;
+                    s.onerror = next;
+                    document.head.appendChild(s);
+                }
+                next();
+            }
+
+            function matches(root, sel) {
+                if (!root) return !!document.querySelector(sel);
+                if (root.matches && root.matches(sel)) return true;
+                return root.querySelector && !!root.querySelector(sel);
+            }
+
+            var libs = {
+                filepond: {
+                    match: 'input.filepond',
+                    srcs: [
+                        "@asset('assets/js/libs/filepond-plugin-image-preview.js')",
+                        "@asset('assets/js/libs/filepond-plugin-file-validate-type.js')",
+                        "@asset('assets/js/libs/filepond-plugin-file-validate-size.js')",
+                        "@asset('assets/js/libs/filepond-plugin-image-exif-orientation.js')",
+                        "@asset('assets/js/libs/filepond.js')",
+                        "@asset('assets/js/libs/cropper.js')"
+                    ],
+                    init: function() {
+                        function tryInit() {
+                            if (typeof FilePond !== 'undefined' && typeof _registerFilePondPlugins === 'function') {
+                                _registerFilePondPlugins();
+                            } else {
+                                setTimeout(tryInit, 50);
+                            }
+                        }
+                        tryInit();
+                    }
+                },
+                tiptap: {
+                    match: '[data-editor="richtext"], .richtext-editor-wrapper',
+                    srcs: ["@asset('assets/js/libs/tiptap-editor.js')"]
+                }
+            };
+
+            function scan(root) {
+                Object.keys(libs).forEach(function(key) {
+                    var lib = libs[key];
+                    if (lib.done) return;
+                    if (matches(root, lib.match)) {
+                        lib.done = true;
+                        load(lib.srcs, lib.init || null);
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() { scan(); });
+            document.body.addEventListener('htmx:load', function(e) { scan(e.detail.elt); });
+        })();
+        </script>
 
         @at(tt('assets/scripts/libs/simplebar.js'))
         @at(tt('assets/scripts/libs/tinycolor.js'))
@@ -496,6 +571,51 @@
         @if (isset($sections['scripts']))
             {!! $sections['scripts'] !!}
         @endif
+
+        {{-- Hover prefetch: warms browser HTTP cache for boosted navigations --}}
+        <script>
+        (function(){
+            var inflight = {};
+            var timer = null;
+
+            document.addEventListener('mouseover', function(e) {
+                var a = e.target.closest && e.target.closest('a[href]');
+                if (!a) return;
+
+                // Only boosted navigation links
+                if (a.getAttribute('hx-boost') === 'false' || a.closest('[hx-boost=false]')) return;
+                if (!a.closest('[hx-boost=true]') && !a.hasAttribute('hx-boost')) return;
+
+                // Skip non-navigation
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#' || href.startsWith('javascript') ||
+                    a.hasAttribute('data-modal-open') || a.hasAttribute('data-dropdown-open') ||
+                    a.hasAttribute('download') || a.getAttribute('target') === '_blank') return;
+
+                // Normalize URL
+                try { href = new URL(href, location.origin).pathname; } catch(e) { return; }
+                if (inflight[href]) return;
+
+                clearTimeout(timer);
+                timer = setTimeout(function() {
+                    inflight[href] = true;
+                    fetch(href, {
+                        priority: 'low',
+                        headers: {
+                            'HX-Request': 'true',
+                            'HX-Boosted': 'true',
+                            'HX-Target': 'main',
+                            'HX-Current-URL': location.href
+                        }
+                    }).catch(function(){}).finally(function() {
+                        setTimeout(function() { delete inflight[href]; }, 5000);
+                    });
+                }, 80);
+            }, true);
+
+            document.addEventListener('mouseout', function() { clearTimeout(timer); }, true);
+        })();
+        </script>
     @endif
 </body>
 

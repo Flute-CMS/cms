@@ -63,12 +63,12 @@
                                     <a class="navbar__logo navbar__logo-dark" href="{{ url('/') }}"
                                         aria-label="{{ config('app.name') }} - Home" itemprop="url">
                                     <img src="{{ asset(config('app.logo')) }}"
-                                        alt="{{ config('app.name') }}" itemprop="logo">
+                                        alt="{{ config('app.name') }}" itemprop="logo" fetchpriority="high" decoding="async">
                                     </a>
                                     <a class="navbar__logo navbar__logo-light" href="{{ url('/') }}"
                                         aria-label="{{ config('app.name') }} - Home" itemprop="url">
                                     <img src="{{ asset(config('app.logo_light', config('app.logo'))) }}"
-                                        alt="{{ config('app.name') }}" itemprop="logo">
+                                        alt="{{ config('app.name') }}" itemprop="logo" fetchpriority="high" decoding="async">
                                     </a>
                                 </div>
                                 <div class="navbar__separator"></div>

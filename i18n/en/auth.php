@@ -69,6 +69,7 @@ return [
         "user_not_found" => "User not found",
         "social_not_found" => "Social network not found",
         "unknown" => "Unknown error",
+        "social_binded" => "This social network is already linked to another account.",
     ],
     "two_factor" => [
         "title" => "Two-Factor Authentication",
@@ -105,7 +106,12 @@ return [
     "too_many_requests" => "Too many requests. Please try again later.",
     "register_success" => "Registration successful!",
     "login_to_access" => "Log in to access this page.",
-    "errors" => [
-        "social_binded" => "This social network is already linked to another account.",
+    "supplement" => [
+        "header" => "Complete Registration",
+        "description" => "Your social account was verified. Fill in the details below to complete your registration.",
+        "email_hint" => "Optional, but recommended for account recovery.",
+        "password_hint" => "Optional. Set a password if you want to log in without social auth.",
+        "complete_button" => "Complete Registration",
+        "session_expired" => "Your social session has expired. Please try logging in again.",
     ],
 ];

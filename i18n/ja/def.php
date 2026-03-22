@@ -283,4 +283,5 @@ return [
     'updated' => '更新済み',
     'created' => '作成済み',
     'deleted' => '削除済み',
+    'auth_required' => '認証が必要です',
 ];

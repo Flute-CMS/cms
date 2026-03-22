@@ -189,6 +189,11 @@ return [
             "show_description"    => "Show social network to other users",
             "hide_description"    => "Hide social network from other users",
             "last_social_network" => "To unlink a social network, set a password.",
+            "linked"              => "Linked",
+            "not_linked"          => "Not linked",
+            "linked_at"           => "Linked :date",
+            "visible"             => "Visible to others",
+            "hidden"              => "Hidden",
         ],
 
         "payments" => [
@@ -216,6 +221,23 @@ return [
 
         "upload_directory_error" => "Upload directory does not exist.",
         "upload_failed"          => "Failed to upload :field.",
+        "balance_history" => [
+            "title" => "Balance History",
+            "description" => "All balance operations: top-ups, purchases and refunds.",
+            "table" => [
+                "type"        => "Type",
+                "description" => "Description",
+                "amount"      => "Amount",
+                "date"        => "Date",
+            ],
+            "types" => [
+                "topup"    => "Top-up",
+                "purchase" => "Purchase",
+                "refund"   => "Refund",
+                "admin"    => "Admin",
+            ],
+            "no_description" => "No description",
+        ],
     ],
 
     "two_factor" => [
@@ -255,7 +277,9 @@ return [
         "ban_until" => "Ban until",
         "ban_until_hint" => "Leave empty for permanent ban",
         "balance_added" => "Balance added: :amount",
+        "balance_added_by" => "Added by admin :admin",
         "balance_removed" => "Balance removed: :amount",
+        "balance_removed_by" => "Removed by admin :admin",
         "user_banned" => "User banned",
         "user_unbanned" => "User unbanned",
         "user_verified" => "Email verified",

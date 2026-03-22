@@ -64,8 +64,8 @@ $(document).ready(function () {
 				pickrByInputId.delete(inputId);
 			}
 
-			// Remove leftover trigger elements from previous instances
-			container.querySelectorAll(".pickr-inline-trigger").forEach((el) => el.remove());
+			// Remove leftover Pickr DOM from previous instances (e.g. after morph swap)
+			container.querySelectorAll(".pickr-inline-trigger, .pcr-app").forEach((el) => el.remove());
 
 			// Create a hidden trigger element inside the inline container
 			const trigger = document.createElement("div");
@@ -190,7 +190,9 @@ $(document).ready(function () {
 		return null;
 	}
 
-	// Cleanup Pickr instances when HTMX is about to remove elements
+	// Cleanup Pickr and icon picker instances when HTMX is about to swap elements.
+	// This is critical for morph swaps where elements may be reused in-place —
+	// old flags/listeners must be cleared so re-initialization can proceed.
 	function cleanupPickrsIn(el) {
 		if (!el) return;
 		const candidates = [];
@@ -201,23 +203,41 @@ $(document).ready(function () {
 			const inputId = container.getAttribute("data-input-id");
 			const instance = inputId ? pickrByInputId.get(inputId) : null;
 			if (instance) {
-				// Use destroy() only — HTMX will remove the DOM elements itself.
-				// destroyAndRemove() can interfere with HTMX's own cleanup.
 				try { instance.destroy(); } catch (_) {}
 			}
 			if (inputId) pickrByInputId.delete(inputId);
 			delete container._pickrInit;
+			// Remove any Pickr DOM artifacts that destroy() may have left behind
+			// (e.g. during morph where DOM is updated concurrently).
+			container.querySelectorAll(".pickr-inline-trigger, .pcr-app").forEach((r) => r.remove());
 		});
 	}
 
+	function cleanupIconPickersIn(el) {
+		if (!el) return;
+		const inputs = [];
+		if (el.matches && el.matches(".input__field-icon")) inputs.push(el);
+		if (el.querySelectorAll)
+			inputs.push(...el.querySelectorAll(".input__field-icon"));
+		inputs.forEach((input) => {
+			delete input.hasIconPickerInitialized;
+		});
+	}
+
+	function cleanupComponentsIn(el) {
+		cleanupPickrsIn(el);
+		cleanupIconPickersIn(el);
+	}
+
 	document.body.addEventListener("htmx:beforeCleanupElement", (evt) => {
-		cleanupPickrsIn(evt && evt.target ? evt.target : null);
+		cleanupComponentsIn(evt && evt.target ? evt.target : null);
 	});
 
-	// Also clean up on beforeSwap for swap strategies that may not fire beforeCleanupElement
+	// Also clean up on beforeSwap for swap strategies that may not fire
+	// beforeCleanupElement (e.g. morph, outerHTML).
 	document.body.addEventListener("htmx:beforeSwap", (evt) => {
 		const target = evt.detail && evt.detail.target ? evt.detail.target : null;
-		cleanupPickrsIn(target);
+		cleanupComponentsIn(target);
 	});
 
 	function saveIconCache() {

@@ -3,7 +3,7 @@
         aria-label="{{ __('def.profile') }} {{ user()->name }}"
         aria-expanded="false" aria-haspopup="true">
         <img data-profile-avatar src="{{ url(user()->avatar) }}" alt="{{ user()->name }}" width="32"
-            height="32">
+            height="32" decoding="async">
     </button>
 
     <div class="profile-dropdown" data-profile-dropdown aria-hidden="true" hx-boost="false">

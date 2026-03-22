@@ -32,8 +32,12 @@ var notyf = new Notyf({
 function handleToasts(evt) {
     const toastsHeader = evt.detail.xhr.getResponseHeader('X-Toasts');
     if (toastsHeader) {
-        const toasts = JSON.parse(toastsHeader);
-        toasts.forEach(displayToast);
+        try {
+            const toasts = JSON.parse(toastsHeader);
+            toasts.forEach(displayToast);
+        } catch (e) {
+            console.error('Failed to parse toasts header:', e);
+        }
     }
 }
 
@@ -69,27 +73,39 @@ function displayToast(toast) {
     return notyf.open(options);
 }
 
-// Show NProgress during HTMX requests
+// Show NProgress during HTMX requests.
+// Only shows for requests longer than PROGRESS_DELAY to avoid flicker.
+// Safety timeout auto-finishes after SAFETY_TIMEOUT to prevent infinite spin.
 var nprogressTimeout;
+var nprogressSafetyTimeout;
+
+function nprogressFinish() {
+    clearTimeout(nprogressTimeout);
+    nprogressTimeout = null;
+    clearTimeout(nprogressSafetyTimeout);
+    nprogressSafetyTimeout = null;
+    NProgress.done();
+}
 
 function handleNProgress(event, action) {
-    const PROGRESS_DELAY = 150;
-    const triggerElement = event.detail.elt;
-    const xhr = event.detail.xhr;
+    const PROGRESS_DELAY = 200;
+    const SAFETY_TIMEOUT = 15000;
+    const triggerElement = event.detail?.elt;
 
-    if (!triggerElement.hasAttribute('data-noprogress') && xhr.status !== 304) {
-        if (action === 'start') {
-            if (!nprogressTimeout) {
-                nprogressTimeout = setTimeout(() => {
-                    NProgress.start();
-                    nprogressTimeout = null;
-                }, PROGRESS_DELAY);
-            }
-        } else if (action === 'done') {
-            clearTimeout(nprogressTimeout);
-            nprogressTimeout = null;
-            NProgress.done();
+    if (triggerElement && triggerElement.hasAttribute('data-noprogress')) return;
+
+    if (action === 'start') {
+        if (!nprogressTimeout) {
+            nprogressTimeout = setTimeout(() => {
+                NProgress.start();
+                nprogressTimeout = null;
+
+                clearTimeout(nprogressSafetyTimeout);
+                nprogressSafetyTimeout = setTimeout(nprogressFinish, SAFETY_TIMEOUT);
+            }, PROGRESS_DELAY);
         }
+    } else if (action === 'done') {
+        nprogressFinish();
     }
 }
 
@@ -123,6 +139,7 @@ window.addEventListener('htmx:afterOnLoad', (evt) => {
 });
 
 window.addEventListener('htmx:sendError', (evt) => {
+    nprogressFinish();
     displayToast({
         type: 'error',
         message: 'Error sending request. Please refresh the page and try again.',
@@ -136,7 +153,7 @@ window.addEventListener('htmx:beforeRequest', (e) =>
     handleNProgress(e, 'start'),
 );
 window.addEventListener('htmx:afterRequest', (e) => handleNProgress(e, 'done'));
-window.addEventListener('htmx:historyRestore', NProgress.remove);
+window.addEventListener('htmx:historyRestore', nprogressFinish);
 
 // КОСТЫЛЬ!!! Убирает кеш HTMX чтобы при возврату к прошлой вкладке страница рефрешалась заново.
 // --------------------
@@ -668,9 +685,9 @@ htmx.onLoad(function () {
 });
 
 document.addEventListener('reRenderComponent', function (event) {
-    const componentId = event.detail[0].componentId;
+    const componentId = event.detail?.[0]?.componentId;
+    if (!componentId) return;
     const component = document.getElementById(componentId);
-    console.log('component', component, event);
     if (component) {
         htmx.ajax('GET', window.location.href, {
             target: `#${componentId}`,
@@ -720,18 +737,25 @@ document.body.addEventListener('change', function (e) {
 
 // Sticky command bar detection
 (function () {
+    let currentObserver = null;
+
     function initStickyObserver() {
+        if (currentObserver) {
+            currentObserver.disconnect();
+            currentObserver = null;
+        }
+
         const sentinel = document.querySelector('.base-legend-sentinel');
         const legend = document.querySelector('.base-legend');
         if (!sentinel || !legend) return;
 
-        const observer = new IntersectionObserver(
+        currentObserver = new IntersectionObserver(
             ([entry]) => {
                 legend.classList.toggle('is-stuck', !entry.isIntersecting);
             },
             { threshold: 0 }
         );
-        observer.observe(sentinel);
+        currentObserver.observe(sentinel);
     }
 
     initStickyObserver();

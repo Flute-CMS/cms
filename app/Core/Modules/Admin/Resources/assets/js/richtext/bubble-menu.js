@@ -280,7 +280,6 @@ window.FluteRichText.BubbleManager = class {
         // Size buttons: direct transaction to avoid focus() losing NodeSelection
         bubble.querySelectorAll('[data-size]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
-                console.log('[RichText] size click', btn.dataset.size, 'editor:', !!self._editor, 'sel:', self._editor && self._editor.state.selection.constructor.name);
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -317,7 +316,6 @@ window.FluteRichText.BubbleManager = class {
         // Alignment buttons: set textAlign on parent paragraph via transaction
         bubble.querySelectorAll('[data-img-align]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
-                console.log('[RichText] align click', btn.dataset.imgAlign);
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -337,7 +335,6 @@ window.FluteRichText.BubbleManager = class {
 
         var delBtn = bubble.querySelector('[data-bubble="delete"]');
         if (delBtn) delBtn.addEventListener('click', function (e) {
-            console.log('[RichText] delete click');
             e.preventDefault();
             e.stopPropagation();
             var ed = self._editor;
@@ -370,26 +367,23 @@ window.FluteRichText.BubbleManager = class {
     }
 
     _setImageParentAlign(editor, align) {
-        if (!editor) { console.log('[RichText] align: no editor'); return; }
+        if (!editor) return;
         var state = editor.state;
         var sel = state.selection;
         var pos = sel.from;
         var resolved = state.doc.resolve(pos);
-        console.log('[RichText] align: pos=' + pos, 'depth=' + resolved.depth, 'sel.node=' + (sel.node ? sel.node.type.name : 'none'));
+
+        // Case 1: image inside a paragraph/heading — set textAlign on the block parent
         for (var d = resolved.depth; d >= 0; d--) {
             var node = resolved.node(d);
-            console.log('[RichText] align: d=' + d, 'node=' + node.type.name, 'attrs=', JSON.stringify(node.attrs));
             if (node.type.name === 'paragraph' || node.type.name === 'heading') {
                 var startPos = resolved.before(d);
-                var newAttrs = Object.assign({}, node.attrs, { textAlign: align });
-                console.log('[RichText] align: setting', align, 'at pos=' + startPos, 'newAttrs=', JSON.stringify(newAttrs));
-                var tr = state.tr.setNodeMarkup(startPos, undefined, newAttrs);
-                console.log('[RichText] align: tr.steps=' + tr.steps.length);
+                var tr = state.tr.setNodeMarkup(startPos, undefined,
+                    Object.assign({}, node.attrs, { textAlign: align }));
                 editor.view.dispatch(tr);
                 return;
             }
         }
-        console.log('[RichText] align: no paragraph/heading found');
     }
 
     // ========= POSITIONING & VISIBILITY =========

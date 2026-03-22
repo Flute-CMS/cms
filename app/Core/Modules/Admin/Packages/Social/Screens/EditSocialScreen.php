@@ -6,7 +6,6 @@ use Exception;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
-use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -34,21 +33,79 @@ class EditSocialScreen extends Screen
 
     protected $id = null;
 
-    protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token'];
+    protected array $nonKeySettingFields = ['scope', 'fields', 'display', 'version', 'service_token', 'proxy'];
+
+    protected array $driverIcons = [
+        'Steam' => 'fontawesome.brands.steam',
+        'HttpsSteam' => 'fontawesome.brands.steam',
+        'Discord' => 'fontawesome.brands.discord',
+        'Telegram' => 'fontawesome.brands.telegram',
+        'Minecraft' => 'fontawesome.brands.xbox',
+        'Twitch' => 'fontawesome.brands.twitch',
+        'TwitchTV' => 'fontawesome.brands.twitch',
+        'Twitter' => 'fontawesome.brands.x-twitter',
+        'GitHub' => 'fontawesome.brands.github',
+        'GitLab' => 'fontawesome.brands.gitlab',
+        'Google' => 'fontawesome.brands.google',
+        'Apple' => 'fontawesome.brands.apple',
+        'Facebook' => 'fontawesome.brands.facebook',
+        'LinkedIn' => 'fontawesome.brands.linkedin',
+        'LinkedInOpenID' => 'fontawesome.brands.linkedin',
+        'Vkontakte' => 'fontawesome.brands.vk',
+        'Yandex' => 'fontawesome.brands.yandex',
+        'MicrosoftGraph' => 'fontawesome.brands.microsoft',
+        'WindowsLive' => 'fontawesome.brands.microsoft',
+        'Spotify' => 'fontawesome.brands.spotify',
+        'Reddit' => 'fontawesome.brands.reddit',
+        'Patreon' => 'fontawesome.brands.patreon',
+        'Instagram' => 'fontawesome.brands.instagram',
+        'Yahoo' => 'fontawesome.brands.yahoo',
+        'Amazon' => 'fontawesome.brands.amazon',
+        'BitBucket' => 'fontawesome.brands.bitbucket',
+        'Blizzard' => 'fontawesome.brands.battle-net',
+        'BlizzardEU' => 'fontawesome.brands.battle-net',
+        'BlizzardAPAC' => 'fontawesome.brands.battle-net',
+        'DeviantArt' => 'fontawesome.brands.deviantart',
+        'Disqus' => 'fontawesome.brands.discourse',
+        'Dribbble' => 'fontawesome.brands.dribbble',
+        'Dropbox' => 'fontawesome.brands.dropbox',
+        'Foursquare' => 'fontawesome.brands.foursquare',
+        'Mastodon' => 'fontawesome.brands.mastodon',
+        'Medium' => 'fontawesome.brands.medium',
+        'ORCID' => 'fontawesome.brands.orcid',
+        'Paypal' => 'fontawesome.brands.paypal',
+        'PaypalOpenID' => 'fontawesome.brands.paypal',
+        'Pinterest' => 'fontawesome.brands.pinterest',
+        'QQ' => 'fontawesome.brands.qq',
+        'Slack' => 'fontawesome.brands.slack',
+        'StackExchange' => 'fontawesome.brands.stack-exchange',
+        'StackExchangeOpenID' => 'fontawesome.brands.stack-exchange',
+        'Strava' => 'fontawesome.brands.strava',
+        'Tumblr' => 'fontawesome.brands.tumblr',
+        'WeChat' => 'fontawesome.brands.weixin',
+        'WeChatChina' => 'fontawesome.brands.weixin',
+        'WordPress' => 'fontawesome.brands.wordpress',
+    ];
 
     protected $supportedDrivers = [
         'Steam' => 'Steam',
         'Discord' => 'Discord',
         'Telegram' => 'Telegram',
+        'Minecraft' => 'Minecraft',
         'Twitch' => 'Twitch',
         'Twitter' => 'Twitter',
         'GitHub' => 'GitHub',
+        'GitLab' => 'GitLab',
         'Google' => 'Google',
+        'Apple' => 'Apple',
         'Facebook' => 'Facebook',
         'LinkedIn' => 'LinkedIn',
         'Vkontakte' => 'Vkontakte',
         'Yandex' => 'Yandex',
         'MicrosoftGraph' => 'MicrosoftGraph',
+        'Spotify' => 'Spotify',
+        'Reddit' => 'Reddit',
+        'Patreon' => 'Patreon',
         'Instagram' => 'Instagram',
         'Yahoo' => 'Yahoo',
     ];
@@ -138,7 +195,8 @@ class EditSocialScreen extends Screen
                                 Input::make('icon')
                                     ->required()
                                     ->type('icon')
-                                    ->value($this->social->icon ?? '')
+                                    ->disableFromRequest()
+                                    ->value($this->driverIcons[$driverKey] ?? ($this->social?->icon ?: ''))
                                     ->placeholder(__('admin-social.fields.icon.placeholder')),
                             )
                                 ->label(__('admin-social.fields.icon.label'))
@@ -150,7 +208,7 @@ class EditSocialScreen extends Screen
                                         '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
                                         '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
                                     ])
-                                    ->value($this->social->allowToRegister ?? true ? '1' : '0')
+                                    ->value($this->social?->allowToRegister ?? true ? '1' : '0')
                                     ->color('accent'),
                             )
                                 ->label(__('admin-social.fields.allow_register.label'))
@@ -167,22 +225,22 @@ class EditSocialScreen extends Screen
                             ->label(__('admin-social.fields.cooldown_time.label'))
                             ->small(__('admin-social.fields.cooldown_time.small'))
                             ->popover(__('admin-social.fields.cooldown_time.help')),
+
+                        LayoutFactory::field(
+                            Input::make('settings__proxy')
+                                ->value($this->social ? ($this->social->getSettings()['proxy'] ?? '') : '')
+                                ->placeholder(__('admin-social.fields.proxy.placeholder')),
+                        )
+                            ->label(__('admin-social.fields.proxy.label'))
+                            ->small(__('admin-social.fields.proxy.small'))
+                            ->popover(__('admin-social.fields.proxy.help')),
                     ])->addClass('mb-3'),
 
                     $driverKey
                         ? LayoutFactory::block([
-                            LayoutFactory::field(
-                                Input::make('redirect_uri_1')
-                                    ->readonly()
-                                    ->disableFromRequest()
-                                    ->value(url('/social/' . $driverKey)),
-                            )->label(__('admin-social.fields.redirect_uri.first')),
-                            LayoutFactory::field(
-                                Input::make('redirect_uri_2')
-                                    ->readonly()
-                                    ->disableFromRequest()
-                                    ->value(url('/profile/social/bind/' . $driverKey)),
-                            )->label(__('admin-social.fields.redirect_uri.second')),
+                            LayoutFactory::view('admin-social::edit.redirect-uris', [
+                                'driverKey' => $driverKey,
+                            ]),
                         ])->addClass('mb-3')->morph(false)
                         : null,
                 ]),
@@ -202,7 +260,12 @@ class EditSocialScreen extends Screen
             'icon' => 'required|string|max-str-len:255',
             'allow_to_register' => 'sometimes|boolean',
             'cooldown_time' => 'required|integer|min:0',
+            'settings__proxy' => 'sometimes|string|max-str-len:255',
         ];
+
+        if ($this->isEditMode && !isset($data['driverKey'])) {
+            $data['driverKey'] = $this->social->key;
+        }
 
         $settings = $this->extractSettingsFromRequest($data);
         $data['settings'] = $settings;
@@ -415,6 +478,30 @@ class EditSocialScreen extends Screen
                 'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
                 'settings__secret' => 'required|string|max-str-len:255',
             ]),
+            'Minecraft' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'GitLab' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Apple' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Spotify' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Reddit' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
+            'Patreon' => $rules = array_merge($rules, [
+                'settings__id' => 'required|string|max-str-len:255|min-str-len:2',
+                'settings__secret' => 'required|string|max-str-len:255',
+            ]),
             default => [],
         };
 
@@ -431,39 +518,23 @@ class EditSocialScreen extends Screen
         }
 
         $fields = [
-            LayoutFactory::field(
-                Select::make('driverKey')
-                    ->options($availableDrivers)
-                    ->allowEmpty()
-                    ->value($driverKey ?? null)
-                    ->yoyo()
-                    ->placeholder(__('admin-social.fields.driver.placeholder'))
-                    ->required(),
-            )
-                ->label(__('admin-social.fields.driver.label'))
-                ->required(),
+            LayoutFactory::view('admin-social::edit.driver-select', [
+                'availableDrivers' => $availableDrivers,
+                'driverKey' => $driverKey,
+                'driverIcons' => $this->driverIcons,
+                'isEditMode' => $this->isEditMode,
+            ]),
         ];
 
         if ($driverKey) {
-            if (view()->exists("admin-social::edit.socials.{$driverKey}")) {
-                $fields[] = LayoutFactory::view("admin-social::edit.socials.{$driverKey}", ['social' => $this->social]);
-            } else {
-                $fields[] = LayoutFactory::blank([
-                    LayoutFactory::view('admin-social::edit.socials.default', ['driverKey' => $driverKey]),
+            $viewName = view()->exists("admin-social::edit.socials.{$driverKey}")
+                ? "admin-social::edit.socials.{$driverKey}"
+                : 'admin-social::edit.socials.default';
 
-                    LayoutFactory::field(
-                        Input::make('settings__id')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['id'] : ''),
-                    )->label(__('admin-social.fields.client_id.label')),
-
-                    LayoutFactory::field(
-                        Input::make('settings__secret')
-                            ->required()
-                            ->value($this->isEditMode ? $this->social->getSettings()['secret'] : ''),
-                    )->label(__('admin-social.fields.client_secret.label')),
-                ]);
-            }
+            $fields[] = LayoutFactory::view($viewName, [
+                'social' => $this->social,
+                'driverKey' => $driverKey,
+            ]);
         }
 
         return $fields;
@@ -476,6 +547,7 @@ class EditSocialScreen extends Screen
     {
         try {
             cache()->deleteImmediately('available_social_drivers');
+            cache()->deleteImmediately('flute.social_networks');
             cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Do not break admin flow if cache clearing fails

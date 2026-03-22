@@ -2,6 +2,7 @@
 
 namespace Flute\Admin\Packages\NotificationTemplates\Screens;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
@@ -265,28 +266,26 @@ class NotificationBroadcastScreen extends Screen
                     return [];
                 }
 
-                $users = [];
+                $intRoleIds = array_map('intval', $roleIds);
+                $roles = Role::query()->where('id', 'IN', new Parameter($intRoleIds))->fetchAll();
+                if (empty($roles)) {
+                    return [];
+                }
+
+                $validRoleIds = array_map(fn($r) => $r->id, $roles);
+                $users = User::query()->where('roles.id', 'IN', new Parameter($validRoleIds))->fetchAll();
+
+                // Deduplicate users (a user may have multiple matching roles)
                 $seen = [];
-
-                foreach ($roleIds as $roleId) {
-                    $role = Role::findByPK((int) $roleId);
-                    if (!$role) {
-                        continue;
-                    }
-
-                    $roleUsers = User::query()
-                        ->where('roles.id', (int) $roleId)
-                        ->fetchAll();
-
-                    foreach ($roleUsers as $user) {
-                        if (!isset($seen[$user->id])) {
-                            $seen[$user->id] = true;
-                            $users[] = $user;
-                        }
+                $unique = [];
+                foreach ($users as $user) {
+                    if (!isset($seen[$user->id])) {
+                        $seen[$user->id] = true;
+                        $unique[] = $user;
                     }
                 }
 
-                return $users;
+                return $unique;
 
             case 'users':
                 $userIds = request()->input('users', []);
@@ -294,15 +293,9 @@ class NotificationBroadcastScreen extends Screen
                     return [];
                 }
 
-                $users = [];
-                foreach ($userIds as $userId) {
-                    $user = User::findByPK((int) $userId);
-                    if ($user) {
-                        $users[] = $user;
-                    }
-                }
+                $intUserIds = array_map('intval', $userIds);
 
-                return $users;
+                return User::query()->where('id', 'IN', new Parameter($intUserIds))->fetchAll();
 
             default:
                 return User::query()->fetchAll();

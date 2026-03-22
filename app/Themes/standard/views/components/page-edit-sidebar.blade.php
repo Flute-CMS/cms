@@ -66,10 +66,11 @@
                                 </div>
                                 <div class="pe-dock__group-items">
                                     @foreach ($widgets as $key => $widget)
+                                        @php $desc = method_exists($widget, 'getDescription') && $widget->getDescription() ? __($widget->getDescription()) : '' @endphp
                                         <div class="pe-widget-card grid-stack-item"
                                              data-widget-name="{{ $key }}"
                                              data-default-width="{{ $widget->getDefaultWidth() }}"
-                                             data-tooltip="{{ __($widget->getName()) }}"
+                                             data-tooltip="{{ $desc ?: __($widget->getName()) }}"
                                              data-tooltip-placement="top"
                                              @if ($widget->hasSettings()) data-has-settings="true" @endif
                                              gs-w="{{ $widget->getDefaultWidth() }}"

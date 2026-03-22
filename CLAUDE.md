@@ -38,7 +38,6 @@ php flute generate:module # Generate module
 php flute routes:list # List routes
 php flute route:detail # Route details
 php flute cron:run # Run cron jobs
-php flute sass:install # Download dart-sass binary (optional, faster SCSS)
 ```
 
 ## Architecture

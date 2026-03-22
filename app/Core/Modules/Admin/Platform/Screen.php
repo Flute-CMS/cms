@@ -70,8 +70,12 @@ abstract class Screen extends FluteComponent implements ScreenInterface
         }
 
         $modalParams = $this->request->get('modalParams');
-        if ($modalParams !== null && $modalParams !== 'null') {
-            $this->modalParams = collect(is_string($modalParams) ? encrypt()->decrypt($modalParams) : $modalParams);
+        if ($modalParams !== null && $modalParams !== 'null' && is_string($modalParams)) {
+            try {
+                $this->modalParams = collect(encrypt()->decrypt($modalParams));
+            } catch (\Throwable $e) {
+                $this->modalParams = collect();
+            }
         } else {
             $this->modalParams = null;
         }

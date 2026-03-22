@@ -166,8 +166,9 @@ class PaymentsViewController extends BaseController
             }
         }
 
+        $lookupCount = 0;
         foreach ($payload as $value) {
-            $resolved = $this->extractTransactionIdFromAnyValue($value);
+            $resolved = $this->extractTransactionIdFromAnyValue($value, $lookupCount);
             if ($resolved !== '') {
                 return $resolved;
             }
@@ -178,12 +179,19 @@ class PaymentsViewController extends BaseController
 
     /**
      * Best-effort recursive extraction for unknown gateway payload shapes.
+     * Limited to 20 DB lookups to prevent DoS.
      */
-    private function extractTransactionIdFromAnyValue($value): string
+    private function extractTransactionIdFromAnyValue($value, int &$lookupCount = 0): string
     {
+        $maxLookups = 20;
+
+        if ($lookupCount >= $maxLookups) {
+            return '';
+        }
+
         if (is_array($value)) {
             foreach ($value as $nested) {
-                $resolved = $this->extractTransactionIdFromAnyValue($nested);
+                $resolved = $this->extractTransactionIdFromAnyValue($nested, $lookupCount);
                 if ($resolved !== '') {
                     return $resolved;
                 }
@@ -201,12 +209,20 @@ class PaymentsViewController extends BaseController
             return '';
         }
 
+        if (++$lookupCount > $maxLookups) {
+            return '';
+        }
+
         if (PaymentInvoice::findOne(['transactionId' => $text])) {
             return $text;
         }
 
         if (preg_match_all('/\d{8,}/', $text, $matches)) {
             foreach ($matches[0] as $digitsCandidate) {
+                if (++$lookupCount > $maxLookups) {
+                    return '';
+                }
+
                 if (PaymentInvoice::findOne(['transactionId' => $digitsCandidate])) {
                     return $digitsCandidate;
                 }

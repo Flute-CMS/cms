@@ -178,3 +178,18 @@ main.content {
         opacity: 0.08;
     }
 }
+
+.admin-particles {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.admin-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    will-change: transform, opacity;
+}

@@ -7,9 +7,9 @@
     <div class="sidebar-nav__header">
         <a class="sidebar-nav__logo" href="{{ url('/') }}" aria-label="{{ config('app.name') }} - Home">
             <img class="sidebar-nav__logo-img sidebar-nav__logo-img--dark" src="{{ asset(config('app.logo')) }}"
-                alt="{{ config('app.name') }}">
+                alt="{{ config('app.name') }}" decoding="async">
             <img class="sidebar-nav__logo-img sidebar-nav__logo-img--light"
-                src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ config('app.name') }}">
+                src="{{ asset(config('app.logo_light', config('app.logo'))) }}" alt="{{ config('app.name') }}" decoding="async">
             <span class="sidebar-nav__logo-text">{{ config('app.name') }}</span>
         </a>
         <button type="button" class="sidebar-nav__contained-collapse" id="sidebar-contained-collapse"

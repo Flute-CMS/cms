@@ -26,7 +26,6 @@ html.page-edit-active {
 }
 
 body.page-edit-mode {
-    margin-top: $pe-topbar-h;
     margin-left: 0;
     padding-bottom: $pe-dock-h + 24px;
 
@@ -1365,6 +1364,7 @@ body.page-edit-mode {
 .page-widgets {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
+    grid-auto-flow: row dense;
     gap: var(--widget-gap, 25px);
 
     >section>.container {

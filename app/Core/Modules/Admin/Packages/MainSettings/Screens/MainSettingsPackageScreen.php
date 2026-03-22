@@ -1978,6 +1978,17 @@ class MainSettingsPackageScreen extends Screen
                 )
                     ->label(__('admin-main-settings.labels.confirm_email'))
                     ->popover(__('admin-main-settings.popovers.confirm_email')),
+                LayoutFactory::field(
+                    ButtonGroup::make('social_supplement')
+                        ->options([
+                            '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
+                            '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.user-plus-bold'],
+                        ])
+                        ->value(config('auth.registration.social_supplement') ? '1' : '0')
+                        ->color('accent'),
+                )
+                    ->label(__('admin-main-settings.labels.social_supplement'))
+                    ->popover(__('admin-main-settings.popovers.social_supplement')),
             ]),
             LayoutFactory::split([
                 LayoutFactory::field(

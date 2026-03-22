@@ -9,6 +9,8 @@ use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
 use Flute\Core\Database\Entities\User;
+use Flute\Core\Services\BalanceHistoryMeta;
+use Flute\Core\Services\BalanceHistoryService;
 use Flute\Core\Modules\Payments\Events\AfterGatewayResponseEvent;
 use Flute\Core\Modules\Payments\Events\AfterPaymentCreatedEvent;
 use Flute\Core\Modules\Payments\Events\BeforeGatewayProcessingEvent;
@@ -277,7 +279,12 @@ class PaymentProcessor
             $totalAmount = $amount + $promoBonus + $gatewayBonus;
 
             if ($promo) {
-                $this->recordPromoUsage($promo, $user, $invoice);
+                $usage = new PromoCodeUsage();
+                $usage->promoCode = $promo;
+                $usage->invoice = $invoice;
+                $usage->user = $user;
+                $usage->used_at = new DateTimeImmutable();
+                transaction($usage)->run();
             }
 
             // topup within the same DB transaction
@@ -290,6 +297,27 @@ class PaymentProcessor
             transaction($balanceUser)->run();
 
             $database->commit();
+
+            try {
+                $meta = BalanceHistoryMeta::make()->invoiceId($invoice->id);
+                if ($promo) {
+                    $meta->promoCodeId($promo->id);
+                }
+                if ($promoBonus > 0 || $gatewayBonus > 0) {
+                    $meta->set('promo_bonus', $promoBonus)->set('gateway_bonus', $gatewayBonus);
+                }
+
+                app(BalanceHistoryService::class)->topup(
+                    $balanceUser,
+                    $totalAmount,
+                    $balanceUser->balance,
+                    'payment',
+                    $gateway ? $gateway->name : null,
+                    $meta,
+                );
+            } catch (Throwable $e) {
+                logs()->error('Balance history record failed: ' . $e->getMessage());
+            }
 
             // Notifications outside transaction
             if (function_exists('notify')) {

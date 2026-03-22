@@ -19,6 +19,6 @@ class SteamServiceProvider extends AbstractServiceProvider
 
     public function boot(\DI\Container $container): void
     {
-        $container->get(SteamService::class);
+        // Service is lazily instantiated on first use from the container
     }
 }

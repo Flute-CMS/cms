@@ -14,12 +14,12 @@
 <div class="user-card-content enhanced" style="--role-color: {{ $roleColor }}">
     <div class="user-card-header">
         <div class="user-card-banner">
-            <img src="{{ asset($user->banner ?? config('profile.default_banner')) }}" alt="{{ $user->name }}">
+            <img src="{{ asset($user->banner ?? config('profile.default_banner')) }}" alt="{{ $user->name }}" loading="lazy" decoding="async">
         </div>
 
         <a href="{{ url('profile/' . $user->getUrl()) }}" hx-boost="true" hx-target="#main"
            hx-swap="outerHTML transition:true" class="user-card-avatar" data-tooltip="{{ __('profile.view') }}">
-            <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}">
+            <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}" loading="lazy" decoding="async">
             <span class="uc-status-dot {{ $user->isOnline() ? 'online' : 'offline' }}"
                   aria-label="{{ $user->isOnline() ? __('def.online') : __('def.offline') }}"
                   data-tooltip="{{ $user->isOnline() ? __('def.online') : __('def.offline') }}"></span>
@@ -88,9 +88,9 @@
             @if (sizeof($unhiddenSocialNetworks) > 0)
                 <div class="uc-socials">
                     @foreach ($unhiddenSocialNetworks as $network)
-                        <a data-tooltip="{{ $network->socialNetwork->key }}" href="{{ $network->url }}"
+                        <a data-tooltip="{{ $network->socialNetwork?->key }}" href="{{ $network->url }}"
                            class="uc-social-link" target="_blank" rel="noopener">
-                            <x-icon path="{{ $network->socialNetwork->icon }}" />
+                            <x-icon path="{{ $network->socialNetwork?->icon }}" />
                         </a>
                     @endforeach
                 </div>

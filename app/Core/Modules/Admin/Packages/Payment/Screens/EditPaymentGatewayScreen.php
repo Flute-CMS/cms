@@ -6,7 +6,6 @@ use Exception;
 use Flute\Admin\Packages\Payment\Services\PaymentService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Fields\ButtonGroup;
-use Flute\Admin\Platform\Fields\CheckBox;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -108,7 +107,7 @@ class EditPaymentGatewayScreen extends Screen
         $availableDrivers = $this->getAvailableDrivers();
         $currencies = rep(Currency::class)->findAll();
 
-        if (!$this->isEditMode && empty($currencies)) {
+        if (empty($currencies)) {
             return [
                 LayoutFactory::alert(__('admin-payment.messages.no_currencies'))
                     ->type('warning')
@@ -123,18 +122,16 @@ class EditPaymentGatewayScreen extends Screen
             ];
         }
 
-        $currencyCheckboxes = [];
+        $currencyOptions = [];
+        $selectedCurrencies = [];
         foreach ($currencies as $currency) {
-            $isChecked = $this->gateway ? $currency->hasPayment($this->gateway) : false;
-            $currencyCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("currencies.{$currency->id}")
-                    ->label($currency->code)
-                    ->checked(filter_var(
-                        request()->input("currencies_{$currency->id}", $isChecked),
-                        FILTER_VALIDATE_BOOLEAN,
-                    )),
-            );
+            $currencyOptions[$currency->id] = $currency->code;
+            if ($this->gateway && $currency->hasPayment($this->gateway)) {
+                $selectedCurrencies[] = $currency->id;
+            }
         }
+
+        $selectedCurrencies = request()->input('currencies', $selectedCurrencies);
 
         return [
             LayoutFactory::columns([
@@ -208,50 +205,32 @@ class EditPaymentGatewayScreen extends Screen
                                     '0' => ['label' => __('def.off'), 'icon' => 'ph.bold.x-bold'],
                                     '1' => ['label' => __('def.on'), 'icon' => 'ph.bold.check-bold'],
                                 ])
-                                ->value($this->gateway->enabled ?? true ? '1' : '0')
+                                ->value($this->gateway?->enabled ?? true ? '1' : '0')
                                 ->color('accent'),
                         )
                             ->label(__('admin-payment.fields.enabled.label'))
                             ->popover(__('admin-payment.fields.enabled.help')),
                     ])->addClass('mb-2'),
 
-                    LayoutFactory::block($currencyCheckboxes)
-                        ->title(__('admin-payment.fields.currencies.title'))
-                        ->description(__('admin-payment.fields.currencies.description'))
-                        ->addClass('mb-4'),
-
                     LayoutFactory::block([
                         LayoutFactory::field(
-                            Input::make('method')
-                                ->type('text')
-                                ->value('POST')
-                                ->readonly(),
-                        )->label(__('admin-payment.fields.method.label')),
-                        LayoutFactory::field(
-                            Input::make('handle_url')
-                                ->type('text')
-                                ->value(url('api/lk/handle/' . $this->gateway->adapter))
-                                ->readonly(),
+                            Select::make('currencies')
+                                ->options($currencyOptions)
+                                ->value($selectedCurrencies)
+                                ->multiple()
+                                ->required(),
                         )
-                            ->label(__('admin-payment.fields.handle_url.label'))
-                            ->small(__('admin-payment.fields.handle_url.help')),
-                        LayoutFactory::field(
-                            Input::make('success_url')
-                                ->type('text')
-                                ->value(url('lk/success'))
-                                ->readonly(),
-                        )
-                            ->label(__('admin-payment.fields.success_url.label'))
-                            ->small(__('admin-payment.fields.success_url.help')),
-                        LayoutFactory::field(
-                            Input::make('fail_url')
-                                ->type('text')
-                                ->value(url('lk/fail'))
-                                ->readonly(),
-                        )
-                            ->label(__('admin-payment.fields.fail_url.label'))
-                            ->small(__('admin-payment.fields.fail_url.help')),
-                    ])->setVisible(!empty($this->gateway->adapter)),
+                            ->label(__('admin-payment.fields.currencies.title'))
+                            ->small(__('admin-payment.fields.currencies.description')),
+                    ])->addClass('mb-4'),
+
+                    LayoutFactory::block([
+                        LayoutFactory::view('admin-payment::edit.gateway-urls', [
+                            'handleUrl' => url('api/lk/handle/' . ($driverKey ?? '')),
+                            'successUrl' => url('lk/success'),
+                            'failUrl' => url('lk/fail'),
+                        ]),
+                    ])->setVisible(!empty($driverKey)),
                 ]),
 
                 LayoutFactory::block($this->getDriverFields($availableDrivers, $driverKey))->addClass('mb-3'),
@@ -264,14 +243,7 @@ class EditPaymentGatewayScreen extends Screen
         $data = request()->input();
         $files = request()->files;
 
-        $selectedCurrencies = [];
-        foreach ($data as $key => $value) {
-            if (str_starts_with($key, 'currencies_')) {
-                $currencyId = (int) substr($key, strlen('currencies_'));
-                $selectedCurrencies[] = $currencyId;
-            }
-        }
-        $data['currencies'] = $selectedCurrencies;
+        $data['currencies'] = array_map('intval', (array) ($data['currencies'] ?? []));
 
         if (!$this->validate($this->getValidationRules($data), $data)) {
             return;
@@ -332,6 +304,10 @@ class EditPaymentGatewayScreen extends Screen
                 }
 
                 $this->gateway->saveOrFail();
+
+                cache()->delete('flute.payment_gateways');
+                cache()->delete('flute.currencies');
+
                 $this->flashMessage(__('admin-payment.messages.gateway_updated'), 'success');
             } else {
                 if (!isset($data['driverKey']) || !$this->driverFactory->hasDriver($data['driverKey'])) {
@@ -386,6 +362,9 @@ class EditPaymentGatewayScreen extends Screen
 
                 $gateway->saveOrFail();
 
+                cache()->delete('flute.payment_gateways');
+                cache()->delete('flute.currencies');
+
                 $this->flashMessage(__('admin-payment.messages.gateway_added'), 'success');
                 $this->redirectTo('/admin/payment/gateways', 300);
             }
@@ -404,6 +383,10 @@ class EditPaymentGatewayScreen extends Screen
 
         try {
             $this->paymentService->deleteGateway($this->gateway);
+
+            cache()->delete('flute.payment_gateways');
+            cache()->delete('flute.currencies');
+
             $this->flashMessage(__('admin-payment.messages.gateway_deleted'), 'success');
             $this->redirectTo('/admin/payment/gateways', 300);
         } catch (Exception $e) {
@@ -417,21 +400,31 @@ class EditPaymentGatewayScreen extends Screen
             return LayoutFactory::view('admin-payment::edit.no_drivers');
         }
 
-        $fields = [
-            LayoutFactory::field(
+        $fields = [];
+
+        if ($this->isEditMode) {
+            $fields[] = LayoutFactory::field(
+                Input::make('driverKey_display')
+                    ->readonly()
+                    ->disableFromRequest()
+                    ->value($driverKey),
+            )
+                ->label(__('admin-payment.fields.payment_system.label'))
+                ->small(__('admin-payment.fields.payment_system.help'));
+        } else {
+            $fields[] = LayoutFactory::field(
                 Select::make('driverKey')
                     ->options($availableDrivers)
                     ->allowEmpty()
                     ->value($driverKey ?? null)
-                    ->disabled($this->isEditMode)
                     ->yoyo()
                     ->placeholder(__('admin-payment.fields.payment_system.placeholder'))
                     ->required(),
             )
                 ->label(__('admin-payment.fields.payment_system.label'))
                 ->required()
-                ->small(__('admin-payment.fields.payment_system.help')),
-        ];
+                ->small(__('admin-payment.fields.payment_system.help'));
+        }
 
         if ($driverKey && $this->driverFactory->hasDriver($driverKey)) {
             $driver = $this->driverFactory->make($driverKey);

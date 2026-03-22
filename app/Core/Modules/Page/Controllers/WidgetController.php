@@ -247,9 +247,7 @@ class WidgetController extends BaseController
             $widget = $this->widgetManager->getWidget($widgetName);
             $settings = $this->resolveWidgetSettings($widget, $fluteRequest);
 
-            $startTime = microtime(true);
-            $html = $widget->render($settings);
-            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+            $html = $this->renderWidgetCached($widget, $widgetName, $settings);
 
             return $this->json([
                 'html' => $html,
@@ -301,9 +299,7 @@ class WidgetController extends BaseController
                 $widget = $this->widgetManager->getWidget($widgetName);
                 $settings = $this->resolveWidgetSettings($widget, $widgetData['settings'] ?? null);
 
-                $startTime = microtime(true);
-                $html = $widget->render($settings);
-                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+                $html = $this->renderWidgetCached($widget, $widgetName, $settings);
 
                 $results[] = [
                     'html' => $html,
@@ -582,6 +578,29 @@ class WidgetController extends BaseController
             'error' => $firstError,
             'errors' => $errors->toArray(),
         ], 422);
+    }
+
+    private function renderWidgetCached(WidgetInterface $widget, string $widgetName, array $settings): ?string
+    {
+        $cacheTime = method_exists($widget, 'getCacheTime') ? $widget->getCacheTime() : 0;
+
+        if ($cacheTime > 0) {
+            $cacheKey = 'widget.html.' . $widgetName . '.' . md5(json_encode($settings));
+
+            return cache()->callback($cacheKey, static function () use ($widget, $widgetName, $settings) {
+                $startTime = microtime(true);
+                $html = $widget->render($settings);
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+                return $html;
+            }, $cacheTime);
+        }
+
+        $startTime = microtime(true);
+        $html = $widget->render($settings);
+        WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+        return $html;
     }
 
     private function resolveWidgetSettings(WidgetInterface $widget, $requestSettings): array

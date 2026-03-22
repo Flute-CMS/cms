@@ -50,7 +50,9 @@ class DatabaseService
             ->fetchOne();
 
         if (!$this->isValidMode($mode)) {
-            throw new Exception("Database mode '{$mode->dbname}' or server '{$mode->server->name}' does not exist.");
+            $name = $mode?->dbname ?? '(unknown)';
+            $server = $mode?->server?->name ?? '(unknown)';
+            throw new Exception("Database mode '{$name}' or server '{$server}' does not exist.");
         }
 
         return $mode;

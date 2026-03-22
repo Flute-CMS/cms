@@ -775,6 +775,9 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $iconFinder->registerIconDirectory('fa', storage_path('app/icons/fontawesome'));
         $iconFinder->registerIconDirectory('ph', storage_path('app/icons/phosphoricons'));
+        $iconFinder->registerIconDirectory('si', storage_path('app/icons/simpleicons'));
+        $iconFinder->registerIconDirectory('lu', storage_path('app/icons/lucide'));
+        $iconFinder->registerIconDirectory('tb', storage_path('app/icons/tabler'));
 
         events()->dispatch(new TemplateInitialized($this), TemplateInitialized::NAME);
 

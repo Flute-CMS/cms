@@ -16,10 +16,6 @@ use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
-use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 
 class RouterServiceProvider extends AbstractServiceProvider
 {
@@ -66,9 +62,6 @@ class RouterServiceProvider extends AbstractServiceProvider
 
                 return new RateLimiterFactory($config, $storage);
             }),
-
-            CsrfTokenManagerInterface::class => \DI\create(CsrfTokenManager::class)
-                ->constructor(\DI\get(UriSafeTokenGenerator::class), \DI\get(SessionTokenStorage::class)),
 
             Router::class => \DI\autowire(),
 

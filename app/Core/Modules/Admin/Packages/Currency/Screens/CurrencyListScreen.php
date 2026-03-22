@@ -227,6 +227,8 @@ class CurrencyListScreen extends Screen
         }
         $currency->save();
 
+        cache()->delete('flute.currencies');
+
         $this->flashMessage(__('admin-currency.messages.save_success'), 'success');
         $this->closeModal();
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
@@ -379,6 +381,8 @@ class CurrencyListScreen extends Screen
 
         $currency->save();
 
+        cache()->delete('flute.currencies');
+
         $this->flashMessage(__('admin-currency.messages.save_success'), 'success');
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
         $this->closeModal();
@@ -403,6 +407,9 @@ class CurrencyListScreen extends Screen
         $currency->save();
 
         $currency->delete();
+
+        cache()->delete('flute.currencies');
+
         $this->flashMessage(__('admin-currency.messages.delete_success'), 'success');
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
     }
@@ -422,6 +429,9 @@ class CurrencyListScreen extends Screen
             $currency->save();
             $currency->delete();
         }
+
+        cache()->delete('flute.currencies');
+
         $this->currencies = rep(Currency::class)->select()->orderBy('id', 'desc');
         $this->flashMessage(__('admin-currency.messages.delete_success'), 'success');
     }
