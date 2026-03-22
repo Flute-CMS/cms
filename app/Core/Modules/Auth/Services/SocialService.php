@@ -760,10 +760,7 @@ class SocialService implements SocialServiceInterface
 
             $curlProxy[CURLOPT_PROXY] = $proxyUrl;
 
-            $settings['curl_options'] = array_replace(
-                $settings['curl_options'] ?? [],
-                $curlProxy,
-            );
+            $settings['curl_options'] = array_replace($settings['curl_options'] ?? [], $curlProxy);
             unset($settings['proxy']);
         }
 

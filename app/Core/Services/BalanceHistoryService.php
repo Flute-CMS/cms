@@ -47,7 +47,15 @@ class BalanceHistoryService
         ?string $description = null,
         ?BalanceHistoryMeta $meta = null,
     ): BalanceHistory {
-        return $this->record($user, BalanceHistory::TYPE_PURCHASE, -abs($amount), $balanceAfter, $source, $description, $meta);
+        return $this->record(
+            $user,
+            BalanceHistory::TYPE_PURCHASE,
+            -abs($amount),
+            $balanceAfter,
+            $source,
+            $description,
+            $meta,
+        );
     }
 
     /**
@@ -61,7 +69,15 @@ class BalanceHistoryService
         ?string $description = null,
         ?BalanceHistoryMeta $meta = null,
     ): BalanceHistory {
-        return $this->record($user, BalanceHistory::TYPE_TOPUP, abs($amount), $balanceAfter, $source, $description, $meta);
+        return $this->record(
+            $user,
+            BalanceHistory::TYPE_TOPUP,
+            abs($amount),
+            $balanceAfter,
+            $source,
+            $description,
+            $meta,
+        );
     }
 
     /**
@@ -75,6 +91,14 @@ class BalanceHistoryService
         ?string $description = null,
         ?BalanceHistoryMeta $meta = null,
     ): BalanceHistory {
-        return $this->record($user, BalanceHistory::TYPE_REFUND, abs($amount), $balanceAfter, $source, $description, $meta);
+        return $this->record(
+            $user,
+            BalanceHistory::TYPE_REFUND,
+            abs($amount),
+            $balanceAfter,
+            $source,
+            $description,
+            $meta,
+        );
     }
 }

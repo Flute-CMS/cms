@@ -302,8 +302,13 @@ class UserService
      * @param BalanceHistoryMeta|null $meta Typed metadata for balance history.
      * @throws Throwable
      */
-    public function topup(float $sum, ?User $user = null, ?string $source = null, ?string $description = null, ?BalanceHistoryMeta $meta = null): void
-    {
+    public function topup(
+        float $sum,
+        ?User $user = null,
+        ?string $source = null,
+        ?string $description = null,
+        ?BalanceHistoryMeta $meta = null,
+    ): void {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
         }
@@ -331,7 +336,14 @@ class UserService
         }
 
         try {
-            app(BalanceHistoryService::class)->topup($balanceUser, $sum, $balanceUser->balance, $source ?? 'payment', $description, $meta);
+            app(BalanceHistoryService::class)->topup(
+                $balanceUser,
+                $sum,
+                $balanceUser->balance,
+                $source ?? 'payment',
+                $description,
+                $meta,
+            );
         } catch (\Throwable $e) {
             logs()->error('Balance history record failed: ' . $e->getMessage());
         }
@@ -362,8 +374,13 @@ class UserService
      * @throws BalanceNotEnoughException
      * @throws Throwable
      */
-    public function unbalance(float $sum, ?User $user = null, ?string $source = null, ?string $description = null, ?BalanceHistoryMeta $meta = null): void
-    {
+    public function unbalance(
+        float $sum,
+        ?User $user = null,
+        ?string $source = null,
+        ?string $description = null,
+        ?BalanceHistoryMeta $meta = null,
+    ): void {
         if ($sum <= 0) {
             throw new InvalidArgumentException('The sum must be a positive number.');
         }
@@ -401,7 +418,14 @@ class UserService
         }
 
         try {
-            app(BalanceHistoryService::class)->purchase($balanceUser, $sum, $balanceUser->balance, $source ?? 'system', $description, $meta);
+            app(BalanceHistoryService::class)->purchase(
+                $balanceUser,
+                $sum,
+                $balanceUser->balance,
+                $source ?? 'system',
+                $description,
+                $meta,
+            );
         } catch (\Throwable $e) {
             logs()->error('Balance history record failed: ' . $e->getMessage());
         }

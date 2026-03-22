@@ -196,7 +196,7 @@ class EditSocialScreen extends Screen
                                     ->required()
                                     ->type('icon')
                                     ->disableFromRequest()
-                                    ->value($this->driverIcons[$driverKey] ?? ($this->social?->icon ?: ''))
+                                    ->value($this->driverIcons[$driverKey] ?? ( $this->social?->icon ?: '' ))
                                     ->placeholder(__('admin-social.fields.icon.placeholder')),
                             )
                                 ->label(__('admin-social.fields.icon.label'))
@@ -228,7 +228,7 @@ class EditSocialScreen extends Screen
 
                         LayoutFactory::field(
                             Input::make('settings__proxy')
-                                ->value($this->social ? ($this->social->getSettings()['proxy'] ?? '') : '')
+                                ->value($this->social ? $this->social->getSettings()['proxy'] ?? '' : '')
                                 ->placeholder(__('admin-social.fields.proxy.placeholder')),
                         )
                             ->label(__('admin-social.fields.proxy.label'))

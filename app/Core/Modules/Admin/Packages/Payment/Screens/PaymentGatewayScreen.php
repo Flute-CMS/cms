@@ -315,18 +315,24 @@ class PaymentGatewayScreen extends Screen
         $todayStr = $today->format('Y-m-d H:i:s');
         $yesterdayStr = $yesterday->format('Y-m-d H:i:s');
 
-        $query = PaymentInvoice::query()
-            ->where('isPaid', true)
-            ->buildQuery();
+        $query = PaymentInvoice::query()->where('isPaid', true)->buildQuery();
 
         $query->columns([
             'gateway',
             new \Cycle\Database\Injection\Fragment('COUNT(*) as total_count'),
             new \Cycle\Database\Injection\Fragment('COALESCE(SUM(amount), 0) as total_revenue'),
-            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN paid_at >= '{$todayStr}' THEN 1 ELSE 0 END) as today_count"),
-            new \Cycle\Database\Injection\Fragment("COALESCE(SUM(CASE WHEN paid_at >= '{$todayStr}' THEN amount ELSE 0 END), 0) as today_revenue"),
-            new \Cycle\Database\Injection\Fragment("SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN 1 ELSE 0 END) as yesterday_count"),
-            new \Cycle\Database\Injection\Fragment("COALESCE(SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN amount ELSE 0 END), 0) as yesterday_revenue"),
+            new \Cycle\Database\Injection\Fragment(
+                "SUM(CASE WHEN paid_at >= '{$todayStr}' THEN 1 ELSE 0 END) as today_count",
+            ),
+            new \Cycle\Database\Injection\Fragment(
+                "COALESCE(SUM(CASE WHEN paid_at >= '{$todayStr}' THEN amount ELSE 0 END), 0) as today_revenue",
+            ),
+            new \Cycle\Database\Injection\Fragment(
+                "SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN 1 ELSE 0 END) as yesterday_count",
+            ),
+            new \Cycle\Database\Injection\Fragment(
+                "COALESCE(SUM(CASE WHEN paid_at >= '{$yesterdayStr}' AND paid_at < '{$todayStr}' THEN amount ELSE 0 END), 0) as yesterday_revenue",
+            ),
         ]);
         $query->groupBy('gateway');
         $rows = $query->fetchAll();

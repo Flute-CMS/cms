@@ -673,7 +673,9 @@ class PromoCodeScreen extends Screen
         $usagesTable = $prefix . 'promo_code_usages';
         $invoicesTable = $prefix . 'payment_invoices';
 
-        $rows = db()->query("SELECT u.promoCode_id,
+        $rows = db()
+            ->query(
+                "SELECT u.promoCode_id,
                 COUNT(*) as total_usage_count,
                 SUM(CASE WHEN i.is_paid = 1 THEN 1 ELSE 0 END) as paid_count,
                 COALESCE(SUM(CASE WHEN i.is_paid = 1 THEN i.amount ELSE 0 END), 0) as paid_amount,
@@ -683,14 +685,17 @@ class PromoCodeScreen extends Screen
                 COALESCE(SUM(CASE WHEN i.is_paid = 1 AND u.used_at >= ? AND u.used_at < ? THEN i.original_amount ELSE 0 END), 0) as yesterday_original_amount
             FROM {$usagesTable} u
             INNER JOIN {$invoicesTable} i ON i.id = u.invoice_id
-            GROUP BY u.promoCode_id", [
-            $todayStr,
-            $todayStr,
-            $yesterdayStr,
-            $todayStr,
-            $yesterdayStr,
-            $todayStr,
-        ])->fetchAll();
+            GROUP BY u.promoCode_id",
+                [
+                    $todayStr,
+                    $todayStr,
+                    $yesterdayStr,
+                    $todayStr,
+                    $yesterdayStr,
+                    $todayStr,
+                ],
+            )
+            ->fetchAll();
 
         // Build lookup by promo code ID
         $statsByCodeId = [];

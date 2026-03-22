@@ -856,13 +856,17 @@ class PageManager
         if ($cacheTime > 0) {
             $cacheKey = 'widget.html.' . $widgetName . '.' . md5(json_encode($settings));
 
-            return cache()->callback($cacheKey, function () use ($widget, $widgetName, $settings) {
-                $startTime = microtime(true);
-                $html = $widget->render($settings);
-                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+            return cache()->callback(
+                $cacheKey,
+                function () use ($widget, $widgetName, $settings) {
+                    $startTime = microtime(true);
+                    $html = $widget->render($settings);
+                    WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
-                return $html;
-            }, $cacheTime);
+                    return $html;
+                },
+                $cacheTime,
+            );
         }
 
         $startTime = microtime(true);
@@ -882,7 +886,7 @@ class PageManager
     {
         $gridstack = json_decode($block->gridstack, true) ?? [];
 
-        $col = ($gridstack['x'] ?? 0) + 1;
+        $col = ( $gridstack['x'] ?? 0 ) + 1;
         $colSpan = $gridstack['w'] ?? 1;
         $style = sprintf('grid-column: %d / span %d;', $col, $colSpan);
 

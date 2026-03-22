@@ -14373,6 +14373,12 @@ count = 1
 [[issues]]
 file = "app/Core/Modules/Icons/Icon.php"
 code = "unused-property"
+message = "Property `$emittedSymbols` is never used."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Icons/Icon.php"
+code = "unused-property"
 message = "Property `$renderCache` is never used."
 count = 1
 
@@ -16970,6 +16976,12 @@ count = 1
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
+code = "less-specific-argument"
+message = 'Argument type mismatch for argument #2 of `Flute\Core\Modules\Page\Services\PageManager::getblockgridstyle`: expected `array<int, int>`, but provided type `array<array-key, mixed>` is less specific.'
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "less-specific-nested-argument-type"
 message = "Argument type mismatch for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but provided type `array<array-key, mixed>` is less specific."
 count = 2
@@ -17092,7 +17104,7 @@ count = 2
 file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `json_decode`: expected `string`, but found `mixed`."
-count = 13
+count = 14
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
@@ -17192,15 +17204,27 @@ count = 2
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
+code = "mixed-array-index"
+message = "Invalid index type `nonnull` used for array access on `array<array-key, int(1)>`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Page/Services/PageManager.php"
+code = "mixed-array-index"
+message = "Invalid index type `nonnull` used for array access on `non-empty-array<int, int>`."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 58
+count = 61
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "mixed-assignment"
 message = "Assigning `nonnull` type to a variable may lead to unexpected behavior."
-count = 28
+count = 33
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
@@ -17248,7 +17272,7 @@ count = 1
 file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "mixed-operand"
 message = "Left operand in binary operation has type `mixed`."
-count = 4
+count = 5
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
@@ -17265,8 +17289,20 @@ count = 2
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"
 code = "mixed-operand"
+message = "Right operand in `<` comparison has `mixed` type."
+count = 1
+
+[[issues]]
+file = "app/Core/Modules/Page/Services/PageManager.php"
+code = "mixed-operand"
+message = "Right operand in `>` comparison has `mixed` type."
+count = 2
+
+[[issues]]
+file = "app/Core/Modules/Page/Services/PageManager.php"
+code = "mixed-operand"
 message = "Right operand in binary operation has type `mixed`."
-count = 3
+count = 4
 
 [[issues]]
 file = "app/Core/Modules/Page/Services/PageManager.php"

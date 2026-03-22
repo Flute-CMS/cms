@@ -587,13 +587,17 @@ class WidgetController extends BaseController
         if ($cacheTime > 0) {
             $cacheKey = 'widget.html.' . $widgetName . '.' . md5(json_encode($settings));
 
-            return cache()->callback($cacheKey, static function () use ($widget, $widgetName, $settings) {
-                $startTime = microtime(true);
-                $html = $widget->render($settings);
-                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+            return cache()->callback(
+                $cacheKey,
+                static function () use ($widget, $widgetName, $settings) {
+                    $startTime = microtime(true);
+                    $html = $widget->render($settings);
+                    WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
-                return $html;
-            }, $cacheTime);
+                    return $html;
+                },
+                $cacheTime,
+            );
         }
 
         $startTime = microtime(true);

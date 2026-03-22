@@ -226,7 +226,7 @@ class EditPaymentGatewayScreen extends Screen
 
                     LayoutFactory::block([
                         LayoutFactory::view('admin-payment::edit.gateway-urls', [
-                            'handleUrl' => url('api/lk/handle/' . ($driverKey ?? '')),
+                            'handleUrl' => url('api/lk/handle/' . ( $driverKey ?? '' )),
                             'successUrl' => url('lk/success'),
                             'failUrl' => url('lk/fail'),
                         ]),
@@ -243,7 +243,7 @@ class EditPaymentGatewayScreen extends Screen
         $data = request()->input();
         $files = request()->files;
 
-        $data['currencies'] = array_map('intval', (array) ($data['currencies'] ?? []));
+        $data['currencies'] = array_map('intval', (array) ( $data['currencies'] ?? [] ));
 
         if (!$this->validate($this->getValidationRules($data), $data)) {
             return;

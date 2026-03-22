@@ -16,7 +16,8 @@ final class BalanceHistoryMeta
      */
     private function __construct(
         private array $data = [],
-    ) {}
+    ) {
+    }
 
     public static function make(): self
     {

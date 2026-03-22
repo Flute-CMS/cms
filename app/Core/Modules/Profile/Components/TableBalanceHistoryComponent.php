@@ -21,8 +21,7 @@ class TableBalanceHistoryComponent extends Table
 
         $this->columns = $this->getColumns();
 
-        $query = BalanceHistory::query()
-            ->where('user_id', '=', (string) $this->user->id);
+        $query = BalanceHistory::query()->where('user_id', '=', (string) $this->user->id);
 
         $this->setSelect($query);
 
@@ -37,31 +36,34 @@ class TableBalanceHistoryComponent extends Table
                 'field' => 'type',
                 'allowSort' => true,
                 'searchable' => false,
-                'renderer' => static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.type-badge', [
-                    'type' => $row->type,
-                    'amount' => $row->amount,
-                ])->render(),
+                'renderer' =>
+                    static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.type-badge', [
+                        'type' => $row->type,
+                        'amount' => $row->amount,
+                    ])->render(),
             ],
             [
                 'label' => __('profile.edit.balance_history.table.description'),
                 'field' => 'description',
                 'allowSort' => false,
                 'searchable' => true,
-                'renderer' => static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.description-cell', [
-                    'description' => $row->description,
-                    'source' => $row->source,
-                ])->render(),
+                'renderer' =>
+                    static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.description-cell', [
+                        'description' => $row->description,
+                        'source' => $row->source,
+                    ])->render(),
             ],
             [
                 'label' => __('profile.edit.balance_history.table.amount'),
                 'field' => 'amount',
                 'allowSort' => true,
                 'searchable' => false,
-                'renderer' => static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.amount-cell', [
-                    'amount' => $row->amount,
-                    'balanceAfter' => $row->balanceAfter,
-                    'currency' => config('lk.currency_view'),
-                ])->render(),
+                'renderer' =>
+                    static fn(BalanceHistory $row) => view('flute::components.profile-tabs.edit.balance-history.amount-cell', [
+                        'amount' => $row->amount,
+                        'balanceAfter' => $row->balanceAfter,
+                        'currency' => config('lk.currency_view'),
+                    ])->render(),
             ],
             [
                 'label' => __('profile.edit.balance_history.table.date'),

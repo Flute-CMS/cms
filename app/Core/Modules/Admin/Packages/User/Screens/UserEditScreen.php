@@ -1097,31 +1097,54 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('balanceHistory', [
             TD::make('type', __('admin-users.table.type'))
-                ->render(static fn(BalanceHistory $row) => '<span class="badge ' . match ($row->type) {
-                    'topup' => 'success',
-                    'purchase' => 'error',
-                    'refund' => 'info',
-                    'admin' => $row->amount >= 0 ? 'success' : 'warning',
-                    default => '',
-                } . '">' . __('profile.edit.balance_history.types.' . $row->type) . '</span>')
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        '<span class="badge ' . match ($row->type) {
+                            'topup' => 'success',
+                            'purchase' => 'error',
+                            'refund' => 'info',
+                            'admin' => $row->amount >= 0 ? 'success' : 'warning',
+                            default => '',
+                        }
+                        . '">'
+                        . __('profile.edit.balance_history.types.' . $row->type)
+                        . '</span>'
+                    ),
+                )
                 ->width('120px'),
 
             TD::make('amount', __('admin-users.table.amount'))
-                ->render(static fn(BalanceHistory $row) => '<strong style="color:' . ($row->amount >= 0 ? 'var(--success)' : 'var(--error)') . '">'
-                    . ($row->amount >= 0 ? '+' : '') . number_format($row->amount, 2) . ' ' . config('lk.currency_view')
-                    . '</strong>')
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        '<strong style="color:'
+                        . ( $row->amount >= 0 ? 'var(--success)' : 'var(--error)' )
+                        . '">'
+                        . ( $row->amount >= 0 ? '+' : '' )
+                        . number_format($row->amount, 2)
+                        . ' '
+                        . config('lk.currency_view')
+                        . '</strong>'
+                    ),
+                )
                 ->width('130px'),
 
             TD::make('balanceAfter', __('admin-users.table.balance_after'))
-                ->render(static fn(BalanceHistory $row) => number_format($row->balanceAfter, 2) . ' ' . config('lk.currency_view'))
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        number_format($row->balanceAfter, 2)
+                        . ' '
+                        . config('lk.currency_view')
+                    ),
+                )
                 ->width('130px'),
 
             TD::make('source', __('admin-users.table.source'))
                 ->render(static fn(BalanceHistory $row) => $row->source ?? '-')
                 ->width('120px'),
 
-            TD::make('description', __('admin-users.table.description'))
-                ->render(static fn(BalanceHistory $row) => $row->description ?? '-'),
+            TD::make('description', __('admin-users.table.description'))->render(
+                static fn(BalanceHistory $row) => $row->description ?? '-',
+            ),
 
             TD::make('createdAt', __('admin-users.table.date'))
                 ->render(static function (BalanceHistory $row) {

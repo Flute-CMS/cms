@@ -39,7 +39,7 @@ class SocialSupplementController extends BaseController
         breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.supplement.header'));
 
         return view('flute::pages.social-supplement', [
-            'providerKey' => $social?->key ?? ($data['provider_key'] ?? ''),
+            'providerKey' => $social?->key ?? $data['provider_key'] ?? '',
             'providerIcon' => $social?->icon ?? '',
         ]);
     }
