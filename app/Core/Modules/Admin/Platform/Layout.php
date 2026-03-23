@@ -41,6 +41,38 @@ abstract class Layout implements LayoutInterface
      */
     abstract public function build(Repository $repository);
 
+    /**
+     * Returns skeleton descriptor for lazy-loaded tab placeholders.
+     * Each layout provides its type and metadata so a Blade template can render it.
+     *
+     * @return array{type: string, ...}
+     */
+    public function skeletonDescriptor(): array
+    {
+        return ['type' => 'generic'];
+    }
+
+    /**
+     * Collects skeleton descriptors from nested child layouts.
+     *
+     * @return array[]
+     */
+    protected function childrenSkeletonDescriptors(): array
+    {
+        $descriptors = [];
+
+        foreach ($this->layouts as $group) {
+            foreach (Arr::wrap($group) as $layout) {
+                $layout = is_object($layout) ? $layout : app()->get($layout);
+                if ($layout instanceof self && $layout->isVisible()) {
+                    $descriptors[] = $layout->skeletonDescriptor();
+                }
+            }
+        }
+
+        return $descriptors;
+    }
+
     public function jsonSerialize(): array
     {
         $props = collect(get_object_vars($this));

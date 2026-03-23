@@ -224,9 +224,7 @@ class NavigationListScreen extends Screen
         $data = request()->input();
 
         if (empty(transValue($data['title'] ?? ''))) {
-            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
-
-            return;
+            $data['title'] = '';
         }
 
         $validation = $this->validate([
@@ -436,9 +434,7 @@ class NavigationListScreen extends Screen
         }
 
         if (empty(transValue($data['title'] ?? ''))) {
-            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
-
-            return;
+            $data['title'] = '';
         }
 
         $validation = $this->validate([

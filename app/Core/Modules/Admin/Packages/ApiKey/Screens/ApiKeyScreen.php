@@ -254,12 +254,6 @@ class ApiKeyScreen extends Screen
             $data['permissions'] = [];
         }
 
-        if (empty($data['permissions'])) {
-            $this->flashMessage(__('admin-apikey.messages.no_permissions'), 'error');
-
-            return;
-        }
-
         $apiKey = ApiKey::findByPK($id);
         if (!$apiKey) {
             $this->flashMessage(__('admin-apikey.messages.key_not_found'), 'error');

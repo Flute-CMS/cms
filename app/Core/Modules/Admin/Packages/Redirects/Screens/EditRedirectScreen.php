@@ -129,21 +129,6 @@ class EditRedirectScreen extends Screen
     {
         $data = request()->input();
 
-        $fromUrl = $data['from_url'] ?? '';
-        $toUrl = $data['to_url'] ?? '';
-
-        if (empty($fromUrl)) {
-            $this->flashMessage(__('admin-redirects.messages.from_url_required'), 'error');
-
-            return;
-        }
-
-        if (empty($toUrl)) {
-            $this->flashMessage(__('admin-redirects.messages.to_url_required'), 'error');
-
-            return;
-        }
-
         $validation = $this->validate([
             'from_url' => ['required', 'string', 'max-str-len:255'],
             'to_url' => ['required', 'string', 'max-str-len:255'],
@@ -152,6 +137,9 @@ class EditRedirectScreen extends Screen
         if (!$validation) {
             return;
         }
+
+        $fromUrl = $data['from_url'] ?? '';
+        $toUrl = $data['to_url'] ?? '';
 
         if ($fromUrl === $toUrl) {
             $this->flashMessage(__('admin-redirects.messages.same_urls'), 'error');

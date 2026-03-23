@@ -46,6 +46,16 @@ abstract class Block extends Layout
         $this->layouts = $layouts;
     }
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'block',
+            'title' => $this->variables['title'] ?? null,
+            'description' => $this->variables['description'] ?? null,
+            'children' => $this->childrenSkeletonDescriptors(),
+        ];
+    }
+
     /**
      * @return mixed
      */

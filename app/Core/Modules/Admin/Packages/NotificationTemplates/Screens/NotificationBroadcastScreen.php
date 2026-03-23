@@ -157,11 +157,12 @@ class NotificationBroadcastScreen extends Screen
             $channels = ['inapp'];
         }
 
-        if (empty($title) || empty($content)) {
-            $this->flashMessage(__('validator.required', ['attribute' => __(
-                'admin-notifications.broadcast.notification_title',
-            )]), 'error');
+        $validation = $this->validate([
+            'title' => ['required', 'string'],
+            'content' => ['required', 'string'],
+        ], request()->input());
 
+        if (!$validation) {
             return;
         }
 

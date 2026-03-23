@@ -5,27 +5,167 @@
     }
 }
 
-// Area chart gradient enhancement for dashboard
-.apexcharts-area-series {
-    .apexcharts-area {
-        fill-opacity: 0.12 !important;
-    }
-}
+.dash-widget {
+    background: var(--background);
+    border: 1px solid var(--transp-1);
+    border-radius: 0.875rem;
+    overflow: hidden;
 
-// Donut chart center styling
-.apexcharts-pie {
-    .apexcharts-datalabels-group {
-        text {
-            &.apexcharts-datalabel-label {
-                font-size: 11px !important;
-                fill: var(--text-500) !important;
-            }
-            
-            &.apexcharts-datalabel-value {
-                font-size: 20px !important;
-                font-weight: 700 !important;
-                fill: var(--text) !important;
-            }
+    :root[data-theme=light] & {
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-500);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    &__header-icon {
+        font-size: 14px;
+        color: var(--text-500);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        text-decoration: none;
+        color: var(--text);
+        transition: background var(--transition) ease;
+        position: relative;
+
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            right: 16px;
+            height: 1px;
+            background: var(--transp-05);
+        }
+
+        &:hover {
+            background: var(--transp-05);
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        &:active {
+            background: var(--transp-1);
+        }
+    }
+
+    &__avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        background: var(--transp-05);
+    }
+
+    &__row-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1;
+    }
+
+    &__row-title {
+        font-size: 15px;
+        font-weight: 400;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    &__row-sub {
+        font-size: 13px;
+        color: var(--text-500);
+        line-height: 1.3;
+    }
+
+    &__chevron {
+        font-size: 12px;
+        color: var(--text-600);
+        flex-shrink: 0;
+    }
+
+    &__kv {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        position: relative;
+
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: var(--transp-05);
+        }
+    }
+
+    &__kv-label {
+        font-size: 15px;
+        color: var(--text);
+    }
+
+    &__kv-value {
+        font-size: 15px;
+        color: var(--text-500);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__kv-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 6px;
+        line-height: 1.4;
+
+        &--ok {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        &--warn {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+    }
+
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 40px 16px;
+        color: var(--text-600);
+        font-size: 14px;
+
+        .icon-container {
+            font-size: 28px;
+            opacity: 0.4;
         }
     }
 }

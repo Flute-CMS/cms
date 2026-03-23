@@ -78,8 +78,8 @@
         </noscript>
         <link rel="preload" href="@asset('grid')" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="@asset('grid')" type='text/css'></noscript>
-        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
-        <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')">
 
         <link rel="stylesheet" href="@asset('assets/css/libs/cropper.min.css')" media="print" onload="this.media='all'">
         {{-- SCSS assets --}}

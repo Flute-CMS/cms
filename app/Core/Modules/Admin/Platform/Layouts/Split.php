@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform\Layouts;
 
 use Flute\Admin\Platform\Layout;
 use Flute\Admin\Platform\Repository;
+use Illuminate\Support\Arr;
 use InvalidArgumentException;
 
 /**
@@ -38,6 +39,28 @@ abstract class Split extends Layout
     public function __construct(array $layouts = [])
     {
         $this->layouts = $layouts;
+    }
+
+    public function skeletonDescriptor(): array
+    {
+        $columns = [];
+
+        foreach ($this->layouts as $group) {
+            $col = [];
+            foreach (Arr::wrap($group) as $layout) {
+                $layout = is_object($layout) ? $layout : app()->get($layout);
+                if ($layout instanceof Layout && $layout->isVisible()) {
+                    $col[] = $layout->skeletonDescriptor();
+                }
+            }
+            $columns[] = $col;
+        }
+
+        return [
+            'type' => 'split',
+            'columnClass' => $this->variables['columnClass'] ?? ['col-md-6', 'col-md-6'],
+            'columns' => $columns,
+        ];
     }
 
     /**

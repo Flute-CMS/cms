@@ -655,6 +655,8 @@ class DashboardService
 
         $periodDescription = $this->getUserPeriodDescription();
 
+        $widgetData = $this->getDashboardWidgetData();
+
         return [
             'tab' => Tab::make(__('admin-dashboard.tabs.main'))
                 ->icon('ph.regular.users')
@@ -668,8 +670,38 @@ class DashboardService
                         ->description($periodDescription)
                         ->dataset($userRegistrationData['series'])
                         ->labels($userRegistrationData['labels']),
+                    LayoutFactory::view('admin-dashboard::components.dashboard-widgets', $widgetData),
                 ]),
             'vars' => $userMetrics,
+        ];
+    }
+
+    /**
+     * Get data for dashboard widget blocks
+     */
+    protected function getDashboardWidgetData(): array
+    {
+        $recentUsers = User::query()
+            ->where('isTemporary', false)
+            ->orderBy('createdAt', 'desc')
+            ->limit(5)
+            ->fetchAll();
+
+        $connections = config('database.connections', []);
+        $defaultConn = $connections['default'] ?? null;
+        $dbDriver = match (true) {
+            $defaultConn instanceof \Cycle\Database\Config\MySQLDriverConfig => 'MySQL',
+            $defaultConn instanceof \Cycle\Database\Config\PostgresDriverConfig => 'PostgreSQL',
+            $defaultConn instanceof \Cycle\Database\Config\SQLiteDriverConfig => 'SQLite',
+            $defaultConn instanceof \Cycle\Database\Config\SQLServerDriverConfig => 'SQL Server',
+            default => 'Unknown',
+        };
+        $cacheDriver = config('cache.default', 'file');
+
+        return [
+            'recentUsers' => $recentUsers,
+            'dbDriver' => $dbDriver,
+            'cacheDriver' => $cacheDriver,
         ];
     }
 

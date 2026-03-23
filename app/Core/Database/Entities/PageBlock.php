@@ -29,11 +29,11 @@ class PageBlock extends ActiveRecord
     #[Column(type: "string")]
     public string $widget;
 
-    #[Column(type: "json")]
-    public string $gridstack;
+    #[Column(type: "json", default: "{}")]
+    public string $gridstack = '{}';
 
-    #[Column(type: "json")]
-    public string $settings;
+    #[Column(type: "json", default: "{}")]
+    public string $settings = '{}';
 
     #[Column(type: "json", nullable: true)]
     public ?string $conditions = null;

@@ -78,6 +78,8 @@
     "details" => "Details",
     "preview" => "Preview",
     "select_file" => "Select file",
+    "drag_and_drop" => "Drag & Drop your files or",
+    "browse" => "Browse",
     "select_icon" => "Select icon",
     "choose" => "Choose",
     "upload_file" => "Upload file",

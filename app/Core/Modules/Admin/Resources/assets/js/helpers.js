@@ -51,6 +51,7 @@ function initializeFilePondElement(element) {
         let filePondOptions = {
             storeAsFile: true,
             credits: false,
+            labelIdle: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 256 256" fill="currentColor" class="filepond--icon-upload"><path d="M178.83,109.17a4,4,0,0,1-5.66,5.66L132,73.66V152a4,4,0,0,1-8,0V73.66L82.83,114.83a4,4,0,0,1-5.66-5.66l48-48a4,4,0,0,1,5.66,0ZM216,204H40a4,4,0,0,0,0,8H216a4,4,0,0,0,0-8Z"/></svg><span class="filepond--label-text">' + (typeof translate === 'function' ? translate('def.drag_and_drop') : 'Drag & Drop your files or') + ' <span class="filepond--label-action">' + (typeof translate === 'function' ? translate('def.browse') : 'Browse') + '</span></span>',
             onwarning: (error) => {
                 const errorElement = wrapper.querySelector('.has-error');
                 if (errorElement) {
@@ -246,6 +247,86 @@ document.addEventListener('DOMContentLoaded', function () {
 // FilePond re-initialization after HTMX swaps is handled by the central
 // htmx:afterSettle handler in tabs.js → reinitializeComponents → initFilePonds.
 
+// ── Abort stale boost navigations to #main ──────────────────────────────────
+// When the user clicks a new sidebar link before the previous page finishes
+// loading, cancel the in-flight request so only the latest one renders.
+(function () {
+    let pendingMainElt = null;
+
+    if (typeof htmx === 'undefined') return;
+
+    htmx.on('htmx:beforeRequest', function (event) {
+        const elt = event.detail.elt;
+        if (!elt) return;
+
+        const target = elt.getAttribute('hx-target') ||
+            (elt.closest('[hx-target]') ? elt.closest('[hx-target]').getAttribute('hx-target') : null);
+        if (target !== '#main') return;
+
+        // Abort the previous in-flight request to #main
+        if (pendingMainElt && pendingMainElt !== elt) {
+            htmx.trigger(pendingMainElt, 'htmx:abort');
+        }
+        pendingMainElt = elt;
+
+        const xhr = event.detail.xhr;
+        if (xhr) {
+            const origChange = xhr.onreadystatechange;
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) pendingMainElt = null;
+                if (origChange) origChange.apply(this, arguments);
+            };
+        }
+    });
+})();
+
+
+// ── Admin profile dropdown ───────────────────────────────────────────────
+(function () {
+    function initProfileDropdown() {
+        const toggle = document.querySelector('[data-admin-profile-toggle]');
+        const dropdown = document.querySelector('[data-admin-profile-dropdown]');
+        if (!toggle || !dropdown) return;
+
+        function open() {
+            dropdown.classList.add('is-open');
+            dropdown.setAttribute('aria-hidden', 'false');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function close() {
+            dropdown.classList.remove('is-open');
+            dropdown.setAttribute('aria-hidden', 'true');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.contains('is-open') ? close() : open();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && !toggle.contains(e.target)) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
+
+        // Close after navigation
+        dropdown.addEventListener('click', function (e) {
+            if (e.target.closest('a') || e.target.closest('button[type="submit"]')) {
+                setTimeout(close, 100);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProfileDropdown);
+    } else {
+        initProfileDropdown();
+    }
+})();
 
 let _enforcingLanguages = false;
 document.addEventListener('change', function (event) {

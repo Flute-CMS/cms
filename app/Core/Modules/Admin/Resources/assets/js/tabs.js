@@ -665,7 +665,11 @@ if (typeof htmx !== 'undefined') {
             target.classList.contains('tab-content') &&
             target.classList.contains('lazy-content')
         ) {
-            target.innerHTML = generateTabSkeleton();
+            // Keep the existing context-aware skeleton from the server if present,
+            // otherwise fall back to the generic skeleton
+            if (!target.querySelector('.tab-skeleton-content')) {
+                target.innerHTML = generateTabSkeleton();
+            }
         }
     });
 

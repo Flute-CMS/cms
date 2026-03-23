@@ -131,6 +131,14 @@ class Field extends Layout
         return $this;
     }
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'field',
+            'label' => !empty($this->attributes['label']),
+        ];
+    }
+
     /**
      * Builds the field layout.
      *

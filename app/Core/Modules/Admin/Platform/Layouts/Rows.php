@@ -49,6 +49,15 @@ abstract class Rows extends Layout
      */
     protected $query;
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'rows',
+            'fields' => count($this->fields()),
+            'title' => $this->title,
+        ];
+    }
+
     public function build(Repository $repository)
     {
         $this->query = $repository;

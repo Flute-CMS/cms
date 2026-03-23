@@ -73,6 +73,15 @@ abstract class Sortable extends Layout
 
     protected ?string $emptySub = null;
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'sortable',
+            'items' => 4,
+            'title' => $this->title,
+        ];
+    }
+
     /**
      * @return Factory|\Illuminate\View\View|null
      */

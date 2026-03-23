@@ -119,6 +119,17 @@ abstract class Table extends Layout
      */
     protected $dataCallback = null;
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'table',
+            'columns' => min(count($this->columns()), 6),
+            'rows' => 5,
+            'title' => $this->title,
+            'searchable' => $this->searchable,
+        ];
+    }
+
     /**
      * @return Factory|\Illuminate\View\View|void
      */

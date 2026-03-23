@@ -92,6 +92,12 @@ return [
         'daily_payments' => 'Daily Payments',
     ],
 
+    'widgets' => [
+        'recent_users' => 'Recent Registrations',
+        'no_recent_users' => 'No registered users yet',
+        'system_info' => 'System Info',
+    ],
+
     'tabs' => [
         'main' => 'Main Info',
         'activity' => 'Activity',

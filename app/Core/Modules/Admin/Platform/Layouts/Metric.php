@@ -31,6 +31,14 @@ class Metric extends Layout
      */
     protected $icons = [];
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'metric',
+            'count' => count($this->labels),
+        ];
+    }
+
     /**
      * Create a new Metric instance
      */

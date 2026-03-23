@@ -231,9 +231,7 @@ class FooterListScreen extends Screen
         $data = request()->input();
 
         if (empty(transValue($data['title'] ?? ''))) {
-            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
-
-            return;
+            $data['title'] = '';
         }
 
         $validation = $this->validate([
@@ -340,9 +338,7 @@ class FooterListScreen extends Screen
         }
 
         if (empty(transValue($data['title'] ?? ''))) {
-            $this->flashMessage(__('validator.required', ['attribute' => 'title']), 'error');
-
-            return;
+            $data['title'] = '';
         }
 
         $validation = $this->validate([

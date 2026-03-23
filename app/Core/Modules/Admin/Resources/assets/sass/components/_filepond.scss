@@ -14,37 +14,37 @@
     font-size: 14px !important;
     line-height: 1.5 !important;
     margin-bottom: 0 !important;
-    outline: 1.5px dashed var(--transp-2);
-    outline-offset: -1px;
+    border: 1.5px dashed var(--transp-3);
     border-radius: 12px;
     overflow: hidden;
-    transition: outline-color 0.15s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 
     :root[data-theme=light] & {
-        outline-color: rgba(0, 0, 0, 0.12);
+        border-color: rgba(0, 0, 0, 0.15);
     }
 
     &:hover {
-        outline-color: var(--transp-4);
+        border-color: var(--transp-5);
 
         :root[data-theme=light] & {
-            outline-color: rgba(0, 0, 0, 0.22);
+            border-color: rgba(0, 0, 0, 0.25);
         }
     }
 
     &.filepond--hopper-droppable {
-        outline-style: solid;
-        outline-color: var(--accent);
+        border-style: solid;
+        border-color: var(--accent);
+        background-color: color-mix(in srgb, var(--accent) 5%, transparent);
     }
 }
 
 .filepond--panel-root {
-    background-color: var(--transp-02) !important;
+    background-color: var(--transp-05) !important;
     border-radius: 0 !important;
     box-shadow: none !important;
 
     :root[data-theme=light] & {
-        background-color: transparent !important;
+        background-color: rgba(0, 0, 0, 0.02) !important;
     }
 }
 
@@ -61,17 +61,46 @@
 // ── Drop label ────────────────────────────────────────────────────────────────
 
 .filepond--drop-label {
-    min-height: 80px !important;
+    min-height: 100px !important;
     color: var(--text-500) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
     label {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 8px !important;
         font-size: 13px !important;
         font-weight: 400 !important;
         color: var(--text-500) !important;
         cursor: pointer !important;
-        padding: 0 1.25rem !important;
+        padding: 12px 1.25rem !important;
         line-height: 1.6 !important;
     }
+}
+
+// Upload icon inside the label
+.filepond--icon-upload {
+    color: var(--text-400);
+    opacity: 0.7;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+
+    .filepond--root:hover & {
+        opacity: 1;
+        color: var(--text-300);
+    }
+
+    .filepond--root.filepond--hopper-droppable & {
+        color: var(--accent);
+        opacity: 1;
+    }
+}
+
+.filepond--label-text {
+    text-align: center;
 }
 
 .filepond--label-action {
