@@ -854,7 +854,7 @@ class PageManager
         $cacheTime = method_exists($widget, 'getCacheTime') ? $widget->getCacheTime() : 0;
 
         if ($cacheTime > 0) {
-            $cacheKey = 'widget.html.' . $widgetName . '.' . md5(json_encode($settings));
+            $cacheKey = 'widget.html.' . $widgetName . '.' . app()->getLang() . '.' . md5(json_encode($settings));
 
             return cache()->callback(
                 $cacheKey,
