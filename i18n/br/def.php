@@ -276,6 +276,8 @@ return [
     'settings_updated' => 'Configurações atualizadas com sucesso!',
     'on' => 'Ligado',
     'off' => 'Desligado',
+    'enable' => 'Ativar',
+    'disable' => 'Desativar',
     'show' => 'Exibir',
     'role' => 'Função',
     'menu' => 'Menu',

@@ -283,6 +283,8 @@
     "done" => "Done",
     "on" => "On",
     "off" => "Off",
+    "enable" => "Enable",
+    "disable" => "Disable",
     "show" => "Show",
     "role" => "Role",
     "menu" => "Menu",

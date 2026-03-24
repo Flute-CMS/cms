@@ -276,6 +276,8 @@ return [
     'done' => 'Tayyor',
     'on' => 'Yoqilgan',
     'off' => 'Oʻchirilgan',
+    'enable' => 'Yoqish',
+    'disable' => 'O\'chirish',
     'show' => 'Koʻrsatish',
     'role' => 'Rol',
     'menu' => 'Menyu',

@@ -276,6 +276,8 @@ return [
     'done' => 'Klar',
     'on' => 'På',
     'off' => 'Av',
+    'enable' => 'Aktivera',
+    'disable' => 'Inaktivera',
     'show' => 'Visa',
     'role' => 'Roll',
     'menu' => 'Meny',

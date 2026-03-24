@@ -276,6 +276,8 @@ return [
     'done' => 'Concluído',
     'on' => 'Ativado',
     'off' => 'Desativado',
+    'enable' => 'Ativar',
+    'disable' => 'Desativar',
     'show' => 'Mostrar',
     'role' => 'Cargo',
     'menu' => 'Menu',

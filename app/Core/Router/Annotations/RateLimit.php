@@ -1,3 +1,7 @@
+<?php
+
+namespace Flute\Core\Router\Annotations;
+
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
@@ -12,7 +16,7 @@ class RateLimit
         string $by = 'ip',
         int $maxAttempts = 60,
         string|int $decaySeconds = 60,
-        ?string $policy = null
+        ?string $policy = null,
     ) {
         $this->by = $by;
         $this->maxAttempts = $maxAttempts;
@@ -20,9 +24,23 @@ class RateLimit
         $this->policy = $policy;
     }
 
-    // Getters
-    public function getBy(): string { return $this->by; }
-    public function getMaxAttempts(): int { return $this->maxAttempts; }
-    public function getDecaySeconds(): string|int { return $this->decaySeconds; }
-    public function getPolicy(): ?string { return $this->policy; }
+    public function getBy(): string
+    {
+        return $this->by;
+    }
+
+    public function getMaxAttempts(): int
+    {
+        return $this->maxAttempts;
+    }
+
+    public function getDecaySeconds(): string|int
+    {
+        return $this->decaySeconds;
+    }
+
+    public function getPolicy(): ?string
+    {
+        return $this->policy;
+    }
 }

@@ -276,6 +276,8 @@ return [
     'done' => 'Hotovo',
     'on' => 'Zapnuto',
     'off' => 'Vypnuto',
+    'enable' => 'Zapnout',
+    'disable' => 'Vypnout',
     'show' => 'Zobrazit',
     'role' => 'Role',
     'menu' => 'Menu',
