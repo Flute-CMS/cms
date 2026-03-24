@@ -55,24 +55,24 @@ function initializeA11yDialog(parentElement = document) {
                     ctr.style.transform = 'translateY(100%)';
                     if (ovl) ovl.style.opacity = '0';
 
-                    const onEnd = (e) => {
-                        if (e.target !== ctr || e.propertyName !== 'transform') return;
+                    let cleaned = false;
+                    const cleanup = () => {
+                        if (cleaned) return;
+                        cleaned = true;
                         ctr.removeEventListener('transitionend', onEnd);
+                        modalElement.classList.remove('is-open');
                         ctr.style.transform = '';
                         if (ovl) ovl.style.opacity = '';
-                        modalElement.classList.remove('is-open');
                         onModalHide(modalElement);
+                    };
+
+                    const onEnd = (e) => {
+                        if (e.target !== ctr || e.propertyName !== 'transform') return;
+                        cleanup();
                     };
                     ctr.addEventListener('transitionend', onEnd);
 
-                    setTimeout(() => {
-                        if (modalElement.classList.contains('is-open')) {
-                            ctr.style.transform = '';
-                            if (ovl) ovl.style.opacity = '';
-                            modalElement.classList.remove('is-open');
-                            onModalHide(modalElement);
-                        }
-                    }, 400);
+                    setTimeout(cleanup, 400);
                 } else {
                     modalElement.classList.remove('is-open');
                     onModalHide(modalElement);

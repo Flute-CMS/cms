@@ -43,3 +43,4 @@ tools/tiptap-build/node_modules/
 reference/
 mago-baseline
 storage/app/vapid_keys.json
+.superpowers
