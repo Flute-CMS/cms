@@ -85,13 +85,6 @@
                 height: 100%;
                 object-fit: cover;
             }
-
-            &::after {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(to bottom, transparent 30%, var(--card-bg) 100%);
-            }
         }
 
         &-body {
