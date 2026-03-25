@@ -287,25 +287,21 @@ class DatabaseConnection
         $entityLocator = new TokenizerEntityLocator($classLocator);
 
         $schemaGenerators = [
-            new Schema\Generator\ResetTables(), // Переконфигурировать схемы таблиц (удаляет столбцы при необходимости)
-            new Annotated\Embeddings($embeddingLocator), // Распознавание встраиваемых сущностей
-            new Annotated\Entities($entityLocator), // Идентификация аннотированных сущностей
-            new Annotated\TableInheritance(), // Настройка наследования таблиц
-            new Annotated\MergeColumns(), // Интеграция столбцов из атрибутов
-            new Schema\Generator\GenerateRelations(), // Определение отношений сущностей
-            new Schema\Generator\GenerateModifiers(), // Применение модификаторов схемы
-            new Schema\Generator\ValidateEntities(), // Проверка соответствия сущностей конвенциям
-            new Schema\Generator\RenderTables(), // Создание схем таблиц
-            new Schema\Generator\RenderRelations(), // Установка ключей и индексов для отношений
-            new Schema\Generator\RenderModifiers(), // Реализация модификаторов схемы
-            new Schema\Generator\ForeignKeys(), // Определение внешних ключей
-            new Annotated\MergeIndexes(), // Интеграция индексов из атрибутов
-            // new \Cycle\Schema\Generator\Migrations\GenerateMigrations(
-            //     $this->migrator->getRepository(),
-            //     $this->migrator->getConfig()
-            // ),
+            new Schema\Generator\ResetTables(),
+            new Annotated\Embeddings($embeddingLocator),
+            new Annotated\Entities($entityLocator),
+            new Annotated\TableInheritance(),
+            new Annotated\MergeColumns(),
+            new Schema\Generator\GenerateRelations(),
+            new Schema\Generator\GenerateModifiers(),
+            new Schema\Generator\ValidateEntities(),
+            new Schema\Generator\RenderTables(),
+            new Schema\Generator\RenderRelations(),
+            new Schema\Generator\RenderModifiers(),
+            new Schema\Generator\ForeignKeys(),
+            new Annotated\MergeIndexes(),
             new Schema\Generator\SyncTables(),
-            new Schema\Generator\GenerateTypecast(), // Типизация нестроковых столбцов
+            new Schema\Generator\GenerateTypecast(),
         ];
 
         $registry = new Registry($this->dbal);
@@ -313,7 +309,7 @@ class DatabaseConnection
         try {
             return ( new Compiler() )->compile($registry, $schemaGenerators);
         } catch (SyncException $e) {
-            logs('database')->warning('Schema sync failed, retrying without SyncTables: ' . $e->getMessage());
+            $this->logSyncError($e);
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
@@ -466,6 +462,125 @@ class DatabaseConnection
 
             $this->forceRefreshSchema($modules);
         });
+    }
+
+    /**
+     * Log a detailed SyncException with root cause analysis and DB version info.
+     */
+    protected function logSyncError(SyncException $e): void
+    {
+        $message = $e->getMessage();
+        $previous = $e->getPrevious();
+        $rootMessage = $previous ? $previous->getMessage() : $message;
+
+        $context = [
+            'exception' => get_class($e),
+            'message' => $message,
+        ];
+
+        if ($previous) {
+            $context['root_exception'] = get_class($previous);
+            $context['root_message'] = $rootMessage;
+        }
+
+        $diagnostic = $this->diagnoseSyncError($rootMessage);
+        if ($diagnostic !== null) {
+            $context['diagnostic'] = $diagnostic;
+        }
+
+        try {
+            $driver = $this->dbal->database()->getDriver();
+            $pdo = null;
+            if (method_exists($driver, 'getPDO')) {
+                $pdo = $driver->getPDO();
+            } elseif (method_exists($driver, 'getConnection')) {
+                $conn = $driver->getConnection();
+                if ($conn instanceof \PDO) {
+                    $pdo = $conn;
+                }
+            }
+
+            if ($pdo) {
+                $version = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
+                $context['db_version'] = $version;
+
+                $caps = DatabaseCapabilities::fromPdo($pdo);
+                $context['db_server'] = $caps->getServerLabel();
+                $context['db_clean_version'] = $caps->getCleanVersion();
+                $context['meets_minimum'] = $caps->meetsMinimumVersion();
+                $context['supports_datetime_defaults'] = $caps->supportsDatetimeDefaults();
+                $context['supports_json'] = $caps->supportsJsonType();
+            }
+        } catch (Throwable) {
+        }
+
+        $level = $diagnostic !== null ? 'error' : 'warning';
+        logs('database')->{$level}(
+            'Schema sync failed: '
+            . $message
+            . ( $diagnostic ? ' [Diagnostic: ' . $diagnostic . ']' : '' )
+            . ' — retrying without SyncTables',
+            $context,
+        );
+    }
+
+    /**
+     * Analyze a sync error message and return a human-readable diagnostic hint.
+     */
+    protected function diagnoseSyncError(string $message): ?string
+    {
+        $msg = strtolower($message);
+
+        if (str_contains($msg, '1067') && str_contains($msg, 'invalid default value')) {
+            if (preg_match('/[\'"]([a-z_]+)[\'"]/i', $message, $m)) {
+                $column = $m[1];
+            } else {
+                $column = '(unknown column)';
+            }
+
+            return sprintf(
+                'Column "%s" — DATETIME column cannot have DEFAULT CURRENT_TIMESTAMP. '
+                . 'This usually means MySQL < 5.6.5 or MariaDB < 10.0.1. '
+                . 'Upgrade your database server or check the sql_mode setting.',
+                $column,
+            );
+        }
+
+        if (str_contains($msg, '1071') && str_contains($msg, 'specified key was too long')) {
+            return (
+                'Index key too long — this is common with utf8mb4 on MySQL < 5.7.7. '
+                . 'Consider upgrading MySQL or using innodb_large_prefix=ON with ROW_FORMAT=DYNAMIC.'
+            );
+        }
+
+        if (str_contains($msg, 'syntax error') && str_contains($msg, 'json')) {
+            return (
+                'JSON column type not supported — requires MySQL 5.7.8+ or MariaDB 10.2.7+. '
+                . 'Upgrade your database server.'
+            );
+        }
+
+        if (str_contains($msg, '1452') && str_contains($msg, 'foreign key constraint fails')) {
+            return (
+                'Foreign key constraint violation during schema sync. '
+                . 'There may be orphaned rows in a table that prevent adding a foreign key. '
+                . 'Check data integrity or temporarily disable foreign_key_checks.'
+            );
+        }
+
+        if (str_contains($msg, 'type text/blob/json can not have non empty default value')) {
+            return (
+                'A TEXT/BLOB/JSON column has a non-empty default value. '
+                . 'MySQL does not allow DEFAULT on these types. '
+                . 'The column definition in the entity needs to be changed.'
+            );
+        }
+
+        if (str_contains($msg, '1146') || str_contains($msg, 'table') && str_contains($msg, 'doesn\'t exist')) {
+            return 'A referenced table does not exist. Run migrations first or check module dependencies.';
+        }
+
+        return null;
     }
 
     /**
@@ -636,13 +751,47 @@ class DatabaseConnection
             return false;
         }
 
+        $cachedFpFile =
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'schema_fp_cache.php';
+
+        if (is_file($cachedFpFile)) {
+            $cached = @include $cachedFpFile;
+            if (
+                is_array($cached)
+                && ( $cached['fingerprint'] ?? '' ) === $expectedFingerprint
+                && ( time() - ( $cached['time'] ?? 0 ) ) < 30
+            ) {
+                return true;
+            }
+        }
+
         try {
             $current = $this->computeEntitiesFingerprint($expectedDirs);
         } catch (Throwable) {
             return false;
         }
 
-        return hash_equals($expectedFingerprint, $current);
+        $valid = hash_equals($expectedFingerprint, $current);
+
+        if ($valid) {
+            $dir = dirname($cachedFpFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0o755, true);
+            }
+            @file_put_contents(
+                $cachedFpFile,
+                '<?php return ' . var_export(['fingerprint' => $expectedFingerprint, 'time' => time()], true) . ';',
+            );
+        }
+
+        return $valid;
     }
 
     /**
@@ -657,14 +806,15 @@ class DatabaseConnection
                 continue;
             }
 
-            if (!is_dir($dir)) {
+            $resolved = realpath($dir);
+            if ($resolved === false || !is_dir($resolved)) {
                 $parts[] = "missing:{$dir}";
 
                 continue;
             }
 
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
-                $dir,
+                $resolved,
                 FilesystemIterator::SKIP_DOTS,
             ));
 
@@ -673,7 +823,13 @@ class DatabaseConnection
                     continue;
                 }
 
-                $parts[] = $fileInfo->getPathname() . '|' . $fileInfo->getMTime() . '|' . $fileInfo->getSize();
+                $real = $fileInfo->getRealPath();
+                $parts[] =
+                    ( $real !== false ? $real : $fileInfo->getPathname() )
+                    . '|'
+                    . $fileInfo->getMTime()
+                    . '|'
+                    . $fileInfo->getSize();
             }
         }
 
@@ -786,7 +942,8 @@ class DatabaseConnection
                 continue;
             }
 
-            $unique[$dir] = true;
+            $real = realpath($dir);
+            $unique[$real !== false ? $real : $dir] = true;
         }
 
         $out = array_keys($unique);

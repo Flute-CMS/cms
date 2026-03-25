@@ -27,14 +27,8 @@ class NotificationServiceProvider extends AbstractServiceProvider
     public function boot(\DI\Container $container): void
     {
         if (is_installed()) {
-            $container->get(NotificationService::class);
-
-            /** @var NotificationTemplateService $templateService */
             $templateService = $container->get(NotificationTemplateService::class);
-
-            $coreProvider = new CoreNotificationProvider();
-            $templateService->registerProvider($coreProvider);
-            $templateService->registerFromProvider($coreProvider);
+            $templateService->registerProvider(new CoreNotificationProvider());
 
             $this->loadRoutesFrom(cms_path('Notifications/Routes/notifications.php'));
 

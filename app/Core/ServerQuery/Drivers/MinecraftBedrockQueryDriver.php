@@ -23,12 +23,16 @@ class MinecraftBedrockQueryDriver implements QueryDriverInterface
         $result = new QueryResult();
         $result->game = 'minecraft_bedrock';
 
-        $socket = @stream_socket_client("udp://{$ip}:{$port}", $errno, $errstr, $timeout);
+        $address = "udp://{$ip}:{$port}";
+        $socket = @stream_socket_client($address, $errno, $errstr, $timeout);
 
         if (!$socket) {
+            logs()->warning("MinecraftBedrockQuery: connect failed for {$address} (errno={$errno}: {$errstr})");
+
             return $result;
         }
 
+        stream_set_blocking($socket, true);
         stream_set_timeout($socket, $timeout);
 
         try {
@@ -43,6 +47,8 @@ class MinecraftBedrockQueryDriver implements QueryDriverInterface
             $response = @fread($socket, 4096);
 
             if ($response === false || strlen($response) < 35) {
+                logs()->debug("MinecraftBedrockQuery: no response from {$address}");
+
                 return $result;
             }
 

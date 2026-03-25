@@ -9,7 +9,7 @@ use Flute\Core\Support\FluteRequest;
 
 class BanCheckMiddleware extends BaseMiddleware
 {
-    protected const CACHE_TIME = 300;
+    protected const CACHE_TIME = 600;
 
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {

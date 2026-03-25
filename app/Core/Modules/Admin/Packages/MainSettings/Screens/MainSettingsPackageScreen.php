@@ -917,6 +917,7 @@ class MainSettingsPackageScreen extends Screen
                 reconnect: $reconnect,
                 timezone: 'Asia/Yekaterinburg',
                 queryCache: true,
+                readonlySchema: true,
             );
         } elseif ($driver === 'postgres') {
             $options = [];
@@ -938,6 +939,7 @@ class MainSettingsPackageScreen extends Screen
                 reconnect: $reconnect,
                 schema: 'public',
                 queryCache: true,
+                readonlySchema: true,
             );
         } else {
             $this->flashMessage(__('admin-main-settings.messages.unsupported_driver'), 'error');
@@ -1072,6 +1074,7 @@ class MainSettingsPackageScreen extends Screen
                 reconnect: $reconnect,
                 timezone: 'Asia/Yekaterinburg',
                 queryCache: true,
+                readonlySchema: true,
             );
         } elseif ($driver === 'postgres') {
             $options = [];
@@ -1093,6 +1096,7 @@ class MainSettingsPackageScreen extends Screen
                 reconnect: $reconnect,
                 schema: 'public',
                 queryCache: true,
+                readonlySchema: true,
             );
         } else {
             $this->flashMessage(__('admin-main-settings.messages.unsupported_driver'), 'error');

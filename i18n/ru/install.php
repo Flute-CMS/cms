@@ -66,6 +66,7 @@ return [
         'error_migration'          => 'Не удалось создать таблицы в базе данных',
         'error_sqlite_dir'         => 'Ошибка создания директории для SQLite',
         'error_driver_not_supported' => 'Выбранный драйвер базы данных не поддерживается',
+        'error_version_too_old' => ':server :current не поддерживается. Минимальная требуемая версия: :required',
     ],
 
     'account_site' => [

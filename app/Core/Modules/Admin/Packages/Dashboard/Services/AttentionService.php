@@ -30,6 +30,7 @@ class AttentionService
         $this->checkUpdates();
         $this->checkDebugMode();
         $this->checkCron();
+        $this->checkPerformanceSettings();
     }
 
     protected function checkUpdates(): void
@@ -88,6 +89,48 @@ class AttentionService
                 'type' => 'warning',
                 'icon' => 'ph.bold.clock-countdown-bold',
                 'url' => url('/admin/servers'),
+            ];
+        }
+    }
+
+    protected function checkPerformanceSettings(): void
+    {
+        if (config('app.development_mode')) {
+            return;
+        }
+
+        $issues = [];
+
+        if (!extension_loaded('Zend OPcache') || !filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)) {
+            $issues[] = 'opcache';
+        }
+
+        if (
+            extension_loaded('Zend OPcache')
+            && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)
+        ) {
+            if (filter_var(ini_get('opcache.validate_timestamps'), FILTER_VALIDATE_BOOLEAN)) {
+                $issues[] = 'opcache_validate';
+            }
+
+            $jitBuffer = (int) ini_get('opcache.jit_buffer_size');
+            if ($jitBuffer < 1) {
+                $issues[] = 'jit';
+            }
+        }
+
+        if (!config('app.is_performance')) {
+            $issues[] = 'performance_mode';
+        }
+
+        if (!empty($issues)) {
+            $this->items[] = [
+                'key' => 'performance',
+                'type' => 'info',
+                'icon' => 'ph.bold.lightning-bold',
+                'url' => url('/admin/about-system'),
+                'count' => count($issues),
+                'details' => $issues,
             ];
         }
     }

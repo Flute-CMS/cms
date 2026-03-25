@@ -108,6 +108,7 @@ return [
         'updates' => ':count update(s) available',
         'debug' => 'Debug mode is enabled',
         'cron' => 'Server auto-refresh is not running',
+        'performance' => ':count optimization(s) recommended',
     ],
 
     'checklist' => [

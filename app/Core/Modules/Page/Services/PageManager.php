@@ -90,17 +90,15 @@ class PageManager
             $routePath = $this->request->getPathInfo();
             $cacheKey = 'flute.page.route.' . md5($routePath);
 
-            $pageId = is_performance()
-                ? cache()->callback(
-                    $cacheKey,
-                    static function () use ($routePath) {
-                        $page = Page::findOne(['route' => $routePath]);
+            $pageId = cache()->callback(
+                $cacheKey,
+                static function () use ($routePath) {
+                    $page = Page::findOne(['route' => $routePath]);
 
-                        return $page ? $page->id : null;
-                    },
-                    self::PAGE_CACHE_TIME,
-                )
-                : null;
+                    return $page ? $page->id : null;
+                },
+                is_performance() ? self::PAGE_CACHE_TIME : 30,
+            );
 
             $this->currentPage = $pageId ? Page::findByPK($pageId) : Page::findOne(['route' => $routePath]);
 
@@ -299,13 +297,11 @@ class PageManager
             return $cached;
         }
         try {
-            $cached = is_performance()
-                ? cache()->callback(
-                    self::GLOBAL_LAYOUT_CACHE_KEY,
-                    fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
-                    self::GLOBAL_LAYOUT_CACHE_TIME,
-                )
-                : GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll();
+            $cached = cache()->callback(
+                self::GLOBAL_LAYOUT_CACHE_KEY,
+                fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
+                is_performance() ? self::GLOBAL_LAYOUT_CACHE_TIME : 30,
+            );
 
             return $cached;
         } catch (Throwable $e) {
@@ -433,10 +429,7 @@ class PageManager
             $block->saveOrFail();
         }
 
-        // Clear global layout cache
-        if (is_performance()) {
-            cache()->delete(self::GLOBAL_LAYOUT_CACHE_KEY);
-        }
+        cache()->delete(self::GLOBAL_LAYOUT_CACHE_KEY);
     }
 
     /**
@@ -981,49 +974,43 @@ class PageManager
             return;
         }
 
-        $pageRoutes = is_performance()
-            ? cache()->callback(
-                self::PAGES_CACHE_KEY,
-                static function () {
-                    $pages = Page::findAll();
+        $pageRoutes = cache()->callback(
+            self::PAGES_CACHE_KEY,
+            static function () {
+                $pages = Page::query()->load('permissions')->fetchAll();
 
-                    return array_map(static function ($page) {
-                        $perms = $page->permissions ?? [];
+                return array_map(static function ($page) {
+                    $perms = $page->permissions ?? [];
 
-                        if (is_object($perms) && method_exists($perms, 'toArray')) {
-                            $perms = $perms->toArray();
-                        } elseif (!is_array($perms)) {
-                            $perms = [];
+                    if (is_object($perms) && method_exists($perms, 'toArray')) {
+                        $perms = $perms->toArray();
+                    } elseif (!is_array($perms)) {
+                        $perms = [];
+                    }
+
+                    $permissions = array_map(static function ($p) {
+                        if (is_object($p)) {
+                            return $p->permission?->name ?? $p->name ?? null;
                         }
 
-                        $permissions = array_map(static function ($p) {
-                            if (is_object($p)) {
-                                return $p->permission?->name ?? $p->name ?? null;
-                            }
+                        if (is_array($p)) {
+                            return $p['permission']['name'] ?? $p['name'] ?? null;
+                        }
 
-                            if (is_array($p)) {
-                                return $p['permission']['name'] ?? $p['name'] ?? null;
-                            }
+                        return null;
+                    }, $perms);
 
-                            return null;
-                        }, $perms);
+                    return [
+                        'id' => $page->id,
+                        'route' => $page->route,
+                        'permissions' => array_filter($permissions),
+                    ];
+                }, $pages);
+            },
+            is_performance() ? self::PAGES_CACHE_TIME : 30,
+        );
 
-                        return [
-                            'id' => $page->id,
-                            'route' => $page->route,
-                            'permissions' => array_filter($permissions),
-                        ];
-                    }, $pages);
-                },
-                self::PAGES_CACHE_TIME,
-            )
-            : null;
-
-        if ($pageRoutes !== null) {
-            $this->registerPageRoutesFromCache($pageRoutes);
-        } else {
-            $this->registerPageRoutes(Page::findAll());
-        }
+        $this->registerPageRoutesFromCache($pageRoutes);
 
         self::$pagesLoaded = true;
     }

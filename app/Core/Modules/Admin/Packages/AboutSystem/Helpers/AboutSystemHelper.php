@@ -268,6 +268,23 @@ class AboutSystemHelper
             }
         }
 
+        if (
+            (extension_loaded('Zend OPcache') || extension_loaded('opcache'))
+            && filter_var(ini_get('opcache.validate_timestamps'), FILTER_VALIDATE_BOOLEAN)
+            && !config('app.development_mode')
+        ) {
+            $warnings['opcache_validate'] = 'opcache.validate_timestamps is enabled in production. Disable it and clear cache on deploy for better performance';
+        }
+
+        if (!config('app.is_performance') && !config('app.development_mode')) {
+            $warnings['performance_mode'] = 'Performance mode is disabled. Enable it in settings for DI container compilation and other optimizations';
+        }
+
+        $realpathCacheSize = (int) ini_get('realpath_cache_size');
+        if ($realpathCacheSize > 0 && $realpathCacheSize < 4096) {
+            $warnings['realpath_cache'] = 'realpath_cache_size is too low (' . ini_get('realpath_cache_size') . '). Set it to at least 4096K for better file resolution performance';
+        }
+
         return $warnings;
     }
 

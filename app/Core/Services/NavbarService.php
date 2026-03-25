@@ -155,7 +155,7 @@ class NavbarService
     protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
     {
         $allItems = NavbarItem::query()
-            ->load(['roles', 'parent', 'children', 'children.roles'])
+            ->load(['roles', 'parent'])
             ->orderBy('position', 'asc')
             ->fetchAll();
 
@@ -187,9 +187,8 @@ class NavbarService
         $tree = [];
 
         foreach ($byParent[$parentId] as $item) {
-            $formatted = $this->format->format($item);
-            $formatted['children'] = $this->buildSubtree($byParent, $item->id, $ignoreAuth);
-            $tree[] = $formatted;
+            $children = $this->buildSubtree($byParent, $item->id, $ignoreAuth);
+            $tree[] = $this->format->format($item, $children);
         }
 
         usort($tree, static fn($a, $b) => ( $a['position'] ?? 0 ) <=> ( $b['position'] ?? 0 ));

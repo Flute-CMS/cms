@@ -124,6 +124,12 @@ class User extends ActiveRecord
     #[Column(type: "datetime", nullable: true)]
     public ?\DateTimeImmutable $two_factor_confirmed_at = null;
 
+    /** @var array<string,true>|null Lazy-built index for O(1) hasRole() lookups */
+    private ?array $rolesIndex = null;
+
+    /** @var array<string,true>|null Lazy-built index for O(1) hasPermission() lookups */
+    private ?array $permissionsIndex = null;
+
     public function __construct()
     {
         $this->last_logged = new \DateTimeImmutable();
@@ -133,6 +139,8 @@ class User extends ActiveRecord
     {
         if (! in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
+            $this->rolesIndex = null;
+            $this->permissionsIndex = null;
         }
     }
 
@@ -142,21 +150,26 @@ class User extends ActiveRecord
             $this->roles,
             fn ($r) => $r !== $role
         );
+        $this->rolesIndex = null;
+        $this->permissionsIndex = null;
     }
 
     public function clearRoles() : void
     {
         $this->roles = [];
+        $this->rolesIndex = null;
+        $this->permissionsIndex = null;
     }
 
     public function hasRole(string $roleName) : bool
     {
-        foreach ($this->roles as $role) {
-            if ($role->name === $roleName) {
-                return true;
+        if ($this->rolesIndex === null) {
+            $this->rolesIndex = [];
+            foreach ($this->roles as $role) {
+                $this->rolesIndex[$role->name] = true;
             }
         }
-        return false;
+        return isset($this->rolesIndex[$roleName]);
     }
 
     public function setPassword(string $password) : void
@@ -174,14 +187,15 @@ class User extends ActiveRecord
 
     public function hasPermission(string $permissionName) : bool
     {
-        foreach ($this->roles as $role) {
-            foreach ($role->permissions as $permission) {
-                if ($permission->name === $permissionName) {
-                    return true;
+        if ($this->permissionsIndex === null) {
+            $this->permissionsIndex = [];
+            foreach ($this->roles as $role) {
+                foreach ($role->permissions as $permission) {
+                    $this->permissionsIndex[$permission->name] = true;
                 }
             }
         }
-        return false;
+        return isset($this->permissionsIndex[$permissionName]);
     }
 
     public function getPermissions()
@@ -264,8 +278,8 @@ class User extends ActiveRecord
 
     public function isBlocked() : bool
     {
+        $now = new \DateTimeImmutable();
         foreach ($this->blocksReceived as $block) {
-            $now = new \DateTimeImmutable();
             $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
@@ -279,12 +293,12 @@ class User extends ActiveRecord
 
     public function getBlockInfo() : ?array
     {
+        $now = new \DateTimeImmutable();
         foreach ($this->blocksReceived as $block) {
             if (! $block->isActive) {
                 continue;
             }
 
-            $now = new \DateTimeImmutable();
             $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {

@@ -37,6 +37,10 @@ abstract class AbstractCacheDriver implements CacheInterface
 
     protected LoggerInterface $logger;
 
+    protected array $memoryCache = [];
+
+    protected int $memoryCacheMaxSize = 512;
+
     public function __construct(array $config, LoggerInterface $logger)
     {
         $this->config = $config;
@@ -55,9 +59,20 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function get(string $key, $default = null)
     {
+        if (array_key_exists($key, $this->memoryCache)) {
+            return $this->memoryCache[$key];
+        }
+
         $item = $this->cache->getItem($key);
 
-        return $item->isHit() ? $item->get() : $default;
+        if ($item->isHit()) {
+            $value = $item->get();
+            $this->memoryCacheStore($key, $value);
+
+            return $value;
+        }
+
+        return $default;
     }
 
     /**
@@ -66,6 +81,8 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function set(string $key, $value, int $ttl = 0): bool
     {
+        $this->memoryCacheStore($key, $value);
+
         $item = $this->cache->getItem($key);
 
         $item->set($value);
@@ -105,6 +122,8 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function delete(string $key): bool
     {
+        unset($this->memoryCache[$key]);
+
         if ($this->staleCache) {
             try {
                 $item = $this->cache->getItem($key);
@@ -127,6 +146,8 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function deleteImmediately(string $key): bool
     {
+        unset($this->memoryCache[$key]);
+
         if ($this->staleCache) {
             try {
                 $this->staleCache->deleteItem($key);
@@ -142,6 +163,8 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function clear(): bool
     {
+        $this->memoryCache = [];
+
         SWRQueue::flush();
 
         if ($this->staleCache) {
@@ -164,6 +187,10 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function has(string $key): bool
     {
+        if (array_key_exists($key, $this->memoryCache)) {
+            return true;
+        }
+
         $item = $this->cache->getItem($key);
 
         return $item->isHit();
@@ -180,25 +207,32 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function callback(string $key, callable $callback, int $ttl = 0)
     {
-        $item = $this->cache->getItem($key);
-        if ($item->isHit()) {
-            return $item->get();
+        if (array_key_exists($key, $this->memoryCache)) {
+            return $this->memoryCache[$key];
         }
 
-        // SWR: if stale data exists and we're in production, serve stale
-        // and queue background revalidation after response is sent.
+        $item = $this->cache->getItem($key);
+        if ($item->isHit()) {
+            $value = $item->get();
+            $this->memoryCacheStore($key, $value);
+
+            return $value;
+        }
+
         if ($this->staleCache) {
             $staleItem = $this->staleCache->getItem($key);
             if ($staleItem->isHit() && function_exists('is_debug') && !is_debug()) {
+                $value = $staleItem->get();
+                $this->memoryCacheStore($key, $value);
+
                 SWRQueue::queue('cache.revalidate.' . md5($key), function () use ($key, $callback, $ttl): void {
                     $this->revalidate($key, $callback, $ttl);
                 });
 
-                return $staleItem->get();
+                return $value;
             }
         }
 
-        // Stampede protection: acquire lock before computing value.
         $lockDir = function_exists('path') ? path('storage/app/cache/locks') : 'storage/app/cache/locks';
         $lockFile = $lockDir . '/' . md5($key) . '.lock';
 
@@ -206,10 +240,12 @@ abstract class AbstractCacheDriver implements CacheInterface
 
         if ($lockHandle !== false) {
             try {
-                // Double-check after acquiring lock.
                 $item = $this->cache->getItem($key);
                 if ($item->isHit()) {
-                    return $item->get();
+                    $value = $item->get();
+                    $this->memoryCacheStore($key, $value);
+
+                    return $value;
                 }
 
                 $value = $callback();
@@ -221,6 +257,7 @@ abstract class AbstractCacheDriver implements CacheInterface
 
                 $this->cache->save($item);
                 $this->saveToStale($key, $value, $ttl);
+                $this->memoryCacheStore($key, $value);
 
                 return $value;
             } finally {
@@ -228,14 +265,21 @@ abstract class AbstractCacheDriver implements CacheInterface
             }
         }
 
-        // Lock not acquired — another process is computing. Check cache once more.
         $item = $this->cache->getItem($key);
         if ($item->isHit()) {
-            return $item->get();
+            $value = $item->get();
+            $this->memoryCacheStore($key, $value);
+
+            return $value;
         }
 
-        return $callback();
+        $value = $callback();
+        $this->memoryCacheStore($key, $value);
+
+        return $value;
     }
+
+    protected array $tagMemory = [];
 
     /**
      * Register a cache key under a tag for grouped invalidation.
@@ -244,6 +288,12 @@ abstract class AbstractCacheDriver implements CacheInterface
      */
     public function tagKey(string $tag, string $key): void
     {
+        $memKey = $tag . '|' . $key;
+        if (isset($this->tagMemory[$memKey])) {
+            return;
+        }
+        $this->tagMemory[$memKey] = true;
+
         $registryKey = '_tag_registry.' . $tag;
 
         $doRegister = function () use ($registryKey, $key): void {
@@ -253,7 +303,7 @@ abstract class AbstractCacheDriver implements CacheInterface
             if (!in_array($key, $keys, true)) {
                 $keys[] = $key;
                 $item->set($keys);
-                $item->expiresAfter(604800); // 7 days
+                $item->expiresAfter(604800);
                 $this->cache->save($item);
             }
         };
@@ -364,6 +414,14 @@ abstract class AbstractCacheDriver implements CacheInterface
             $this->staleCache->save($item);
         } catch (Throwable) {
         }
+    }
+
+    protected function memoryCacheStore(string $key, $value): void
+    {
+        if (count($this->memoryCache) >= $this->memoryCacheMaxSize) {
+            array_shift($this->memoryCache);
+        }
+        $this->memoryCache[$key] = $value;
     }
 
     protected function resolveStaleTtl(int $ttl): int

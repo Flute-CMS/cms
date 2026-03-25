@@ -680,9 +680,7 @@ class Router implements RouterInterface
      */
     public function registerAttributeRoutes(array $directories, string $namespace): int
     {
-        $loader = new AttributeRouteLoader($this);
-
-        return $loader->loadFromDirectories($directories, $namespace);
+        return $this->getAttributeRouteLoader()->loadFromDirectories($directories, $namespace);
     }
 
     /**
@@ -693,9 +691,14 @@ class Router implements RouterInterface
      */
     public function registerAttributeRoutesFromClass(string $controllerClass): int
     {
-        $loader = new AttributeRouteLoader($this);
+        return $this->getAttributeRouteLoader()->loadFromClass($controllerClass);
+    }
 
-        return $loader->loadFromClass($controllerClass);
+    private ?AttributeRouteLoader $attributeRouteLoader = null;
+
+    private function getAttributeRouteLoader(): AttributeRouteLoader
+    {
+        return $this->attributeRouteLoader ??= new AttributeRouteLoader($this);
     }
 
     /**

@@ -35,7 +35,7 @@ class ModuleRegister
             try {
                 $classPath = self::normalizeClassPath($provider['class']);
 
-                if (!class_exists(self::normalizeClassPath($classPath))) {
+                if (!class_exists($classPath)) {
                     logs('modules')->error("Module {$classPath} wasn't found in the FileSystem!");
 
                     continue;

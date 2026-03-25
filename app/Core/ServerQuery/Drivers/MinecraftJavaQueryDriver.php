@@ -20,9 +20,12 @@ class MinecraftJavaQueryDriver implements QueryDriverInterface
         $result = new QueryResult();
         $result->game = 'minecraft';
 
-        $socket = @stream_socket_client("tcp://{$ip}:{$port}", $errno, $errstr, $timeout);
+        $address = "tcp://{$ip}:{$port}";
+        $socket = @stream_socket_client($address, $errno, $errstr, $timeout);
 
         if (!$socket) {
+            logs()->warning("MinecraftJavaQuery: connect failed for {$address} (errno={$errno}: {$errstr})");
+
             return $result;
         }
 
@@ -40,12 +43,16 @@ class MinecraftJavaQueryDriver implements QueryDriverInterface
             $json = $this->readStatusResponse($socket);
 
             if ($json === null) {
+                logs()->debug("MinecraftJavaQuery: no response from {$address}");
+
                 return $result;
             }
 
             $data = json_decode($json, true);
 
             if (!is_array($data)) {
+                logs()->debug("MinecraftJavaQuery: invalid JSON from {$address}");
+
                 return $result;
             }
 

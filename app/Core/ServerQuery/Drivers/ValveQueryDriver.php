@@ -49,18 +49,26 @@ class ValveQueryDriver implements QueryDriverInterface
         $socket = @stream_socket_client($address, $errno, $errstr, $timeout);
 
         if (!$socket) {
+            logs()->warning("ValveQuery: socket connect failed for {$address} (errno={$errno}: {$errstr})");
+
             return $result;
         }
 
+        stream_set_blocking($socket, true);
         stream_set_timeout($socket, $timeout);
 
         try {
             $info = $this->queryInfo($socket);
+        } catch (\Throwable $e) {
+            logs()->warning("ValveQuery: A2S_INFO exception for {$address}: {$e->getMessage()}");
+            $info = null;
         } finally {
             fclose($socket);
         }
 
         if ($info === null) {
+            logs()->debug("ValveQuery: A2S_INFO returned null for {$address} (no response or parse failure)");
+
             return $result;
         }
 
@@ -69,7 +77,9 @@ class ValveQueryDriver implements QueryDriverInterface
         $result->map = $info['map'] ?? null;
         $result->players = $info['players'] ?? 0;
         $result->maxPlayers = $info['max_players'] ?? 0;
-        $result->game = $info['game_id'] ?? $info['folder'] ?? null;
+        $result->game = isset($info['app_id']) && $info['app_id'] > 0
+            ? (string) $info['app_id']
+            : $info['game_id'] ?? $info['folder'] ?? null;
         $result->version = $info['version'] ?? null;
         $result->additional = $info;
 
@@ -78,9 +88,12 @@ class ValveQueryDriver implements QueryDriverInterface
         $socket2 = @stream_socket_client($address, $errno, $errstr, $timeout);
 
         if (!$socket2) {
+            logs()->debug("ValveQuery: A2S_PLAYER socket connect failed for {$address}");
+
             return $result;
         }
 
+        stream_set_blocking($socket2, true);
         stream_set_timeout($socket2, $timeout);
 
         try {
@@ -104,6 +117,245 @@ class ValveQueryDriver implements QueryDriverInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Query multiple servers in parallel using non-blocking scatter-gather.
+     * Sends A2S_INFO and A2S_PLAYER simultaneously on 2N sockets for maximum speed.
+     *
+     * @param array<string, array{ip: string, port: int, settings?: array}> $servers keyed by server ID
+     * @return array<string, QueryResult> keyed by server ID
+     */
+    public function queryBatch(array $servers, int $timeout = 3): array
+    {
+        $results = [];
+        $ctx = stream_context_create(['socket' => ['bindto' => '0:0']]);
+        $infoSockets = [];
+        $playerSockets = [];
+
+        // Open 2 sockets per server and send both requests simultaneously
+        foreach ($servers as $id => $cfg) {
+            $results[$id] = new QueryResult();
+            $queryPort = !empty($cfg['settings']['query_port']) ? (int) $cfg['settings']['query_port'] : $cfg['port'];
+            $addr = "udp://{$cfg['ip']}:{$queryPort}";
+
+            // INFO socket
+            $s1 = @stream_socket_client($addr, $e1, $es1, $timeout, STREAM_CLIENT_CONNECT, $ctx);
+
+            if ($s1) {
+                stream_set_blocking($s1, false);
+                stream_set_read_buffer($s1, 0);
+                stream_set_write_buffer($s1, 0);
+                fwrite($s1, self::A2S_INFO_REQUEST);
+                $infoSockets[$id] = $s1;
+            }
+
+            // PLAYER socket (separate per GoldSrc requirement)
+            $s2 = @stream_socket_client($addr, $e2, $es2, $timeout, STREAM_CLIENT_CONNECT, $ctx);
+
+            if ($s2) {
+                stream_set_blocking($s2, false);
+                stream_set_read_buffer($s2, 0);
+                stream_set_write_buffer($s2, 0);
+                fwrite($s2, self::A2S_PLAYER_REQUEST . self::CHALLENGE_PLACEHOLDER);
+                $playerSockets[$id] = $s2;
+            }
+        }
+
+        // Gather ALL responses in parallel (INFO + PLAYER at the same time)
+        $infoData = [];
+        $playerData = [];
+
+        $this->gatherDual($infoSockets, $playerSockets, $timeout, $infoData, $playerData);
+
+        // Close all sockets
+        foreach ($infoSockets as $sock) {
+            @fclose($sock);
+        }
+
+        foreach ($playerSockets as $sock) {
+            @fclose($sock);
+        }
+
+        // Populate results from INFO
+        foreach ($infoData as $id => $info) {
+            if (!is_array($info)) {
+                continue;
+            }
+
+            $r = $results[$id];
+            $r->online = true;
+            $r->hostname = $info['hostname'] ?? null;
+            $r->map = $info['map'] ?? null;
+            $r->players = $info['players'] ?? 0;
+            $r->maxPlayers = $info['max_players'] ?? 0;
+            $r->game = isset($info['app_id']) && $info['app_id'] > 0
+                ? (string) $info['app_id']
+                : $info['game_id'] ?? $info['folder'] ?? null;
+            $r->version = $info['version'] ?? null;
+            $r->additional = $info;
+        }
+
+        // Apply PLAYER data
+        foreach ($playerData as $id => $players) {
+            if (!$results[$id]->online || !is_array($players) || empty($players)) {
+                continue;
+            }
+
+            $filtered = array_values(array_filter(
+                $players,
+                static fn($p) => !empty(trim($p['name'])) && isset($p['time']) && $p['time'] < 20000,
+            ));
+
+            $results[$id]->playersData = $filtered;
+
+            if (!empty($filtered)) {
+                $results[$id]->players = count($filtered);
+            }
+        }
+
+        // === FALLBACK: Steam Web API for servers that didn't respond via UDP ===
+        $failed = [];
+
+        foreach ($results as $id => $r) {
+            if (!$r->online) {
+                $failed[$id] = $servers[$id];
+            }
+        }
+
+        if (!empty($failed)) {
+            $apiKey = config('steam.api_key', '');
+
+            if (!empty($apiKey)) {
+                $fallbackResults = SteamWebApiFallback::queryBatch($failed, $apiKey);
+
+                foreach ($fallbackResults as $id => $r) {
+                    $results[$id] = $r;
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Gather INFO and PLAYER responses in a single stream_select loop.
+     * Handles challenge-response for both types inline.
+     */
+    private function gatherDual(
+        array $infoSockets,
+        array $playerSockets,
+        int $timeout,
+        array &$infoResults,
+        array &$playerResults,
+    ): void {
+        // Track state: pending initial response, or pending challenge retry
+        $infoPending = $infoSockets;
+        $infoChallenged = [];
+        $playerPending = $playerSockets;
+        $playerChallenged = [];
+
+        $deadline = microtime(true) + $timeout;
+
+        while (microtime(true) < $deadline) {
+            $allWaiting = $infoPending + $infoChallenged + $playerPending + $playerChallenged;
+
+            if (empty($allWaiting)) {
+                break;
+            }
+
+            $read = array_values($allWaiting);
+            $write = null;
+            $except = null;
+
+            $remainUs = (int) ( ( $deadline - microtime(true) ) * 1_000_000 );
+
+            if ($remainUs <= 0) {
+                break;
+            }
+
+            $ready = @stream_select($read, $write, $except, 0, min($remainUs, 50_000));
+
+            if ($ready === false || $ready === 0) {
+                continue;
+            }
+
+            foreach ($read as $socket) {
+                $data = @fread($socket, 4096);
+
+                if ($data === false || $data === '') {
+                    continue;
+                }
+
+                [$type, $payload] = $this->parsePacket($data);
+
+                // Check INFO sockets
+                $id = array_search($socket, $infoPending, true);
+
+                if ($id !== false) {
+                    if ($type === self::RESPONSE_CHALLENGE && strlen($payload) >= 4) {
+                        fwrite($socket, self::A2S_INFO_REQUEST . substr($payload, 0, 4));
+                        unset($infoPending[$id]);
+                        $infoChallenged[$id] = $socket;
+                    } else {
+                        $infoResults[$id] = $this->parseInfoByType($type, $payload);
+                        unset($infoPending[$id]);
+                    }
+
+                    continue;
+                }
+
+                $id = array_search($socket, $infoChallenged, true);
+
+                if ($id !== false) {
+                    $infoResults[$id] = $this->parseInfoByType($type, $payload);
+                    unset($infoChallenged[$id]);
+
+                    continue;
+                }
+
+                // Check PLAYER sockets
+                $id = array_search($socket, $playerPending, true);
+
+                if ($id !== false) {
+                    if ($type === self::RESPONSE_CHALLENGE && strlen($payload) >= 4) {
+                        fwrite($socket, self::A2S_PLAYER_REQUEST . substr($payload, 0, 4));
+                        unset($playerPending[$id]);
+                        $playerChallenged[$id] = $socket;
+                    } elseif ($type === self::RESPONSE_PLAYER) {
+                        $playerResults[$id] = $this->parsePlayerList($payload);
+                        unset($playerPending[$id]);
+                    } else {
+                        unset($playerPending[$id]);
+                    }
+
+                    continue;
+                }
+
+                $id = array_search($socket, $playerChallenged, true);
+
+                if ($id !== false) {
+                    if ($type === self::RESPONSE_PLAYER) {
+                        $playerResults[$id] = $this->parsePlayerList($payload);
+                    }
+
+                    unset($playerChallenged[$id]);
+                }
+            }
+        }
+    }
+
+    private function parseInfoByType(int $type, string $payload): ?array
+    {
+        if ($type === self::RESPONSE_INFO_SOURCE) {
+            return $this->parseSourceInfo($payload);
+        }
+
+        if ($type === self::RESPONSE_INFO_GOLDSRC) {
+            return $this->parseGoldSrcInfo($payload);
+        }
+
+        return null;
     }
 
     private function queryInfo($socket): ?array
@@ -356,7 +608,13 @@ class ValveQueryDriver implements QueryDriverInterface
 
     private function sendAndRead($socket, string $payload, int $maxSize = 4096): string
     {
-        fwrite($socket, $payload);
+        $written = @fwrite($socket, $payload);
+        if ($written === false || $written === 0) {
+            $peer = stream_socket_get_name($socket, true) ?: 'unknown';
+            logs()->debug("ValveQuery: fwrite failed for {$peer} (payload=" . strlen($payload) . ' bytes)');
+
+            return '';
+        }
 
         return $this->readResponse($socket, $maxSize);
     }
@@ -608,15 +866,34 @@ class ValveQueryDriver implements QueryDriverInterface
         $write = null;
         $except = null;
 
-        // stream_select: reliable timeout for UDP on Windows/Linux/Mac
         $ready = @stream_select($read, $write, $except, $this->readTimeout);
 
-        if ($ready === false || $ready === 0) {
+        if ($ready === false) {
+            $peer = stream_socket_get_name($socket, true) ?: 'unknown';
+            logs()->debug("ValveQuery: stream_select failed for {$peer}");
+
+            return '';
+        }
+
+        if ($ready === 0) {
+            $peer = stream_socket_get_name($socket, true) ?: 'unknown';
+            logs()->debug("ValveQuery: stream_select timeout ({$this->readTimeout}s) for {$peer}");
+
             return '';
         }
 
         $data = @fread($socket, $maxSize);
 
-        return $data === false || $data === '' ? '' : $data;
+        if ($data === false || $data === '') {
+            $peer = stream_socket_get_name($socket, true) ?: 'unknown';
+            $meta = stream_get_meta_data($socket);
+            $timedOut = $meta['timed_out'] ?? false;
+            $eof = $meta['eof'] ?? false;
+            logs()->debug("ValveQuery: fread empty for {$peer} (timed_out={$timedOut}, eof={$eof})");
+
+            return '';
+        }
+
+        return $data;
     }
 }

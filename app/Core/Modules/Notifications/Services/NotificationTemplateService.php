@@ -49,16 +49,14 @@ class NotificationTemplateService
 
         $cacheKey = self::CACHE_PREFIX . md5($key);
 
-        if (!is_development()) {
-            try {
-                $cached = cache()->get($cacheKey);
-                if ($cached instanceof NotificationTemplate) {
-                    $this->templateCache[$key] = $cached;
+        try {
+            $cached = cache()->get($cacheKey);
+            if ($cached instanceof NotificationTemplate) {
+                $this->templateCache[$key] = $cached;
 
-                    return $cached;
-                }
-            } catch (Throwable) {
+                return $cached;
             }
+        } catch (Throwable) {
         }
 
         $template = NotificationTemplate::findOne(['key' => $key]);
@@ -66,11 +64,9 @@ class NotificationTemplateService
         if ($template) {
             $this->templateCache[$key] = $template;
 
-            if (!is_development()) {
-                try {
-                    cache()->set($cacheKey, $template, self::CACHE_TTL);
-                } catch (Throwable) {
-                }
+            try {
+                cache()->set($cacheKey, $template, self::CACHE_TTL);
+            } catch (Throwable) {
             }
         }
 
@@ -273,25 +269,35 @@ class NotificationTemplateService
     }
 
     /**
+     * In-memory flag to track providers already synced during this request.
+     * @var array<string, true>
+     */
+    protected static array $syncedThisRequest = [];
+
+    /**
      * Register multiple templates from a provider.
      * Uses cache to avoid DB writes on every request.
      */
     public function registerFromProvider(NotificationTemplateProviderInterface $provider): void
     {
         $module = $provider->getModuleName();
-        $templates = $provider->getNotificationTemplates();
-
         $cacheKey = 'notification.provider.registered.' . md5($module);
 
-        if (!is_development()) {
-            try {
-                $registered = cache()->get($cacheKey);
-                if ($registered === true) {
-                    return;
-                }
-            } catch (Throwable) {
-            }
+        if (isset(self::$syncedThisRequest[$cacheKey])) {
+            return;
         }
+
+        try {
+            $registered = cache()->get($cacheKey);
+            if ($registered === true) {
+                self::$syncedThisRequest[$cacheKey] = true;
+
+                return;
+            }
+        } catch (Throwable) {
+        }
+
+        $templates = $provider->getNotificationTemplates();
 
         foreach ($templates as $templateData) {
             try {
@@ -299,17 +305,16 @@ class NotificationTemplateService
             } catch (Throwable $e) {
                 logs()->error("Failed to register template [{$templateData['key']}]: " . $e->getMessage());
 
-                return; // If table doesn't exist, stop trying
+                return;
             }
         }
 
-        // Mark provider as registered in cache
-        if (!is_development()) {
-            try {
-                cache()->set($cacheKey, true, 86400); // 24 hours
-            } catch (Throwable) {
-            }
+        try {
+            cache()->set($cacheKey, true, 86400);
+        } catch (Throwable) {
         }
+
+        self::$syncedThisRequest[$cacheKey] = true;
     }
 
     /**

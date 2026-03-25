@@ -170,6 +170,11 @@
         &--wide {
             margin-top: 0;
         }
+
+        &--warn {
+            border-color: var(--warning-light);
+            background: color-mix(in srgb, var(--warning) 3%, var(--background));
+        }
     }
 
     &__group-header {
@@ -213,6 +218,18 @@
             right: 16px;
             height: 1px;
             background: var(--transp-05);
+        }
+    }
+
+    &__kv--alert {
+        .about-sys__kv-label {
+            font-size: 13px;
+            color: var(--warning);
+            gap: 8px;
+
+            .icon-container {
+                font-size: 16px;
+            }
         }
     }
 

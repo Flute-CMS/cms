@@ -545,7 +545,7 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }
 
         try {
-            notification_templates()->registerFromProvider($provider);
+            notification_templates()->registerProvider($provider);
         } catch (Throwable $e) {
             logs('modules')->error(
                 'Failed to register notification templates for ' . $this->getModuleName() . ': ' . $e->getMessage(),

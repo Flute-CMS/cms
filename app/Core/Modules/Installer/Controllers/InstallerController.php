@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Installer\Controllers;
 
 use DateTimeZone;
 use Exception;
+use Flute\Core\Database\DatabaseCapabilities;
 use Flute\Core\Database\DatabaseConnection;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
@@ -302,6 +303,24 @@ class InstallerController extends BaseController
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
 
+            // Check database server version and capabilities
+            $dbWarnings = [];
+            if ($driver !== 'sqlite') {
+                $capabilities = DatabaseCapabilities::fromPdo($pdo, $driver);
+
+                if (!$capabilities->meetsMinimumVersion()) {
+                    $errorMessage = __('install.database.error_version_too_old', [
+                        'server' => $capabilities->getServerLabel(),
+                        'current' => $capabilities->getCleanVersion(),
+                        'required' => $capabilities->getMinimumVersion(),
+                    ]);
+
+                    return $this->renderDatabaseStep($request, false, $errorMessage);
+                }
+
+                $dbWarnings = $capabilities->getWarnings();
+            }
+
             // Try to select the database
             try {
                 $pdo = new PDO($dsn . "dbname={$database}", $username, $password, [
@@ -341,7 +360,7 @@ class InstallerController extends BaseController
             $isConnected = false;
         }
 
-        return $this->renderDatabaseStep($request, $isConnected, $errorMessage);
+        return $this->renderDatabaseStep($request, $isConnected, $errorMessage, $fieldErrors, $dbWarnings ?? []);
     }
 
     /**
@@ -1005,10 +1024,11 @@ class InstallerController extends BaseController
                     'user' => $username,
                     'password' => $password,
                     'options' => [
-                        8 => 0,
-                        3 => 2,
-                        1002 => 'SET NAMES utf8mb4',
-                        17 => false,
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_CASE => PDO::CASE_NATURAL,
+                        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
+                        PDO::ATTR_PERSISTENT => true,
+                        PDO::ATTR_TIMEOUT => 5,
                     ],
                     'port' => (int) $port,
                     'database' => $database,
@@ -1128,6 +1148,7 @@ class InstallerController extends BaseController
         bool $isConnected,
         ?string $errorMessage,
         array $fieldErrors = [],
+        array $dbWarnings = [],
     ): mixed {
         return $this->renderStep(2, [
             'driver' => $request->input('driver', 'mysql'),
@@ -1140,6 +1161,7 @@ class InstallerController extends BaseController
             'isConnected' => $isConnected,
             'errorMessage' => $errorMessage,
             'fieldErrors' => $fieldErrors,
+            'dbWarnings' => $dbWarnings,
         ]);
     }
 

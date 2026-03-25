@@ -62,6 +62,9 @@ return [
         'performance' => [
             'title' => 'Performance',
         ],
+        'optimization' => [
+            'title' => 'Optimization Recommendations',
+        ],
     ],
     'support' => [
         'github_sponsors' => 'Become a Sponsor',

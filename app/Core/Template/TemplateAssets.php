@@ -879,12 +879,11 @@ class TemplateAssets
             }
         }
 
-        $needsRecompile = $cssMtime === 0 || $latestSourceMtime >= $cssMtime || $this->debugMode;
+        $needsRecompile = $cssMtime === 0 || $latestSourceMtime >= $cssMtime;
 
         if ($needsRecompile) {
             $lockFile = $cssFullPath . '.lock';
 
-            // In debug mode we want immediate recompilation for accurate feedback.
             if ($this->debugMode) {
                 $this->withFileLock($lockFile, function () use ($scssPath, $cssFullPath): void {
                     $this->compileScssToCacheFile($scssPath, $cssFullPath);
@@ -913,7 +912,7 @@ class TemplateAssets
             }
         }
 
-        if (!$needsRecompile && isset($this->compilationCache[$cacheKey]) && !$this->debugMode) {
+        if (!$needsRecompile && isset($this->compilationCache[$cacheKey])) {
             return $this->compilationCache[$cacheKey];
         }
 
@@ -921,7 +920,7 @@ class TemplateAssets
         $servedVersion = $cssMtime;
 
         // If the fresh cache file doesn't exist yet, try serving the stale cache while it revalidates.
-        if ($cssMtime === 0 && $cssStaleMtime > 0 && !$this->debugMode) {
+        if ($cssMtime === 0 && $cssStaleMtime > 0) {
             $servedPath = $cssStalePath;
             $servedVersion = $cssStaleMtime;
         }
@@ -937,7 +936,7 @@ class TemplateAssets
         $url = url($servedPath) . "?v={$servedVersion}";
         $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
 
-        if (!$this->debugMode && !$needsRecompile && $servedPath === $cssPath) {
+        if (!$needsRecompile) {
             $this->compilationCache[$cacheKey] = $result;
         }
 
@@ -1000,13 +999,10 @@ class TemplateAssets
             $this->compilationCache[$depsCacheKey] = $paths;
         }
 
-        // In performance mode, cache the max mtime for 60s to avoid stat-ing 48+ files per request
-        if (is_performance() && !$this->debugMode) {
-            $mtimeCacheKey = 'scss_mtime_' . md5($scssPath);
-            $cached = cache()->get($mtimeCacheKey);
-            if ($cached !== null) {
-                return (int) $cached;
-            }
+        $mtimeCacheKey = 'scss_mtime_' . md5($scssPath);
+        $cached = cache()->get($mtimeCacheKey);
+        if ($cached !== null) {
+            return (int) $cached;
         }
 
         $maxMtime = 0;
@@ -1018,9 +1014,8 @@ class TemplateAssets
             }
         }
 
-        if (is_performance() && !$this->debugMode) {
-            cache()->set($mtimeCacheKey, $maxMtime, 60);
-        }
+        $cacheTtl = $this->debugMode ? 5 : 60;
+        cache()->set($mtimeCacheKey, $maxMtime, $cacheTtl);
 
         return $maxMtime;
     }

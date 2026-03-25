@@ -26,12 +26,16 @@ class FiveMQueryDriver implements QueryDriverInterface
         $dynamicJson = $this->httpGet("{$baseUrl}/dynamic.json", $timeout);
 
         if ($dynamicJson === null) {
+            logs()->debug("FiveMQuery: no response from {$baseUrl}/dynamic.json");
+
             return $result;
         }
 
         $dynamic = json_decode($dynamicJson, true);
 
         if (!is_array($dynamic)) {
+            logs()->debug("FiveMQuery: invalid JSON from {$baseUrl}/dynamic.json");
+
             return $result;
         }
 

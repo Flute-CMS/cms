@@ -134,9 +134,26 @@ class ConfigurationService
         $compiledPath = $this->getCompiledConfigPath();
 
         if ($compiledPath !== null && file_exists($compiledPath)) {
-            $compiled = require $compiledPath;
-            if (is_array($compiled)) {
-                return $compiled;
+            $compiledMtime = filemtime($compiledPath);
+            $stale = false;
+
+            foreach (glob($this->configsPath . DIRECTORY_SEPARATOR . '*.php') ?: [] as $f) {
+                if (filemtime($f) > $compiledMtime) {
+                    $stale = true;
+                    break;
+                }
+            }
+
+            if (!$stale) {
+                $compiled = require $compiledPath;
+                if (is_array($compiled)) {
+                    return $compiled;
+                }
+            }
+
+            @unlink($compiledPath);
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($compiledPath, true);
             }
         }
 
@@ -167,14 +184,6 @@ class ConfigurationService
     {
         if (!defined('BASE_PATH')) {
             return null;
-        }
-
-        $appConfig = $this->configsPath . DIRECTORY_SEPARATOR . 'app.php';
-        if (file_exists($appConfig)) {
-            $cfg = @include $appConfig;
-            if (is_array($cfg) && !empty($cfg['debug'])) {
-                return null;
-            }
         }
 
         return (

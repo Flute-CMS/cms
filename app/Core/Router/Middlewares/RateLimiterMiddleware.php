@@ -16,6 +16,9 @@ class RateLimiterMiddleware extends BaseMiddleware
 
     protected ?\Symfony\Contracts\Cache\CacheInterface $cache;
 
+    /** @var array<string, RateLimiterFactory> Per-process cache of route-level factory instances */
+    private static array $factoryCache = [];
+
     public function __construct(
         RateLimiterFactory $rateLimiterFactory,
         ?\Symfony\Contracts\Cache\CacheInterface $cache = null,
@@ -81,11 +84,20 @@ class RateLimiterMiddleware extends BaseMiddleware
                 $opts['interval'] = $interval ?: $config['interval'] ?? '1 minute';
             }
 
-            $storage = $this->cache
-                ? new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache)
-                : throw new RuntimeException('RateLimiter: cache storage is required in production');
+            $factoryCacheKey = md5(serialize($opts));
 
-            $factory = new \Symfony\Component\RateLimiter\RateLimiterFactory($opts, $storage);
+            if (!isset(self::$factoryCache[$factoryCacheKey])) {
+                $storage = $this->cache
+                    ? new \Symfony\Component\RateLimiter\Storage\CacheStorage($this->cache)
+                    : throw new RuntimeException('RateLimiter: cache storage is required in production');
+
+                self::$factoryCache[$factoryCacheKey] = new \Symfony\Component\RateLimiter\RateLimiterFactory(
+                    $opts,
+                    $storage,
+                );
+            }
+
+            $factory = self::$factoryCache[$factoryCacheKey];
         } else {
             $factory = $this->rateLimiterFactory;
         }

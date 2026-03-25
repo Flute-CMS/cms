@@ -62,6 +62,9 @@ return [
         'performance' => [
             'title' => 'Производительность',
         ],
+        'optimization' => [
+            'title' => 'Рекомендации по оптимизации',
+        ],
     ],
     'support' => [
         'github_sponsors' => 'Стать спонсором',

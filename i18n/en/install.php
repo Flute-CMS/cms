@@ -66,6 +66,7 @@ return [
         'error_migration'          => 'Failed to create database tables',
         'error_sqlite_dir'         => 'Failed to create directory for SQLite',
         'error_driver_not_supported' => 'The selected database driver is not supported',
+        'error_version_too_old' => ':server :current is not supported. Minimum required version: :required',
     ],
 
     'account_site' => [

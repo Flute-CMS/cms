@@ -23,12 +23,16 @@ class SampQueryDriver implements QueryDriverInterface
         $result = new QueryResult();
         $result->game = 'samp';
 
-        $socket = @stream_socket_client("udp://{$ip}:{$port}", $errno, $errstr, $timeout);
+        $address = "udp://{$ip}:{$port}";
+        $socket = @stream_socket_client($address, $errno, $errstr, $timeout);
 
         if (!$socket) {
+            logs()->warning("SampQuery: connect failed for {$address} (errno={$errno}: {$errstr})");
+
             return $result;
         }
 
+        stream_set_blocking($socket, true);
         stream_set_timeout($socket, $timeout);
 
         try {
@@ -39,6 +43,8 @@ class SampQueryDriver implements QueryDriverInterface
             $response = @fread($socket, 4096);
 
             if ($response === false || strlen($response) < 11) {
+                logs()->debug("SampQuery: no response from {$address}");
+
                 return $result;
             }
 

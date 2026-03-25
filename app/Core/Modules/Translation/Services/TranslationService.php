@@ -96,23 +96,15 @@ class TranslationService
             app()->setLang($defaultLocale);
         }
 
-        // Enable on-disk translation caching only when performance mode is requested
-        // and the required Symfony Config classes are available. Missing the
-        // symfony/config package causes Translator to throw a fatal error when
-        // attempting to create the config cache factory, so detect that and
-        // silently fall back to non-cached mode.
-        $requestedCacheDir = is_performance() ? path('storage/app/translations') : null;
-        $debug = is_debug();
+        $requestedCacheDir = path('storage/app/translations');
+        $debug = is_debug() || is_development();
 
         $cacheDir = $requestedCacheDir;
-        if ($requestedCacheDir) {
-            if (
-                !class_exists('Symfony\\Component\\Config\\ConfigCacheFactory')
-                && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')
-            ) {
-                logs()->warning('Symfony Config component is missing; disabling translation catalogue cache.');
-                $cacheDir = null;
-            }
+        if (
+            !class_exists('Symfony\\Component\\Config\\ConfigCacheFactory')
+            && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')
+        ) {
+            $cacheDir = null;
         }
 
         $this->translator = new Translator($defaultLocale, null, $cacheDir, $debug);
@@ -127,9 +119,6 @@ class TranslationService
         $this->listenEvents($eventDispatcher);
 
         register_shutdown_function(function () {
-            if (!is_performance()) {
-                return;
-            }
             foreach ($this->latestDiscoveredFilesByLocale as $locale => $paths) {
                 $cacheKey = 'translation.compiled.sources.' . $locale;
                 $existing = (array) cache()->get($cacheKey, []);
@@ -139,7 +128,7 @@ class TranslationService
         });
 
         $this->_importTranslationsForLocale($this->translator, $defaultLocale);
-        if (is_performance() && $this->primaryFallback && $this->primaryFallback !== $defaultLocale) {
+        if ($this->performance && $this->primaryFallback && $this->primaryFallback !== $defaultLocale) {
             $this->_importTranslationsForLocale($this->translator, $this->primaryFallback);
         }
 
@@ -275,9 +264,6 @@ class TranslationService
      */
     public function flushLocaleCache(string $locale): void
     {
-        if (!is_performance()) {
-            return;
-        }
         $cacheDir = path('storage/app/translations');
         foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
             @unlink($cachedFile);

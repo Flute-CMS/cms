@@ -502,9 +502,7 @@ final class App
             'app' => \DI\get(self::class),
         ]);
 
-        // Enable container optimizations outside CLI
-        if (!( php_sapi_name() === 'cli' || defined('STDIN') )) {
-            // In performance mode compile container, always write proxies to disk
+        if (!(php_sapi_name() === 'cli' || defined('STDIN'))) {
             if (function_exists('is_performance') && is_performance()) {
                 $containerBuilder->enableCompilation(
                     BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',

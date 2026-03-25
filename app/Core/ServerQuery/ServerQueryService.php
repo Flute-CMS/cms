@@ -100,6 +100,67 @@ class ServerQueryService
     }
 
     /**
+     * Query multiple servers in parallel, grouping by driver type.
+     * Valve servers use non-blocking scatter-gather; others fall back to sequential.
+     *
+     * @param Server[] $servers
+     * @return array<int, QueryResult> keyed by server ID
+     */
+    public function queryBatch(array $servers, ?int $timeout = null): array
+    {
+        $timeout ??= self::DEFAULT_TIMEOUT;
+        $results = [];
+
+        // Group by driver class
+        $groups = [];
+
+        foreach ($servers as $server) {
+            $driverClass =
+                $this->driverMap[$server->mod] ?? self::MOD_DRIVER_MAP[$server->mod] ?? ValveQueryDriver::class;
+            $groups[$driverClass][] = $server;
+        }
+
+        // Valve servers: batch query
+        if (isset($groups[ValveQueryDriver::class])) {
+            $driver = $this->resolveDriver('730'); // ValveQueryDriver
+            $batchInput = [];
+
+            foreach ($groups[ValveQueryDriver::class] as $server) {
+                $settings = method_exists($server, 'getSettings') ? $server->getSettings() : [];
+                $batchInput[$server->id] = [
+                    'ip' => $server->ip,
+                    'port' => (int) $server->port,
+                    'settings' => $settings,
+                ];
+            }
+
+            $batchResults = $driver->queryBatch($batchInput, $timeout);
+
+            foreach ($batchResults as $id => $result) {
+                $results[$id] = $result;
+            }
+
+            unset($groups[ValveQueryDriver::class]);
+        }
+
+        // Other drivers: sequential (HTTP/TCP, typically fast)
+        foreach ($groups as $driverClass => $groupServers) {
+            foreach ($groupServers as $server) {
+                $settings = method_exists($server, 'getSettings') ? $server->getSettings() : [];
+                $driver = $this->resolveDriver($server->mod);
+
+                if ($driver) {
+                    $results[$server->id] = $driver->query($server->ip, (int) $server->port, $timeout, $settings);
+                } else {
+                    $results[$server->id] = new QueryResult();
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Register a custom driver for a game mod identifier.
      * Allows modules to extend the service with new game support.
      */

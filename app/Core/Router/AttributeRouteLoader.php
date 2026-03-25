@@ -57,15 +57,12 @@ class AttributeRouteLoader
     {
         $routeCount = 0;
         $cacheKey = 'route_loader_' . md5(implode('|', $directories) . '_' . $namespace);
-        if (!is_debug()) {
-            $classNames = cache()->callback(
-                $cacheKey,
-                fn() => $this->scanDirectoriesForControllers($directories, $namespace),
-                86400,
-            );
-        } else {
-            $classNames = $this->scanDirectoriesForControllers($directories, $namespace);
-        }
+        $ttl = is_debug() ? 30 : 86400;
+        $classNames = cache()->callback(
+            $cacheKey,
+            fn() => $this->scanDirectoriesForControllers($directories, $namespace),
+            $ttl,
+        );
 
         foreach ($classNames as $className) {
             $routeCount += $this->loadFromClass($className);

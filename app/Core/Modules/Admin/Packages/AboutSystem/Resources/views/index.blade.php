@@ -138,7 +138,7 @@
                     <span>{{ __('admin-about-system.sections.php_info.title') }}</span>
                 </div>
                 <div class="about-sys__group-body">
-                    @foreach (['version', 'memory_limit', 'max_execution_time', 'upload_max_filesize', 'post_max_size', 'opcache'] as $key)
+                    @foreach (['version', 'memory_limit', 'max_execution_time', 'upload_max_filesize', 'post_max_size', 'opcache', 'jit'] as $key)
                         @if (isset($phpInfo[$key]))
                             @php
                                 $hasWarning = isset($phpWarnings[$key]);
@@ -165,6 +165,33 @@
             </div>
         </div>
     </div>
+
+    {{-- Optimization recommendations --}}
+    @php
+        $optimizationWarnings = array_filter($phpWarnings, fn($k) => in_array($k, ['opcache', 'opcache_validate', 'jit', 'performance_mode', 'realpath_cache'], true), ARRAY_FILTER_USE_KEY);
+    @endphp
+    @if (!empty($optimizationWarnings))
+        <div class="row gx-3 gy-3 mt-0">
+            <div class="col-12">
+                <div class="about-sys__group about-sys__group--warn">
+                    <div class="about-sys__group-header">
+                        <x-icon path="ph.bold.lightning-bold" />
+                        <span>{{ __('admin-about-system.sections.optimization.title') }}</span>
+                    </div>
+                    <div class="about-sys__group-body">
+                        @foreach ($optimizationWarnings as $key => $message)
+                            <div class="about-sys__kv about-sys__kv--alert">
+                                <span class="about-sys__kv-label">
+                                    <x-icon path="ph.bold.warning-bold" />
+                                    {{ $message }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Server + Health --}}
     <div class="row gx-3 gy-3 mt-0">
