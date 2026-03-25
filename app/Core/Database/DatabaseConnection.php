@@ -253,7 +253,21 @@ class DatabaseConnection
             $classLocator = $this->getClassLocator();
 
             try {
-                $schemaArray = $this->compileSchema($classLocator);
+                // Suppress warnings from Cycle ORM schema introspection (e.g. VIEWs
+                // returning columns without the expected 'Field' key).
+                $prevHandler = set_error_handler(static function (int $errno, string $errstr, string $errfile) use (&$prevHandler) {
+                    if ($errno === E_WARNING && str_contains($errfile, 'cycle' . DIRECTORY_SEPARATOR . 'database')) {
+                        return true;
+                    }
+
+                    return $prevHandler ? $prevHandler(...func_get_args()) : false;
+                });
+
+                try {
+                    $schemaArray = $this->compileSchema($classLocator);
+                } finally {
+                    restore_error_handler();
+                }
             } catch (Throwable $compileError) {
                 logs('database')->error('Schema compilation failed: ' . $compileError->getMessage());
 

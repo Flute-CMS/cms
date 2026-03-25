@@ -69,6 +69,17 @@ class ValveQueryDriver implements QueryDriverInterface
         if ($info === null) {
             logs()->debug("ValveQuery: A2S_INFO returned null for {$address} (no response or parse failure)");
 
+            // UDP failed — try Steam Web API fallback (HTTP)
+            $apiKey = config('app.steam_api', '');
+
+            if (!empty($apiKey)) {
+                $fallback = SteamWebApiFallback::query($ip, $queryPort, $apiKey);
+
+                if ($fallback !== null) {
+                    return $fallback;
+                }
+            }
+
             return $result;
         }
 
@@ -224,7 +235,7 @@ class ValveQueryDriver implements QueryDriverInterface
         }
 
         if (!empty($failed)) {
-            $apiKey = config('steam.api_key', '');
+            $apiKey = config('app.steam_api', '');
 
             if (!empty($apiKey)) {
                 $fallbackResults = SteamWebApiFallback::queryBatch($failed, $apiKey);
