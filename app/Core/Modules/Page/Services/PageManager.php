@@ -838,9 +838,6 @@ class PageManager
         return $content;
     }
 
-    /**
-     * Render a widget with optional HTML caching based on widget's getCacheTime().
-     */
     protected function renderWidgetCached(string $widgetName, array $settings): ?string
     {
         $widget = $this->widgetManager->getWidget($widgetName);

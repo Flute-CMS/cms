@@ -429,21 +429,24 @@ class ModuleManager
 
     protected function setCurrentStatusModules(): void
     {
-        $columnsDb = array_column($this->modulesDatabase, 'key');
+        $dbByKey = [];
+        foreach ($this->modulesDatabase as $row) {
+            $dbByKey[$row['key']] = $row;
+        }
 
         foreach ($this->modules as $module) {
             $moduleResult = $this->modules->get($module->key);
-            $search = array_search($module->key, $columnsDb);
 
-            if ($search === false || $this->modulesDatabase[$search]['key'] !== $module->key) {
+            if (!isset($dbByKey[$module->key])) {
                 $this->createModuleInDatabase($module);
             } else {
-                $moduleResult->createdAt = $this->modulesDatabase[$search]['createdAt'];
-                $moduleResult->status = $this->modulesDatabase[$search]['status'];
-                $moduleResult->installedVersion = $this->modulesDatabase[$search]['installedVersion'];
+                $row = $dbByKey[$module->key];
+                $moduleResult->createdAt = $row['createdAt'];
+                $moduleResult->status = $row['status'];
+                $moduleResult->installedVersion = $row['installedVersion'];
             }
 
-            $this->createModuleInCollection($module->key, $moduleResult);
+            $this->modules->put($module->key, $moduleResult);
         }
     }
 

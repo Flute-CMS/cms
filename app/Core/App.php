@@ -350,8 +350,18 @@ final class App
         /** @var RouterInterface $router */
         $router = $this->get(RouterInterface::class);
 
-        // Split routing and event phases to measure them separately
         $request = $this->get(FluteRequest::class);
+
+        $cachedResponse = $this->tryServePageCache($request);
+        if ($cachedResponse !== null) {
+            GlobalProfiler::stop();
+            $this->compressResponse($cachedResponse, $request);
+            header_remove('X-Powered-By');
+            $cachedResponse->send();
+
+            return;
+        }
+
         $dispatchResult = $router->dispatch($request);
 
         if (!defined('FLUTE_DISPATCH_END')) {
@@ -374,8 +384,13 @@ final class App
             define('FLUTE_DEFERRED_SAVE_END', microtime(true));
         }
 
-        // Stop profiler before sending response
+        $this->storePageCache($request, $res);
+
         GlobalProfiler::stop();
+
+        $this->compressResponse($res, $request);
+
+        header_remove('X-Powered-By');
 
         $res->send();
 
@@ -450,44 +465,48 @@ final class App
             return;
         }
 
-        try {
-            $cacheKey = 'providers.boot_times_stats';
-            $maxSamples = 100;
+        $bootTimes = $this->bootTimes;
 
-            $stats = cache()->get($cacheKey, [
-                'samples' => [],
-                'providers' => [],
-                'last_updated' => null,
-            ]);
+        SWRQueue::queue('app.provider_boot_times', static function () use ($bootTimes): void {
+            try {
+                $cacheKey = 'providers.boot_times_stats';
+                $maxSamples = 100;
 
-            $timestamp = time();
-            $stats['samples'][] = [
-                'time' => $timestamp,
-                'data' => $this->bootTimes,
-                'total' => array_sum($this->bootTimes),
-            ];
+                $stats = cache()->get($cacheKey, [
+                    'samples' => [],
+                    'providers' => [],
+                    'last_updated' => null,
+                ]);
 
-            if (count($stats['samples']) > $maxSamples) {
-                $stats['samples'] = array_slice($stats['samples'], -$maxSamples);
-            }
+                $timestamp = time();
+                $stats['samples'][] = [
+                    'time' => $timestamp,
+                    'data' => $bootTimes,
+                    'total' => array_sum($bootTimes),
+                ];
 
-            foreach ($this->bootTimes as $provider => $time) {
-                $shortName = substr(strrchr($provider, '\\') ?: $provider, 1);
-                if (!isset($stats['providers'][$shortName])) {
-                    $stats['providers'][$shortName] = [];
+                if (count($stats['samples']) > $maxSamples) {
+                    $stats['samples'] = array_slice($stats['samples'], -$maxSamples);
                 }
-                $stats['providers'][$shortName][] = $time;
 
-                if (count($stats['providers'][$shortName]) > $maxSamples) {
-                    $stats['providers'][$shortName] = array_slice($stats['providers'][$shortName], -$maxSamples);
+                foreach ($bootTimes as $provider => $time) {
+                    $shortName = substr(strrchr($provider, '\\') ?: $provider, 1);
+                    if (!isset($stats['providers'][$shortName])) {
+                        $stats['providers'][$shortName] = [];
+                    }
+                    $stats['providers'][$shortName][] = $time;
+
+                    if (count($stats['providers'][$shortName]) > $maxSamples) {
+                        $stats['providers'][$shortName] = array_slice($stats['providers'][$shortName], -$maxSamples);
+                    }
                 }
+
+                $stats['last_updated'] = $timestamp;
+
+                cache()->set($cacheKey, $stats, 86400 * 7);
+            } catch (Throwable) {
             }
-
-            $stats['last_updated'] = $timestamp;
-
-            cache()->set($cacheKey, $stats, 86400 * 7);
-        } catch (Throwable $e) {
-        }
+        });
     }
 
     /**
@@ -502,7 +521,7 @@ final class App
             'app' => \DI\get(self::class),
         ]);
 
-        if (!(php_sapi_name() === 'cli' || defined('STDIN'))) {
+        if (!( php_sapi_name() === 'cli' || defined('STDIN') )) {
             if (function_exists('is_performance') && is_performance()) {
                 $containerBuilder->enableCompilation(
                     BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'cache',
@@ -544,5 +563,147 @@ final class App
             ->get(EventDispatcher::class)
             ->dispatch(new ResponseEvent($response), ResponseEvent::NAME)
             ->getResponse();
+    }
+
+    protected function compressResponse(Response $response, FluteRequest $request): void
+    {
+        if (headers_sent() || $response->headers->has('Content-Encoding')) {
+            return;
+        }
+
+        $content = $response->getContent();
+        if ($content === false || strlen($content) < 1024) {
+            return;
+        }
+
+        $contentType = $response->headers->get('Content-Type', 'text/html');
+        $compressible =
+            str_contains($contentType, 'text/')
+            || str_contains($contentType, 'application/json')
+            || str_contains($contentType, 'application/javascript')
+            || str_contains($contentType, 'application/xml')
+            || str_contains($contentType, '+xml')
+            || str_contains($contentType, '+json');
+
+        if (!$compressible) {
+            return;
+        }
+
+        $acceptEncoding = $request->headers->get('Accept-Encoding', '');
+
+        if (str_contains($acceptEncoding, 'gzip') && function_exists('gzencode')) {
+            $compressed = gzencode($content, 6);
+            if ($compressed !== false && strlen($compressed) < strlen($content)) {
+                $response->setContent($compressed);
+                $response->headers->set('Content-Encoding', 'gzip');
+                $response->headers->set('Vary', 'Accept-Encoding');
+                $response->headers->remove('Content-Length');
+            }
+        } elseif (str_contains($acceptEncoding, 'deflate') && function_exists('gzdeflate')) {
+            $compressed = gzdeflate($content, 6);
+            if ($compressed !== false && strlen($compressed) < strlen($content)) {
+                $response->setContent($compressed);
+                $response->headers->set('Content-Encoding', 'deflate');
+                $response->headers->set('Vary', 'Accept-Encoding');
+                $response->headers->remove('Content-Length');
+            }
+        }
+    }
+
+    protected function getPageCacheKey(FluteRequest $request): ?string
+    {
+        if (!is_performance()) {
+            return null;
+        }
+
+        if ($request->getMethod() !== 'GET') {
+            return null;
+        }
+
+        if ($request->htmx()->isHtmxRequest()) {
+            return null;
+        }
+
+        if (user()->isLoggedIn()) {
+            return null;
+        }
+
+        $uri = $request->getPathInfo();
+
+        if (str_starts_with($uri, '/admin') || str_starts_with($uri, '/api') || str_starts_with($uri, '/live')) {
+            return null;
+        }
+
+        return 'page_cache.' . app()->getLang() . '.' . md5($uri);
+    }
+
+    protected function tryServePageCache(FluteRequest $request): ?Response
+    {
+        $key = $this->getPageCacheKey($request);
+        if ($key === null) {
+            return null;
+        }
+
+        try {
+            $cached = cache()->get($key);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (!is_array($cached) || empty($cached['body'])) {
+            return null;
+        }
+
+        $response = new Response($cached['body'], $cached['status'] ?? 200);
+
+        foreach ($cached['headers'] ?? [] as $name => $values) {
+            $response->headers->set($name, $values);
+        }
+
+        $response->headers->set('X-Page-Cache', 'HIT');
+
+        return $response;
+    }
+
+    protected function storePageCache(FluteRequest $request, Response $response): void
+    {
+        $key = $this->getPageCacheKey($request);
+        if ($key === null) {
+            return;
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            return;
+        }
+
+        $content = $response->getContent();
+        if ($content === false || strlen($content) < 100) {
+            return;
+        }
+
+        $ttl = 30;
+
+        $headers = [];
+        foreach ($response->headers->all() as $name => $values) {
+            if (in_array($name, ['set-cookie', 'x-debug-token', 'x-debug-token-link'], true)) {
+                continue;
+            }
+            $headers[$name] = $values;
+        }
+
+        SWRQueue::queue('page_cache_store.' . $key, static function () use ($key, $content, $headers, $ttl): void {
+            try {
+                cache()->set(
+                    $key,
+                    [
+                        'body' => $content,
+                        'status' => 200,
+                        'headers' => $headers,
+                    ],
+                    $ttl,
+                );
+            } catch (Throwable) {
+            }
+        });
     }
 }

@@ -269,7 +269,7 @@ class AboutSystemHelper
         }
 
         if (
-            (extension_loaded('Zend OPcache') || extension_loaded('opcache'))
+            ( extension_loaded('Zend OPcache') || extension_loaded('opcache') )
             && filter_var(ini_get('opcache.validate_timestamps'), FILTER_VALIDATE_BOOLEAN)
             && !config('app.development_mode')
         ) {
@@ -282,7 +282,10 @@ class AboutSystemHelper
 
         $realpathCacheSize = (int) ini_get('realpath_cache_size');
         if ($realpathCacheSize > 0 && $realpathCacheSize < 4096) {
-            $warnings['realpath_cache'] = 'realpath_cache_size is too low (' . ini_get('realpath_cache_size') . '). Set it to at least 4096K for better file resolution performance';
+            $warnings['realpath_cache'] =
+                'realpath_cache_size is too low ('
+                . ini_get('realpath_cache_size')
+                . '). Set it to at least 4096K for better file resolution performance';
         }
 
         return $warnings;

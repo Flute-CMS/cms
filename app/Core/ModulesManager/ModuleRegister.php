@@ -145,44 +145,48 @@ class ModuleRegister
 
         self::$statsSaved = true;
 
-        try {
-            if (!function_exists('cache')) {
-                return;
-            }
+        $bootTimes = self::$modulesBootTimes;
 
-            $stats = cache()->get(self::STATS_CACHE_KEY, [
-                'samples' => [],
-                'modules' => [],
-                'last_updated' => null,
-            ]);
-
-            $timestamp = time();
-            $stats['samples'][] = [
-                'time' => $timestamp,
-                'data' => self::$modulesBootTimes,
-                'total' => array_sum(self::$modulesBootTimes),
-            ];
-
-            if (count($stats['samples']) > self::STATS_MAX_SAMPLES) {
-                $stats['samples'] = array_slice($stats['samples'], -self::STATS_MAX_SAMPLES);
-            }
-
-            foreach (self::$modulesBootTimes as $module => $time) {
-                if (!isset($stats['modules'][$module])) {
-                    $stats['modules'][$module] = [];
+        \Flute\Core\Cache\SWRQueue::queue('modules.boot_times', static function () use ($bootTimes): void {
+            try {
+                if (!function_exists('cache')) {
+                    return;
                 }
-                $stats['modules'][$module][] = $time;
 
-                if (count($stats['modules'][$module]) > self::STATS_MAX_SAMPLES) {
-                    $stats['modules'][$module] = array_slice($stats['modules'][$module], -self::STATS_MAX_SAMPLES);
+                $stats = cache()->get(self::STATS_CACHE_KEY, [
+                    'samples' => [],
+                    'modules' => [],
+                    'last_updated' => null,
+                ]);
+
+                $timestamp = time();
+                $stats['samples'][] = [
+                    'time' => $timestamp,
+                    'data' => $bootTimes,
+                    'total' => array_sum($bootTimes),
+                ];
+
+                if (count($stats['samples']) > self::STATS_MAX_SAMPLES) {
+                    $stats['samples'] = array_slice($stats['samples'], -self::STATS_MAX_SAMPLES);
                 }
+
+                foreach ($bootTimes as $module => $time) {
+                    if (!isset($stats['modules'][$module])) {
+                        $stats['modules'][$module] = [];
+                    }
+                    $stats['modules'][$module][] = $time;
+
+                    if (count($stats['modules'][$module]) > self::STATS_MAX_SAMPLES) {
+                        $stats['modules'][$module] = array_slice($stats['modules'][$module], -self::STATS_MAX_SAMPLES);
+                    }
+                }
+
+                $stats['last_updated'] = $timestamp;
+
+                cache()->set(self::STATS_CACHE_KEY, $stats, 86400 * 7);
+            } catch (Throwable) {
             }
-
-            $stats['last_updated'] = $timestamp;
-
-            cache()->set(self::STATS_CACHE_KEY, $stats, 86400 * 7);
-        } catch (Throwable $e) {
-        }
+        });
     }
 
     /**

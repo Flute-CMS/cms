@@ -211,6 +211,10 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     public function loadPackage(AdminPackageInterface $package): void
     {
+        if (!is_admin_path() && !user()->can('admin')) {
+            return;
+        }
+
         app(AdminPanel::class)->registerPackage($package);
     }
 
@@ -566,13 +570,29 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }
 
         try {
-            $this->loadEntities();
-            $this->loadConfigs();
-            $this->loadTranslations();
-            $this->loadViewPages();
-            $this->loadRouterAttributes();
-            $this->loadComponents();
-            $this->loadWidgets();
+            $manifest = $this->getModuleManifest();
+
+            if ($manifest['hasEntities']) {
+                $this->loadEntities();
+            }
+            if ($manifest['hasConfigs']) {
+                $this->loadConfigs();
+            }
+            if ($manifest['hasTranslations']) {
+                $this->loadTranslations();
+            }
+            if ($manifest['hasViewPages']) {
+                $this->loadViewPages();
+            }
+            if ($manifest['hasControllers']) {
+                $this->loadRouterAttributes();
+            }
+            if ($manifest['hasComponents']) {
+                $this->loadComponents();
+            }
+            if ($manifest['hasWidgets']) {
+                $this->loadWidgets();
+            }
 
             $this->loadedStatus[$bootstrapCacheKey] = true;
         } catch (Exception $e) {
@@ -582,6 +602,47 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 throw $e;
             }
         }
+    }
+
+    protected function getModuleManifest(): array
+    {
+        $cacheKey = "module.{$this->getModuleName()}.manifest.v2";
+        cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
+
+        $manifest = cache()->callback(
+            $cacheKey,
+            function () {
+                $base = $this->getModulePath();
+
+                return [
+                    'hasEntities' => is_dir($base . '/database/Entities'),
+                    'hasConfigs' => is_dir($base . '/Resources/config'),
+                    'hasTranslations' => is_dir($base . '/Resources/lang'),
+                    'hasViewPages' => is_dir($base . '/Resources/pages'),
+                    'hasControllers' => is_dir($base . '/Http/Controllers') || is_dir($base . '/Controllers'),
+                    'hasComponents' => is_dir($base . '/Components'),
+                    'hasWidgets' => is_dir($base . '/Widgets'),
+                    '_v' => 2,
+                ];
+            },
+            $this->defaultCacheDuration,
+        );
+
+        if (!isset($manifest['_v']) || $manifest['_v'] < 2) {
+            cache()->delete($cacheKey);
+
+            return [
+                'hasEntities' => true,
+                'hasConfigs' => true,
+                'hasTranslations' => true,
+                'hasViewPages' => true,
+                'hasControllers' => true,
+                'hasComponents' => true,
+                'hasWidgets' => true,
+            ];
+        }
+
+        return $manifest;
     }
 
     /**

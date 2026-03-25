@@ -327,13 +327,18 @@ class InstallerController extends BaseController
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
             } catch (PDOException $e) {
-                // If database doesn't exist, create it
+                $safeDbName = preg_replace('/[^a-zA-Z0-9_\-]/', '', $database);
+                if ($safeDbName === '' || $safeDbName !== $database) {
+                    throw new \InvalidArgumentException('Invalid database name');
+                }
+
                 if ($driver === 'mysql') {
                     $pdo->exec(
-                        "CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+                        "CREATE DATABASE IF NOT EXISTS `{$safeDbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
                     );
                 } elseif ($driver === 'pgsql') {
-                    $pdo->exec("CREATE DATABASE \"{$database}\"");
+                    $quoted = $pdo->quote($safeDbName);
+                    $pdo->exec("CREATE DATABASE {$quoted}");
                 }
             }
 

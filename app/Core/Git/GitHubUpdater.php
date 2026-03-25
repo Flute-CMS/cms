@@ -147,8 +147,15 @@ class GitHubUpdater
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $filename = $zip->getNameIndex($i);
 
-                // Zip Slip protection
                 if (str_contains($filename, '..') || str_starts_with($filename, '/') || str_contains($filename, "\0")) {
+                    $zip->close();
+
+                    throw new FailedToExtractException($zipFile);
+                }
+
+                $resolvedTarget = realpath($extractTo) ?: $extractTo;
+                $intendedPath = realpath(dirname($extractTo . $filename)) ?: dirname($extractTo . $filename);
+                if (!str_starts_with($intendedPath, $resolvedTarget)) {
                     $zip->close();
 
                     throw new FailedToExtractException($zipFile);

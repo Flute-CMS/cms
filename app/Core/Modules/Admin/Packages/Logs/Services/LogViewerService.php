@@ -20,6 +20,26 @@ class LogViewerService
     }
 
     /**
+     * Sanitize log file name to prevent path traversal.
+     *
+     * @throws Exception
+     */
+    protected function sanitizeLogFileName(string $logFile): string
+    {
+        $logFile = basename($logFile);
+
+        if ($logFile === '' || $logFile === '.' || $logFile === '..') {
+            throw new Exception('Invalid log file name.');
+        }
+
+        if (!str_ends_with($logFile, '.log')) {
+            throw new Exception('Invalid log file extension.');
+        }
+
+        return $logFile;
+    }
+
+    /**
      * Get list of available loggers
      */
     public function getLoggersList(): array
@@ -32,6 +52,7 @@ class LogViewerService
      */
     public function getLogContent(string $logFile, int $lines = 500): array
     {
+        $logFile = $this->sanitizeLogFileName($logFile);
         $cacheKey = $this->getCacheKey($logFile, $lines);
 
         if ($this->isCacheValid($cacheKey)) {
@@ -130,6 +151,7 @@ class LogViewerService
      */
     public function clearLog(string $logger): bool
     {
+        $logger = $this->sanitizeLogFileName($logger);
         $logPath = path('storage/logs/' . $logger);
         if (!file_exists($logPath)) {
             return false;
@@ -182,6 +204,7 @@ class LogViewerService
      */
     public function exportLogs(string $logFile): string
     {
+        $logFile = $this->sanitizeLogFileName($logFile);
         $logPath = path('storage/logs/' . $logFile);
 
         if (!file_exists($logPath)) {
@@ -456,6 +479,7 @@ class LogViewerService
      */
     protected function getLogLevelStats(string $logFile): array
     {
+        $logFile = $this->sanitizeLogFileName($logFile);
         $cacheKey = 'stats_' . $logFile;
 
         if ($this->isCacheValid($cacheKey)) {
@@ -492,6 +516,7 @@ class LogViewerService
      */
     protected function isActiveLogFile(string $fileName): bool
     {
+        $fileName = $this->sanitizeLogFileName($fileName);
         $logPath = path('storage/logs/' . $fileName);
         if (!file_exists($logPath)) {
             return false;
@@ -650,6 +675,7 @@ class LogViewerService
      */
     protected function getCacheKey(string $logFile, int $lines): string
     {
+        $logFile = $this->sanitizeLogFileName($logFile);
         $logPath = path('storage/logs/' . $logFile);
         $lastModified = file_exists($logPath) ? filemtime($logPath) : 0;
 

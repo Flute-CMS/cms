@@ -136,22 +136,20 @@ class AttributeRouteLoader
                         }
                     });
 
+                    $allMiddleware = array_merge($combinedMiddleware, $finalRoute->getMiddleware());
+
                     if ($finalRoute->getName()) {
                         $routeInstance->name($finalRoute->getName());
                     }
 
-                    // middleware
-                    $allMiddleware = array_merge($combinedMiddleware, $finalRoute->getMiddleware());
                     if (!empty($allMiddleware)) {
                         $routeInstance->middleware($allMiddleware);
                     }
 
-                    // where
                     foreach ($finalRoute->getWhere() as $param => $pattern) {
                         $routeInstance->where($param, $pattern);
                     }
 
-                    // defaults
                     foreach ($finalRoute->getDefaults() as $param => $value) {
                         $routeInstance->defaults($param, $value);
                     }

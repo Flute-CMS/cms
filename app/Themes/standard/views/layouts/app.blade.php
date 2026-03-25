@@ -169,8 +169,8 @@
         {!! $sections['head'] !!}
     @endif
 
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
@@ -180,10 +180,18 @@
         <link rel="alternate" href="{{ url() }}?lang={{ $lang }}" hreflang="{{ strtolower($lang) }}">
     @endforeach
 
-    @include('flute::partials.background')
+    @if (!$isPartialRequest)
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin fetchpriority="high">
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/js/htmx/core.js')" as="script">
+        <link rel="preload" href="@asset('assets/js/app.js')" as="script">
 
-    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css' media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'></noscript>
+        @at(tt('assets/sass/app.scss'))
+
+        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
+    @endif
+
+    @include('flute::partials.background')
 
     @stack('styles')
 
@@ -191,7 +199,6 @@
         {!! $sections['styles'] !!}
     @endif
 
-    {{-- For support head merge (hx-only & hx-boost) --}}
     @if ($isPartialRequest)
         @stack('scripts')
 
@@ -201,23 +208,12 @@
     @endif
 
     @if (!$isPartialRequest)
-        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin fetchpriority="high">
-        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="@asset('assets/fonts/manrope/manrope.css')" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript><link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')"></noscript>
-        <link rel="preload" href="@asset('animate')" as="style"
-            onload="this.onload=null;this.rel='stylesheet'">
-        <noscript>
-            <link rel="stylesheet" href="@asset('animate')" type='text/css'>
-        </noscript>
-        <link rel="preload" href="@asset('grid')" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript><link rel="stylesheet" href="@asset('grid')" type='text/css'></noscript>
+        <link rel="stylesheet" href="@asset('animate')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('grid')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" media="print" onload="this.media='all'">
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">
-
         <link rel="stylesheet" href="@asset('assets/css/libs/cropper.min.css')" media="print" onload="this.media='all'">
-
-        @at(tt('assets/sass/app.scss'))
 
         <script src="@asset('assets/js/htmx/core.js')" defer></script>
         <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
@@ -572,48 +568,50 @@
             {!! $sections['scripts'] !!}
         @endif
 
-        {{-- Hover prefetch: warms browser HTTP cache for boosted navigations --}}
         <script>
         (function(){
-            var inflight = {};
+            var done = {};
             var timer = null;
+
+            function getHref(a) {
+                if (a.getAttribute('hx-boost') === 'false' || a.closest('[hx-boost=false]')) return null;
+                if (!a.closest('[hx-boost=true]') && !a.hasAttribute('hx-boost')) return null;
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#' || href.startsWith('javascript') ||
+                    a.hasAttribute('data-modal-open') || a.hasAttribute('data-dropdown-open') ||
+                    a.hasAttribute('download') || a.getAttribute('target') === '_blank') return null;
+                try { var p = new URL(href, location.origin).pathname; return p !== location.pathname ? p : null; } catch(e) { return null; }
+            }
+
+            function warm(href) {
+                if (done[href]) return;
+                done[href] = 1;
+                fetch(href, {
+                    priority: 'low',
+                    headers: {
+                        'HX-Request': 'true',
+                        'HX-Boosted': 'true',
+                        'HX-Target': 'main',
+                        'HX-Current-URL': location.href
+                    }
+                }).catch(function(){});
+            }
 
             document.addEventListener('mouseover', function(e) {
                 var a = e.target.closest && e.target.closest('a[href]');
                 if (!a) return;
-
-                // Only boosted navigation links
-                if (a.getAttribute('hx-boost') === 'false' || a.closest('[hx-boost=false]')) return;
-                if (!a.closest('[hx-boost=true]') && !a.hasAttribute('hx-boost')) return;
-
-                // Skip non-navigation
-                var href = a.getAttribute('href');
-                if (!href || href.charAt(0) === '#' || href.startsWith('javascript') ||
-                    a.hasAttribute('data-modal-open') || a.hasAttribute('data-dropdown-open') ||
-                    a.hasAttribute('download') || a.getAttribute('target') === '_blank') return;
-
-                // Normalize URL
-                try { href = new URL(href, location.origin).pathname; } catch(e) { return; }
-                if (inflight[href]) return;
-
+                var href = getHref(a);
+                if (!href) return;
                 clearTimeout(timer);
-                timer = setTimeout(function() {
-                    inflight[href] = true;
-                    fetch(href, {
-                        priority: 'low',
-                        headers: {
-                            'HX-Request': 'true',
-                            'HX-Boosted': 'true',
-                            'HX-Target': 'main',
-                            'HX-Current-URL': location.href
-                        }
-                    }).catch(function(){}).finally(function() {
-                        setTimeout(function() { delete inflight[href]; }, 5000);
-                    });
-                }, 80);
+                timer = setTimeout(function() { warm(href); }, 65);
             }, true);
-
             document.addEventListener('mouseout', function() { clearTimeout(timer); }, true);
+            document.addEventListener('touchstart', function(e) {
+                var a = e.target.closest && e.target.closest('a[href]');
+                if (!a) return;
+                var href = getHref(a);
+                if (href) warm(href);
+            }, {passive: true, capture: true});
         })();
         </script>
     @endif

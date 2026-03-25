@@ -31,7 +31,7 @@ class TokenMiddleware extends BaseMiddleware
 
         $apiUser = new User();
         $apiUser->name = 'API REQUEST';
-        $apiUser->id = -1;
+        $apiUser->id = PHP_INT_MIN;
 
         $apiRole = new Role();
         $apiRole->name = 'API ROLE';

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flute-cache-v2';
+const CACHE_NAME = 'flute-cache-v3';
 const OFFLINE_URL = '/offline';
 
 const ASSET_CACHE = 'flute-assets-v1';
@@ -8,7 +8,18 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches
             .open(CACHE_NAME)
-            .then((cache) => cache.add(OFFLINE_URL))
+            .then((cache) =>
+                cache.addAll([
+                    OFFLINE_URL,
+                    '/assets/fonts/manrope/Manrope-Regular.woff2',
+                    '/assets/fonts/manrope/Manrope-Medium.woff2',
+                    '/assets/js/htmx/core.js',
+                    '/assets/js/app.js',
+                    '/assets/js/libs/jquery.js',
+                    '/assets/js/libs/floating.js',
+                    '/assets/js/libs/a11y-dialog.js',
+                ]),
+            )
             .then(() => self.skipWaiting()),
     );
 });

@@ -252,7 +252,26 @@ class DatabaseConnection
 
             $classLocator = $this->getClassLocator();
 
-            $schemaArray = $this->compileSchema($classLocator);
+            try {
+                $schemaArray = $this->compileSchema($classLocator);
+            } catch (Throwable $compileError) {
+                logs('database')->error('Schema compilation failed: ' . $compileError->getMessage());
+
+                $staleFile = self::SCHEMA_FILE . '.stale';
+                if (is_file($staleFile)) {
+                    logs('database')->warning('Falling back to stale ORM schema');
+                    @copy($staleFile, self::SCHEMA_FILE);
+                    $this->writeSchemaMeta($this->entitiesDirs);
+                    $this->loadCachedSchemaIntoOrm();
+                    \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                    return;
+                }
+
+                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                throw $compileError;
+            }
 
             $ormSchema = new \Cycle\ORM\Schema($schemaArray);
 
@@ -766,7 +785,7 @@ class DatabaseConnection
             if (
                 is_array($cached)
                 && ( $cached['fingerprint'] ?? '' ) === $expectedFingerprint
-                && ( time() - ( $cached['time'] ?? 0 ) ) < 30
+                && ( time() - ( $cached['time'] ?? 0 ) ) < 300
             ) {
                 return true;
             }

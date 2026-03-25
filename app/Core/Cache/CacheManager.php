@@ -82,15 +82,25 @@ class CacheManager
         return $config;
     }
 
+    private static ?int $epochCache = null;
+
     private function readEpoch(): int
     {
+        if (self::$epochCache !== null) {
+            return self::$epochCache;
+        }
+
         $epochFile = defined('BASE_PATH') ? BASE_PATH . 'storage/app/cache_epoch' : 'cache_epoch';
 
         $content = @file_get_contents($epochFile);
         if (!is_string($content) || $content === '') {
+            self::$epochCache = 0;
+
             return 0;
         }
 
-        return (int) trim($content);
+        self::$epochCache = (int) trim($content);
+
+        return self::$epochCache;
     }
 }

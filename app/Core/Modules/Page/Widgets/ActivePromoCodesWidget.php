@@ -34,8 +34,7 @@ class ActivePromoCodesWidget extends AbstractWidget
                 $now = new DateTimeImmutable();
 
                 $promoCodes = PromoCode::query()
-                    ->load('roles')
-                    ->load('usages')
+                    ->load(['roles', 'usages'])
                     ->where('expires_at', '>', $now)
                     ->orWhere('expires_at', null)
                     ->fetchAll();

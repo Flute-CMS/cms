@@ -934,7 +934,25 @@ class TemplateAssets
         }
 
         $url = url($servedPath) . "?v={$servedVersion}";
-        $result = "<link href=\"{$url}\" rel=\"stylesheet\">";
+
+        $additionalFiles = $this->additionalScssFiles[$this->context] ?? [];
+        $modulesTag = '';
+        if (!empty($additionalFiles)) {
+            $modulesPath = str_replace('.css', '.modules.css', $servedPath);
+            $modulesFullPath = BASE_PATH . 'public/' . $modulesPath;
+            if (file_exists($modulesFullPath)) {
+                $modulesVersion = filemtime($modulesFullPath) ?: $servedVersion;
+                $modulesUrl = url($modulesPath) . "?v={$modulesVersion}";
+                $modulesTag =
+                    "\n<link rel=\"preload\" href=\"{$modulesUrl}\" as=\"style\">"
+                    . "\n<link href=\"{$modulesUrl}\" rel=\"stylesheet\">";
+            }
+        }
+
+        $result =
+            "<link rel=\"preload\" href=\"{$url}\" as=\"style\">"
+            . "\n<link href=\"{$url}\" rel=\"stylesheet\">"
+            . $modulesTag;
 
         if (!$needsRecompile) {
             $this->compilationCache[$cacheKey] = $result;
@@ -963,23 +981,34 @@ class TemplateAssets
             }
         }
 
-        // Build a master SCSS that @import's each file by absolute path.
-        // scssphp resolves each file's own @import's relative to its directory,
-        // so _card.scss in the theme won't collide with _card.scss in a module.
         $partialsContent = $this->loadSharedPartials();
+
         $masterScss = $partialsContent . "\n";
         $masterScss .= '@import "' . str_replace('\\', '/', $scssPath) . '";' . "\n";
 
-        foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
-            if (file_exists($additionalFile)) {
-                $masterScss .= '@import "' . str_replace('\\', '/', $additionalFile) . '";' . "\n";
+        $additionalFiles = $this->additionalScssFiles[$this->context] ?? [];
+
+        if (!empty($additionalFiles)) {
+            $modulesCacheKey = str_replace('.css', '.modules.css', $cssFullPath);
+
+            $modulesScss = $partialsContent . "\n";
+            $modulesScss .= '@import "' . str_replace('\\', '/', $scssPath) . '";' . "\n";
+            foreach ($additionalFiles as $additionalFile) {
+                if (file_exists($additionalFile)) {
+                    $modulesScss .= '@import "' . str_replace('\\', '/', $additionalFile) . '";' . "\n";
+                }
+            }
+
+            $modulesCss = $this->compileScss($modulesScss);
+            if ($modulesCss !== '') {
+                $this->saveAsset($modulesCacheKey, $modulesCss);
             }
         }
 
-        $css = $this->compileScss($masterScss);
+        $coreCss = $this->compileScss($masterScss);
 
-        if ($css !== '') {
-            $this->saveAsset($cssFullPath, $css);
+        if ($coreCss !== '') {
+            $this->saveAsset($cssFullPath, $coreCss);
         }
     }
 

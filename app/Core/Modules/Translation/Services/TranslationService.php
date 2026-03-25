@@ -444,12 +444,46 @@ class TranslationService
             self::CACHE_TIME,
         );
 
+        $currentLocale = app()->getLang();
+        $indexCacheKey = 'translation.domain_index.' . md5(implode('|', $dirs)) . '.' . $currentLocale;
+        $cachedIndex = cache()->get($indexCacheKey);
+
+        if (is_array($cachedIndex) && !empty($cachedIndex)) {
+            foreach ($dirs as $dir) {
+                $this->translationDirectories[$dir] = true;
+                $this->loadedDirectories[$dir] = true;
+            }
+            foreach ($cachedIndex as $locale => $domains) {
+                foreach ($domains as $domain => $path) {
+                    $this->domainFileIndex[$locale][$domain] = $path;
+                }
+            }
+
+            // Eagerly load resources for current locale.
+            $fallbacks = $this->translator->getFallbackLocales();
+            $eagerLocales = array_unique(array_filter(array_merge([$currentLocale], $fallbacks)));
+            foreach ($eagerLocales as $locale) {
+                if (!isset($cachedIndex[$locale])) {
+                    continue;
+                }
+                foreach ($cachedIndex[$locale] as $domain => $path) {
+                    $this->registerResource($path, $locale, $domain);
+                }
+            }
+
+            return;
+        }
+
         $this->bulkLoad = true;
         foreach ($dirs as $dir) {
             $this->translationDirectories[$dir] = true;
             $this->loadTranslationsFromDirectory($dir, self::CACHE_TIME);
         }
         $this->bulkLoad = false;
+
+        if (!empty($this->domainFileIndex)) {
+            cache()->set($indexCacheKey, $this->domainFileIndex, self::CACHE_TIME);
+        }
 
         if (is_performance()) {
             $localesNeedingFlush = [];

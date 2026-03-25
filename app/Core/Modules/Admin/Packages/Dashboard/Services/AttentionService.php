@@ -105,10 +105,7 @@ class AttentionService
             $issues[] = 'opcache';
         }
 
-        if (
-            extension_loaded('Zend OPcache')
-            && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)
-        ) {
+        if (extension_loaded('Zend OPcache') && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)) {
             if (filter_var(ini_get('opcache.validate_timestamps'), FILTER_VALIDATE_BOOLEAN)) {
                 $issues[] = 'opcache_validate';
             }

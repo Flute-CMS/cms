@@ -13,7 +13,10 @@ use Cycle\ORM\Entity\Behavior;
 
 #[Entity]
 #[Table(
-    indexes: [new Index(columns: ["code"], unique: true)]
+    indexes: [
+        new Index(columns: ["code"], unique: true),
+        new Index(columns: ["expires_at"]),
+    ]
 )]
 #[Behavior\CreatedAt(
     field: 'createdAt',

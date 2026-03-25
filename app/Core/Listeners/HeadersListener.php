@@ -10,23 +10,42 @@ class HeadersListener
     {
         $response = $event->getResponse();
 
+        header_remove('X-Powered-By');
+
         $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'; object-src 'none';");
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        $response->headers->set(
+            'Permissions-Policy',
+            'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
+        );
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        $response->headers->set('Cross-Origin-Resource-Policy', 'cross-origin');
+        $response->headers->set('X-DNS-Prefetch-Control', 'on');
 
         if (request()->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
-        // Link headers for 103 Early Hints (picked up by CDNs like Cloudflare)
         $contentType = (string) $response->headers->get('Content-Type', '');
         if (str_contains($contentType, 'text/html') || !$response->headers->has('Content-Type')) {
             $linkHeaders = [
                 '</assets/fonts/manrope/Manrope-Regular.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin',
                 '</assets/fonts/manrope/Manrope-Medium.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin',
+                '</assets/js/htmx/core.js>; rel=preload; as=script',
             ];
+
+            $cssDir = BASE_PATH . 'public/assets/css/cache/main/';
+            if (is_dir($cssDir)) {
+                $cssFiles = glob($cssDir . '*.css');
+                if (!empty($cssFiles)) {
+                    usort($cssFiles, static fn($a, $b) => filemtime($b) <=> filemtime($a));
+                    $cssFile = basename($cssFiles[0]);
+                    $linkHeaders[] = "</assets/css/cache/main/{$cssFile}>; rel=preload; as=style";
+                }
+            }
+
             $response->headers->set('Link', implode(', ', $linkHeaders), false);
         }
 
@@ -51,28 +70,19 @@ class HeadersListener
         $justLoggedInAt = session()->get('just_logged_in_at');
         $justLoggedInRecent = is_int($justLoggedInAt) && $justLoggedInAt > ( time() - 10 );
 
-        // Boosted GET navigations (clicking hx-boost links) — allow short private cache
-        // so that hover-prefetch → click works instantly from browser cache.
-        // Non-boosted HTMX requests (Yoyo components, polling) stay no-store.
-        $isBoostedGet =
-            request()->htmx()->isBoosted()
-            && request()->getMethod() === 'GET'
-            && !$justLoggedInRecent
-            && !is_development();
-
-        if ($isBoostedGet) {
-            $response->setCache([
-                'private' => true,
-                'max_age' => 5,
-            ]);
-        } elseif (
+        if (
             $justLoggedInRecent
             || request()->htmx()->isHtmxRequest()
             || request()->htmx()->isBoosted()
             || is_development()
         ) {
-            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
-            $response->headers->set('Expires', '0');
+            $response->setCache([
+                'no_cache' => true,
+                'no_store' => true,
+                'must_revalidate' => true,
+                'private' => true,
+            ]);
+            $response->setExpires(new \DateTimeImmutable('@0'));
             if ($justLoggedInRecent) {
                 session()->remove('just_logged_in_at');
             }
@@ -82,20 +92,14 @@ class HeadersListener
                     'private' => true,
                     'max_age' => 300,
                 ]);
-                $response->headers->set(
-                    'Cache-Control',
-                    $response->headers->get('Cache-Control') . ', stale-while-revalidate=600',
-                );
+                $response->headers->addCacheControlDirective('stale-while-revalidate', '600');
             } else {
                 $response->setCache([
                     'public' => true,
                     'max_age' => 900,
                     's_maxage' => 1800,
                 ]);
-                $response->headers->set(
-                    'Cache-Control',
-                    $response->headers->get('Cache-Control') . ', stale-while-revalidate=86400',
-                );
+                $response->headers->addCacheControlDirective('stale-while-revalidate', '86400');
             }
         } else {
             if (!$response->headers->has('Cache-Control') || $response->headers->get('Cache-Control') === 'no-cache') {
