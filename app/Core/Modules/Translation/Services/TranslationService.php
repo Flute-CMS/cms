@@ -446,7 +446,7 @@ class TranslationService
 
         $currentLocale = app()->getLang();
         $indexCacheKey = 'translation.domain_index.' . md5(implode('|', $dirs)) . '.' . $currentLocale;
-        $cachedIndex = cache()->get($indexCacheKey);
+        $cachedIndex = !is_debug() ? cache()->get($indexCacheKey) : null;
 
         if (is_array($cachedIndex) && !empty($cachedIndex)) {
             foreach ($dirs as $dir) {
@@ -481,7 +481,7 @@ class TranslationService
         }
         $this->bulkLoad = false;
 
-        if (!empty($this->domainFileIndex)) {
+        if (!empty($this->domainFileIndex) && !is_debug()) {
             cache()->set($indexCacheKey, $this->domainFileIndex, self::CACHE_TIME);
         }
 

@@ -45,3 +45,4 @@ mago-baseline
 storage/app/vapid_keys.json
 .superpowers
 tools/
+.playwright-mcp

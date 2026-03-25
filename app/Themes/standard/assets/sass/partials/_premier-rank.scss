@@ -12,6 +12,12 @@
     font-size: 11px;
 }
 
+.premier-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .gray-rank,
 .wblue-rank,
 .blue-rank,
@@ -30,6 +36,18 @@
     text-align: center;
     position: relative;
     margin: 0 auto;
+    font-variant-numeric: tabular-nums;
+    border-radius: 2px;
+}
+
+.sp-rank-inline .premier-rank,
+.stats__cell-rank .premier-rank {
+    width: auto;
+    min-width: 80px;
+    padding: 2px 12px 2px 12px;
+    font-size: 13px;
+    height: 28px;
+    line-height: 24px;
 }
 
 .gray-rank:after,

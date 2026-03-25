@@ -25,6 +25,14 @@ class CsrfTokenService
     }
 
     /**
+     * Refreshes the CSRF token by removing the old one.
+     */
+    public function refreshToken(?string $tokenId = null): void
+    {
+        $this->csrfTokenManager->removeToken($tokenId ?: $this->defaultTokenId);
+    }
+
+    /**
      * Проверяет валидность переданного CSRF-токена.
      */
     public function validateToken(string $token): bool

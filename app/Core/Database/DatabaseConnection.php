@@ -785,7 +785,7 @@ class DatabaseConnection
             if (
                 is_array($cached)
                 && ( $cached['fingerprint'] ?? '' ) === $expectedFingerprint
-                && ( time() - ( $cached['time'] ?? 0 ) ) < 300
+                && ( time() - ( $cached['time'] ?? 0 ) ) < ( is_debug() ? 30 : 300 )
             ) {
                 return true;
             }

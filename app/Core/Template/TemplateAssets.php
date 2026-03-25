@@ -869,6 +869,7 @@ class TemplateAssets
         foreach ($this->additionalScssFiles[$this->context] as $additionalFile) {
             if (file_exists($additionalFile)) {
                 $latestSourceMtime = max($latestSourceMtime, filemtime($additionalFile) ?: 0);
+                $latestSourceMtime = max($latestSourceMtime, $this->getScssDependenciesMaxMtime($additionalFile));
             }
         }
 
@@ -1029,9 +1030,12 @@ class TemplateAssets
         }
 
         $mtimeCacheKey = 'scss_mtime_' . md5($scssPath);
-        $cached = cache()->get($mtimeCacheKey);
-        if ($cached !== null) {
-            return (int) $cached;
+
+        if (!is_debug()) {
+            $cached = cache()->get($mtimeCacheKey);
+            if ($cached !== null) {
+                return (int) $cached;
+            }
         }
 
         $maxMtime = 0;
@@ -1043,8 +1047,9 @@ class TemplateAssets
             }
         }
 
-        $cacheTtl = $this->debugMode ? 5 : 60;
-        cache()->set($mtimeCacheKey, $maxMtime, $cacheTtl);
+        if (!is_debug()) {
+            cache()->set($mtimeCacheKey, $maxMtime, 60);
+        }
 
         return $maxMtime;
     }

@@ -36,15 +36,6 @@ class HeadersListener
                 '</assets/js/htmx/core.js>; rel=preload; as=script',
             ];
 
-            $cssDir = BASE_PATH . 'public/assets/css/cache/main/';
-            if (is_dir($cssDir)) {
-                $cssFiles = glob($cssDir . '*.css');
-                if (!empty($cssFiles)) {
-                    usort($cssFiles, static fn($a, $b) => filemtime($b) <=> filemtime($a));
-                    $cssFile = basename($cssFiles[0]);
-                    $linkHeaders[] = "</assets/css/cache/main/{$cssFile}>; rel=preload; as=style";
-                }
-            }
 
             $response->headers->set('Link', implode(', ', $linkHeaders), false);
         }

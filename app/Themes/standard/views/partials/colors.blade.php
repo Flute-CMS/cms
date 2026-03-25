@@ -451,29 +451,28 @@
 
         var root = document.documentElement;
 
-        function clearInlineVars() {
-            for (var i = root.style.length - 1; i >= 0; i--) {
-                var prop = root.style[i];
-                if (prop.indexOf('--') === 0) {
-                    root.style.removeProperty(prop);
-                }
-            }
-        }
-
         function applyTheme(theme) {
             var data = themeData[theme] || themeData.dark || themeData.light;
             if (!data) {
                 return;
             }
 
-            clearInlineVars();
-
             var vars = data.vars || {};
+            var newKeys = {};
+
             Object.keys(vars).forEach(function(key) {
+                newKeys[key] = true;
                 if (vars[key] !== null && vars[key] !== '') {
                     root.style.setProperty(key, vars[key]);
                 }
             });
+
+            for (var i = root.style.length - 1; i >= 0; i--) {
+                var prop = root.style[i];
+                if (prop.indexOf('--') === 0 && !newKeys[prop]) {
+                    root.style.removeProperty(prop);
+                }
+            }
 
             var attrs = data.attrs || {};
             Object.keys(attrs).forEach(function(attr) {

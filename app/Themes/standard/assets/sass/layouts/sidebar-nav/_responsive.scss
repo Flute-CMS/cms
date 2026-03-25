@@ -29,9 +29,6 @@ html[data-nav-style="sidebar"] {
 
     .navbar {
         border-bottom: 1px solid var(--transp-1);
-        background: var(--blurred-background);
-        backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
-        -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
 
         &__content {
             justify-content: space-between;
@@ -136,34 +133,12 @@ html[data-nav-style="sidebar"][data-sidebar-style="mini"] {
     }
 }
 
-// ── Non-fixed sidebar (scrolls with page) ──
-// Contained mode always stays fixed (layout requires it)
-html[data-nav-style="sidebar"][data-nav-fixed="false"]:not([data-sidebar-contained="true"]) {
-    .sidebar-nav {
-        position: absolute;
-        height: 100vh;
-    }
-
+// ── Non-fixed header when sidebar nav is active ──
+// Sidebar itself always stays fixed; only the top header becomes non-fixed
+html[data-nav-style="sidebar"][data-nav-fixed="false"] {
     .flute_header {
         position: relative;
         left: auto;
-    }
-}
-
-html[data-nav-style="sidebar"][data-sidebar-style="mini"][data-nav-fixed="false"]:not([data-sidebar-contained="true"]) {
-    .sidebar-nav {
-        position: absolute;
-        height: 100vh;
-    }
-}
-
-@media (max-width: 768px) {
-    // On mobile sidebar is always fixed (off-canvas drawer)
-    html[data-nav-style="sidebar"][data-nav-fixed="false"] {
-        .sidebar-nav {
-            position: fixed;
-            height: auto;
-        }
     }
 }
 

@@ -330,6 +330,33 @@ class FluteApp {
             }
         });
 
+        // Auto-retry once on CSRF token expiry (403)
+        const csrfRetried = new WeakSet();
+        htmx.on("htmx:beforeOnLoad", (evt) => {
+            const xhr = evt.detail.xhr;
+            if (xhr?.status === 403) {
+                const newToken = xhr.getResponseHeader("X-CSRF-Token");
+                const elt = evt.detail.requestConfig?.elt;
+                if (newToken && elt && !csrfRetried.has(elt)) {
+                    csrfRetried.add(elt);
+                    const meta = document.querySelector('meta[name="csrf-token"]');
+                    if (meta) {
+                        meta.setAttribute("content", newToken);
+                    }
+
+                    evt.preventDefault();
+
+                    const cfg = evt.detail.requestConfig;
+                    htmx.ajax(cfg.verb, cfg.path, {
+                        source: elt,
+                        target: cfg.target,
+                        swap: cfg.swap,
+                        values: cfg.parameters,
+                    }).finally(() => csrfRetried.delete(elt));
+                }
+            }
+        });
+
         // Main HTMX events
         htmx.on("htmx:afterRequest", (evt) =>
             this.notifications.handleToasts(evt)

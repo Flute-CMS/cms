@@ -18,7 +18,7 @@
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() }}">
     <meta name="application-name" content="{{ config('app.name') }}">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="color-scheme" content="dark light">
     <meta name="supported-color-schemes" content="dark light">

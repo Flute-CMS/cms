@@ -606,6 +606,20 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
 
     protected function getModuleManifest(): array
     {
+        if (is_debug()) {
+            $base = $this->getModulePath();
+
+            return [
+                'hasEntities' => is_dir($base . '/database/Entities'),
+                'hasConfigs' => is_dir($base . '/Resources/config'),
+                'hasTranslations' => is_dir($base . '/Resources/lang'),
+                'hasViewPages' => is_dir($base . '/Resources/pages'),
+                'hasControllers' => is_dir($base . '/Http/Controllers') || is_dir($base . '/Controllers'),
+                'hasComponents' => is_dir($base . '/Components'),
+                'hasWidgets' => is_dir($base . '/Widgets'),
+            ];
+        }
+
         $cacheKey = "module.{$this->getModuleName()}.manifest.v2";
         cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
 

@@ -199,7 +199,7 @@ abstract class Table extends FluteComponent
     {
         $this->page = max(1, $page);
 
-        $queryParams = request()->all();
+        $queryParams = $this->getCleanQueryParams();
         $queryParams['page'] = $page;
 
         $this->response->header(HtmxResponse::HX_PUSH_URL, url()->addParams($queryParams)->get());
@@ -210,12 +210,33 @@ abstract class Table extends FluteComponent
         $this->search = request()->input('search', $this->search);
         $this->page = 1;
 
-        $queryParams = request()->all();
+        $queryParams = $this->getCleanQueryParams();
         $queryParams['search'] = $this->search;
         $queryParams['page'] = 1;
 
         // Search typing shouldn't spam browser history; replace is more intuitive.
         $this->response->header(HtmxResponse::HX_REPLACE_URL, url()->addParams($queryParams)->get());
+    }
+
+    /**
+     * Get query params without Yoyo/HTMX internal parameters.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getCleanQueryParams(): array
+    {
+        $params = request()->all();
+
+        unset(
+            $params['_controller'],
+            $params['_route'],
+            $params['_middleware'],
+            $params['yoyo-id'],
+            $params['actionArgs'],
+            $params['component'],
+        );
+
+        return $params;
     }
 
     /**
