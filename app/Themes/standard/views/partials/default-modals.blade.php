@@ -1,64 +1,138 @@
-@push('footer')
-    @if (config('auth.only_modal'))
-        <x-modal id="auth-modal" title="{{ __('auth.header.login') }}" loadUrl="{{ '/login' }}">
-            <x-slot:skeleton>
-                <div class="modal__content-loading">
-                    <div class="d-flex mb-4 flex-wrap gap-2">
-                        <div class="skeleton w-100" style="height: 40px; border-radius: var(--border05);"></div>
-                    </div>
-
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-4" style="height: 30px; width: 50%; border-radius: var(--border05);"></div>
-                    <div class="skeleton" style="height: 48px; border-radius: var(--border05);"></div>
+@if (config('auth.only_modal'))
+    <x-modal id="auth-modal" title="{{ __('auth.header.login') }}" loadUrl="{{ '/login' }}" :inline="true">
+        <x-slot:skeleton>
+            <div class="modal-skeleton modal-skeleton--auth">
+                {{-- Social buttons --}}
+                <div class="modal-skeleton__socials">
+                    <div class="skeleton modal-skeleton__social-btn"></div>
                 </div>
-            </x-slot:skeleton>
-        </x-modal>
 
-        <x-modal id="register-modal" title="{{ __('auth.header.register') }}" loadUrl="{{ '/register' }}">
-            <x-slot:skeleton>
-                <div class="modal__content-loading">
-                    <div class="d-flex mb-4 flex-wrap gap-2">
-                        <div class="skeleton w-100" style="height: 40px; border-radius: var(--border05);"></div>
-                    </div>
-
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-3" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton mb-4" style="height: 70px; border-radius: var(--border05);"></div>
-                    <div class="skeleton" style="height: 48px; border-radius: var(--border05);"></div>
+                {{-- Divider --}}
+                <div class="modal-skeleton__divider">
+                    <span class="skeleton modal-skeleton__divider-text"></span>
                 </div>
-            </x-slot:skeleton>
-        </x-modal>
-    @endif
 
-    @if (config('lk.only_modal'))
-        <x-modal id="lk-modal" title="{{ __('lk.title') }}" loadUrl="{{ '/lk' }}">
-            <x-slot:skeleton>
-                <div class="modal__content-loading">
-                    <div class="lk-payment-layout">
-                        <div class="lk-payment-main">
-                            <div class="skeleton mb-4" style="height: 40px; width: 60%; border-radius: var(--border05);">
-                            </div>
-                            <div class="d-flex mb-4 flex-wrap gap-2">
-                                <div class="skeleton"
-                                    style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                                </div>
-                                <div class="skeleton"
-                                    style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                                </div>
-                                <div class="skeleton"
-                                    style="height: 60px; width: calc(33.333% - 0.5rem); min-width: 100px; border-radius: var(--border05);">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="skeleton lk-payment-summary-skeleton"
-                            style="height: 250px; border-radius: var(--border1);"></div>
-                    </div>
+                {{-- Login/email field --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
                 </div>
-            </x-slot:skeleton>
-        </x-modal>
-    @endif
-@endpush
+
+                {{-- Password field --}}
+                <div class="modal-skeleton__field">
+                    <div class="modal-skeleton__label-row">
+                        <div class="skeleton modal-skeleton__label"></div>
+                        <div class="skeleton modal-skeleton__label modal-skeleton__label--link"></div>
+                    </div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Remember me --}}
+                <div class="modal-skeleton__checkbox">
+                    <div class="skeleton modal-skeleton__checkbox-box"></div>
+                    <div class="skeleton modal-skeleton__checkbox-label"></div>
+                </div>
+
+                {{-- Submit --}}
+                <div class="skeleton modal-skeleton__submit"></div>
+
+                {{-- Footer --}}
+                <div class="modal-skeleton__footer">
+                    <div class="skeleton modal-skeleton__footer-text"></div>
+                </div>
+            </div>
+        </x-slot:skeleton>
+    </x-modal>
+
+    <x-modal id="register-modal" title="{{ __('auth.header.register') }}" loadUrl="{{ '/register' }}" :inline="true">
+        <x-slot:skeleton>
+            <div class="modal-skeleton modal-skeleton--register">
+                {{-- Social buttons --}}
+                <div class="modal-skeleton__socials">
+                    <div class="skeleton modal-skeleton__social-btn"></div>
+                </div>
+
+                {{-- Divider --}}
+                <div class="modal-skeleton__divider">
+                    <span class="skeleton modal-skeleton__divider-text"></span>
+                </div>
+
+                {{-- Name --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Login --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Email --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Password --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Password confirm --}}
+                <div class="modal-skeleton__field">
+                    <div class="skeleton modal-skeleton__label"></div>
+                    <div class="skeleton modal-skeleton__input"></div>
+                </div>
+
+                {{-- Submit --}}
+                <div class="skeleton modal-skeleton__submit"></div>
+
+                {{-- Footer --}}
+                <div class="modal-skeleton__footer">
+                    <div class="skeleton modal-skeleton__footer-text"></div>
+                </div>
+            </div>
+        </x-slot:skeleton>
+    </x-modal>
+@endif
+
+@if (config('lk.only_modal'))
+    <x-modal id="lk-modal" title="{{ __('lk.title') }}" loadUrl="{{ '/lk' }}" :inline="true">
+        <x-slot:skeleton>
+            <div class="modal-skeleton modal-skeleton--lk">
+                {{-- Currency bar --}}
+                <div class="modal-skeleton__currency-bar">
+                    <div class="skeleton modal-skeleton__currency-item"></div>
+                    <div class="skeleton modal-skeleton__currency-item"></div>
+                    <div class="skeleton modal-skeleton__currency-item"></div>
+                </div>
+
+                {{-- Amount input --}}
+                <div class="skeleton modal-skeleton__amount-input"></div>
+
+                {{-- Presets --}}
+                <div class="modal-skeleton__presets">
+                    <div class="skeleton modal-skeleton__preset"></div>
+                    <div class="skeleton modal-skeleton__preset"></div>
+                    <div class="skeleton modal-skeleton__preset"></div>
+                    <div class="skeleton modal-skeleton__preset"></div>
+                </div>
+
+                {{-- Gateway cards --}}
+                <div class="modal-skeleton__gateways">
+                    <div class="skeleton modal-skeleton__gateway-card"></div>
+                    <div class="skeleton modal-skeleton__gateway-card"></div>
+                </div>
+
+                {{-- Promo --}}
+                <div class="skeleton modal-skeleton__promo"></div>
+
+                {{-- Submit --}}
+                <div class="skeleton modal-skeleton__submit"></div>
+            </div>
+        </x-slot:skeleton>
+    </x-modal>
+@endif

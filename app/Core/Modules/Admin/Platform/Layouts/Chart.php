@@ -232,6 +232,15 @@ class Chart extends Layout
      *
      * @return \Illuminate\Contracts\View\View|void
      */
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'chart',
+            'height' => $this->height,
+            'title' => $this->title,
+        ];
+    }
+
     public function build(Repository $repository)
     {
         $this->query = $repository;

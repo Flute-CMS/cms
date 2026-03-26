@@ -1,131 +1,148 @@
 @if (user()->isLoggedIn())
     <div class="user-mini-profile">
         <div class="user-mini-profile-content">
+            @php
+                $roles = $user->roles;
+                $primaryRole = $roles[0] ?? null;
+            @endphp
+
             <div class="user-mini-profile-main" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
-                <figure class="user-mini-profile-banner">
-                    <img src="{{ asset($user->banner ?? config('profile.default_banner')) }}" alt="{{ $user->name }}"
-                        class="user-mini-profile-img" loading="lazy">
-                </figure>
-                
-                <div class="user-mini-profile-avatar-wrapper">
-                    <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-avatar">
-                        <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}" alt="{{ $user->name }}"
-                            class="user-mini-profile-img" loading="lazy">
-                        @if ($user->isOnline())
-                            <span class="user-mini-profile-status online" title="{{ __('user.status.online') }}"></span>
-                        @else
-                            <span class="user-mini-profile-status offline" title="{{ __('user.status.offline') }}"></span>
-                        @endif
-                    </a>
+                <div class="user-mini-profile-cover">
+                    <img src="{{ asset($user->banner ?? config('profile.default_banner')) }}" alt=""
+                        loading="lazy" decoding="async">
                 </div>
 
-                <div class="user-mini-profile-info">
-                    <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-name">{{ $user->name }}</a>
-                    <div class="user-mini-profile-details">
-                        <div class="user-mini-profile-roles">
-                            @php
-                                $count = 0;
-                                $roles = $user->roles;
-                            @endphp
-                            @if(count($roles) > 2)
-                                @for($i = 0; $i < count($roles); $i++)
-                                    @if($i >= 2)
-                                        @break
-                                    @endif
-
-                                    @php
-                                        $role = $roles[$i];
-                                    @endphp
-
-                                    <div class="user-mini-profile-role">
-                                        <span class="user-mini-profile-role-square" style="background: {{ $role->color }}"></span>
-                                        <span class="user-mini-profile-role-name">{{ $role->name }}</span>
-                                    </div>
-                                @endfor
-                                <div class="d-flex align-center">
-                                    <div class="user-mini-profile-role cursor-pointer"
-                                        data-tooltip="#user_roles_{{ $user->id }}">
-                                        <span class="user-mini-profile-role-name">... {{ count($roles) - 2 }}
-                                            {{ __('def.roles') }}</span>
-                                    </div>
-                                    <div id="user_roles_{{ $user->id }}" class="d-none">
-                                        <ul class="user-roles-list">
-                                            @for($a = 0; $a < count($roles); $a++)
-                                                @if($a < 2)
-                                                    @continue
-                                                @endif
-
-                                                @php
-                                                    $role = $roles[$a];
-                                                @endphp
-                                                <li>
-                                                    <div class="user-mini-profile-role">
-                                                        <span class="user-mini-profile-role-square"
-                                                            style="background: {{ $role->color }}"></span>
-                                                        <span class="user-mini-profile-role-name">{{ $role->name }}</span>
-                                                    </div>
-                                                </li>
-                                            @endfor
-                                        </ul>
-                                    </div>
-                                </div>
-                            @else
-                                @foreach ($roles as $key => $role)
-                                    <div class="user-mini-profile-role">
-                                        <span class="user-mini-profile-role-square" style="background: {{ $role->color }}"></span>
-                                        <span class="user-mini-profile-role-name">{{ $role->name }}</span>
-                                    </div>
-                                @endforeach
+                <div class="user-mini-profile-body">
+                    <div class="user-mini-profile-top">
+                        <div class="user-mini-profile-avatar-wrapper">
+                            <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-avatar">
+                                <img src="{{ asset($user->avatar ?? config('profile.default_avatar')) }}"
+                                    alt="{{ $user->name }}" loading="lazy" decoding="async">
+                            </a>
+                            @if (user()->can('admin.boss'))
+                                <span class="user-mini-profile-crown" aria-hidden="true" data-tooltip="Boss of the gym">
+                                    <x-icon path="ph.bold.crown-bold" />
+                                </span>
                             @endif
                         </div>
+
+                        @if ($primaryRole)
+                            <div class="user-mini-profile-rank">
+                                <span class="user-mini-profile-rank-label">{{ __('def.role') }}</span>
+                                <x-role-badge :role="$primaryRole" mode="full" size="small" />
+                            </div>
+                        @endif
                     </div>
+
+                    <div class="user-mini-profile-info">
+                        <div class="user-mini-profile-name-row">
+                            <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-name">
+                                {!! $user->getDisplayName(withColor: false) !!}
+                            </a>
+                            @if ($user->approved)
+                                <span class="verified-badge verified-badge--small" data-tooltip="{{ __('def.approved') }}">
+                                    <x-icon path="ph.bold.seal-check-bold" />
+                                </span>
+                            @elseif (user()->can('admin.boss'))
+                                <span class="verified-badge verified-badge--small verified-badge--ghosted" data-tooltip="{{ __('profile.admin_actions.approve_user') }}">
+                                    <x-icon path="ph.bold.seal-check-bold" />
+                                </span>
+                            @endif
+                        </div>
+                        <div class="user-mini-profile-presence">
+                            <span class="user-mini-profile-presence-dot {{ $user->isOnline() ? 'online' : '' }}"></span>
+                            <span>{{ $user->isOnline() ? __('def.online') : __('def.not_online') }}</span>
+                        </div>
+                    </div>
+
+                    @if (count($roles) > 1)
+                        <div class="user-mini-profile-roles">
+                            @php $extraRoles = array_slice($roles, 1, 4); @endphp
+                            @foreach ($extraRoles as $role)
+                                <x-role-badge :role="$role" size="small" />
+                            @endforeach
+
+                            @if (count($roles) > 5)
+                                <span class="role-badges__overflow" data-tooltip="#mp_roles_{{ $user->id }}">
+                                    +{{ count($roles) - 5 }}
+                                </span>
+                                <div id="mp_roles_{{ $user->id }}" class="d-none">
+                                    <ul class="user-roles-list">
+                                        @for ($i = 5; $i < count($roles); $i++)
+                                            @php $role = $roles[$i]; @endphp
+                                            <li>
+                                                <div class="user-card-role">
+                                                    <span class="user-card-role-square" style="background: {{ $role->color }}"></span>
+                                                    <span class="user-card-role-name">{{ $role->name }}</span>
+                                                </div>
+                                            </li>
+                                        @endfor
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
 
-            <div class="user-mini-profile-balance-card">
-                <div class="balance-label">{{ __('def.balance') }}</div>
-                <div class="balance-amount">{{ number_format($user->balance, 2) }} {{ config('lk.currency_view') }}</div>
+            @if (sizeof(payments()->getAllGateways() ?? []) > 0)
+                <div class="user-mini-profile-balance-card">
+                    <div class="balance-info">
+                        <span class="balance-label">{{ __('def.balance') }}</span>
+                        <div class="balance-amount">
+                            <span>{{ number_format($user->balance, 2) }}</span>
+                            <span class="balance-currency">{{ config('lk.currency_view') }}</span>
+                        </div>
+                    </div>
 
-                @if (config('lk.only_modal'))
-                    <a class="balance-action" data-modal-open="lk-modal">
-                        <x-icon path="ph.regular.plus-circle" />
-                        {{ __('def.top_up') }}
-                    </a>
-                @else
-                    <a href="{{ url('lk') }}" class="balance-action" hx-boost="true" hx-target="#main"
-                        hx-swap="outerHTML transition:true">
-                        <x-icon path="ph.regular.plus-circle" />
-                        {{ __('def.top_up') }}
-                    </a>
-                @endif
-            </div>
+                    @if (config('lk.only_modal'))
+                        <a class="balance-action" data-modal-open="lk-modal">
+                            <x-icon path="ph.bold.plus-bold" />
+                            <span>{{ __('def.top_up') }}</span>
+                        </a>
+                    @else
+                        <a href="{{ url('lk') }}" class="balance-action" hx-boost="true" hx-target="#main"
+                            hx-swap="outerHTML transition:true">
+                            <x-icon path="ph.bold.plus-bold" />
+                            <span>{{ __('def.top_up') }}</span>
+                        </a>
+                    @endif
+                </div>
+            @endif
 
             <div class="user-mini-profile-actions" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
-                <x-button href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-action"
-                    type="outline-primary">
-                    <x-icon path="ph.regular.user-circle" />
+                <a href="{{ url('profile/'.$user->getUrl()) }}" class="user-mini-profile-action">
+                    <x-icon path="ph.regular.user" />
                     <span>{{ __('def.my_profile') }}</span>
-                </x-button>
+                    <span class="user-mini-profile-action-chevron">
+                        <x-icon path="ph.regular.caret-right" />
+                    </span>
+                </a>
 
-                <x-button href="{{ url('profile/settings') }}" class="user-mini-profile-action" type="outline-primary">
+                <a href="{{ url('profile/settings') }}" class="user-mini-profile-action">
                     <x-icon path="ph.regular.gear" />
                     <span>{{ __('def.settings') }}</span>
-                </x-button>
+                    <span class="user-mini-profile-action-chevron">
+                        <x-icon path="ph.regular.caret-right" />
+                    </span>
+                </a>
 
                 @if (user()->can('admin'))
-                    <x-button href="{{ url('admin') }}" class="user-mini-profile-action" type="outline-primary"
-                        hx-boost="false">
-                        <x-icon path="ph.regular.shield" />
+                    <a href="{{ url('admin') }}" class="user-mini-profile-action" hx-boost="false">
+                        <x-icon path="ph.regular.shield-check" />
                         <span>{{ __('def.admin_panel') }}</span>
-                    </x-button>
+                        <span class="user-mini-profile-action-chevron">
+                            <x-icon path="ph.regular.caret-right" />
+                        </span>
+                    </a>
                 @endif
 
-                <form method="POST" action="{{ url('logout') }}" class="user-mini-profile-action" hx-boost="false">
+                <form method="POST" action="{{ url('logout') }}" class="user-mini-profile-action-form" hx-boost="false">
                     @csrf
-                    <x-button class="w-100" type="outline-error" submit="true">
+                    <button type="submit" class="user-mini-profile-action user-mini-profile-action--danger">
                         <x-icon path="ph.regular.sign-out" />
                         <span>{{ __('def.logout') }}</span>
-                    </x-button>
+                    </button>
                 </form>
             </div>
         </div>
@@ -135,7 +152,7 @@
         <div class="user-mini-profile-content">
             <div class="guest-profile-header">
                 <div class="guest-profile-avatar">
-                    <x-icon path="ph.regular.user-circle" />
+                    <x-icon path="ph.regular.user" />
                 </div>
                 <div class="guest-profile-info">
                     <h4>{{ __('auth.guest') }}</h4>
@@ -178,7 +195,7 @@
                 @endphp
                 <div class="guest-profile-actions" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">
                     <x-button href="{{ url('social/'.$key) }}" class="guest-profile-action" type="accent" hx-boost="false">
-                        <x-icon path="{!! $icon !!}" />
+                        <x-icon path="{{ $icon }}" />
                         <span>{{ __('auth.social.auth_via', [':social' => $key]) }}</span>
                     </x-button>
                 </div>
@@ -203,9 +220,9 @@
                     <div class="guest-profile-socials-label">{{ __('auth.social.quick_login') }}</div>
                     <div class="guest-profile-socials-buttons">
                         @foreach ($socialNetworks as $key => $item)
-                            <a href="{{ url('social/'.$key) }}" class="guest-profile-social-btn" title="{{ $key }}"
+                            <a href="{{ url('social/'.$key) }}" class="guest-profile-social-btn"
                                 data-tooltip="{{ $item['entity']->key }}">
-                                <x-icon path="{!! $item['entity']->icon !!}" />
+                                <x-icon path="{{ $item['entity']->icon }}" />
                             </a>
                         @endforeach
                     </div>

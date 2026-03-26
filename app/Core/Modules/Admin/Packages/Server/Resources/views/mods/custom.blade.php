@@ -1,12 +1,8 @@
 @props(['settings', 'driverName'])
 
-<div class="alert alert-warning mb-0">
-    <div class="d-flex">
-        <div>
-            <h5 class="alert-heading mb-1">{{ __('admin-server.mods.custom_alert.title') }}</h5>
-            <p class="mb-0">{{ __('admin-server.mods.custom_alert.description') }}</p>
-        </div>
-    </div>
+<div class="db-wizard__custom-note">
+    <x-icon path="ph.regular.info" />
+    <span>{{ __('admin-server.mods.custom_alert.description') }}</span>
 </div>
 
 <div class="row g-3">

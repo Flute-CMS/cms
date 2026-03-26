@@ -8,6 +8,8 @@ use Flute\Core\Exceptions\IncorrectPasswordException;
 use Flute\Core\Exceptions\TooManyRequestsException;
 use Flute\Core\Exceptions\TwoFactorRequiredException;
 use Flute\Core\Exceptions\UserNotFoundException;
+use Flute\Core\Modules\Auth\Events\LoginFormRenderingEvent;
+use Flute\Core\Modules\Auth\Events\LoginValidatingEvent;
 use Flute\Core\Services\CaptchaService;
 use Flute\Core\Services\TwoFactorService;
 use Flute\Core\Support\FluteComponent;
@@ -15,6 +17,8 @@ use Nette\Schema\ValidationException;
 
 class LoginComponent extends FluteComponent
 {
+    protected array $excludesVariables = ['redirectTo', 'confirmedActions', 'pendingUserId', 'showTwoFactor'];
+
     public ?string $loginOrEmail = null;
 
     public ?string $password = null;
@@ -29,15 +33,18 @@ class LoginComponent extends FluteComponent
 
     public function login()
     {
-        if ($this->validator() && $this->validateCaptcha()) {
+        if ($this->validator() && $this->validateExtensions() && $this->validateCaptcha()) {
             try {
                 $this->rememberMe = filter_var($this->rememberMe, FILTER_VALIDATE_BOOLEAN);
 
-                auth()->authenticate([
-                    'login' => $this->loginOrEmail,
-                    'password' => $this->password,
-                    'remember_me' => $this->rememberMe ??= false,
-                ], $this->rememberMe ??= false);
+                auth()->authenticate(
+                    [
+                        'login' => $this->loginOrEmail,
+                        'password' => $this->password,
+                        'remember_me' => $this->rememberMe ??= false,
+                    ],
+                    $this->rememberMe ??= false,
+                );
 
                 toast()->success(__('auth.login_success'))->push();
 
@@ -45,6 +52,8 @@ class LoginComponent extends FluteComponent
 
                 $this->redirectTo(url('/'), 1500);
             } catch (TwoFactorRequiredException $e) {
+                session()->set('2fa_pending_user_id', $e->getUser()->id);
+                session()->set('2fa_pending_time', time());
                 $this->pendingUserId = $e->getUser()->id;
                 $this->showTwoFactor = true;
             } catch (ValidationException $e) {
@@ -73,13 +82,30 @@ class LoginComponent extends FluteComponent
             return;
         }
 
-        if (!$this->pendingUserId) {
+        try {
+            throttler()->throttle(['action' => '2fa_verify', 'ip' => request()->getClientIp()], 5, 300, 2);
+        } catch (TooManyRequestsException $e) {
+            toast()->error(__('auth.too_many_requests'))->push();
             $this->showTwoFactor = false;
+            $this->pendingUserId = null;
 
             return;
         }
 
-        $user = User::findByPK($this->pendingUserId);
+        $sessionUserId = session()->get('2fa_pending_user_id');
+        $pendingTime = session()->get('2fa_pending_time', 0);
+
+        if (!$sessionUserId || ( time() - $pendingTime ) > 300) {
+            session()->remove('2fa_pending_user_id');
+            session()->remove('2fa_pending_time');
+            $this->showTwoFactor = false;
+            $this->pendingUserId = null;
+            toast()->error(__('auth.two_factor.expired'))->push();
+
+            return;
+        }
+
+        $user = User::findByPK($sessionUserId);
 
         if (!$user) {
             toast()->error(__('auth.errors.user_not_found'))->push();
@@ -118,13 +144,22 @@ class LoginComponent extends FluteComponent
         $this->showTwoFactor = false;
         $this->pendingUserId = null;
         $this->twoFactorCode = null;
+        session()->remove('2fa_pending_user_id');
+        session()->remove('2fa_pending_time');
     }
 
     public function render()
     {
+        $formEvent = new LoginFormRenderingEvent([
+            'loginOrEmail' => $this->loginOrEmail,
+        ]);
+
+        events()->dispatch($formEvent, LoginFormRenderingEvent::NAME);
+
         return $this->view('flute::components.auth.login', [
             'showTwoFactor' => $this->showTwoFactor,
             'pendingUserId' => $this->pendingUserId,
+            'formEvent' => $formEvent,
         ]);
     }
 
@@ -142,6 +177,41 @@ class LoginComponent extends FluteComponent
         ]);
     }
 
+    /**
+     * Validate using module event listeners.
+     */
+    protected function validateExtensions(): bool
+    {
+        $validationEvent = new LoginValidatingEvent([
+            'loginOrEmail' => $this->loginOrEmail,
+            'password' => $this->password,
+        ]);
+
+        events()->dispatch($validationEvent, LoginValidatingEvent::NAME);
+
+        if ($validationEvent->stopValidation) {
+            if (isset($validationEvent->errors['_global'])) {
+                toast()->error($validationEvent->errors['_global'])->push();
+            }
+
+            return false;
+        }
+
+        if ($validationEvent->hasErrors()) {
+            foreach ($validationEvent->errors as $field => $message) {
+                if ($field === '_global') {
+                    toast()->error($message)->push();
+                } else {
+                    $this->inputError($field, $message);
+                }
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
     protected function validateCaptcha()
     {
         /** @var CaptchaService $captchaService */
@@ -151,9 +221,10 @@ class LoginComponent extends FluteComponent
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

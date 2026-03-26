@@ -1,0 +1,90 @@
+#conditions-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ce-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ce-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.ce-fields {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ce-field-type {
+    flex: 0 0 160px;
+}
+
+.ce-field-op {
+    flex: 0 0 140px;
+}
+
+.ce-field-val {
+    flex: 1;
+    min-width: 0;
+}
+
+.ce-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+
+.ce-actions .btn-tiny {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    min-width: unset;
+}
+
+.ce-connector,
+.ce-separator {
+    padding: 6px 0 6px 4px;
+}
+
+.ce-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 1px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.ce-and {
+    background: rgba(var(--primary-rgb, 99, 102, 241), 0.12);
+    color: var(--primary, #6366f1);
+}
+
+.ce-or {
+    background: rgba(var(--warning-rgb, 255, 183, 77), 0.15);
+    color: var(--warning, #ffb74d);
+}
+
+.ce-empty {
+    padding: 8px 0;
+}
+
+.ce-row .form-label {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.ce-field .select-wrapper,
+.ce-field .input-wrapper {
+    margin: 0;
+}

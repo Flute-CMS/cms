@@ -5,6 +5,7 @@ namespace Flute\Core\ServiceProviders;
 use Flute\Core\Events\ResponseEvent;
 use Flute\Core\Events\UserChangedEvent;
 use Flute\Core\Listeners\UserChangeResponseListener;
+use Flute\Core\Services\UserNameRenderer;
 use Flute\Core\Services\UserService;
 use Flute\Core\Support\AbstractServiceProvider;
 use Throwable;
@@ -18,7 +19,8 @@ class UserServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             UserService::class => \DI\autowire(),
-            "user" => \DI\get(UserService::class),
+            UserNameRenderer::class => \DI\create(),
+            'user' => \DI\get(UserService::class),
         ]);
     }
 
@@ -35,7 +37,9 @@ class UserServiceProvider extends AbstractServiceProvider
                 }
             } catch (Throwable $e) {
                 if (function_exists('logs')) {
-                    logs('database')->warning('UserServiceProvider: ORM not available during boot: ' . $e->getMessage());
+                    logs('database')->warning(
+                        'UserServiceProvider: ORM not available during boot: ' . $e->getMessage(),
+                    );
                 }
             }
         }
@@ -48,7 +52,8 @@ class UserServiceProvider extends AbstractServiceProvider
             return;
         }
 
-        $container->get(UserService::class)->getCurrentUser();
+        // Lazy: do not eagerly initialize user — let it happen on first access
+        // $container->get(UserService::class)->getCurrentUser();
 
         if (!is_cli()) {
             $events = $container->get('events');

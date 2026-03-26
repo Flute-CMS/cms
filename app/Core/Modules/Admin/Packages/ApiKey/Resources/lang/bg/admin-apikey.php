@@ -44,4 +44,11 @@ return [
         'delete_success' => 'API key deleted successfully.',
         'delete_error' => 'Error deleting API key: :message',
     ],
+
+    'info_alert' => [
+        'title' => 'Необходим е API модул',
+        'description' => 'API ключовете позволяват автентикация на заявки, но за работата на API е необходимо инсталирането на модула API от маркетплейса.',
+        'install_module' => 'Инсталиране на модула',
+        'documentation' => 'Документация',
+    ],
 ];

@@ -26,31 +26,19 @@ class FileSystemService extends Filesystem
 
         $this->mkdir($cacheDir);
 
-        $handle = @fopen($lockFile, 'c+');
+        // Use FileLockService for concurrent access protection
+        $handle = FileLockService::acquireLockWithWait($lockFile, 2.0);
+
         if ($handle === false) {
+            // Could not acquire lock, try to load cache anyway or generate without lock
+            if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
+                return;
+            }
+
             $this->generateHelpersCache($helpersPath, $cacheFile);
             $this->writeHelpersCacheMeta($helpersPath, $metaFile);
 
             return;
-        }
-
-        $gotLock = @flock($handle, LOCK_EX | LOCK_NB);
-        if (!$gotLock) {
-            $maxWait = 2.0;
-            $waited = 0.0;
-
-            while ($waited < $maxWait) {
-                if ($this->tryLoadCache($cacheFile, $metaFile, $helpersPath)) {
-                    @fclose($handle);
-
-                    return;
-                }
-
-                usleep(100000);
-                $waited += 0.1;
-            }
-
-            $gotLock = @flock($handle, LOCK_EX);
         }
 
         try {
@@ -61,8 +49,7 @@ class FileSystemService extends Filesystem
             $this->generateHelpersCache($helpersPath, $cacheFile);
             $this->writeHelpersCacheMeta($helpersPath, $metaFile);
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            FileLockService::releaseLock($handle);
         }
     }
 
@@ -80,7 +67,7 @@ class FileSystemService extends Filesystem
             throw new Exception(sprintf('Configuration file "%s" is not writable.', $filePath));
         }
 
-        $configString = "<?php\n\nreturn " . var_export($newConfig, true) . ";";
+        $configString = "<?php\n\nreturn " . var_export($newConfig, true) . ';';
         $this->dumpFile($filePath, $configString);
 
         if (function_exists('opcache_invalidate')) {
@@ -113,7 +100,11 @@ class FileSystemService extends Filesystem
         }
 
         $uniqueUseStatements = array_unique($useStatements);
-        $cacheContent = "<?php if(!defined('FLUTE_HELPERS_OK')){define('FLUTE_HELPERS_OK','1');}" . implode("", $uniqueUseStatements) . "" . str_replace('<?php', '', $cacheContent);
+        $cacheContent =
+            "<?php if(!defined('FLUTE_HELPERS_OK')){define('FLUTE_HELPERS_OK','1');}"
+            . implode('', $uniqueUseStatements)
+            . ''
+            . str_replace('<?php', '', $cacheContent);
 
         $this->dumpFile($cacheFile, $cacheContent);
         require_once $cacheFile;
@@ -172,10 +163,14 @@ class FileSystemService extends Filesystem
      */
     private function removeComments(string $content): string
     {
-        return preg_replace([
-            '/\/\*.*?\*\//s',
-            '/\/\/[^\r\n]*/',
-        ], '', $content);
+        return preg_replace(
+            [
+                '/\/\*.*?\*\//s',
+                '/\/\/[^\r\n]*/',
+            ],
+            '',
+            $content,
+        );
     }
 
     /**

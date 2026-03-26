@@ -52,6 +52,10 @@ return [
             'placeholder' => 'ph.regular... or <svg...',
             'help' => 'Icon associated with the role',
         ],
+        'show_icon' => [
+            'label' => 'Show as icon',
+            'help' => 'Show icon instead of name in compact views (user card, mini-profile)',
+        ],
     ],
     'messages' => [
         'created' => 'Role created successfully.',
@@ -60,5 +64,9 @@ return [
         'not_found' => 'Role not found or you do not have permission to edit it.',
         'invalid_sort' => 'Invalid sort data.',
         'no_permissions' => 'Please select at least one permission.',
+    ],
+    'empty' => [
+        'title' => 'No roles created',
+        'sub' => 'Create roles to manage user permissions',
     ],
 ];

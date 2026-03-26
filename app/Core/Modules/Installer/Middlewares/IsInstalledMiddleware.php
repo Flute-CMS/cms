@@ -10,7 +10,10 @@ class IsInstalledMiddleware extends BaseMiddleware
 {
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
-        abort_if(is_installed(), 404);
+        $lockFile = storage_path('.installed');
+        $isInstalled = is_installed() || file_exists($lockFile);
+
+        abort_unless($isInstalled, 404);
 
         return $next($request);
     }

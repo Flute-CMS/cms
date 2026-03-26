@@ -9,7 +9,7 @@ use Flute\Core\Support\FluteRequest;
 
 class BanCheckMiddleware extends BaseMiddleware
 {
-    protected const CACHE_TIME = 60;
+    protected const CACHE_TIME = 600;
 
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
@@ -21,7 +21,7 @@ class BanCheckMiddleware extends BaseMiddleware
             $reason = $this->getBlockReason($request);
 
             return $this->error()->forbidden(__('def.you_are_blocked', [
-                ":reason" => $reason,
+                ':reason' => $reason,
             ]));
         }
 
@@ -51,7 +51,9 @@ class BanCheckMiddleware extends BaseMiddleware
     protected function getBlockReason(FluteRequest $request): string
     {
         if (user()->isLoggedIn() && user()->isBlocked()) {
-            return user()->getCurrentUser()->getBlockInfo()['reason'];
+            $blockInfo = user()->getCurrentUser()->getBlockInfo();
+
+            return $blockInfo['reason'] ?? __('def.unknown_reason');
         }
 
         $ipAddress = $request->getClientIp();
@@ -72,14 +74,18 @@ class BanCheckMiddleware extends BaseMiddleware
     {
         $cacheKey = 'flute.ip_block_info.' . md5($ipAddress);
 
-        return cache()->callback($cacheKey, static function () use ($ipAddress) {
-            $users = UserDevice::query()
-                ->where('ip', $ipAddress)
-                ->load('user')
-                ->load('user.blocksReceived')
-                ->fetchAll();
+        return cache()->callback(
+            $cacheKey,
+            static function () use ($ipAddress) {
+                $userDevice = UserDevice::query()
+                    ->where('ip', $ipAddress)
+                    ->load(['user', 'user.blocksReceived'])
+                    ->fetchOne();
 
-            foreach ($users as $userDevice) {
+                if (!$userDevice) {
+                    return ['blocked' => false, 'reason' => null];
+                }
+
                 if ($userDevice->user->isBlocked()) {
                     $info = $userDevice->user->getBlockInfo();
 
@@ -88,12 +94,10 @@ class BanCheckMiddleware extends BaseMiddleware
                         'reason' => $info['reason'] ?? null,
                     ];
                 }
-            }
 
-            return [
-                'blocked' => false,
-                'reason' => null,
-            ];
-        }, self::CACHE_TIME);
+                return ['blocked' => false, 'reason' => null];
+            },
+            self::CACHE_TIME,
+        );
     }
 }

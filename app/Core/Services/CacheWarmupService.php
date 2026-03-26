@@ -55,25 +55,14 @@ final class CacheWarmupService
     public function warmup(): void
     {
         $lockPath = path(self::WARMUP_LOCK_FILE);
-        @mkdir(dirname($lockPath), 0o755, true);
 
-        $handle = @fopen($lockPath, 'w+');
+        $handle = FileLockService::acquireLock($lockPath);
         if ($handle === false) {
             return;
         }
 
-        if (!@flock($handle, LOCK_EX | LOCK_NB)) {
-            @fclose($handle);
-
-            return;
-        }
-
         try {
-            @ignore_user_abort(true);
-            @set_time_limit(0);
-
             try {
-                // Ensure modules caches are built.
                 app(ModuleManager::class)->initialize();
             } catch (Throwable $e) {
                 logs('cron')->warning($e);
@@ -108,8 +97,7 @@ final class CacheWarmupService
 
             $this->clearNeeded();
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            FileLockService::releaseLock($handle);
         }
     }
 }

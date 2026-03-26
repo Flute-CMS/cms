@@ -17,7 +17,7 @@
                         <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="user-avatar"
                             title="{{ $user->name }}">
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
-                                data-tooltip="{{ $user->name }}">
+                                data-tooltip="{{ $user->name }}" loading="lazy" decoding="async">
                         </x-link>
                     @endforeach
                 </div>
@@ -27,14 +27,14 @@
                         <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card
                             class="user-avatar-compact" title="{{ $user->name }}">
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
-                                data-tooltip="{{ $user->name }}">
+                                data-tooltip="{{ $user->name }}" loading="lazy" decoding="async">
                         </x-link>
                     @endforeach
                 </div>
             @else
                 @foreach ($users as $key => $user)
                     <x-link href="{{ url('profile/' . $user->getUrl()) }}" data-user-card class="users-stats-name">
-                        {{ $user->name }}
+                        {!! $user->getDisplayName() !!}
                     </x-link>
                     @isset($users[$key + 1])
                         ,

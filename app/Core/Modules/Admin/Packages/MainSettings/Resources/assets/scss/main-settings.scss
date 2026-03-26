@@ -1,3 +1,73 @@
+.languages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.language-card {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    border-radius: var(--border1);
+    border: 1px solid var(--transp-3);
+    background: var(--transp-05);
+    transition: var(--transition);
+    overflow: hidden;
+
+    &:hover {
+        border-color: var(--transp-5);
+        background-color: var(--transp-2);
+    }
+
+    &--active {
+        border-color: var(--accent) !important;
+        background: color-mix(in srgb, var(--accent) 10%, var(--background)) !important;
+    }
+
+    &__input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0.75rem;
+        gap: 1rem;
+        position: relative;
+    }
+
+    &__flag {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        object-fit: cover;
+        line-height: 1;
+    }
+
+    &__name {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text);
+        text-align: center;
+    }
+
+    &__code {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: var(--text-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__input:focus-visible + &__content {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
 .cron-section {
     background-color: var(--transp-05);
     margin-bottom: 1rem;

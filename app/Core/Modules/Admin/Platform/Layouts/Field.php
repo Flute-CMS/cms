@@ -37,7 +37,7 @@ class Field extends Layout
 
     public function __construct(
         ?\Flute\Admin\Platform\Field $field = null,
-        array $classes = []
+        array $classes = [],
     ) {
         if ($field) {
             $this->field($field);
@@ -129,6 +129,14 @@ class Field extends Layout
         $this->attributes[$key] = $value;
 
         return $this;
+    }
+
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'field',
+            'label' => !empty($this->attributes['label']),
+        ];
     }
 
     /**

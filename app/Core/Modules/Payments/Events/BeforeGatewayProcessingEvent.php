@@ -19,8 +19,12 @@ class BeforeGatewayProcessingEvent extends Event
 
     protected $paymentData;
 
-    public function __construct(PaymentInvoice $invoice, PaymentGateway $paymentGateway, ?GatewayInterface $gateway, array &$paymentData)
-    {
+    public function __construct(
+        PaymentInvoice $invoice,
+        PaymentGateway $paymentGateway,
+        ?GatewayInterface $gateway,
+        array &$paymentData,
+    ) {
         $this->invoice = $invoice;
         $this->paymentGateway = $paymentGateway;
         $this->gateway = $gateway;
@@ -42,7 +46,7 @@ class BeforeGatewayProcessingEvent extends Event
         return $this->gateway;
     }
 
-    public function getPaymentdata(): array
+    public function getPaymentData(): array
     {
         return $this->paymentData;
     }

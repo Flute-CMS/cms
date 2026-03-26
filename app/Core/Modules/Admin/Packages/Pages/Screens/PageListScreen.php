@@ -29,9 +29,7 @@ class PageListScreen extends Screen
         $this->name = __('admin-pages.title.list');
         $this->description = __('admin-pages.title.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-pages.title.list'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-pages.title.list'));
 
         $this->pages = rep(Page::class)->select()->load('blocks');
     }
@@ -43,20 +41,20 @@ class PageListScreen extends Screen
                 TD::selection('id'),
                 TD::make('title')
                     ->title(__('admin-pages.fields.title.label'))
-                    ->render(static fn (Page $page) => view('admin-pages::cells.page-info', compact('page')))
+                    ->render(static fn(Page $page) => view('admin-pages::cells.page-info', compact('page')))
                     ->minWidth('250px')
                     ->cantHide(),
 
                 TD::make('route')
                     ->title(__('admin-pages.fields.route.label'))
-                    ->render(static fn (Page $page) => '<code>' . $page->route . '</code>')
+                    ->render(static fn(Page $page) => '<code>' . $page->route . '</code>')
                     ->width('200px')
                     ->sort()
                     ->cantHide(),
 
                 TD::make('blocks_count')
                     ->title(__('admin-pages.title.blocks'))
-                    ->render(static fn (Page $page) => count($page->blocks))
+                    ->render(static fn(Page $page) => count($page->blocks))
                     ->width('200px')
                     ->alignCenter(),
 
@@ -72,34 +70,38 @@ class PageListScreen extends Screen
                     ->title(__('admin-pages.buttons.actions'))
                     ->width('200px')
                     ->alignCenter()
-                    ->render(
-                        static fn (Page $page) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-pages.buttons.edit'))
-                                    ->redirect(url('/admin/pages/' . $page->id . '/edit'))
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
+                    ->render(static fn(Page $page) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list([
+                            DropDownItem::make(__('admin-pages.buttons.edit'))
+                                ->redirect(url('/admin/pages/' . $page->id . '/edit'))
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
 
-                                DropDownItem::make(__('admin-pages.buttons.delete'))
-                                    ->confirm(__('admin-pages.confirms.delete_page'))
-                                    ->method('delete', ['delete-id' => $page->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
+                            DropDownItem::make(__('admin-pages.buttons.delete'))
+                                ->confirm(__('admin-pages.confirms.delete_page'))
+                                ->method('delete', ['delete-id' => $page->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
 
-                                DropDownItem::make(__('admin-pages.buttons.goto'))
-                                    ->href(url($page->route))
-                                    ->icon('ph.bold.arrow-right-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
+                            DropDownItem::make(__('admin-pages.buttons.goto'))
+                                ->href(url($page->route))
+                                ->icon('ph.bold.arrow-right-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
+                        ])),
             ])
+                ->empty('ph.regular.file-text', __('admin-pages.empty.title'), __('admin-pages.empty.sub'))
+                ->emptyButton(
+                    Button::make(__('admin-pages.buttons.add'))
+                        ->icon('ph.bold.plus-bold')
+                        ->redirect(url('/admin/pages/add')),
+                )
                 ->searchable(['title', 'route', 'description'])
                 ->bulkActions([
                     Button::make(__('admin.bulk.delete_selected'))

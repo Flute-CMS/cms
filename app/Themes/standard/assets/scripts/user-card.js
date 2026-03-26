@@ -159,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.remove('active');
     }
 
-    function hideMiniProfile() {
+    function hideMiniProfile(opts) {
+        const keepContent = opts && opts.keepContent;
         if (!miniProfileEl.classList.contains('active') || isAnimating) return;
         
         isAnimating = true;
@@ -170,7 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const finishHide = () => {
             if (miniProfileEl.classList.contains('hide')) {
-                miniProfileInner.innerHTML = '';
+                if (!keepContent) {
+                    miniProfileInner.innerHTML = '';
+                }
                 miniProfileEl.classList.remove('hide');
                 miniProfileEl.style.top = '0';
                 miniProfileEl.style.left = '0';
@@ -246,18 +249,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="user-card-body">
-                    <div class="user-card-info">
+                    <div class="user-card-identity">
                         <div class="skeleton uc-sk-name"></div>
                         <div class="skeleton uc-sk-sub"></div>
                     </div>
-                    <div class="user-card-roles uc-sk-roles">
+                    <div class="uc-sk-roles">
                         <div class="skeleton uc-sk-role-pill"></div>
-                        <div class="skeleton uc-sk-role-dot"></div>
-                        <div class="skeleton uc-sk-role-dot"></div>
-                        <div class="skeleton uc-sk-role-dot"></div>
+                        <div class="skeleton uc-sk-role-pill"></div>
+                        <div class="skeleton uc-sk-role-pill" style="width:40px"></div>
                     </div>
-                    <div class="user-card-goto">
-                        <div class="skeleton uc-sk-button"></div>
+                    <div class="uc-card-bottom" style="pointer-events:none;border-top:1px solid var(--transp-05);padding-top:6px">
+                        <div class="skeleton" style="width:80px;height:26px;border-radius:7px"></div>
                     </div>
                 </div>
             </div>`;
@@ -328,9 +330,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             miniProfileEl
-                .querySelectorAll('.user-card-avatar, .user-card-goto > a')
+                .querySelectorAll('.user-card-avatar')
                 .forEach((el) => {
                     el.addEventListener('click', hideMiniProfile);
+                });
+            
+            miniProfileEl
+                .querySelectorAll('.uc-profile-btn')
+                .forEach((el) => {
+                    el.addEventListener('click', () => {
+                        hideMiniProfile({ keepContent: true });
+                        setTimeout(() => { miniProfileInner.innerHTML = ''; }, 500);
+                    });
                 });
             // remove showing flag after initial paint
             requestAnimationFrame(() => miniProfileEl.classList.remove('showing'));

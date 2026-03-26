@@ -1,0 +1,31 @@
+// Light theme adjustments
+html[data-theme="light"] {
+    .navbar-dropdown__box::before {
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow:
+            0 0 0 1px var(--transp-1),
+            0 8px 40px rgba(0, 0, 0, 0.1),
+            0 16px 64px rgba(0, 0, 0, 0.08);
+    }
+}
+
+// Theme variants for logo
+html[data-theme="light"] {
+    .navbar__logo-light {
+        display: block;
+    }
+
+    .navbar__logo-dark {
+        display: none;
+    }
+}
+
+html[data-theme="dark"] {
+    .navbar__logo-light {
+        display: none;
+    }
+
+    .navbar__logo-dark {
+        display: block;
+    }
+}

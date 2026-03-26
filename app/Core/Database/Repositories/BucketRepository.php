@@ -9,9 +9,7 @@ class BucketRepository extends Repository
 {
     public function findById(string $id)
     {
-        return $this->select()
-            ->where(['id' => $id])
-            ->fetchOne();
+        return $this->select()->where(['id' => $id])->fetchOne();
     }
 
     public function save(Bucket $bucket): void

@@ -14,6 +14,8 @@ class SocialAuthController extends BaseController
 {
     public function redirectToProvider(FluteRequest $request, string $provider)
     {
+        $origin = json_encode($this->getSiteOrigin());
+
         try {
             if (user()->isLoggedIn()) {
                 social()->bindSocialNetwork(user()->getCurrentUser(), ucfirst($provider));
@@ -22,7 +24,15 @@ class SocialAuthController extends BaseController
 
                 $redirectUrl = redirect('/profile/settings?tab=social')->getTargetUrl();
 
-                return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+                $redirectUrlJs = json_encode($redirectUrl);
+
+                return response()->make(
+                    "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+                    . $origin
+                    . '); window.close(); } else { window.location = '
+                    . $redirectUrlJs
+                    . '; }</script>',
+                );
             }
 
             $user = social()->authenticateWithRegister(ucfirst($provider));
@@ -34,10 +44,41 @@ class SocialAuthController extends BaseController
             flash()->add('success', __('auth.login_success'));
 
             $redirectUrl = redirect('/')->getTargetUrl();
+            $redirectUrlJs = json_encode($redirectUrl);
 
-            return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+            return response()->make(
+                "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+                . $origin
+                . '); window.close(); } else { window.location = '
+                . $redirectUrlJs
+                . '; }</script>',
+            );
         } catch (NeedRegistrationException $e) {
-            return $this->socialError('This function is not supported yet.', $request);
+            $profile = $e->getProfile();
+            $socialNetwork = $e->getSocialNetwork();
+
+            $payload = json_encode([
+                'identifier' => $profile->identifier,
+                'displayName' => $profile->displayName,
+                'email' => $profile->email,
+                'photoURL' => $profile->photoURL,
+                'profileURL' => $profile->profileURL,
+                'social_id' => $socialNetwork->id,
+                'provider_key' => $socialNetwork->key,
+                'issued_at' => time(),
+            ]);
+
+            session()->set('social_supplement', encrypt()->encrypt($payload));
+
+            $redirectUrl = json_encode(url('/social/supplement')->get());
+
+            return response()->make(
+                '<script>if (window.opener) { window.opener.location = '
+                . $redirectUrl
+                . '; window.close(); } else { window.location = '
+                . $redirectUrl
+                . '; }</script>',
+            );
         } catch (UserNotFoundException $e) {
             return $this->socialError(__('auth.errors.user_not_found'), $request);
         } catch (SocialNotFoundException $e) {
@@ -59,8 +100,17 @@ class SocialAuthController extends BaseController
     protected function socialSuccess(?FluteRequest $request = null)
     {
         $redirectUrl = redirect('/')->getTargetUrl();
+        $origin = json_encode($this->getSiteOrigin());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = '" . $redirectUrl . "'; }</script>");
+        $redirectUrlJs = json_encode($redirectUrl);
+
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+            . $origin
+            . '); window.close(); } else { window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 
     /**
@@ -69,20 +119,36 @@ class SocialAuthController extends BaseController
     protected function socialError(string $error, ?FluteRequest $request = null)
     {
         $redirectUrl = redirect('/')->getTargetUrl();
+        $origin = json_encode($this->getSiteOrigin());
 
         $errorJs = json_encode($error);
         $redirectUrlJs = json_encode($redirectUrl);
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_error:' + "
+            . $errorJs
+            . ', '
+            . $origin
+            . '); window.close(); } else { alert('
+            . $errorJs
+            . '); window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 
-    // public function getSocialRegister( FluteRequest $request )
-    // {
+    /**
+     * Get the site origin for postMessage security.
+     */
+    private function getSiteOrigin(): string
+    {
+        $url = config('app.url');
+        if (!empty($url)) {
+            $parsed = parse_url($url);
 
-    // }
+            return ( $parsed['scheme'] ?? 'https' ) . '://' . ( $parsed['host'] ?? '' );
+        }
 
-    // public function postSocialRegister( FluteRequest $request )
-    // {
-
-    // }
+        return request()->getSchemeAndHttpHost();
+    }
 }

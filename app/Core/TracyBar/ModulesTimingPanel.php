@@ -56,7 +56,7 @@ class ModulesTimingPanel implements IBarPanel
             return $time > 0.0001; // Keep only significant numbers
         });
 
-        $modulesBootTimes = array_filter($modulesBootTimes, static fn ($time) => $time > 0.0001);
+        $modulesBootTimes = array_filter($modulesBootTimes, static fn($time) => $time > 0.0001);
 
         $id = uniqid('tracy-timing-');
 
@@ -102,7 +102,7 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<tr><th>Service provider</th><th>Time (sec)</th><th>%</th><th></th></tr>';
 
             foreach ($bootTimes as $provider => $time) {
-                $percent = ($time / $totalTime) * 100;
+                $percent = ( $time / $totalTime ) * 100;
                 $shortName = $this->getShortClassName($provider);
                 $isModule = strpos($provider, 'Modules\\') !== false;
 
@@ -113,7 +113,7 @@ class ModulesTimingPanel implements IBarPanel
                     $isModule ? '(module)' : '',
                     $time,
                     $percent,
-                    min(100, $percent * 1.5)
+                    min(100, $percent * 1.5),
                 );
             }
 
@@ -139,14 +139,14 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<tr><th>Module</th><th>Time (sec)</th><th>%</th><th></th></tr>';
 
             foreach ($modulesBootTimes as $module => $time) {
-                $percent = ($time / $totalModulesTime) * 100;
+                $percent = ( $time / $totalModulesTime ) * 100;
 
                 $html .= sprintf(
                     '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#3cb371;height:4px;width:%d%%;"></div></td></tr>',
                     htmlspecialchars($module),
                     $time,
                     $percent,
-                    min(100, $percent * 1.5)
+                    min(100, $percent * 1.5),
                 );
             }
 
@@ -167,9 +167,15 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<div class="tracy-inner"><table style="width:100%">';
             $html .= '<tr><th>View</th><th>Time (sec)</th><th>%</th><th></th></tr>';
             foreach ($viewTimes as $view => $time) {
-                $percent = ($time / $totalViewTime) * 100;
+                $percent = ( $time / $totalViewTime ) * 100;
                 $short = htmlspecialchars($view);
-                $html .= sprintf('<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#FFB347;height:4px;width:%d%%;"></div></td></tr>', $short, $time, $percent, min(100, $percent * 1.5));
+                $html .= sprintf(
+                    '<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#FFB347;height:4px;width:%d%%;"></div></td></tr>',
+                    $short,
+                    $time,
+                    $percent,
+                    min(100, $percent * 1.5),
+                );
             }
             $html .= '</table></div>';
         }
@@ -187,8 +193,14 @@ class ModulesTimingPanel implements IBarPanel
             $html .= '<div class="tracy-inner"><table style="width:100%">';
             $html .= '<tr><th>Segment</th><th>Time (sec)</th><th>%</th><th></th></tr>';
             foreach ($rTimes as $seg => $time) {
-                $percent = ($time / $totalRT) * 100;
-                $html .= sprintf('<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#8FBC8F;height:4px;width:%d%%;"></div></td></tr>', htmlspecialchars($seg), $time, $percent, min(100, $percent * 1.5));
+                $percent = ( $time / $totalRT ) * 100;
+                $html .= sprintf(
+                    '<tr><td>%s</td><td>%.4f</td><td>%.1f%%</td><td><div style="background:#8FBC8F;height:4px;width:%d%%;"></div></td></tr>',
+                    htmlspecialchars($seg),
+                    $time,
+                    $percent,
+                    min(100, $percent * 1.5),
+                );
             }
             $html .= '</table></div>';
         }
@@ -262,7 +274,8 @@ class ModulesTimingPanel implements IBarPanel
         }
 
         if (defined('FLUTE_CONTAINER_START') && defined('FLUTE_CONTAINER_END')) {
-            $this->coreComponentTimes['Container Building'] = constant('FLUTE_CONTAINER_END') - constant('FLUTE_CONTAINER_START');
+            $this->coreComponentTimes['Container Building'] =
+                constant('FLUTE_CONTAINER_END') - constant('FLUTE_CONTAINER_START');
         }
 
         if (defined('FLUTE_BOOTSTRAP_START') && defined('FLUTE_START')) {
@@ -277,9 +290,16 @@ class ModulesTimingPanel implements IBarPanel
             $this->coreComponentTimes['View Rendering'] = constant('FLUTE_VIEW_TIME');
         }
 
-        $measuredCore = array_sum(array_filter($this->coreComponentTimes, static fn ($k) => $k !== 'Untracked Operations', ARRAY_FILTER_USE_KEY));
+        $measuredCore = array_sum(array_filter(
+            $this->coreComponentTimes,
+            static fn($k) => $k !== 'Untracked Operations',
+            ARRAY_FILTER_USE_KEY,
+        ));
         if (defined('FLUTE_START')) {
-            $this->coreComponentTimes['Untracked Operations'] = max(0, (microtime(true) - constant('FLUTE_START')) - $measuredCore);
+            $this->coreComponentTimes['Untracked Operations'] = max(
+                0,
+                microtime(true) - constant('FLUTE_START') - $measuredCore,
+            );
         }
 
         // Gather DB time measured via timing logger
@@ -316,39 +336,39 @@ class ModulesTimingPanel implements IBarPanel
         $html .= '<tr><th>Component</th><th>Time (sec)</th><th>%</th><th></th></tr>';
 
         // Core
-        $corePercent = ($totalCoreTime / $totalEngineTime) * 100;
+        $corePercent = ( $totalCoreTime / $totalEngineTime ) * 100;
         $html .= sprintf(
             '<tr><td>Core Components</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#FF7F50;height:8px;width:%d%%;"></div></td></tr>',
             $totalCoreTime,
             $corePercent,
-            min(100, $corePercent)
+            min(100, $corePercent),
         );
 
         // Providers
-        $providersPercent = ($totalProvidersTime / $totalEngineTime) * 100;
+        $providersPercent = ( $totalProvidersTime / $totalEngineTime ) * 100;
         $html .= sprintf(
             '<tr><td>Service Providers</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#3cb371;height:8px;width:%d%%;"></div></td></tr>',
             $totalProvidersTime,
             $providersPercent,
-            min(100, $providersPercent)
+            min(100, $providersPercent),
         );
 
         // Modules
-        $modulesPercent = ($totalModulesTime / $totalEngineTime) * 100;
+        $modulesPercent = ( $totalModulesTime / $totalEngineTime ) * 100;
         $html .= sprintf(
             '<tr><td>Modules</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#4169E1;height:8px;width:%d%%;"></div></td></tr>',
             $totalModulesTime,
             $modulesPercent,
-            min(100, $modulesPercent)
+            min(100, $modulesPercent),
         );
 
         // Other
-        $otherPercent = ($otherTime / $totalEngineTime) * 100;
+        $otherPercent = ( $otherTime / $totalEngineTime ) * 100;
         $html .= sprintf(
             '<tr><td>Untracked Operations</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:#808080;height:8px;width:%d%%;"></div></td></tr>',
             $otherTime,
             $otherPercent,
-            min(100, $otherPercent)
+            min(100, $otherPercent),
         );
 
         $html .= '</table>';
@@ -356,10 +376,26 @@ class ModulesTimingPanel implements IBarPanel
         $html .= '<div style="margin-top:20px">';
         $html .= '<h2>Loading Timeline</h2>';
         $html .= '<div style="display:flex;height:30px;width:100%;margin-top:10px;">';
-        $html .= sprintf('<div title="Core Components: %.1f%%" style="background:#FF7F50;height:100%%;width:%.1f%%"></div>', $corePercent, $corePercent);
-        $html .= sprintf('<div title="Service Providers: %.1f%%" style="background:#3cb371;height:100%%;width:%.1f%%"></div>', $providersPercent, $providersPercent);
-        $html .= sprintf('<div title="Modules: %.1f%%" style="background:#4169E1;height:100%%;width:%.1f%%"></div>', $modulesPercent, $modulesPercent);
-        $html .= sprintf('<div title="Untracked Operations: %.1f%%" style="background:#808080;height:100%%;width:%.1f%%"></div>', $otherPercent, $otherPercent);
+        $html .= sprintf(
+            '<div title="Core Components: %.1f%%" style="background:#FF7F50;height:100%%;width:%.1f%%"></div>',
+            $corePercent,
+            $corePercent,
+        );
+        $html .= sprintf(
+            '<div title="Service Providers: %.1f%%" style="background:#3cb371;height:100%%;width:%.1f%%"></div>',
+            $providersPercent,
+            $providersPercent,
+        );
+        $html .= sprintf(
+            '<div title="Modules: %.1f%%" style="background:#4169E1;height:100%%;width:%.1f%%"></div>',
+            $modulesPercent,
+            $modulesPercent,
+        );
+        $html .= sprintf(
+            '<div title="Untracked Operations: %.1f%%" style="background:#808080;height:100%%;width:%.1f%%"></div>',
+            $otherPercent,
+            $otherPercent,
+        );
         $html .= '</div>';
 
         $html .= '<div style="display:flex;margin-top:5px;font-size:12px;">';
@@ -399,8 +435,10 @@ class ModulesTimingPanel implements IBarPanel
                 $estimatedCoreTime = 0;
             }
 
-            $html .= '<p>No detailed core timing data available. Estimated core time: ' .
-                     sprintf('%.3f', $estimatedCoreTime) . ' sec</p>';
+            $html .=
+                '<p>No detailed core timing data available. Estimated core time: '
+                . sprintf('%.3f', $estimatedCoreTime)
+                . ' sec</p>';
 
             $html .= '<div style="margin-top:15px;background:#F8F8FF;padding:10px;border-left:4px solid #FF7F50;border-radius:3px">';
             $html .= '<h2>Performance Monitoring Tips</h2>';
@@ -429,7 +467,7 @@ class ModulesTimingPanel implements IBarPanel
                 continue;
             }
 
-            $percent = ($time / $totalCoreTime) * 100;
+            $percent = ( $time / $totalCoreTime ) * 100;
 
             $html .= sprintf(
                 '<tr><td>%s</td><td>%.3f</td><td>%.1f%%</td><td><div style="background:%s;height:4px;width:%d%%;"></div></td></tr>',
@@ -437,7 +475,7 @@ class ModulesTimingPanel implements IBarPanel
                 $time,
                 $percent,
                 $component === 'Untracked Operations' ? '#808080' : '#FF7F50',
-                min(100, $percent * 1.5)
+                min(100, $percent * 1.5),
             );
         }
 
@@ -465,8 +503,12 @@ class ModulesTimingPanel implements IBarPanel
         $slowestTime = current($coreTimes);
 
         if ($slowestTime > 0) {
-            $html .= '<p>The slowest core component is <strong>' . htmlspecialchars($slowestComponent) .
-                     '</strong> (' . sprintf('%.3f', $slowestTime) . ' sec).</p>';
+            $html .=
+                '<p>The slowest core component is <strong>'
+                . htmlspecialchars($slowestComponent)
+                . '</strong> ('
+                . sprintf('%.3f', $slowestTime)
+                . ' sec).</p>';
 
             // Specific optimization suggestions based on the bottleneck
             $html .= '<h3>Optimization tips:</h3><ul>';
@@ -528,11 +570,7 @@ class ModulesTimingPanel implements IBarPanel
      */
     private function renderHeader(string $title, float $totalTime): string
     {
-        return sprintf(
-            '<h1>%s (total: %.3f sec)</h1>',
-            $title,
-            $totalTime
-        );
+        return sprintf('<h1>%s (total: %.3f sec)</h1>', $title, $totalTime);
     }
 
     /**
@@ -562,7 +600,7 @@ class ModulesTimingPanel implements IBarPanel
 
             $maxTime = $topSlow[0]['wall_time'] ?? 1;
             foreach ($topSlow as $func) {
-                $percent = ($func['wall_time'] / $maxTime) * 100;
+                $percent = ( $func['wall_time'] / $maxTime ) * 100;
                 $shortName = $this->getShortClassName($func['function']);
                 $memory = $this->formatBytes($func['memory']);
 
@@ -574,7 +612,7 @@ class ModulesTimingPanel implements IBarPanel
                     $func['wall_time'],
                     $func['calls'],
                     $memory,
-                    min(100, $percent)
+                    min(100, $percent),
                 );
             }
             $html .= '</table>';
@@ -597,7 +635,7 @@ class ModulesTimingPanel implements IBarPanel
 
                 $maxCategoryTime = max(array_column($functions, 'wall_time'));
                 foreach ($functions as $funcName => $data) {
-                    $percent = ($data['wall_time'] / $maxCategoryTime) * 100;
+                    $percent = ( $data['wall_time'] / $maxCategoryTime ) * 100;
                     $shortName = $this->getShortClassName($funcName);
                     $memory = $this->formatBytes($data['memory']);
 
@@ -609,7 +647,7 @@ class ModulesTimingPanel implements IBarPanel
                         $data['cpu_time'],
                         $data['calls'],
                         $memory,
-                        min(100, $percent)
+                        min(100, $percent),
                     );
                 }
                 $html .= '</table>';

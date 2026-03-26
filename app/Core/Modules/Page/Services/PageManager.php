@@ -4,6 +4,7 @@ namespace Flute\Core\Modules\Page\Services;
 
 use Exception;
 use Flute\Core\Database\DatabaseConnection;
+use Flute\Core\Database\Entities\GlobalPageBlock;
 use Flute\Core\Database\Entities\Page;
 use Flute\Core\Database\Entities\PageBlock;
 use Flute\Core\Modules\Page\Controllers\PageController;
@@ -34,9 +35,15 @@ class PageManager
 
     protected const PAGES_CACHE_TIME = 3600;
 
+    protected const GLOBAL_LAYOUT_CACHE_KEY = 'flute.global.layout';
+
+    protected const GLOBAL_LAYOUT_CACHE_TIME = 3600;
+
     protected RouterInterface $router;
 
     protected bool $disabled = false;
+
+    private bool $globalContentRendered = false;
 
     private static bool $pagesLoaded = false;
 
@@ -60,7 +67,7 @@ class PageManager
         FluteRequest $request,
         UserService $userService,
         LoggerInterface $logger,
-        WidgetManager $widgetManager
+        WidgetManager $widgetManager,
     ) {
         $this->router = $router;
         $this->request = $request;
@@ -83,17 +90,17 @@ class PageManager
             $routePath = $this->request->getPathInfo();
             $cacheKey = 'flute.page.route.' . md5($routePath);
 
-            $pageId = is_performance()
-                ? cache()->callback($cacheKey, static function () use ($routePath) {
+            $pageId = cache()->callback(
+                $cacheKey,
+                static function () use ($routePath) {
                     $page = Page::findOne(['route' => $routePath]);
 
                     return $page ? $page->id : null;
-                }, self::PAGE_CACHE_TIME)
-                : null;
+                },
+                is_performance() ? self::PAGE_CACHE_TIME : 30,
+            );
 
-            $this->currentPage = $pageId
-                ? Page::findByPK($pageId)
-                : Page::findOne(['route' => $routePath]);
+            $this->currentPage = $pageId ? Page::findByPK($pageId) : Page::findOne(['route' => $routePath]);
 
             if ($this->currentPage) {
                 $this->loadPermissions();
@@ -113,13 +120,16 @@ class PageManager
         }
 
         $widgets = $this->currentPage->getBlocks();
-        $content = "";
+        $content = '';
 
         foreach ($widgets as $widget) {
             try {
+                $widgetName = $widget->getWidget();
+                $startTime = microtime(true);
                 $content .= $this->widgetManager
-                    ->getWidget($widget->getWidget())
+                    ->getWidget($widgetName)
                     ->render(json_decode($widget->getSettings(), true));
+                WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
             } catch (Throwable $e) {
                 $this->logger->error('Widget render error: ' . $e->getMessage(), [
                     'widget' => $widget->getWidget(),
@@ -183,13 +193,21 @@ class PageManager
                         }
 
                         $settings = json_decode($block->getSettings(), true);
+                        $widgetName = $block->getWidget();
+
+                        $widgetContent = $this->renderWidgetCached($widgetName, $settings);
+
+                        $conditionsRaw = $block->getConditions();
 
                         $layout[] = [
                             'id' => $block->getId(),
-                            'widgetName' => $block->getWidget(),
+                            'widgetName' => $widgetName,
                             'settings' => $settings,
                             'gridstack' => json_decode($block->gridstack, true),
-                            'content' => $this->widgetManager->getWidget($block->getWidget())->render($settings),
+                            'content' => $widgetContent,
+                            'conditions' => $conditionsRaw
+                                ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
+                                : ['auth' => 'all', 'device' => 'all'],
                         ];
                     } catch (Exception $e) {
                         $this->logger->error("Failed to retrieve layout for path {$path}: " . $e->getMessage());
@@ -222,11 +240,14 @@ class PageManager
                 throw new Exception('Widget ' . $widgetId . ' does not exist on current page');
             }
 
+            $widgetName = $widgetDb->getWidget();
+            $startTime = microtime(true);
             $content = $this->widgetManager
-                ->getWidget($widgetDb->getWidget())
+                ->getWidget($widgetName)
                 ->render(json_decode($widgetDb->getSettings(), true));
+            WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
 
-            return $content !== "" ? $content : null;
+            return $content !== '' ? $content : null;
         } catch (Throwable $e) {
             $this->logger->error('Widget render error: ' . $e->getMessage(), [
                 'widget_id' => $widgetId,
@@ -245,33 +266,170 @@ class PageManager
 
     public function renderAllWidgets(): string
     {
-        if (!$this->currentPage || $this->disabled) {
+        if ($this->disabled) {
             return '';
         }
 
-        $content = '';
+        $globalBlocks = $this->getGlobalBlocks();
 
-        foreach ($this->currentPage->getBlocks() as $block) {
-            $gridstack = json_decode($block->gridstack, true) ?? [];
+        // If there are global blocks, render global layout with local content inside Content widget
+        if (!empty($globalBlocks)) {
+            return $this->renderGlobalLayout($globalBlocks);
+        }
 
-            $style = sprintf(
-                'grid-column: %d / span %d; grid-row: %d / span %d;',
-                ($gridstack['x'] ?? 0) + 1,
-                ($gridstack['w'] ?? 1),
-                ($gridstack['y'] ?? 0) + 1,
-                ($gridstack['h'] ?? 1)
+        // Fallback to local-only rendering if no global layout exists
+        if (!$this->currentPage) {
+            return '';
+        }
+
+        return $this->renderBlocksAsGrid($this->currentPage->getBlocks(), false);
+    }
+
+    /**
+     * Gets all global page blocks sorted by order.
+     *
+     * @return GlobalPageBlock[]
+     */
+    public function getGlobalBlocks(): array
+    {
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
+        try {
+            $cached = cache()->callback(
+                self::GLOBAL_LAYOUT_CACHE_KEY,
+                fn() => GlobalPageBlock::query()->orderBy('sortOrder', 'ASC')->fetchAll(),
+                is_performance() ? self::GLOBAL_LAYOUT_CACHE_TIME : 30,
             );
 
-            $widgetContent = $this->safeRenderBlock($block);
+            return $cached;
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to load global blocks: ' . $e->getMessage());
 
-            if ($widgetContent !== null && $widgetContent !== '') {
-                $content .= '<section data-widget-id="' . $block->getId() . '" data-widget-name="' . $block->getWidget() . '" style="' . $style . '">';
-                $content .= $widgetContent;
-                $content .= '</section>';
+            return [];
+        }
+    }
+
+    /**
+     * Gets the global layout for the editor.
+     */
+    public function getGlobalLayout(): array
+    {
+        $layout = [];
+        $globalBlocks = $this->getGlobalBlocks();
+
+        foreach ($globalBlocks as $block) {
+            try {
+                $settings = json_decode($block->getSettings(), true) ?? [];
+                $widgetName = $block->getWidget();
+
+                $widgetContent = $this->renderWidgetCached($widgetName, $settings);
+
+                $excludedPathsRaw = $block->getExcludedPaths();
+                $excludedPaths = $excludedPathsRaw ? json_decode($excludedPathsRaw, true) ?? [] : [];
+
+                $conditionsRaw = $block->getConditions();
+
+                $layout[] = [
+                    'id' => $block->getId(),
+                    'widgetName' => $widgetName,
+                    'settings' => $settings,
+                    'gridstack' => json_decode($block->gridstack, true),
+                    'content' => $widgetContent,
+                    'isSystem' => $widgetName === 'Content',
+                    'excludedPaths' => $excludedPaths,
+                    'conditions' => $conditionsRaw
+                        ? json_decode($conditionsRaw, true) ?? ['auth' => 'all', 'device' => 'all']
+                        : ['auth' => 'all', 'device' => 'all'],
+                ];
+            } catch (Exception $e) {
+                $this->logger->error('Failed to retrieve global layout widget: ' . $e->getMessage());
             }
         }
 
-        return $content;
+        return $layout;
+    }
+
+    /**
+     * Saves the global layout.
+     *
+     * @throws RuntimeException If Content widget is missing
+     */
+    public function saveGlobalLayout(array $layout): void
+    {
+        // Validate that Content widget exists in global layout
+        $hasContent = false;
+        foreach ($layout as $item) {
+            if (( $item['widgetName'] ?? '' ) === 'Content') {
+                $hasContent = true;
+
+                break;
+            }
+        }
+
+        if (!$hasContent) {
+            throw new RuntimeException(__('page.global_layout_requires_content'));
+        }
+
+        // Sort layout by gridstack y-position so sortOrder matches visual order
+        usort($layout, static function ($a, $b) {
+            $ay = $a['gridstack']['y'] ?? 0;
+            $by = $b['gridstack']['y'] ?? 0;
+            $cmp = $ay <=> $by;
+
+            return $cmp !== 0 ? $cmp : ( $a['gridstack']['x'] ?? 0 ) <=> ( $b['gridstack']['x'] ?? 0 );
+        });
+
+        // Delete all existing global blocks
+        $existingBlocks = GlobalPageBlock::findAll();
+        foreach ($existingBlocks as $block) {
+            $block->delete();
+        }
+
+        $sortOrder = 0;
+
+        foreach ($layout as $item) {
+            $widgetName = $item['widgetName'] ?? '';
+            $settings = $item['settings'] ?? [];
+
+            $block = new GlobalPageBlock();
+            $block->setWidget($widgetName);
+            $block->setSettings(Json::encode($settings));
+            $block->setSortOrder($sortOrder++);
+
+            $block->gridstack = isset($item['gridstack'])
+                ? Json::encode([
+                    'h' => $item['gridstack']['h'] ?? 4,
+                    'w' => $item['gridstack']['w'] ?? 12,
+                    'x' => $item['gridstack']['x'] ?? 0,
+                    'y' => $item['gridstack']['y'] ?? 0,
+                    'minW' => $item['gridstack']['minW'] ?? 4,
+                ])
+                : Json::encode(['h' => 4, 'w' => 12, 'x' => 0, 'y' => 0, 'minW' => 4]);
+
+            $excludedPaths = $item['excludedPaths'] ?? [];
+            if (!empty($excludedPaths) && is_array($excludedPaths)) {
+                $block->setExcludedPaths(Json::encode(array_values(array_filter(array_map('trim', $excludedPaths)))));
+            } else {
+                $block->setExcludedPaths(null);
+            }
+
+            $conditions = $item['conditions'] ?? null;
+            if (
+                $conditions
+                && is_array($conditions)
+                && ( ( $conditions['auth'] ?? 'all' ) !== 'all' || ( $conditions['device'] ?? 'all' ) !== 'all' )
+            ) {
+                $block->setConditions(Json::encode($conditions));
+            } else {
+                $block->setConditions(null);
+            }
+
+            $block->saveOrFail();
+        }
+
+        cache()->delete(self::GLOBAL_LAYOUT_CACHE_KEY);
     }
 
     /**
@@ -314,6 +472,15 @@ class PageManager
         }
 
         $page->removeAllBlocks();
+
+        // Sort layout by gridstack y-position so block order matches visual order
+        usort($layout, static function ($a, $b) {
+            $ay = $a['gridstack']['y'] ?? 0;
+            $by = $b['gridstack']['y'] ?? 0;
+            $cmp = $ay <=> $by;
+
+            return $cmp !== 0 ? $cmp : ( $a['gridstack']['x'] ?? 0 ) <=> ( $b['gridstack']['x'] ?? 0 );
+        });
 
         foreach ($layout as $item) {
             $widgetName = $item['widgetName'] ?? '';
@@ -359,10 +526,30 @@ class PageManager
                 ])
                 : '{}';
 
+            $conditions = $item['conditions'] ?? null;
+            if (
+                $conditions
+                && is_array($conditions)
+                && ( ( $conditions['auth'] ?? 'all' ) !== 'all' || ( $conditions['device'] ?? 'all' ) !== 'all' )
+            ) {
+                $block->setConditions(Json::encode($conditions));
+            } else {
+                $block->setConditions(null);
+            }
+
             $page->addBlock($block);
         }
 
         $page->saveOrFail();
+    }
+
+    /**
+     * Checks whether the global Content widget was rendered during renderAllWidgets().
+     * Used by the layout template to avoid rendering @stack('content') twice.
+     */
+    public function isGlobalContentRendered(): bool
+    {
+        return $this->globalContentRendered;
     }
 
     /**
@@ -464,6 +651,18 @@ class PageManager
     }
 
     /**
+     * Checks if there are any blocks to render (local or global).
+     */
+    public function hasAnyBlocks(): bool
+    {
+        if ($this->currentPage && !empty($this->currentPage->getBlocks())) {
+            return true;
+        }
+
+        return !empty($this->getGlobalBlocks());
+    }
+
+    /**
      * Returns the permissions array.
      */
     public function getPermissions(): array
@@ -519,6 +718,247 @@ class PageManager
     }
 
     /**
+     * Renders the global layout with local widgets inside Content placeholder.
+     */
+    protected function renderGlobalLayout(array $globalBlocks): string
+    {
+        $content = '';
+        $localBlocks = $this->currentPage ? $this->currentPage->getBlocks() : [];
+        $localHasContentWidget = false;
+
+        foreach ($localBlocks as $block) {
+            if ($block->getWidget() === 'Content') {
+                $localHasContentWidget = true;
+
+                break;
+            }
+        }
+
+        $localContent = !empty($localBlocks) ? $this->renderBlocksAsGrid($localBlocks, false) : '';
+
+        $currentPath = $this->request->getPathInfo();
+
+        usort($globalBlocks, static function ($a, $b) {
+            $aGs = json_decode($a->gridstack, true) ?? [];
+            $bGs = json_decode($b->gridstack, true) ?? [];
+            $cmp = ( $aGs['y'] ?? 0 ) <=> ( $bGs['y'] ?? 0 );
+
+            return $cmp !== 0 ? $cmp : ( $aGs['x'] ?? 0 ) <=> ( $bGs['x'] ?? 0 );
+        });
+
+        // Filter out blocks hidden by conditions
+        $visibleBlocks = array_filter($globalBlocks, function ($block) use ($currentPath) {
+            if ($this->isBlockExcludedForPath($block, $currentPath)) {
+                return false;
+            }
+
+            return !( $block->getWidget() !== 'Content' && $this->isBlockHiddenByConditions($block) );
+        });
+
+        // Recompact to eliminate gaps from filtered blocks
+        $visibleBlocks = $this->recompactBlocks(array_values($visibleBlocks));
+
+        foreach ($visibleBlocks as $block) {
+            $style = $this->getBlockGridStyle($block);
+            $widgetName = $block->getWidget();
+
+            if ($widgetName === 'Content') {
+                $this->globalContentRendered = true;
+
+                // If local blocks don't have their own Content widget,
+                // insert a marker so the Blade template can inject @stack('content') here
+                $localContentToRender = $localContent;
+                if (!$localHasContentWidget) {
+                    $localContentToRender = '<!-- __FLUTE_GLOBAL_CONTENT__ -->' . $localContent;
+                }
+
+                $content .= view('flute::partials.widget-content-section', [
+                    'widgetId' => 'global-' . $block->getId(),
+                    'style' => $style,
+                    'localContent' => $localContentToRender,
+                    'wrapGrid' => !empty($localBlocks),
+                ])->render();
+
+                continue;
+            }
+
+            $widgetContent = $this->safeRenderGlobalBlock($block);
+
+            if ($widgetContent !== null && $widgetContent !== '') {
+                $content .= view('flute::partials.widget-section', [
+                    'widgetId' => 'global-' . $block->getId(),
+                    'widgetName' => $widgetName,
+                    'style' => $style,
+                    'content' => $widgetContent,
+                ])->render();
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Renders blocks as a CSS grid layout.
+     *
+     * @param array $blocks Array of PageBlock entities
+     * @param bool $isGlobal Whether these are global blocks
+     */
+    protected function renderBlocksAsGrid(array $blocks, bool $isGlobal = false): string
+    {
+        $content = '';
+
+        // Filter out blocks hidden by conditions
+        $blocks = array_filter(
+            $blocks,
+            fn($block) => $block->getWidget() === 'Content' || !$this->isBlockHiddenByConditions($block),
+        );
+
+        // Recompact to eliminate gaps
+        $blocks = $this->recompactBlocks(array_values($blocks));
+
+        // Build row map: unique y-values → CSS Grid row numbers
+        $rowMap = $this->buildGridRowMap($blocks);
+
+        foreach ($blocks as $block) {
+            $style = $this->getBlockGridStyle($block, $rowMap);
+
+            $widgetContent = $isGlobal ? $this->safeRenderGlobalBlock($block) : $this->safeRenderBlock($block);
+
+            if ($widgetContent !== null && $widgetContent !== '') {
+                $prefix = $isGlobal ? 'global-' : '';
+                $content .= view('flute::partials.widget-section', [
+                    'widgetId' => $prefix . $block->getId(),
+                    'widgetName' => $block->getWidget(),
+                    'style' => $style,
+                    'content' => $widgetContent,
+                ])->render();
+            }
+        }
+
+        return $content;
+    }
+
+    protected function renderWidgetCached(string $widgetName, array $settings): ?string
+    {
+        $widget = $this->widgetManager->getWidget($widgetName);
+        $cacheTime = method_exists($widget, 'getCacheTime') ? $widget->getCacheTime() : 0;
+
+        if ($cacheTime > 0) {
+            $cacheKey = 'widget.html.' . $widgetName . '.' . app()->getLang() . '.' . md5(json_encode($settings));
+
+            return cache()->callback(
+                $cacheKey,
+                function () use ($widget, $widgetName, $settings) {
+                    $startTime = microtime(true);
+                    $html = $widget->render($settings);
+                    WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+                    return $html;
+                },
+                $cacheTime,
+            );
+        }
+
+        $startTime = microtime(true);
+        $html = $widget->render($settings);
+        WidgetRenderTiming::add($widgetName, microtime(true) - $startTime);
+
+        return $html;
+    }
+
+    /**
+     * Get CSS grid style for a block.
+     *
+     * @param PageBlock|GlobalPageBlock $block
+     * @param array<int,int> $rowMap  Gridstack-y → CSS grid row number
+     */
+    protected function getBlockGridStyle($block, array $rowMap = []): string
+    {
+        $gridstack = json_decode($block->gridstack, true) ?? [];
+
+        $col = ( $gridstack['x'] ?? 0 ) + 1;
+        $colSpan = $gridstack['w'] ?? 1;
+        $style = sprintf('grid-column: %d / span %d;', $col, $colSpan);
+
+        if (!empty($rowMap)) {
+            $y = $gridstack['y'] ?? 0;
+            $h = $gridstack['h'] ?? 1;
+
+            $startRow = $rowMap[$y] ?? 1;
+
+            // How many CSS Grid rows does this widget span?
+            // Find the last row boundary before y + h
+            $endY = $y + $h;
+            $rowSpan = 1;
+            foreach ($rowMap as $gy => $gr) {
+                if ($gy > $y && $gy < $endY) {
+                    $rowSpan = $gr - $startRow + 1;
+                }
+            }
+
+            $style .= $rowSpan > 1
+                ? sprintf(' grid-row: %d / span %d;', $startRow, $rowSpan)
+                : sprintf(' grid-row: %d;', $startRow);
+        }
+
+        return $style;
+    }
+
+    /**
+     * Build a map from gridstack y-values to CSS Grid row numbers.
+     *
+     * Collects all unique y-start positions across blocks and assigns
+     * sequential CSS Grid row numbers (1, 2, 3, …).
+     */
+    private function buildGridRowMap(array $blocks): array
+    {
+        $yValues = [];
+        foreach ($blocks as $block) {
+            $gs = json_decode($block->gridstack, true) ?? [];
+            $yValues[] = $gs['y'] ?? 0;
+        }
+
+        $yValues = array_unique($yValues);
+        sort($yValues);
+
+        $map = [];
+        $row = 1;
+        foreach ($yValues as $y) {
+            $map[$y] = $row++;
+        }
+
+        return $map;
+    }
+
+    /**
+     * Safely renders a global block.
+     */
+    protected function safeRenderGlobalBlock(GlobalPageBlock $block): ?string
+    {
+        try {
+            $settings = json_decode($block->getSettings(), true) ?? [];
+            $widgetName = $block->getWidget();
+
+            $content = $this->renderWidgetCached($widgetName, $settings);
+
+            return $content;
+        } catch (Throwable $e) {
+            $this->logger->error('Global widget render error: ' . $e->getMessage(), [
+                'widget' => $block->getWidget(),
+                'block_id' => $block->getId(),
+                'exception' => $e,
+            ]);
+
+            return $this->hasAccessToEdit()
+                ? view('flute::partials.invalid-widget', [
+                    'block' => $block,
+                    'exception' => $e->getMessage(),
+                ])->render()
+                : null;
+        }
+    }
+
+    /**
      * Loads all pages and registers their routes in the router.
      */
     protected function loadAllPages(): void
@@ -531,9 +971,10 @@ class PageManager
             return;
         }
 
-        $pageRoutes = is_performance()
-            ? cache()->callback(self::PAGES_CACHE_KEY, static function () {
-                $pages = Page::findAll();
+        $pageRoutes = cache()->callback(
+            self::PAGES_CACHE_KEY,
+            static function () {
+                $pages = Page::query()->load('permissions')->fetchAll();
 
                 return array_map(static function ($page) {
                     $perms = $page->permissions ?? [];
@@ -562,14 +1003,11 @@ class PageManager
                         'permissions' => array_filter($permissions),
                     ];
                 }, $pages);
-            }, self::PAGES_CACHE_TIME)
-            : null;
+            },
+            is_performance() ? self::PAGES_CACHE_TIME : 30,
+        );
 
-        if ($pageRoutes !== null) {
-            $this->registerPageRoutesFromCache($pageRoutes);
-        } else {
-            $this->registerPageRoutes(Page::findAll());
-        }
+        $this->registerPageRoutesFromCache($pageRoutes);
 
         self::$pagesLoaded = true;
     }
@@ -587,9 +1025,9 @@ class PageManager
                 continue;
             }
 
-            $this->router
-                ->get($route, [PageController::class, 'index'])
-                ->middleware('page.permissions:' . implode(',', $permissions));
+            $this->router->get($route, [PageController::class, 'index'])->middleware(
+                'page.permissions:' . implode(',', $permissions),
+            );
         }
     }
 
@@ -637,8 +1075,11 @@ class PageManager
     {
         try {
             $settings = json_decode($block->getSettings(), true) ?? [];
+            $widgetName = $block->getWidget();
 
-            return $this->widgetManager->getWidget($block->getWidget())->render($settings);
+            $content = $this->renderWidgetCached($widgetName, $settings);
+
+            return $content;
         } catch (Throwable $e) {
             if (str_contains($e->getMessage(), 'Undefined schema')) {
                 try {
@@ -681,9 +1122,9 @@ class PageManager
 
         $permissions = array_filter($page->getPermissions() ?? []);
 
-        $this->router
-            ->get($page->route, [PageController::class, 'index'])
-            ->middleware('page.permissions:' . implode(',', $permissions));
+        $this->router->get($page->route, [PageController::class, 'index'])->middleware(
+            'page.permissions:' . implode(',', $permissions),
+        );
     }
 
     /**
@@ -708,5 +1149,180 @@ class PageManager
         } catch (Exception $e) {
             return true;
         }
+    }
+
+    /**
+     * Checks if a block should be hidden based on its visibility conditions.
+     *
+     * @param PageBlock|GlobalPageBlock $block
+     */
+    private function isBlockHiddenByConditions($block): bool
+    {
+        $raw = $block->getConditions();
+        if (!$raw) {
+            return false;
+        }
+
+        $conditions = json_decode($raw, true);
+        if (!is_array($conditions)) {
+            return false;
+        }
+
+        // Auth condition
+        $authCondition = $conditions['auth'] ?? 'all';
+        if ($authCondition !== 'all') {
+            $isLoggedIn = $this->userService->isLoggedIn();
+            if ($authCondition === 'auth' && !$isLoggedIn) {
+                return true;
+            }
+            if ($authCondition === 'guest' && $isLoggedIn) {
+                return true;
+            }
+        }
+
+        // Roles condition
+        $rolesCondition = $conditions['roles'] ?? [];
+        if (!empty($rolesCondition) && is_array($rolesCondition)) {
+            if (!$this->userService->isLoggedIn()) {
+                return true; // Not logged in — can't match any role
+            }
+
+            $user = $this->userService->getCurrentUser();
+            $hasMatchingRole = false;
+
+            foreach ($user->getRoles() as $userRole) {
+                $roleId = is_object($userRole) ? $userRole->role->id ?? $userRole->id ?? null : $userRole;
+                if ($roleId !== null && in_array((int) $roleId, $rolesCondition, true)) {
+                    $hasMatchingRole = true;
+
+                    break;
+                }
+            }
+
+            if (!$hasMatchingRole) {
+                return true;
+            }
+        }
+
+        // Device condition — checked via user agent
+        $deviceCondition = $conditions['device'] ?? 'all';
+        if ($deviceCondition !== 'all') {
+            $userAgent = $this->request->headers->get('User-Agent', '');
+            $isMobile = (bool) preg_match('/Mobile|Android.*Mobile|iPhone|iPod/i', $userAgent);
+            $isTablet = !$isMobile && (bool) preg_match('/iPad|Android|Tablet/i', $userAgent);
+
+            if ($deviceCondition === 'mobile' && !$isMobile) {
+                return true;
+            }
+            if ($deviceCondition === 'tablet' && !$isTablet) {
+                return true;
+            }
+            if ($deviceCondition === 'desktop' && ( $isMobile || $isTablet )) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Recompact grid positions after filtering out hidden blocks.
+     * Recalculates Y positions to eliminate vertical gaps.
+     *
+     * @param array $blocks Array of blocks with decoded gridstack data
+     * @return array Recompacted blocks
+     */
+    private function recompactBlocks(array $blocks): array
+    {
+        if (empty($blocks)) {
+            return $blocks;
+        }
+
+        // Sort by y then x
+        usort($blocks, static function ($a, $b) {
+            $aGs = json_decode($a->gridstack, true) ?? [];
+            $bGs = json_decode($b->gridstack, true) ?? [];
+            $cmp = ( $aGs['y'] ?? 0 ) <=> ( $bGs['y'] ?? 0 );
+
+            return $cmp !== 0 ? $cmp : ( $aGs['x'] ?? 0 ) <=> ( $bGs['x'] ?? 0 );
+        });
+
+        // Simple row-based compaction: track the next available Y per column
+        $columnHeights = array_fill(0, 12, 0);
+
+        foreach ($blocks as $block) {
+            $gs = json_decode($block->gridstack, true) ?? [];
+            $x = $gs['x'] ?? 0;
+            $w = $gs['w'] ?? 12;
+            $h = $gs['h'] ?? 1;
+
+            // Find the maximum height in the columns this widget spans
+            $maxY = 0;
+            for ($col = $x; $col < min($x + $w, 12); $col++) {
+                $maxY = max($maxY, $columnHeights[$col]);
+            }
+
+            // Update the gridstack y position
+            $gs['y'] = $maxY;
+            $block->gridstack = json_encode($gs);
+
+            // Update column heights
+            for ($col = $x; $col < min($x + $w, 12); $col++) {
+                $columnHeights[$col] = $maxY + $h;
+            }
+        }
+
+        return $blocks;
+    }
+
+    /**
+     * Checks whether a global block is excluded for the given path.
+     */
+    private function isBlockExcludedForPath(GlobalPageBlock $block, string $currentPath): bool
+    {
+        $raw = $block->getExcludedPaths();
+        if (!$raw) {
+            return false;
+        }
+
+        $patterns = json_decode($raw, true);
+        if (!is_array($patterns)) {
+            return false;
+        }
+
+        foreach ($patterns as $pattern) {
+            $pattern = trim($pattern);
+            if ($pattern !== '' && $this->pathMatchesPattern($currentPath, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Matches a URL path against a wildcard pattern.
+     *
+     * Supported syntax:
+     *  - Exact: /about
+     *  - Single-segment wildcard: /user/* (matches /user/123, not /user/123/profile)
+     *  - Multi-segment wildcard: /user/** (matches /user/123/profile)
+     *  - Single-char wildcard: /page-? (matches /page-1, /page-a)
+     */
+    private function pathMatchesPattern(string $path, string $pattern): bool
+    {
+        // Exact match shortcut
+        if ($pattern === $path) {
+            return true;
+        }
+
+        // Convert pattern to regex:
+        // ** → matches any characters including /
+        // *  → matches any characters except /
+        // ?  → matches exactly one character (not /)
+        $quoted = preg_quote($pattern, '#');
+        $regex = str_replace(['\*\*', '\*', '\?'], ['.*', '[^/]*', '[^/]'], $quoted);
+
+        return (bool) preg_match('#^' . $regex . '$#', $path);
     }
 }

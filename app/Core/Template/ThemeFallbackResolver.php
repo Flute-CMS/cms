@@ -16,8 +16,12 @@ class ThemeFallbackResolver
     /**
      * Resolve file path with fallback across themes.
      */
-    public static function resolveFile(string $relativePath, array $themes, string $type = 'views', string $basePath = ''): ?string
-    {
+    public static function resolveFile(
+        string $relativePath,
+        array $themes,
+        string $type = 'views',
+        string $basePath = '',
+    ): ?string {
         $cacheKey = self::getCacheKey($relativePath, $themes, $type);
 
         if (isset(self::$pathCache[$cacheKey])) {
@@ -44,8 +48,12 @@ class ThemeFallbackResolver
     /**
      * Resolve multiple files at once for better performance.
      */
-    public static function resolveMultipleFiles(array $files, array $themes, string $type = 'views', string $basePath = ''): array
-    {
+    public static function resolveMultipleFiles(
+        array $files,
+        array $themes,
+        string $type = 'views',
+        string $basePath = '',
+    ): array {
         $results = [];
 
         foreach ($files as $file) {
@@ -86,8 +94,11 @@ class ThemeFallbackResolver
     /**
      * Get complete theme hierarchy including parent themes.
      */
-    public static function getThemeHierarchy(string $theme, string $standardTheme = 'standard', string $basePath = ''): array
-    {
+    public static function getThemeHierarchy(
+        string $theme,
+        string $standardTheme = 'standard',
+        string $basePath = '',
+    ): array {
         $hierarchy = [$theme];
         $visited = [$theme]; // Prevent infinite loops
 

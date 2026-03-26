@@ -15,6 +15,12 @@
     will-change: transform;
     line-height: 1.5;
     text-align: center;
+
+    :root[data-theme=light] & {
+        background-color: #1d1d1f;
+        color: #f2f2f7;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 }
 
 .tooltip.show {

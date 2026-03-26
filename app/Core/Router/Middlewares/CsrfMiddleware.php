@@ -24,18 +24,32 @@ class CsrfMiddleware extends BaseMiddleware
         }
 
         if ($this->shouldValidateToken($request) && !$this->isTokenValid($request)) {
-            return $this->error()->forbidden(__('def.csrf_expired'));
+            $response = $this->error()->forbidden(__('def.csrf_expired'));
+
+            if ($request->isXmlHttpRequest() || $request->headers->has('HX-Request')) {
+                $this->csrfTokenService->refreshToken();
+                $response->headers->set('X-CSRF-Token', $this->csrfTokenService->getToken());
+            }
+
+            return $response;
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        if ($request->isXmlHttpRequest() || $request->headers->has('HX-Request')) {
+            $response->headers->set('X-CSRF-Token', $this->csrfTokenService->getToken());
+        }
+
+        return $response;
     }
 
     protected function getRequestToken(FluteRequest $request): ?string
     {
-        return $request->input('_csrf_token')
-            ?? $request->headers->get('X-CSRF-Token')
-            ?? $request->input('x-csrf-token')
-            ?? $request->headers->get('x-csrf-token');
+        return (
+            $request->input('_csrf_token') ?? $request->headers->get('X-CSRF-Token') ?? $request->input(
+                'x-csrf-token',
+            ) ?? $request->headers->get('x-csrf-token')
+        );
     }
 
     private function isInstalled(): bool
@@ -49,7 +63,21 @@ class CsrfMiddleware extends BaseMiddleware
             return false;
         }
 
-        return (bool) config('app.csrf_enabled');
+        $enabled = (bool) config('app.csrf_enabled');
+
+        if (!$enabled && !is_debug()) {
+            static $warned = false;
+            if (!$warned) {
+                logs()->error(
+                    'CSRF protection is disabled in production! Ignoring config and enforcing CSRF validation.',
+                );
+                $warned = true;
+            }
+
+            return true;
+        }
+
+        return $enabled;
     }
 
     private function isTokenValid(FluteRequest $request): bool

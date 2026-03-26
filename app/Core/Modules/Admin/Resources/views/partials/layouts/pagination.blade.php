@@ -18,7 +18,7 @@
                     </div>
                 @endif
 
-                <small class="text-muted d-block">
+                <small class="text-muted d-block" style="font-size: 0.75rem">
                     {{ __('def.display_from_to', [
                         ':from' => ($paginator['currentPage'] - 1) * $paginator['perPage'] + 1,
                         ':to' => ($paginator['currentPage'] - 1) * $paginator['perPage'] + $paginator['totalPages'],
@@ -35,10 +35,13 @@
                         <li class="table__pagination-item">
                             <a class="page-link link-icon"
                                 href="{{ url()->withGet()->addParams(['page' => $paginator['currentPage'] - 1])->get() }}"
-                                rel="prev" hx-swap="outerHTML" hx-boost="true" yoyo:ignore>&laquo;</a>
+                                rel="prev" hx-swap="outerHTML" hx-boost="true" yoyo:ignore>
+                                <x-icon path="ph.regular.caret-left" />
+                            </a>
                         </li>
                     @else
-                        <li class="table__pagination-item disabled"><span class="page-link link-icon">&laquo;</span>
+                        <li class="table__pagination-item disabled">
+                            <span class="page-link link-icon"><x-icon path="ph.regular.caret-left" /></span>
                         </li>
                     @endif
 
@@ -48,8 +51,8 @@
                                 $page == $paginator['totalPages'] ||
                                 ($page >= $paginator['currentPage'] - 1 && $page <= $paginator['currentPage'] + 1))
                             @if ($page == $paginator['currentPage'])
-                                <li class="table__pagination-item active"><span
-                                        class="page-link">{{ $page }}</span>
+                                <li class="table__pagination-item active">
+                                    <span class="page-link">{{ $page }}</span>
                                 </li>
                             @else
                                 <li class="table__pagination-item">
@@ -67,10 +70,13 @@
                         <li class="table__pagination-item">
                             <a class="page-link link-icon" yoyo:ignore
                                 href="{{ url()->withGet()->addParams(['page' => $paginator['currentPage'] + 1])->get() }}"
-                                hx-swap="outerHTML" hx-boost="true" rel="next">&raquo;</a>
+                                hx-swap="outerHTML" hx-boost="true" rel="next">
+                                <x-icon path="ph.regular.caret-right" />
+                            </a>
                         </li>
                     @else
-                        <li class="table__pagination-item disabled"><span class="page-link link-icon">&raquo;</span>
+                        <li class="table__pagination-item disabled">
+                            <span class="page-link link-icon"><x-icon path="ph.regular.caret-right" /></span>
                         </li>
                     @endif
                 </ul>

@@ -16,7 +16,7 @@ class LogRendererManager
     private DefaultLogFormatter $defaultFormatter;
 
     public function __construct(
-        DefaultLogFormatter $defaultFormatter
+        DefaultLogFormatter $defaultFormatter,
     ) {
         $this->defaultFormatter = $defaultFormatter;
     }

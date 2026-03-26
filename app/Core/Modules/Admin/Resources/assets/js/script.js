@@ -1,86 +1,111 @@
-// Initialize Notyf for notifications
+// Initialize Notyf
 var notyf = new Notyf({
     duration: 4000,
-    position: { x: 'right', y: 'bottom' },
+    position: { x: 'right', y: 'top' },
     dismissible: true,
     ripple: false,
+    types: [
+        {
+            type: 'success',
+            className: 'notyf__toast--success',
+            icon: { className: 'notyf__icon notyf__icon--success', tagName: 'div' },
+        },
+        {
+            type: 'error',
+            className: 'notyf__toast--error',
+            icon: { className: 'notyf__icon notyf__icon--error', tagName: 'div' },
+        },
+        {
+            type: 'warning',
+            className: 'notyf__toast--warning',
+            icon: { className: 'notyf__icon notyf__icon--warning', tagName: 'div' },
+        },
+        {
+            type: 'info',
+            className: 'notyf__toast--info',
+            icon: { className: 'notyf__icon notyf__icon--info', tagName: 'div' },
+        },
+    ],
 });
 
 // Handle toast messages from HTMX responses
 function handleToasts(evt) {
     const toastsHeader = evt.detail.xhr.getResponseHeader('X-Toasts');
     if (toastsHeader) {
-        const toasts = JSON.parse(toastsHeader);
-        toasts.forEach(displayToast);
+        try {
+            const toasts = JSON.parse(toastsHeader);
+            toasts.forEach(displayToast);
+        } catch (e) {
+            console.error('Failed to parse toasts header:', e);
+        }
     }
 }
 
 // Display a toast notification
 function displayToast(toast) {
-    const options = {};
+    const type = toast.type || 'info';
+    const duration = toast.duration || 4000;
+    const message = toast.message || '';
 
-    if (toast.type) {
-        options.type = toast.type;
-    }
-    if (toast.message) {
-        options.message = toast.message;
-    }
-    if (toast.duration) {
-        options.duration = toast.duration;
-    }
-    if (toast.dismissible) {
-        options.dismissible = toast.dismissible;
-    }
-    if (toast.ripple) {
-        options.ripple = toast.ripple;
-    }
-    if (toast.position) {
-        options.position = toast.position;
-    }
-    if (toast.icon) {
-        options.icon = toast.icon;
-    }
+    const options = {
+        type: type,
+        message: message,
+        duration: duration,
+        dismissible: toast.dismissible !== false,
+    };
+
     if (toast.className) {
         options.className = toast.className;
     }
 
     if (toast.events) {
-        const eventHandlers = {};
-        Object.entries(toast.events).forEach(([eventName, handler]) => {
-            eventHandlers[eventName] = () => {
-                new Function(handler)();
-            };
-        });
-
-        Object.entries(eventHandlers).forEach(([eventName, handlerFn]) => {
-            notyf.on(eventName, handlerFn);
+        Object.entries(toast.events).forEach(([eventName, handlerName]) => {
+            notyf.on(eventName, () => {
+                if (typeof window[handlerName] === 'function') {
+                    window[handlerName]();
+                } else {
+                    console.warn('Toast event handler not found:', handlerName);
+                }
+            });
         });
     }
 
-    notyf.open(options);
+    return notyf.open(options);
 }
 
-// Show NProgress during HTMX requests
+// Show NProgress during HTMX requests.
+// Only shows for requests longer than PROGRESS_DELAY to avoid flicker.
+// Safety timeout auto-finishes after SAFETY_TIMEOUT to prevent infinite spin.
 var nprogressTimeout;
+var nprogressSafetyTimeout;
+
+function nprogressFinish() {
+    clearTimeout(nprogressTimeout);
+    nprogressTimeout = null;
+    clearTimeout(nprogressSafetyTimeout);
+    nprogressSafetyTimeout = null;
+    NProgress.done();
+}
 
 function handleNProgress(event, action) {
-    const PROGRESS_DELAY = 150;
-    const triggerElement = event.detail.elt;
-    const xhr = event.detail.xhr;
+    const PROGRESS_DELAY = 200;
+    const SAFETY_TIMEOUT = 15000;
+    const triggerElement = event.detail?.elt;
 
-    if (!triggerElement.hasAttribute('data-noprogress') && xhr.status !== 304) {
-        if (action === 'start') {
-            if (!nprogressTimeout) {
-                nprogressTimeout = setTimeout(() => {
-                    NProgress.start();
-                    nprogressTimeout = null;
-                }, PROGRESS_DELAY);
-            }
-        } else if (action === 'done') {
-            clearTimeout(nprogressTimeout);
-            nprogressTimeout = null;
-            NProgress.done();
+    if (triggerElement && triggerElement.hasAttribute('data-noprogress')) return;
+
+    if (action === 'start') {
+        if (!nprogressTimeout) {
+            nprogressTimeout = setTimeout(() => {
+                NProgress.start();
+                nprogressTimeout = null;
+
+                clearTimeout(nprogressSafetyTimeout);
+                nprogressSafetyTimeout = setTimeout(nprogressFinish, SAFETY_TIMEOUT);
+            }, PROGRESS_DELAY);
         }
+    } else if (action === 'done') {
+        nprogressFinish();
     }
 }
 
@@ -102,11 +127,22 @@ window.addEventListener('htmx:configRequest', (evt) => {
     }
 });
 
+// Refresh CSRF token from response header
+window.addEventListener('htmx:afterOnLoad', (evt) => {
+    const newToken = evt.detail.xhr?.getResponseHeader('X-CSRF-Token');
+    if (newToken) {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) {
+            meta.setAttribute('content', newToken);
+        }
+    }
+});
+
 window.addEventListener('htmx:sendError', (evt) => {
-    notyf.open({
+    nprogressFinish();
+    displayToast({
         type: 'error',
-        message:
-            'Error sending request. Please refresh the page and try again.',
+        message: 'Error sending request. Please refresh the page and try again.',
     });
 });
 
@@ -117,7 +153,7 @@ window.addEventListener('htmx:beforeRequest', (e) =>
     handleNProgress(e, 'start'),
 );
 window.addEventListener('htmx:afterRequest', (e) => handleNProgress(e, 'done'));
-window.addEventListener('htmx:historyRestore', NProgress.remove);
+window.addEventListener('htmx:historyRestore', nprogressFinish);
 
 // КОСТЫЛЬ!!! Убирает кеш HTMX чтобы при возврату к прошлой вкладке страница рефрешалась заново.
 // --------------------
@@ -128,9 +164,12 @@ window.addEventListener('htmx:pushedIntoHistory', (evt) => {
 
 window.addEventListener('delayed-redirect', function (event) {
     const { url, delay } = event.detail;
-    setTimeout(() => {
-        window.location.href = url;
-    }, delay);
+    const safeUrl = String(url || '');
+    if (safeUrl && delay && /^(https?:\/\/|\/)/.test(safeUrl)) {
+        setTimeout(() => {
+            window.location.href = safeUrl;
+        }, delay);
+    }
 });
 
 $(document).on('click', '[data-modal-close]', function (e) {
@@ -205,10 +244,12 @@ function updatePosition(toggle, menu) {
 }
 
 function handleDropdownToggle(event) {
+    const toggle = event.target.closest('[data-dropdown-open]');
+    if (!toggle) return;
+
     event.preventDefault();
     event.stopPropagation();
 
-    const toggle = event.currentTarget;
     const dropdownName = toggle.getAttribute('data-dropdown-open');
     const menu = document.querySelector(`[data-dropdown="${dropdownName}"]`);
 
@@ -303,49 +344,42 @@ function handleDropdownToggle(event) {
     }
 }
 
-function handleDocumentClick(event) {
-    const target = event.target;
-    if (
-        !target.closest('[data-dropdown-open]') &&
-        !target.closest('[data-dropdown]')
-    ) {
-        closeAllDropdowns();
-    }
-}
-
-function handleDropdownLinkClick(event) {
-    closeAllDropdowns();
-}
+let dropdownDelegationInitialized = false;
 
 function initializeDropdowns() {
-    const oldDropdownToggles = document.querySelectorAll(
-        '[data-dropdown-open]',
-    );
-    oldDropdownToggles.forEach((toggle) => {
-        toggle.removeEventListener('click', handleDropdownToggle);
-    });
+    // Use event delegation - attach single listener to document only once
+    if (dropdownDelegationInitialized) return;
+    dropdownDelegationInitialized = true;
 
-    const dropdownToggles = document.querySelectorAll('[data-dropdown-open]');
-    dropdownToggles.forEach((toggle) => {
-        toggle.addEventListener('click', handleDropdownToggle);
-    });
-
-    const dropdownLinks = document.querySelectorAll('[data-dropdown] a');
-    dropdownLinks.forEach((link) => {
-        link.removeEventListener('click', handleDropdownLinkClick);
-        link.addEventListener('click', handleDropdownLinkClick);
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Handle dropdown toggle button clicks
+        const toggle = target.closest('[data-dropdown-open]');
+        if (toggle) {
+            handleDropdownToggle(event);
+            return;
+        }
+        
+        // Handle clicks on links inside dropdown - close dropdown after click
+        const link = target.closest('[data-dropdown] a');
+        if (link) {
+            closeAllDropdowns();
+            return;
+        }
+        
+        // Handle clicks outside dropdown - close all dropdowns
+        if (!target.closest('[data-dropdown]')) {
+            closeAllDropdowns();
+        }
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDropdowns();
-
-    document.addEventListener('click', handleDocumentClick);
 });
 
 document.body.addEventListener('htmx:afterSettle', (event) => {
-    initializeDropdowns();
-
     if (event.detail.target.id.toLowerCase() === 'main') {
         window.scrollTo({
             top: 0,
@@ -546,6 +580,7 @@ window.addEventListener('beforeunload', () => {
 // Дополнительные обработчики для HTMX событий
 htmx.on('htmx:beforeSwap', () => {
     hideAllTooltips();
+    closeAllDropdowns();
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -556,13 +591,9 @@ document.addEventListener('visibilitychange', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initTooltipObserver();
-    initializeDropdowns();
-    document.addEventListener('click', handleDocumentClick);
 });
 
 document.body.addEventListener('htmx:afterSwap', (event) => {
-    initializeDropdowns();
-
     if (event.detail.target.id.toLowerCase() === 'main') {
         window.scrollTo({
             top: 0,
@@ -615,6 +646,14 @@ $(document).ready(function () {
         }
     });
 
+    $(document).on('change', 'select', function () {
+        var wrapper = $(this).closest('.field--select, .select-wrapper');
+        if (wrapper.length) {
+            wrapper.find('.has-error').removeClass('has-error');
+            wrapper.find('.select__error, .input__error').hide();
+        }
+    });
+
     $(document).on('keypress', 'input[data-numeric="true"]', function (e) {
         const withDots = $(this).data('with-dots');
         const charCode = e.which || e.keyCode;
@@ -646,9 +685,9 @@ htmx.onLoad(function () {
 });
 
 document.addEventListener('reRenderComponent', function (event) {
-    const componentId = event.detail[0].componentId;
+    const componentId = event.detail?.[0]?.componentId;
+    if (!componentId) return;
     const component = document.getElementById(componentId);
-    console.log('component', component, event);
     if (component) {
         htmx.ajax('GET', window.location.href, {
             target: `#${componentId}`,
@@ -656,4 +695,70 @@ document.addEventListener('reRenderComponent', function (event) {
         });
     }
 });
+
+// Language cards toggle
+document.body.addEventListener('change', function (e) {
+    if (e.target.classList.contains('language-card__input')) {
+        const card = e.target.closest('.language-card');
+        if (card) {
+            card.classList.toggle('language-card--active', e.target.checked);
+        }
+    }
+});
+
+// Button group toggle is handled by buttongroup.js + central htmx:afterSettle handler in tabs.js
+
+// Scroll to first validation error after Yoyo re-render
+(function () {
+    function scrollToFirstError(root) {
+        var errorField = (root || document).querySelector('.has-error, .input__error, .select__error, .textarea__error');
+        if (!errorField) return;
+
+        var container = errorField.closest('.input-wrapper, .field, .form-field');
+        var target = container || errorField;
+
+        var modal = target.closest('[data-a11y-dialog]');
+        if (modal) {
+            var scrollable = modal.querySelector('.modal-body, [data-a11y-dialog-content]') || modal;
+            var offset = target.offsetTop - scrollable.offsetTop - 20;
+            scrollable.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+        } else {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        target.classList.add('field-shake');
+        setTimeout(function () { target.classList.remove('field-shake'); }, 600);
+    }
+
+    document.body.addEventListener('htmx:afterSettle', function (e) {
+        setTimeout(function () { scrollToFirstError(e.detail.target); }, 80);
+    });
+})();
+
+// Sticky command bar detection
+(function () {
+    let currentObserver = null;
+
+    function initStickyObserver() {
+        if (currentObserver) {
+            currentObserver.disconnect();
+            currentObserver = null;
+        }
+
+        const sentinel = document.querySelector('.base-legend-sentinel');
+        const legend = document.querySelector('.base-legend');
+        if (!sentinel || !legend) return;
+
+        currentObserver = new IntersectionObserver(
+            ([entry]) => {
+                legend.classList.toggle('is-stuck', !entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+        currentObserver.observe(sentinel);
+    }
+
+    initStickyObserver();
+    document.body.addEventListener('htmx:afterSettle', initStickyObserver);
+})();
 

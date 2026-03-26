@@ -32,7 +32,7 @@ class ProfileIndexController extends BaseController
      */
     public function index(FluteRequest $request, $id, ProfileTabService $profileTabService)
     {
-        abort_if($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
+        abort_unless($this->path === '' || $profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
         $stringId = (string) $id;
         $cacheKey = 'profile.search.resolve.' . sha1($stringId);
         $cachedTarget = cache()->get($cacheKey);
@@ -42,7 +42,7 @@ class ProfileIndexController extends BaseController
         } else {
             $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
             $candidate = $searchEvent->getUser();
-            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+            $user = $candidate instanceof User && isset($candidate->id) ? $candidate : $this->getUser($id);
         }
 
         if (!$user) {
@@ -57,11 +57,11 @@ class ProfileIndexController extends BaseController
             return response()->make($profileTabService->renderTabsByPath($this->path, $user));
         }
 
-        breadcrumb()
-            ->add(__('def.home'), url('/'))
-            ->add(__('def.profile') . " - {$user->name}");
+        breadcrumb()->add(__('def.home'), url('/'))->add(__('def.profile') . " - {$user->name}");
 
-        $tabs = $profileTabService->getTabs();
+        $tabs = $profileTabService->getTabs($user);
+
+        $profileTabService->cacheTabsForAdmin();
 
         if (empty($this->path) && !empty($tabs) && $tabs->count() > 0) {
             $this->path = $tabs[0]['path'];
@@ -94,14 +94,20 @@ class ProfileIndexController extends BaseController
         } else {
             $searchEvent = events()->dispatch(new ProfileSearchEvent($id), ProfileSearchEvent::NAME);
             $candidate = $searchEvent->getUser();
-            $user = ($candidate instanceof User && isset($candidate->id)) ? $candidate : $this->getUser($id);
+            $user = $candidate instanceof User && isset($candidate->id) ? $candidate : $this->getUser($id);
         }
 
         if (!$user) {
             return $this->errors()->notFound();
         }
 
-        if ($user->hidden && !(user()->isLoggedIn() && (user()->id === $user->id || user()->can('admin.users')))) {
+        if (
+            $user->hidden
+            && !(
+                user()->isLoggedIn()
+                && ( user()->id === $user->id || user()->can('admin.users') || user()->can('admin.users.view') )
+            )
+        ) {
             return $this->errors()->forbidden(__('profile.profile_hidden'));
         }
 

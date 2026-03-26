@@ -23,7 +23,7 @@ class UserMiniProfileWidget extends AbstractWidget
     /**
      * Renders the widget with specified settings.
      */
-    public function render(array $settings): string|null
+    public function render(array $settings): ?string
     {
         $user = user()->getCurrentUser();
 
@@ -39,6 +39,11 @@ class UserMiniProfileWidget extends AbstractWidget
     public function getCategory(): string
     {
         return 'users';
+    }
+
+    public function getDescription(): string
+    {
+        return 'widgets.user_mini_profile_desc';
     }
 
     /**

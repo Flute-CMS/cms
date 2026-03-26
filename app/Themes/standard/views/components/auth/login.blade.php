@@ -25,6 +25,11 @@
     </div>
 @else
     <form class="auth-form @if (empty(social()->getAll())) mt-4 @endif">
+        {{-- Slot: before fields --}}
+        @if(isset($formEvent))
+            {!! $formEvent->renderSlot('beforeFields') !!}
+        @endif
+
         <x-forms.field class="mb-3">
             <x-forms.label for="loginOrEmail" required>@t('auth.login_or_email'):</x-forms.label>
             <x-fields.input autofocus name="loginOrEmail" id="loginOrEmail" value="{{ $loginOrEmail }}" required
@@ -45,6 +50,11 @@
                 required placeholder="{{ __('auth.password_placeholder') }}" />
         </x-forms.field>
 
+        {{-- Slot: after fields --}}
+        @if(isset($formEvent))
+            {!! $formEvent->renderSlot('afterFields') !!}
+        @endif
+
         <x-forms.field class="mb-4">
             <x-fields.checkbox name="rememberMe" id="rememberMe" checked="{{ $rememberMe }}"
                 label="{{ __('auth.remember_me') }}" />
@@ -52,9 +62,19 @@
 
         @include('flute::components.captcha', ['action' => 'login'])
 
+        {{-- Slot: before submit --}}
+        @if(isset($formEvent))
+            {!! $formEvent->renderSlot('beforeSubmit') !!}
+        @endif
+
         <x-button yoyo:post="login" yoyo:on="click" type="accent" class="w-100" withLoading>
             @t('def.login')
             <x-icon path="ph.regular.arrow-right" />
         </x-button>
+
+        {{-- Slot: after submit --}}
+        @if(isset($formEvent))
+            {!! $formEvent->renderSlot('afterSubmit') !!}
+        @endif
     </form>
 @endif

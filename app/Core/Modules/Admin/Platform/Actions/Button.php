@@ -159,7 +159,7 @@ class Button extends Action
     public function parameters(array|object $parameters): self
     {
         $parameters = is_array($parameters)
-            ? array_filter($parameters, static fn ($value) => !empty($value))
+            ? array_filter($parameters, static fn($value) => !empty($value))
             : $parameters;
 
         return $this->set('yoyo:vals', json_encode($parameters));
@@ -227,10 +227,7 @@ class Button extends Action
      */
     public function href(string $href): self
     {
-        return $this->set('href', $href)
-            ->set('target', '_blank')
-            ->yoyoIgnore(true)
-            ->set('isLink', true);
+        return $this->set('href', $href)->set('target', '_blank')->yoyoIgnore(true)->set('isLink', true);
     }
 
     /**

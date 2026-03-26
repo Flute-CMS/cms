@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Payments\Services;
 
-use DateTime;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\PromoCode;
 use Flute\Core\Database\Entities\PromoCodeUsage;
@@ -20,29 +19,33 @@ class PaymentPromo
      *
      * @throws PaymentPromoException
      */
-    public function validate(?string $code, int $userId = 0, float $amount = 0): array
+    public function validate(?string $code, int $userId = 0, float $amount = 0, bool $lock = false): array
     {
         if (empty($code)) {
             throw new PaymentPromoException(__('lk.promo_is_empty'));
         }
 
-        $promoCode = $this->get($code);
+        $promoCode = $lock
+            ? PromoCode::query()
+                ->forUpdate()
+                ->where(['code' => $code])
+                ->fetchOne()
+            : $this->get($code);
 
         if ($promoCode === null) {
             throw new PaymentPromoException(__('lk.promo_not_found'));
         }
 
-        $currentDate = new DateTime();
+        $currentDate = new DateTimeImmutable();
         if ($promoCode->expires_at !== null && $promoCode->expires_at <= $currentDate) {
             throw new PaymentPromoException(__('lk.promo_expired'));
         }
 
-        if ($promoCode->max_usages !== null && sizeof($promoCode->usages) >= $promoCode->max_usages) {
-            throw new PaymentPromoException(__('lk.promo_limit'));
-        }
-
         if ($promoCode->minimum_amount !== null && $amount < $promoCode->minimum_amount) {
-            throw new PaymentPromoException(__('lk.promo_minimum_amount', [':amount' => $promoCode->minimum_amount, ':currency' => config('lk.currency_view')]));
+            throw new PaymentPromoException(__('lk.promo_minimum_amount', [
+                ':amount' => $promoCode->minimum_amount,
+                ':currency' => config('lk.currency_view'),
+            ]));
         }
 
         if ($promoCode->type === 'percentage') {
@@ -51,13 +54,33 @@ class PaymentPromo
             }
         }
 
-        $currentUserId = $userId === 0 ? user()->getCurrentUser()->id : $userId;
+        $currentUserId = (int) ( $userId === 0 ? user()->getCurrentUser()->id : $userId );
+
+        // Count total usages (forUpdate when inside a transaction to prevent race conditions)
+        $usageQuery = PromoCodeUsage::query()->where('promoCode_id', $promoCode->id);
+        if ($lock) {
+            $usageQuery = $usageQuery->forUpdate();
+        }
+        $totalUsages = (int) $usageQuery->count();
+
+        // Count per-user usages
+        $userUsageQuery = PromoCodeUsage::query()
+            ->where('promoCode_id', $promoCode->id)
+            ->where('user_id', $currentUserId);
+        if ($lock) {
+            $userUsageQuery = $userUsageQuery->forUpdate();
+        }
+        $userUsageCount = (int) $userUsageQuery->count();
+
+        if ($promoCode->max_usages !== null && $totalUsages >= $promoCode->max_usages) {
+            throw new PaymentPromoException(__('lk.promo_limit'));
+        }
 
         if (!empty($promoCode->roles)) {
-            $currentUser = $userId === 0 ? user()->getCurrentUser() : ($userId ? User::findByPK($userId) : null);
+            $currentUser = $userId === 0 ? user()->getCurrentUser() : ( $userId ? User::findByPK($userId) : null );
             if ($currentUser) {
-                $userRoleIds = array_map(static fn ($role) => $role->id, $currentUser->roles);
-                $promoRoleIds = array_map(static fn ($role) => $role->id, $promoCode->roles);
+                $userRoleIds = array_map(static fn($role) => $role->id, $currentUser->roles);
+                $promoRoleIds = array_map(static fn($role) => $role->id, $promoCode->roles);
                 $hasAllowedRole = !empty(array_intersect($userRoleIds, $promoRoleIds));
 
                 if (!$hasAllowedRole) {
@@ -67,20 +90,11 @@ class PaymentPromo
         }
 
         if ($promoCode->max_uses_per_user !== null) {
-            $userUsageCount = PromoCodeUsage::query()
-                ->where('promoCode_id', $promoCode->id)
-                ->where('user_id', $currentUserId)
-                ->count();
-
             if ($userUsageCount >= $promoCode->max_uses_per_user) {
                 throw new PaymentPromoException(__('lk.promo_user_limit'));
             }
-        } else {
-            $usage = PromoCodeUsage::findOne(['promoCode_id' => $promoCode->id, 'user_id' => $currentUserId]);
-
-            if ($usage !== null) {
-                throw new PaymentPromoException(__('lk.promo_used'));
-            }
+        } elseif ($userUsageCount > 0) {
+            throw new PaymentPromoException(__('lk.promo_used'));
         }
 
         return [
@@ -155,7 +169,10 @@ class PaymentPromo
     {
         switch ($promoCode->type) {
             case 'amount':
-                $message = __('lk.promo_amount', [':value' => $promoCode->value, ':currency' => config('lk.currency_view')]);
+                $message = __('lk.promo_amount', [
+                    ':value' => $promoCode->value,
+                    ':currency' => config('lk.currency_view'),
+                ]);
 
                 break;
             case 'percentage':

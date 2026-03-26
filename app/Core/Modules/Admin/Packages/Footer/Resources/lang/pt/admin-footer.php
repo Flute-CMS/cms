@@ -29,31 +29,36 @@ return [
         'delete' => 'Excluir',
     ],
     'modal' => [
-        'footer_item' => [            'fields' => [
+        'footer_item' => ['fields' => [
             'title' => [
-                'label' => 'Título',                ],
+                'label' => 'Título',
+            ],
             'url' => [
-                'label' => 'URL',                ],
+                'label' => 'URL',
+            ],
             'new_tab' => [
-                'label' => 'Abrir em uma nova aba',                ],
-        ],
-        ],
-        'social' => [            'fields' => [
+                'label' => 'Abrir em uma nova aba',
+            ],
+        ]],
+        'social' => ['fields' => [
             'name' => [
-                'label' => 'Nome',                ],
+                'label' => 'Nome',
+            ],
             'icon' => [
-                'label' => 'Ícone',                ],
+                'label' => 'Ícone',
+            ],
             'url' => [
                 'label' => 'URL',
                 'placeholder' => 'Digite a URL (ex: https://discord.gg/yourpage)',
                 'help' => 'Link para sua página de rede social',
             ],
-        ],
-        ],
+        ]],
     ],
-    'confirms' => [    ],
-    'messages' => [        'item_created' => 'Item de rodapé criado com sucesso.',
+    'confirms' => [],
+    'messages' => [
+        'item_created' => 'Item de rodapé criado com sucesso.',
         'item_updated' => 'Item de rodapé atualizado com sucesso.',
         'item_deleted' => 'Item de rodapé excluído com sucesso.',
-        'item_not_found' => 'Item de rodapé não encontrado.',    ],
+        'item_not_found' => 'Item de rodapé não encontrado.',
+    ],
 ];

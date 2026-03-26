@@ -7,6 +7,6 @@
 
     <x-forms.field>
         <x-forms.label for="content">{{ __('widgets.settings.editor.content') }}</x-forms.label>
-        <x-editor name="content" id="content-{{ uniqid() }}" height="300" value="{{ $settings['content'] ?? '' }}" />
+        <x-editor name="content" id="content-{{ uniqid() }}" height="300" :value="$settings['content'] ?? ''" :translatable="true" />
     </x-forms.field>
 </form>

@@ -43,12 +43,9 @@ class UserPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-users.title.users_and_roles'),
-            ],
-            [
+                'key' => 'users',
                 'title' => __('admin-users.title.users'),
-                'icon' => 'ph.bold.user-circle-bold',
+                'icon' => 'ph.regular.user-circle',
                 'url' => url('/admin/users'),
             ],
         ];

@@ -11,7 +11,7 @@ class PagePermissionsMiddleware extends BaseMiddleware
 {
     public function handle(FluteRequest $request, Closure $next, ...$permissions): Response
     {
-        $permissions = array_filter(array_map(static fn ($p) => trim((string) $p), $permissions));
+        $permissions = array_filter(array_map(static fn($p) => trim((string) $p), $permissions));
 
         if (empty($permissions)) {
             return $next($request);

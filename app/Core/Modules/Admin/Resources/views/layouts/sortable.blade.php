@@ -23,7 +23,7 @@
     </legend>
 @endif
 
-<div class="sortable-container mb-3 rounded" data-container-key="{{$slug}}:sortable"
+<div class="sortable-container mb-3 rounded" data-container-key="{{$slug}}:sortable" data-max-levels="{{ $maxLevels }}"
     {{ $onSortEnd ? "yoyo:post=$onSortEnd" : '' }}
     hx-swap="outerHTML" hx-vals='js:{sortableResult: event.detail.sortable}' yoyo:trigger='sortEnd'>
     @if ($rows->isNotEmpty())
@@ -40,6 +40,8 @@
             'items' => $rows,
             'columns' => $columns,
             'showBlockHeaders' => $showBlockHeaders,
+            'maxLevels' => $maxLevels,
+            'currentLevel' => 1,
         ])
     @else
         <div

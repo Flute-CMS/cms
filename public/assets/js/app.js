@@ -1,7 +1,9 @@
 var driver = window.driver?.js?.driver;
 var widgetConfigs = [];
 
-var csrfToken = $('meta[name="csrf-token"]').attr('content');
+function csrfToken() {
+    return $('meta[name="csrf-token"]').attr('content');
+}
 
 // document.addEventListener('resume', () => {
 //     window.location.reload();
@@ -20,7 +22,7 @@ htmx.onLoad(() => {
 
     $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
         if (options.type !== 'GET') {
-            jqXHR.setRequestHeader('X-CSRF-Token', csrfToken);
+            jqXHR.setRequestHeader('X-CSRF-Token', csrfToken());
         }
     });
 });
@@ -61,7 +63,7 @@ function setCookie(name, value, days) {
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
         expires = '; expires=' + date.toUTCString();
     }
-    document.cookie = name + '=' + (value || '') + expires + '; path=/';
+    document.cookie = name + '=' + (value || '') + expires + '; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
 }
 
 function getCookie(cname) {
@@ -82,7 +84,7 @@ function getCookie(cname) {
 
 function eraseCookie(name) {
     document.cookie =
-        name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
 }
 
 function debounce(func, delay) {
@@ -189,7 +191,7 @@ async function batchTranslate(elements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken,
+                'X-CSRF-Token': csrfToken(),
             },
             body: JSON.stringify({
                 translations: translationsNeeded.map(

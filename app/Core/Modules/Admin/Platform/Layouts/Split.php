@@ -4,6 +4,7 @@ namespace Flute\Admin\Platform\Layouts;
 
 use Flute\Admin\Platform\Layout;
 use Flute\Admin\Platform\Repository;
+use Illuminate\Support\Arr;
 use InvalidArgumentException;
 
 /**
@@ -40,6 +41,28 @@ abstract class Split extends Layout
         $this->layouts = $layouts;
     }
 
+    public function skeletonDescriptor(): array
+    {
+        $columns = [];
+
+        foreach ($this->layouts as $group) {
+            $col = [];
+            foreach (Arr::wrap($group) as $layout) {
+                $layout = is_object($layout) ? $layout : app()->get($layout);
+                if ($layout instanceof Layout && $layout->isVisible()) {
+                    $col[] = $layout->skeletonDescriptor();
+                }
+            }
+            $columns[] = $col;
+        }
+
+        return [
+            'type' => 'split',
+            'columnClass' => $this->variables['columnClass'] ?? ['col-md-6', 'col-md-6'],
+            'columns' => $columns,
+        ];
+    }
+
     /**
      * Builds the HTML representation of this layout.
      *
@@ -73,11 +96,11 @@ abstract class Split extends Layout
             '80/20' => ['col-md-10', 'col-md-2'],
         ]);
 
-        throw_unless($allowedRatios->offsetExists($ratio), InvalidArgumentException::class, sprintf(
-            'Invalid ratio "%s". Allowed ratios: %s',
-            $ratio,
-            $allowedRatios->keys()->implode(', ')
-        ));
+        throw_unless(
+            $allowedRatios->offsetExists($ratio),
+            InvalidArgumentException::class,
+            sprintf('Invalid ratio "%s". Allowed ratios: %s', $ratio, $allowedRatios->keys()->implode(', ')),
+        );
 
         $this->variables['columnClass'] = $allowedRatios->get($ratio);
 

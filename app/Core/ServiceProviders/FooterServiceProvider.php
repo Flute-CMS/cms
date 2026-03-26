@@ -11,7 +11,7 @@ class FooterServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             FooterService::class => \DI\create(),
-            "footer" => \DI\get(FooterService::class),
+            'footer' => \DI\get(FooterService::class),
         ]);
     }
 

@@ -2,22 +2,24 @@
 
 namespace Flute\Admin\Packages\User\Screens;
 
+use DateTimeZone;
 use Exception;
 use Flute\Admin\Packages\User\Services\AdminUsersService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Components\Cells\BadgeLink;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
 use Flute\Admin\Platform\Fields\TextArea;
-use Flute\Admin\Platform\Fields\Toggle;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\BalanceHistory;
 use Flute\Core\Database\Entities\PaymentInvoice;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Entities\UserActionLog;
@@ -47,6 +49,8 @@ class UserEditScreen extends Screen
 
     public $depositHistory;
 
+    public $balanceHistory;
+
     public $socialNetworks;
 
     public $userDevices;
@@ -71,10 +75,10 @@ class UserEditScreen extends Screen
 
         $this->initUser();
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-users.title.users'), url('/admin/users'))
-            ->add($this->user->name ?? 'unknown');
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(
+            __('admin-users.title.users'),
+            url('/admin/users'),
+        )->add($this->user->name ?? 'unknown');
     }
 
     /**
@@ -86,11 +90,9 @@ class UserEditScreen extends Screen
             Button::make(__('admin-users.buttons.to_profile'))
                 ->type(Color::OUTLINE_PRIMARY)
                 ->icon('ph.bold.arrow-up-right-bold')
-                ->href(url('/profile/'.$this->user->getUrl())),
+                ->href(url('/profile/' . $this->user->getUrl())),
 
-            Button::make(__('admin-users.buttons.cancel'))
-                ->type(Color::OUTLINE_PRIMARY)
-                ->redirect('/admin/users'),
+            Button::make(__('admin-users.buttons.cancel'))->type(Color::OUTLINE_PRIMARY)->redirect('/admin/users'),
         ];
 
         if (user()->can($this->user)) {
@@ -135,12 +137,15 @@ class UserEditScreen extends Screen
                     ->layouts([$this->depositHistoryLayout()])
                     ->badge(sizeof($this->depositHistory)),
 
+                Tab::make(__('admin-users.tabs.balance_history'))
+                    ->icon('ph.bold.clock-counter-clockwise-bold')
+                    ->layouts([$this->balanceHistoryLayout()])
+                    ->badge(sizeof($this->balanceHistory)),
+
                 Tab::make(__('admin-users.tabs.action_history'))
                     ->icon('ph.bold.clock-counter-clockwise-bold')
                     ->layouts([$this->actionHistoryLayout()]),
-            ])
-                ->slug('user-edit')
-                ->pills(),
+            ])->slug('user-edit')->pills(),
         ];
     }
 
@@ -166,9 +171,9 @@ class UserEditScreen extends Screen
 
         $validation = $this->validate([
             'name' => ['required', 'string', 'max-str-len:255'],
-            'login' => ['nullable', 'string', 'max-str-len:255', 'unique:users,login,'.$this->userId],
-            'uri' => ['nullable', 'string', 'max-str-len:255', 'unique:users,uri,'.$this->userId],
-            'email' => ['nullable', 'email', 'max-str-len:255', 'unique:users,email,'.$this->userId],
+            'login' => ['nullable', 'string', 'max-str-len:255', 'unique:users,login,' . $this->userId],
+            'uri' => ['nullable', 'string', 'max-str-len:255', 'unique:users,uri,' . $this->userId],
+            'email' => ['nullable', 'email', 'max-str-len:255', 'unique:users,email,' . $this->userId],
             'avatar' => ['nullable', 'image', 'max-file-size:10'],
             'banner' => ['nullable', 'image', 'max-file-size:10'],
             'balance' => ['required', 'numeric', 'min:0'],
@@ -188,6 +193,94 @@ class UserEditScreen extends Screen
         } catch (Exception $e) {
             $this->flashMessage($e->getMessage(), 'error');
         }
+    }
+
+    /**
+     * Manually verify user's email.
+     */
+    public function verifyUserEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        $this->user->verified = true;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.email_verified'), 'success');
+        $this->initUser();
+    }
+
+    /**
+     * Send verification email to user.
+     */
+    public function sendVerificationEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        if (!$this->user->email) {
+            $this->flashMessage(__('admin-users.messages.no_email'), 'error');
+
+            return;
+        }
+
+        try {
+            template()->addNamespace('flute', path('app/Themes/standard/views'));
+            $verificationToken = auth()->createVerificationToken($this->user)->rawToken;
+            $html = template()->render('flute::emails.confirmation', [
+                'url' => url('confirm/' . $verificationToken),
+                'name' => $this->user->name,
+            ]);
+            email()->send($this->user->email, __('auth.confirmation.subject'), $html);
+            $this->flashMessage(__('admin-users.messages.verification_sent'), 'success');
+        } catch (\Throwable $e) {
+            $this->flashMessage($e->getMessage(), 'error');
+        }
+    }
+
+    /**
+     * Apply pending email immediately (admin override).
+     */
+    public function applyPendingEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        if (empty($this->user->pendingEmail)) {
+            return;
+        }
+
+        $this->user->email = $this->user->pendingEmail;
+        $this->user->pendingEmail = null;
+        $this->user->verified = true;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.pending_email_applied'), 'success');
+        $this->initUser();
+    }
+
+    /**
+     * Cancel pending email change.
+     */
+    public function cancelPendingEmail()
+    {
+        if (!user()->can($this->user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
+
+            return;
+        }
+
+        $this->user->pendingEmail = null;
+        $this->user->save();
+        $this->flashMessage(__('admin-users.messages.pending_email_cancelled'), 'success');
+        $this->initUser();
     }
 
     /**
@@ -236,17 +329,16 @@ class UserEditScreen extends Screen
     public function blockUserModal(Repository $parameters)
     {
         return LayoutFactory::modal($parameters, [
-            LayoutFactory::field(
-                TextArea::make('reason')
-                    ->placeholder(__('admin-users.fields.block_reason.placeholder'))
-            )
+            LayoutFactory::field(TextArea::make('reason')->placeholder(__(
+                'admin-users.fields.block_reason.placeholder',
+            )))
                 ->label(__('admin-users.fields.block_reason.label'))
                 ->required(),
 
             LayoutFactory::field(
                 Input::make('blockedUntil')
                     ->type('date')
-                    ->placeholder(__('admin-users.fields.block_until.placeholder'))
+                    ->placeholder(__('admin-users.fields.block_until.placeholder')),
             )
                 ->label(__('admin-users.fields.block_until.label'))
                 ->small(__('admin-users.fields.block_until.help')),
@@ -266,7 +358,13 @@ class UserEditScreen extends Screen
 
         $user = rep(User::class)->findByPK($userId);
         if (!$user) {
-            $this->flashMessage(__('admin-users.messages.user_not_found'), 'danger');
+            $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
+
+            return;
+        }
+
+        if (!user()->can($user)) {
+            $this->flashMessage(__('admin-users.messages.no_permission'), 'error');
 
             return;
         }
@@ -300,32 +398,24 @@ class UserEditScreen extends Screen
                 Select::make('socialNetwork')
                     ->preload()
                     ->fromDatabase('socials', 'key', 'id', ['key', 'id'])
-                    ->placeholder(__('admin-users.fields.social_network.placeholder'))
+                    ->placeholder(__('admin-users.fields.social_network.placeholder')),
             )
                 ->label(__('admin-users.fields.social_network.label'))
                 ->required(),
 
             LayoutFactory::field(
-                Input::make('value')
-                    ->type('text')
-                    ->placeholder(__('admin-users.fields.social_value.placeholder'))
+                Input::make('value')->type('text')->placeholder(__('admin-users.fields.social_value.placeholder')),
             )
                 ->label(__('admin-users.fields.social_value.label'))
                 ->required(),
 
             LayoutFactory::field(
-                Input::make('url')
-                    ->type('url')
-                    ->placeholder(__('admin-users.fields.social_url.placeholder'))
-            )
-                ->label(__('admin-users.fields.social_url.label')),
+                Input::make('url')->type('url')->placeholder(__('admin-users.fields.social_url.placeholder')),
+            )->label(__('admin-users.fields.social_url.label')),
 
             LayoutFactory::field(
-                Input::make('name')
-                    ->type('text')
-                    ->placeholder(__('admin-users.fields.social_name.placeholder'))
-            )
-                ->label(__('admin-users.fields.social_name.label')),
+                Input::make('name')->type('text')->placeholder(__('admin-users.fields.social_name.placeholder')),
+            )->label(__('admin-users.fields.social_name.label')),
         ])
             ->title(__('admin-users.title.add_social_network'))
             ->applyButton(__('admin-users.buttons.add_social'))
@@ -369,7 +459,7 @@ class UserEditScreen extends Screen
         $network = rep(UserSocialNetwork::class)->findByPK($networkId);
 
         if (!$network) {
-            $this->flashMessage(__('admin-users.messages.social_not_found'), 'danger');
+            $this->flashMessage(__('admin-users.messages.social_not_found'), 'error');
 
             return;
         }
@@ -379,7 +469,7 @@ class UserEditScreen extends Screen
                 Input::make('value')
                     ->type('text')
                     ->value($network->value)
-                    ->placeholder(__('admin-users.fields.social_value.placeholder'))
+                    ->placeholder(__('admin-users.fields.social_value.placeholder')),
             )
                 ->label(__('admin-users.fields.social_value.label'))
                 ->required(),
@@ -388,17 +478,15 @@ class UserEditScreen extends Screen
                 Input::make('url')
                     ->type('url')
                     ->value($network->url)
-                    ->placeholder(__('admin-users.fields.social_url.placeholder'))
-            )
-                ->label(__('admin-users.fields.social_url.label')),
+                    ->placeholder(__('admin-users.fields.social_url.placeholder')),
+            )->label(__('admin-users.fields.social_url.label')),
 
             LayoutFactory::field(
                 Input::make('name')
                     ->type('text')
                     ->value($network->name)
-                    ->placeholder(__('admin-users.fields.social_name.placeholder'))
-            )
-                ->label(__('admin-users.fields.social_name.label')),
+                    ->placeholder(__('admin-users.fields.social_name.placeholder')),
+            )->label(__('admin-users.fields.social_name.label')),
         ])
             ->title(__('admin-users.title.edit_social_network'))
             ->applyButton(__('admin-users.buttons.save_social'))
@@ -526,9 +614,7 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('password')
-                    ->type('password')
-                    ->placeholder(__('admin-users.fields.password.placeholder'))
+                Input::make('password')->type('password')->placeholder(__('admin-users.fields.password.placeholder')),
             )
                 ->label(__('admin-users.fields.password.label'))
                 ->required(),
@@ -536,7 +622,7 @@ class UserEditScreen extends Screen
             LayoutFactory::field(
                 Input::make('password_confirmation')
                     ->type('password')
-                    ->placeholder(__('admin-users.fields.password.confirm_placeholder'))
+                    ->placeholder(__('admin-users.fields.password.confirm_placeholder')),
             )
                 ->label(__('admin-users.fields.password.confirm_label'))
                 ->required(),
@@ -593,6 +679,10 @@ class UserEditScreen extends Screen
         $this->userDevices = $this->user->userDevices;
         $this->actionHistory = array_reverse($this->user->actionLogs);
         $this->depositHistory = array_reverse($this->user->invoices);
+        $this->balanceHistory = BalanceHistory::query()
+            ->where('user_id', '=', (string) $this->user->id)
+            ->orderBy('created_at', 'DESC')
+            ->fetchAll();
         $this->socialNetworks = $this->user->socialNetworks;
 
         $this->name = __('admin-users.title.edit', ['name' => $this->user->name]);
@@ -617,9 +707,10 @@ class UserEditScreen extends Screen
                         Input::make('avatar')
                             ->type('file')
                             ->filePond()
+                            ->crop(1, 400, 400, true)
                             ->accept('image/png, image/jpeg, image/gif, image/webp')
                             ->defaultFile(asset($this->user?->avatar ?? config('profile.default_avatar')))
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.avatar.label'))
                         ->small(__('admin-users.fields.avatar.help')),
@@ -628,9 +719,10 @@ class UserEditScreen extends Screen
                         Input::make('banner')
                             ->type('file')
                             ->filePond()
+                            ->crop(16 / 9, 1200, 675)
                             ->accept('image/png, image/jpeg, image/gif, image/webp')
                             ->defaultFile(asset($this->user?->banner ?? config('profile.default_banner')))
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.banner.label'))
                         ->small(__('admin-users.fields.banner.help')),
@@ -641,7 +733,7 @@ class UserEditScreen extends Screen
                         Input::make('name')
                             ->type('text')
                             ->value($this->user?->name ?? '')
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.name.label'))
                         ->required(),
@@ -650,7 +742,7 @@ class UserEditScreen extends Screen
                         Input::make('login')
                             ->type('text')
                             ->value($this->user?->login ?? '')
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.login.label'))
                         ->small(__('admin-users.fields.login.help')),
@@ -660,17 +752,26 @@ class UserEditScreen extends Screen
                     Input::make('email')
                         ->type('email')
                         ->value($this->user?->email ?? '')
-                        ->disabled(!$canEditUser)
+                        ->disabled(!$canEditUser),
                 )
                     ->label(__('admin-users.fields.email.label'))
                     ->required(),
+
+                ...(
+                    $this->hasEmailActions()
+                        ? [
+                            LayoutFactory::view('admin-users::partials.email-actions', [
+                                'user' => $this->user,
+                            ]),
+                        ] : []
+                ),
 
                 LayoutFactory::split([
                     LayoutFactory::field(
                         Input::make('uri')
                             ->type('text')
                             ->value($this->user?->uri ?? '')
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.uri.label'))
                         ->small(__('admin-users.fields.uri.help')),
@@ -680,51 +781,76 @@ class UserEditScreen extends Screen
                             ->type('number')
                             ->step('0.01')
                             ->value($this->user?->balance ?? 0)
-                            ->disabled(!$canEditUser)
+                            ->disabled(!$canEditUser),
                     )
                         ->label(__('admin-users.fields.balance.label'))
                         ->small(__('admin-users.fields.balance.help')),
                 ]),
 
-                LayoutFactory::field(
-                    Select::make('roles')
-                        ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
-                        ->multiple(true)
-                        ->value($this->user?->roles)
-                        ->placeholder(__('admin-users.fields.roles.placeholder'))
-                        ->disabled(!$canManageRoles)
-                        ->filter(static function ($role) {
-                            if (user()->can('admin.boss')) {
-                                return true;
-                            }
+                LayoutFactory::field(Select::make('roles')
+                    ->fromDatabase('roles', 'name', 'id', ['name', 'id', 'priority'])
+                    ->multiple(true)
+                    ->value($this->user?->roles)
+                    ->placeholder(__('admin-users.fields.roles.placeholder'))
+                    ->disabled(!$canManageRoles)
+                    ->filter(static function ($role) {
+                        if (user()->can('admin.boss')) {
+                            return true;
+                        }
 
-                            return $role->priority < user()->getHighestPriority();
-                        })
-                )
-                    ->label(__('admin-users.fields.roles.label')),
+                        return $role->priority < user()->getHighestPriority();
+                    }))->label(__('admin-users.fields.roles.label')),
 
                 LayoutFactory::split([
                     LayoutFactory::field(
-                        Toggle::make('verified')
-                            ->checked($this->user?->verified ?? false)
+                        ButtonGroup::make('verified')
+                            ->options([
+                                '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                                '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                            ])
+                            ->value($this->user?->verified ?? false ? '1' : '0')
                             ->disabled(!$canEditUser)
+                            ->color('accent'),
                     )
                         ->label(__('admin-users.fields.verified.label'))
                         ->popover(__('admin-users.fields.verified.help')),
 
                     LayoutFactory::field(
-                        Toggle::make('hidden')
-                            ->checked($this->user?->hidden ?? false)
+                        ButtonGroup::make('hidden')
+                            ->options([
+                                '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.eye-bold'],
+                                '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.eye-slash-bold'],
+                            ])
+                            ->value($this->user?->hidden ?? false ? '1' : '0')
                             ->disabled(!$canEditUser)
+                            ->color('accent'),
                     )
                         ->label(__('admin-users.fields.hidden.label'))
                         ->popover(__('admin-users.fields.hidden.help')),
                 ]),
-            ])
-                ->title(__('admin-users.sections.main_info')),
+
+                ...(
+                    user()->can('admin.boss')
+                        ? [
+                            LayoutFactory::field(
+                                ButtonGroup::make('approved')
+                                    ->options([
+                                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.seal-check-bold'],
+                                    ])
+                                    ->value($this->user?->approved ?? false ? '1' : '0')
+                                    ->color('accent'),
+                            )
+                                ->label(__('admin-users.fields.approved.label'))
+                                ->popover(__('admin-users.fields.approved.help')),
+                        ] : []
+                ),
+            ])->title(__('admin-users.sections.main_info')),
 
             LayoutFactory::rows([
-                Button::make($this->user?->isBlocked() ? __('admin-users.buttons.unblock') : __('admin-users.buttons.block'))
+                Button::make(
+                    $this->user?->isBlocked() ? __('admin-users.buttons.unblock') : __('admin-users.buttons.block'),
+                )
                     ->type($this->user?->isBlocked() ? Color::OUTLINE_SUCCESS : Color::OUTLINE_DANGER)
                     ->setVisible(!$isCurrentUser && $canEditUser)
                     ->icon($this->user?->isBlocked() ? 'ph.bold.lock-open-bold' : 'ph.bold.lock-bold')
@@ -753,9 +879,7 @@ class UserEditScreen extends Screen
                     ->method('deleteUser')
                     ->confirm(__('admin-users.confirms.delete_user'))
                     ->fullWidth(),
-            ])
-                ->title(__('admin-users.sections.actions'))
-                ->description(__('admin-users.sections.actions_desc')),
+            ])->title(__('admin-users.sections.actions'))->description(__('admin-users.sections.actions_desc')),
         ])->ratio('70/30');
     }
 
@@ -766,15 +890,38 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('userDevices', [
             TD::make('deviceDetails', __('admin-users.table.device'))
-                ->render(static fn (UserDevice $device) => $device->deviceDetails)
-                ->width('300px'),
+                ->render(static fn(UserDevice $device) => $device->deviceDetails)
+                ->width('250px'),
 
             TD::make('ip', __('admin-users.table.ip'))
-                ->render(static fn (UserDevice $device) => $device->ip)
+                ->render(static fn(UserDevice $device) => $device->ip)
+                ->width('120px'),
+
+            TD::make('createdAt', __('admin-users.table.first_login'))
+                ->render(static function (UserDevice $device) {
+                    if (!$device->createdAt) {
+                        return '-';
+                    }
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $device->createdAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
                 ->width('150px'),
 
+            TD::make('lastUsedAt', __('admin-users.table.last_login'))
+                ->render(static function (UserDevice $device) {
+                    if (!$device->lastUsedAt) {
+                        return '-';
+                    }
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $device->lastUsedAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
+                ->width('150px')
+                ->defaultSort(true, 'desc'),
+
             TD::make('actions', __('admin-users.table.actions'))
-                ->render(fn (UserDevice $device) => $this->deviceActionsDropdown($device))
+                ->render(fn(UserDevice $device) => $this->deviceActionsDropdown($device))
                 ->width('100px'),
         ])
             ->searchable([
@@ -816,7 +963,7 @@ class UserEditScreen extends Screen
     {
         return LayoutFactory::table('socialNetworks', [
             TD::make('socialNetwork.key', __('admin-users.table.social_network'))
-                ->render(static fn (UserSocialNetwork $network) => $network->socialNetwork->key)
+                ->render(static fn(UserSocialNetwork $network) => $network->socialNetwork?->key ?? '-')
                 ->width('200px'),
 
             TD::make('value', __('admin-users.table.value'))
@@ -826,21 +973,21 @@ class UserEditScreen extends Screen
                 ->width('200px'),
 
             TD::make('name', __('admin-users.table.display_name'))
-                ->render(static fn (UserSocialNetwork $network) => $network->name ?? '-')
+                ->render(static fn(UserSocialNetwork $network) => $network->name ?? '-')
                 ->width('200px'),
 
             TD::make('linkedAt', __('admin-users.table.link_date'))
-                ->render(static fn (UserSocialNetwork $network) => $network->linkedAt->format('d.m.Y H:i'))
+                ->render(static fn(UserSocialNetwork $network) => $network->linkedAt->format('d.m.Y H:i'))
                 ->width('200px'),
 
             TD::make('hidden', __('admin-users.table.visibility'))
-                ->render(
-                    static fn (UserSocialNetwork $network) => view('admin-users::cells.visibility-badge', ['visible' => !$network->hidden])
-                )
+                ->render(static fn(UserSocialNetwork $network) => view('admin-users::cells.visibility-badge', [
+                    'visible' => !$network->hidden,
+                ]))
                 ->width('100px'),
 
             TD::make('actions', __('admin-users.table.actions'))
-                ->render(fn (UserSocialNetwork $network) => $this->socialNetworkActionsDropdown($network))
+                ->render(fn(UserSocialNetwork $network) => $this->socialNetworkActionsDropdown($network))
                 ->width('100px'),
         ])
             ->searchable([
@@ -863,24 +1010,31 @@ class UserEditScreen extends Screen
      */
     private function blocksHistoryLayout()
     {
-        return
-            LayoutFactory::table('blocksHistory', [
-                TD::make('reason', __('admin-users.table.reason'))
-                    ->render(static fn (UserBlock $block) => $block->reason)
-                    ->width('300px'),
+        return LayoutFactory::table('blocksHistory', [
+            TD::make('reason', __('admin-users.table.reason'))
+                ->render(static fn(UserBlock $block) => $block->reason)
+                ->width('300px'),
 
-                TD::make('blockedBy.name', __('admin-users.table.blocked_by'))
-                    ->render(static fn (UserBlock $block) => "<a class='badge ghost-primary' href='".url('admin/users/'.$block->blockedBy->id . '/edit')."'>{$block->blockedBy->name}</a>")
-                    ->width('200px'),
+            TD::make('blockedBy.name', __('admin-users.table.blocked_by'))
+                ->render(
+                    static fn(UserBlock $block) => (
+                        "<a class='badge ghost-primary' href='"
+                        . url('admin/users/' . $block->blockedBy->id . '/edit')
+                        . "'>{$block->blockedBy->name}</a>"
+                    ),
+                )
+                ->width('200px'),
 
-                TD::make('blockedFrom', __('admin-users.table.blocked_from'))
-                    ->render(static fn (UserBlock $block) => $block->blockedFrom->format('d.m.Y H:i'))
-                    ->width('200px'),
+            TD::make('blockedFrom', __('admin-users.table.blocked_from'))
+                ->render(static fn(UserBlock $block) => $block->blockedFrom->format('d.m.Y H:i'))
+                ->width('200px'),
 
-                TD::make('blockedUntil', __('admin-users.table.blocked_until'))
-                    ->render(static fn (UserBlock $block) => $block->blockedUntil ? $block->blockedUntil->format('d.m.Y H:i') : 'Навсегда')
-                    ->width('200px'),
-            ]);
+            TD::make('blockedUntil', __('admin-users.table.blocked_until'))
+                ->render(static fn(UserBlock $block) => $block->blockedUntil
+                    ? $block->blockedUntil->format('d.m.Y H:i')
+                    : 'Навсегда')
+                ->width('200px'),
+        ]);
     }
 
     /**
@@ -888,12 +1042,11 @@ class UserEditScreen extends Screen
      */
     private function actionHistoryLayout()
     {
-        return
-            LayoutFactory::table('actionHistory', [
-                TD::make('details', __('admin-users.table.details'))
-                    ->render(static fn (UserActionLog $log) => app(LogRendererManager::class)->render($log))
-                    ->width('400px'),
-            ]);
+        return LayoutFactory::table('actionHistory', [
+            TD::make('details', __('admin-users.table.details'))
+                ->render(static fn(UserActionLog $log) => app(LogRendererManager::class)->render($log))
+                ->width('400px'),
+        ]);
     }
 
     /**
@@ -901,28 +1054,106 @@ class UserEditScreen extends Screen
      */
     private function depositHistoryLayout()
     {
-        return
-            LayoutFactory::table('depositHistory', [
-                TD::make('transactionId', __('admin-users.table.transaction_id'))
-                    ->render(static fn (PaymentInvoice $invoice) => $invoice->transactionId)
-                    ->width('200px'),
+        return LayoutFactory::table('depositHistory', [
+            TD::make('transactionId', __('admin-users.table.transaction_id'))
+                ->render(static fn(PaymentInvoice $invoice) => $invoice->transactionId)
+                ->width('200px'),
 
-                TD::make('gateway', __('admin-users.table.payment_gateway'))
-                    ->render(static fn (PaymentInvoice $invoice) => $invoice->gateway)
-                    ->width('200px'),
+            TD::make('gateway', __('admin-users.table.payment_gateway'))
+                ->render(static fn(PaymentInvoice $invoice) => $invoice->gateway)
+                ->width('200px'),
 
-                TD::make('amount', __('admin-users.table.amount'))
-                    ->render(static fn (PaymentInvoice $invoice) => number_format($invoice->amount, 2).' '.$invoice->currency->code)
-                    ->width('150px'),
+            TD::make('amount', __('admin-users.table.amount'))
+                ->render(
+                    static fn(PaymentInvoice $invoice) => (
+                        number_format($invoice->amount, 2)
+                        . ' '
+                        . $invoice->currency->code
+                    ),
+                )
+                ->width('150px'),
 
-                TD::make('isPaid', __('admin-users.table.status'))
-                    ->render(static fn (PaymentInvoice $invoice) => view('admin-users::cells.payment-status', ['invoice' => $invoice]))
-                    ->width('150px'),
+            TD::make('isPaid', __('admin-users.table.status'))
+                ->render(static fn(PaymentInvoice $invoice) => view('admin-users::cells.payment-status', [
+                    'invoice' => $invoice,
+                ]))
+                ->width('150px'),
 
-                TD::make('paidAt', __('admin-users.table.payment_date'))
-                    ->render(static fn (PaymentInvoice $invoice) => $invoice->paidAt ? $invoice->paidAt->format('d.m.Y H:i') : '-')
-                    ->width('200px'),
-            ]);
+            TD::make('paidAt', __('admin-users.table.payment_date'))
+                ->render(static function (PaymentInvoice $invoice) {
+                    if (!$invoice->paidAt) {
+                        return '-';
+                    }
+
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $invoice->paidAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
+                ->width('200px'),
+        ]);
+    }
+
+    private function balanceHistoryLayout()
+    {
+        return LayoutFactory::table('balanceHistory', [
+            TD::make('type', __('admin-users.table.type'))
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        '<span class="badge ' . match ($row->type) {
+                            'topup' => 'success',
+                            'purchase' => 'error',
+                            'refund' => 'info',
+                            'admin' => $row->amount >= 0 ? 'success' : 'warning',
+                            default => '',
+                        }
+                        . '">'
+                        . __('profile.edit.balance_history.types.' . $row->type)
+                        . '</span>'
+                    ),
+                )
+                ->width('120px'),
+
+            TD::make('amount', __('admin-users.table.amount'))
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        '<strong style="color:'
+                        . ( $row->amount >= 0 ? 'var(--success)' : 'var(--error)' )
+                        . '">'
+                        . ( $row->amount >= 0 ? '+' : '' )
+                        . number_format($row->amount, 2)
+                        . ' '
+                        . config('lk.currency_view')
+                        . '</strong>'
+                    ),
+                )
+                ->width('130px'),
+
+            TD::make('balanceAfter', __('admin-users.table.balance_after'))
+                ->render(
+                    static fn(BalanceHistory $row) => (
+                        number_format($row->balanceAfter, 2)
+                        . ' '
+                        . config('lk.currency_view')
+                    ),
+                )
+                ->width('130px'),
+
+            TD::make('source', __('admin-users.table.source'))
+                ->render(static fn(BalanceHistory $row) => $row->source ?? '-')
+                ->width('120px'),
+
+            TD::make('description', __('admin-users.table.description'))->render(
+                static fn(BalanceHistory $row) => $row->description ?? '-',
+            ),
+
+            TD::make('createdAt', __('admin-users.table.date'))
+                ->render(static function (BalanceHistory $row) {
+                    $tz = new DateTimeZone(config('app.timezone', 'UTC'));
+
+                    return $row->createdAt->setTimezone($tz)->format('d.m.Y H:i');
+                })
+                ->width('160px'),
+        ]);
     }
 
     /**
@@ -955,5 +1186,18 @@ class UserEditScreen extends Screen
                     ->size('small')
                     ->fullWidth(),
             ]);
+    }
+
+    protected function hasEmailActions(): bool
+    {
+        if (!$this->user || !user()->can($this->user)) {
+            return false;
+        }
+
+        return (
+            !empty($this->user->pendingEmail)
+            || !$this->user->verified && !empty($this->user->email)
+            || config('auth.registration.confirm_email')
+        );
     }
 }

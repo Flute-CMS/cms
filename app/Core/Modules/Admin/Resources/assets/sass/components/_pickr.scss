@@ -1,75 +1,71 @@
-.pickr {
-    position: relative;
-    overflow: visible;
-    transform: translateY(0);
+// ─── Inline Color Picker (Pickr) — Horizontal Apple-style ───
 
-    * {
-        box-sizing: border-box;
-        outline: none;
-        border: none;
-        appearance: none;
-        -webkit-appearance: none;
+// Hide the default Pickr trigger
+.pickr-inline-trigger {
+    display: none !important;
+}
+
+// ─── Header row: swatch + hex input ───
+.color-inline-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.color-inline-swatch {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--swatch-color, #42445A);
+    box-shadow: inset 0 0 0 1px var(--transp-2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: inset 0 0 0 1px var(--transp-2), 0 0 0 2px var(--transp-1);
     }
 
-    .pcr-button {
-        position: relative;
-        height: 2.25em;
-        width: 2.25em;
-        padding: 0;
-        cursor: pointer;
-        font-family: var(--font);
-        border-radius: var(--border05);
-        border: 1px solid var(--transp-2);
-        transition: border-color var(--transition), box-shadow var(--transition);
-        overflow: hidden;
-
-        &::before {
-            position: absolute;
-            content: "";
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
-            background-size: 0.5em;
-            border-radius: calc(var(--border05) - 1px);
-            z-index: initial;
-        }
-
-        &::after {
-            position: absolute;
-            content: "";
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            transition: background var(--transition);
-            background: var(--pcr-color);
-            border-radius: calc(var(--border05) - 1px);
-        }
-
-        &:hover { border-color: var(--primary-300); }
-
-        &.clear {
-            background-size: 70%;
-
-            &::before {
-                opacity: 0;
-            }
-
-            &:focus {
-                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
-            }
-        }
-
-        &.disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
+    &:active {
+        transform: scale(0.95);
     }
 }
 
-// Common styles for picker elements
+// ─── Inline picker container ───
+.color-inline-picker {
+    margin-top: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--transp-02);
+    border: 1px solid var(--transp-1);
+    transition: grid-template-rows 0.2s ease, opacity 0.2s ease, margin 0.2s ease, border-color 0.2s ease;
+    display: grid;
+    grid-template-rows: 1fr;
+
+    :root[data-theme=light] & {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    &.is-collapsed {
+        grid-template-rows: 0fr;
+        opacity: 0;
+        margin-top: 0;
+        border-color: transparent;
+    }
+
+    > .pcr-app {
+        min-height: 0;
+    }
+
+    .pickr {
+        display: none !important;
+    }
+}
+
+// ─── Pickr common ───
 .pickr,
 .pcr-app {
     * {
@@ -84,124 +80,68 @@
     input.pcr-active,
     button:focus,
     button.pcr-active {
-        box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
     }
 
     .pcr-palette,
     .pcr-slider {
-        transition: box-shadow var(--transition);
+        transition: box-shadow 0.15s ease;
 
         &:focus {
-            box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--transp-4);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
         }
     }
 }
 
-// Color picker dialog
-
-// Animations
-@keyframes pcr-pop-in {
-    0% { opacity: 0; transform: translateY(8px) scale(.98); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
+// ─── Pickr app — inline horizontal layout ───
 .pcr-app {
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    z-index: 10000;
-    border-radius: var(--border1);
-    background: var(--blurred-background);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(8px) scale(.98);
-    transition: opacity var(--transition), visibility 0s var(--transition), transform var(--transition);
+    position: relative !important;
+    display: flex !important;
+    flex-direction: row !important;
+    z-index: 1;
+    border-radius: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
     font-family: var(--font);
-    left: 0;
-    top: 0;
-    width: 20em;
-    max-width: 95vw;
-    backdrop-filter: blur(12px) saturate(120%);
-    border: 1px solid var(--transp-2);
+    width: 100% !important;
+    max-width: 100% !important;
+    animation: none !important;
+    transition: none !important;
+    flex-wrap: wrap;
+    align-items: stretch;
 
-    &.visible {
-        transition: opacity var(--transition), transform var(--transition);
-        visibility: visible;
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        animation: pcr-pop-in .18s ease-out;
-    }
-
+    // ─── Left side: palette + sliders ───
     .pcr-selection {
         display: grid;
-        grid-gap: 0.8em;
-        grid-template-rows: 6fr auto auto;
+        grid-gap: 8px;
+        grid-template-rows: 1fr auto auto;
         align-items: center;
-        height: 14em;
-        width: 100%;
+        height: 160px;
+        flex: 1;
+        min-width: 0;
         align-self: flex-start;
-        padding: 0.9em 1em 0.6em 1em;
+        padding: 10px;
 
         .pcr-picker {
             position: absolute;
-            height: 18px;
-            width: 18px;
-            border: 2px solid rgba(255,255,255,.95);
-            border-radius: 100%;
+            height: 16px;
+            width: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
             user-select: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
         }
 
-        // Color preview section
         .pcr-color-preview {
             display: none !important;
-
-            .pcr-last-color {
-                display: none;
-                position: relative;
-                background: var(--pcr-color);
-                width: 2em;
-                height: 2em;
-                border-radius: 50em;
-                overflow: hidden;
-
-                &::before {
-                    position: absolute;
-                    content: "";
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
-                    background-size: 0.5em;
-                    border-radius: 0.15em;
-                    z-index: -1;
-                }
-            }
-
-            .pcr-current-color {
-                position: relative;
-                background: var(--pcr-color);
-                width: 2.25em;
-                height: 2.25em;
-                border-radius: 999px;
-                overflow: hidden;
-
-                &::before {
-                    position: absolute;
-                    content: "";
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
-                    background-size: 0.5em;
-                    border-radius: var(--border05);
-                    z-index: -1;
-                }
-            }
         }
 
-        // Main color selection palette
         .pcr-color-palette {
             grid-area: 1/1/2/3;
             width: 100%;
@@ -209,30 +149,26 @@
             z-index: 1;
 
             .pcr-palette {
-                border-radius: var(--border05);
+                border-radius: 8px;
                 width: 100%;
                 height: 100%;
 
                 &::before {
                     position: absolute;
                     content: "";
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
+                    inset: 0;
                     background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
                     background-size: 0.5em;
-                    border-radius: var(--border05);
+                    border-radius: 8px;
                     z-index: -1;
                 }
             }
         }
 
-        // Hue slider section
         .pcr-color-chooser {
             grid-area: 2/1/2/3;
-            height: 1.25em;
-            margin: 0 0.25em;
+            height: 12px;
+            margin: 0;
 
             .pcr-picker {
                 top: 50%;
@@ -242,16 +178,19 @@
             .pcr-slider {
                 flex-grow: 1;
                 border-radius: 999px;
-                background: linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(0, 100%, 50%));
-                box-shadow: inset 0 0 0 1px var(--transp-2);
+                background: linear-gradient(to right,
+                    hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+                    hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%),
+                    hsl(0, 100%, 50%)
+                );
+                box-shadow: inset 0 0 0 1px var(--transp-1);
             }
         }
 
-        // Opacity slider section
         .pcr-color-opacity {
             grid-area: 3/1/3/3;
-            height: 1.25em;
-            margin: 0 0.25em 0.2em;
+            height: 12px;
+            margin: 0;
 
             .pcr-picker {
                 top: 50%;
@@ -261,13 +200,14 @@
             .pcr-slider {
                 flex-grow: 1;
                 border-radius: 999px;
-                background: linear-gradient(to right, transparent, black), url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
+                background:
+                    linear-gradient(to right, transparent, black),
+                    url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
                 background-size: 100%, 0.25em;
-                box-shadow: inset 0 0 0 1px var(--transp-2);
+                box-shadow: inset 0 0 0 1px var(--transp-1);
             }
         }
 
-        // Common styles for color slider areas
         .pcr-color-palette,
         .pcr-color-chooser,
         .pcr-color-opacity {
@@ -277,185 +217,121 @@
             flex-direction: column;
             cursor: grab;
 
-            &:active {
-                cursor: grabbing;
-            }
-
-            &:active .pcr-picker {
-                transform: translateY(-50%) scale(1.12);
-            }
+            &:active { cursor: grabbing; }
+            &:active .pcr-picker { transform: translateY(-50%) scale(1.15); }
         }
     }
 
-    // Color swatches section
+    // ─── Right side: swatches ───
     .pcr-swatches {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 0.6em;
-        padding: 0 1em;
-        gap: 0.5em;
+        display: grid;
+        align-items: center;
+        grid-template-columns: repeat(3, 24px);
+        gap: 6px;
+        padding: 10px;
+        justify-content: center;
+        align-content: center;
+        border-left: 1px solid var(--transp-1);
+        width: auto;
+        margin: 0;
 
-        &.pcr-last {
-            margin: 0;
-        }
+        &.pcr-last { margin: 0; }
 
-        @supports(display: grid) {
-            display: grid;
-            align-items: center;
-            grid-template-columns: repeat(auto-fit, 1.5em);
-            grid-gap: 0.5em;
-        }
-
-        >button {
-            font-size: var(--p);
+        > button {
             position: relative;
-            width: 1.5em;
-            height: 1.5em;
-            border-radius: var(--border05);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             cursor: pointer;
             flex-shrink: 0;
             justify-self: center;
-            transition: border-color var(--transition), transform var(--transition);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
             overflow: hidden;
             background: transparent;
             z-index: 1;
+            padding: 0;
 
             &::before {
                 position: absolute;
                 content: "";
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                inset: 0;
                 background: url("data:image/svg+xml;utf8, <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"><path fill=\"white\" d=\"M1,0H2V1H1V0ZM0,1H1V2H0V1Z\"/><path fill=\"gray\" d=\"M0,0H1V1H0V0ZM1,1H2V2H1V1Z\"/></svg>");
-                background-size: 6px;
-                border-radius: var(--border05);
+                background-size: 5px;
+                border-radius: 50%;
                 z-index: -1;
             }
 
             &::after {
                 content: "";
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                inset: 0;
                 background: var(--pcr-color);
-                border: 1px solid var(--transp-2);
-                border-radius: var(--border05);
-                box-sizing: border-box;
+                border-radius: 50%;
+                box-shadow: inset 0 0 0 1px var(--transp-1);
             }
 
-            &:hover { transform: scale(1.06); z-index: 2; }
+            &:hover { transform: scale(1.15); z-index: 2; }
+            &:active { transform: scale(0.9); }
+            &:not(.pcr-active) { box-shadow: none; }
 
-            &:not(.pcr-active) {
-                box-shadow: none;
+            &.pcr-active::after {
+                box-shadow: inset 0 0 0 1px var(--transp-1), 0 0 0 2px var(--background), 0 0 0 3.5px var(--accent);
             }
         }
     }
 
-    // Color input and controls section
+    // ─── Interaction (format buttons) — full width below ───
     .pcr-interaction {
-        display: flex;
+        display: none;
         flex-wrap: wrap;
         align-items: center;
-        padding: 0.25em 1em 0.9em;
-        gap: 0.5em;
+        padding: 6px 10px 8px;
+        gap: 5px;
         justify-content: center;
+        width: 100%;
+        border-top: 1px solid var(--transp-1);
 
-        // Hide the default result input
         .pcr-result { display: none !important; }
 
-        // Format buttons (HEXA, RGBA, etc.)
         .pcr-type {
-            letter-spacing: 0.07em;
-            font-size: var(--small);
+            letter-spacing: 0.04em;
+            font-size: 11px;
             text-align: center;
             cursor: pointer;
-            color: var(--text);
+            color: var(--text-400);
             background: var(--transp-05);
-            border-radius: var(--border05);
-            transition: all var(--transition);
-            padding: 0.45em 0.75em;
-            margin-top: 0.75em;
-            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            padding: 4px 8px;
+            font-weight: 600;
 
             &:hover {
                 background: var(--transp-1);
+                color: var(--text);
             }
 
-            &:focus {
-                box-shadow: 0 0 0 1px var(--transp-3), 0 0 0 3px var(--primary-300);
+            &.active {
+                color: #fff;
+                background: var(--accent);
             }
-
-            &.active { color: var(--background); background: var(--primary); }
         }
 
-        // Action buttons (Save, Clear, Cancel)
-        // Hide action buttons in instant-apply mode
-        .pcr-save,
-        .pcr-cancel,
-        .pcr-clear { display: none !important; }
+        .pcr-save, .pcr-cancel, .pcr-clear { display: none !important; }
     }
 }
 
-// Custom color field
+// ─── Color input field ───
 .input__field-color {
-    cursor: pointer;
+    cursor: text;
     color: var(--text);
     font-weight: 500;
-    letter-spacing: 0.02em;
-    padding-right: 3em !important;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    font-family: var(--font);
 }
 
-.color-picker-container {
+.input__field-container:has(.input__field-color) {
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    height: 2em;
-    width: 2em;
-    border-radius: var(--border05);
-    overflow: hidden;
-    margin-right: 0.5em;
-    border: 1px solid var(--transp-2);
-    transition: all var(--transition);
-
-    &:hover {
-        transform: scale(1.05);
-        border-color: var(--primary-300);
-    }
-
-    .color-preview {
-        width: 100%;
-        height: 100%;
-        transition: background-color var(--transition);
-    }
-}
-
-// Custom color display
-.color-value-display {
-    color: var(--text);
-    font-size: var(--p);
-    font-family: var(--font);
-    margin-left: 0.5em;
-    background-color: var(--transp-05);
-    padding: 0.25em 0.5em;
-    border-radius: var(--border05);
-    cursor: pointer;
-    transition: all var(--transition);
-    letter-spacing: 0.02em;
-
-    &:hover {
-        background-color: var(--transp-1);
-    }
-}
-
-// Better input container for color fields
-.input__field-container {
-    &:has(.input__field-color) {
-        display: flex;
-        align-items: center;
-        padding: 0.5em 1em;
-    }
+    padding: 0.5em 0.75em;
 }

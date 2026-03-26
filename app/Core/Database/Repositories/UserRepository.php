@@ -21,7 +21,11 @@ class UserRepository extends Repository
      */
     public function findByLogin(string $login)
     {
-        return $this->select()->where('isTemporary', false)->where('login', $login)->fetchOne();
+        return $this
+            ->select()
+            ->where('isTemporary', false)
+            ->where('login', $login)
+            ->fetchOne();
     }
 
     /**
@@ -32,7 +36,11 @@ class UserRepository extends Repository
      */
     public function findByEmail(string $email)
     {
-        return $this->select()->where('isTemporary', false)->where('email', $email)->fetchOne();
+        return $this
+            ->select()
+            ->where('isTemporary', false)
+            ->where('email', $email)
+            ->fetchOne();
     }
 
     /**
@@ -48,9 +56,7 @@ class UserRepository extends Repository
         $user = $this->getByEmailOrLogin($param);
 
         if ($user) {
-            throw $validate
-                ? new DuplicateEmailException($param)
-                : new DuplicateLoginException($param);
+            throw $validate ? new DuplicateEmailException($param) : new DuplicateLoginException($param);
         }
     }
 
@@ -62,9 +68,7 @@ class UserRepository extends Repository
      */
     public function getByEmailOrLogin(string $loginOrEmail)
     {
-        return $this->isEmail($loginOrEmail)
-            ? $this->findByEmail($loginOrEmail)
-            : $this->findByLogin($loginOrEmail);
+        return $this->isEmail($loginOrEmail) ? $this->findByEmail($loginOrEmail) : $this->findByLogin($loginOrEmail);
     }
 
     /**
@@ -108,7 +112,7 @@ class UserRepository extends Repository
     {
         return $this
             ->select()
-            ->where('createdAt', '>=', (new DateTimeImmutable())->modify('-7 day'))
+            ->where('createdAt', '>=', ( new DateTimeImmutable() )->modify('-7 day'))
             ->orderBy(['createdAt' => 'DESC'])
             ->limit($limit)
             ->fetchAll();
@@ -118,7 +122,7 @@ class UserRepository extends Repository
     {
         return $this
             ->select()
-            ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
+            ->where('last_logged', '>=', ( new DateTimeImmutable() )->modify('-10 minutes'))
             ->fetchAll();
     }
 
@@ -126,10 +130,7 @@ class UserRepository extends Repository
     {
         $startOfDay = new DateTimeImmutable('today');
 
-        return $this
-            ->select()
-            ->where('last_logged', '>=', $startOfDay)
-            ->fetchAll();
+        return $this->select()->where('last_logged', '>=', $startOfDay)->fetchAll();
     }
 
     public function select(): \Cycle\ORM\Select

@@ -28,8 +28,11 @@ class GatewayInitializer
      * @param PaymentPromo     $paymentPromo    Service to handle promo codes.
      * @param EventDispatcher  $eventDispatcher Event dispatcher for handling events.
      */
-    public function __construct(GatewayFactory $gatewayFactory, PaymentPromo $paymentPromo, EventDispatcher $eventDispatcher)
-    {
+    public function __construct(
+        GatewayFactory $gatewayFactory,
+        PaymentPromo $paymentPromo,
+        EventDispatcher $eventDispatcher,
+    ) {
         $this->gatewayFactory = $gatewayFactory;
         $this->promoValidator = $paymentPromo;
         $this->paymentProcessor = new PaymentProcessor($this->gatewayFactory, $eventDispatcher);

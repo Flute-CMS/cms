@@ -7,6 +7,7 @@
 
 @import 'layouts/app';
 @import 'layouts/header';
+@import 'layouts/sidebar-nav';
 @import 'layouts/footer';
 @import 'layouts/error';
 
@@ -26,11 +27,13 @@
 @import 'components/link';
 @import 'components/tabbar';
 @import 'components/select';
+@import 'components/button-group';
 @import 'components/table';
 @import 'components/legend';
+@import 'components/role-badge';
 @import 'components/user-card';
 @import 'components/page-edit';
-@import 'components/page-color';
+@import 'components/page-visual-editor';
 @import 'components/badge';
 @import 'components/confirmation';
 @import 'components/admin-onboarding';
@@ -39,6 +42,10 @@
 @import 'components/metric';
 @import 'components/two-factor';
 @import 'components/charts';
+@import 'components/payment-form';
+@import 'components/translatable';
+@import 'components/image-cropper';
+@import 'components/steps';
 
 @import 'partials/loading';
 @import 'partials/breadcrumb';
@@ -48,6 +55,7 @@
 @import 'partials/skeleton';
 @import 'partials/busy';
 @import 'partials/notifications';
+@import 'partials/profile-dropdown';
 @import 'partials/invalid-widget';
 @import 'partials/no-widgets';
 @import 'partials/confirmation';

@@ -25,7 +25,7 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
 
     protected string $author;
 
-    protected string $description = "";
+    protected string $description = '';
 
     protected array $requirements = [];
 
@@ -38,8 +38,15 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
      *
      * Initialize properties of the class with the given arguments.
      */
-    public function __construct(string $name, string $key, string $version, string $author, array $settings = [], string $description = "", array $requirements = [])
-    {
+    public function __construct(
+        string $name,
+        string $key,
+        string $version,
+        string $author,
+        array $settings = [],
+        string $description = '',
+        array $requirements = [],
+    ) {
         $this->name = $name;
         $this->key = $key;
         $this->version = $version;
@@ -100,13 +107,13 @@ abstract class AbstractThemeLoader implements \Flute\Core\Theme\Contracts\ThemeL
     public function info(): array
     {
         return [
-            "key" => $this->key,
-            "name" => $this->name,
-            "author" => $this->author,
-            "version" => $this->version,
-            "description" => $this->description,
-            "requirements" => $this->requirements,
-            "settings" => $this->settings,
+            'key' => $this->key,
+            'name' => $this->name,
+            'author' => $this->author,
+            'version' => $this->version,
+            'description' => $this->description,
+            'requirements' => $this->requirements,
+            'settings' => $this->settings,
         ];
     }
 

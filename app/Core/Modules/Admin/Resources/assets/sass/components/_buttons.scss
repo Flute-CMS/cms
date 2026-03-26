@@ -1,122 +1,179 @@
+// ─── Button Types ───
 $button-types: (
     primary: (
         color: var(--background),
         background: var(--text),
         hover-background: var(--text-200),
-        hover-color: var(--background)
+        hover-color: var(--background),
     ),
     accent: (
         color: var(--accent-900),
         background: var(--accent),
         hover-background: var(--accent-400),
-        hover-color: var(--accent-900)
+        hover-color: var(--accent-900),
     ),
     secondary: (
         color: var(--text),
         background: var(--transp-1),
         hover-background: var(--transp-2),
-        hover-color: var(--text)
+        hover-color: var(--text),
     ),
     error: (
         color: var(--error),
         background: var(--error-light),
         hover-background: rgba(255, 59, 48, 0.2),
-        hover-color: var(--error)
+        hover-color: var(--error),
     ),
     success: (
         color: var(--success),
         background: var(--success-light),
         hover-background: rgba(48, 209, 88, 0.2),
-        hover-color: var(--success)
+        hover-color: var(--success),
     ),
     warning: (
         color: var(--warning),
         background: var(--warning-light),
         hover-background: rgba(255, 149, 0, 0.2),
-        hover-color: var(--warning)
+        hover-color: var(--warning),
     ),
     info: (
         color: var(--info),
         background: var(--info-light),
         hover-background: rgba(90, 200, 250, 0.2),
-        hover-color: var(--info)
-    )
+        hover-color: var(--info),
+    ),
 );
 
+// Light theme color overrides
+:root[data-theme=light] {
+    .btn-info {
+        color: #007aff;
+
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #007aff;
+        }
+    }
+
+    .btn-success {
+        color: #28a745;
+
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #28a745;
+        }
+    }
+
+    .btn-warning {
+        color: #e68a00;
+
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #e68a00;
+        }
+    }
+
+    .btn-error {
+        color: #e53935;
+
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            color: #e53935;
+        }
+    }
+}
+
+// ─── Outline Types ───
 $button-outline-types: (
     primary: (
         color: var(--text),
         border-color: var(--transp-2),
         hover-background: var(--transp-1),
-        hover-color: var(--text)
+        hover-color: var(--text),
     ),
     accent: (
         color: var(--accent),
-        border-color: var(--accent-transp, rgba(50, 215, 75, 0.3)),
-        hover-background: var(--accent-transp, rgba(50, 215, 75, 0.1)),
-        hover-color: var(--accent)
+        border-color: color-mix(in srgb, var(--accent) 30%, transparent),
+        hover-background: color-mix(in srgb, var(--accent) 10%, transparent),
+        hover-color: var(--accent),
     ),
     error: (
         color: var(--error),
         border-color: var(--error-light),
         hover-background: var(--error-light),
-        hover-color: var(--error)
+        hover-color: var(--error),
     ),
     success: (
         color: var(--success),
         border-color: var(--success-light),
         hover-background: var(--success-light),
-        hover-color: var(--success)
+        hover-color: var(--success),
     ),
     warning: (
         color: var(--warning),
         border-color: var(--warning-light),
         hover-background: var(--warning-light),
-        hover-color: var(--warning)
-    )
+        hover-color: var(--warning),
+    ),
 );
 
 $sizes: (
     tiny: (
-        padding: 0.375rem 0.75rem,
+        height: 1.75rem,
+        padding: 0 0.5rem,
         font-size: 0.75rem,
-        svg-size: 0.875rem
+        gap: 0.25rem,
+        svg-size: 0.75rem,
+        icon-size: 1.75rem,
     ),
     small: (
-        padding: 0.5rem 1rem,
+        height: 2rem,
+        padding: 0 0.75rem,
         font-size: 0.8125rem,
-        svg-size: 1rem
+        gap: 0.375rem,
+        svg-size: 0.875rem,
+        icon-size: 2rem,
     ),
     medium: (
-        padding: 0.625rem 1.25rem,
-        font-size: 0.875rem,
-        svg-size: 1.125rem
+        height: 2.25rem,
+        padding: 0 1rem,
+        font-size: 0.8125rem,
+        gap: 0.5rem,
+        svg-size: 1rem,
+        icon-size: 2.25rem,
     ),
     large: (
-        padding: 0.75rem 1.5rem,
-        font-size: 0.9375rem,
-        svg-size: 1.25rem
-    )
+        height: 2.75rem,
+        padding: 0 1.25rem,
+        font-size: 0.875rem,
+        gap: 0.5rem,
+        svg-size: 1.125rem,
+        icon-size: 2.75rem,
+    ),
 );
 
+// ─── Base ───
 @mixin button-base {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    height: 2.25rem;
+    padding: 0 1rem;
     background-color: var(--transp-1);
     color: var(--text);
     border: none;
     border-radius: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
-    line-height: 1.5;
+    line-height: 1;
     white-space: nowrap;
     cursor: pointer;
-    transition: all 0.15s ease;
     position: relative;
     width: max-content;
+    user-select: none;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        opacity 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 
     &:focus {
         outline: none;
@@ -128,15 +185,15 @@ $sizes: (
     }
 
     &:hover:not(:disabled):not([aria-busy="true"]) {
-        transform: translateY(-1px);
+        // Type-specific hover colors applied via mixins
     }
 
-    &:active:not(:disabled) {
-        transform: translateY(0);
+    &:active:not(:disabled):not([aria-busy="true"]) {
+        opacity: 0.8;
     }
 
     &[aria-busy="true"] {
-        opacity: 0.7;
+        opacity: 0.5;
         pointer-events: none;
     }
 
@@ -146,9 +203,10 @@ $sizes: (
         pointer-events: none;
     }
 
+    // Icon-only square button
     &.onlyIcon {
-        width: 36px;
-        height: 36px;
+        width: 2.25rem;
+        height: 2.25rem;
         padding: 0;
     }
 
@@ -158,6 +216,7 @@ $sizes: (
     }
 }
 
+// ─── Type Mixin ───
 @mixin button-type($type-name, $type-map) {
     &-#{$type-name} {
         color: map-get($type-map, color);
@@ -170,6 +229,7 @@ $sizes: (
     }
 }
 
+// ─── Outline Mixin ───
 @mixin button-outline-type($type-name, $outline-map) {
     &-outline-#{$type-name} {
         color: map-get($outline-map, color);
@@ -179,22 +239,31 @@ $sizes: (
         &:hover:not(:disabled):not([aria-busy="true"]) {
             background-color: map-get($outline-map, hover-background);
             color: map-get($outline-map, hover-color);
-            transform: none;
         }
     }
 }
 
+// ─── Size Mixin ───
 @mixin button-size($size-name, $size-map) {
     &-#{$size-name} {
+        height: map-get($size-map, height);
         padding: map-get($size-map, padding);
         font-size: map-get($size-map, font-size);
+        gap: map-get($size-map, gap);
 
         svg {
             font-size: map-get($size-map, svg-size);
         }
+
+        &.onlyIcon {
+            width: map-get($size-map, icon-size);
+            height: map-get($size-map, icon-size);
+            padding: 0;
+        }
     }
 }
 
+// ─── Output ───
 .btn {
     @include button-base;
 
@@ -210,10 +279,19 @@ $sizes: (
         @include button-size($size, $properties);
     }
 
+    // Secondary gets a subtle border
+    &-secondary {
+        border: 1px solid var(--transp-1);
+
+        &:hover:not(:disabled):not([aria-busy="true"]) {
+            border-color: var(--transp-2);
+        }
+    }
+
     .btn-label {
         display: inline-flex;
         align-items: center;
         gap: 0.375rem;
-        line-height: 1.5;
+        line-height: 1;
     }
 }

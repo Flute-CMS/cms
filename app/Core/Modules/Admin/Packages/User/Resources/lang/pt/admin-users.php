@@ -1,22 +1,30 @@
 <?php
 
 return [
-    'title' => [        'edit' => 'Editar Usuário: :name',        'reset_password' => 'Redefinir Senha',        'users_and_roles' => 'Usuários e Cargos',
+    'title' => [
+        'edit' => 'Editar Usuário: :name',
+        'reset_password' => 'Redefinir Senha',
+        'users_and_roles' => 'Usuários e Cargos',
     ],
-    'table' => [        'actions' => 'Ações',        'ip' => 'Endereço IP',
+    'table' => [
+        'actions' => 'Ações',
+        'ip' => 'Endereço IP',
         'social_network' => 'Rede Social',
         'value' => 'Valor',
-        'display_name' => 'Nome de Exibição',        'payment_gateway' => 'Gateway de Pagamento',
+        'display_name' => 'Nome de Exibição',
+        'payment_gateway' => 'Gateway de Pagamento',
         'amount' => 'Valor',
-        'payment_date' => 'Data de Pagamento',        'payment_status' => 'Status do Pagamento',
+        'payment_date' => 'Data de Pagamento',
+        'payment_status' => 'Status do Pagamento',
     ],
-    'tabs' => [        'blocked' => 'Bloqueado',
-    ],
+    'tabs' => ['blocked' => 'Bloqueado'],
     'fields' => [
         'avatar' => [
-            'label' => 'Avatar',        ],
+            'label' => 'Avatar',
+        ],
         'banner' => [
-            'label' => 'Banner',        ],
+            'label' => 'Banner',
+        ],
         'name' => [
             'label' => 'Nome',
         ],
@@ -28,20 +36,25 @@ return [
             'label' => 'E-mail',
         ],
         'uri' => [
-            'label' => 'URI',        ],
+            'label' => 'URI',
+        ],
         'balance' => [
-            'label' => 'Saldo',        ],
+            'label' => 'Saldo',
+        ],
         'roles' => [
             'label' => 'Cargos',
             'placeholder' => 'Selecionar Cargos',
         ],
         'verified' => [
-            'label' => 'Verificado',        ],
+            'label' => 'Verificado',
+        ],
         'hidden' => [
-            'label' => 'Perfil Oculto',        ],
+            'label' => 'Perfil Oculto',
+        ],
         'block_reason' => [
-            'label' => 'Motivo do Bloqueio',        ],
-        'block_until' => [        ],
+            'label' => 'Motivo do Bloqueio',
+        ],
+        'block_until' => [],
         'password' => [
             'label' => 'Nova Senha',
             'placeholder' => 'Inserir nova senha',
@@ -57,9 +70,11 @@ return [
             'placeholder' => 'Digite o valor (ex.: usuário ou ID)',
         ],
         'social_url' => [
-            'label' => 'URL do Perfil',        ],
+            'label' => 'URL do Perfil',
+        ],
         'social_name' => [
-            'label' => 'Nome de Exibição',        ],
+            'label' => 'Nome de Exibição',
+        ],
     ],
     'buttons' => [
         'to_profile' => 'Meu Perfil',
@@ -69,7 +84,8 @@ return [
         'unblock' => 'Desbloquear',
         'reset_password' => 'Redefinir Senha',
         'clear_sessions' => 'Limpar Sessões',
-        'delete_user' => 'Deletar Usuário',        'add_social' => 'Adicionar Rede Social',
+        'delete_user' => 'Deletar Usuário',
+        'add_social' => 'Adicionar Rede Social',
         'edit_social' => 'Editar',
         'show_social' => 'Exibir',
         'hide_social' => 'Ocultar',
@@ -85,7 +101,7 @@ return [
         'actions' => 'Ações',
         'actions_desc' => 'Ações no usuário.',
     ],
-    'confirms' => [    ],
+    'confirms' => [],
     'modals' => [
         'block_user' => [
             'title' => 'Bloquear Usuário',
@@ -100,7 +116,11 @@ return [
             'title' => 'Editar Rede Social',
         ],
     ],
-    'messages' => [        'no_permission_roles' => 'Você não tem permissão para gerenciar cargos.',        'sessions_cleared' => 'Todas as sessões de usuário terminaram com sucesso.',        'password_reset' => 'Senha de usuário redefinida com sucesso.',    ],
+    'messages' => [
+        'no_permission_roles' => 'Você não tem permissão para gerenciar cargos.',
+        'sessions_cleared' => 'Todas as sessões de usuário terminaram com sucesso.',
+        'password_reset' => 'Senha de usuário redefinida com sucesso.',
+    ],
     'status' => [
         'forever' => 'Permanente',
         'unlimited' => 'Ilimitado',

@@ -5,14 +5,12 @@ namespace Flute\Admin\Packages\Pages\Listeners;
 use Flute\Admin\Packages\Search\Events\AdminSearchEvent;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
 use Flute\Core\Database\Entities\Page;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use function mb_strpos;
 use function mb_strtolower;
 use function str_starts_with;
 use function substr;
-
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
 use function trim;
 
 /**
@@ -37,42 +35,61 @@ class PageSearchListener implements EventSubscriberInterface
     {
         $searchValue = trim($event->getValue());
 
-        if (!str_starts_with($searchValue, '/page')) {
-            return;
-        }
+        $isSlashCommand = str_starts_with($searchValue, '/page');
 
-        $searchValue = substr($searchValue, 5);
-        $searchValue = trim($searchValue);
+        if ($isSlashCommand) {
+            $searchValue = substr($searchValue, 5);
+            $searchValue = trim($searchValue);
 
-        if ($searchValue === '') {
-            return;
+            if ($searchValue === '') {
+                $pages = Page::query()
+                    ->orderBy('title', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
+
+                foreach ($pages as $page) {
+                    $event->add($this->createPageSearchResult($page, 1));
+                }
+
+                return;
+            }
+        } else {
+            if (strlen($searchValue) < 2) {
+                return;
+            }
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
         $pages = Page::query()
-            ->where(static function ($query) use ($searchValueLower) {
+            ->where(static function ($query) use ($escapedSearch) {
                 $query
-                    ->orWhere('title', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('route', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('description', 'LIKE', "%{$searchValueLower}%");
+                    ->orWhere('title', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('route', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('description', 'LIKE', "%{$escapedSearch}%");
             })
             ->limit(10)
             ->fetchAll();
 
         foreach ($pages as $page) {
             $relevance = $this->calculateRelevance($searchValueLower, $page);
-
-            $searchResult = new AdminSearchResult(
-                $page->title,
-                url('admin/pages/' . $page->id . '/edit'),
-                $icon = 'ph.regular.file-text',
-                $description = $page->route,
-                $relevance
-            );
-
-            $event->add($searchResult);
+            $event->add($this->createPageSearchResult($page, $relevance));
         }
+    }
+
+    /**
+     * Create a search result for a page
+     */
+    protected function createPageSearchResult(Page $page, int $relevance): AdminSearchResult
+    {
+        return new AdminSearchResult(
+            $page->title,
+            url('admin/pages/' . $page->id . '/edit'),
+            'ph.regular.file-text',
+            __('search.category_pages'),
+            $relevance,
+        );
     }
 
     /**

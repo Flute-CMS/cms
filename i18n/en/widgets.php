@@ -38,6 +38,16 @@ return [
             "inCard" => "Wrap content in a card",
             "content" => "Content",
         ],
+        "top_donors" => [
+            "display_mode" => "Display mode",
+            "display_mode_help" => "Choose how donors will be displayed",
+            "mode_podium" => "Podium",
+            "mode_list" => "List",
+            "mode_compact" => "Compact",
+            "limit" => "Count",
+            "limit_help" => "How many donors to show (1-20)",
+            "show_amount" => "Show donation amount",
+        ],
     ],
     
     // Banners
@@ -52,7 +62,17 @@ return [
         "name" => "Page Content",
         "description" => "Main page content from templates",
         "no_content" => "No content available",
+        "editor_hint" => "This block displays the page content. Widgets above and below will appear around it.",
     ],
 
     "no_payments" => "No payments",
+
+    "users_new_desc" => "Users who registered in the last 7 days",
+    "users_online_desc" => "Users currently browsing the site",
+    "users_today_desc" => "Users who visited the site today",
+    "recent_payments_desc" => "Latest successful payments on the site",
+    "top_donors_desc" => "Users with the highest total donations",
+    "active_promos_desc" => "Active promo codes available for use",
+    "user_mini_profile_desc" => "Current user's profile card",
+    "editor_desc" => "Custom text block with rich-text editor",
 ];

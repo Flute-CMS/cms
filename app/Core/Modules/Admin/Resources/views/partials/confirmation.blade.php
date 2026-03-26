@@ -10,7 +10,7 @@
     </p>
 
     <x-slot:footer>
-        <div class="d-flex justify-content-end align-items-center gap-3">
+        <div class="d-flex justify-content-end align-items-center gap-3 w-100">
             <x-button autofocus class="w-100" type="outline-primary" data-a11y-dialog-hide id="confirmation-dialog-cancel">
                 {{ __('def.cancel') }}
             </x-button>

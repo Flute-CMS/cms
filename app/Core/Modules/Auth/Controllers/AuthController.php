@@ -6,13 +6,13 @@ use Exception;
 use Flute\Core\Exceptions\AccountNotVerifiedException;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends BaseController
 {
     public function getLogin(FluteRequest $request)
     {
-        breadcrumb()->add(config('app.name'), url('/'))
-            ->add(__('auth.header.login'));
+        breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.login'));
 
         if (config('auth.only_social', false)) {
             $providers = social()->getAll();
@@ -25,21 +25,20 @@ class AuthController extends BaseController
         }
 
         return view('flute::pages.login', [
-            "social" => social()->toDisplay(),
+            'social' => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'auth-card');
     }
 
     public function getRegister(FluteRequest $request)
     {
-        breadcrumb()->add(config('app.name'), url('/'))
-            ->add(__('auth.header.register'));
+        breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.register'));
 
         return view('flute::pages.register', [
-            "social" => social()->toDisplay(),
+            'social' => social()->toDisplay(),
         ])->fragmentIf($request->isOnlyHtmx() && config('auth.only_modal'), 'register-card');
     }
 
-    public function getLogout(FluteRequest $request)
+    public function logout(FluteRequest $request)
     {
         try {
             auth()->logout();
@@ -51,7 +50,7 @@ class AuthController extends BaseController
             return response()->redirect('/');
         } catch (Exception $e) {
             logs()->error($e);
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
 
             return response()->error(500, $message);
         }
@@ -64,10 +63,50 @@ class AuthController extends BaseController
             flash()->add('success', __('auth.confirmation.success'));
 
             return response()->redirect('/');
-        } catch (Exception $e) {
-            return response()->error(404, __('auth.confirmation.verify_old'));
         } catch (AccountNotVerifiedException $e) {
             return response()->error(404, __('auth.confirmation.verify_old'));
+        } catch (Exception $e) {
+            return response()->error(404, __('auth.confirmation.verify_old'));
         }
+    }
+
+    public function confirmEmailChange(FluteRequest $request, string $token)
+    {
+        try {
+            $verificationToken = \Flute\Core\Database\Entities\VerificationToken::query()
+                ->where(['token' => hash('sha256', $token)])
+                ->load(['user'])
+                ->fetchOne();
+
+            if ($verificationToken === null || $verificationToken->expiresAt < new \DateTime()) {
+                return response()->error(404, __('auth.confirmation.verify_old'));
+            }
+
+            $user = $verificationToken->user;
+
+            if (empty($user->pendingEmail)) {
+                transaction($verificationToken, 'delete')->run();
+
+                return response()->error(404, __('auth.confirmation.verify_old'));
+            }
+
+            $user->email = $user->pendingEmail;
+            $user->pendingEmail = null;
+            $user->verified = true;
+
+            transaction($user)->run();
+            transaction($verificationToken, 'delete')->run();
+
+            flash()->add('success', __('profile.edit.main.basic_information.email_changed_success'));
+
+            return response()->redirect('/');
+        } catch (Exception $e) {
+            return response()->error(404, __('auth.confirmation.verify_old'));
+        }
+    }
+
+    public function authCheck(): Response
+    {
+        return response()->make('', Response::HTTP_NO_CONTENT);
     }
 }

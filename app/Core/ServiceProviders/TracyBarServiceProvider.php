@@ -11,7 +11,7 @@ class TracyBarServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             FluteTracyBar::class => \DI\autowire(FluteTracyBar::class),
-            "TracyBar" => \DI\get(FluteTracyBar::class),
+            'TracyBar' => \DI\get(FluteTracyBar::class),
         ]);
     }
 

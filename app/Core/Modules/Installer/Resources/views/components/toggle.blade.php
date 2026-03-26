@@ -2,16 +2,15 @@
     'name' => '',
     'checked' => false,
     'disabled' => false,
-    'class' => '',
 ])
 
-<label class="toggle-switch {{ $class }}">
+<label class="toggle-track">
     <input
         type="checkbox"
         name="{{ $name }}"
-        class="toggle-switch__input"
-        @if($checked) checked @endif
-        @if($disabled) disabled @endif
+        @if ($checked) checked @endif
+        @if ($disabled) disabled @endif
+        {{ $attributes }}
     >
-    <span class="toggle-switch__slider"></span>
-</label> 
+    <span class="toggle-thumb"></span>
+</label>

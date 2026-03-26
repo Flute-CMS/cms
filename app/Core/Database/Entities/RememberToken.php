@@ -11,7 +11,10 @@ use Cycle\Annotated\Annotation\Table\Index;
 
 #[Entity]
 #[Table(
-    indexes: [new Index(columns: ["token"], unique: true)]
+    indexes: [
+        new Index(columns: ["token"], unique: true),
+        new Index(columns: ["user_id"]),
+    ]
 )]
 class RememberToken extends ActiveRecord
 {

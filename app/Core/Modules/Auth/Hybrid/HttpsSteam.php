@@ -1,10 +1,10 @@
 <?php
 
 /*!
-* Hybridauth
-* https://hybridauth.github.io | https://github.com/hybridauth/hybridauth
-*  (c) 2017 Hybridauth authors | https://hybridauth.github.io/license.html
-*/
+ * Hybridauth
+ * https://hybridauth.github.io | https://github.com/hybridauth/hybridauth
+ *  (c) 2017 Hybridauth authors | https://hybridauth.github.io/license.html
+ */
 
 namespace Hybridauth\Provider;
 
@@ -55,10 +55,14 @@ class HttpsSteam extends OpenID
 
         $userProfile = $this->storage->get($this->providerId . '.user');
 
-        $userProfile->identifier = str_ireplace([
-            'http://steamcommunity.com/openid/id/',
-            'https://steamcommunity.com/openid/id/',
-        ], '', $userProfile->identifier);
+        $userProfile->identifier = str_ireplace(
+            [
+                'http://steamcommunity.com/openid/id/',
+                'https://steamcommunity.com/openid/id/',
+            ],
+            '',
+            $userProfile->identifier,
+        );
 
         if (!$userProfile->identifier) {
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
@@ -113,11 +117,11 @@ class HttpsSteam extends OpenID
 
         $userProfile = [];
 
-        $userProfile['displayName'] = (string)$data->get('personaname');
-        $userProfile['firstName'] = (string)$data->get('realname');
-        $userProfile['photoURL'] = (string)$data->get('avatarfull');
-        $userProfile['profileURL'] = (string)$data->get('profileurl');
-        $userProfile['country'] = (string)$data->get('loccountrycode');
+        $userProfile['displayName'] = (string) $data->get('personaname');
+        $userProfile['firstName'] = (string) $data->get('realname');
+        $userProfile['photoURL'] = (string) $data->get('avatarfull');
+        $userProfile['profileURL'] = (string) $data->get('profileurl');
+        $userProfile['country'] = (string) $data->get('loccountrycode');
 
         return $userProfile;
     }
@@ -140,13 +144,13 @@ class HttpsSteam extends OpenID
 
         $userProfile = [];
 
-        $userProfile['displayName'] = (string)$data->get('steamID');
-        $userProfile['firstName'] = (string)$data->get('realname');
-        $userProfile['photoURL'] = (string)$data->get('avatarFull');
-        $userProfile['description'] = (string)$data->get('summary');
-        $userProfile['region'] = (string)$data->get('location');
-        $userProfile['profileURL'] = (string)$data->get('customURL')
-            ? 'https://steamcommunity.com/id/' . (string)$data->get('customURL')
+        $userProfile['displayName'] = (string) $data->get('steamID');
+        $userProfile['firstName'] = (string) $data->get('realname');
+        $userProfile['photoURL'] = (string) $data->get('avatarFull');
+        $userProfile['description'] = (string) $data->get('summary');
+        $userProfile['region'] = (string) $data->get('location');
+        $userProfile['profileURL'] = (string) $data->get('customURL')
+            ? 'https://steamcommunity.com/id/' . (string) $data->get('customURL')
             : 'https://steamcommunity.com/profiles/' . $steam64;
 
         return $userProfile;

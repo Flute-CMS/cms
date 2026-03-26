@@ -7,6 +7,7 @@ use Flute\Core\Modules\Auth\Components\LoginComponent;
 use Flute\Core\Modules\Auth\Components\PasswordResetComponent;
 use Flute\Core\Modules\Auth\Components\PasswordResetTokenComponent;
 use Flute\Core\Modules\Auth\Components\RegisterComponent;
+use Flute\Core\Modules\Auth\Components\SocialSupplementComponent;
 use Flute\Core\Modules\Auth\Services\AuthenticationService;
 use Flute\Core\Modules\Auth\Services\AuthService;
 use Flute\Core\Modules\Auth\Services\SocialService;
@@ -47,11 +48,15 @@ class AuthServiceProvider extends AbstractServiceProvider
 
                 $template->registerComponent('login', LoginComponent::class);
                 $template->registerComponent('register', RegisterComponent::class);
+                $template->registerComponent('social-supplement', SocialSupplementComponent::class);
                 $template->registerComponent('reset', PasswordResetComponent::class);
                 $template->registerComponent('reset-token', PasswordResetTokenComponent::class);
             });
 
-            events()->addListener(\Flute\Core\Modules\Auth\Events\UserRegisteredEvent::NAME, [DefaultRoleListener::class, 'handle']);
+            events()->addListener(\Flute\Core\Modules\Auth\Events\UserRegisteredEvent::NAME, [
+                DefaultRoleListener::class,
+                'handle',
+            ]);
         }
     }
 }

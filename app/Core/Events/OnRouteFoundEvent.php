@@ -24,7 +24,7 @@ class OnRouteFoundEvent extends Event
         $this->request = $request;
     }
 
-    public function getRoute(): RouteInterface|null
+    public function getRoute(): ?RouteInterface
     {
         return $this->route;
     }

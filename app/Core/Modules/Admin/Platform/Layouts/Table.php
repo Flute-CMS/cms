@@ -84,6 +84,28 @@ abstract class Table extends Layout
     protected $compact = false;
 
     /**
+     * Enable export functionality.
+     *
+     * @var bool
+     */
+    protected $exportable = false;
+
+    /**
+     * Export filename.
+     *
+     * @var string
+     */
+    protected $exportFilename = 'export';
+
+    protected ?string $emptyIcon = null;
+
+    protected ?string $emptyText = null;
+
+    protected ?string $emptySub = null;
+
+    protected ?Action $emptyAction = null;
+
+    /**
      * Callback for processing each row before display.
      *
      * @var callable|null
@@ -96,6 +118,17 @@ abstract class Table extends Layout
      * @var callable|null
      */
     protected $dataCallback = null;
+
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'table',
+            'columns' => min(count($this->columns()), 6),
+            'rows' => 5,
+            'title' => $this->title,
+            'searchable' => $this->searchable,
+        ];
+    }
 
     /**
      * @return Factory|\Illuminate\View\View|void
@@ -112,7 +145,7 @@ abstract class Table extends Layout
 
         $allColumns = collect($this->columns());
 
-        $columns = $allColumns->filter(static fn (TD $column) => $column->isVisible());
+        $columns = $allColumns->filter(static fn(TD $column) => $column->isVisible());
 
         // Mark columns that should be hidden by user preference
         $columns->each(static function (TD $column) use ($tableId) {
@@ -123,14 +156,14 @@ abstract class Table extends Layout
             $column->setAttribute('tableId', $tableId);
         });
 
-        $total = collect($this->total())->filter(static fn (TD $column) => $column->isVisible());
+        $total = collect($this->total())->filter(static fn(TD $column) => $column->isVisible());
 
         $content = $repository->getContent($this->target);
 
         $requestSort = request()->input('sort', '');
 
         if (empty($requestSort)) {
-            $defaultSortColumn = $columns->first(static fn (TD $column) => $column->getAttribute('defaultSort', false));
+            $defaultSortColumn = $columns->first(static fn(TD $column) => $column->getAttribute('defaultSort', false));
             if ($defaultSortColumn) {
                 $this->sortColumn = $defaultSortColumn->getName();
                 $this->sortDirection = $defaultSortColumn->getAttribute('defaultSortDirection', 'asc');
@@ -139,7 +172,12 @@ abstract class Table extends Layout
                 $this->sortDirection = 'asc';
             }
         } else {
-            $this->sortColumn = ltrim($requestSort, '-');
+            $candidateColumn = ltrim($requestSort, '-');
+            $allowedColumns = $columns
+                ->map(static fn(TD $column) => $column->getName())
+                ->filter()
+                ->toArray();
+            $this->sortColumn = in_array($candidateColumn, $allowedColumns, true) ? $candidateColumn : '';
             $this->sortDirection = str_starts_with($requestSort, '-') ? 'desc' : 'asc';
         }
 
@@ -167,7 +205,7 @@ abstract class Table extends Layout
             $collection = $this->getCollectionFromContent($content);
             $totalItems = $collection->count();
             $totalPages = (int) ceil($totalItems / $perPage);
-            $rows = $collection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $rows = $collection->slice(( $currentPage - 1 ) * $perPage, $perPage)->values();
         }
 
         if ($this->dataCallback !== null) {
@@ -179,7 +217,7 @@ abstract class Table extends Layout
         }
 
         if ($this->rowCallback !== null && $rows->isNotEmpty()) {
-            $rows = $rows->map(fn ($row) => call_user_func($this->rowCallback, $row));
+            $rows = $rows->map(fn($row) => call_user_func($this->rowCallback, $row));
         }
 
         return view($this->template, [
@@ -191,6 +229,7 @@ abstract class Table extends Layout
             'iconNotFound' => $this->iconNotFound(),
             'textNotFound' => $this->textNotFound(),
             'subNotFound' => $this->subNotFound(),
+            'buttonNotFound' => $this->buttonNotFound(),
             'searchable' => $this->isSearchable(),
             'searchValue' => $this->searchQuery,
             'compact' => $this->isCompact(),
@@ -208,7 +247,9 @@ abstract class Table extends Layout
                 'currentPage' => $currentPage,
                 'perPage' => $perPage,
             ],
-            'tableStorageKey' => 'tableSelection-'.$tableId,
+            'tableStorageKey' => 'tableSelection-' . $tableId,
+            'exportable' => $this->isExportable(),
+            'exportFilename' => $this->getExportFilename(),
         ]);
     }
 
@@ -285,6 +326,85 @@ abstract class Table extends Layout
         return $this;
     }
 
+    /**
+     * Enable export functionality for this table.
+     *
+     * @param bool $exportable Whether export is enabled
+     * @param string $filename The base filename for exports
+     */
+    public function exportable(bool $exportable = true, string $filename = 'export'): self
+    {
+        $this->exportable = $exportable;
+        $this->exportFilename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * Get the data source target key.
+     */
+    public function getTarget(): string
+    {
+        return $this->target ?? 'default';
+    }
+
+    /**
+     * Check if export is enabled.
+     */
+    public function isExportable(): bool
+    {
+        return $this->exportable;
+    }
+
+    /**
+     * Get the export filename.
+     */
+    public function getExportFilename(): string
+    {
+        return $this->exportFilename;
+    }
+
+    /**
+     * Get all exportable data (without pagination) for export.
+     */
+    public function getExportData(Repository $repository): array
+    {
+        $content = $repository->getContent($this->target);
+        $allColumns = collect($this->columns());
+        $columns = $allColumns->filter(static fn(TD $column) => $column->isVisible());
+
+        if ($this->searchQuery) {
+            $content = $this->applySearch($content);
+        }
+
+        if ($this->sortColumn) {
+            $content = $this->applySort($content);
+        }
+
+        if ($content instanceof \Cycle\ORM\Select || $content instanceof \Cycle\Database\Query\SelectQuery) {
+            $rows = collect($content->fetchAll());
+        } else {
+            $rows = $this->getCollectionFromContent($content);
+        }
+
+        if ($this->dataCallback !== null) {
+            $rows = call_user_func($this->dataCallback, $rows, $content);
+
+            if (!$rows instanceof \Illuminate\Support\Collection) {
+                $rows = collect($rows);
+            }
+        }
+
+        if ($this->rowCallback !== null && $rows->isNotEmpty()) {
+            $rows = $rows->map(fn($row) => call_user_func($this->rowCallback, $row));
+        }
+
+        return [
+            'rows' => $rows,
+            'columns' => $columns,
+        ];
+    }
+
     public function prepareContent(callable $callback): self
     {
         $this->rowCallback = $callback;
@@ -295,6 +415,22 @@ abstract class Table extends Layout
     public function dataCallback(callable $callback): self
     {
         $this->dataCallback = $callback;
+
+        return $this;
+    }
+
+    public function empty(string $icon, string $text, string $sub = ''): self
+    {
+        $this->emptyIcon = $icon;
+        $this->emptyText = $text;
+        $this->emptySub = $sub;
+
+        return $this;
+    }
+
+    public function emptyButton(Action $action): self
+    {
+        $this->emptyAction = $action;
 
         return $this;
     }
@@ -310,17 +446,21 @@ abstract class Table extends Layout
             return [];
         }
 
-        return collect($this->bulkActions)
-            ->map(function ($action) use ($tableId) {
-                if ($action instanceof Action) {
-                    $selector = '#bulk-actions-' . $tableId . ', table#' . $tableId . ' .row-selector input, table#' . $tableId . ' .row-selector';
-                    $action->set('hx-include', $selector);
-                }
+        return collect($this->bulkActions)->map(function ($action) use ($tableId) {
+            if ($action instanceof Action) {
+                $selector =
+                    '#bulk-actions-'
+                    . $tableId
+                    . ', table#'
+                    . $tableId
+                    . ' .row-selector input, table#'
+                    . $tableId
+                    . ' .row-selector';
+                $action->set('hx-include', $selector);
+            }
 
-                return $action->build($this->query);
-            })
-            ->filter()
-            ->all();
+            return $action->build($this->query);
+        })->filter()->all();
     }
 
     protected function getCurrentPage()
@@ -330,17 +470,22 @@ abstract class Table extends Layout
 
     protected function iconNotFound(): string
     {
-        return 'ph.regular.smiley-x-eyes';
+        return $this->emptyIcon ?? 'ph.regular.smiley-x-eyes';
     }
 
     protected function textNotFound(): string
     {
-        return __('def.no_results_found');
+        return $this->emptyText ?? __('def.no_results_found');
     }
 
     protected function subNotFound(): string
     {
-        return __('def.import_or_create');
+        return $this->emptySub ?? __('def.import_or_create');
+    }
+
+    protected function buttonNotFound(): ?Action
+    {
+        return $this->emptyAction;
     }
 
     /**
@@ -439,8 +584,8 @@ abstract class Table extends Layout
         }
 
         return collect($this->columns())
-            ->filter(static fn (TD $TD) => $TD->isSearchable())
-            ->map(static fn (TD $TD) => $TD->getName())
+            ->filter(static fn(TD $TD) => $TD->isSearchable())
+            ->map(static fn(TD $TD) => $TD->getName())
             ->toArray();
     }
 
@@ -449,11 +594,11 @@ abstract class Table extends Layout
      */
     protected function applySearchToSelect(Select|SelectQuery $select, array $columns): Select|SelectQuery
     {
-        $searchQuery = $this->searchQuery;
+        $searchQuery = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $this->searchQuery);
 
         $select->andWhere(static function ($query) use ($columns, $searchQuery) {
             foreach ($columns as $column) {
-                $query->orWhere($column, 'LIKE', '%'.$searchQuery.'%');
+                $query->orWhere($column, 'LIKE', '%' . $searchQuery . '%');
             }
         });
 
@@ -501,7 +646,6 @@ abstract class Table extends Layout
 
         // if the content type is not supported, return an empty collection
         return collect();
-
     }
 
     /**

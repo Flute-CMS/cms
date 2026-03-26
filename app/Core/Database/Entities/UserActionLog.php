@@ -6,11 +6,20 @@ use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Cycle\ORM\Entity\Behavior;
 
 #[Entity]
+#[Table(
+    indexes: [
+        new Index(columns: ["user_id", "created_at"]),
+        new Index(columns: ["action"]),
+        new Index(columns: ["level"]),
+    ]
+)]
 #[Behavior\CreatedAt(
     field: 'createdAt',
     column: 'created_at'
@@ -30,13 +39,23 @@ class UserActionLog extends ActiveRecord
     public ?string $message = null;
 
     #[Column(type: "json", nullable: true)]
-    public ?array $data = null;
+    public ?string $data = null;
 
     #[Column(type: "string", nullable: true)]
     public ?string $level = null;
 
     #[Column(type: "datetime")]
     public DateTimeImmutable $createdAt;
+
+    public function getData(): ?array
+    {
+        return $this->data ? json_decode($this->data, true) : null;
+    }
+
+    public function setData(?array $data): void
+    {
+        $this->data = $data ? json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+    }
 
     public function __construct()
     {

@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "クイック検索...",
+    "search_placeholder" => "ページ、設定、機能を検索...",
+    "search_input" => "検索入力",
+    "to_navigate" => "ナビゲート",
+    "to_select" => "選択",
+    "search_results_for" => "\"%query%\"の検索結果",
+    "no_results_found" => "結果が見つかりません",
+    "available_commands" => "利用可能なコマンド",
+    "no_commands_available" => "コマンドが見つかりません",
+    "search_users" => "ユーザーを検索",
+    "users" => "ユーザー",
+    "settings" => "設定",
+    "lets_search" => "何か見つけましょう...",
+];

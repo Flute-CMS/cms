@@ -4,6 +4,7 @@ namespace Flute\Admin\Packages\Marketplace\Screens;
 
 use Exception;
 use Flute\Admin\Packages\Marketplace\Services\MarketplaceService;
+use Flute\Admin\Packages\Marketplace\Services\ModuleCategoryService;
 use Flute\Admin\Packages\Marketplace\Services\ModuleInstallerService;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
@@ -13,6 +14,8 @@ use Flute\Core\ModulesManager\ModuleManager;
 
 class MarketplaceProductScreen extends Screen
 {
+    public ?string $permission = 'admin.modules';
+
     public string $slugParam = '';
 
     public array $module = [];
@@ -31,8 +34,7 @@ class MarketplaceProductScreen extends Screen
 
     public function mount(): void
     {
-        breadcrumb()
-            ->add(__('admin-marketplace.labels.marketplace'), url('/admin/marketplace'));
+        breadcrumb()->add(__('admin-marketplace.labels.marketplace'), url('/admin/marketplace'));
 
         $this->marketplaceService = app(MarketplaceService::class);
         $this->moduleManager = app(ModuleManager::class);
@@ -65,7 +67,7 @@ class MarketplaceProductScreen extends Screen
             $allModules = $this->marketplaceService->getModules('', '', true);
             $moduleData = null;
             foreach ($allModules as $m) {
-                if (($m['slug'] ?? '') === $slug) {
+                if (( $m['slug'] ?? '' ) === $slug) {
                     $moduleData = $m;
 
                     break;
@@ -86,7 +88,7 @@ class MarketplaceProductScreen extends Screen
                     $allModules = $this->marketplaceService->getModules('', '', true);
                     $moduleData = null;
                     foreach ($allModules as $m) {
-                        if (($m['slug'] ?? '') === $slug) {
+                        if (( $m['slug'] ?? '' ) === $slug) {
                             $moduleData = $m;
 
                             break;
@@ -130,7 +132,10 @@ class MarketplaceProductScreen extends Screen
             try {
                 $moduleInstaller->updateComposerDependencies();
             } catch (Exception $e) {
-                $moduleInstaller->rollbackInstallation($installResult['moduleFolder'], $installResult['backupDir'] ?? null);
+                $moduleInstaller->rollbackInstallation(
+                    $installResult['moduleFolder'],
+                    $installResult['backupDir'] ?? null,
+                );
 
                 throw $e;
             }
@@ -156,12 +161,13 @@ class MarketplaceProductScreen extends Screen
                     $moduleActions->activateModule($moduleInfo, $moduleManager);
                 }
             } else {
-                throw new Exception(__('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов');
+                throw new Exception(
+                    __('admin-marketplace.messages.install_failed') . ': Модуль не найден после копирования файлов',
+                );
             }
 
             $this->flashMessage(__('admin-marketplace.messages.module_installed'), 'success');
             $this->triggerSidebarRefresh();
-
         } catch (Exception $e) {
             logs()->error($e);
             $this->flashMessage($e->getMessage(), 'error');
@@ -171,6 +177,7 @@ class MarketplaceProductScreen extends Screen
             }
             $this->moduleManager->clearCache();
             $this->moduleManager->refreshModules();
+            $this->marketplaceService->clearModuleCache($slug);
             $this->loadModule();
             $this->isLoading = false;
         }
@@ -268,20 +275,33 @@ class MarketplaceProductScreen extends Screen
 
     public function layout(): array
     {
+        $module = $this->module;
+
+        if (!empty($module)) {
+            $categoryService = app(ModuleCategoryService::class);
+            if (!empty($module['description'])) {
+                $module['_localizedDesc'] = $categoryService->getLocalizedDescription($module['description']);
+            }
+            $module['_category'] = $categoryService->getModuleCategory($module);
+        }
+
         return [
             LayoutFactory::view('admin-marketplace::marketplace.module-details', [
-                'module' => $this->module,
+                'module' => $module,
                 'versions' => $this->versions,
-                'isInstalled' => $this->module['isInstalled'] ?? false,
-                'needsUpdate' => $this->module['needsUpdate'] ?? false,
-                'status' => $this->module['status'] ?? '',
+                'isInstalled' => $module['isInstalled'] ?? false,
+                'needsUpdate' => $module['needsUpdate'] ?? false,
+                'status' => $module['status'] ?? '',
                 'isLoading' => $this->isLoading,
             ]),
         ];
     }
 
-    protected function waitForInstalledModuleKey(ModuleManager $moduleManager, string $moduleFolder, int $timeoutSeconds = 15): ?string
-    {
+    protected function waitForInstalledModuleKey(
+        ModuleManager $moduleManager,
+        string $moduleFolder,
+        int $timeoutSeconds = 20,
+    ): ?string {
         $moduleFolder = trim($moduleFolder);
         if ($moduleFolder === '') {
             return null;
@@ -291,25 +311,45 @@ class MarketplaceProductScreen extends Screen
         $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
         $normalized = trim($normalized, '/');
 
-        $candidates = array_values(array_unique(array_filter([
-            $moduleFolder,
-            $normalized,
-            basename($normalized),
-            explode('/', $normalized)[0] ?? null,
-        ], static fn ($v) => is_string($v) && $v !== '')));
+        $candidates = array_values(array_unique(array_filter(
+            [
+                $moduleFolder,
+                $normalized,
+                basename($normalized),
+                explode('/', $normalized)[0] ?? null,
+            ],
+            static fn($v) => is_string($v) && $v !== '',
+        )));
+
+        $modulesPath = path('app/Modules');
 
         $start = microtime(true);
-        while ((microtime(true) - $start) < $timeoutSeconds) {
+        $attemptCount = 0;
+        while (( microtime(true) - $start ) < $timeoutSeconds) {
+            $attemptCount++;
             clearstatcache(true);
-            $moduleManager->refreshModules();
 
             foreach ($candidates as $candidate) {
-                if ($moduleManager->issetModule($candidate)) {
-                    return $candidate;
+                $moduleJsonPath = $modulesPath . DIRECTORY_SEPARATOR . $candidate . DIRECTORY_SEPARATOR . 'module.json';
+                if (is_file($moduleJsonPath) && is_readable($moduleJsonPath)) {
+                    $content = @file_get_contents($moduleJsonPath);
+                    if ($content !== false && strlen($content) > 10) {
+                        $moduleManager->clearCache();
+                        $moduleManager->forceReloadModulesJson();
+                        $moduleManager->refreshModules();
+
+                        if ($moduleManager->issetModule($candidate)) {
+                            return $candidate;
+                        }
+                    }
                 }
             }
 
-            usleep(250000);
+            if ($attemptCount <= 3) {
+                usleep(500000);
+            } else {
+                usleep(250000);
+            }
         }
 
         return null;
@@ -359,8 +399,9 @@ class MarketplaceProductScreen extends Screen
             }
 
             $moduleName = $this->module['name'];
-            $this->module['isInstalled'] = $this->moduleManager->issetModule($moduleName) &&
-                $this->moduleManager->getModule($moduleName)->status !== 'notinstalled';
+            $this->module['isInstalled'] =
+                $this->moduleManager->issetModule($moduleName)
+                && $this->moduleManager->getModule($moduleName)->status !== 'notinstalled';
 
             if ($this->module['isInstalled'] && isset($this->module['currentVersion'])) {
                 $installedModule = $this->moduleManager->getModule($moduleName);
@@ -368,7 +409,7 @@ class MarketplaceProductScreen extends Screen
                 $this->module['needsUpdate'] = version_compare(
                     $this->module['currentVersion'],
                     $this->module['installedVersion'],
-                    '>'
+                    '>',
                 );
                 $this->module['status'] = $installedModule->status ?? 'disabled';
             } else {

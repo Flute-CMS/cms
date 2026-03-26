@@ -11,6 +11,7 @@
     "admin.templates"        => "Oprávnění pro správu šablon. Uživatel může vytvářet, upravovat a mazat šablony používané k zobrazení obsahu na webu.",
     "admin.roles"            => "Oprávnění pro správu uživatelských rolí. Uživatel může vytvářet, upravovat a mazat role a přiřazovat je ostatním uživatelům.",
     "admin.users"            => "Oprávnění pro správu uživatelů. Uživatel může vytvářet, upravovat a mazat uživatelské účty a spravovat jejich přístup.",
+    "admin.users.view"       => "Oprávnění k zobrazení uživatelských profilů, včetně skrytých. Neuděluje práva na úpravy ani správu.",
     "admin.pages"            => "Oprávnění pro správu stránek. Uživatel může vytvářet, upravovat a mazat statické stránky na webu.",
     "admin.socials"          => "Oprávnění pro správu sociálních sítí. Uživatel může přidávat, upravovat a mazat odkazy na sociální sítě.",
     "admin.notifications"    => "Oprávnění pro vytváření uživatelských oznámení. Uživatel může odesílat různá oznámení a upozornění uživatelům platformy.",

@@ -11,16 +11,14 @@ class SteamServiceProvider extends AbstractServiceProvider
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            SteamService::class => \DI\create(SteamService::class)->constructor(
-                \DI\get('app.steam_api'),
-                \DI\get(CacheManager::class)
-            ),
+            SteamService::class => \DI\create(SteamService::class)
+                ->constructor(\DI\get('app.steam_api'), \DI\get(CacheManager::class)),
             'steam' => \DI\get(SteamService::class),
         ]);
     }
 
     public function boot(\DI\Container $container): void
     {
-        $container->get(SteamService::class);
+        // Service is lazily instantiated on first use from the container
     }
 }

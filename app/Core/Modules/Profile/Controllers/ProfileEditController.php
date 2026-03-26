@@ -21,30 +21,30 @@ class ProfileEditController extends BaseController
     {
         $user = user()->getCurrentUser();
 
-        breadcrumb()
-            ->add(__('def.home'), url('/'))
-            ->add(__('def.profile') . " - {$user->name}", url("profile/{$user->getUrl()}"))
-            ->add(__('def.settings'), url('profile/settings'));
+        breadcrumb()->add(__('def.home'), url('/'))->add(
+            __('def.profile') . " - {$user->name}",
+            url("profile/{$user->getUrl()}"),
+        )->add(__('def.settings'), url('profile/settings'));
 
-        $tabs = $profileTabService->getTabs();
+        $tabs = $profileTabService->getTabs($user);
 
         if ($this->path === 'full') {
             return view('flute::pages.profile.edit-full', [
-                "id" => $user->id,
-                "user" => $user,
+                'id' => $user->id,
+                'user' => $user,
                 'activePath' => $this->path,
                 'tabs' => $tabs,
             ]);
         }
 
-        abort_if($profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
+        abort_unless($profileTabService->getTabsByPath($this->path)->count() !== 0, 404);
 
         $activeTab = $profileTabService->getTabsByPath($this->path);
         $activeTabContent = $profileTabService->renderTabsByPath($this->path, $user);
 
         return view('flute::pages.profile.edit-main', [
-            "id" => $user->id,
-            "user" => $user,
+            'id' => $user->id,
+            'user' => $user,
             'activePath' => $this->path,
             'tabs' => $tabs,
             'activeTab' => $activeTab,

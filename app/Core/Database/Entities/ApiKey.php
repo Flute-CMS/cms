@@ -61,8 +61,11 @@ class ApiKey extends ActiveRecord
 
     public function hasPermissionByName(string $permissionName): bool
     {
-        if ($permissionName !== 'admin.boss' && $this->hasPermissionByName('admin.boss')) {
-            return true;
+        if ($permissionName !== 'admin.boss') {
+            $isBoss = collect($this->permissions)->contains(fn(Permission $p) => $p->name === 'admin.boss');
+            if ($isBoss) {
+                return true;
+            }
         }
 
         return collect($this->permissions)->contains(function (Permission $permission) use ($permissionName) {

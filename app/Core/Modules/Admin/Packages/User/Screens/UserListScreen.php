@@ -11,9 +11,11 @@ use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
+use Flute\Core\Database\Entities\Role;
 use Flute\Core\Database\Entities\User;
 use Throwable;
 
@@ -31,10 +33,9 @@ class UserListScreen extends Screen
 
     public function mount(): void
     {
-        breadcrumb()->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-users.title.users'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-users.title.users'));
 
-        $this->users = rep(User::class)
+        $usersQuery = rep(User::class)
             ->select()
             ->distinct()
             ->with('blocksReceived', [
@@ -42,10 +43,44 @@ class UserListScreen extends Screen
             ])
             ->load('roles')
             ->where(static function ($qb) {
-                $qb->where('blocksReceived.id', null)
+                $qb
+                    ->where('blocksReceived.id', null)
                     ->orWhere('blocksReceived.isActive', false)
                     ->orWhere('blocksReceived.blockedUntil', '<', new DateTimeImmutable());
             });
+
+        // Применяем фильтр верификации
+        $verified = request()->input('verified', 'all');
+        if ($verified === 'yes') {
+            $usersQuery->where('verified', true);
+        } elseif ($verified === 'no') {
+            $usersQuery->where('verified', false);
+        }
+
+        // Применяем фильтр роли
+        $roleId = request()->input('role');
+        if ($roleId) {
+            $usersQuery->where('roles.id', (int) $roleId);
+        }
+
+        // Применяем фильтр периода регистрации
+        $period = request()->input('period', 'all');
+        if ($period !== 'all') {
+            $days = match ($period) {
+                '7d' => 7,
+                '30d' => 30,
+                '90d' => 90,
+                '180d' => 180,
+                '365d' => 365,
+                default => null,
+            };
+            if ($days !== null) {
+                $dateFrom = ( new DateTimeImmutable() )->modify("-{$days} days");
+                $usersQuery->where('createdAt', '>=', $dateFrom);
+            }
+        }
+
+        $this->users = $usersQuery;
 
         $this->blockedUsers = rep(User::class)
             ->select()
@@ -53,8 +88,10 @@ class UserListScreen extends Screen
             ->load('roles')
             ->where('blocksReceived.isActive', true)
             ->where(static function ($qb) {
-                $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())
-                    ->orWhere('blocksReceived.blockedUntil', null);
+                $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())->orWhere(
+                    'blocksReceived.blockedUntil',
+                    null,
+                );
             })
             ->orderBy('id', 'desc');
     }
@@ -63,13 +100,15 @@ class UserListScreen extends Screen
     {
         return [
             LayoutFactory::tabs([
-                Tab::make(__('admin-users.tabs.all'))->badge($this->users->count())
+                Tab::make(__('admin-users.tabs.all'))
+                    ->badge($this->users->count())
                     ->layouts([
+                        $this->getUserFilters(),
                         LayoutFactory::table('users', [
                             TD::selection('id'),
                             TD::make('name', __('admin-users.table.user'))
                                 ->width('250px')
-                                ->render(static fn (User $user) => view('admin-users::cells.user', compact('user')))
+                                ->render(static fn(User $user) => view('admin-users::cells.user', compact('user')))
                                 ->cantHide(),
 
                             TD::make('role', __('admin-users.table.role'))
@@ -84,19 +123,32 @@ class UserListScreen extends Screen
                                 ->width('100px')
                                 ->sort()
                                 ->disableSearch()
-                                ->render(static fn (User $user) => user()->can($user) ? number_format($user->balance, 2).' '.config('lk.currency_view') : '—'),
+                                ->render(static fn(User $user) => user()->can($user)
+                                    ? number_format($user->balance, 2) . ' ' . config('lk.currency_view')
+                                    : '—'),
 
                             TD::make('createdAt', __('admin-users.table.registration_date'))
                                 ->width('150px')
                                 ->sort()
                                 ->defaultSort(true, 'desc')
                                 ->disableSearch()
-                                ->render(static fn (User $user) => "<span title='".(new Carbon($user->createdAt))->format('d.m.Y H:i')."'>".(new Carbon($user->createdAt))->diffForHumans()."</span>"),
+                                ->render(
+                                    static fn(User $user) => (
+                                        "<span title='"
+                                        . ( new Carbon($user->createdAt) )->format('d.m.Y H:i')
+                                        . "'>"
+                                        . ( new Carbon($user->createdAt) )->diffForHumans()
+                                        . '</span>'
+                                    ),
+                                ),
 
                             TD::make('last_logged', __('admin-users.table.status'))
                                 ->width('140px')
                                 ->sort()
-                                ->render(static fn (User $user) => view('admin-users::cells.user-status', compact('user'))),
+                                ->render(static fn(User $user) => view(
+                                    'admin-users::cells.user-status',
+                                    compact('user'),
+                                )),
 
                             TD::make(__('admin-users.table.actions'))
                                 ->class('actions-col')
@@ -104,27 +156,32 @@ class UserListScreen extends Screen
                                 ->disableSearch()
                                 ->width('100px')
                                 ->cantHide()
-                                ->render(static fn (User $user) => user()->can($user) ? DropDown::make()
-                                    ->icon('ph.regular.dots-three-outline-vertical')
-                                    ->list([
-                                        DropDownItem::make(__('admin-users.buttons.edit'))
-                                            ->type(Color::OUTLINE_PRIMARY)
-                                            ->icon('ph.regular.pencil')
-                                            ->size('small')
-                                            ->fullWidth()
-                                            ->redirect(url('admin/users/'.$user->id.'/edit')),
+                                ->render(static fn(User $user) => (
+                                    user()->can($user)
+                                        ? DropDown::make()
+                                            ->icon('ph.regular.dots-three-outline-vertical')
+                                            ->list([
+                                                DropDownItem::make(__('admin-users.buttons.edit'))
+                                                    ->type(Color::OUTLINE_PRIMARY)
+                                                    ->icon('ph.regular.pencil')
+                                                    ->size('small')
+                                                    ->fullWidth()
+                                                    ->redirect(url('admin/users/' . $user->id . '/edit')),
 
-                                        DropDownItem::make(__('admin-users.buttons.delete'))
-                                            ->fullWidth()
-                                            ->confirm(__('admin-users.confirms.delete_user'))
-                                            ->type(Color::OUTLINE_DANGER)
-                                            ->icon('ph.regular.trash')
-                                            ->size('small')
-                                            ->method("deleteUser", [
-                                                "id" => $user->id,
-                                            ]),
-                                    ]) : null),
-                        ])->perPage(10)->searchable(['name', 'email', 'login'])
+                                                DropDownItem::make(__('admin-users.buttons.delete'))
+                                                    ->fullWidth()
+                                                    ->confirm(__('admin-users.confirms.delete_user'))
+                                                    ->type(Color::OUTLINE_DANGER)
+                                                    ->icon('ph.regular.trash')
+                                                    ->size('small')
+                                                    ->method('deleteUser', [
+                                                        'id' => $user->id,
+                                                    ]),
+                                            ]) : null
+                                )),
+                        ])
+                            ->perPage(10)
+                            ->searchable(['name', 'email', 'login'])
                             ->bulkActions([
                                 \Flute\Admin\Platform\Actions\Button::make(__('admin.bulk.delete_selected'))
                                     ->icon('ph.bold.trash-bold')
@@ -140,7 +197,7 @@ class UserListScreen extends Screen
                         LayoutFactory::table('blockedUsers', [
                             TD::make('name', __('admin-users.table.user'))
                                 ->width('250px')
-                                ->render(static fn (User $user) => view('admin-users::cells.user', compact('user')))
+                                ->render(static fn(User $user) => view('admin-users::cells.user', compact('user')))
                                 ->cantHide(),
 
                             TD::make('block_info', __('admin-users.table.block_info'))
@@ -148,13 +205,20 @@ class UserListScreen extends Screen
                                 ->render(static function (User $item) {
                                     $blockInfo = $item->getBlockInfo();
                                     if ($blockInfo) {
-                                        $blockedUntil = $blockInfo['blockedUntil'] ? $blockInfo['blockedUntil']->format('Y-m-d H:i') : __('admin-users.status.forever');
+                                        $blockedUntil = $blockInfo['blockedUntil']
+                                            ? $blockInfo['blockedUntil']->format('Y-m-d H:i')
+                                            : __('admin-users.status.forever');
 
-                                        return __('admin-users.status.blocked_until', ['date' => $blockedUntil]).'<br>'.__('admin-users.status.block_reason', ['reason' => htmlspecialchars($blockInfo['reason'])]);
+                                        return (
+                                            __('admin-users.status.blocked_until', ['date' => $blockedUntil])
+                                            . '<br>'
+                                            . __('admin-users.status.block_reason', ['reason' => htmlspecialchars(
+                                                $blockInfo['reason'],
+                                            )])
+                                        );
                                     }
 
                                     return '—';
-
                                 })
                                 ->cantHide(),
 
@@ -162,13 +226,17 @@ class UserListScreen extends Screen
                                 ->width('150px')
                                 ->sort()
                                 ->disableSearch()
-                                ->render(static fn (User $user) => isset($user->getBlockInfo()['blockedFrom']) ? $user->getBlockInfo()['blockedFrom']->format('d.m.Y H:i') : __('admin-users.status.forever')),
+                                ->render(static fn(User $user) => isset($user->getBlockInfo()['blockedFrom'])
+                                    ? $user->getBlockInfo()['blockedFrom']->format('d.m.Y H:i')
+                                    : __('admin-users.status.forever')),
 
                             TD::make('blocksReceived.blockedUntil', __('admin-users.table.blocked_until'))
                                 ->width('150px')
                                 ->sort()
                                 ->disableSearch()
-                                ->render(static fn (User $user) => isset($user->getBlockInfo()['blockedUntil']) ? $user->getBlockInfo()['blockedUntil']->format('d.m.Y H:i') : __('admin-users.status.forever')),
+                                ->render(static fn(User $user) => isset($user->getBlockInfo()['blockedUntil'])
+                                    ? $user->getBlockInfo()['blockedUntil']->format('d.m.Y H:i')
+                                    : __('admin-users.status.forever')),
 
                             TD::make(__('admin-users.table.actions'))
                                 ->class('actions-col')
@@ -176,35 +244,42 @@ class UserListScreen extends Screen
                                 ->disableSearch()
                                 ->width('100px')
                                 ->cantHide()
-                                ->render(static fn (User $user) => user()->can($user) ? DropDown::make()
-                                    ->icon('ph.regular.dots-three-outline-vertical')
-                                    ->list([
-                                        DropDownItem::make(__('admin-users.buttons.edit'))
-                                            ->type(Color::OUTLINE_PRIMARY)
-                                            ->icon('ph.regular.pencil')
-                                            ->size('small')
-                                            ->fullWidth()
-                                            ->redirect(url('admin/users/'.$user->id.'/edit')),
+                                ->render(static fn(User $user) => (
+                                    user()->can($user)
+                                        ? DropDown::make()
+                                            ->icon('ph.regular.dots-three-outline-vertical')
+                                            ->list([
+                                                DropDownItem::make(__('admin-users.buttons.edit'))
+                                                    ->type(Color::OUTLINE_PRIMARY)
+                                                    ->icon('ph.regular.pencil')
+                                                    ->size('small')
+                                                    ->fullWidth()
+                                                    ->redirect(url('admin/users/' . $user->id . '/edit')),
 
-                                        DropDownItem::make(__('admin-users.buttons.unblock'))
-                                            ->type(Color::OUTLINE_SUCCESS)
-                                            ->confirm(__('admin-users.confirms.unblock_user'), 'info')
-                                            ->icon('ph.regular.shield-slash')
-                                            ->size('small')
-                                            ->fullWidth()
-                                            ->method("unblockUser", [
-                                                "id" => $user->id,
-                                            ]),
+                                                DropDownItem::make(__('admin-users.buttons.unblock'))
+                                                    ->type(Color::OUTLINE_SUCCESS)
+                                                    ->confirm(__('admin-users.confirms.unblock_user'), 'info')
+                                                    ->icon('ph.regular.shield-slash')
+                                                    ->size('small')
+                                                    ->fullWidth()
+                                                    ->method('unblockUser', [
+                                                        'id' => $user->id,
+                                                    ]),
 
-                                        DropDownItem::make(__('admin-users.buttons.delete'))
-                                            ->fullWidth()
-                                            ->confirm(__('admin-users.confirms.delete_user'))
-                                            ->type(Color::OUTLINE_DANGER)
-                                            ->icon('ph.regular.trash')
-                                            ->size('small')
-                                            ->method("deleteUser"),
-                                    ]) : null),
-                        ])->perPage(15)->searchable(['name', 'email'])
+                                                DropDownItem::make(__('admin-users.buttons.delete'))
+                                                    ->fullWidth()
+                                                    ->confirm(__('admin-users.confirms.delete_user'))
+                                                    ->type(Color::OUTLINE_DANGER)
+                                                    ->icon('ph.regular.trash')
+                                                    ->size('small')
+                                                    ->method('deleteUser', [
+                                                        'id' => $user->id,
+                                                    ]),
+                                            ]) : null
+                                )),
+                        ])
+                            ->perPage(15)
+                            ->searchable(['name', 'email'])
                             ->bulkActions([
                                 \Flute\Admin\Platform\Actions\Button::make(__('admin.bulk.enable_selected'))
                                     ->icon('ph.bold.shield-slash')
@@ -218,8 +293,7 @@ class UserListScreen extends Screen
                                     ->method('bulkDeleteUsers'),
                             ]),
                     ]),
-            ])
-                ->slug('users'),
+            ])->slug('users'),
         ];
     }
 
@@ -229,6 +303,12 @@ class UserListScreen extends Screen
     public function deleteUser()
     {
         $user = User::findByPK(intval(request()->input('id')));
+
+        if (!$user) {
+            $this->flashMessage(__('admin-users.messages.user_not_found'), 'error');
+
+            return;
+        }
 
         if (!user()->can('admin.users')) {
             $this->flashMessage(__('admin-users.messages.no_permission_delete'), 'error');
@@ -277,8 +357,10 @@ class UserListScreen extends Screen
                 ->with('blocksReceived')
                 ->where('blocksReceived.isActive', true)
                 ->where(static function ($qb) {
-                    $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())
-                        ->orWhere('blocksReceived.blockedUntil', null);
+                    $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())->orWhere(
+                        'blocksReceived.blockedUntil',
+                        null,
+                    );
                 })
                 ->orderBy('id', 'desc');
         } catch (Exception $e) {
@@ -337,9 +419,39 @@ class UserListScreen extends Screen
             ->load('roles')
             ->where('blocksReceived.isActive', true)
             ->where(static function ($qb) {
-                $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())
-                    ->orWhere('blocksReceived.blockedUntil', null);
+                $qb->where('blocksReceived.blockedUntil', '>', new DateTimeImmutable())->orWhere(
+                    'blocksReceived.blockedUntil',
+                    null,
+                );
             })
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * Получить компонент фильтров для пользователей.
+     */
+    private function getUserFilters(): Filters
+    {
+        // Получаем все роли для фильтра
+        $roles = Role::findAll();
+        $roleOptions = ['' => __('admin.filters.status.all')];
+        foreach ($roles as $role) {
+            $roleOptions[$role->id] = $role->name;
+        }
+
+        return Filters::make()
+            ->buttonGroup(
+                'verified',
+                __('admin-users.fields.verified.label'),
+                [
+                    'all' => __('admin.filters.status.all'),
+                    'yes' => __('admin-users.status.verified'),
+                    'no' => __('def.no'),
+                ],
+                'all',
+            )
+            ->select('role', __('admin-users.table.role'), $roleOptions)
+            ->period('period', __('admin.filters.period'), 'all')
+            ->compact();
     }
 }

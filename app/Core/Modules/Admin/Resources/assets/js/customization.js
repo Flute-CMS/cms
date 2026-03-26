@@ -6,51 +6,37 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initCustomization() {
-    const themeButtons = document.querySelectorAll('.theme-toggle__btn');
-    themeButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            const theme = this.getAttribute('data-theme');
-            setTheme(theme);
+    // Event delegation — works for dynamically loaded content (HTMX swaps).
+    document.addEventListener('click', function (e) {
+        const themeBtn = e.target.closest('.theme-toggle__btn');
+        if (themeBtn) {
+            setTheme(themeBtn.getAttribute('data-theme'));
+            document.querySelectorAll('.theme-toggle__btn').forEach((b) => b.classList.remove('active'));
+            themeBtn.classList.add('active');
+            return;
+        }
 
-            themeButtons.forEach((btn) => btn.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+        const schemeBtn = e.target.closest('.color-scheme__item');
+        if (schemeBtn) {
+            setColorScheme(schemeBtn.getAttribute('data-color-scheme'));
+            document.querySelectorAll('.color-scheme__item').forEach((b) => b.classList.remove('active'));
+            schemeBtn.classList.add('active');
+            return;
+        }
 
-    const colorSchemeButtons = document.querySelectorAll('.color-scheme__item');
-    colorSchemeButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            const scheme = this.getAttribute('data-color-scheme');
-            setColorScheme(scheme);
+        const widthBtn = e.target.closest('.container-width__btn');
+        if (widthBtn) {
+            setContainerWidth(widthBtn.getAttribute('data-container-width'));
+            document.querySelectorAll('.container-width__btn').forEach((b) => b.classList.remove('active'));
+            widthBtn.classList.add('active');
+            return;
+        }
 
-            colorSchemeButtons.forEach((btn) => btn.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    const containerWidthButtons = document.querySelectorAll(
-        '.container-width__btn',
-    );
-    containerWidthButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            const width = this.getAttribute('data-container-width');
-            setContainerWidth(width);
-
-            containerWidthButtons.forEach((btn) =>
-                btn.classList.remove('active'),
-            );
-            this.classList.add('active');
-        });
-    });
-
-    const customizationButton = document.querySelector(
-        '.navbar__customization',
-    );
-    if (customizationButton) {
-        customizationButton.addEventListener('click', function () {
+        const customBtn = e.target.closest('.navbar__customization');
+        if (customBtn) {
             openCustomizationSidebar();
-        });
-    }
+        }
+    });
 }
 
 function setTheme(theme) {
@@ -173,7 +159,7 @@ function setCookie(name, value, days) {
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
         expires = '; expires=' + date.toUTCString();
     }
-    document.cookie = name + '=' + (value || '') + expires + '; path=/';
+    document.cookie = name + '=' + (value || '') + expires + '; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
 }
 
 // Helper function to get cookies
@@ -192,15 +178,14 @@ document.body.addEventListener('htmx:afterRequest', (event) => {
     const target = event.detail.target;
 
     if (target && target.hasAttribute('data-theme')) {
-        const theme = target.getAttribute('data-theme');
-        setTheme(theme);
+        setTheme(target.getAttribute('data-theme'));
     }
 
     if (target && target.hasAttribute('data-color-scheme')) {
-        const scheme = target.getAttribute('data-color-scheme');
+        applyColorScheme(target.getAttribute('data-color-scheme'));
     }
 
     if (target && target.hasAttribute('data-container-width')) {
-        const width = target.getAttribute('data-container-width');
+        applyContainerWidth(target.getAttribute('data-container-width'));
     }
 });

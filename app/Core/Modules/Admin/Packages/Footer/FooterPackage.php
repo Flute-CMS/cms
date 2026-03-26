@@ -37,8 +37,9 @@ class FooterPackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'footer',
                 'title' => __('admin-footer.title'),
-                'icon' => 'ph.bold.arrow-square-out-bold',
+                'icon' => 'ph.regular.rows',
                 'url' => url('/admin/footer'),
             ],
         ];

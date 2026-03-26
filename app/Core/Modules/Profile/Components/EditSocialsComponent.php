@@ -13,11 +13,9 @@ class EditSocialsComponent extends FluteComponent
 
     public function changeVisibility()
     {
-        if (
-            $this->validate([
-                'socialKey' => 'required',
-            ])
-        ) {
+        if ($this->validate([
+            'socialKey' => 'required',
+        ])) {
             $user = user()->getCurrentUser();
 
             $socialNetwork = $user->getSocialNetwork($this->socialKey);
@@ -48,16 +46,15 @@ class EditSocialsComponent extends FluteComponent
             return;
         }
         transaction($socialNetwork, 'delete')->run();
+        $user->removeSocialNetwork($this->socialKey);
         $this->flashMessage(__('profile.social_deleted'), 'success');
-
-        $this->redirectTo(url('profile/settings')->addParams(['tab' => 'social']), 500);
     }
 
     public function render()
     {
         return $this->view('flute::components.profile-tabs.edit.social', [
             'user' => user()->getCurrentUser(),
-            "socials" => SocialNetwork::findAll([
+            'socials' => SocialNetwork::findAll([
                 'enabled' => 1,
             ]),
         ]);

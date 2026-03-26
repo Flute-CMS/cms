@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Snabbsökning...",
+    "search_placeholder" => "Sök sidor, inställningar och funktioner...",
+    "search_input" => "Sökfält",
+    "to_navigate" => "för att navigera",
+    "to_select" => "för att välja",
+    "search_results_for" => "Sökresultat för \"%query%\"",
+    "no_results_found" => "Inga resultat hittades",
+    "available_commands" => "Tillgängliga kommandon",
+    "no_commands_available" => "Inga kommandon hittades",
+    "search_users" => "Sök användare",
+    "users" => "Användare",
+    "settings" => "Inställningar",
+    "lets_search" => "Låt oss hitta något...",
+];

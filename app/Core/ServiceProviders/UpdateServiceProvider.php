@@ -46,7 +46,9 @@ class UpdateServiceProvider extends AbstractServiceProvider
                     try {
                         $packageFile = $updateService->downloadUpdate('cms', null, $updates['cms']['version'] ?? null);
                         if ($packageFile && file_exists($packageFile)) {
-                            $ok = (new \Flute\Core\Update\Updaters\CmsUpdater())->update(['package_file' => $packageFile]);
+                            $ok = ( new \Flute\Core\Update\Updaters\CmsUpdater() )->update([
+                                'package_file' => $packageFile,
+                            ]);
                             if ($ok) {
                                 $successful++;
                             }
@@ -65,11 +67,17 @@ class UpdateServiceProvider extends AbstractServiceProvider
                         $total++;
 
                         try {
-                            $packageFile = $updateService->downloadUpdate('module', $moduleId, $moduleUpdate['version'] ?? null);
+                            $packageFile = $updateService->downloadUpdate(
+                                'module',
+                                $moduleId,
+                                $moduleUpdate['version'] ?? null,
+                            );
                             if ($packageFile && file_exists($packageFile)) {
                                 $module = app(\Flute\Core\ModulesManager\ModuleManager::class)->getModule($moduleId);
                                 if ($module) {
-                                    $ok = (new \Flute\Core\Update\Updaters\ModuleUpdater($module))->update(['package_file' => $packageFile]);
+                                    $ok = ( new \Flute\Core\Update\Updaters\ModuleUpdater($module) )->update([
+                                        'package_file' => $packageFile,
+                                    ]);
                                     if ($ok) {
                                         $successful++;
                                     }
@@ -90,12 +98,18 @@ class UpdateServiceProvider extends AbstractServiceProvider
                         $total++;
 
                         try {
-                            $packageFile = $updateService->downloadUpdate('theme', $themeId, $themeUpdate['version'] ?? null);
+                            $packageFile = $updateService->downloadUpdate(
+                                'theme',
+                                $themeId,
+                                $themeUpdate['version'] ?? null,
+                            );
                             if ($packageFile && file_exists($packageFile)) {
                                 $themeManager = app(\Flute\Core\Theme\ThemeManager::class);
                                 $themeData = $themeManager->getThemeData($themeId);
                                 $theme = \Flute\Core\Database\Entities\Theme::findOne(['key' => $themeId]);
-                                $ok = (new \Flute\Core\Update\Updaters\ThemeUpdater($theme, $themeData))->update(['package_file' => $packageFile]);
+                                $ok = ( new \Flute\Core\Update\Updaters\ThemeUpdater($theme, $themeData) )->update([
+                                    'package_file' => $packageFile,
+                                ]);
                                 if ($ok) {
                                     $successful++;
                                 }

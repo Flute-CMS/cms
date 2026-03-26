@@ -10,7 +10,7 @@
                     @if (flash()->has($type))
                         @foreach (flash()->get($type) as $message)
                             <x-alert :type="$type">
-                                {!! $message !!}
+                                {{ $message }}
                             </x-alert>
                         @endforeach
                     @endif

@@ -74,7 +74,9 @@ class SystemRequirements
         foreach ($this->requiredExtensions as $extension) {
             $results[] = [
                 'name' => $extension,
-                'current' => extension_loaded($extension) ? __('install.requirements.installed') : __('install.requirements.not_installed'),
+                'current' => extension_loaded($extension)
+                    ? __('install.requirements.installed')
+                    : __('install.requirements.not_installed'),
                 'required' => __('install.requirements.installed'),
                 'status' => extension_loaded($extension),
             ];
@@ -92,7 +94,7 @@ class SystemRequirements
         $basePath = path();
 
         foreach ($this->writableDirectories as $directory) {
-            $path = $basePath.'/'.$directory;
+            $path = $basePath . '/' . $directory;
 
             // Create directory if it doesn't exist
             if (!file_exists($path)) {
@@ -103,13 +105,29 @@ class SystemRequirements
 
             $results[] = [
                 'name' => $directory,
-                'current' => $isWritable ? __('install.requirements.writable') : __('install.requirements.not_writable'),
+                'current' => $isWritable
+                    ? __('install.requirements.writable')
+                    : __('install.requirements.not_writable'),
                 'required' => __('install.requirements.writable'),
                 'status' => $isWritable,
             ];
         }
 
         return $results;
+    }
+
+    /**
+     * Check ionCube loader status (optional, for paid modules)
+     */
+    public function checkIonCubeLoader(): array
+    {
+        $loaded = extension_loaded('ionCube Loader');
+
+        return [
+            'name' => 'ionCube Loader',
+            'status' => $loaded,
+            'current' => $loaded ? __('install.requirements.installed') : __('install.requirements.not_installed'),
+        ];
     }
 
     /**

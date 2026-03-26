@@ -1,147 +1,291 @@
 .metrics {
-	margin-bottom: 1rem;
+	margin-bottom: var(--space-md);
 
 	&__title {
-		margin-bottom: 0.5rem;
-		padding: 0 1.3rem;
+		margin-bottom: var(--space-sm);
 		color: var(--text);
 		font-weight: 600;
 		font-size: var(--h4);
 	}
 
+	// --- Unified (default): single card shell ---
 	&__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1rem;
+		@extend .blur-bg;
+		display: flex;
+		background-color: var(--blurred-background);
+		border: 1px solid var(--transp-1);
+		border-radius: var(--border1);
+		box-shadow: var(--shadow-small);
+		overflow: hidden;
 	}
 
-	&__item {
+	// Items inside unified grid get dividers
+	&__grid > .metric {
+		flex: 1;
 		min-width: 0;
+		position: relative;
+		border: none;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+
+		&:hover {
+			background-color: var(--transp-05);
+		}
+
+		// Vertical divider between items
+		& + .metric::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: var(--space-md);
+			bottom: var(--space-md);
+			width: 1px;
+			background: var(--transp-1);
+		}
+	}
+
+	// --- Cards variant: separate cards ---
+	&--cards &__grid {
+		display: grid;
+		grid-template-columns: repeat(var(--metrics-cols, auto-fit), minmax(200px, 1fr));
+		gap: var(--space-md);
+		background: transparent;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		overflow: visible;
+
+		> .metric {
+			@extend .blur-bg;
+			background-color: var(--blurred-background);
+			border: 1px solid var(--transp-1);
+			border-radius: var(--border1);
+			box-shadow: var(--shadow-small);
+
+			& + .metric::before {
+				display: none;
+			}
+
+			&:hover {
+				border-color: var(--transp-2);
+			}
+		}
 	}
 }
+
+// =========================================================
+// Metric card
+// =========================================================
 
 .metric {
 	@extend .blur-bg;
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	padding: 1.25rem 1.5rem;
+	gap: var(--space-xs);
+	padding: var(--space-lg);
 	height: 100%;
-	background-color: var(--transp-05);
+	background-color: var(--blurred-background);
 	border: 1px solid var(--transp-1);
 	border-radius: var(--border1);
-    box-shadow: var(--shadow-small);
-	overflow: hidden;
+	box-shadow: var(--shadow-small);
+	@include transition(background-color);
 
+	// --- Color accents (top bar) ---
+	@each $name in primary, success, warning, error, info {
+		&--#{$name} {
+			.metric__icon-svg {
+				color: var(--#{$name});
+			}
+
+			.metric__progress-fill {
+				background: var(--#{$name});
+			}
+		}
+	}
+
+	// --- Sizes ---
+	&--sm {
+		padding: var(--space-md);
+		gap: var(--space-2xs);
+
+		.metric__number {
+			font-size: var(--h5);
+		}
+	}
+
+	&--lg {
+		padding: var(--space-xl) var(--space-lg);
+
+		.metric__number {
+			font-size: var(--h1);
+		}
+	}
+
+	// --- Header ---
 	&__header {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
-		margin-bottom: 0.5rem;
+		gap: var(--space-xs);
 	}
 
 	&__icon {
 		@extend .flex-center;
-		position: relative;
+		flex-shrink: 0;
 	}
 
 	&__icon-svg {
 		width: 1rem;
 		height: 1rem;
 		color: var(--primary);
+		@include transition(color);
 	}
 
 	&__label {
-		font-size: var(--p);
+		font-size: var(--p-small);
 		color: var(--text-400);
 		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	&__content {
+	// --- Body ---
+	&__body {
 		margin-top: auto;
-		position: relative;
-		z-index: 1;
 	}
 
-	&__main {
+	&__row {
 		display: flex;
-		align-items: flex-end;
-		gap: 0.6rem;
+		align-items: baseline;
+		gap: var(--space-sm);
 		flex-wrap: wrap;
 	}
 
 	&__value {
-		font-size: var(--h3);
-		font-weight: 650;
-		letter-spacing: -0.02em;
-        line-height: 1.5;
-	}
-	&__value-prefix,
-	&__value-suffix {
-		color: var(--text-500);
-		font-weight: 500;
+		display: flex;
+		align-items: baseline;
+		gap: 0.1em;
 	}
 
+	&__number {
+		font-size: var(--h3);
+		font-weight: 700;
+		letter-spacing: -0.025em;
+		line-height: 1.2;
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
+	}
+
+	&__affix {
+		font-size: 0.55em;
+		font-weight: 500;
+		color: var(--text-500);
+
+		&--after {
+			margin-left: 0.1em;
+		}
+	}
+
+	// --- Trend badge ---
 	&__trend {
 		display: inline-flex;
 		align-items: center;
-		align-self: center;
-		gap: 0.25rem;
+		gap: 2px;
 		font-size: var(--small);
 		font-weight: 600;
-		padding: 0.2rem 0.4rem;
+		font-variant-numeric: tabular-nums;
+		padding: var(--space-2xs) var(--space-xs);
 		border-radius: var(--border05);
-		margin-left: 0.25rem;
 
 		&--up {
-			color: var(--success-700, var(--success));
-			background: color-mix(in oklab, var(--success) 12%, transparent);
+			color: var(--success);
+			background: var(--success-light);
 		}
+
 		&--down {
-			color: var(--error-700, var(--error));
-			background: color-mix(in oklab, var(--error) 12%, transparent);
+			color: var(--error);
+			background: var(--error-light);
 		}
 	}
 
 	&__trend-icon {
-		width: 1rem;
-		height: 1rem;
+		width: 1em;
+		height: 1em;
 	}
 
+	// --- Progress ---
 	&__progress {
-		margin-top: 0.6rem;
+		margin-top: var(--space-sm);
 		width: 100%;
-		height: 6px;
+		height: 4px;
 		background: var(--transp-1);
 		border-radius: 999px;
 		overflow: hidden;
 	}
-	&__progress-bar {
+
+	&__progress-fill {
 		height: 100%;
-		background: linear-gradient(90deg, var(--accent-700), var(--accent));
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+		border-radius: 999px;
+		background: var(--primary);
+		@include transition(width);
 	}
 
+	// --- Hint / Extra ---
 	&__hint {
-		margin-top: 0.5rem;
+		margin-top: var(--space-xs);
 		color: var(--text-500);
 		font-size: var(--p-small);
+		line-height: 1.4;
 	}
 
 	&__extra {
-		margin-top: 0.5rem;
+		margin-top: var(--space-xs);
 	}
 }
 
+// =========================================================
+// Responsive
+// =========================================================
+
 @media (max-width: 768px) {
-	.metrics {
-		&__grid {
-			grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-			gap: 0.75rem;
-		}
+	// Unified: stack vertically
+	.metrics__grid {
+		flex-direction: column;
+	}
+
+	.metrics__grid > .metric + .metric::before {
+		// Horizontal divider instead of vertical
+		left: var(--space-lg);
+		right: var(--space-lg);
+		top: 0;
+		bottom: auto;
+		width: auto;
+		height: 1px;
+	}
+
+	// Cards variant
+	.metrics--cards .metrics__grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--space-sm);
 	}
 
 	.metric {
-		padding: 1rem;
+		padding: var(--space-md);
+
+		&__number {
+			font-size: var(--h4);
+		}
+	}
+}
+
+@media (max-width: 480px) {
+	.metrics--cards .metrics__grid {
+		grid-template-columns: 1fr;
 	}
 }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Maintenance</title>
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0c0c0f; color: #f4f4f5; }
+        .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .card { max-width: 520px; width: 100%; background: #141419; border: 1px solid #2a2a35; border-radius: 12px; padding: 20px; }
+        h1 { font-size: 16px; margin: 0 0 8px; }
+        p { margin: 0; color: #a1a1aa; font-size: 13px; line-height: 1.5; }
+        .muted { margin-top: 10px; color: #71717a; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <h1>Maintenance</h1>
+        <p>Update in progress. Please try again shortly.</p>
+        <p class="muted" id="status">Checking status…</p>
+    </div>
+</div>
+<script>
+    (function () {
+        const statusEl = document.getElementById('status');
+        async function check() {
+            try {
+                const res = await fetch('/maintenance-check.php', { cache: 'no-store' });
+                if (res.status === 204) {
+                    window.location.reload();
+                    return;
+                }
+                statusEl.textContent = 'Still updating…';
+            } catch (e) {
+                statusEl.textContent = 'Still updating…';
+            }
+            setTimeout(check, 5000);
+        }
+        check();
+    })();
+</script>
+</body>
+</html>
+

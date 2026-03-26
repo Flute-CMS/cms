@@ -36,14 +36,26 @@ class PaymentGateway extends ActiveRecord
     #[Column(type: "string", nullable: true)]
     public ?string $image;
 
+    #[Column(type: "string", nullable: true)]
+    public ?string $description = null;
+
+    #[Column(type: "float", default: 0)]
+    public float $fee = 0;
+
+    #[Column(type: "float", default: 0)]
+    public float $bonus = 0;
+
+    #[Column(type: "float", nullable: true)]
+    public ?float $minimumAmount = null;
+
     #[Column(type: "string", unique: true)]
     public string $adapter;
 
     #[Column(type: "boolean", default: false)]
     public bool $enabled;
 
-    #[Column(type: "json")]
-    public string $additional;
+    #[Column(type: "text")]
+    public string $additional = '[]';
 
     #[Column(type: "datetime")]
     public \DateTimeImmutable $createdAt;
@@ -53,7 +65,18 @@ class PaymentGateway extends ActiveRecord
 
     public function getSettings() : array
     {
-        return json_decode($this->additional, true);
+        $decoded = json_decode($this->additional, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            try {
+                $json = encrypt()->decryptString($this->additional);
+                $decoded = json_decode($json, true);
+            } catch (\Throwable) {
+                return [];
+            }
+        }
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     public function setSettings(array $settings) : void

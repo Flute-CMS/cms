@@ -1,5 +1,6 @@
 <?php
 
+use Flute\Admin\Http\Controllers\ImageUploadController;
 use Flute\Admin\Http\Controllers\SidebarController;
 use Flute\Admin\Packages\Search\Controllers\AdminSearchController;
 use Flute\Admin\Packages\Search\Controllers\AdminSelectController;
@@ -8,3 +9,5 @@ router()->get('/admin/search', [AdminSearchController::class, 'search'])->middle
 router()->get('/admin/search/commands', [AdminSearchController::class, 'slashCommands'])->middleware('can:admin');
 router()->get('/admin/select/search', [AdminSelectController::class, 'search'])->middleware('can:admin');
 router()->get('/admin/api/sidebar', [SidebarController::class, 'getSidebar'])->middleware('can:admin');
+router()->post('/admin/api/sidebar/order', [SidebarController::class, 'saveOrder'])->middleware(['can:admin', 'csrf']);
+router()->post('/admin/api/upload-image', [ImageUploadController::class, 'upload'])->middleware(['can:admin', 'csrf']);

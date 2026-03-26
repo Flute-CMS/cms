@@ -1,7 +1,21 @@
 <!DOCTYPE html>
-<html lang="{{ strtolower(app()->getLang()) }}"
-    @if (config('app.change_theme', true)) data-theme="{{ cookie()->get('theme', config('app.default_theme', 'dark')) }}"
-    @else data-theme="{{ config('app.default_theme', 'dark') }}" @endif>
+@php
+    $_currentThemeMode = config('app.change_theme', true)
+        ? cookie()->get('theme', config('app.default_theme', 'dark'))
+        : config('app.default_theme', 'dark');
+    $_themeColors = app('flute.view.manager')->getColors($_currentThemeMode);
+    $_navStyle = $_themeColors['--nav-style'] ?? 'default';
+    $_sidebarStyle = $_themeColors['--sidebar-style'] ?? 'default';
+    $_sidebarMode = $_themeColors['--sidebar-mode'] ?? 'full';
+    $_sidebarPosition = $_themeColors['--sidebar-position'] ?? 'top';
+    $_sidebarCollapsed = cookie()->get('sidebar_collapsed', 'false');
+    $_sidebarContained = $_themeColors['--sidebar-contained'] ?? 'false';
+    $_designPreset = $_themeColors['--design-preset'] ?? 'default';
+@endphp
+<html lang="{{ strtolower(app()->getLang()) }}" data-theme="{{ $_currentThemeMode }}" data-nav-style="{{ $_navStyle }}"
+    data-sidebar-style="{{ $_sidebarStyle }}" data-sidebar-mode="{{ $_sidebarMode }}"
+    data-sidebar-position="{{ $_sidebarPosition }}" data-sidebar-collapsed="{{ $_sidebarCollapsed }}"
+    data-sidebar-contained="{{ $_sidebarContained }}" data-design-preset="{{ $_designPreset }}">
 
 <head hx-head="append">
     @php
@@ -88,7 +102,8 @@
     <meta name="view-transition" content="same-origin">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() ? 'true' : 'false' }}">
-    <meta name="auth-token" content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
+    <meta name="state-token"
+        content="{{ md5(user()->isLoggedIn() . '_' . (user()->isLoggedIn() ? user()->id : '')) }}">
     <meta name="google" content="notranslate" />
     <meta name="default-theme" content="{{ config('app.default_theme', 'dark') }}">
     <meta name="change-theme" content="{{ config('app.change_theme', true) ? 'true' : 'false' }}">
@@ -98,7 +113,7 @@
     <meta name="author" content="Flames">
     <meta name="application-name" content="{{ config('app.name') }}">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="color-scheme" content="dark light">
     <meta name="supported-color-schemes" content="dark light">
@@ -154,13 +169,27 @@
         {!! $sections['head'] !!}
     @endif
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="alternate" href="{{ url()->current() }}" hreflang="x-default">
 
     @foreach (config('lang.available') as $lang)
         <link rel="alternate" href="{{ url() }}?lang={{ $lang }}" hreflang="{{ strtolower($lang) }}">
     @endforeach
+
+    @if (!$isPartialRequest)
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin fetchpriority="high">
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/js/htmx/core.js')" as="script">
+        <link rel="preload" href="@asset('assets/js/app.js')" as="script">
+
+        @at(tt('assets/sass/app.scss'))
+
+        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
+    @endif
 
     @include('flute::partials.background')
 
@@ -170,7 +199,6 @@
         {!! $sections['styles'] !!}
     @endif
 
-    {{-- For support head merge (hx-only & hx-boost) --}}
     @if ($isPartialRequest)
         @stack('scripts')
 
@@ -180,30 +208,27 @@
     @endif
 
     @if (!$isPartialRequest)
-        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        <link rel="stylesheet" href="@asset('animate')" type='text/css'>
-        <link rel="stylesheet" href="@asset('grid')" type='text/css'>
-        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
-        <link rel="stylesheet" href="@asset('assets/css/libs/easymde.min.css')">
+        <link rel="stylesheet" href="@asset('animate')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('grid')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')" media="print" onload="this.media='all'">
+        <link rel="stylesheet" href="@asset('assets/css/libs/cropper.min.css')" media="print" onload="this.media='all'">
 
-        @at(tt('assets/sass/app.scss'))
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/htmx/response-targets.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer fetchpriority="low"></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/response-targets.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer fetchpriority="low"></script>
 
-        @can('admin.pages')
-            <script src="@asset('assets/js/libs/gridstack.js')" defer></script>
-
-            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')">
-        @endcan
-
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
-
-        @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode(false) @endphp
+            });
+        </script>
     @endif
 
     @include('flute::partials.colors')
@@ -230,13 +255,16 @@
                     ms2.setAttribute('content', bg)
                 }
             }
-            document.addEventListener('DOMContentLoaded', updateThemeColor);
-            var o = new MutationObserver(updateThemeColor);
+            var cb = typeof requestIdleCallback === 'function'
+                ? function(fn) { requestIdleCallback(fn) }
+                : function(fn) { setTimeout(fn, 1) };
+            cb(updateThemeColor);
+            var o = new MutationObserver(function() { cb(updateThemeColor) });
             o.observe(document.documentElement, {
                 attributes: true,
                 attributeFilter: ['data-theme']
             });
-            window.addEventListener('flute:theme-changed', updateThemeColor);
+            window.addEventListener('flute:theme-changed', function() { cb(updateThemeColor) });
         })();
     </script>
 </head>
@@ -251,12 +279,23 @@
         @endcan
     @endif
 
+    @if (!$isPartialRequest)
+        {{-- Always render sidebar-nav, visibility controlled by CSS based on data-nav-style --}}
+        <x-sidebar-nav />
+        <div class="content-frame" id="content-frame"></div>
+        <div class="frame-blur" id="frame-blur"></div>
+        <button type="button" class="sidebar-contained-toggle" id="sidebar-contained-toggle"
+            aria-label="{{ __('def.toggle_sidebar') }}">
+            <x-icon path="ph.regular.sidebar-simple" />
+        </button>
+    @endif
+
     @includeWhen(!$isPartialRequest, 'flute::layouts.header')
 
     @if (!$isPartialRequest)
         @can('admin.pages')
-            <x-page-edit-widgets />
-            <x-page-colors />
+            <x-page-edit-sidebar />
+            <x-page-visual-editor />
             @include('flute::partials.page-edit-onboarding')
         @endcan
 
@@ -283,18 +322,23 @@
         @include('flute::partials.widgets')
 
         @php
+            $pageBlocks = page()->getBlocks();
             $hasContentWidget = false;
-            if (!empty(page()->getBlocks())) {
-                foreach (page()->getBlocks() as $block) {
+            if (!empty($pageBlocks)) {
+                foreach ($pageBlocks as $block) {
                     if ($block->getWidget() === 'Content') {
                         $hasContentWidget = true;
                         break;
                     }
                 }
             }
+            // Also check if the global layout already rendered the Content widget
+            if (!$hasContentWidget) {
+                $hasContentWidget = page()->isGlobalContentRendered();
+            }
         @endphp
 
-        @if (empty(page()->getBlocks()) || !$hasContentWidget)
+        @if (!$hasContentWidget)
             @stack('content')
 
             @if (isset($sections['content']))
@@ -313,13 +357,7 @@
         {!! $sections['content-after'] !!}
     @endif
 
-    @php
-        try {
-            echo view('flute::partials.confirmation')->render();
-        } catch (\Throwable $e) {
-            logs()->error('Layout partial error (confirmation): ' . $e->getMessage(), ['exception' => $e]);
-        }
-    @endphp
+    @includeIf('flute::partials.confirmation')
 
     @if (!$isPartialRequest)
         <div id="alerts-container">
@@ -330,34 +368,18 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.right-sidebar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (right-sidebar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
-        @php
-            try {
-                echo view('flute::components.tab-bar')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (tab-bar): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
+        @includeIf('flute::components.right-sidebar')
+        @includeIf('flute::components.tab-bar')
 
         @can('admin.pages')
-            @php
-                try {
-                    echo view('flute::components.page-edit')->render();
-                } catch (\Throwable $e) {
-                    logs()->error('Layout component error (page-edit): ' . $e->getMessage(), ['exception' => $e]);
-                }
-            @endphp
+            @includeIf('flute::components.page-edit')
             @include('flute::partials.page-edit-dialog')
             @include('flute::partials.page-seo-dialog')
         @endcan
 
         <div id="modals">
+            @include('flute::partials.default-modals')
+
             @stack('modals')
 
             @if (isset($sections['modals']))
@@ -365,21 +387,15 @@
             @endif
         </div>
 
-        @php
-            try {
-                echo view('flute::components.user-card')->render();
-            } catch (\Throwable $e) {
-                logs()->error('Layout component error (user-card): ' . $e->getMessage(), ['exception' => $e]);
-            }
-        @endphp
-    @endif
+        @includeIf('flute::components.user-card')
 
-    @includeWhen(!$isPartialRequest, 'flute::components.richtext-icons')
+        @include('flute::components.richtext-icons')
+    @endif
 
     @includeWhen(!$isPartialRequest, 'flute::layouts.footer')
 
     @if (!$isPartialRequest)
-        <footer>
+        <div class="footer-scripts">
             @php
                 if (is_debug()) {
                     Tracy\Debugger::renderLoader();
@@ -391,34 +407,146 @@
             @if (isset($sections['footer']))
                 {!! $sections['footer'] !!}
             @endif
-        </footer>
+        </div>
 
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
-        <script src="@asset('jquery')"></script>
+        <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-image-preview.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-validate.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond.js')" defer></script>
-        <script src="@asset('assets/js/libs/notyf.js')" defer></script>
+        <script src="@asset('assets/js/libs/notyf.js')" defer fetchpriority="low"></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
-        <script src="@asset('assets/js/libs/easymde.js')" defer></script>
+        <script src="@asset('assets/js/libs/flute-select.js')" defer fetchpriority="low"></script>
 
-        <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
+        {{-- On-demand heavy libs: loaded when their trigger elements appear in DOM --}}
+        <script>
+        (function(){
+            var loaded = {};
+            function load(srcs, cb) {
+                var i = 0;
+                function next() {
+                    if (i >= srcs.length) { if (cb) cb(); return; }
+                    var src = srcs[i++];
+                    if (loaded[src]) { next(); return; }
+                    loaded[src] = true;
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.onload = next;
+                    s.onerror = next;
+                    document.head.appendChild(s);
+                }
+                next();
+            }
+
+            function matches(root, sel) {
+                if (!root) return !!document.querySelector(sel);
+                if (root.matches && root.matches(sel)) return true;
+                return root.querySelector && !!root.querySelector(sel);
+            }
+
+            var libs = {
+                filepond: {
+                    match: 'input.filepond',
+                    srcs: [
+                        "@asset('assets/js/libs/filepond-plugin-image-preview.js')",
+                        "@asset('assets/js/libs/filepond-plugin-file-validate-type.js')",
+                        "@asset('assets/js/libs/filepond-plugin-file-validate-size.js')",
+                        "@asset('assets/js/libs/filepond-plugin-image-exif-orientation.js')",
+                        "@asset('assets/js/libs/filepond.js')",
+                        "@asset('assets/js/libs/cropper.js')"
+                    ],
+                    init: function() {
+                        function tryInit() {
+                            if (typeof FilePond !== 'undefined' && typeof _registerFilePondPlugins === 'function') {
+                                _registerFilePondPlugins();
+                            } else {
+                                setTimeout(tryInit, 50);
+                            }
+                        }
+                        tryInit();
+                    }
+                },
+                tiptap: {
+                    match: '[data-editor="richtext"], .richtext-editor-wrapper',
+                    srcs: ["@asset('assets/js/libs/tiptap-editor.js')"]
+                }
+            };
+
+            function scan(root) {
+                Object.keys(libs).forEach(function(key) {
+                    var lib = libs[key];
+                    if (lib.done) return;
+                    if (matches(root, lib.match)) {
+                        lib.done = true;
+                        load(lib.srcs, lib.init || null);
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() { scan(); });
+            document.body.addEventListener('htmx:load', function(e) { scan(e.detail.elt); });
+        })();
+        </script>
 
         @at(tt('assets/scripts/libs/simplebar.js'))
         @at(tt('assets/scripts/libs/tinycolor.js'))
         @at(tt('assets/scripts/helpers.js'))
+        <script>
+            window.__imageCropperI18n = {
+                crop_image: @json(__('def.crop_image')),
+                rotate_left: @json(__('def.rotate_left')),
+                rotate_right: @json(__('def.rotate_right')),
+                flip_horizontal: @json(__('def.flip_horizontal')),
+                flip_vertical: @json(__('def.flip_vertical')),
+                zoom_in: @json(__('def.zoom_in')),
+                zoom_out: @json(__('def.zoom_out')),
+                reset: @json(__('def.reset')),
+                cancel: @json(__('def.cancel')),
+                apply: @json(__('def.apply')),
+                free: @json(__('def.free')),
+                square: @json(__('def.square')),
+                landscape: @json(__('def.landscape')),
+                portrait: @json(__('def.portrait'))
+            };
+        </script>
+        @at(tt('assets/scripts/image-cropper.js'))
         @at(tt('assets/scripts/bottom-sheet.js'))
         @at(tt('assets/scripts/user-card.js'))
         @at(tt('assets/scripts/tabs.js'))
-        @at(tt('assets/scripts/richtext.js'))
+        @at(tt('assets/scripts/steps.js'))
+        @at(tt('assets/scripts/richtext/icons.js'))
+        @at(tt('assets/scripts/richtext/extensions.js'))
+        @at(tt('assets/scripts/richtext/upload.js'))
+        @at(tt('assets/scripts/richtext/toolbar.js'))
+        @at(tt('assets/scripts/richtext/modals.js'))
+        @at(tt('assets/scripts/richtext/bubble-menu.js'))
+        @at(tt('assets/scripts/richtext/table-controls.js'))
+        @at(tt('assets/scripts/richtext/main.js'))
+        @at(tt('assets/scripts/translatable.js'))
         @at(tt('assets/scripts/otp-input.js'))
         @at(tt('assets/scripts/tom-select.js'))
 
         @can('admin.pages')
-            @at(tt('assets/scripts/page-edit.js'))
-            @at(tt('assets/scripts/page-color.js'))
+            <link rel="stylesheet" href="@asset('assets/css/libs/gridstack.min.css')" media="print" onload="this.media='all'">
+            <script src="@asset('assets/js/libs/gridstack-all.js')" defer></script>
+
+            {{-- Page Edit modular scripts --}}
+            @at(tt('assets/scripts/page-edit/core/namespace.js'))
+            @at(tt('assets/scripts/page-edit/core/event-bus.js'))
+            @at(tt('assets/scripts/page-edit/core/config.js'))
+            @at(tt('assets/scripts/page-edit/managers/history-manager.js'))
+            @at(tt('assets/scripts/page-edit/managers/onboarding-manager.js'))
+            @at(tt('assets/scripts/page-edit/managers/sidebar-manager.js'))
+            @at(tt('assets/scripts/page-edit/grid/grid-controller.js'))
+            @at(tt('assets/scripts/page-edit/grid/widget-loader.js'))
+            @at(tt('assets/scripts/page-edit/grid/widget-toolbar.js'))
+            @at(tt('assets/scripts/page-edit/ui/search-handler.js'))
+            @at(tt('assets/scripts/page-edit/ui/category-accordion.js'))
+            @at(tt('assets/scripts/page-edit/ui/keyboard-handler.js'))
+            @at(tt('assets/scripts/page-edit/ui/visibility-conditions.js'))
+            @at(tt('assets/scripts/page-edit/storage/local-storage.js'))
+            @at(tt('assets/scripts/page-edit/storage/layout-api.js'))
+            @at(tt('assets/scripts/page-edit/main.js'))
+            @at(tt('assets/scripts/page-visual-editor.js'))
         @endcan
 
         @can('admin.boss')
@@ -426,6 +554,9 @@
                 @at(tt('assets/scripts/admin-onboarding.js'))
             @endif
         @endcan
+
+        {{-- Always load sidebar-nav script, it handles visibility check internally --}}
+        @at(tt(path: 'assets/scripts/sidebar-nav.js'))
 
         @at(tt('assets/scripts/app.js'))
 
@@ -436,6 +567,53 @@
         @if (isset($sections['scripts']))
             {!! $sections['scripts'] !!}
         @endif
+
+        <script>
+        (function(){
+            var done = {};
+            var timer = null;
+
+            function getHref(a) {
+                if (a.getAttribute('hx-boost') === 'false' || a.closest('[hx-boost=false]')) return null;
+                if (!a.closest('[hx-boost=true]') && !a.hasAttribute('hx-boost')) return null;
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#' || href.startsWith('javascript') ||
+                    a.hasAttribute('data-modal-open') || a.hasAttribute('data-dropdown-open') ||
+                    a.hasAttribute('download') || a.getAttribute('target') === '_blank') return null;
+                try { var p = new URL(href, location.origin).pathname; return p !== location.pathname ? p : null; } catch(e) { return null; }
+            }
+
+            function warm(href) {
+                if (done[href]) return;
+                done[href] = 1;
+                fetch(href, {
+                    priority: 'low',
+                    headers: {
+                        'HX-Request': 'true',
+                        'HX-Boosted': 'true',
+                        'HX-Target': 'main',
+                        'HX-Current-URL': location.href
+                    }
+                }).catch(function(){});
+            }
+
+            document.addEventListener('mouseover', function(e) {
+                var a = e.target.closest && e.target.closest('a[href]');
+                if (!a) return;
+                var href = getHref(a);
+                if (!href) return;
+                clearTimeout(timer);
+                timer = setTimeout(function() { warm(href); }, 65);
+            }, true);
+            document.addEventListener('mouseout', function() { clearTimeout(timer); }, true);
+            document.addEventListener('touchstart', function(e) {
+                var a = e.target.closest && e.target.closest('a[href]');
+                if (!a) return;
+                var href = getHref(a);
+                if (href) warm(href);
+            }, {passive: true, capture: true});
+        })();
+        </script>
     @endif
 </body>
 

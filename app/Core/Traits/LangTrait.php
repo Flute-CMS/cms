@@ -23,8 +23,7 @@ trait LangTrait
 
         $this->bind('lang', $lang);
 
-        $this->get(EventDispatcher::class)
-            ->dispatch(new LangChangedEvent($lang), LangChangedEvent::NAME);
+        $this->get(EventDispatcher::class)->dispatch(new LangChangedEvent($lang), LangChangedEvent::NAME);
 
         return $this;
     }

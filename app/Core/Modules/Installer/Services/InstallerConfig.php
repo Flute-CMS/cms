@@ -51,7 +51,7 @@ class InstallerConfig
      */
     public function getTotalSteps(): int
     {
-        return $this->configService->get('installer.step_total', 7);
+        return 6;
     }
 
     /**

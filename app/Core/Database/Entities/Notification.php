@@ -6,9 +6,15 @@ use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
 use Cycle\Annotated\Annotation\Relation\BelongsTo;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 use Cycle\ORM\Entity\Behavior;
 
 #[Entity]
+#[Table(indexes: [
+    new Index(columns: ["user_id", "viewed"]),
+    new Index(columns: ["user_id", "created_at"]),
+])]
 #[Behavior\CreatedAt(
     field: 'createdAt',
     column: 'created_at'
@@ -22,7 +28,7 @@ class Notification extends ActiveRecord
     #[Column(type: "primary")]
     public int $id;
 
-    #[Column(type: "text")]
+    #[Column(type: "text", nullable: true)]
     public ?string $icon = null;
 
     #[Column(type: "string", nullable: true)]
@@ -37,8 +43,8 @@ class Notification extends ActiveRecord
     #[Column(type: "string")]
     public string $type;
 
-    #[Column(type: "json", nullable: true)]
-    public ?array $extra_data = null;
+    #[Column(type: "text", nullable: true)]
+    public ?string $extra_data = null;
 
     #[Column(type: "boolean", default: false)]
     public bool $viewed = false;
@@ -51,4 +57,14 @@ class Notification extends ActiveRecord
 
     #[BelongsTo(target: "User", nullable: false)]
     public User $user;
+
+    public function getExtraData(): ?array
+    {
+        return $this->extra_data ? json_decode($this->extra_data, true) : null;
+    }
+
+    public function setExtraData(?array $data): void
+    {
+        $this->extra_data = $data ? json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+    }
 }

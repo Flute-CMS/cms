@@ -5,6 +5,7 @@ namespace Flute\Core\Database;
 use Cycle\Annotated;
 use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
 use Cycle\Annotated\Locator\TokenizerEntityLocator;
+use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
 use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\Exception\MigrationException;
@@ -17,7 +18,6 @@ use Cycle\Schema;
 use Cycle\Schema\Compiler;
 use Cycle\Schema\Exception\SyncException;
 use Cycle\Schema\Registry;
-use Exception;
 use FilesystemIterator;
 use Flute\Core\Cache\SWRQueue;
 use Flute\Core\Database\DatabaseManager as FluteDatabaseManager;
@@ -33,17 +33,29 @@ class DatabaseConnection
 {
     public const CACHE_KEY = 'database.schema';
 
-    protected const ENTITIES_DIR = BASE_PATH . 'app' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Database' . DIRECTORY_SEPARATOR . 'Entities';
+    protected const ENTITIES_DIR =
+        BASE_PATH
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'Core'
+            . DIRECTORY_SEPARATOR
+            . 'Database'
+            . DIRECTORY_SEPARATOR
+            . 'Entities';
 
-    protected const SCHEMA_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php';
+    protected const SCHEMA_FILE =
+        BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.php';
 
-    protected const SCHEMA_META_FILE = BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php';
+    protected const SCHEMA_META_FILE =
+        BASE_PATH . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'orm_schema.meta.php';
 
     protected FluteDatabaseManager $databaseManager;
 
     protected ORM $orm;
 
     protected DatabaseManager $dbal;
+
+    protected ?DatabaseManager $migrationDbal = null;
 
     protected Migrator $migrator;
 
@@ -95,6 +107,7 @@ class DatabaseConnection
         foreach ($migrations as $migration) {
             try {
                 while ($this->migrator->run() !== null) {
+                    continue; // each run() executes one pending migration
                 }
             } catch (MigrationException $e) {
                 $this->migrator->rollback();
@@ -184,10 +197,11 @@ class DatabaseConnection
         if ($cache && file_exists(self::SCHEMA_FILE)) {
             if (!isset($this->dbal)) {
                 $this->dbal = $this->databaseManager->getDbal();
-                if (config('database.debug')) {
-                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-                    $this->dbal->setLogger($timingLogger);
-                }
+                $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                    logs('database'),
+                    (bool) config('database.debug'),
+                );
+                $this->dbal->setLogger($timingLogger);
             }
 
             if ($this->isSchemaCacheValid()) {
@@ -198,44 +212,28 @@ class DatabaseConnection
         }
 
         $lockFile = storage_path('app/cache/orm_schema.lock');
-        $lockHandle = fopen($lockFile, 'w+');
 
-        if (!$lockHandle) {
-            throw new Exception("Failed to open lock file: {$lockFile}");
-        }
+        // Use FileLockService for concurrent schema compilation protection
+        $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 15.0);
 
-        // Try non-blocking lock first
-        $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
+        if ($lockHandle === false) {
+            logs()->warning('ORM schema compilation: lock wait timeout or stale lock detected');
 
-        if (!$gotLock) {
-            // Another process is compiling - wait for lock release (with timeout), then fallback to cache.
-            $maxWait = 30.0; // seconds
-            $waited = 0.0;
-
-            while (!$gotLock && $waited < $maxWait) {
-                usleep(100000); // 100ms
-                $waited += 0.1;
-                $gotLock = flock($lockHandle, LOCK_EX | LOCK_NB);
+            if (file_exists(self::SCHEMA_FILE)) {
+                $this->recompileOrmSchema(true);
             }
 
-            if (!$gotLock) {
-                fclose($lockHandle);
-
-                if (file_exists(self::SCHEMA_FILE)) {
-                    $this->recompileOrmSchema(true);
-                }
-
-                return;
-            }
+            return;
         }
 
         try {
             if (!isset($this->dbal)) {
                 $this->dbal = $this->databaseManager->getDbal();
-                if (config('database.debug')) {
-                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-                    $this->dbal->setLogger($timingLogger);
-                }
+                $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                    logs('database'),
+                    (bool) config('database.debug'),
+                );
+                $this->dbal->setLogger($timingLogger);
             }
 
             $validDirs = [];
@@ -254,7 +252,46 @@ class DatabaseConnection
 
             $classLocator = $this->getClassLocator();
 
-            $schemaArray = $this->compileSchema($classLocator);
+            try {
+                // Suppress warnings from Cycle ORM schema introspection (e.g. VIEWs
+                // returning columns without the expected 'Field' key).
+                $prevHandler = set_error_handler(static function (int $errno, string $errstr, string $errfile) use (
+                    &$prevHandler,
+                ) {
+                    if (
+                        ( $errno === E_WARNING || $errno === E_NOTICE )
+                        && str_contains($errfile, 'cycle' . DIRECTORY_SEPARATOR . 'database')
+                    ) {
+                        // Convert to harmless return so null doesn't propagate to TypeError
+                        return true;
+                    }
+
+                    return $prevHandler ? $prevHandler(...func_get_args()) : false;
+                });
+
+                try {
+                    $schemaArray = $this->compileSchema($classLocator);
+                } finally {
+                    restore_error_handler();
+                }
+            } catch (Throwable $compileError) {
+                logs('database')->error('Schema compilation failed: ' . $compileError->getMessage());
+
+                $staleFile = self::SCHEMA_FILE . '.stale';
+                if (is_file($staleFile)) {
+                    logs('database')->warning('Falling back to stale ORM schema');
+                    @copy($staleFile, self::SCHEMA_FILE);
+                    $this->writeSchemaMeta($this->entitiesDirs);
+                    $this->loadCachedSchemaIntoOrm();
+                    \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                    return;
+                }
+
+                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                throw $compileError;
+            }
 
             $ormSchema = new \Cycle\ORM\Schema($schemaArray);
 
@@ -267,7 +304,7 @@ class DatabaseConnection
             $this->orm = new ORM(
                 factory: new \Cycle\ORM\Factory($this->dbal),
                 schema: $ormSchema,
-                commandGenerator: $commandGenerator
+                commandGenerator: $commandGenerator,
             );
 
             $this->ormIntoContainer();
@@ -276,9 +313,7 @@ class DatabaseConnection
 
             $this->schemaNeedsUpdate = false;
         } finally {
-            flock($lockHandle, LOCK_UN);
-            fclose($lockHandle);
-            @unlink($lockFile);
+            \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
         }
     }
 
@@ -291,40 +326,36 @@ class DatabaseConnection
         $entityLocator = new TokenizerEntityLocator($classLocator);
 
         $schemaGenerators = [
-            new Schema\Generator\ResetTables(),             // Переконфигурировать схемы таблиц (удаляет столбцы при необходимости)
-            new Annotated\Embeddings($embeddingLocator),    // Распознавание встраиваемых сущностей
-            new Annotated\Entities($entityLocator),         // Идентификация аннотированных сущностей
-            new Annotated\TableInheritance(),               // Настройка наследования таблиц
-            new Annotated\MergeColumns(),                   // Интеграция столбцов из атрибутов
-            new Schema\Generator\GenerateRelations(),       // Определение отношений сущностей
-            new Schema\Generator\GenerateModifiers(),       // Применение модификаторов схемы
-            new Schema\Generator\ValidateEntities(),        // Проверка соответствия сущностей конвенциям
-            new Schema\Generator\RenderTables(),            // Создание схем таблиц
-            new Schema\Generator\RenderRelations(),         // Установка ключей и индексов для отношений
-            new Schema\Generator\RenderModifiers(),         // Реализация модификаторов схемы
-            new Schema\Generator\ForeignKeys(),             // Определение внешних ключей
-            new Annotated\MergeIndexes(),                   // Интеграция индексов из атрибутов
-            // new \Cycle\Schema\Generator\Migrations\GenerateMigrations(
-            //     $this->migrator->getRepository(),
-            //     $this->migrator->getConfig()
-            // ),
+            new Schema\Generator\ResetTables(),
+            new Annotated\Embeddings($embeddingLocator),
+            new Annotated\Entities($entityLocator),
+            new Annotated\TableInheritance(),
+            new Annotated\MergeColumns(),
+            new Schema\Generator\GenerateRelations(),
+            new Schema\Generator\GenerateModifiers(),
+            new Schema\Generator\ValidateEntities(),
+            new Schema\Generator\RenderTables(),
+            new Schema\Generator\RenderRelations(),
+            new Schema\Generator\RenderModifiers(),
+            new Schema\Generator\ForeignKeys(),
+            new Annotated\MergeIndexes(),
             new Schema\Generator\SyncTables(),
-            new Schema\Generator\GenerateTypecast(),        // Типизация нестроковых столбцов
+            new Schema\Generator\GenerateTypecast(),
         ];
 
         $registry = new Registry($this->dbal);
 
         try {
-            return (new Compiler())->compile($registry, $schemaGenerators);
+            return ( new Compiler() )->compile($registry, $schemaGenerators);
         } catch (SyncException $e) {
-            logs('database')->warning('Schema sync failed, retrying without SyncTables: ' . $e->getMessage());
+            $this->logSyncError($e);
 
             $fallbackGenerators = array_filter(
                 $schemaGenerators,
-                static fn ($generator) => !($generator instanceof Schema\Generator\SyncTables)
+                static fn($generator) => !$generator instanceof Schema\Generator\SyncTables,
             );
 
-            return (new Compiler())->compile(new Registry($this->dbal), $fallbackGenerators);
+            return ( new Compiler() )->compile(new Registry($this->dbal), $fallbackGenerators);
         }
     }
 
@@ -362,7 +393,7 @@ class DatabaseConnection
      */
     public function forceRefreshSchema(array $extraModules = []): void
     {
-        logs()->info("Force refreshing ORM schema");
+        logs()->info('Force refreshing ORM schema');
 
         if (file_exists(self::SCHEMA_FILE)) {
             $stale = self::SCHEMA_FILE . '.stale';
@@ -435,7 +466,7 @@ class DatabaseConnection
 
         $this->recompileOrmSchema(false);
 
-        logs()->info("ORM schema refreshed successfully");
+        logs()->info('ORM schema refreshed successfully');
     }
 
     public function forceRefreshSchemaDeferred(array $extraModules = []): void
@@ -473,6 +504,125 @@ class DatabaseConnection
     }
 
     /**
+     * Log a detailed SyncException with root cause analysis and DB version info.
+     */
+    protected function logSyncError(SyncException $e): void
+    {
+        $message = $e->getMessage();
+        $previous = $e->getPrevious();
+        $rootMessage = $previous ? $previous->getMessage() : $message;
+
+        $context = [
+            'exception' => get_class($e),
+            'message' => $message,
+        ];
+
+        if ($previous) {
+            $context['root_exception'] = get_class($previous);
+            $context['root_message'] = $rootMessage;
+        }
+
+        $diagnostic = $this->diagnoseSyncError($rootMessage);
+        if ($diagnostic !== null) {
+            $context['diagnostic'] = $diagnostic;
+        }
+
+        try {
+            $driver = $this->dbal->database()->getDriver();
+            $pdo = null;
+            if (method_exists($driver, 'getPDO')) {
+                $pdo = $driver->getPDO();
+            } elseif (method_exists($driver, 'getConnection')) {
+                $conn = $driver->getConnection();
+                if ($conn instanceof \PDO) {
+                    $pdo = $conn;
+                }
+            }
+
+            if ($pdo) {
+                $version = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
+                $context['db_version'] = $version;
+
+                $caps = DatabaseCapabilities::fromPdo($pdo);
+                $context['db_server'] = $caps->getServerLabel();
+                $context['db_clean_version'] = $caps->getCleanVersion();
+                $context['meets_minimum'] = $caps->meetsMinimumVersion();
+                $context['supports_datetime_defaults'] = $caps->supportsDatetimeDefaults();
+                $context['supports_json'] = $caps->supportsJsonType();
+            }
+        } catch (Throwable) {
+        }
+
+        $level = $diagnostic !== null ? 'error' : 'warning';
+        logs('database')->{$level}(
+            'Schema sync failed: '
+            . $message
+            . ( $diagnostic ? ' [Diagnostic: ' . $diagnostic . ']' : '' )
+            . ' — retrying without SyncTables',
+            $context,
+        );
+    }
+
+    /**
+     * Analyze a sync error message and return a human-readable diagnostic hint.
+     */
+    protected function diagnoseSyncError(string $message): ?string
+    {
+        $msg = strtolower($message);
+
+        if (str_contains($msg, '1067') && str_contains($msg, 'invalid default value')) {
+            if (preg_match('/[\'"]([a-z_]+)[\'"]/i', $message, $m)) {
+                $column = $m[1];
+            } else {
+                $column = '(unknown column)';
+            }
+
+            return sprintf(
+                'Column "%s" — DATETIME column cannot have DEFAULT CURRENT_TIMESTAMP. '
+                . 'This usually means MySQL < 5.6.5 or MariaDB < 10.0.1. '
+                . 'Upgrade your database server or check the sql_mode setting.',
+                $column,
+            );
+        }
+
+        if (str_contains($msg, '1071') && str_contains($msg, 'specified key was too long')) {
+            return (
+                'Index key too long — this is common with utf8mb4 on MySQL < 5.7.7. '
+                . 'Consider upgrading MySQL or using innodb_large_prefix=ON with ROW_FORMAT=DYNAMIC.'
+            );
+        }
+
+        if (str_contains($msg, 'syntax error') && str_contains($msg, 'json')) {
+            return (
+                'JSON column type not supported — requires MySQL 5.7.8+ or MariaDB 10.2.7+. '
+                . 'Upgrade your database server.'
+            );
+        }
+
+        if (str_contains($msg, '1452') && str_contains($msg, 'foreign key constraint fails')) {
+            return (
+                'Foreign key constraint violation during schema sync. '
+                . 'There may be orphaned rows in a table that prevent adding a foreign key. '
+                . 'Check data integrity or temporarily disable foreign_key_checks.'
+            );
+        }
+
+        if (str_contains($msg, 'type text/blob/json can not have non empty default value')) {
+            return (
+                'A TEXT/BLOB/JSON column has a non-empty default value. '
+                . 'MySQL does not allow DEFAULT on these types. '
+                . 'The column definition in the entity needs to be changed.'
+            );
+        }
+
+        if (str_contains($msg, '1146') || str_contains($msg, 'table') && str_contains($msg, 'doesn\'t exist')) {
+            return 'A referenced table does not exist. Run migrations first or check module dependencies.';
+        }
+
+        return null;
+    }
+
+    /**
      * Add ORM instance to application container.
      */
     protected function ormIntoContainer(): void
@@ -488,10 +638,11 @@ class DatabaseConnection
     {
         $this->dbal = $this->databaseManager->getDbal();
 
-        if (config('database.debug')) {
-            $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(logs('database'));
-            $this->dbal->setLogger($timingLogger);
-        }
+        $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+            logs('database'),
+            (bool) config('database.debug'),
+        );
+        $this->dbal->setLogger($timingLogger);
 
         $this->recompileOrmSchema(true);
     }
@@ -508,7 +659,7 @@ class DatabaseConnection
         ]);
 
         $fileRepository = new FileRepository($config);
-        $this->migrator = new Migrator($config, $this->dbal, $fileRepository);
+        $this->migrator = new Migrator($config, $this->getMigrationDbal(), $fileRepository);
         $this->migrator->configure();
     }
 
@@ -547,9 +698,58 @@ class DatabaseConnection
      */
     protected function getClassLocator(): ClassLocator
     {
-        return (new Tokenizer(new TokenizerConfig([
+        return ( new Tokenizer(new TokenizerConfig([
             'directories' => $this->entitiesDirs,
-        ])))->classLocator();
+        ])) )->classLocator();
+    }
+
+    /**
+     * Build a dedicated DBAL for migrations to avoid connecting to every configured database.
+     * ORM migrations are intended for the primary database only.
+     */
+    private function getMigrationDbal(): DatabaseManager
+    {
+        if ($this->migrationDbal) {
+            return $this->migrationDbal;
+        }
+
+        $config = config('database');
+        if (!is_array($config)) {
+            $this->migrationDbal = $this->dbal ?? $this->databaseManager->getDbal();
+
+            return $this->migrationDbal;
+        }
+
+        $defaultDb = $config['default'] ?? 'default';
+        $databases = $config['databases'] ?? [];
+        $connections = $config['connections'] ?? $config['drivers'] ?? [];
+
+        $defaultDatabaseConfig = $databases[$defaultDb] ?? null;
+        if (!is_array($defaultDatabaseConfig)) {
+            $this->migrationDbal = $this->dbal ?? $this->databaseManager->getDbal();
+
+            return $this->migrationDbal;
+        }
+
+        $defaultConnectionName =
+            $defaultDatabaseConfig['connection'] ?? $defaultDatabaseConfig['write'] ?? $defaultDatabaseConfig['driver']
+                ?? $defaultDb;
+
+        $filteredConnections = [];
+        if (is_string($defaultConnectionName) && isset($connections[$defaultConnectionName])) {
+            $filteredConnections[$defaultConnectionName] = $connections[$defaultConnectionName];
+        }
+
+        $filteredConfig = [
+            'default' => $defaultDb,
+            'aliases' => $config['aliases'] ?? [],
+            'databases' => [$defaultDb => $defaultDatabaseConfig],
+            'connections' => $filteredConnections,
+        ];
+
+        $this->migrationDbal = new DatabaseManager(new DatabaseConfig($filteredConfig));
+
+        return $this->migrationDbal;
     }
 
     private function loadCachedSchemaIntoOrm(): void
@@ -561,7 +761,7 @@ class DatabaseConnection
         $this->orm = new ORM(
             factory: new \Cycle\ORM\Factory($this->dbal),
             schema: $ormSchema,
-            commandGenerator: $commandGenerator
+            commandGenerator: $commandGenerator,
         );
 
         $this->ormIntoContainer();
@@ -590,13 +790,47 @@ class DatabaseConnection
             return false;
         }
 
+        $cachedFpFile =
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'schema_fp_cache.php';
+
+        if (is_file($cachedFpFile)) {
+            $cached = @include $cachedFpFile;
+            if (
+                is_array($cached)
+                && ( $cached['fingerprint'] ?? '' ) === $expectedFingerprint
+                && ( time() - ( $cached['time'] ?? 0 ) ) < ( is_debug() ? 30 : 300 )
+            ) {
+                return true;
+            }
+        }
+
         try {
             $current = $this->computeEntitiesFingerprint($expectedDirs);
         } catch (Throwable) {
             return false;
         }
 
-        return hash_equals($expectedFingerprint, $current);
+        $valid = hash_equals($expectedFingerprint, $current);
+
+        if ($valid) {
+            $dir = dirname($cachedFpFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0o755, true);
+            }
+            @file_put_contents(
+                $cachedFpFile,
+                '<?php return ' . var_export(['fingerprint' => $expectedFingerprint, 'time' => time()], true) . ';',
+            );
+        }
+
+        return $valid;
     }
 
     /**
@@ -611,22 +845,30 @@ class DatabaseConnection
                 continue;
             }
 
-            if (!is_dir($dir)) {
+            $resolved = realpath($dir);
+            if ($resolved === false || !is_dir($resolved)) {
                 $parts[] = "missing:{$dir}";
 
                 continue;
             }
 
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
-            );
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+                $resolved,
+                FilesystemIterator::SKIP_DOTS,
+            ));
 
             foreach ($iterator as $fileInfo) {
                 if (!$fileInfo->isFile() || $fileInfo->getExtension() !== 'php') {
                     continue;
                 }
 
-                $parts[] = $fileInfo->getPathname() . '|' . $fileInfo->getMTime() . '|' . $fileInfo->getSize();
+                $real = $fileInfo->getRealPath();
+                $parts[] =
+                    ( $real !== false ? $real : $fileInfo->getPathname() )
+                    . '|'
+                    . $fileInfo->getMTime()
+                    . '|'
+                    . $fileInfo->getSize();
             }
         }
 
@@ -703,7 +945,12 @@ class DatabaseConnection
                 $this->dbal = $this->databaseManager->getDbal();
             }
 
-            $rows = $this->dbal->database()->select()->from('modules')->columns('key', 'status')->fetchAll();
+            $rows = $this->dbal
+                ->database()
+                ->select()
+                ->from('modules')
+                ->columns('key', 'status')
+                ->fetchAll();
             foreach ($rows as $row) {
                 $key = $row['key'] ?? null;
                 $status = $row['status'] ?? null;
@@ -734,7 +981,8 @@ class DatabaseConnection
                 continue;
             }
 
-            $unique[$dir] = true;
+            $real = realpath($dir);
+            $unique[$real !== false ? $real : $dir] = true;
         }
 
         $out = array_keys($unique);
@@ -749,8 +997,8 @@ class DatabaseConnection
      */
     private function dirsEqual(array $a, array $b): bool
     {
-        $na = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $a));
-        $nb = $this->normalizeDirs(array_map(static fn ($v) => is_string($v) ? $v : '', $b));
+        $na = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $a));
+        $nb = $this->normalizeDirs(array_map(static fn($v) => is_string($v) ? $v : '', $b));
 
         return $na === $nb;
     }

@@ -44,13 +44,23 @@ class ProfileSocialBindController extends BaseController
             $userSocialNetwork->user = user()->getCurrentUser();
             $userSocialNetwork->socialNetwork = SocialNetwork::findOne(['key' => ucfirst($provider)]);
 
-            if ($token) {
-                $userSocialNetwork->additional = json_encode($token);
+            $additionalData = $token ? json_decode(json_encode($token), true) : [];
+
+            if (!empty($userProfile->photoURL)) {
+                $additionalData['photoUrl'] = $userProfile->photoURL;
+            }
+
+            if (!empty($additionalData)) {
+                $userSocialNetwork->additional = json_encode($additionalData);
+            }
+
+            if ($userSocialNetwork->socialNetwork?->key === 'Discord' && !empty($userSocialNetwork->value)) {
+                $userSocialNetwork->url = 'https://discordapp.com/users/' . $userSocialNetwork->value;
             }
 
             transaction($userSocialNetwork)->run();
 
-            if ($userSocialNetwork->socialNetwork->key === 'Discord') {
+            if ($userSocialNetwork->socialNetwork?->key === 'Discord') {
                 $user = user()->get(user()->id, true);
 
                 app()->get(DiscordService::class)->linkRoles($user, $user->roles);
@@ -80,7 +90,16 @@ class ProfileSocialBindController extends BaseController
      */
     public function unbindSocial(FluteRequest $fluteRequest, string $provider): Response
     {
-        $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
+        $socialNetworkEntity = SocialNetwork::findOne(['key' => $provider]);
+
+        if (!$socialNetworkEntity) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
+        $socialNetwork = UserSocialNetwork::findOne([
+            'user_id' => user()->id,
+            'socialNetwork_id' => $socialNetworkEntity->id,
+        ]);
 
         $countSocialNetworks = UserSocialNetwork::query()->where(['user_id' => user()->id])->count();
 
@@ -99,7 +118,13 @@ class ProfileSocialBindController extends BaseController
         $lastLinked = $socialNetwork->linkedAt;
         $now = new DateTime();
 
-        if ($socialNetwork->socialNetwork->cooldownTime > 0 && ($lastLinked && $now->getTimestamp() - $lastLinked->getTimestamp() < $socialNetwork->socialNetwork->cooldownTime)) {
+        if (
+            $socialNetwork->socialNetwork?->cooldownTime > 0 && (
+                $lastLinked
+                && ( $now->getTimestamp() - $lastLinked->getTimestamp() )
+                < $socialNetwork->socialNetwork?->cooldownTime
+            )
+        ) {
             return redirect()->back()->withErrors(t('profile.errors.social_delay'));
         }
 
@@ -118,12 +143,21 @@ class ProfileSocialBindController extends BaseController
     public function hideSocial(FluteRequest $fluteRequest, string $provider): Response
     {
         try {
-            $this->throttle("profile_change_hide_social");
+            $this->throttle('profile_change_hide_social');
         } catch (Exception $e) {
             return $this->error(__('auth.too_many_requests'));
         }
 
-        $socialNetwork = UserSocialNetwork::findOne(['user_id' => user()->id, 'socialNetwork_id' => $provider]);
+        $socialNetworkEntity = SocialNetwork::findOne(['key' => $provider]);
+
+        if (!$socialNetworkEntity) {
+            return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
+        }
+
+        $socialNetwork = UserSocialNetwork::findOne([
+            'user_id' => user()->id,
+            'socialNetwork_id' => $socialNetworkEntity->id,
+        ]);
 
         if ($socialNetwork === null) {
             return redirect()->back()->withErrors(t('profile.errors.social_not_connected'));
@@ -144,8 +178,19 @@ class ProfileSocialBindController extends BaseController
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
         $errorJs = json_encode($error, JSON_UNESCAPED_UNICODE);
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
+        $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_error:' + " . $errorJs . ", '*'); window.close(); } else { alert(" . $errorJs . "); window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_error:' + "
+            . $errorJs
+            . ', '
+            . $origin
+            . '); window.close(); } else { alert('
+            . $errorJs
+            . '); window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 
     /**
@@ -155,7 +200,14 @@ class ProfileSocialBindController extends BaseController
     {
         $redirectUrl = redirect('profile/edit?tab=social')->getTargetUrl();
         $redirectUrlJs = json_encode($redirectUrl, JSON_UNESCAPED_SLASHES);
+        $origin = json_encode(request()->getSchemeAndHttpHost());
 
-        return response()->make("<script>if (window.opener) { window.opener.postMessage('authorization_success', '*'); window.close(); } else { window.location = " . $redirectUrlJs . "; }</script>");
+        return response()->make(
+            "<script>if (window.opener) { window.opener.postMessage('authorization_success', "
+            . $origin
+            . '); window.close(); } else { window.location = '
+            . $redirectUrlJs
+            . '; }</script>',
+        );
     }
 }

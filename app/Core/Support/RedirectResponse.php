@@ -28,8 +28,14 @@ class RedirectResponse extends BaseRedirectResponse
      */
     protected RouterInterface $router;
 
-    public function __construct(FluteRequest $request, SessionService $session, RouterInterface $routeDispatcher, ?string $to = null, int $status = 302, array $headers = [])
-    {
+    public function __construct(
+        FluteRequest $request,
+        SessionService $session,
+        RouterInterface $routeDispatcher,
+        ?string $to = null,
+        int $status = 302,
+        array $headers = [],
+    ) {
         if ($to === null) {
             $to = $request->getUri();
         }
@@ -142,8 +148,7 @@ class RedirectResponse extends BaseRedirectResponse
      */
     public function withFragment(string $fragment): RedirectResponse
     {
-        return $this->withoutFragment()
-            ->setTargetUrl($this->getTargetUrl().'#'.Strings::after($fragment, '#'));
+        return $this->withoutFragment()->setTargetUrl($this->getTargetUrl() . '#' . Strings::after($fragment, '#'));
     }
 
     /**
@@ -165,7 +170,10 @@ class RedirectResponse extends BaseRedirectResponse
     {
         $targetUrl = $this->sanitizeBackUrl($this->request->headers->get('referer'));
 
-        $this->setTargetUrl($targetUrl)->setStatusCode($status)->headers->add($headers);
+        $this
+            ->setTargetUrl($targetUrl)
+            ->setStatusCode($status)
+            ->headers->add($headers);
 
         return $this;
     }
@@ -211,11 +219,18 @@ class RedirectResponse extends BaseRedirectResponse
      *
      * @return $this
      */
-    public function route(string $name, array $parameters = [], int $status = 302, array $headers = []): RedirectResponse
-    {
+    public function route(
+        string $name,
+        array $parameters = [],
+        int $status = 302,
+        array $headers = [],
+    ): RedirectResponse {
         $url = router()->url($name, $parameters);
 
-        $this->setTargetUrl($url)->setStatusCode($status)->headers->add($headers);
+        $this
+            ->setTargetUrl($url)
+            ->setStatusCode($status)
+            ->headers->add($headers);
 
         return $this;
     }

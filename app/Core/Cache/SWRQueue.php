@@ -28,12 +28,22 @@ final class SWRQueue
         self::$tasks[$id] = $task;
     }
 
+    /**
+     * Discard all queued tasks. Call this when cache is being
+     * explicitly cleared so stale revalidation tasks won't
+     * write outdated data back into the freshly cleared cache.
+     */
+    public static function flush(): void
+    {
+        self::$tasks = [];
+    }
+
     public static function hasTasks(): bool
     {
         return !empty(self::$tasks);
     }
 
-    public static function run(int $limit = 25): void
+    public static function run(int $limit = 25, int $maxTotalSeconds = 60, int $maxTaskSeconds = 30): void
     {
         if (self::$ran) {
             return;
@@ -48,22 +58,18 @@ final class SWRQueue
         // Best-effort: only one worker should run SWR tasks at a time.
         $lockFile = function_exists('storage_path')
             ? storage_path('app/swr_queue.lock')
-            : (defined('BASE_PATH') ? BASE_PATH . 'storage/app/swr_queue.lock' : 'swr_queue.lock');
+            : ( defined('BASE_PATH') ? BASE_PATH . 'storage/app/swr_queue.lock' : 'swr_queue.lock' );
 
-        $handle = @fopen($lockFile, 'w+');
+        $handle = \Flute\Core\Services\FileLockService::acquireLock($lockFile);
         if ($handle === false) {
-            return;
-        }
-
-        if (!@flock($handle, LOCK_EX | LOCK_NB)) {
-            fclose($handle);
-
             return;
         }
 
         try {
             @ignore_user_abort(true);
-            @set_time_limit(0);
+            if (function_exists('set_time_limit')) {
+                @set_time_limit($maxTotalSeconds + 10);
+            }
 
             $startedAt = microtime(true);
             $timings = [];
@@ -74,10 +80,32 @@ final class SWRQueue
                     break;
                 }
 
+                $elapsed = microtime(true) - $startedAt;
+                if ($elapsed >= $maxTotalSeconds) {
+                    if (function_exists('logs')) {
+                        logs()->warning('SWR queue: total time limit reached', [
+                            'elapsed' => $elapsed,
+                            'limit' => $maxTotalSeconds,
+                            'remaining_tasks' => count(self::$tasks) - $count,
+                        ]);
+                    }
+
+                    break;
+                }
+
                 try {
                     $t0 = microtime(true);
                     $task();
-                    $timings[$id] = microtime(true) - $t0;
+                    $taskTime = microtime(true) - $t0;
+                    $timings[$id] = $taskTime;
+
+                    if ($taskTime > $maxTaskSeconds && function_exists('logs')) {
+                        logs()->warning('SWR task exceeded time limit', [
+                            'task' => $id,
+                            'duration' => $taskTime,
+                            'limit' => $maxTaskSeconds,
+                        ]);
+                    }
                 } catch (Throwable $e) {
                     if (function_exists('logs')) {
                         logs()->warning($e);
@@ -97,8 +125,7 @@ final class SWRQueue
                 ]);
             }
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            \Flute\Core\Services\FileLockService::releaseLock($handle);
         }
     }
 }

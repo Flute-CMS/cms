@@ -18,14 +18,17 @@ class SearchServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             SearchHandler::class => \DI\create(),
-            "search" => \DI\get(SearchHandler::class),
+            'search' => \DI\get(SearchHandler::class),
         ]);
     }
 
     public function boot(\DI\Container $container): void
     {
         if (is_installed()) {
-            $container->get(Router::class)->post('api/search/{value}', [SearchController::class, 'search'])->middleware('csrf');
+            $container
+                ->get(Router::class)
+                ->post('api/search/{value}', [SearchController::class, 'search'])
+                ->middleware('csrf');
             $container->get(EventDispatcher::class)->addListener(SearchEvent::NAME, [$this, 'searchById']);
         }
     }
@@ -41,13 +44,13 @@ class SearchServiceProvider extends AbstractServiceProvider
             $steamId = $value;
         }
 
-        $foundUsers = User::query()->where('name', 'like', "%{$value}%")
+        $foundUsers = User::query()
+            ->where('name', 'like', '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value) . '%')
             ->limit(20)
             ->fetchAll();
 
         if (sizeof($foundUsers) > 0) {
             foreach ($foundUsers as $foundUser) {
-
                 if ($searchEvent->isExists($foundUser->id, 'user')) {
                     continue;
                 }

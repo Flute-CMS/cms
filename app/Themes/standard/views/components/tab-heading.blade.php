@@ -5,6 +5,7 @@
     'name' => 'tab',
     'url' => null,
     'badge' => null,
+    'icon' => null,
     'withoutHtmx' => false,
     'reloadable' => false,
 ])
@@ -14,7 +15,6 @@
     $active = filter_var($active, FILTER_VALIDATE_BOOLEAN);
     $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
     $reloadable = filter_var($reloadable, FILTER_VALIDATE_BOOLEAN);
-
     $label = $label ?? $slot;
 @endphp
 
@@ -24,12 +24,12 @@
         aria-controls="tab__{{ $name }}" data-tab-id="tab__{{ $name }}"
         data-reloadable="{{ $reloadable ? 'true' : 'false' }}"
         @if ($withoutHtmx && $url) href="{{ $url }}" @endif
-        @if (!empty($url) && !$withoutHtmx) 
+        @if (!empty($url) && !$withoutHtmx)
             hx-get="{{ $url }}"
             hx-target="#tab__{{ $name }}"
-            hx-swap="innerHTML" 
+            hx-swap="innerHTML"
             @if ($active && !$reloadable)
-                hx-trigger="load" 
+                hx-trigger="load"
             @elseif ($reloadable)
                 hx-trigger="@if ($active) load, @endif click"
             @else
@@ -41,6 +41,9 @@
         @if ($disabled) aria-disabled="true" @endif
         {{ $attributes }}
         >
+        @if ($icon)
+            <x-icon :path="$icon" class="tab-icon" />
+        @endif
         {!! $label !!}
 
         @if (isset($badge))

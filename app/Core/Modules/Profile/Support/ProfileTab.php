@@ -55,4 +55,36 @@ abstract class ProfileTab
     {
         return null;
     }
+
+    /**
+     * Returns a custom Blade layout for wrapping the tab content.
+     */
+    public function getLayout(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Whether to render without the default card header wrapper.
+     */
+    public function isFullWidth(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Returns path to a CSS/SCSS file for this tab.
+     */
+    public function getStyles(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Returns path to a JS file for this tab.
+     */
+    public function getScripts(): ?string
+    {
+        return null;
+    }
 }

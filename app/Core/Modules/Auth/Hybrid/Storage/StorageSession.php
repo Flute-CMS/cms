@@ -22,7 +22,23 @@ class StorageSession implements StorageInterface
 
         if (is_array($value) && isset($value['__lateObject'])) {
             try {
-                return unserialize($value['__lateObject']);
+                return unserialize($value['__lateObject'], ['allowed_classes' => [
+                    \Hybridauth\Adapter\OAuth2::class,
+                    \Hybridauth\Adapter\OAuth1::class,
+                    \Hybridauth\Adapter\OpenID::class,
+                    \Hybridauth\Provider\Discord::class,
+                    \Hybridauth\Provider\Steam::class,
+                    \Hybridauth\Provider\Google::class,
+                    \Hybridauth\Provider\GitHub::class,
+                    \Hybridauth\Provider\Facebook::class,
+                    \Hybridauth\Provider\Twitter::class,
+                    \Hybridauth\Provider\Telegram::class,
+                    \Hybridauth\Data\Collection::class,
+                    \Hybridauth\User\Profile::class,
+                    \Hybridauth\User\Contact::class,
+                    \Hybridauth\User\Activity::class,
+                    \Hybridauth\HttpClient\Util::class,
+                ]]);
             } catch (Throwable $e) {
                 logs()->warning('Failed to unserialize Hybridauth stored object: ' . $e->getMessage());
 

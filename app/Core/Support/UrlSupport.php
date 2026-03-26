@@ -25,7 +25,7 @@ class UrlSupport
         if (!empty($path) && is_url($path)) {
             $this->baseUrl = $path;
         } elseif (!empty($path) && $path[0] === '/') {
-            $this->baseUrl = config('app.url').$path;
+            $this->baseUrl = config('app.url') . $path;
         } elseif (!empty($path)) {
             $this->baseUrl = sprintf('%s/%s', config('app.url'), $path);
         } else {
@@ -167,7 +167,7 @@ class UrlSupport
      */
     public function get(): string
     {
-        return $this->getParams ? sprintf("%s?%s", $this->baseUrl, http_build_query($this->getParams)) : $this->baseUrl;
+        return $this->getParams ? sprintf('%s?%s', $this->baseUrl, http_build_query($this->getParams)) : $this->baseUrl;
     }
 
     /**

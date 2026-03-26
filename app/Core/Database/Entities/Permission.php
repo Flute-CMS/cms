@@ -5,9 +5,14 @@ namespace Flute\Core\Database\Entities;
 use Cycle\ActiveRecord\ActiveRecord;
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Entity;
+use Cycle\Annotated\Annotation\Table;
+use Cycle\Annotated\Annotation\Table\Index;
 use Cycle\ORM\Entity\Behavior;
 
 #[Entity]
+#[Table(indexes: [
+    new Index(columns: ["name"], unique: true),
+])]
 #[Behavior\CreatedAt(
     field: 'createdAt',
     column: 'created_at'

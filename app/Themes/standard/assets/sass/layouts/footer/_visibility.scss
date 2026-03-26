@@ -1,0 +1,15 @@
+// ========================================
+// FOOTER ELEMENT VISIBILITY
+// ========================================
+
+html[data-footer-socials="false"] {
+    #footer .footer__socials {
+        display: none !important;
+    }
+}
+
+html[data-footer-logo="false"] {
+    #footer .footer__logo {
+        display: none !important;
+    }
+}

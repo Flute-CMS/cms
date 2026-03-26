@@ -10,9 +10,11 @@ class NavbarService
 {
     public const CACHE_KEY = 'flute.navbar.items';
 
+    public const CACHE_TAG = 'navbar';
+
     protected const CACHE_TIME = 24 * 60 * 60;
 
-    protected array $cachedNavbarItems;
+    protected ?array $cachedNavbarItems = null;
 
     protected bool $performance;
 
@@ -24,18 +26,45 @@ class NavbarService
 
     public function __construct(NavbarItemFormat $format, Agent $agent)
     {
-        if (!is_installed()) {
-            return;
-        }
-
-        $this->performance = is_performance();
-
         $this->format = $format;
         $this->agent = $agent;
 
-        $cacheKey = self::CACHE_KEY . '.' . (user()->isLoggedIn() ? user()->id : 'guest') . '.' . ($this->agent->isMobile() ? 'mobile' : 'desktop') . '.' . app()->getLang();
+        if (is_installed()) {
+            $this->performance = is_performance();
+        } else {
+            $this->performance = false;
+        }
+    }
 
-        $this->cachedNavbarItems = cache()->callback($cacheKey, fn () => $this->getDefaultNavbarItems(), self::CACHE_TIME);
+    /**
+     * Lazily loads navbar items from cache/DB on first access.
+     */
+    protected function loadItems(): array
+    {
+        if ($this->cachedNavbarItems !== null) {
+            return $this->cachedNavbarItems;
+        }
+
+        if (!is_installed()) {
+            $this->cachedNavbarItems = [];
+
+            return $this->cachedNavbarItems;
+        }
+
+        $cacheKey =
+            self::CACHE_KEY
+            . '.'
+            . ( user()->isLoggedIn() ? user()->id : 'guest' )
+            . '.'
+            . ( $this->agent->isMobile() ? 'mobile' : 'desktop' )
+            . '.'
+            . app()->getLang();
+
+        $cacheTime = is_development() ? 30 : self::CACHE_TIME;
+        cache()->tagKey(self::CACHE_TAG, $cacheKey);
+        $this->cachedNavbarItems = cache()->callback($cacheKey, fn() => $this->getDefaultNavbarItems(), $cacheTime);
+
+        return $this->cachedNavbarItems;
     }
 
     /**
@@ -45,6 +74,8 @@ class NavbarService
      */
     public function add(NavbarItem $item): self
     {
+        $this->loadItems();
+
         if ($this->hasAccess($item)) {
             $this->cachedNavbarItems[] = $this->format->format($item);
         }
@@ -59,7 +90,7 @@ class NavbarService
      */
     public function all(bool $ignoreAuth = false): array
     {
-        return $ignoreAuth ? $this->getDefaultNavbarItems(true) : $this->cachedNavbarItems;
+        return $ignoreAuth ? $this->getDefaultNavbarItems(true) : $this->loadItems();
     }
 
     /**
@@ -101,12 +132,14 @@ class NavbarService
                 break;
         }
 
-        if (sizeof($item->roles) === 0) {
+        if (count($item->roles) === 0) {
             return true;
         }
 
+        $highestPriority = user()->getHighestPriority();
+
         foreach ($item->roles as $role) {
-            if ((user()->hasRole($role->name) || user()->getHighestPriority() > $role->priority)) {
+            if (user()->hasRole($role->name) || $highestPriority > $role->priority) {
                 return true;
             }
         }
@@ -122,28 +155,43 @@ class NavbarService
     protected function getDefaultNavbarItems(bool $ignoreAuth = false): array
     {
         $allItems = NavbarItem::query()
-            ->load(['roles', 'parent', 'children', 'children.roles'])
+            ->load(['roles', 'parent'])
             ->orderBy('position', 'asc')
             ->fetchAll();
 
-        $tree = $this->buildTree($allItems, null, $ignoreAuth);
-
-        return $tree;
+        return $this->buildTree($allItems, $ignoreAuth);
     }
 
-    protected function buildTree(array $items, ?int $parentId = null, bool $ignoreAuth = false): array
+    protected function buildTree(array $items, bool $ignoreAuth = false): array
     {
-        $tree = [];
+        $byParent = [];
 
         foreach ($items as $item) {
-            if (($parentId === null) === ($item->parent === null) && ($parentId === null || ($item->parent && $item->parent->id === $parentId)) && ($ignoreAuth || $this->hasAccess($item))) {
-                $formatted = $this->format->format($item);
-                $formatted['children'] = $this->buildTree($items, $item->id, $ignoreAuth);
-                $tree[] = $formatted;
+            if (!$ignoreAuth && !$this->hasAccess($item)) {
+                continue;
             }
+
+            $parentId = $item->parent ? $item->parent->id : 0;
+            $byParent[$parentId][] = $item;
         }
 
-        usort($tree, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        return $this->buildSubtree($byParent, 0, $ignoreAuth);
+    }
+
+    protected function buildSubtree(array &$byParent, int $parentId, bool $ignoreAuth): array
+    {
+        if (!isset($byParent[$parentId])) {
+            return [];
+        }
+
+        $tree = [];
+
+        foreach ($byParent[$parentId] as $item) {
+            $children = $this->buildSubtree($byParent, $item->id, $ignoreAuth);
+            $tree[] = $this->format->format($item, $children);
+        }
+
+        usort($tree, static fn($a, $b) => ( $a['position'] ?? 0 ) <=> ( $b['position'] ?? 0 ));
 
         return $tree;
     }

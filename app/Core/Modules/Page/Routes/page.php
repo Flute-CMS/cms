@@ -6,55 +6,60 @@ use Flute\Core\Modules\Page\Controllers\WidgetController;
 use Flute\Core\Router\Router;
 
 /*
-|--------------------------------------------------------------------------
-| Page Module Routes
-|--------------------------------------------------------------------------
-|
-| These routes are loaded by the framework and assigned
-| to the "admin.pages" middleware group.
-|
-*/
+ |--------------------------------------------------------------------------
+ | Page Module Routes
+ |--------------------------------------------------------------------------
+ |
+ | These routes are loaded by the framework and assigned
+ | to the "admin.pages" middleware group.
+ |
+ */
 
-router()->group(['middleware' => ['can:admin.pages', 'csrf'], 'prefix' => 'api/pages/'], static function (Router $router) {
-    $router->delete('delete-widget/{id}', [WidgetController::class, 'deleteWidget'])
-        ->name('pages.deleteWidget');
+router()->group([
+    'middleware' => ['can:admin.pages', 'csrf'],
+    'prefix' => 'api/pages/',
+], static function (Router $router) {
+    $router->delete('delete-widget/{id}', [WidgetController::class, 'deleteWidget'])->name('pages.deleteWidget');
 
-    $router->post('render-widget', [WidgetController::class, 'renderWidget'])
-        ->name('pages.renderWidget');
+    $router->post('render-widget', [WidgetController::class, 'renderWidget'])->name('pages.renderWidget');
 
-    $router->post('render-widgets', [WidgetController::class, 'renderWidgets'])
-        ->name('pages.renderWidgets');
+    $router->post('render-widgets', [WidgetController::class, 'renderWidgets'])->name('pages.renderWidgets');
 
-    $router->post('widgets/settings-form', [WidgetController::class, 'settingsForm'])
-        ->name('pages.widgetSettingsForm');
+    $router->post('widgets/settings-form', [WidgetController::class, 'settingsForm'])->name('pages.widgetSettingsForm');
 
-    $router->post('widgets/save-settings', [WidgetController::class, 'saveSettings'])
-        ->name('pages.saveWidgetSettings');
+    $router->post('widgets/save-settings', [WidgetController::class, 'saveSettings'])->name('pages.saveWidgetSettings');
 
-    $router->post('widgets/handle-action', [WidgetController::class, 'handleAction'])
-        ->name('pages.handleWidgetAction');
+    $router->post('widgets/handle-action', [WidgetController::class, 'handleAction'])->name('pages.handleWidgetAction');
 
-    $router->post('widgets/buttons-batch', [WidgetController::class, 'getButtonsBatch'])
+    $router
+        ->post('widgets/buttons-batch', [WidgetController::class, 'getButtonsBatch'])
         ->name('pages.getWidgetButtonsBatch');
 
-    $router->post('widgets/buttons', [WidgetController::class, 'getButtons'])
-        ->name('pages.getWidgetButtons');
+    $router->post('widgets/buttons', [WidgetController::class, 'getButtons'])->name('pages.getWidgetButtons');
 
-    $router->post('save-colors', [ColorController::class, 'saveColors'])
-        ->name('pages.saveColors');
+    $router->post('save-colors', [ColorController::class, 'saveColors'])->name('pages.saveColors');
 
-    $router->post('save-layout', [WidgetController::class, 'saveLayout'])
-        ->name('pages.saveLayout');
+    $router->post('save-customize', [ColorController::class, 'saveCustomize'])->name('pages.saveCustomize');
 
-    $router->get('get-layout', [WidgetController::class, 'getLayout'])
-        ->name('pages.getLayout');
+    $router->post('save-theme', [ColorController::class, 'saveTheme'])->name('pages.saveTheme');
 
-    $router->post('save-seo', [PageController::class, 'saveSEO'])
-        ->name('pages.saveSEO');
+    $router->post('save-layout', [WidgetController::class, 'saveLayout'])->name('pages.saveLayout');
 
-    $router->get('seo', [PageController::class, 'seo'])
-        ->name('pages.seo');
+    $router->get('get-layout', [WidgetController::class, 'getLayout'])->name('pages.getLayout');
+
+    $router->post('save-seo', [PageController::class, 'saveSEO'])->name('pages.saveSEO');
+
+    $router->get('seo', [PageController::class, 'seo'])->name('pages.seo');
+
+    $router
+        ->post('upload-site-image', [ColorController::class, 'uploadSiteImage'])
+        ->middleware('can:admin.boss')
+        ->name('pages.uploadSiteImage');
+
+    $router
+        ->post('delete-site-image', [ColorController::class, 'deleteSiteImage'])
+        ->middleware('can:admin.boss')
+        ->name('pages.deleteSiteImage');
 });
 
-router()->get('offline', [PageController::class, 'offline'])
-    ->name('pages.offline');
+router()->get('offline', [PageController::class, 'offline'])->name('pages.offline');

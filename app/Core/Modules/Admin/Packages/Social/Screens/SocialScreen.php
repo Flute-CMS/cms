@@ -11,6 +11,7 @@ use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\SocialNetwork;
+use Throwable;
 
 class SocialScreen extends Screen
 {
@@ -24,9 +25,7 @@ class SocialScreen extends Screen
 
     public function mount(): void
     {
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-social.title.social'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-social.title.social'));
 
         $this->socials = rep(SocialNetwork::class)->select()->orderBy('id', 'desc');
     }
@@ -36,34 +35,62 @@ class SocialScreen extends Screen
         return [
             LayoutFactory::table('socials', [
                 TD::selection('id'),
-                TD::make()->title(__('admin-social.table.social'))->render(static fn (SocialNetwork $social) => view('admin-social::cells.main', compact('social')))->minWidth('200px')->cantHide(),
+                TD::make()
+                    ->title(__('admin-social.table.social'))
+                    ->render(static fn(SocialNetwork $social) => view('admin-social::cells.main', compact('social')))
+                    ->minWidth('200px')
+                    ->cantHide(),
 
                 TD::make('cooldown_time', __('admin-social.table.cooldown'))
                     ->popover(__('admin-social.fields.cooldown_time.popover'))
-                    ->render(static fn (SocialNetwork $social) => $social->cooldownTime ? CarbonInterval::seconds($social->cooldownTime)->cascade()->forHumans() : 'Не ограничено'),
+                    ->render(static fn(SocialNetwork $social) => $social->cooldownTime
+                        ? CarbonInterval::seconds($social->cooldownTime)->cascade()->forHumans()
+                        : __('admin-social.table.no_limit')),
 
                 TD::make('allow_to_register', __('admin-social.table.registration'))
                     ->popover(__('admin-social.fields.allow_register.help'))
-                    ->render(static fn (SocialNetwork $social) => view('admin-social::cells.allow_to_register', compact('social'))),
+                    ->render(static fn(SocialNetwork $social) => view(
+                        'admin-social::cells.allow_to_register',
+                        compact('social'),
+                    )),
 
-                TD::make('enabled', __('admin-social.table.status'))->render(static fn (SocialNetwork $social) => view('admin-social::cells.enabled', compact('social'))),
+                TD::make('enabled', __('admin-social.table.status'))->render(static fn(SocialNetwork $social) => view(
+                    'admin-social::cells.enabled',
+                    compact('social'),
+                )),
 
-                TD::make('actions', __('admin-social.table.actions'))->width('200px')->alignCenter()->render(
-                    static fn (SocialNetwork $social) => DropDown::make()
+                TD::make('actions', __('admin-social.table.actions'))
+                    ->width('200px')
+                    ->alignCenter()
+                    ->render(static fn(SocialNetwork $social) => DropDown::make()
                         ->icon('ph.regular.dots-three-outline-vertical')
                         ->list([
-                            DropDownItem::make(__('admin-social.buttons.edit'))->redirect(url('/admin/socials/' . $social->id . '/edit'))->icon('ph.bold.pencil-bold')->type(Color::OUTLINE_PRIMARY)->size('small')->fullWidth(),
+                            DropDownItem::make(__('admin-social.buttons.edit'))
+                                ->redirect(url('/admin/socials/' . $social->id . '/edit'))
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
 
-                            DropDownItem::make($social->enabled ? __('admin-social.buttons.disable') : __('admin-social.buttons.enable'))
+                            DropDownItem::make(
+                                $social->enabled
+                                    ? __('admin-social.buttons.disable')
+                                    : __('admin-social.buttons.enable'),
+                            )
                                 ->method('toggle', ['id' => $social->id])
                                 ->icon($social->enabled ? 'ph.bold.power-bold' : 'ph.bold.check-circle-bold')
                                 ->type($social->enabled ? Color::OUTLINE_WARNING : Color::OUTLINE_SUCCESS)
                                 ->size('small')
                                 ->fullWidth(),
 
-                            DropDownItem::make(__('admin-social.buttons.delete'))->confirm(__('admin-social.confirms.delete'))->method('delete', ['delete-id' => $social->id])->icon('ph.bold.trash-bold')->type(Color::OUTLINE_DANGER)->size('small')->fullWidth(),
-                        ])
-                ),
+                            DropDownItem::make(__('admin-social.buttons.delete'))
+                                ->confirm(__('admin-social.confirms.delete'))
+                                ->method('delete', ['delete-id' => $social->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ])),
             ])
                 ->searchable(['key', 'id'])
                 ->bulkActions([
@@ -84,18 +111,18 @@ class SocialScreen extends Screen
                         ->method('bulkDeleteSocials'),
                 ])
                 ->commands([
-                    Button::make(__('admin-social.buttons.add'))->redirect(url('/admin/socials/add'))->icon('ph.bold.plus-bold'),
+                    Button::make(__('admin-social.buttons.add'))
+                        ->redirect(url('/admin/socials/add'))
+                        ->icon('ph.bold.plus-bold'),
                 ]),
         ];
     }
 
     public function toggle(): void
     {
-        if (
-            $this->validate([
-                'id' => ['required', 'string'],
-            ], request()->input())
-        ) {
+        if ($this->validate([
+            'id' => ['required', 'string'],
+        ], request()->input())) {
             $id = request()->input('id');
 
             $social = rep(SocialNetwork::class)->findByPK($id);
@@ -109,6 +136,8 @@ class SocialScreen extends Screen
             $social->enabled = !$social->enabled;
             transaction($social)->run();
 
+            $this->clearSocialCache();
+
             $this->socials = rep(SocialNetwork::class)->select();
             $this->flashMessage(__('admin-social.messages.toggle_success'));
         } else {
@@ -118,17 +147,16 @@ class SocialScreen extends Screen
 
     public function delete(): void
     {
-        if (
-            $this->validate([
-                'delete-id' => ['required', 'string'],
-            ], request()->input())
-        ) {
+        if ($this->validate([
+            'delete-id' => ['required', 'string'],
+        ], request()->input())) {
             $id = request()->input('delete-id');
 
             $social = rep(SocialNetwork::class)->findByPK($id);
 
             if ($social) {
                 transaction($social, 'delete')->run();
+                $this->clearSocialCache();
                 $this->socials = rep(SocialNetwork::class)->select();
                 $this->flashMessage(__('admin-social.messages.delete_success'));
             } else {
@@ -153,6 +181,7 @@ class SocialScreen extends Screen
             $social->enabled = true;
             transaction($social)->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.toggle_success'));
     }
@@ -171,6 +200,7 @@ class SocialScreen extends Screen
             $social->enabled = false;
             transaction($social)->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.toggle_success'));
     }
@@ -188,7 +218,22 @@ class SocialScreen extends Screen
             }
             transaction($social, 'delete')->run();
         }
+        $this->clearSocialCache();
         $this->socials = rep(SocialNetwork::class)->select();
         $this->flashMessage(__('admin-social.messages.delete_success'));
+    }
+
+    /**
+     * Clear social network related caches.
+     */
+    private function clearSocialCache(): void
+    {
+        try {
+            cache()->deleteImmediately('available_social_drivers');
+            cache()->deleteImmediately('flute.social_networks');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
+        }
     }
 }

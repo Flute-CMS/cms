@@ -85,6 +85,21 @@ return [
             'label' => 'Rasm',
             'placeholder' => 'Rasm URL ni kiriting',
         ],
+        'description' => [
+            'label' => 'Tavsif',
+            'placeholder' => 'Masalan: Visa, MasterCard, Maestro',
+            'help' => 'Toʻlov usuli nomi ostida koʻrsatiladigan qisqa tavsif',
+        ],
+        'fee' => [
+            'label' => 'Komissiya (%)',
+            'placeholder' => '0',
+            'help' => 'Toʻlov shlyuzi tomonidan undirilgan komissiya foizi. Foydalanuvchilarga maʼlumot sifatida koʻrsatiladi',
+        ],
+        'bonus' => [
+            'label' => 'Bonus (%)',
+            'placeholder' => '0',
+            'help' => 'Ushbu toʻlov usulidan foydalanganda hisobni toʻldirishga qoʻshiladigan bonus foizi',
+        ],
         'enabled' => [
             'label' => 'Faol',
             'help' => 'Ushbu toʻlov shlyuzini yoqish yoki oʻchirish',

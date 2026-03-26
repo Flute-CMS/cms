@@ -5,6 +5,8 @@ namespace Flute\Core\Modules\Auth\Components;
 use Flute\Core\Exceptions\DuplicateEmailException;
 use Flute\Core\Exceptions\DuplicateLoginException;
 use Flute\Core\Exceptions\TooManyRequestsException;
+use Flute\Core\Modules\Auth\Events\RegisterFormRenderingEvent;
+use Flute\Core\Modules\Auth\Events\RegisterValidatingEvent;
 use Flute\Core\Services\CaptchaService;
 use Flute\Core\Support\FluteComponent;
 use Nette\Schema\ValidationException;
@@ -27,7 +29,7 @@ class RegisterComponent extends FluteComponent
 
     public function register()
     {
-        if ($this->validator() && $this->validateCaptcha()) {
+        if ($this->validator() && $this->validateExtensions() && $this->validateCaptcha()) {
             $this->rememberMe = filter_var($this->rememberMe, FILTER_VALIDATE_BOOLEAN);
 
             try {
@@ -39,7 +41,13 @@ class RegisterComponent extends FluteComponent
                     'remember_me' => $this->rememberMe,
                 ], $this->rememberMe);
 
-                toast()->success(app('auth.registration.confirm_email') ? __('auth.register_email') : __('auth.register_success'))->push();
+                toast()
+                    ->success(
+                        app('auth.registration.confirm_email')
+                            ? __('auth.register_email')
+                            : __('auth.register_success'),
+                    )
+                    ->push();
 
                 $this->modalClose('register-modal');
 
@@ -62,20 +70,35 @@ class RegisterComponent extends FluteComponent
 
     public function render()
     {
+        $formEvent = new RegisterFormRenderingEvent([
+            'name' => $this->name,
+            'email' => $this->email,
+            'login' => $this->login,
+        ]);
+
+        events()->dispatch($formEvent, RegisterFormRenderingEvent::NAME);
+
         return $this->view('flute::components.auth.register', [
             'token' => request()->input('token'),
+            'formEvent' => $formEvent,
         ]);
     }
 
     protected function validator()
     {
-        return validator()->validate([
+        // Dispatch validation event for modules
+        $validationEvent = new RegisterValidatingEvent([
             'name' => $this->name,
             'login' => $this->login,
             'email' => $this->email,
             'password' => $this->password,
             'password_confirmation' => $this->password_confirmation,
-        ], [
+        ]);
+
+        events()->dispatch($validationEvent, RegisterValidatingEvent::NAME);
+
+        // Merge module rules with base rules
+        $baseRules = [
             'name' => [
                 'required',
                 'human-name',
@@ -99,7 +122,54 @@ class RegisterComponent extends FluteComponent
                 'min-str-len:' . config('auth.validation.password.min_length'),
                 'max-str-len:' . config('auth.validation.password.max_length'),
             ],
+        ];
+
+        $rules = array_merge($baseRules, $validationEvent->rules);
+
+        return validator()->validate([
+            'name' => $this->name,
+            'login' => $this->login,
+            'email' => $this->email,
+            'password' => $this->password,
+            'password_confirmation' => $this->password_confirmation,
+        ], $rules);
+    }
+
+    /**
+     * Validate using module event listeners.
+     */
+    protected function validateExtensions(): bool
+    {
+        $validationEvent = new RegisterValidatingEvent([
+            'name' => $this->name,
+            'login' => $this->login,
+            'email' => $this->email,
+            'password' => $this->password,
         ]);
+
+        events()->dispatch($validationEvent, RegisterValidatingEvent::NAME);
+
+        if ($validationEvent->stopValidation) {
+            if (isset($validationEvent->errors['_global'])) {
+                toast()->error($validationEvent->errors['_global'])->push();
+            }
+
+            return false;
+        }
+
+        if ($validationEvent->hasErrors()) {
+            foreach ($validationEvent->errors as $field => $message) {
+                if ($field === '_global') {
+                    toast()->error($message)->push();
+                } else {
+                    $this->inputError($field, $message);
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     protected function validateCaptcha()
@@ -111,9 +181,10 @@ class RegisterComponent extends FluteComponent
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

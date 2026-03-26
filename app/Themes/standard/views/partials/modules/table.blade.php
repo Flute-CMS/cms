@@ -1,15 +1,37 @@
+@php
+    $hasFilters = isset($filters) && !empty($filters);
+    $hasActions = isset($headerActions) && !empty($headerActions);
+    $searchOnly = ($showSearch ?? true) && !$hasFilters && !$hasActions;
+@endphp
 <div>
     @if ($showSearch ?? true)
-        <header class="table__header">
-            <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms" yoyo
-                yoyo:get="searchChanged('{{ $search ?? '' }}')">
-                <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}" :value="$search ?? ''">
-                    <x-slot name="prefix">
-                        <x-icon path="ph.regular.magnifying-glass" />
-                    </x-slot>
-                </x-fields.input>
-            </x-forms.field>
-        </header>
+        @if ($searchOnly)
+            <div class="table__header">
+                <div class="table__search-standalone">
+                    <x-forms.field class="table__search w-full" style="min-width: 100%" hx-trigger="input changed delay:500ms"
+                        yoyo yoyo:get="searchChanged('{{ $search ?? '' }}')">
+                        <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}"
+                            :value="$search ?? ''">
+                            <x-slot name="prefix">
+                                <x-icon path="ph.regular.magnifying-glass" />
+                            </x-slot>
+                        </x-fields.input>
+                    </x-forms.field>
+                </div>
+            </div>
+        @else
+            <header class="table__header">
+                <x-forms.field class="table__search" style="min-width: 300px" hx-trigger="input changed delay:500ms"
+                    yoyo yoyo:get="searchChanged('{{ $search ?? '' }}')">
+                    <x-fields.input name="search" id="search" placeholder="{{ __('def.lets_search') }}"
+                        :value="$search ?? ''">
+                        <x-slot name="prefix">
+                            <x-icon path="ph.regular.magnifying-glass" />
+                        </x-slot>
+                    </x-fields.input>
+                </x-forms.field>
+            </header>
+        @endif
     @endif
 
     <div class="table-responsive">
@@ -61,7 +83,11 @@
 
                             <td @class(['table-cell', 'text-' . $align])
                                 @if ($width) width="{{ $width }}" @endif>
-                                {!! $row[$column['field']] !!}
+                                @if (!empty($column['raw']) || !empty($column['renderer']))
+                                    {!! $row[$column['field']] !!}
+                                @else
+                                    {{ $row[$column['field']] }}
+                                @endif
                             </td>
                         @endforeach
                     </tr>
@@ -69,12 +95,12 @@
                     <tr>
                         <td colspan="{{ count($columns) }}">
                             <div class="py-5 text-center">
-                                <h1 class="flex-center text-muted mb-1">
+                                <div class="flex-center text-muted mb-1" style="font-size: var(--h1);">
                                     <x-icon path="ph.regular.smiley-sad" width="50" height="50" />
-                                </h1>
-                                <h3>
+                                </div>
+                                <h2>
                                     {!! __('def.no_results_found') !!}
-                                </h3>
+                                </h2>
                                 <p class="text-muted flex-center text-balance text-center">
                                     {!! __('def.import_or_create') !!}
                                 </p>

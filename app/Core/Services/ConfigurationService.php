@@ -14,7 +14,7 @@ class ConfigurationService
 
     public function __construct(string $configsPath = '/config')
     {
-        $configsPath = (file_exists(BASE_PATH . 'config-dev')) ? BASE_PATH . 'config-dev' : BASE_PATH . 'config';
+        $configsPath = file_exists(BASE_PATH . 'config-dev') ? BASE_PATH . 'config-dev' : BASE_PATH . 'config';
 
         $this->configsPath = rtrim($configsPath, DIRECTORY_SEPARATOR);
 
@@ -77,6 +77,8 @@ class ConfigurationService
             }
         }
 
+        $this->invalidateCompiledCache();
+
         $this->loadConfigurations();
     }
 
@@ -90,9 +92,26 @@ class ConfigurationService
         return $this->configsPath;
     }
 
+    /**
+     * Remove the compiled config cache so fresh values are picked up on next load.
+     */
+    public function invalidateCompiledCache(): void
+    {
+        $compiledPath = $this->getCompiledConfigPath();
+        if ($compiledPath !== null && file_exists($compiledPath)) {
+            @unlink($compiledPath);
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($compiledPath, true);
+            }
+        }
+    }
+
     public function setConfigsPath(string $configsPath): void
     {
         $this->configsPath = rtrim($configsPath, DIRECTORY_SEPARATOR);
+
+        $this->invalidateCompiledCache();
+
         $this->loadConfigurations();
     }
 
@@ -112,6 +131,43 @@ class ConfigurationService
 
     protected function getConfigFiles(): array
     {
+        $compiledPath = $this->getCompiledConfigPath();
+
+        if ($compiledPath !== null && file_exists($compiledPath)) {
+            $compiledMtime = filemtime($compiledPath);
+            $stale = false;
+
+            foreach (glob($this->configsPath . DIRECTORY_SEPARATOR . '*.php') ?: [] as $f) {
+                if (filemtime($f) > $compiledMtime) {
+                    $stale = true;
+                    break;
+                }
+            }
+
+            if (!$stale) {
+                $compiled = require $compiledPath;
+                if (is_array($compiled)) {
+                    return $compiled;
+                }
+            }
+
+            @unlink($compiledPath);
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($compiledPath, true);
+            }
+        }
+
+        $configFiles = $this->scanConfigFiles();
+
+        if ($compiledPath !== null) {
+            $this->writeCompiledConfig($compiledPath, $configFiles);
+        }
+
+        return $configFiles;
+    }
+
+    protected function scanConfigFiles(): array
+    {
         $finder = finder();
         $finder->files()->in($this->configsPath)->name('*.php');
 
@@ -122,5 +178,40 @@ class ConfigurationService
         }
 
         return $configFiles;
+    }
+
+    private function getCompiledConfigPath(): ?string
+    {
+        if (!defined('BASE_PATH')) {
+            return null;
+        }
+
+        return (
+            BASE_PATH
+            . 'storage'
+            . DIRECTORY_SEPARATOR
+            . 'app'
+            . DIRECTORY_SEPARATOR
+            . 'cache'
+            . DIRECTORY_SEPARATOR
+            . 'config_compiled.php'
+        );
+    }
+
+    private function writeCompiledConfig(string $path, array $configFiles): void
+    {
+        try {
+            $dir = dirname($path);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0o755, true);
+            }
+
+            $tmp = $path . '.' . uniqid('cfg', true) . '.tmp';
+            $content = '<?php return ' . var_export($configFiles, true) . ';';
+            if (@file_put_contents($tmp, $content, LOCK_EX) !== false) {
+                @rename($tmp, $path);
+            }
+        } catch (Throwable $e) {
+        }
     }
 }

@@ -46,11 +46,14 @@ class ActiveRouter
         [$routes, $ignoredRoutes] = $this->parseIgnoredRoutes($routes);
 
         if ($this->isPath($routes) || $this->isFullPath($routes) || $this->isRoute($routes)) {
-            return !(count($ignoredRoutes) && ($this->isPath($ignoredRoutes) || $this->isFullPath($ignoredRoutes) || $this->isRoute($ignoredRoutes)))
-
-
-
-            ;
+            return !(
+                count($ignoredRoutes)
+                && (
+                    $this->isPath($ignoredRoutes)
+                    || $this->isFullPath($ignoredRoutes)
+                    || $this->isRoute($ignoredRoutes)
+                )
+            );
         }
 
         return false;

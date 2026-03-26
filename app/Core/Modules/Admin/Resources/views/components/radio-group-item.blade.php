@@ -1,27 +1,23 @@
-@props(['value', 'label', 'small', 'icon', 'checked' => false])
-@aware(['name'])
+@props(['value', 'label', 'small' => null, 'icon' => null, 'checked' => false, 'disabled' => false])
+@aware(['name', 'variant' => null])
 
-<label {{ $attributes->merge(['class' => 'radio-option']) }}>
-    <input type="radio" class="radio-input" name="{{ $name }}" value="{{ $value }}" @checked($checked)>
-    <div class="radio-content">
+<label {{ $attributes->merge(['class' => 'radio-item' . ($disabled ? ' radio-item--disabled' : '')]) }}>
+    <input type="radio" class="radio-item__input" name="{{ $name }}" value="{{ $value }}"
+        @checked($checked) @disabled($disabled)>
+    <span class="radio-item__content">
         @isset($icon)
-            <span class="radio-icon">
+            <span class="radio-item__icon" aria-hidden="true">
                 <x-icon path="{{ $icon }}" />
             </span>
         @endisset
-
-        <div class="radio-option-content">
+        <span class="radio-item__text">
             @isset($label)
-                <h6 class="radio-text-label">
-                    {!! $label !!}
-                </h6>
+                <span class="radio-item__label">{!! $label !!}</span>
             @endisset
-
-            @isset($small)
-                <small class="radio-text-small">
-                    {!! $small !!}
-                </small>
-            @endisset
-        </div>
-    </div>
+            @if ($small)
+                <span class="radio-item__desc">{!! $small !!}</span>
+            @endif
+        </span>
+    </span>
+    <span class="radio-item__control" aria-hidden="true"></span>
 </label>

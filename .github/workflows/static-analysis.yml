@@ -1,4 +1,4 @@
-name: Static Analysis (PHPStan)
+name: Static Analysis
 
 on:
   pull_request:
@@ -8,15 +8,32 @@ on:
     paths: ["**.php"]
 
 jobs:
-  phpstan:
+  mago-analyse:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         php-version: ['8.2', '8.3']
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: PHPStan temporarily disabled
-        run: echo "PHPStan is temporarily disabled and will not run in CI."
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php-version }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Mago analyse
+        run: composer analyse

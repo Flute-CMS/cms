@@ -8,7 +8,7 @@ trait ThemeTrait
 {
     /**
      */
-    public string $theme = "standard";
+    public string $theme = 'standard';
 
     /**
      */

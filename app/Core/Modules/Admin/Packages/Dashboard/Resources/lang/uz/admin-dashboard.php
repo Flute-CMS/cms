@@ -12,6 +12,7 @@ return [
         'welcome_message' => 'Boshqaruv paneliga xush kelibsiz',
         'user_registrations' => 'Foydalanuvchi roʻyxatdan oʻtish tendensiyalari',
         'user_activity' => 'Kun boʻyicha foydalanuvchi faolligi',
+        'user_engagement' => 'Soʻnggi 7 kunda yangi va faol foydalanuvchilar',
         'notifications' => 'Bildirishnoma statistikalari',
         'activity_by_hour' => 'Soat boʻyicha faollik',
         'system_load' => 'Tizim yuklash',
@@ -42,6 +43,7 @@ return [
     'charts' => [
         'user_registrations' => 'Foydalanuvchi Roʻyxatdan Oʻtishi',
         'user_activity' => 'Foydalanuvchi Faolligi',
+        'user_engagement' => 'Foydalanuvchi Faolligi',
         'notifications' => 'Bildirish­nomalar',
         'activity_by_hour' => 'Soatlik Faollik',
         'system_load' => 'Tizim Yuklash',

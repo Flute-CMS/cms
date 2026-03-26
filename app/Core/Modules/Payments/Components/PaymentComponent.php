@@ -12,6 +12,25 @@ use Nette\Schema\ValidationException;
 
 class PaymentComponent extends FluteComponent
 {
+    protected array $excludesVariables = [
+        'redirectTo',
+        'confirmedActions',
+        'gatewayFee',
+        'gatewayFeeAmount',
+        'gatewayBonus',
+        'gatewayBonusAmount',
+        'currencyExchangeRates',
+        'currencyGateways',
+        'currencyMinimumAmounts',
+        'gatewayMinimumAmounts',
+        'currencyPresets',
+        'currencies',
+        'amountToReceive',
+        'amountToPay',
+        'promoDetails',
+        'promoIsValid',
+    ];
+
     public ?string $gateway = null;
 
     public ?string $currency = null;
@@ -22,9 +41,19 @@ class PaymentComponent extends FluteComponent
 
     public $amountToPay = null;
 
+    public $gatewayFee = 0;
+
+    public $gatewayFeeAmount = 0;
+
+    public $gatewayBonus = 0;
+
+    public $gatewayBonusAmount = 0;
+
     public ?string $promoCode = null;
 
     public bool $agree = false;
+
+    public bool $isModal = false;
 
     public bool $promoIsValid = true;
 
@@ -37,6 +66,10 @@ class PaymentComponent extends FluteComponent
     public array $currencyGateways = [];
 
     public array $currencyMinimumAmounts = [];
+
+    public array $gatewayMinimumAmounts = [];
+
+    public array $currencyPresets = [];
 
     public function mount()
     {
@@ -52,25 +85,27 @@ class PaymentComponent extends FluteComponent
             try {
                 $this->throttle('lk_purchase');
 
-                if ($this->amount < $this->currencyMinimumAmounts[$this->currency]) {
-                    throw new PaymentException(__('lk.min_amount', ['sum' => $this->currencyMinimumAmounts[$this->currency]]));
+                $minAmount = $this->getEffectiveMinimumAmount();
+                if ($this->amount < $minAmount) {
+                    throw new PaymentException(__('lk.min_amount', ['sum' => $minAmount]));
                 }
 
-                $invoice = payments()->processor()->createInvoice(
-                    $this->gateway,
-                    $this->amountToPay,
-                    (string) $this->promoCode,
-                    $this->currency
-                );
+                $serverAmount = (float) $this->amount;
+                $serverAmountToPay = $serverAmount;
 
-                // If invoice amount is zero (promo covered full sum) — mark as paid immediately,
-                // credit user's balance and record promo usage without redirecting to gateway.
-                if ($invoice->amount <= 0) {
-                    payments()->processor()->setInvoiceAsPaid($invoice->transactionId);
-                    toast()->success(__('lk.success'))->push();
+                if (!empty($this->promoCode)) {
+                    try {
+                        payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $serverAmount);
+                    } catch (\Flute\Core\Modules\Payments\Exceptions\PaymentPromoException $e) {
+                        $this->inputError('promoCode', $e->getMessage());
 
-                    return $this->redirectTo(url('/lk/success'));
+                        return;
+                    }
                 }
+
+                $invoice = payments()
+                    ->processor()
+                    ->createInvoice($this->gateway, $serverAmount, (string) $this->promoCode, $this->currency);
 
                 toast()->success(__('lk.redirect'))->push();
 
@@ -89,8 +124,20 @@ class PaymentComponent extends FluteComponent
         }
     }
 
+    public function setPresetAmount(float $amount): void
+    {
+        $this->amount = $amount;
+        $this->validatePromo();
+    }
+
     public function validatePromo()
     {
+        if (is_string($this->amount)) {
+            $normalized = str_replace([' ', "\u{00A0}"], '', $this->amount);
+            $normalized = str_replace(',', '.', $normalized);
+            $this->amount = $normalized;
+        }
+
         if (empty($this->amount)) {
             $this->amountToPay = null;
             $this->amountToReceive = null;
@@ -104,6 +151,26 @@ class PaymentComponent extends FluteComponent
             $exchangeRate = $this->currencyExchangeRates[$this->currency];
             $this->amountToPay = $this->amount;
             $this->amountToReceive = $this->amount * $exchangeRate;
+
+            $this->gatewayFee = 0;
+            $this->gatewayFeeAmount = 0;
+            $this->gatewayBonus = 0;
+            $this->gatewayBonusAmount = 0;
+
+            if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+                $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+                $this->gatewayFee = $gatewayData['fee'] ?? 0;
+                $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
+
+                if ($this->gatewayFee > 0) {
+                    $this->gatewayFeeAmount = round(( $this->amount * $this->gatewayFee ) / 100, 2);
+                }
+
+                if ($this->gatewayBonus > 0) {
+                    $this->gatewayBonusAmount = round(( $this->amountToReceive * $this->gatewayBonus ) / 100, 2);
+                    $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
+                }
+            }
         } else {
             $this->inputError('currency', __('lk.select_currency_prompt'));
 
@@ -111,25 +178,32 @@ class PaymentComponent extends FluteComponent
         }
 
         if (empty($this->promoCode)) {
+            if ($this->gatewayFee > 0) {
+                $feeOnPay = round(( $this->amountToPay * $this->gatewayFee ) / 100, 2);
+                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
+            }
+
             return;
         }
 
         try {
             $this->throttle('lk_validate_promo');
 
-            $this->promoDetails = payments()->promo()->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
+            $this->promoDetails = payments()
+                ->promo()
+                ->validate($this->promoCode, user()->getCurrentUser()->id, $this->amount);
             $this->promoIsValid = true;
 
-            switch ($this->promoDetails['type']) {
-                case 'amount':
-                    $this->amountToReceive = round($this->amountToReceive + $this->promoDetails['value'], 2);
+            $promoBonus = match ($this->promoDetails['type']) {
+                'amount' => (float) $this->promoDetails['value'],
+                'percentage' => round(( $this->amountToReceive * $this->promoDetails['value'] ) / 100, 2),
+                default => 0,
+            };
+            $this->amountToReceive = round($this->amountToReceive + $promoBonus, 2);
 
-                    break;
-                case 'percentage':
-                    $discount = ($this->amountToPay * $this->promoDetails['value']) / 100;
-                    $this->amountToPay = round(max(0, $this->amountToPay - $discount), 2);
-
-                    break;
+            if ($this->gatewayFee > 0) {
+                $feeOnPay = round(( $this->amountToPay * $this->gatewayFee ) / 100, 2);
+                $this->amountToPay = round($this->amountToPay + $feeOnPay, 2);
             }
         } catch (PaymentPromoException $e) {
             $this->inputError('promoCode', __($e->getMessage()));
@@ -138,7 +212,7 @@ class PaymentComponent extends FluteComponent
         } catch (Exception $e) {
             logs()->error($e);
 
-            $message = is_debug() ? ($e->getMessage() ?? __('def.unknown_error')) : __('def.unknown_error');
+            $message = is_debug() ? $e->getMessage() ?? __('def.unknown_error') : __('def.unknown_error');
             $this->inputError('promoCode', $message);
 
             $this->promoIsValid = false;
@@ -148,7 +222,62 @@ class PaymentComponent extends FluteComponent
 
     public function render()
     {
-        return $this->view('flute::components.payments.payment-form');
+        $viewName = $this->isModal
+            ? 'flute::components.payments.payment-form-modal'
+            : 'flute::components.payments.payment-form';
+
+        return $this->view($viewName, [
+            'gatewayFields' => $this->collectAllGatewayFields($viewName),
+        ]);
+    }
+
+    public function getEffectiveMinimumAmount(): float
+    {
+        // Gateway minimum takes priority if set
+        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+            if (isset($gatewayData['minimum_amount']) && $gatewayData['minimum_amount'] !== null) {
+                return (float) $gatewayData['minimum_amount'];
+            }
+        }
+
+        // Fall back to currency minimum
+        return (float) ( $this->currencyMinimumAmounts[$this->currency] ?? 0 );
+    }
+
+    /**
+     * Pre-render additional fields for ALL gateways by triggering View Composers.
+     * Modules register View::composer on the payment form view and conditionally
+     * inject 'additionalFields' based on $view->gateway.
+     */
+    protected function collectAllGatewayFields(string $viewName): array
+    {
+        $fields = [];
+        $seen = [];
+
+        foreach ($this->currencyGateways as $gateways) {
+            foreach ($gateways as $adapter => $data) {
+                if (isset($seen[$adapter])) {
+                    continue;
+                }
+                $seen[$adapter] = true;
+
+                try {
+                    $factory = view();
+                    $probe = $factory->make($viewName, ['gateway' => $adapter]);
+                    $factory->callComposer($probe);
+
+                    $html = $probe->getData()['additionalFields'] ?? null;
+                    if ($html) {
+                        $fields[$adapter] = $html;
+                    }
+                } catch (Exception $e) {
+                    // Skip gateways that fail to render fields
+                }
+            }
+        }
+
+        return $fields;
     }
 
     protected function validateCurrencyGateways(): void
@@ -166,13 +295,17 @@ class PaymentComponent extends FluteComponent
 
     protected function loadCurrenciesAndGateways(): void
     {
-        $currencies = Currency::findAll();
+        $currencies = cache()->callback('flute.currencies', static fn() => Currency::findAll(), 3600);
 
         foreach ($currencies as $currency) {
             $code = $currency->code;
             $this->currencies[] = $code;
             $this->currencyExchangeRates[$code] = $currency->exchange_rate;
             $this->currencyMinimumAmounts[$code] = $currency->minimum_value;
+            $presets = $currency->getPresetAmounts();
+            if (!empty($presets)) {
+                $this->currencyPresets[$code] = $presets;
+            }
 
             foreach ($currency->paymentGateways as $gateway) {
                 if ($gateway->enabled === false) {
@@ -182,6 +315,10 @@ class PaymentComponent extends FluteComponent
                 $this->currencyGateways[$code][$gateway->adapter] = [
                     'name' => $gateway->name,
                     'image' => $gateway->image,
+                    'description' => $gateway->description ?? '',
+                    'fee' => $gateway->fee ?? 0,
+                    'bonus' => $gateway->bonus ?? 0,
+                    'minimum_amount' => $gateway->minimumAmount,
                 ];
             }
         }
@@ -214,10 +351,36 @@ class PaymentComponent extends FluteComponent
         $exchangeRate = $this->currencyExchangeRates[$this->currency] ?? 1;
         $this->amountToPay = $this->amount;
         $this->amountToReceive = $this->amount * $exchangeRate;
+
+        $this->gatewayFee = 0;
+        $this->gatewayFeeAmount = 0;
+        $this->gatewayBonus = 0;
+        $this->gatewayBonusAmount = 0;
+
+        if ($this->gateway && isset($this->currencyGateways[$this->currency][$this->gateway])) {
+            $gatewayData = $this->currencyGateways[$this->currency][$this->gateway];
+            $this->gatewayFee = $gatewayData['fee'] ?? 0;
+            $this->gatewayBonus = $gatewayData['bonus'] ?? 0;
+
+            if ($this->gatewayFee > 0) {
+                $this->gatewayFeeAmount = round(( $this->amount * $this->gatewayFee ) / 100, 2);
+            }
+
+            if ($this->gatewayBonus > 0) {
+                $this->gatewayBonusAmount = round(( $this->amountToReceive * $this->gatewayBonus ) / 100, 2);
+                $this->amountToReceive = round($this->amountToReceive + $this->gatewayBonusAmount, 2);
+            }
+        }
     }
 
     protected function validateInput()
     {
+        if (is_string($this->amount)) {
+            $normalized = str_replace([' ', "\u{00A0}"], '', $this->amount);
+            $normalized = str_replace(',', '.', $normalized);
+            $this->amount = $normalized;
+        }
+
         return validator()->validate([
             'gateway' => $this->gateway,
             'currency' => $this->currency,
@@ -226,7 +389,7 @@ class PaymentComponent extends FluteComponent
         ], [
             'gateway' => 'required|string',
             'currency' => 'required|string',
-            'amount' => 'required|numeric|gt:0|max:'.config('lk.max_single_amount', 1000000),
+            'amount' => 'required|numeric|gt:0|max:' . config('lk.max_single_amount', 1000000),
             'promoCode' => 'nullable|string',
         ]);
     }

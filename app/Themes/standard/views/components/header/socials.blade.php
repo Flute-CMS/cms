@@ -3,7 +3,7 @@
         @foreach (footer()->socials()->all() as $social)
             <a href="{{ $social->url }}" data-tooltip="@t($social->name)" aria-label="@t($social->name)" target="_blank"
                 rel="noopener" itemprop="sameAs">
-                <x-icon path="{!! $social->icon !!}" aria-hidden="true" />
+                <x-icon :path="$social->icon" aria-hidden="true" />
             </a>
         @endforeach
     </div>

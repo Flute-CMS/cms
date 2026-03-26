@@ -50,6 +50,9 @@ return [
         'expires_at' => 'Expires At',
         'user' => 'User',
         'transaction_id' => 'Transaction ID',
+        'credited' => 'Credited',
+        'promo' => 'Promo code',
+        'gateway_bonus' => 'Gateway bonus',
     ],
     'buttons' => [
         'add_gateway' => 'Add Gateway',
@@ -60,31 +63,58 @@ return [
         'disable' => 'Disable',
         'mark_as_paid' => 'Mark as Paid',
         'add_promo' => 'Add Promo Code',
+        'create_currency' => 'Create Currency',
     ],
     'fields' => [
         'name' => [
             'label' => 'Name',
             'placeholder' => 'Payment gateway name',
+            'help' => 'Display name shown to users on the payment page',
         ],
         'method' => [
-            'label' => 'Method',
+            'label' => 'HTTP Method',
             'placeholder' => 'Enter method',
+            'help' => 'If the payment provider asks for the notification method (HTTP method), select POST. Almost all providers use it.',
         ],
         'handle_url' => [
-            'label' => 'Handle URL',
+            'label' => 'Webhook / Notification URL',
             'placeholder' => 'Enter handle URL',
+            'help' => 'Copy and paste this URL into your payment provider\'s dashboard in the "Webhook URL", "Notification URL", "Result URL" or "HTTP notifications" field. This is the address where the payment system will send successful payment notifications.',
         ],
         'success_url' => [
-            'label' => 'Success URL',
+            'label' => 'Success URL (success page)',
             'placeholder' => 'Enter success URL',
+            'help' => 'Paste into the "Success URL", "Return URL" or "Redirect URL on success" field in your payment provider settings. The user will be redirected here after a successful payment.',
         ],
         'fail_url' => [
-            'label' => 'Fail URL',
+            'label' => 'Fail URL (error page)',
             'placeholder' => 'Enter fail URL',
+            'help' => 'Paste into the "Fail URL", "Cancel URL" or "Redirect URL on error" field. The user will be redirected here if the payment fails or is cancelled.',
         ],
+        'gateway_urls_alert' => 'Copy these URLs and paste them into your payment provider\'s settings (provider dashboard). Without this, payments will not be processed!',
         'image' => [
             'label' => 'Image',
             'placeholder' => 'Enter image URL',
+        ],
+        'description' => [
+            'label' => 'Description',
+            'placeholder' => 'E.g.: Visa, MasterCard, Maestro',
+            'help' => 'Short description displayed below the payment method name',
+        ],
+        'fee' => [
+            'label' => 'Fee (%)',
+            'placeholder' => '0',
+            'help' => 'Fee percentage charged by the payment gateway. Displayed to users as information',
+        ],
+        'bonus' => [
+            'label' => 'Bonus (%)',
+            'placeholder' => '0',
+            'help' => 'Bonus percentage added to the top-up when using this payment method',
+        ],
+        'minimum_amount' => [
+            'label' => 'Minimum Amount',
+            'placeholder' => 'Leave empty to use currency minimum',
+            'help' => 'Minimum top-up amount for this gateway. If not set, the currency minimum will be used',
         ],
         'enabled' => [
             'label' => 'Enabled',
@@ -97,6 +127,7 @@ return [
         'payment_system' => [
             'label' => 'Payment System',
             'placeholder' => 'Select payment system',
+            'help' => 'Payment provider module. Install modules from Marketplace to add more options',
         ],
         'promo' => [
             'total_usages' => 'Total Usages',
@@ -188,6 +219,7 @@ return [
         'transaction_id_required' => 'Transaction ID is required.',
         'invoice_marked_paid' => 'Invoice marked as paid successfully.',
         'no_payment_drivers' => 'No payment drivers available.',
+        'no_currencies' => 'You need to create at least one currency before adding a payment gateway.',
         'promo_not_found' => 'Promo code not found.',
         'promo_updated' => 'Promo code updated successfully.',
         'promo_added' => 'Promo code added successfully.',
@@ -208,6 +240,21 @@ return [
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
     ],
+    'empty' => [
+        'gateways' => [
+            'title' => 'No payment gateways',
+            'sub' => 'Add a gateway to accept payments',
+        ],
+        'invoices' => [
+            'title' => 'No invoices yet',
+            'sub' => 'Invoices will appear here when users make payments',
+        ],
+        'promo_codes' => [
+            'title' => 'No promo codes',
+            'sub' => 'Create promo codes to offer discounts',
+        ],
+    ],
+
     'no_drivers' => [
         'title' => 'No payment gateways found',
         'description' => 'Please install the necessary modules to integrate payment systems.',

@@ -37,7 +37,7 @@ class SearchResult implements SearchResultInterface
         ?string $image = null,
         ?string $description = null,
         ?string $type = null,
-        array $extraParams = []
+        array $extraParams = [],
     ) {
         $this->title = $title;
         $this->url = $url;

@@ -1,124 +1,135 @@
+// Promo Codes Widget — Minimal Design
+// =====================================
+
 .promo-codes {
-    &-header {
-        @extend .d-flex, .gap-2;
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
 
         h5 {
-            @extend .d-flex, .align-center, .gap-2;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-        
-        small {
-            opacity: 0.7;
-        }
-    }
-
-    &-icon {
-        @extend .flex-center;
-        
-        color: var(--accent);
-        font-size: 1.3rem;
-    }
-
-    .promo-code {
-        &-list {
-            @extend .d-flex, .flex-column, .gap-2;
-        }
-
-        &-copy {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--transp-1);
-            width: 24px;
-            height: 24px;
-            border-radius: var(--border05);
-            font-size: var(--small);
-            color: var(--text-600);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-
-            &:hover {
-                background-color: var(--transp-2);
-                color: var(--primary);
-            }
-
-            &:active {
-                transform: scale(0.95);
-            }
-        }
-
-        &-item {
-            @extend .d-flex, .flex-column;
-            padding: 1em 1.5em;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid var(--transp-1);
-
-            &:last-of-type {
-                border-bottom: none;
-            }
-        }
-
-        &-info {
-            @extend .d-flex, .justify-between, .align-center;
-        }
-
-        &-code {
-            @extend .d-flex, .align-center, .gap-2;
-            font-weight: 600;
             font-size: var(--h6);
-            color: var(--primary);
-            letter-spacing: 0.5px;
-        }
-
-        &-discount {
             font-weight: 600;
-            font-size: var(--p-small);
-            color: var(--accent);
-            position: relative;
-        }
-
-        &-expiry {
-            text-align: right;
-
-            small {
-                font-size: var(--small);
-                color: var(--text-600);
-            }
+            color: var(--text);
         }
     }
 
-    &-empty {
-        @extend .flex-center, .flex-column, .gap-2;
-        padding: 1.5rem 0;
+    &__count {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-500);
+        background: var(--transp-05);
+        padding: 0.15rem 0.5rem;
+        border-radius: var(--border05);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        padding: var(--space-xs);
+        background: var(--transp-02);
+        border-radius: var(--border05);
+        transition: background var(--transition);
+
+        &:hover {
+            background: var(--transp-05);
+        }
+    }
+
+    &__code {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        min-width: 0;
+    }
+
+    &__value {
+        font-family: var(--font-mono);
+        font-size: var(--small);
+        font-weight: 600;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        padding: 0.2rem 0.5rem;
+        background: var(--transp-05);
+        border-radius: 4px;
+        white-space: nowrap;
+    }
+
+    &__copy {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        color: var(--text-500);
+        cursor: pointer;
+        transition: color var(--transition), background var(--transition);
+        flex-shrink: 0;
+
+        svg {
+            font-size: 0.85rem;
+        }
+
+        &:hover {
+            background: var(--transp-1);
+            color: var(--accent);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
+    &__meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+        flex-shrink: 0;
+    }
+
+    &__discount {
+        font-size: var(--small);
+        font-weight: 700;
+        color: var(--success);
+        line-height: 1.3;
+    }
+
+    &__expires {
+        font-size: 0.6rem;
+        color: var(--text-600);
+        line-height: 1.3;
+    }
+
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-lg);
+        gap: var(--space-xs);
         color: var(--text-600);
 
         svg {
             font-size: 1.5rem;
-            opacity: 0.6;
-            animation: pulse 2s infinite ease-in-out;
+            opacity: 0.5;
         }
 
-        p {
-            margin-bottom: 0;
+        span {
             font-size: var(--small);
         }
-    }
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.1);
-    }
-
-    100% {
-        transform: scale(1);
     }
 }

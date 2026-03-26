@@ -85,15 +85,16 @@ class PageController extends BaseController
 
             return response()->htmx()->setTriggers(['close-modal' => 'page-seo-dialog']);
         } catch (Exception $e) {
-            logs()->error("Failed to save SEO settings: " . $e->getMessage());
+            logs()->error('Failed to save SEO settings: ' . $e->getMessage());
             $this->toast(__('page.seo.error'), 'error');
 
             return $this->json([
                 'error' => __('page.seo.error'),
-                'debug' => is_debug() ? [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ] : null,
+                'debug' => is_debug()
+                    ? [
+                        'message' => $e->getMessage(),
+                        'file' => basename($e->getFile()) . ':' . $e->getLine(),
+                    ] : null,
             ], 500);
         }
     }

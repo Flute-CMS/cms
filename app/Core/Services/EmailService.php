@@ -42,7 +42,7 @@ class EmailService
             $this->configureMail();
 
             $defaultDomain = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
-            $fromEmail = $this->mailConfig['from'] ?? ('no-reply@' . $defaultDomain);
+            $fromEmail = $this->mailConfig['from'] ?? 'no-reply@' . $defaultDomain;
 
             $email = (new Email())
                 ->from($fromEmail)
@@ -67,7 +67,7 @@ class EmailService
             $user = $event->getUser();
 
             $template = template()->render('flute::emails.reset', [
-                'url' => url('reset/' . $event->getToken()->token),
+                'url' => url('reset/' . $event->getToken()->token)->get(),
                 'name' => $user->name,
             ]);
 
@@ -89,10 +89,10 @@ class EmailService
         try {
             $user = $event->getUser();
 
-            $verificationToken = auth()->createVerificationToken($user)->token;
+            $verificationToken = auth()->createVerificationToken($user)->rawToken;
 
             $template = template()->render('flute::emails.confirmation', [
-                'url' => url('confirm/' . $verificationToken),
+                'url' => url('confirm/' . $verificationToken)->get(),
                 'name' => $user->name,
             ]);
 
@@ -118,21 +118,21 @@ class EmailService
             throw new Exception('SMTP is disabled.');
         }
 
-        $host = (string) ($this->mailConfig['host'] ?? '');
+        $host = (string) ( $this->mailConfig['host'] ?? '' );
         if ($host === '') {
             throw new Exception('SMTP host is not configured.');
         }
 
-        $port = (int) ($this->mailConfig['port'] ?? 0);
+        $port = (int) ( $this->mailConfig['port'] ?? 0 );
         if ($port < 1 || $port > 65535) {
             $port = 0;
         }
 
-        $secure = strtolower((string) ($this->mailConfig['secure'] ?? 'tls'));
+        $secure = strtolower((string) ( $this->mailConfig['secure'] ?? 'tls' ));
         $scheme = $secure === 'ssl' ? 'smtps' : 'smtp';
 
-        $username = (string) ($this->mailConfig['username'] ?? '');
-        $password = (string) ($this->mailConfig['password'] ?? '');
+        $username = (string) ( $this->mailConfig['username'] ?? '' );
+        $password = (string) ( $this->mailConfig['password'] ?? '' );
 
         $timeout = $this->mailConfig['timeout'] ?? 5;
         $timeout = is_numeric($timeout) ? (float) $timeout : 5.0;
@@ -144,7 +144,7 @@ class EmailService
             'timeout' => $timeout,
         ];
 
-        $authMode = (string) ($this->mailConfig['auth_mode'] ?? '');
+        $authMode = (string) ( $this->mailConfig['auth_mode'] ?? '' );
         if ($authMode !== '') {
             $query['auth_mode'] = $authMode;
         }

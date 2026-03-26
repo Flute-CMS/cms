@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Tezkor qidiruv...",
+    "search_placeholder" => "Sahifalar, sozlamalar va funksiyalarni qidiring...",
+    "search_input" => "Qidiruv maydoni",
+    "to_navigate" => "harakatlanish uchun",
+    "to_select" => "tanlash uchun",
+    "search_results_for" => "\"%query%\" uchun qidiruv natijalari",
+    "no_results_found" => "Hech qanday natija topilmadi",
+    "available_commands" => "Mavjud buyruqlar",
+    "no_commands_available" => "Buyruqlar topilmadi",
+    "search_users" => "Foydalanuvchilarni qidirish",
+    "users" => "Foydalanuvchilar",
+    "settings" => "Sozlamalar",
+    "lets_search" => "Keling, nimadir topaylik...",
+];

@@ -8,25 +8,30 @@
     z-index: 1000;
     inset: 0;
 
+    // Hide drag handle on desktop — it's rendered in HTML for mobile.
+    .drag-handle {
+        display: none;
+    }
+
     &.is-open {
         display: flex;
 
         .modal__overlay {
-            animation: mmfadeIn 0.2s ease;
+            animation: mmfadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideIn 0.2s ease;
+            animation: mmslideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
     &[aria-hidden="true"] {
         .modal__overlay {
-            animation: mmfadeOut 0.2s ease;
+            animation: mmfadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal__container {
-            animation: mmslideOut 0.2s ease;
+            animation: mmslideOut 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
     }
 
@@ -35,12 +40,16 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.45) 0%,
+            rgba(0, 0, 0, 0.75) 100%
+        );
         z-index: 1000;
         position: fixed;
         inset: 0;
+        touch-action: none;
+        overscroll-behavior: contain;
 
         @include media(pc) {
             padding: 1rem 0;
@@ -58,13 +67,18 @@
         border-radius: 0.875rem;
         flex-direction: column;
         border: 1px solid var(--transp-1);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 16px 70px -12px rgba(0, 0, 0, 0.25);
         z-index: 1001;
         max-width: 90%;
         max-height: 90vh;
         width: 560px;
         pointer-events: auto;
         margin: auto;
+        transform-origin: center center;
+
+        :root[data-theme=light] & {
+            box-shadow: 0 16px 70px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+        }
 
         @include media(pc) {
             max-height: calc(100vh - 2rem);
@@ -111,7 +125,7 @@
         width: 32px;
         height: 32px;
         color: var(--text-500);
-        transition: all 0.15s ease;
+        transition: color 0.15s ease, background-color 0.15s ease;
         border-radius: 0.5rem;
         cursor: pointer;
         line-height: 1;
@@ -174,6 +188,10 @@
         background-color: var(--transp-05);
         border-radius: 0 0 0.875rem 0.875rem;
 
+        :root[data-theme=light] & {
+            background-color: #f9fafb;
+        }
+
         .modal-admin-footer {
             display: flex;
             align-items: center;
@@ -186,71 +204,84 @@
         }
     }
 
+    // On mobile, ALL modals are bottom-sheet drawers (no JS class needed).
     @media (max-width: 768px) {
-        &.bottom-sheet {
-            .modal__container {
+        // Overlay: use opacity transition for smooth open/close.
+        .modal__overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: none !important;
+        }
+
+        &.is-open .modal__overlay {
+            opacity: 1;
+        }
+
+        .modal__container {
+            display: block;
+            width: 100%;
+            max-width: none;
+            max-height: 100vh;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            height: auto;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), height 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+            animation: none !important;
+            position: absolute;
+            bottom: 0;
+            overscroll-behavior: contain;
+        }
+
+        .modal__header {
+            padding-top: 0.75rem;
+        }
+
+        &.is-open .modal__container {
+            transform: translateY(0);
+        }
+
+        &.dragging .modal__container {
+            transition: none;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            padding-top: 1.25rem;
+            width: 100%;
+
+            span {
                 display: block;
-                width: 100%;
-                max-width: none;
-                max-height: 100vh;
-                border-bottom-right-radius: 0;
-                border-bottom-left-radius: 0;
-                height: 20vh;
-                overflow: hidden;
-                transform: translateY(100%);
-                transition: transform 0.2s ease, height 0.2s ease;
-                animation: none !important;
-                position: absolute;
-                bottom: 0;
+                width: 36px;
+                height: 4px;
+                background: var(--transp-2);
+                border-radius: 2px;
+                pointer-events: none;
             }
+        }
 
-            .modal__header {
-                padding-top: 0.75rem;
-            }
+        .modal__close {
+            display: none;
+        }
 
-            &.is-open .modal__container {
-                transform: translateY(0);
-            }
+        .modal__title {
+            text-align: center;
+            width: 100%;
+        }
 
-            &.dragging .modal__container {
-                transition: none;
-            }
+        .skeleton {
+            width: auto;
+        }
 
-            .drag-handle {
-                cursor: grab;
-                user-select: none;
-                display: flex;
-                justify-content: center;
-                padding-top: 1.25rem;
-                width: 100%;
-
-                span {
-                    display: block;
-                    width: 36px;
-                    height: 4px;
-                    background: var(--transp-2);
-                    border-radius: 2px;
-                }
-            }
-
-            .modal__close {
-                display: none;
-            }
-
-            .modal__title {
-                text-align: center;
-                width: 100%;
-            }
-
-            .skeleton {
-                width: auto;
-            }
-
-            &.fullscreen {
-                .modal__container {
-                    border-radius: 0;
-                    overflow: auto;
-                }
+        &.fullscreen {
+            .modal__container {
+                border-radius: 0;
+                overflow: auto;
             }
         }
     }
@@ -277,7 +308,7 @@
 @keyframes mmslideIn {
     from {
         opacity: 0;
-        transform: scale(0.98) translateY(8px);
+        transform: scale(0.98) translateY(4px);
     }
     to {
         opacity: 1;
@@ -292,6 +323,6 @@
     }
     to {
         opacity: 0;
-        transform: scale(0.98) translateY(8px);
+        transform: scale(0.98) translateY(4px);
     }
 }

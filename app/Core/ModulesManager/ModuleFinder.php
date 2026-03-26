@@ -17,6 +17,8 @@ class ModuleFinder
     {
         $allModules = [];
 
+        clearstatcache(true);
+
         if (!is_dir($modulesPath)) {
             return $allModules;
         }
@@ -48,16 +50,11 @@ class ModuleFinder
             // Fallback: handle rare cases where archive/unpack adds an extra wrapper directory.
             // Keep it shallow to avoid expensive recursive scans on every subdirectory.
             $jsonFinder = finder();
-            $jsonFinder
-                ->files()
-                ->name('module.json')
-                ->in($moduleDir)
-                ->depth('== 1');
+            $jsonFinder->files()->name('module.json')->in($moduleDir)->depth('== 1');
 
-            foreach ($jsonFinder as $jsonFile) {
-                $allModules[$item] = $jsonFile->getRealPath();
-
-                break;
+            $iterator = $jsonFinder->getIterator();
+            if ($iterator->valid()) {
+                $allModules[$item] = $iterator->current()->getRealPath();
             }
         }
 

@@ -15,7 +15,7 @@ return [
 
     'tabs' => [
         'main' => 'Main',
-        'db_connections' => 'DB Connections',
+        'db_connections' => 'Plugins & Stats',
     ],
 
     'fields' => [
@@ -26,14 +26,17 @@ return [
         'ip' => [
             'label' => 'IP Address',
             'placeholder' => '127.0.0.1',
+            'help' => 'Server IP without port (e.g. 192.168.1.1)',
         ],
         'port' => [
             'label' => 'Port',
             'placeholder' => '27015',
+            'help' => 'Game server port (1–65535)',
         ],
         'mod' => [
             'label' => 'Game',
             'placeholder' => 'Select game',
+            'help' => 'Cannot be changed after creation',
         ],
         'rcon' => [
             'label' => 'RCON Password',
@@ -48,22 +51,27 @@ return [
         'ranks' => [
             'label' => 'Rank Pack',
             'placeholder' => 'Select rank pack',
+            'help' => 'Rank icon set displayed for players',
         ],
         'ranks_format' => [
             'label' => 'Rank File Format',
             'placeholder' => 'Select rank file format',
+            'help' => 'Image format of rank icons in the selected pack',
         ],
         'ranks_premier' => [
             'label' => 'Premier Ranks',
             'placeholder' => 'Should the server use premier ranks',
+            'help' => 'CS2 Premier rating system instead of classic ranks',
         ],
         'query_port' => [
             'label' => 'Query Port',
             'placeholder' => 'Optional. If empty, uses connection port',
+            'help' => 'Port for server status queries. Leave empty to use main port',
         ],
         'rcon_port' => [
             'label' => 'RCON Port',
             'placeholder' => 'Optional. If empty, uses connection port',
+            'help' => 'Port for RCON commands. Leave empty to use main port',
         ],
         'enabled' => [
             'label' => 'Enabled',
@@ -75,19 +83,38 @@ return [
     'status' => [
         'active' => 'Active',
         'inactive' => 'Inactive',
+        'online' => 'Server Online',
+        'offline' => 'Server Offline',
+        'hostname' => 'Hostname',
+        'map' => 'Map',
+        'players' => 'Players',
+        'game' => 'Game',
+        'status' => 'Status',
+        'and_more' => '+:count more',
+    ],
+
+    'rcon' => [
+        'title' => 'RCON Console',
+        'placeholder' => 'Enter command...',
+        'empty' => 'Enter a command below to get started',
+        'no_rcon' => 'RCON password is not configured for this server.',
+        'no_output' => '(no output)',
+        'empty_command' => 'Enter a command first.',
+        'error' => 'RCON error',
     ],
 
     'db_connection' => [
-        'title' => 'DB Connections',
+        'title' => 'Plugins & Stats',
         'fields' => [
             'mod' => [
-                'label' => 'Mod',
-                'placeholder' => 'Enter mod',
-                'help' => 'Select plugin to use for this server',
+                'label' => 'Data type',
+                'placeholder' => 'Select type',
+                'help' => 'What data to connect: stats, bans, VIP, etc.',
             ],
             'dbname' => [
                 'label' => 'Database',
-                'placeholder' => 'Enter database name',
+                'placeholder' => 'Select database',
+                'help' => 'Connections are created in Settings → Databases.',
             ],
             'driver' => [
                 'label' => 'Driver',
@@ -110,11 +137,23 @@ return [
             ],
         ],
         'add' => [
-            'title' => 'Add DB Connection',
-            'button' => 'Add Connection',
+            'title' => 'Connect plugin data',
+            'button' => 'Connect',
+            'description' => 'Select what type of data you want to display on the site, and specify the database where the plugin stores it.',
         ],
         'edit' => [
-            'title' => 'Edit DB Connection',
+            'title' => 'Edit connection',
+        ],
+        'steps' => [
+            'select_type' => 'Select data type',
+            'select_db' => 'Select database',
+            'configure' => 'Configure',
+        ],
+        'create_db' => [
+            'title' => 'No databases',
+            'description' => 'Add a database first to connect plugin data.',
+            'note' => 'The database will be available after saving.',
+            'button' => 'Add database',
         ],
         'delete' => [
             'confirm' => 'Are you sure you want to delete this connection?',
@@ -183,10 +222,10 @@ return [
             'placeholder' => 'Enter JSON settings',
         ],
         'custom_alert' => [
-            'title' => 'Warning!',
-            'description' => 'Entering custom settings requires caution! If you are unsure, do not add custom settings!',
+            'title' => 'For advanced users',
+            'description' => 'Custom settings are for non-standard plugins. Only use this if you know the settings format for the plugin you need.',
         ],
-        'custom' => 'Custom',
+        'custom' => 'Other',
     ],
 
     'buttons' => [
@@ -196,6 +235,7 @@ return [
         'delete' => 'Delete',
         'edit' => 'Edit',
         'actions' => 'Actions',
+        'test_connection' => 'Test Connection',
     ],
 
     'messages' => [
@@ -216,9 +256,57 @@ return [
         'server_created' => 'Server created successfully.',
         'save_not_for_db_connections' => 'Saving is only for main server info.',
         'invalid_ip' => 'Enter a valid IP address without a port.',
+        'connection_success' => 'Successfully connected to the server.',
+        'connection_failed' => 'Failed to connect to the server',
+        'connection_no_response' => 'Server is not responding to queries.',
+        'servers_enabled' => 'Selected servers have been enabled.',
+        'servers_disabled' => 'Selected servers have been disabled.',
+        'servers_deleted' => 'Selected servers have been deleted.',
+    ],
+
+    'cron_warning' => [
+        'title' => 'Server auto-refresh is not configured',
+        'description' => 'Server information (online status, players, map) is not updating automatically. Set up a background task so data refreshes every minute.',
+        'setup_button' => 'Setup instructions',
+        'modal_title' => 'Server auto-refresh setup',
+        'modal_description' => 'To automatically update server status, you need to configure a background task (cron job). Without it, online status, map and player count will not refresh.',
+        'step_crontab' => 'Open the task editor:',
+        'step_add_line' => 'Add this line (updates every minute):',
+        'step_windows' => 'Create a task via command prompt (as administrator):',
+        'verify_title' => 'Verification',
+        'verify_description' => 'To verify, run the command manually:',
+    ],
+
+    'empty' => [
+        'title' => 'No servers yet',
+        'sub' => 'Add your first game server to start monitoring',
+        'db_connections' => [
+            'title' => 'No plugins connected',
+            'sub' => 'Connect stats, bans, VIP or other plugin data',
+        ],
     ],
 
     'confirms' => [
         'delete_server' => 'Are you sure you want to delete this server? This action cannot be undone.',
+    ],
+
+    'ranks_section' => [
+        'title' => 'Rank System',
+        'description' => 'Premier ranks use the CS2 rating system instead of classic rank icons',
+        'preview' => 'Preview',
+    ],
+
+    'ranks_upload' => [
+        'dropzone' => 'Upload custom rank pack',
+        'hint' => 'ZIP with images (0.webp, 1.webp, …, 18.webp)',
+        'button' => 'Upload',
+        'no_file' => 'No file selected or file is invalid.',
+        'success' => 'Rank pack ":name" uploaded successfully.',
+        'invalid_archive' => 'Invalid ZIP archive.',
+        'multiple_dirs' => 'Archive must contain files in a single folder.',
+        'no_images' => 'No rank images found in the archive.',
+        'non_image_file' => 'Archive contains an invalid file: :file',
+        'uploading' => 'Uploading…',
+        'error' => 'Failed to upload archive',
     ],
 ];

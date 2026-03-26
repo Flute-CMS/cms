@@ -1,15 +1,15 @@
 @props(['item'])
 
-<a href="{{ url($item['url']) }}" @if ($item['new_tab']) target="_blank" @endif
+<a href="{{ url($item['url']) }}" @if ($item['new_tab']) target="_blank" rel="noopener" @endif
     class="tabbar__item {{ active($item['url']) }}" itemprop="url">
     <x-icon path="{{ $item['icon'] }}" />
 
-    <p itemprop="name">
-        {{ __($item['title']) }}
+    <span itemprop="name">
+        {{ transValue($item['title']) }}
         @if (!empty($item['description']))
             <small class="tabbar__item-description" style="display: block; font-size: 0.75em; opacity: 0.7; margin-top: 2px;">
-                {{ __($item['description']) }}
+                {{ transValue($item['description']) }}
             </small>
         @endif
-    </p>
+    </span>
 </a>

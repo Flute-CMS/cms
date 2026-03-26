@@ -4,7 +4,7 @@ namespace Flute\Admin\Packages\MainSettings\Services;
 
 use Exception;
 use Flute\Admin\Platform\Repository;
-use Flute\Core\Support\FluteStr;
+use Flute\Core\Database\Entities\Page;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use PDO;
@@ -25,11 +25,13 @@ class MainSettingsPackageService
     public function __construct()
     {
         $this->tabSlugs = [
-            'main_settings' => FluteStr::slug(__('admin-main-settings.tabs.main_settings')),
-            'additional_settings' => FluteStr::slug(__('admin-main-settings.tabs.additional_settings')),
-            'users' => FluteStr::slug(__('admin-main-settings.tabs.users')),
-            'mail' => FluteStr::slug(__('admin-main-settings.tabs.mail')),
-            'localization' => FluteStr::slug(__('admin-main-settings.tabs.localization')),
+            'main_settings' => 'general',
+            'additional_settings' => 'general',
+            'advanced' => 'advanced',
+            'users' => 'users',
+            'site' => 'site',
+            'mail' => 'mail',
+            'localization' => 'localization',
         ];
 
         $this->configMappings = [
@@ -41,21 +43,8 @@ class MainSettingsPackageService
                 'steam_cache_duration' => 'app.steam_cache_duration',
                 'footer_description' => 'app.footer_description',
                 'footer_additional' => 'app.footer_additional',
-                'create_backup' => 'app.create_backup',
                 'maintenance_mode' => 'app.maintenance_mode',
                 'maintenance_message' => 'app.maintenance_message',
-                'is_performance' => 'app.is_performance',
-                'cron_mode' => 'app.cron_mode',
-                'auto_update' => 'app.auto_update',
-                'csrf_enabled' => 'app.csrf_enabled',
-                'convert_to_webp' => 'app.convert_to_webp',
-                'development_mode' => 'app.development_mode',
-                'debug' => 'app.debug',
-                'debug_ips' => 'app.debug_ips',
-                'currency_view' => 'lk.currency_view',
-                'oferta_view' => 'lk.oferta_view',
-                'oferta_url' => 'lk.oferta_url',
-                'only_modal' => 'lk.only_modal',
                 'flute_key' => 'app.flute_key',
                 'keywords' => 'app.keywords',
                 'description' => 'app.description',
@@ -63,21 +52,28 @@ class MainSettingsPackageService
                 'change_theme' => 'app.change_theme',
                 'default_theme' => 'app.default_theme',
             ],
-            $this->tabSlugs['additional_settings'] => [
+            $this->tabSlugs['advanced'] => [
+                'is_performance' => 'app.is_performance',
+                'cron_mode' => 'app.cron_mode',
+                'auto_update' => 'app.auto_update',
+                'create_backup' => 'app.create_backup',
+                'convert_to_webp' => 'app.convert_to_webp',
+                'minify' => 'assets.minify',
+                'autoprefix' => 'assets.autoprefix',
+                'csrf_enabled' => 'app.csrf_enabled',
+                'development_mode' => 'app.development_mode',
+                'debug' => 'app.debug',
+                'debug_ips' => 'app.debug_ips',
                 'share' => 'app.share',
                 'flute_copyright' => 'app.flute_copyright',
                 'discord_link_roles' => 'app.discord_link_roles',
-                'minify' => 'assets.minify',
-                'autoprefix' => 'assets.autoprefix',
-                'logo' => 'app.logo',
-                'bg_image' => 'app.bg_image',
-                'bg_image_light' => 'app.bg_image_light',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password' => 'auth.reset_password',
                 'only_social' => 'auth.only_social',
                 'only_modal' => 'auth.only_modal',
                 'confirm_email' => 'auth.registration.confirm_email',
+                'social_supplement' => 'auth.registration.social_supplement',
                 'remember_me' => 'auth.remember_me',
                 'remember_me_duration' => 'auth.remember_me_duration',
                 'check_ip' => 'auth.check_ip',
@@ -98,10 +94,25 @@ class MainSettingsPackageService
                 'hcaptcha_secret_key' => 'auth.captcha.hcaptcha.secret_key',
                 'turnstile_site_key' => 'auth.captcha.turnstile.site_key',
                 'turnstile_secret_key' => 'auth.captcha.turnstile.secret_key',
+                'yandex_client_key' => 'auth.captcha.yandex.client_key',
+                'yandex_server_key' => 'auth.captcha.yandex.server_key',
                 'default_role' => 'auth.default_role',
                 'two_factor_enabled' => 'auth.two_factor.enabled',
                 'two_factor_force' => 'auth.two_factor.force',
                 'two_factor_issuer' => 'auth.two_factor.issuer',
+            ],
+            $this->tabSlugs['site'] => [
+                'currency_view' => 'lk.currency_view',
+                'oferta_view' => 'lk.oferta_view',
+                'oferta_url' => 'lk.oferta_url',
+                'lk_only_modal' => 'lk.only_modal',
+                'lk_step_mode' => 'lk.step_mode',
+                'auth_enabled' => 'app.auth_enabled',
+                'profile_enabled' => 'app.profile_enabled',
+                'balance_enabled' => 'app.balance_enabled',
+                'notifications_enabled' => 'app.notifications_enabled',
+                'notifications_popup_enabled' => 'app.notifications_popup_enabled',
+                'notifications_sound_enabled' => 'app.notifications_sound_enabled',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'mail.smtp',
@@ -175,21 +186,8 @@ class MainSettingsPackageService
                 'steam_cache_duration',
                 'footer_description',
                 'footer_additional',
-                'create_backup',
                 'maintenance_mode',
                 'maintenance_message',
-                'is_performance',
-                'cron_mode',
-                'auto_update',
-                'csrf_enabled',
-                'convert_to_webp',
-                'development_mode',
-                'debug',
-                'debug_ips',
-                'currency_view',
-                'oferta_view',
-                'oferta_url',
-                'only_modal',
                 'flute_key',
                 'keywords',
                 'description',
@@ -197,21 +195,28 @@ class MainSettingsPackageService
                 'change_theme',
                 'default_theme',
             ],
-            $this->tabSlugs['additional_settings'] => [
+            $this->tabSlugs['advanced'] => [
+                'is_performance',
+                'cron_mode',
+                'auto_update',
+                'create_backup',
+                'convert_to_webp',
+                'minify',
+                'autoprefix',
+                'csrf_enabled',
+                'development_mode',
+                'debug',
+                'debug_ips',
                 'share',
                 'flute_copyright',
                 'discord_link_roles',
-                'minify',
-                'autoprefix',
-                'logo',
-                'bg_image',
-                'bg_image_light',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password',
                 'only_social',
                 'only_modal',
                 'confirm_email',
+                'social_supplement',
                 'remember_me',
                 'remember_me_duration',
                 'check_ip',
@@ -236,6 +241,19 @@ class MainSettingsPackageService
                 'two_factor_enabled',
                 'two_factor_force',
                 'two_factor_issuer',
+            ],
+            $this->tabSlugs['site'] => [
+                'currency_view',
+                'oferta_view',
+                'oferta_url',
+                'lk_only_modal',
+                'lk_step_mode',
+                'auth_enabled',
+                'profile_enabled',
+                'balance_enabled',
+                'notifications_enabled',
+                'notifications_popup_enabled',
+                'notifications_sound_enabled',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp',
@@ -267,21 +285,8 @@ class MainSettingsPackageService
                 'steam_cache_duration' => 'nullable|integer',
                 'footer_description' => 'nullable|string',
                 'footer_additional' => 'nullable|string',
-                'create_backup' => 'boolean',
                 'maintenance_mode' => 'boolean',
                 'maintenance_message' => 'nullable|string',
-                'is_performance' => 'boolean',
-                'cron_mode' => 'boolean',
-                'auto_update' => 'boolean',
-                'csrf_enabled' => 'boolean',
-                'convert_to_webp' => 'boolean',
-                'development_mode' => 'boolean',
-                'debug' => 'boolean',
-                'debug_ips' => 'nullable|array-implode',
-                'currency_view' => 'required|string',
-                'oferta_view' => 'boolean',
-                'oferta_url' => 'nullable|string',
-                'only_modal' => 'boolean',
                 'flute_key' => 'nullable|string',
                 'keywords' => 'nullable|string',
                 'robots' => 'required|string',
@@ -289,21 +294,28 @@ class MainSettingsPackageService
                 'change_theme' => 'boolean',
                 'default_theme' => 'nullable|string',
             ],
-            $this->tabSlugs['additional_settings'] => [
+            $this->tabSlugs['advanced'] => [
+                'is_performance' => 'boolean',
+                'cron_mode' => 'boolean',
+                'auto_update' => 'boolean',
+                'create_backup' => 'boolean',
+                'convert_to_webp' => 'boolean',
+                'minify' => 'boolean',
+                'autoprefix' => 'boolean',
+                'csrf_enabled' => 'boolean',
+                'development_mode' => 'boolean',
+                'debug' => 'boolean',
+                'debug_ips' => 'nullable|array-implode',
                 'share' => 'boolean',
                 'flute_copyright' => 'boolean',
                 'discord_link_roles' => 'boolean',
-                'minify' => 'boolean',
-                'autoprefix' => 'boolean',
-                'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp,svg',
-                'bg_image' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
-                'bg_image_light' => 'nullable|image|mimes:png,jpg,jpeg,gif,webp',
             ],
             $this->tabSlugs['users'] => [
                 'reset_password' => 'boolean',
                 'only_social' => 'boolean',
                 'only_modal' => 'boolean',
                 'confirm_email' => 'boolean',
+                'social_supplement' => 'boolean',
                 'remember_me' => 'boolean',
                 'remember_me_duration' => 'required|integer|min:1',
                 'check_ip' => 'boolean',
@@ -328,6 +340,19 @@ class MainSettingsPackageService
                 'two_factor_enabled' => 'boolean',
                 'two_factor_force' => 'boolean',
                 'two_factor_issuer' => 'nullable|string',
+            ],
+            $this->tabSlugs['site'] => [
+                'currency_view' => 'required|string',
+                'oferta_view' => 'boolean',
+                'oferta_url' => 'nullable|string',
+                'lk_only_modal' => 'boolean',
+                'lk_step_mode' => 'boolean',
+                'auth_enabled' => 'boolean',
+                'profile_enabled' => 'boolean',
+                'balance_enabled' => 'boolean',
+                'notifications_enabled' => 'boolean',
+                'notifications_popup_enabled' => 'boolean',
+                'notifications_sound_enabled' => 'boolean',
             ],
             $this->tabSlugs['mail'] => [
                 'smtp' => 'boolean',
@@ -367,10 +392,10 @@ class MainSettingsPackageService
     {
         if ($currentTab === $this->tabSlugs['localization']) {
             $allLanguages = config('lang.all', []);
-            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : ($allLanguages[0] ?? 'en');
+            $fallbackLocale = in_array('en', $allLanguages, true) ? 'en' : $allLanguages[0] ?? 'en';
 
             $availableNormal = [];
-            foreach (($inputs['available'] ?? []) as $lang => $val) {
+            foreach ($inputs['available'] ?? [] as $lang => $val) {
                 if (filter_var($val, FILTER_VALIDATE_BOOLEAN) === true) {
                     $availableNormal[] = $lang;
                 }
@@ -458,6 +483,7 @@ class MainSettingsPackageService
     public function saveSettings(string $currentTab, array $data): bool
     {
         $tabSettings = $this->getTabSettings();
+        $robotsBefore = null;
 
         if (!array_key_exists($currentTab, $tabSettings)) {
             throw new Exception(__('admin-main-settings.messages.unknown_tab'));
@@ -466,7 +492,7 @@ class MainSettingsPackageService
         $filteredData = collect($data)->only($tabSettings[$currentTab])->toArray();
         $rules = $this->getValidationRules()[$currentTab] ?? [];
 
-        if ($currentTab === ($this->tabSlugs['mail'] ?? '')) {
+        if ($currentTab === ( $this->tabSlugs['mail'] ?? '' )) {
             $smtpEnabled = filter_var($filteredData['smtp'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             if (!$smtpEnabled) {
@@ -483,15 +509,36 @@ class MainSettingsPackageService
             return false;
         }
 
+        if ($currentTab === ( $this->tabSlugs['main_settings'] ?? '' )) {
+            $robotsBefore = trim((string) config('app.robots', ''));
+        }
+
         $inputs = $this->processInputs($rules, $filteredData);
 
         $this->updateConfig($inputs, $currentTab);
 
+        $robotsAfter = isset($inputs['robots']) ? trim((string) $inputs['robots']) : null;
+        if (
+            $currentTab === ( $this->tabSlugs['main_settings'] ?? '' )
+            && $robotsBefore !== ''
+            && $robotsAfter !== null
+            && $robotsAfter !== ''
+            && $robotsAfter !== $robotsBefore
+        ) {
+            $this->syncRobotsForPages($robotsBefore, $robotsAfter);
+        }
+
         return true;
     }
 
-    public function testDatabaseConnection(string $driver, string $host, int $port, string $database, string $user, ?string $password)
-    {
+    public function testDatabaseConnection(
+        string $driver,
+        string $host,
+        int $port,
+        string $database,
+        string $user,
+        ?string $password,
+    ) {
         try {
             switch ($driver) {
                 case 'mysql':
@@ -522,6 +569,16 @@ class MainSettingsPackageService
             return true;
         } catch (PDOException $e) {
             return $e->getMessage();
+        }
+    }
+
+    protected function syncRobotsForPages(string $oldRobots, string $newRobots): void
+    {
+        $pages = Page::findAll(['robots' => $oldRobots]);
+
+        foreach ($pages as $page) {
+            $page->robots = $newRobots;
+            $page->save();
         }
     }
 }

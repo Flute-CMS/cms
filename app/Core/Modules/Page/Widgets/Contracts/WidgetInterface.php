@@ -22,7 +22,7 @@ interface WidgetInterface
     /**
      * Renders the widget with the given settings.
      */
-    public function render(array $settings): string|null;
+    public function render(array $settings): ?string;
 
     /**
      * Renders the form for editing the widget's settings.

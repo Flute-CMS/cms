@@ -29,8 +29,6 @@ class EditMainComponent extends FluteComponent
 
     public ?string $new_password_confirmation = null;
 
-    public ?string $delete_confirmation = null;
-
     /**
      * @var UploadedFile|null
      */
@@ -70,22 +68,88 @@ class EditMainComponent extends FluteComponent
     {
         if ($this->validateSaveMain()) {
             try {
+                $newEmail = $this->email;
+                $emailChanged = $newEmail && $newEmail !== $this->user->email;
+
+                // Don't let updateUserMainInfo touch email — we handle it via pending flow
+                $this->email = $this->user->email;
                 $this->updateUserMainInfo();
+
+                if ($emailChanged) {
+                    if (config('auth.registration.confirm_email')) {
+                        $this->user->pendingEmail = $newEmail;
+                    } else {
+                        $this->user->email = $newEmail;
+                    }
+                }
+
                 user()->updateUser($this->user);
-                $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
+
+                if ($emailChanged && config('auth.registration.confirm_email')) {
+                    $this->sendPendingEmailConfirmation($newEmail);
+                    $this->flashMessage(__('profile.edit.main.basic_information.email_confirmation_sent'), 'success');
+                } else {
+                    $this->flashMessage(__('profile.edit.main.basic_information.save_changes_success'), 'success');
+                }
             } catch (Exception $e) {
                 $this->inputError('name', $e->getMessage());
             }
         }
     }
 
+    /**
+     * Cancel a pending email change.
+     */
+    public function cancelPendingEmail()
+    {
+        $this->user->pendingEmail = null;
+        user()->updateUser($this->user);
+        $this->flashMessage(__('profile.edit.main.basic_information.pending_email_cancelled'), 'success');
+    }
+
+    /**
+     * Resend the pending email confirmation.
+     */
+    public function resendPendingEmail()
+    {
+        if (!$this->user->pendingEmail) {
+            return;
+        }
+
+        try {
+            throttler()->throttle(['action' => 'resend_pending_email', 'user' => $this->user->id], 3, 300, 1);
+        } catch (\Throwable $e) {
+            $this->flashMessage(__('def.too_many_requests'), 'error');
+
+            return;
+        }
+
+        $this->sendPendingEmailConfirmation($this->user->pendingEmail);
+        $this->flashMessage(__('profile.edit.main.basic_information.email_confirmation_sent'), 'success');
+    }
+
+    /**
+     * Send confirmation email to the pending address.
+     */
+    protected function sendPendingEmailConfirmation(string $newEmail): void
+    {
+        try {
+            $verificationToken = auth()->createVerificationToken($this->user)->rawToken;
+            $html = template()->render('flute::emails.confirmation', [
+                'url' => url('confirm-email/' . $verificationToken),
+                'name' => $this->user->name,
+            ]);
+            email()->send($newEmail, __('auth.confirmation.subject'), $html);
+        } catch (\Throwable $e) {
+            logs()->warning('Failed to send pending email confirmation: ' . $e->getMessage());
+        }
+    }
+
     public function saveTheme()
     {
-        if (
-            $this->validate([
-                'theme' => 'required|in:dark,light,system',
-            ])
-        ) {
+        if ($this->validate([
+            'theme' => 'required|in:dark,light,system',
+        ])) {
             if ($this->theme === 'system') {
                 cookie()->remove('theme');
             } else {
@@ -102,11 +166,9 @@ class EditMainComponent extends FluteComponent
 
     public function savePrivacy()
     {
-        if (
-            $this->validate([
-                'privacy' => 'required|in:hidden,visible',
-            ])
-        ) {
+        if ($this->validate([
+            'privacy' => 'required|in:hidden,visible',
+        ])) {
             $this->user->hidden = $this->privacy === 'hidden';
 
             user()->updateUser($this->user);
@@ -134,8 +196,20 @@ class EditMainComponent extends FluteComponent
             return;
         }
 
-        $avatarError = $this->processImageUpload('avatar', $uploader, $uploadsDir, config('profile.max_avatar_size'), 'events.profile_avatar_updated');
-        $bannerError = $this->processImageUpload('banner', $uploader, $uploadsDir, config('profile.max_banner_size'), 'events.profile_banner_updated');
+        $avatarError = $this->processImageUpload(
+            'avatar',
+            $uploader,
+            $uploadsDir,
+            config('profile.max_avatar_size'),
+            'events.profile_avatar_updated',
+        );
+        $bannerError = $this->processImageUpload(
+            'banner',
+            $uploader,
+            $uploadsDir,
+            config('profile.max_banner_size'),
+            'events.profile_banner_updated',
+        );
 
         if ($avatarError || $bannerError) {
             $this->handleImageErrors($avatarError, $bannerError);
@@ -171,39 +245,15 @@ class EditMainComponent extends FluteComponent
             $this->user->setPassword($this->new_password);
             user()->updateUser($this->user);
 
+            if (function_exists('notify')) {
+                notify('core.password_changed', $this->user, [
+                    'time' => date('d.m.Y H:i'),
+                ]);
+            }
+
             $this->flashMessage(__('profile.edit.main.change_password.save_changes_success'), 'success');
         } catch (Exception $e) {
             $this->inputError('new_password', $e->getMessage());
-        }
-    }
-
-    /**
-     * Delete the user account.
-     */
-    public function deleteAccount()
-    {
-        if ($this->validateDeleteAccount()) {
-            if (!$this->confirmed('delete_account_confirmation')) {
-                $this->confirm(
-                    actionKey: 'delete_account_confirmation',
-                    message: __('profile.edit.main.delete_account.confirm_message'),
-                    type: 'error',
-                    confirmText: __('def.delete'),
-                    cancelText: __('def.cancel')
-                );
-
-                return;
-            }
-
-            try {
-                user()->deleteUser($this->user);
-
-                auth()->logout();
-
-                $this->flashMessage(__('profile.edit.main.delete_account.delete_success'), 'success');
-            } catch (Exception $e) {
-                $this->inputError('delete_confirmation', __('profile.edit.main.delete_account.delete_failed'));
-            }
         }
     }
 
@@ -213,15 +263,6 @@ class EditMainComponent extends FluteComponent
     protected function updateUserMainInfo()
     {
         $this->user->name = $this->name;
-
-        if ($this->email !== $this->user->email) {
-            $this->user->email = $this->email;
-
-            if (config('auth.registration.confirm_email')) {
-                $this->user->verified = false;
-            }
-        }
-
         $this->user->login = $this->login;
 
         if ($this->uri) {
@@ -232,8 +273,13 @@ class EditMainComponent extends FluteComponent
     /**
      * Handle the upload of a single image.
      */
-    protected function processImageUpload(string $field, FileUploader $uploader, string $uploadsDir, int $maxSize, string $logEvent): ?string
-    {
+    protected function processImageUpload(
+        string $field,
+        FileUploader $uploader,
+        string $uploadsDir,
+        int $maxSize,
+        string $logEvent,
+    ): ?string {
         $file = $this->$field;
         if ($file instanceof UploadedFile && $file->isValid()) {
             try {
@@ -339,11 +385,11 @@ class EditMainComponent extends FluteComponent
 
         $rules = [
             'avatar' => $this->avatar
-                ? 'image|max-file-size:' . (config('profile.max_avatar_size') * 1024)
-                : 'nullable|image|max-file-size:' . (config('profile.max_avatar_size') * 1024),
+                ? 'image|max-file-size:' . ( config('profile.max_avatar_size') * 1024 )
+                : 'nullable|image|max-file-size:' . ( config('profile.max_avatar_size') * 1024 ),
             'banner' => $this->banner
-                ? 'image|max-file-size:' . (config('profile.max_banner_size') * 1024)
-                : 'nullable|image|max-file-size:' . (config('profile.max_banner_size') * 1024),
+                ? 'image|max-file-size:' . ( config('profile.max_banner_size') * 1024 )
+                : 'nullable|image|max-file-size:' . ( config('profile.max_banner_size') * 1024 ),
         ];
 
         return $this->validate($rules);
@@ -369,7 +415,8 @@ class EditMainComponent extends FluteComponent
                 'min-str-len:' . config('auth.validation.password.min_length'),
                 'max-str-len:' . config('auth.validation.password.max_length'),
             ],
-            'new_password_confirmation' => 'required|string|min-str-len:' . config('auth.validation.password.min_length'),
+            'new_password_confirmation' =>
+                'required|string|min-str-len:' . config('auth.validation.password.min_length'),
         ];
 
         if ($requiresCurrentPassword) {
@@ -381,17 +428,5 @@ class EditMainComponent extends FluteComponent
         ]);
 
         return $validation;
-    }
-
-    /**
-     * Validate the account deletion confirmation.
-     */
-    protected function validateDeleteAccount(): bool
-    {
-        return $this->validate([
-            'delete_confirmation' => 'required|in:' . $this->user->login,
-        ], null, [
-            'delete_confirmation.in' => __('profile.edit.main.delete_account.confirmation_error'),
-        ]);
     }
 }

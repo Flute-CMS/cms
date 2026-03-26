@@ -94,9 +94,15 @@ class ModuleInstall implements ModuleActionInterface
             /** @var ThemeManager $themeManager */
             $themeManager = app(ThemeManager::class);
 
-            $this->moduleDependencies->checkDependencies($module->dependencies, $this->moduleManager->getActive(), $themeManager->getThemeInfo());
+            $this->moduleDependencies->checkDependencies(
+                $module->dependencies,
+                $this->moduleManager->getActive(),
+                $themeManager->getThemeInfo(),
+            );
         } catch (ModuleDependencyException $e) {
-            logs('modules')->emergency("Flute module \"" . $module->key . "\" dependency check failed - " . $e->getMessage());
+            logs('modules')->emergency(
+                'Flute module "' . $module->key . '" dependency check failed - ' . $e->getMessage(),
+            );
 
             throw new ModuleDependencyException($e->getMessage());
         }
@@ -104,7 +110,7 @@ class ModuleInstall implements ModuleActionInterface
 
     protected function initDb(ModuleInformation $moduleInformation): void
     {
-        $module = Module::findOne(["key" => $moduleInformation->key]);
+        $module = Module::findOne(['key' => $moduleInformation->key]);
 
         $module->status = ModuleManager::DISABLED;
         $module->installedVersion = $moduleInformation->version;

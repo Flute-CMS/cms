@@ -35,13 +35,10 @@ class CurrencyPackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'currencies',
                 'title' => __('admin-currency.title.list'),
-                'icon' => 'ph.bold.money-bold',
+                'icon' => 'ph.regular.money',
                 'url' => url('/admin/currency'),
-            ],
-            [
-                'type' => 'header',
-                'title' => __('def.other'),
             ],
         ];
     }

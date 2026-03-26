@@ -1,0 +1,94 @@
+php-version = "8.2"
+
+[source]
+paths = ["app/Core"]
+# To analyse custom modules too, run:
+#   vendor/bin/mago analyze app/Modules
+excludes = [
+    "app/Core/Database/Entities",
+    "app/**/views/**/*.blade.php",
+    "app/Modules/.disabled",
+    "vendor",
+    "storage",
+    "bootstrap/cache",
+]
+
+# --- Formatter (PSR-12 based) ---
+[formatter]
+preset = "psr-12"
+print-width = 120
+tab-width = 4
+use-tabs = false
+end-of-line = "lf"
+single-quote = true
+trailing-comma = true
+indent-heredoc = true
+sort-uses = true
+separate-use-types = true
+expand-use-groups = true
+empty-line-after-symbols = true
+empty-line-after-method = true
+empty-line-before-return = true
+
+# --- Linter ---
+[linter]
+integrations = ["symfony"]
+minimum-fail-level = "error"
+
+[linter.rules]
+# -- Enabled (catch real bugs) --
+no-debug-symbols = { level = "error" }
+no-eval = { level = "error" }
+loop-does-not-iterate = { level = "error" }
+no-empty-loop = { level = "error" }
+no-noop = { level = "error" }
+constant-condition = { level = "error" }
+no-self-assignment = { level = "error" }
+str-contains = { level = "warning" }
+str-starts-with = { level = "warning" }
+combine-consecutive-issets = { level = "warning" }
+no-redundant-use = { level = "warning" }
+no-empty-catch-clause = { level = "warning" }
+single-class-per-file = { level = "warning" }
+
+# -- Disabled (stylistic / too noisy for this codebase) --
+no-else-clause = { enabled = false }
+literal-named-argument = { enabled = false }
+strict-types = { enabled = false }
+no-empty = { enabled = false }
+no-isset = { enabled = false }
+halstead = { enabled = false }
+cyclomatic-complexity = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+prefer-early-continue = { enabled = false }
+too-many-methods = { enabled = false }
+no-error-control-operator = { enabled = false }
+kan-defect = { enabled = false }
+no-shorthand-ternary = { enabled = false }
+no-literal-password = { enabled = false }
+no-redundant-nullsafe = { enabled = false }
+strict-behavior = { enabled = false }
+readable-literal = { enabled = false }
+identity-comparison = { enabled = false }
+final-controller = { enabled = false }
+no-empty-comment = { enabled = false }
+no-nested-ternary = { enabled = false }
+prefer-first-class-callable = { enabled = false }
+too-many-properties = { enabled = false }
+inline-variable-return = { enabled = false }
+excessive-parameter-list = { enabled = false }
+sensitive-parameter = { enabled = false }
+no-assign-in-condition = { enabled = false }
+no-alias-function = { enabled = false }
+no-insecure-comparison = { enabled = false }
+no-global = { enabled = false }
+excessive-nesting = { enabled = false }
+tagged-todo = { enabled = false }
+no-ini-set = { enabled = false }
+no-sprintf-concat = { enabled = false }
+no-multi-assignments = { enabled = false }
+no-protected-in-final = { enabled = false }
+
+# --- Analyzer (static analysis, replaces PHPStan) ---
+[analyzer]
+baseline = "mago-baseline.toml"

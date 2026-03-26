@@ -26,6 +26,13 @@ abstract class View extends Layout
         $this->data = $data;
     }
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'view',
+        ];
+    }
+
     /**
      * @return mixed
      */

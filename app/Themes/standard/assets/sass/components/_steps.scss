@@ -1,0 +1,532 @@
+// =============================================
+// Steps component
+// =============================================
+
+$step-dot-size: 2.25rem;
+$step-dot-size-sm: 1.75rem;
+$step-connector-thickness: 2px;
+
+.steps-container {
+    position: relative;
+    width: 100%;
+}
+
+.steps-nav {
+    position: relative;
+    margin-bottom: var(--space-lg);
+}
+
+.steps-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: step;
+}
+
+// ═══════════════════════════════════════════
+// Step item
+// ═══════════════════════════════════════════
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    counter-increment: step;
+
+    // --- Trigger ---
+    &__trigger {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-xs);
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        text-align: center;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:focus-visible .step-item__dot {
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+        }
+
+        &[disabled] {
+            cursor: default;
+            pointer-events: none;
+        }
+    }
+
+    // --- Dot ---
+    &__dot {
+        width: $step-dot-size;
+        height: $step-dot-size;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        font-family: var(--font);
+        border: 2px solid var(--transp-3);
+        background: var(--background);
+        color: var(--text-500);
+        position: relative;
+        flex-shrink: 0;
+        @include transition(all);
+
+        &::after {
+            content: counter(step);
+            line-height: 1;
+        }
+    }
+
+    &__check {
+        display: none;
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    &__icon {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    &__dot:has(> .step-item__icon) {
+        &::after {
+            display: none;
+        }
+    }
+
+    // --- Body (subtitle + label) ---
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    &__subtitle {
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-600);
+        line-height: 1;
+        @include transition(color);
+    }
+
+    &__label {
+        font-size: var(--p);
+        font-weight: 600;
+        font-family: var(--font);
+        color: var(--text-500);
+        white-space: nowrap;
+        @include transition(color);
+        line-height: 1.3;
+    }
+
+    // --- Connector (line between dots) ---
+    // Positioned absolutely — spans from current dot center to next dot center
+    &__connector {
+        position: absolute;
+        top: calc(#{$step-dot-size} / 2 - #{$step-connector-thickness} / 2);
+        left: 50%;
+        right: calc(-50%);
+        height: $step-connector-thickness;
+        background: var(--transp-2);
+        border-radius: 1px;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    &__connector-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 0;
+        background: var(--primary);
+        border-radius: 1px;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:last-child .step-item__connector {
+        display: none;
+    }
+
+    // ═══════════════════
+    // States
+    // ═══════════════════
+
+    &.active {
+        .step-item__dot {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: var(--primary-950);
+            box-shadow:
+                0 0 0 4px var(--background),
+                0 0 0 6px color-mix(in srgb, var(--primary) 40%, transparent);
+        }
+
+        .step-item__icon {
+            color: var(--primary-950);
+        }
+
+        .step-item__subtitle {
+            color: var(--text-400);
+        }
+
+        .step-item__label {
+            color: var(--text);
+        }
+    }
+
+    &.completed {
+        .step-item__dot {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: var(--primary-950);
+
+            &::after {
+                display: none;
+            }
+        }
+
+        .step-item__check {
+            display: block;
+            color: var(--primary-950);
+        }
+
+        .step-item__subtitle {
+            color: var(--text-600);
+        }
+
+        .step-item__label {
+            color: var(--text-400);
+        }
+
+        .step-item__connector-fill {
+            width: 100%;
+        }
+    }
+
+    &.is-locked {
+        .step-item__dot {
+            border-color: var(--transp-1);
+            background: var(--background);
+            color: var(--text-700);
+        }
+
+        .step-item__subtitle {
+            color: var(--text-700);
+        }
+
+        .step-item__label {
+            color: var(--text-700);
+        }
+    }
+
+    &.is-disabled {
+        .step-item__dot {
+            border-color: var(--transp-1);
+            background: var(--background);
+            color: var(--text-800);
+        }
+
+        .step-item__subtitle {
+            color: var(--text-800);
+        }
+
+        .step-item__label {
+            color: var(--text-800);
+        }
+    }
+
+    &:not(.active):not(.is-disabled):not(.is-locked) .step-item__trigger:hover {
+        .step-item__dot {
+            border-color: var(--primary-600);
+            transform: scale(1.05);
+        }
+
+        .step-item__label {
+            color: var(--text);
+        }
+    }
+}
+
+// ═══════════════════════════════════════════
+// Step content panels
+// ═══════════════════════════════════════════
+
+.steps-content {
+    position: relative;
+
+    >.step-panel {
+        display: none;
+
+        &.active {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            animation: stepFadeIn 0.2s ease;
+        }
+    }
+}
+
+@keyframes stepFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ═══════════════════════════════════════════
+// Variant: Vertical
+// ═══════════════════════════════════════════
+
+.steps--vertical {
+    .steps-list {
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .step-item {
+        flex-direction: row;
+        align-items: flex-start;
+        padding-bottom: var(--space-lg);
+        min-height: calc(#{$step-dot-size} + var(--space-lg));
+
+        &:last-child {
+            padding-bottom: 0;
+            min-height: auto;
+        }
+    }
+
+    .step-item__trigger {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+        gap: var(--space-sm);
+    }
+
+    .step-item__body {
+        align-items: flex-start;
+    }
+
+    .step-item__connector {
+        position: absolute;
+        left: calc(#{$step-dot-size} / 2 - #{$step-connector-thickness} / 2);
+        top: $step-dot-size;
+        right: auto;
+        width: $step-connector-thickness;
+        height: calc(100% - #{$step-dot-size});
+        margin: var(--space-2xs) 0;
+    }
+
+    .step-item__connector-fill {
+        width: 100%;
+        height: 0;
+        transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step-item.completed .step-item__connector-fill {
+        height: 100%;
+    }
+}
+
+// ═══════════════════════════════════════════
+// Variant: Progress (bar through dots)
+// ═══════════════════════════════════════════
+
+.steps--progress {
+    .steps-nav {
+        margin-bottom: var(--space-md);
+    }
+
+    .steps-list {
+        position: relative;
+    }
+
+    // Background track — between first and last dot centers
+    .steps-list::after {
+        content: '';
+        position: absolute;
+        top: calc(#{$step-dot-size-sm} / 2);
+        left: calc(100% / var(--steps-count, 3) / 2);
+        right: calc(100% / var(--steps-count, 3) / 2);
+        height: $step-connector-thickness;
+        background: var(--transp-2);
+        border-radius: 1px;
+        z-index: 0;
+        transform: translateY(-50%);
+    }
+
+    // Filled track
+    .steps-list::before {
+        content: '';
+        position: absolute;
+        top: calc(#{$step-dot-size-sm} / 2);
+        left: calc(100% / var(--steps-count, 3) / 2);
+        right: calc(100% / var(--steps-count, 3) / 2);
+        height: $step-connector-thickness;
+        background: var(--primary);
+        border-radius: 1px;
+        z-index: 0;
+        transform: translateY(-50%);
+        transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        clip-path: inset(0 calc(100% - var(--steps-progress, 0%)) 0 0);
+    }
+
+    .steps-nav::after {
+        display: none;
+    }
+
+    .step-item__dot {
+        width: $step-dot-size-sm;
+        height: $step-dot-size-sm;
+        font-size: 0.6875rem;
+        border-width: 1.5px;
+    }
+
+    .step-item.active .step-item__dot {
+        box-shadow:
+            0 0 0 3px var(--background),
+            0 0 0 5px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+    .step-item__check {
+        width: 0.6875rem;
+        height: 0.6875rem;
+    }
+
+    .step-item__icon {
+        width: 0.6875rem;
+        height: 0.6875rem;
+    }
+
+    .step-item__connector {
+        display: none;
+    }
+
+    .step-item__subtitle {
+        display: none;
+    }
+
+    .step-item__label {
+        font-size: var(--p-small);
+    }
+}
+
+// ═══════════════════════════════════════════
+// Variant: Minimal
+// ═══════════════════════════════════════════
+
+.steps--minimal {
+    .steps-list {
+        display: flex;
+        gap: var(--space-2xs);
+    }
+
+    .step-item {
+        flex: 0 0 auto;
+    }
+
+    .step-item__dot {
+        display: none;
+    }
+
+    .step-item__trigger {
+        flex-direction: row;
+        padding: var(--space-xs) var(--space-md);
+        border-radius: var(--border05);
+        @include transition(all);
+    }
+
+    .step-item__connector {
+        display: none;
+    }
+
+    .step-item__subtitle {
+        display: none;
+    }
+
+    .step-item.active .step-item__trigger {
+        background: var(--primary);
+
+        .step-item__label {
+            color: var(--primary-950);
+        }
+    }
+
+    .step-item.completed .step-item__trigger {
+        background: var(--transp-05);
+    }
+
+    .step-item:not(.active):not(.is-disabled):not(.is-locked) .step-item__trigger:hover {
+        background: var(--transp-1);
+    }
+}
+
+.steps-field--error {
+    animation: stepShake 0.3s ease;
+
+    .input__field-container,
+    .input__field,
+    textarea.input {
+        border-color: var(--error) !important;
+    }
+}
+
+@keyframes stepShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-4px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(4px);
+    }
+}
+
+// ═══════════════════════════════════════════
+// Responsive
+// ═══════════════════════════════════════════
+
+@include media(mobile) {
+    .step-item__body {
+        display: none;
+    }
+
+    .steps--minimal .step-item__body,
+    .steps--vertical .step-item__body {
+        display: flex;
+    }
+
+    .step-item.active .step-item__body {
+        display: flex;
+    }
+}

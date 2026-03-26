@@ -47,6 +47,12 @@ return [
 
                 'save_changes' => 'Сохранить изменения',
                 'save_changes_success' => 'Основная информация успешно обновлена.',
+                'email_confirmation_sent' => 'На новый email отправлено письмо с подтверждением.',
+                'pending_email_notice' => 'Ожидает подтверждения: :email',
+                'pending_email_cancelled' => 'Смена email отменена.',
+                'resend_confirmation' => 'Отправить повторно',
+                'cancel_change' => 'Отменить',
+                'email_changed_success' => 'Email успешно изменён.',
             ],
 
             'profile_images' => [
@@ -81,6 +87,7 @@ return [
                 'save_changes_success' => 'Пароль успешно изменен.',
                 'current_password_incorrect' => 'Неверный текущий пароль.',
                 'passwords_do_not_match' => 'Пароли не совпадают.',
+                'login_and_email_required' => 'Логин и email обязательны для установки пароля.',
             ],
 
             'delete_account' => [
@@ -141,6 +148,32 @@ return [
             ],
         ],
 
+        'notifications' => [
+            'title' => 'Уведомления',
+            'description' => 'Управляйте тем, как и куда вы получаете уведомления.',
+
+            'sound_title' => 'Звук уведомлений',
+            'sound_description' => 'Воспроизведение звука при получении новых уведомлений.',
+            'sound_label' => 'Звук уведомлений',
+            'sound_hint' => 'При включении будет воспроизводиться короткий звук при каждом новом уведомлении.',
+
+            'channels_title' => 'Каналы уведомлений',
+            'channels_description' => 'Включите или отключите каналы уведомлений глобально.',
+
+            'channels' => [
+                'inapp' => 'Уведомления на сайте',
+                'inapp_desc' => 'Получайте уведомления внутри платформы.',
+                'email' => 'Уведомления по email',
+                'email_desc' => 'Получайте уведомления на ваш email-адрес.',
+            ],
+
+            'templates_title' => 'Типы уведомлений',
+            'templates_description' => 'Настройте, какие уведомления вы хотите получать для каждого канала.',
+
+            'core_module' => 'Система',
+            'save_success' => 'Настройки уведомлений успешно сохранены.',
+        ],
+
         'settings' => [
             'title' => 'Настройки',
         ],
@@ -155,10 +188,19 @@ return [
             'show_description' => 'Показать соц.сеть для других пользователей',
             'hide_description' => 'Скрыть соц.сеть от других пользователей',
             'last_social_network' => 'Чтобы отвязать соц.сеть, установите пароль.',
+            'linked' => 'Привязана',
+            'not_linked' => 'Не привязана',
+            'linked_at' => 'Привязана :date',
+            'visible' => 'Видна другим',
+            'hidden' => 'Скрыта',
         ],
         'payments' => [
             'title' => 'Платежи',
             'description' => 'История платежей и транзакций.',
+            'balance' => 'Баланс',
+            'top_up' => 'Пополнить',
+            'invoices_title' => 'История платежей',
+            'invoices_description' => 'Все ваши транзакции и пополнения баланса.',
             'table' => [
                 'id' => 'ID',
                 'date' => 'Дата',
@@ -176,6 +218,23 @@ return [
         ],
         'upload_directory_error' => 'Каталог для загрузок не существует.',
         'upload_failed' => 'Не удалось загрузить :field.',
+        'balance_history' => [
+            'title' => 'История баланса',
+            'description' => 'Все операции с балансом: пополнения, покупки и возвраты.',
+            'table' => [
+                'type' => 'Тип',
+                'description' => 'Описание',
+                'amount' => 'Сумма',
+                'date' => 'Дата',
+            ],
+            'types' => [
+                'topup' => 'Пополнение',
+                'purchase' => 'Покупка',
+                'refund' => 'Возврат',
+                'admin' => 'Администратор',
+            ],
+            'no_description' => 'Без описания',
+        ],
     ],
 
     'two_factor' => [
@@ -197,4 +256,50 @@ return [
     'profile_hidden' => 'Этот профиль скрыт от других пользователей.',
     'verification_warning' => 'Подтвердите ваш email-адрес для доступа к дополнительным функциям. <a href=":link">Подтвердить</a>',
     'verify_email' => 'Подтвердить email',
+
+    'admin_actions' => [
+        'add_balance' => 'Выдать баланс',
+        'remove_balance' => 'Снять баланс',
+        'ban_user' => 'Заблокировать',
+        'unban_user' => 'Разблокировать',
+        'verify_user' => 'Подтвердить email',
+        'unverify_user' => 'Снять подтверждение',
+        'clear_sessions' => 'Сбросить сессии',
+        'current_balance' => 'Текущий баланс',
+        'amount' => 'Сумма',
+        'amount_placeholder' => 'Введите сумму',
+        'max_amount' => 'Максимум: :amount',
+        'ban_reason' => 'Причина блокировки',
+        'ban_reason_placeholder' => 'Укажите причину блокировки',
+        'ban_until' => 'Заблокировать до',
+        'ban_until_hint' => 'Оставьте пустым для бессрочной блокировки',
+        'balance_added' => 'Баланс пополнен на :amount',
+        'balance_added_by' => 'Начислено администратором :admin',
+        'balance_removed' => 'С баланса снято :amount',
+        'balance_removed_by' => 'Снято администратором :admin',
+        'user_banned' => 'Пользователь заблокирован',
+        'user_unbanned' => 'Пользователь разблокирован',
+        'user_verified' => 'Email подтверждён',
+        'user_unverified' => 'Подтверждение email снято',
+        'user_approved' => 'Пользователь подтверждён',
+        'user_unapproved' => 'Подтверждение пользователя снято',
+        'approve_user' => 'Подтвердить пользователя',
+        'unapprove_user' => 'Снять подтверждение',
+        'approve_confirm' => 'Вы уверены, что хотите подтвердить этого пользователя?',
+        'unapprove_confirm' => 'Вы уверены, что хотите снять подтверждение у этого пользователя?',
+        'sessions_cleared' => 'Сессии пользователя сброшены',
+        'cant_ban_self' => 'Вы не можете заблокировать себя',
+        'cant_clear_own_sessions' => 'Вы не можете сбросить свои сессии',
+        'unban_confirm' => 'Вы уверены, что хотите разблокировать этого пользователя?',
+        'clear_sessions_confirm' => 'Вы уверены, что хотите сбросить все сессии этого пользователя?',
+    ],
+    'errors' => [
+        'social_binded' => 'Эта социальная сеть уже привязана к другому аккаунту.',
+        'social_delay' => 'Подождите перед повторной привязкой социальной сети.',
+    ],
+    'banner_alt' => 'Баннер профиля :name',
+    'avatar_alt' => 'Аватар :name',
+    'social_networks' => 'Социальные сети',
+    'visit_social' => 'Перейти в :network',
+    'profile_tabs' => 'Вкладки профиля',
 ];

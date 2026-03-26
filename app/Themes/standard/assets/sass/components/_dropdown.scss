@@ -1,40 +1,34 @@
 [data-dropdown] {
+    @extend .card;
     background-color: var(--blurred-background);
-    backdrop-filter: saturate(150%) blur(14px);
     visibility: hidden;
     opacity: 0;
     position: absolute;
     @include transition(all);
     transform-origin: top center;
-    transform: translateY(6px);
+    transform: scale(0.96);
     z-index: 10001;
     display: none;
-    border-radius: var(--border1);
-    border: 1px solid var(--transp-1);
-    padding: 6px;
+    padding: var(--space-xs);
     min-width: 200px;
     animation: animDropdownOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     display: none;
-    overflow: hidden;
+    overflow: visible;
 
     >a {
         @extend .d-flex, .flex-column;
-        gap: 3px;
+        gap: var(--space-2xs);
     }
 
     >a,
     button {
         display: flex;
         flex-direction: row;
-        gap: 10px;
+        gap: var(--space-sm);
         align-items: center;
-        padding: 8px 12px;
+        padding: var(--space-xs) var(--space-sm);
         border-radius: var(--border05);
         @include transition(all);
-        opacity: 0;
-        transform: translateX(-6px);
-        animation: animDropdownItems 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: calc(var(--item-index, 0) * 0.04s);
         width: 100%;
 
         &:hover {
@@ -47,12 +41,13 @@
         visibility: visible;
         animation: animDropdown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         display: flex;
+        flex-direction: column;
     }
 
     .arrow {
         position: absolute;
-        width: 10px;
-        height: 10px;
+        width: var(--space-sm);
+        height: var(--space-sm);
         background: inherit;
         border-top: 1px solid var(--transp-1);
         border-left: 1px solid var(--transp-1);
@@ -70,10 +65,6 @@
         border-width: 0px;
         box-shadow: none;
         justify-content: flex-start;
-        opacity: 0;
-        transform: translateX(-4px);
-        animation: animDropdownItems 0.3s ease forwards;
-        animation-delay: calc(var(--item-index, 0) * 0.03s);
 
         &:hover {
             background-color: var(--transp-1) !important;
@@ -84,7 +75,7 @@
 @keyframes animDropdown {
     0% {
         opacity: 0;
-        transform: translateY(10px) scale(0.95);
+        transform: scale(0.95);
         filter: blur(2px);
     }
 
@@ -94,32 +85,20 @@
     }
 
     100% {
-        transform: translateY(0) scale(1);
+        transform: scale(1);
         opacity: 1;
     }
 }
 
 @keyframes animDropdownOut {
     0% {
-        transform: translateY(0) scale(1);
+        transform: scale(1);
         opacity: 1;
     }
 
     100% {
-        transform: translateY(-8px) scale(0.98);
+        transform: scale(0.98);
         opacity: 0;
-    }
-}
-
-@keyframes animDropdownItems {
-    0% {
-        opacity: 0;
-        transform: translateX(-4px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
     }
 }
 

@@ -1,12 +1,13 @@
+// ── Chart wrapper & skeleton ────────────────────────────────────────────────
 .chart-wrapper {
     position: relative;
     border-radius: var(--border1);
     overflow: hidden;
     min-height: 320px;
-    
+
     &.skeleton {
         min-height: 320px;
-        
+
         &::before {
             content: '';
             position: absolute;
@@ -28,49 +29,41 @@
     100% { background-position: -200% 0; }
 }
 
-.apexcharts-canvas {
-    background: transparent !important;
-}
-
+// ── Canvas ─────────────────────────────────────────────────────────────────
+.apexcharts-canvas,
 .apexcharts-svg {
     background: transparent !important;
 }
 
+// ── Tooltip — shadcn popover style ─────────────────────────────────────────
 .apexcharts-tooltip {
-    background: color-mix(in srgb, var(--background) 80%, transparent) !important;
-    backdrop-filter: blur(16px) saturate(1.2) !important;
+    background: var(--background) !important;
     border: 1px solid var(--transp-1) !important;
-    border-radius: 12px !important;
-    box-shadow: 
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -2px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08) !important;
     padding: 0 !important;
     overflow: hidden;
+    backdrop-filter: none !important;
 
-    &.apexcharts-theme-dark {
-        background: color-mix(in srgb, var(--background) 85%, transparent) !important;
-        color: var(--text) !important;
-    }
-
+    &.apexcharts-theme-dark,
     &.apexcharts-theme-light {
-        background: color-mix(in srgb, #fff 90%, transparent) !important;
         color: var(--text) !important;
     }
 
     .apexcharts-tooltip-title {
-        background: var(--transp-05) !important;
+        background: transparent !important;
         border-bottom: 1px solid var(--transp-1) !important;
-        padding: 4px 8px !important;
-        font-weight: 600 !important;
-        font-size: 0.7rem !important;
-        color: var(--text) !important;
+        padding: 6px 10px !important;
+        font-weight: 500 !important;
+        font-size: 11px !important;
+        color: var(--text-500) !important;
         margin: 0 !important;
+        letter-spacing: 0.01em;
     }
 
     .apexcharts-tooltip-series-group {
-        padding: 3px 8px !important;
-        
+        padding: 4px 10px !important;
+
         &:not(:last-child) {
             border-bottom: 1px solid var(--transp-05);
         }
@@ -81,43 +74,43 @@
     }
 
     .apexcharts-tooltip-marker {
-        width: 6px !important;
-        height: 6px !important;
-        border-radius: 50% !important;
-        margin-right: 6px !important;
+        width: 8px !important;
+        height: 8px !important;
+        border-radius: 2px !important;
+        margin-right: 8px !important;
         box-shadow: none !important;
     }
 
     .apexcharts-tooltip-text {
-        font-size: 0.7rem !important;
-        line-height: 1.3 !important;
+        font-size: 12px !important;
+        line-height: 1.4 !important;
     }
 
     .apexcharts-tooltip-text-y-label {
-        color: var(--text-400) !important;
-        font-weight: 500 !important;
-        font-size: 0.65rem !important;
+        color: var(--text-500) !important;
+        font-weight: 400 !important;
+        font-size: 12px !important;
     }
 
     .apexcharts-tooltip-text-y-value {
         color: var(--text) !important;
         font-weight: 600 !important;
-        margin-left: 3px !important;
-        font-size: 0.7rem !important;
+        margin-left: 4px !important;
+        font-size: 12px !important;
+        font-variant-numeric: tabular-nums;
     }
 }
 
-// Legend - Clean minimal style
+// ── Legend — pill-style, shadcn ────────────────────────────────────────────
 .apexcharts-legend {
-    padding: 8px 0 0 !important;
-    gap: 8px !important;
-    
+    padding: 12px 0 0 !important;
+
     .apexcharts-legend-series {
-        display: flex !important;
+        display: inline-flex !important;
         align-items: center !important;
-        gap: 5px !important;
-        margin: 0 !important;
-        padding: 3px 8px !important;
+        gap: 6px !important;
+        margin: 0 4px !important;
+        padding: 4px 10px !important;
         border-radius: 6px !important;
         transition: background 0.15s ease !important;
         cursor: pointer !important;
@@ -130,14 +123,14 @@
     .apexcharts-legend-marker {
         width: 8px !important;
         height: 8px !important;
-        border-radius: 50% !important;
+        border-radius: 2px !important;
         margin-right: 0 !important;
     }
 
     .apexcharts-legend-text {
-        font-size: 0.8rem !important;
+        font-size: 12px !important;
         font-weight: 500 !important;
-        color: var(--text-400) !important;
+        color: var(--text-500) !important;
         transition: color 0.15s ease !important;
     }
 
@@ -150,134 +143,130 @@
     }
 }
 
-// Grid lines - Subtle
+// ── Grid — thin solid lines ────────────────────────────────────────────────
 .apexcharts-gridlines-horizontal line,
 .apexcharts-gridlines-vertical line {
     stroke: var(--transp-05) !important;
-    stroke-dasharray: 4 4 !important;
+    stroke-dasharray: none !important;
 }
 
 .apexcharts-grid-borders line {
-    stroke: var(--transp-1) !important;
+    stroke: var(--transp-05) !important;
 }
 
-// Axis labels
+// ── Axis labels ────────────────────────────────────────────────────────────
 .apexcharts-xaxis-label,
 .apexcharts-yaxis-label {
-    fill: var(--text-500) !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
+    fill: var(--text-600) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
 }
 
 .apexcharts-xaxis-title-text,
 .apexcharts-yaxis-title-text {
-    fill: var(--text-400) !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
+    fill: var(--text-500) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
 }
 
-// Area charts - Gradient fills
-.apexcharts-area {
-    fill-opacity: 0.15 !important;
-}
+// ── Area charts — let ApexCharts handle gradient fill opacity via SVG ──────
 
-// Line charts - Smooth curves
+// ── Line charts — thin clean lines ─────────────────────────────────────────
 .apexcharts-line {
-    stroke-width: 2.5px !important;
+    stroke-width: 2px !important;
     stroke-linecap: round !important;
     stroke-linejoin: round !important;
 }
 
-// Data points / Markers
+// ── Data points / Markers ──────────────────────────────────────────────────
 .apexcharts-marker {
     stroke-width: 2px !important;
 }
 
-// Bar charts
+// ── Bar charts — rounded, clean ────────────────────────────────────────────
 .apexcharts-bar-area {
     rx: 4px;
     ry: 4px;
 }
 
 .apexcharts-bar-series .apexcharts-bar-area {
-    transition: filter 0.15s ease !important;
-    
+    transition: opacity 0.15s ease !important;
+
     &:hover {
-        filter: brightness(1.1) !important;
+        opacity: 0.8 !important;
     }
 }
 
-// Donut/Pie charts
+// ── Donut / Pie — no scale, clean hover ────────────────────────────────────
 .apexcharts-pie-series path {
-    transition: transform 0.2s ease, filter 0.2s ease !important;
-    transform-origin: center !important;
-    
+    transition: opacity 0.15s ease !important;
+
     &:hover {
-        transform: scale(1.02) !important;
-        filter: brightness(1.05) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15)) !important;
+        opacity: 0.85 !important;
     }
 }
 
 .apexcharts-datalabels-group {
     .apexcharts-datalabel-label {
-        fill: var(--text-400) !important;
-        font-size: 13px !important;
+        fill: var(--text-500) !important;
+        font-size: 12px !important;
         font-weight: 500 !important;
     }
 
     .apexcharts-datalabel-value {
         fill: var(--text) !important;
-        font-size: 24px !important;
-        font-weight: 700 !important;
+        font-size: 22px !important;
+        font-weight: 600 !important;
+        font-variant-numeric: tabular-nums;
     }
 }
 
-// Donut center label
 .apexcharts-pie-label {
-    fill: var(--text) !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    fill: #fff !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 
-// Radial bar
+// ── Radial bar ─────────────────────────────────────────────────────────────
 .apexcharts-radialbar-track path {
-    stroke: var(--transp-1) !important;
+    stroke: var(--transp-05) !important;
 }
 
 .apexcharts-radialbar-hollow {
     fill: transparent !important;
 }
 
-// Selection / Zoom
+// ── Selection / Zoom ───────────────────────────────────────────────────────
 .apexcharts-selection-rect {
     fill: var(--primary) !important;
-    fill-opacity: 0.1 !important;
+    fill-opacity: 0.08 !important;
     stroke: var(--primary) !important;
     stroke-width: 1px !important;
-    stroke-dasharray: 4 4 !important;
+    stroke-dasharray: none !important;
 }
 
 .apexcharts-zoom-rect {
     fill: var(--primary) !important;
-    fill-opacity: 0.1 !important;
+    fill-opacity: 0.08 !important;
 }
 
-// Crosshairs
+// ── Crosshairs — clean vertical line ───────────────────────────────────────
 .apexcharts-xcrosshairs,
 .apexcharts-ycrosshairs {
     stroke: var(--text-600) !important;
     stroke-width: 1px !important;
-    stroke-dasharray: 4 4 !important;
+    stroke-dasharray: 3 3 !important;
 }
 
-// Toolbar - Hidden by default, shown on hover
+// ── Toolbar — minimal ──────────────────────────────────────────────────────
 .apexcharts-toolbar {
     opacity: 0;
-    transition: opacity 0.2s ease !important;
-    top: 8px !important;
-    right: 8px !important;
+    transition: opacity 0.15s ease !important;
+    top: 4px !important;
+    right: 4px !important;
     z-index: 10 !important;
+    gap: 2px;
 
     .chart-wrapper:hover & {
         opacity: 1;
@@ -289,8 +278,8 @@
     .apexcharts-zoomin-icon,
     .apexcharts-zoomout-icon,
     .apexcharts-reset-icon {
-        width: 28px !important;
-        height: 28px !important;
+        width: 26px !important;
+        height: 26px !important;
         border-radius: 6px !important;
         display: flex !important;
         align-items: center !important;
@@ -298,13 +287,13 @@
         transition: background 0.15s ease !important;
 
         &:hover {
-            background: var(--transp-1) !important;
+            background: var(--transp-05) !important;
         }
 
         svg {
             width: 14px !important;
             height: 14px !important;
-            fill: var(--text-400) !important;
+            fill: var(--text-500) !important;
         }
     }
 }
@@ -313,55 +302,54 @@
     background: var(--background) !important;
     border: 1px solid var(--transp-1) !important;
     border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04) !important;
     padding: 4px !important;
-    min-width: 120px !important;
+    min-width: 110px !important;
 
     .apexcharts-menu-item {
-        padding: 8px 12px !important;
-        font-size: 0.8125rem !important;
-        border-radius: 6px !important;
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+        border-radius: 4px !important;
         color: var(--text) !important;
         transition: background 0.15s ease !important;
 
         &:hover {
-            background: var(--transp-1) !important;
+            background: var(--transp-05) !important;
         }
     }
 }
 
-// Annotations
+// ── Annotations ────────────────────────────────────────────────────────────
 .apexcharts-annotation-rect {
     fill: var(--primary) !important;
-    fill-opacity: 0.1 !important;
+    fill-opacity: 0.06 !important;
 }
 
 .apexcharts-point-annotation-label {
     fill: var(--text) !important;
     font-size: 11px !important;
-    font-weight: 600 !important;
-}
-
-// No data state
-.apexcharts-no-data {
-    fill: var(--text-500) !important;
-    font-size: 14px !important;
     font-weight: 500 !important;
 }
 
-// Animation improvements
-.apexcharts-series {
-    transition: opacity 0.3s ease !important;
+// ── No data ────────────────────────────────────────────────────────────────
+.apexcharts-no-data {
+    fill: var(--text-600) !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
 }
 
-// Responsive
+// ── Drip ───────────────────────────────────────────────────────────────────
+.apexcharts-series {
+    transition: opacity 0.2s ease !important;
+}
+
+// ── Responsive ─────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
     .apexcharts-legend {
         flex-wrap: wrap !important;
-        gap: 8px !important;
-        
+
         .apexcharts-legend-series {
-            padding: 4px 8px !important;
+            padding: 3px 8px !important;
         }
     }
 
@@ -369,4 +357,3 @@
         max-width: 200px !important;
     }
 }
-

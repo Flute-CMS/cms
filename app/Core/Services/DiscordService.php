@@ -15,9 +15,21 @@ class DiscordService
 
     private $client;
 
-    public function __construct(Client $client)
+    public function __construct(?Client $client = null)
     {
-        $this->client = $client;
+        $proxyConfig = [];
+
+        if ($client === null) {
+            $social = $this->getSocialNetworkByKey('Discord');
+            if ($social) {
+                $proxyConfig = $social->getGuzzleProxyConfig();
+            }
+        }
+
+        $this->client = $client ?? new Client(array_merge([
+            'timeout' => 10.0,
+            'connect_timeout' => 3.0,
+        ], $proxyConfig));
     }
 
     public function clearRoles(User $user)
@@ -80,7 +92,7 @@ class DiscordService
                 $social->additional = json_encode([
                     'access_token' => $data['access_token'],
                     'refresh_token' => $data['refresh_token'],
-                    'expires_at' => (new DateTime())->add(new DateInterval('PT' . $data['expires_in'] . 'S')),
+                    'expires_at' => ( new DateTime() )->add(new DateInterval('PT' . $data['expires_in'] . 'S')),
                 ]);
 
                 transaction($user)->run();
@@ -147,53 +159,29 @@ class DiscordService
             return false;
         }
 
-        if (sizeof($roles) > 0) {
-            foreach ($roles as $key => $role) {
-                try {
-                    $this->client->request('PUT', $url, [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $accessToken,
-                            'Accept' => 'application/json',
-                        ],
-                        'json' => [
-                            'platform_name' => config('app.name'),
-                            'metadata' => [
-                                'role_id' => $role->id,
-                            ],
-                        ],
-                    ]);
+        // Each PUT overwrites the entire metadata, so only the last role matters.
+        // Send a single request instead of looping with sleep(5) per role.
+        $lastRole = !empty($roles) ? end($roles) : null;
+        $roleId = $lastRole ? $lastRole->id : 0;
 
-                    if (isset($roles[$key + 1])) {
-                        sleep(5);
-                    }
-                } catch (ClientException $e) {
-                    logs()->error($e);
-
-                    if (is_debug()) {
-                        throw $e;
-                    }
-                }
-            }
-        } else {
-            try {
-                $this->client->request('PUT', $url, [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $accessToken,
-                        'Accept' => 'application/json',
+        try {
+            $this->client->request('PUT', $url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Accept' => 'application/json',
+                ],
+                'json' => [
+                    'platform_name' => config('app.name'),
+                    'metadata' => [
+                        'role_id' => $roleId,
                     ],
-                    'json' => [
-                        'platform_name' => config('app.name'),
-                        'metadata' => [
-                            'role_id' => 0,
-                        ],
-                    ],
-                ]);
-            } catch (ClientException $e) {
-                logs()->error($e);
+                ],
+            ]);
+        } catch (ClientException $e) {
+            logs()->error($e);
 
-                if (is_debug()) {
-                    throw $e;
-                }
+            if (is_debug()) {
+                throw $e;
             }
         }
 
@@ -242,7 +230,13 @@ class DiscordService
             $currentRoles = isset($data['roles']) && is_array($data['roles']) ? $data['roles'] : [];
         } catch (ClientException $e) {
             if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
-                logs()->warning('Discord member not found in guild for user #' . $user->id . ' (Discord ID ' . $discordUserId . '). Skipping bot role sync.');
+                logs()->warning(
+                    'Discord member not found in guild for user #'
+                    . $user->id
+                    . ' (Discord ID '
+                    . $discordUserId
+                    . '). Skipping bot role sync.',
+                );
 
                 return false;
             }
@@ -259,12 +253,16 @@ class DiscordService
 
         foreach ($toRemove as $discordRoleId) {
             try {
-                $this->client->request('DELETE', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-                    'headers' => [
-                        'Authorization' => 'Bot ' . $botToken,
-                        'Accept' => 'application/json',
+                $this->client->request(
+                    'DELETE',
+                    self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}",
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bot ' . $botToken,
+                            'Accept' => 'application/json',
+                        ],
                     ],
-                ]);
+                );
                 usleep(250000);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -276,12 +274,16 @@ class DiscordService
 
         foreach ($toAdd as $discordRoleId) {
             try {
-                $this->client->request('PUT', self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}", [
-                    'headers' => [
-                        'Authorization' => 'Bot ' . $botToken,
-                        'Accept' => 'application/json',
+                $this->client->request(
+                    'PUT',
+                    self::BASE_URL . "/guilds/{$guildId}/members/{$discordUserId}/roles/{$discordRoleId}",
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bot ' . $botToken,
+                            'Accept' => 'application/json',
+                        ],
                     ],
-                ]);
+                );
                 usleep(250000);
             } catch (ClientException $e) {
                 logs()->error($e);
@@ -296,7 +298,7 @@ class DiscordService
 
     protected function getDiscordInfo()
     {
-        $socialNetwork = $this->getSocialNetworkByKey("Discord");
+        $socialNetwork = $this->getSocialNetworkByKey('Discord');
 
         if (!$socialNetwork) {
             return false;
@@ -320,7 +322,7 @@ class DiscordService
         $additional = json_decode($user->getSocialNetwork('Discord')->additional, true);
 
         if (is_int($additional['expires_at'])) {
-            if ((new DateTime())->getTimestamp() > (int) $additional['expires_at']) {
+            if (( new DateTime() )->getTimestamp() > (int) $additional['expires_at']) {
                 return $this->refreshAccessToken($additional['refresh_token'], $user->id);
             }
         } else {

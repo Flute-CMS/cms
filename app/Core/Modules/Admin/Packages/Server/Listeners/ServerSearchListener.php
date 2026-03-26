@@ -5,14 +5,12 @@ namespace Flute\Admin\Packages\Server\Listeners;
 use Flute\Admin\Packages\Search\Events\AdminSearchEvent;
 use Flute\Admin\Packages\Search\Services\AdminSearchResult;
 use Flute\Core\Database\Entities\Server;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use function mb_strpos;
 use function mb_strtolower;
 use function str_starts_with;
 use function substr;
-
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
 use function trim;
 
 /**
@@ -37,42 +35,61 @@ class ServerSearchListener implements EventSubscriberInterface
     {
         $searchValue = trim($event->getValue());
 
-        if (!str_starts_with($searchValue, '/server')) {
-            return;
-        }
+        $isSlashCommand = str_starts_with($searchValue, '/server');
 
-        $searchValue = substr($searchValue, 7);
-        $searchValue = trim($searchValue);
+        if ($isSlashCommand) {
+            $searchValue = substr($searchValue, 7);
+            $searchValue = trim($searchValue);
 
-        if ($searchValue === '') {
-            return;
+            if ($searchValue === '') {
+                $servers = Server::query()
+                    ->orderBy('name', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
+
+                foreach ($servers as $server) {
+                    $event->add($this->createServerSearchResult($server, 1));
+                }
+
+                return;
+            }
+        } else {
+            if (strlen($searchValue) < 2) {
+                return;
+            }
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
         $servers = Server::query()
-            ->where(static function ($query) use ($searchValueLower) {
+            ->where(static function ($query) use ($escapedSearch) {
                 $query
-                    ->orWhere('name', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('ip', 'LIKE', "%{$searchValueLower}%")
-                    ->orWhere('mod', 'LIKE', "%{$searchValueLower}%");
+                    ->orWhere('name', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('ip', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('mod', 'LIKE', "%{$escapedSearch}%");
             })
             ->limit(10)
             ->fetchAll();
 
         foreach ($servers as $server) {
             $relevance = $this->calculateRelevance($searchValueLower, $server);
-
-            $searchResult = new AdminSearchResult(
-                $server->name,
-                url('admin/servers/' . $server->id . '/edit'),
-                $icon = null,
-                $description = null,
-                $relevance
-            );
-
-            $event->add($searchResult);
+            $event->add($this->createServerSearchResult($server, $relevance));
         }
+    }
+
+    /**
+     * Create a search result for a server
+     */
+    protected function createServerSearchResult(Server $server, int $relevance): AdminSearchResult
+    {
+        return new AdminSearchResult(
+            $server->name,
+            url('admin/servers/' . $server->id . '/edit'),
+            'ph.regular.hard-drives',
+            __('search.category_servers'),
+            $relevance,
+        );
     }
 
     /**

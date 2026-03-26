@@ -13,10 +13,10 @@ class ArrayAdapterCacheDriver extends AbstractCacheDriver
         parent::__construct($config, $logger);
 
         $this->cache = new ArrayAdapter(
-            $config["defaultLifetime"] ?? 0,
-            $config["storeSerialized"] ?? true,
-            $config["maxLifetime"] ?? 0,
-            $config["maxItems"] ?? 0
+            $config['defaultLifetime'] ?? 0,
+            $config['storeSerialized'] ?? true,
+            $config['maxLifetime'] ?? 0,
+            $config['maxItems'] ?? 0,
         );
     }
 }

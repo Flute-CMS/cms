@@ -1,0 +1,314 @@
+// ── Overlay ──
+.shepherd-modal-overlay-container {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 0;
+    z-index: 10040;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: all .3s ease-out, height 0s .3s, opacity .3s 0s;
+
+    &.shepherd-modal-is-visible {
+        height: 100vh;
+        opacity: .5;
+        transition: all .3s ease-out, height 0s 0s, opacity .3s 0s;
+
+        path {
+            pointer-events: all;
+        }
+    }
+}
+
+// ── Tooltip element (positioning) ──
+.shepherd-element {
+    position: absolute;
+    z-index: 10050;
+    width: 100%;
+    max-width: 420px;
+    opacity: 0;
+    visibility: hidden;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    border: none;
+    background: none;
+    box-shadow: none;
+
+    &,
+    & *,
+    & ::before,
+    & ::after {
+        box-sizing: border-box;
+    }
+
+    &.shepherd-enabled {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    &[data-popper-reference-hidden]:not(.shepherd-centered) {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    .shepherd-arrow,
+    .shepherd-arrow::before {
+        display: none !important;
+    }
+}
+
+// ── Card wrapper ──
+.shepherd-content {
+    border-radius: 14px;
+    background: radial-gradient(var(--blurred-background), var(--background));
+    backdrop-filter: blur(var(--blur-amount, 10px));
+    -webkit-backdrop-filter: blur(var(--blur-amount, 10px));
+    border: 1px solid var(--transp-1);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, .2),
+        0 1px 3px rgba(0, 0, 0, .06);
+    overflow: hidden;
+    animation: shepherd-slide .25s cubic-bezier(.22, 1, .36, 1) both;
+
+    :root[data-theme=light] & {
+        border-color: rgba(0, 0, 0, .08);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, .1),
+            0 1px 3px rgba(0, 0, 0, .04);
+    }
+}
+
+@keyframes shepherd-slide {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ── Progress (top edge-to-edge) ──
+.onboarding-bar {
+    height: 2px;
+    background: var(--transp-05);
+    margin: .75rem 0;
+
+    &__fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 0 1px 1px 0;
+        transition: width .4s cubic-bezier(.22, 1, .36, 1);
+    }
+}
+
+// ── Header ──
+.shepherd-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1rem 0 1.25rem;
+    gap: .25rem;
+    background: none;
+    line-height: 1;
+}
+
+.shepherd-title {
+    font-size: var(--h6);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -.01em;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+}
+
+// ── Close ──
+.shepherd-cancel-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: .5rem;
+    background: transparent;
+    border: 0;
+    color: var(--text-500);
+    font-size: 1.5rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all .15s ease;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    line-height: 1;
+
+    &:hover {
+        background: var(--transp-1);
+        color: var(--text);
+    }
+}
+
+// ── Body text ──
+.shepherd-text {
+    padding: .375rem 1.25rem .5rem;
+    font-size: var(--p);
+    line-height: 1.4;
+    color: var(--text-400);
+
+    :root[data-theme=light] & {
+        color: var(--text-300);
+    }
+
+    p {
+        margin: 0;
+    }
+
+    kbd {
+        display: inline-block;
+        padding: 1px 6px;
+        font-size: 11px;
+        font-family: inherit;
+        font-weight: 600;
+        color: var(--text-200);
+        background: var(--transp-1);
+        border: 1px solid var(--transp-2);
+        border-radius: 4px;
+        box-shadow: 0 1px 0 var(--transp-05);
+        line-height: 1.4;
+        vertical-align: 1px;
+    }
+}
+
+// ── Footer ──
+.shepherd-footer {
+    display: flex;
+    align-items: center;
+    padding: .375rem 1.25rem 1rem;
+    gap: .375rem;
+}
+
+// ── Counter (left side of footer) ──
+.onboarding-meta {
+    font-size: 12px;
+    color: var(--text-600);
+    margin-right: auto;
+    padding-left: 0 !important;
+    user-select: none;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: default;
+    opacity: 1;
+
+    &:disabled {
+        opacity: 1;
+    }
+}
+
+// ── Buttons ──
+.shepherd-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .375rem;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: .5rem;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: all .15s ease;
+    white-space: nowrap;
+    border: none;
+    outline: none;
+
+    // Primary
+    &:not(:disabled):not(.shepherd-button-secondary):not(.onboarding-meta) {
+        background: var(--text);
+        color: var(--background);
+
+        &:hover {
+            opacity: .85;
+        }
+
+        &:active {
+            transform: scale(.97);
+        }
+    }
+
+    // Secondary / back
+    &.shepherd-button-secondary {
+        background: var(--transp-1);
+        color: var(--text-300);
+
+        &:hover {
+            background: var(--transp-2);
+            color: var(--text);
+        }
+
+        &:active {
+            transform: scale(.97);
+        }
+    }
+
+    &:disabled:not(.onboarding-meta) {
+        opacity: .35;
+        cursor: default;
+    }
+}
+
+// ── Target highlight ──
+.shepherd-target {
+    outline: 2px solid rgba(var(--accent-rgb), .5) !important;
+    outline-offset: 3px;
+    border-radius: 8px;
+    transition: outline-color .2s ease;
+}
+
+.sidebar.shepherd-target,
+.sidebar__menu.shepherd-target,
+.sidebar__container.shepherd-target {
+    outline: none !important;
+}
+
+.shepherd-target-click-disabled.shepherd-enabled.shepherd-target,
+.shepherd-target-click-disabled.shepherd-enabled.shepherd-target * {
+    pointer-events: none;
+}
+
+// ── Centered (welcome / finish) ──
+.shepherd-element.shepherd-centered > .shepherd-content {
+    text-align: center;
+
+    .shepherd-header {
+        justify-content: center;
+        padding-top: 1.25rem;
+        padding-right: 1.25rem;
+        position: relative;
+
+        .shepherd-cancel-icon {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+    }
+
+    .shepherd-text {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .shepherd-footer {
+        justify-content: center;
+
+        .onboarding-meta {
+            display: none;
+        }
+    }
+}

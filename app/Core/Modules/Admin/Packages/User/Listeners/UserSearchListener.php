@@ -18,32 +18,43 @@ class UserSearchListener implements EventSubscriberInterface
 
     public function onAdminSearch(AdminSearchEvent $event): void
     {
-        $searchValue = $event->getValue();
-        $searchValue = trim($searchValue);
+        $searchValue = trim($event->getValue());
 
-        if (!str_starts_with($searchValue, '/user')) {
-            return;
-        }
+        $isSlashCommand = str_starts_with($searchValue, '/user');
 
-        $searchValue = trim(substr($searchValue, 5)); // Remove /user and trim
+        if ($isSlashCommand) {
+            $searchValue = trim(substr($searchValue, 5));
 
-        if (empty($searchValue)) {
-            $users = User::query()->orderBy('name', 'asc')->limit(10)->fetchAll();
+            if (empty($searchValue)) {
+                $users = User::query()
+                    ->orderBy('name', 'asc')
+                    ->limit(10)
+                    ->fetchAll();
 
-            foreach ($users as $user) {
-                $event->add($this->createUserSearchResult($user, 1));
+                foreach ($users as $user) {
+                    $event->add($this->createUserSearchResult($user, 1));
+                }
+
+                return;
             }
-
-            return;
+        } else {
+            if (strlen($searchValue) < 2) {
+                return;
+            }
         }
 
         $searchValueLower = mb_strtolower($searchValue, 'UTF-8');
+        $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchValueLower);
 
-        $users = User::query()->where(static function ($query) use ($searchValueLower) {
-            $query->orWhere('name', 'LIKE', "%{$searchValueLower}%")
-                ->orWhere('login', 'LIKE', "%{$searchValueLower}%")
-                ->orWhere('email', 'LIKE', "%{$searchValueLower}%");
-        })->limit(10)->fetchAll();
+        $users = User::query()
+            ->where(static function ($query) use ($escapedSearch) {
+                $query
+                    ->orWhere('name', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('login', 'LIKE', "%{$escapedSearch}%")
+                    ->orWhere('email', 'LIKE', "%{$escapedSearch}%");
+            })
+            ->limit(10)
+            ->fetchAll();
 
         foreach ($users as $user) {
             $relevance = self::calculateRelevance($searchValueLower, $user);
@@ -60,8 +71,8 @@ class UserSearchListener implements EventSubscriberInterface
             $user->name,
             url('admin/users/' . $user->id . '/edit'),
             asset($user->avatar ?? config('profile.default_avatar')),
-            __('search.users'),
-            $relevance
+            __('search.category_users'),
+            $relevance,
         );
     }
 

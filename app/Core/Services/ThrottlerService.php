@@ -37,17 +37,13 @@ class ThrottlerService
      */
     public function throttle(
         array $criteria,
-        int   $supply,
-        int   $interval,
-        ?int  $rustiness = null,
+        int $supply,
+        int $interval,
+        ?int $rustiness = null,
         ?bool $simulated = null,
-        ?int  $cost = null,
-        ?bool $force = null
+        ?int $cost = null,
+        ?bool $force = null,
     ): float {
-        if (is_debug()) {
-            return 100;
-        }
-
         $force = $force !== null && (bool) $force;
 
         if (!$this->throttling && !$force) {
@@ -56,20 +52,35 @@ class ThrottlerService
 
         $key = $this->generateKey($criteria);
         $rustiness = $rustiness !== null ? (int) $rustiness : 1;
-        $simulated = $simulated !== null && (bool)$simulated;
+        $simulated = $simulated !== null && (bool) $simulated;
         $cost = $cost !== null ? (int) $cost : 1;
         $now = time();
 
         $capacity = $this->calculateCapacity($supply, $rustiness);
         $bandwidthPerSecond = $this->calculateBandwidthPerSecond($supply, $interval);
 
-        $bucket = $this->getBucket($key, $now, $capacity);
+        $database = db();
+        $database->begin();
 
-        $accepted = $bucket->getTokens() >= $cost;
+        try {
+            $bucket = $this->getBucket($key, $now, $capacity);
 
-        if (!$simulated) {
-            $this->updateBucket($bucket, $accepted, $cost, $now, $capacity, $bandwidthPerSecond);
-            $this->storeBucket($bucket);
+            $accepted = $bucket->getTokens() >= $cost;
+
+            if (!$simulated) {
+                $this->updateBucket($bucket, $accepted, $cost, $now, $capacity, $bandwidthPerSecond);
+                $this->storeBucket($bucket);
+            }
+
+            $database->commit();
+        } catch (TooManyRequestsException $e) {
+            $database->rollback();
+
+            throw $e;
+        } catch (\Throwable $e) {
+            $database->rollback();
+
+            throw $e;
         }
 
         if ($accepted) {
@@ -79,7 +90,6 @@ class ThrottlerService
         $estimatedWaitingTimeSeconds = $this->calculateEstimatedWaitingTime($tokensMissing, $bandwidthPerSecond);
 
         throw new TooManyRequestsException('', $estimatedWaitingTimeSeconds);
-
     }
 
     /**
@@ -159,7 +169,7 @@ class ThrottlerService
         int $cost,
         int $now,
         int $capacity,
-        float $bandwidthPerSecond
+        float $bandwidthPerSecond,
     ): void {
         // Calculate the time passed since the last replenishment
         $timePassed = $now - $bucket->getReplenishedAt();
@@ -177,7 +187,7 @@ class ThrottlerService
         // Update the last replenishment time
         $bucket->setReplenishedAt($now);
 
-        $bucket->setExpiresAt($now + floor($capacity / $bandwidthPerSecond * 2));
+        $bucket->setExpiresAt($now + floor(( $capacity / $bandwidthPerSecond ) * 2));
     }
 
     /**

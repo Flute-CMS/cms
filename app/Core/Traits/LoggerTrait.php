@@ -12,10 +12,10 @@ trait LoggerTrait
     protected Logger $logger;
 
     /**
-    * Set logger factory instance
-    *
-    * @return App
-    */
+     * Set logger factory instance
+     *
+     * @return App
+     */
     public function setLogger(Logger $logger): self
     {
         $this->logger = $logger;

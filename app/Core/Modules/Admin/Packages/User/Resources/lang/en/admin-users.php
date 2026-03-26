@@ -27,6 +27,8 @@ return [
         'details' => 'Details',
         'device' => 'Device',
         'ip' => 'IP Address',
+        'first_login' => 'First Login',
+        'last_login' => 'Last Login',
         'social_network' => 'Social Network',
         'value' => 'Value',
         'display_name' => 'Display Name',
@@ -35,6 +37,11 @@ return [
         'transaction_id' => 'Transaction ID',
         'payment_gateway' => 'Payment Gateway',
         'amount' => 'Amount',
+        'balance_after' => 'Balance After',
+        'source' => 'Source',
+        'type' => 'Type',
+        'date' => 'Date',
+        'description' => 'Description',
         'payment_date' => 'Payment Date',
         'reason' => 'Reason',
         'payment_status' => 'Payment Status',
@@ -45,6 +52,7 @@ return [
         'social_networks' => 'Social Networks',
         'blocks_history' => 'Block History',
         'deposit_history' => 'Deposit History',
+        'balance_history' => 'Balance History',
         'action_history' => 'Action History',
         'all' => 'All',
         'blocked' => 'Blocked',
@@ -67,6 +75,8 @@ return [
         ],
         'email' => [
             'label' => 'Email',
+            'pending' => 'Pending confirmation: :email',
+            'confirm_enabled' => 'Email confirmation enabled — a verification email will be sent on change',
         ],
         'uri' => [
             'label' => 'URI',
@@ -83,6 +93,11 @@ return [
         'verified' => [
             'label' => 'Verified',
             'help' => 'Check if the user has been verified',
+            'not_verified_hint' => 'Email not verified — you can verify manually or send a confirmation email',
+        ],
+        'approved' => [
+            'label' => 'Approved',
+            'help' => 'Approved users get a verification badge on their profile',
         ],
         'hidden' => [
             'label' => 'Hidden Profile',
@@ -140,6 +155,12 @@ return [
         'save_social' => 'Save',
         'hide' => 'Hide',
         'show' => 'Show',
+        'verify_email' => 'Verify',
+        'verify_email_hint' => 'Verify email manually without sending a letter',
+        'send_verification' => 'Send email',
+        'apply_pending_email' => 'Apply',
+        'apply_pending_email_hint' => 'Apply new email without confirmation',
+        'cancel_pending_email' => 'Cancel change',
     ],
     'sections' => [
         'main_info' => 'Main Information',
@@ -152,6 +173,7 @@ return [
         'terminate_session' => 'Are you sure you want to terminate this session?',
         'delete_social' => 'Are you sure you want to delete this social network?',
         'unblock_user' => 'Are you sure you want to unblock the user?',
+        'delete_social_network' => 'Are you sure you want to delete this social network?',
     ],
     'modals' => [
         'block_user' => [
@@ -191,6 +213,13 @@ return [
         'social_not_found' => 'Social network not found.',
         'session_not_found' => 'Session not found.',
         'session_terminated' => 'Session terminated successfully.',
+        'email_verified' => 'User email verified.',
+        'verification_sent' => 'Verification email sent.',
+        'no_email' => 'User has no email address.',
+        'pending_email_applied' => 'New email applied successfully.',
+        'pending_email_cancelled' => 'Email change cancelled.',
+        'no_permission_reset_password' => 'You do not have permission to reset passwords.',
+        'password_reset_success' => 'Password reset successfully.',
     ],
     'status' => [
         'forever' => 'Forever',
@@ -202,6 +231,7 @@ return [
         'paid' => 'Paid',
         'unpaid' => 'Unpaid',
         'verified' => 'Verified',
+        'approved' => 'Approved',
         'hidden' => 'Hidden',
         'blocked' => 'Blocked',
         'visible' => 'Visible',

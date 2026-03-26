@@ -21,8 +21,12 @@ class GitHubUpdater
 
     protected Client $httpClient;
 
-    public function __construct(string $repoOwner, string $repoName, ?string $currentVersion = null, ?string $downloadDir = null)
-    {
+    public function __construct(
+        string $repoOwner,
+        string $repoName,
+        ?string $currentVersion = null,
+        ?string $downloadDir = null,
+    ) {
         $this->repoOwner = $repoOwner;
         $this->repoName = $repoName;
         $this->currentVersion = $currentVersion;
@@ -48,20 +52,24 @@ class GitHubUpdater
 
     public function getLatestRelease()
     {
-        return cache()->callback('flute.git.' . $this->repoOwner . $this->repoName, function () {
-            $url = "repos/{$this->repoOwner}/{$this->repoName}/releases";
+        return cache()->callback(
+            'flute.git.' . $this->repoOwner . $this->repoName,
+            function () {
+                $url = "repos/{$this->repoOwner}/{$this->repoName}/releases";
 
-            try {
-                $response = $this->httpClient->get($url);
-                $decode = json_decode($response->getBody()->getContents(), true);
+                try {
+                    $response = $this->httpClient->get($url);
+                    $decode = json_decode($response->getBody()->getContents(), true);
 
-                return $decode[0] ?? $decode;
-            } catch (RequestException $e) {
-                logs()->error("Failed to fetch latest release: {$e->getMessage()}");
+                    return $decode[0] ?? $decode;
+                } catch (RequestException $e) {
+                    logs()->error("Failed to fetch latest release: {$e->getMessage()}");
 
-                return null;
-            }
-        }, 300);
+                    return null;
+                }
+            },
+            300,
+        );
     }
 
     public function getLatestVersion()
@@ -71,7 +79,7 @@ class GitHubUpdater
         return isset($release['tag_name']) ? str_replace('v', '', $release['tag_name']) : '';
     }
 
-    public function update(array $foldersToExtract = ["*"])
+    public function update(array $foldersToExtract = ['*'])
     {
         $release = $this->getLatestRelease();
 
@@ -118,7 +126,7 @@ class GitHubUpdater
             $response = $this->httpClient->get($url, ['sink' => $path]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new Exception("Failed to download file: HTTP " . $response->getStatusCode());
+                throw new Exception('Failed to download file: HTTP ' . $response->getStatusCode());
             }
         } catch (RequestException $e) {
             logs()->error("Failed to download file: {$e->getMessage()}");
@@ -131,13 +139,27 @@ class GitHubUpdater
     {
         $zip = new ZipArchive();
         if ($zip->open($zipFile) === true) {
-            $foldersToExtract = array_map(static fn ($folder) => rtrim($folder, '/') . '/', $foldersToExtract);
+            $foldersToExtract = array_map(static fn($folder) => rtrim($folder, '/') . '/', $foldersToExtract);
 
             $rootFolder = $zip->getNameIndex(0);
             $rootFolder = substr($rootFolder, 0, strpos($rootFolder, '/') + 1);
 
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $filename = $zip->getNameIndex($i);
+
+                if (str_contains($filename, '..') || str_starts_with($filename, '/') || str_contains($filename, "\0")) {
+                    $zip->close();
+
+                    throw new FailedToExtractException($zipFile);
+                }
+
+                $resolvedTarget = realpath($extractTo) ?: $extractTo;
+                $intendedPath = realpath(dirname($extractTo . $filename)) ?: dirname($extractTo . $filename);
+                if (!str_starts_with($intendedPath, $resolvedTarget)) {
+                    $zip->close();
+
+                    throw new FailedToExtractException($zipFile);
+                }
 
                 foreach ($foldersToExtract as $folder) {
                     $relativePath = substr($filename, strlen($rootFolder));
@@ -179,7 +201,7 @@ class GitHubUpdater
         $files = array_diff(scandir($dir), ['.', '..']);
 
         foreach ($files as $file) {
-            (is_dir("{$dir}/{$file}")) ? $this->deleteDirectory("{$dir}/{$file}") : unlink("{$dir}/{$file}");
+            is_dir("{$dir}/{$file}") ? $this->deleteDirectory("{$dir}/{$file}") : unlink("{$dir}/{$file}");
         }
 
         return rmdir($dir);

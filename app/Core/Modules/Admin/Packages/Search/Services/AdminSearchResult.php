@@ -10,17 +10,22 @@ class AdminSearchResult implements AdminSearchResultInterface
 
     protected ?string $title = null;
 
-    protected ?string $icon = "";
+    protected ?string $icon = '';
 
-    protected ?string $category = "";
+    protected ?string $category = '';
 
     protected int $relevance = 0;
 
     /**
      * SearchResult constructor.
      */
-    public function __construct(?string $title = null, ?string $url = null, ?string $icon = null, ?string $category = null, int $relevance = 0)
-    {
+    public function __construct(
+        ?string $title = null,
+        ?string $url = null,
+        ?string $icon = null,
+        ?string $category = null,
+        int $relevance = 0,
+    ) {
         $this->title = $title;
         $this->url = $url;
         $this->icon = $icon;
@@ -86,6 +91,20 @@ class AdminSearchResult implements AdminSearchResultInterface
         $this->relevance = $relevance;
 
         return $this;
+    }
+
+    public function getHighlightedTitle(string $query): string
+    {
+        $title = e($this->title ?? '');
+        $cleanQuery = trim(preg_replace('/^\/\w+\s*/', '', $query));
+
+        if (empty($cleanQuery)) {
+            return $title;
+        }
+
+        $pattern = '/' . preg_quote($cleanQuery, '/') . '/iu';
+
+        return preg_replace($pattern, '<mark class="search-highlight">$0</mark>', $title);
     }
 
     public function toArray(): array

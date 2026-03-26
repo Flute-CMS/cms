@@ -20,7 +20,7 @@ class FlashServiceProvider extends AbstractServiceProvider
             ToastService::class => \DI\autowire(),
             FlashService::class => \DI\autowire(),
             FlashBagInterface::class => \DI\get(FlashService::class),
-            "flash" => \DI\get(FlashService::class),
+            'flash' => \DI\get(FlashService::class),
         ]);
     }
 

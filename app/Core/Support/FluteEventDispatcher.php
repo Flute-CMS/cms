@@ -4,7 +4,7 @@ namespace Flute\Core\Support;
 
 use Closure;
 use Laravel\SerializableClosure\SerializableClosure;
-use Laravel\SerializableClosure\Support\ReflectionClosure;
+use ReflectionFunction;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class FluteEventDispatcher extends EventDispatcher
@@ -44,7 +44,11 @@ class FluteEventDispatcher extends EventDispatcher
             return;
         }
 
-        $this->deferredListeners[$eventName][$listenerId] = ['listener' => $listener, 'priority' => $priority];
+        $this->deferredListeners[$eventName][$listenerId] = [
+            'listener' => $listener,
+            'priority' => $priority,
+            'id' => $listenerId,
+        ];
         $this->isDirty = true;
 
         if (is_callable($listener)) {
@@ -88,7 +92,7 @@ class FluteEventDispatcher extends EventDispatcher
         }
 
         foreach ($deferredListeners as $eventName => $listeners) {
-            foreach ($listeners as $listenerData) {
+            foreach ($listeners as $key => $listenerData) {
                 $listener = $listenerData['listener'];
                 if ($listener instanceof SerializableClosure) {
                     $listener = $listener->getClosure();
@@ -96,6 +100,10 @@ class FluteEventDispatcher extends EventDispatcher
 
                 if (is_callable($listener)) {
                     $this->addListener($eventName, $listener, $listenerData['priority']);
+                }
+
+                if (isset($listenerData['id']) && is_object($listener)) {
+                    self::$closureIdCache[spl_object_id($listener)] = $listenerData['id'];
                 }
             }
         }
@@ -136,9 +144,8 @@ class FluteEventDispatcher extends EventDispatcher
             return self::$closureIdCache[$objectId];
         }
 
-        $reflection = new ReflectionClosure($closure);
-        $code = $reflection->getCode();
-        $id = md5($code);
+        $ref = new ReflectionFunction($closure);
+        $id = md5($ref->getFileName() . ':' . $ref->getStartLine() . ':' . $ref->getEndLine());
 
         self::$closureIdCache[$objectId] = $id;
 

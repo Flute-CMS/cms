@@ -1,58 +1,202 @@
-.installer-button {
+.btn {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background-color: var(--accent);
-    color: var(--accent-950);
-    border-radius: 0.5rem;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
     font-weight: 600;
-    overflow: hidden;
+    line-height: 1;
     cursor: pointer;
-    transition: transform var(--transition), box-shadow var(--transition);
+    transition:
+        transform 0.15s var(--ease-out),
+        box-shadow 0.15s var(--ease-out),
+        background-color 0.15s,
+        border-color 0.15s,
+        color 0.15s,
+        opacity 0.15s;
+    white-space: nowrap;
+    user-select: none;
+    outline: none;
+    border: none;
 
     svg {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-
-    &:hover {
-        transform: translateY(-2px);
-
-        &::before {
-            left: 100%;
-        }
-    }
-
-    &:active {
-        transform: translateY(0);
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
+        pointer-events: none;
     }
 
+    // ── Primary (accent) ──────────────────────────────────
     &--primary {
-        background-color: var(--primary);
-        color: var(--primary-950);
+        background-color: var(--accent);
+        color: #0a0a0c;
+
+        &:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 16px rgba(165, 255, 117, 0.2),
+                0 0 0 1px rgba(165, 255, 117, 0.1);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: none;
+        }
     }
 
+    // ── Secondary ─────────────────────────────────────────
     &--secondary {
-        background-color: var(--secondary);
-        color: var(--text);
+        background: var(--installer-surface2);
+        color: var(--installer-text);
+        border: 1px solid var(--installer-border2);
+
+        &:hover:not(:disabled) {
+            background-color: var(--installer-surface3);
+            border-color: var(--installer-border-hover);
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--installer-surface-hover);
+        }
     }
 
+    // ── Ghost (no border) ─────────────────────────────────
+    &--ghost {
+        background: transparent;
+        color: var(--installer-muted-light);
+        padding: 11px 16px;
+
+        &:hover:not(:disabled) {
+            color: var(--installer-text);
+            background-color: var(--installer-surface2);
+        }
+    }
+
+    // ── Link (minimal text button like "< Go back") ─────
+    &--link {
+        background: transparent;
+        color: var(--installer-muted-light);
+        padding: 8px 4px;
+        font-weight: 500;
+        font-size: 14px;
+        gap: 6px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.15s var(--ease-out);
+        }
+
+        &:hover:not(:disabled) {
+            color: var(--installer-text);
+
+            svg {
+                transform: translateX(-3px);
+            }
+        }
+    }
+
+    // ── Width modifiers ───────────────────────────────────
+    &--full {
+        width: 100%;
+    }
+
+    &--flex {
+        flex: 1;
+    }
+
+    // ── Size modifiers ────────────────────────────────────
+    &--sm {
+        padding: 8px 16px;
+        font-size: 13px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &--lg {
+        padding: 14px 28px;
+        font-size: 15px;
+    }
+
+    // ── Loading state ─────────────────────────────────────
     &--loading {
         pointer-events: none;
+        opacity: 0.8;
 
-        .installer-button__spinner {
-            display: inline-block;
-            margin-right: 0.5rem;
-            animation: spin 1s linear infinite;
+        .btn__spinner {
+            display: inline-flex;
         }
+
+        .btn__label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+    }
+
+    &__spinner {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 0, 0, 0.12);
+        border-top-color: currentColor;
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
+    }
+
+    &--secondary &__spinner,
+    &--link &__spinner {
+        border-color: rgba(255, 255, 255, 0.08);
+        border-top-color: var(--installer-text);
+    }
+
+    &__label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+// ── Test connection button ────────────────────────────────
+.test-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--installer-border2);
+    border-radius: var(--radius-md);
+    color: var(--installer-muted-light);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s var(--ease-smooth);
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-dim);
     }
 
     &__spinner {
@@ -60,7 +204,47 @@
         width: 16px;
         height: 16px;
         border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: #fff;
+        border: 2px solid rgba(255, 255, 255, 0.08);
+        border-top-color: var(--installer-muted-light);
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
     }
+
+    &__label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &--loading {
+        pointer-events: none;
+        border-color: var(--installer-border2);
+        color: var(--installer-muted);
+
+        .test-btn__spinner {
+            display: inline-flex;
+        }
+
+        .test-btn__label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+    }
+}
+
+.test-ok {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: var(--installer-success-bg);
+    border: 1px solid rgba(52, 211, 153, 0.15);
+    border-radius: var(--radius-md);
+    color: var(--installer-success);
+    font-size: 13px;
+    font-weight: 500;
+    animation: scaleIn 0.3s var(--ease-out);
 }

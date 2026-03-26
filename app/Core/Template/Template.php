@@ -79,6 +79,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
     protected array $loadedScripts = [];
 
+    protected ?array $cachedFallbackOrder = null;
+
     /**
      * Cache size limits to prevent memory leaks
      */
@@ -95,8 +97,13 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      * @param string|null      $viewsPath      The path to the views directory.
      * @param string|null      $cachePath      The path to the cache directory.
      */
-    public function __construct(TemplateAssets $templateAssets, RouterInterface $router, ThemeManager $themeManager, ?string $viewsPath = null, ?string $cachePath = null)
-    {
+    public function __construct(
+        TemplateAssets $templateAssets,
+        RouterInterface $router,
+        ThemeManager $themeManager,
+        ?string $viewsPath = null,
+        ?string $cachePath = null,
+    ) {
         $this->templateAssets = $templateAssets;
         $this->router = $router;
         $this->themeManager = $themeManager;
@@ -130,7 +137,6 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             $this->clearThemeCache();
 
             $this->loadComponents();
-
         } catch (Exception $e) {
             logs('templates')->error("Failed to set theme '{$themeName}': " . $e->getMessage());
             $this->fallbackToDefaultTheme();
@@ -152,9 +158,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     {
         try {
             $path = $this->isAdminPath() ? self::LIVE_COMPONENT_ADMIN_PATH : self::LIVE_COMPONENT_PATH;
-            $this->router->any($path, [YoyoController::class, 'handle'])->middleware(['web', 'csrf'])->name('yoyo.update');
+            $this->router
+                ->any($path, [YoyoController::class, 'handle'])
+                ->middleware(['web', 'csrf'])
+                ->name('yoyo.update');
         } catch (Exception $e) {
-            logs()->error("Exception while registering Yoyo route: " . $e->getMessage());
+            logs()->error('Exception while registering Yoyo route: ' . $e->getMessage());
             if (is_debug()) {
                 throw $e;
             }
@@ -219,7 +228,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function renderError(int $errorCode, array $variables = []): View
     {
-        $hint = (!is_installed()) ? 'installer' : ($this->isAdminPath() ? 'admin' : 'flute');
+        $hint = !is_installed() ? 'installer' : ( $this->isAdminPath() ? 'admin' : 'flute' );
 
         return $this->render("{$hint}::pages.error", array_merge(['code' => $errorCode], $variables));
     }
@@ -257,7 +266,10 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function runString(string $html, array $params = []): string
     {
-        return Yoyo::getViewProvider()->getProviderInstance()->compiler()->renderString($html, $params);
+        return Yoyo::getViewProvider()
+            ->getProviderInstance()
+            ->compiler()
+            ->renderString($html, $params);
     }
 
     /**
@@ -356,15 +368,11 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     {
         $path = request()->getPathInfo();
 
-        if (strpos($section, 'profile_') === 0 && !str_contains((string)$path, '/profile')) {
+        if (strpos($section, 'profile_') === 0 && !str_contains((string) $path, '/profile')) {
             return false;
         }
 
-        return !(strpos($section, 'navbar') === 0 && is_admin_path())
-
-
-
-        ;
+        return !( strpos($section, 'navbar') === 0 && is_admin_path() );
     }
 
     /**
@@ -390,7 +398,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     public function addInlineScript(string $scriptContent): void
     {
-        $this->prependToSection('footer', sprintf("<script>%s</script>", $scriptContent));
+        $this->prependToSection('footer', sprintf('<script>%s</script>', $scriptContent));
     }
 
     /**
@@ -479,9 +487,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
     {
         $files = [];
 
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir)
-        );
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
 
         foreach ($iterator as $file) {
             if ($file->isFile() && strpos($file->getFilename(), '.blade.php') !== false) {
@@ -516,6 +522,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
         $this->componentCache = [];
         $this->pathCache = [];
         $this->fallbackPaths = [];
+        $this->cachedFallbackOrder = null;
     }
 
     /**
@@ -587,7 +594,14 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function getThemeFallbackOrder(): array
     {
-        return ThemeFallbackResolver::getThemeHierarchy($this->currentTheme, $this->standardTheme);
+        if ($this->cachedFallbackOrder !== null) {
+            return $this->cachedFallbackOrder;
+        }
+
+        return $this->cachedFallbackOrder = ThemeFallbackResolver::getThemeHierarchy(
+            $this->currentTheme,
+            $this->standardTheme,
+        );
     }
 
     /**
@@ -602,12 +616,12 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             if (empty($this->themeData)) {
                 $this->fallbackToDefaultTheme();
             }
-
-            app()->setTheme($this->currentTheme);
         } catch (Exception $e) {
-            logs('templates')->error("Failed to initialize theme: " . $e->getMessage());
+            logs('templates')->error('Failed to initialize theme: ' . $e->getMessage());
             $this->fallbackToDefaultTheme();
         }
+
+        app()->setTheme($this->currentTheme);
     }
 
     /**
@@ -619,8 +633,8 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         try {
             $this->themeManager->setTheme($defaultTheme);
-            $this->currentTheme = $this->themeManager->getCurrentTheme();
-            $this->themeData = $this->themeManager->getThemeData($this->currentTheme) ?? [];
+            $this->currentTheme = $defaultTheme;
+            $this->themeData = $this->themeManager->getThemeData($defaultTheme) ?? [];
             logs('templates')->warning("Fallback to default theme '{$defaultTheme}' due to invalid current theme.");
         } catch (Exception $e) {
             throw new RuntimeException("Default theme '{$defaultTheme}' is not available. " . $e->getMessage());
@@ -703,31 +717,27 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $this->fluteBladeApp->alias('view', ViewFactory::class);
 
-        $this->blade = new Blade(
-            $this->viewsPath,
-            $this->cachePath,
-            $this->fluteBladeApp
-        );
+        $this->blade = new Blade($this->viewsPath, $this->cachePath, $this->fluteBladeApp);
 
         // Custom Blade conditionals
-        $this->blade->if('auth', static fn () => user()->isLoggedIn());
+        $this->blade->if('auth', static fn() => user()->isLoggedIn());
 
-        $this->blade->if('guest', static fn () => !user()->isLoggedIn());
+        $this->blade->if('guest', static fn() => !user()->isLoggedIn());
 
-        $this->blade->if('can', static fn ($ability, $arguments = []) => user()->can($ability));
+        $this->blade->if('can', static fn($ability, $arguments = []) => user()->can($ability));
 
-        $this->blade->if('cannot', static fn ($ability, $arguments = []) => !user()->can($ability));
+        $this->blade->if('cannot', static fn($ability, $arguments = []) => !user()->can($ability));
 
-        $this->blade->directive('asset', static fn ($expression) => "<?php echo asset({$expression}); ?>");
+        $this->blade->directive('asset', static fn($expression) => "<?php echo asset({$expression}); ?>");
 
-        $this->blade->directive('lang', static fn ($expression) => "<?php echo __({$expression}); ?>");
+        $this->blade->directive('lang', static fn($expression) => "<?php echo __({$expression}); ?>");
 
         $this->addGlobal('app', app());
 
-        $this->fluteBladeApp->bind('view', fn () => $this->blade);
+        $this->fluteBladeApp->bind('view', fn() => $this->blade);
 
         // @php-ignore
-        (new YoyoServiceProvider($this->fluteBladeApp))->boot();
+        ( new YoyoServiceProvider($this->fluteBladeApp) )->boot();
 
         $this->yoyo = new Yoyo($this->fluteBladeApp);
 
@@ -737,21 +747,23 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
             'historyEnabled' => true, // Enables HTMX history push state
         ]);
 
-        $this->yoyo->registerViewProvider(fn () => new BladeViewProvider($this->blade));
+        $this->yoyo->registerViewProvider(fn() => new BladeViewProvider($this->blade));
 
         if (!$this->getGlobal('errors')) {
             $this->addGlobal('errors', new ViewErrorBag());
         }
 
-        Yoyo::getViewProvider()->getProviderInstance()->composer('*', function ($view) {
-            $sections = [];
+        Yoyo::getViewProvider()
+            ->getProviderInstance()
+            ->composer('*', function ($view) {
+                $sections = [];
 
-            foreach ($this->sectionPushes as $section => $contents) {
-                $sections[$section] = implode('', $contents);
-            }
+                foreach ($this->sectionPushes as $section => $contents) {
+                    $sections[$section] = implode('', $contents);
+                }
 
-            $view->with('sections', $sections);
-        });
+                $view->with('sections', $sections);
+            });
 
         app()->bind('flute.view.engine', $this->getBlade());
 
@@ -763,6 +775,9 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
 
         $iconFinder->registerIconDirectory('fa', storage_path('app/icons/fontawesome'));
         $iconFinder->registerIconDirectory('ph', storage_path('app/icons/phosphoricons'));
+        $iconFinder->registerIconDirectory('si', storage_path('app/icons/simpleicons'));
+        $iconFinder->registerIconDirectory('lu', storage_path('app/icons/lucide'));
+        $iconFinder->registerIconDirectory('tb', storage_path('app/icons/tabler'));
 
         events()->dispatch(new TemplateInitialized($this), TemplateInitialized::NAME);
 
@@ -775,7 +790,7 @@ class Template extends AbstractTemplateInstance implements ViewServiceInterface
      */
     protected function addTranslateDirective(): void
     {
-        $this->blade->directive('t', static fn ($expression) => "<?php echo __({$expression}); ?>");
+        $this->blade->directive('t', static fn($expression) => "<?php echo __({$expression}); ?>");
     }
 
     /**

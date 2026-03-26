@@ -70,9 +70,16 @@ class SessionService implements SessionInterface
     {
         if (!$this->session->isStarted()) {
             $this->applyCookieConfiguration();
+            $started = $this->session->start();
+        } else {
+            $started = true;
         }
 
-        return $this->session->start();
+        if ($started) {
+            $this->touchSession();
+        }
+
+        return $started;
     }
 
     /**
@@ -274,6 +281,30 @@ class SessionService implements SessionInterface
     }
 
     /**
+     * Touch the session to avoid aggressive GC dropping CSRF tokens on some hosts.
+     */
+    private function touchSession(): void
+    {
+        if (!$this->session->isStarted()) {
+            return;
+        }
+
+        $now = time();
+        $lastTouch = (int) $this->session->get('_flute_last_activity', 0);
+        $gcMaxLifetime = (int) ini_get('session.gc_maxlifetime');
+
+        if ($gcMaxLifetime <= 0) {
+            $gcMaxLifetime = 1440;
+        }
+
+        $touchInterval = max(30, (int) floor($gcMaxLifetime / 2));
+
+        if ($lastTouch === 0 || ( $now - $lastTouch ) >= $touchInterval) {
+            $this->session->set('_flute_last_activity', $now);
+        }
+    }
+
+    /**
      * Build cookie options from config and request context.
      */
     private function buildCookieOptions(): array
@@ -285,7 +316,7 @@ class SessionService implements SessionInterface
         $secureFlag = $sessionConfig['secure'] ?? null;
         $secure = is_bool($secureFlag)
             ? $secureFlag
-            : (($this->request?->isSecure() ?? false) || $appScheme === 'https');
+            : ( $this->request?->isSecure() ?? false ) || $appScheme === 'https';
 
         $sameSite = $sessionConfig['same_site'] ?? 'Lax';
         $allowedSameSite = ['Lax', 'Strict', 'None'];

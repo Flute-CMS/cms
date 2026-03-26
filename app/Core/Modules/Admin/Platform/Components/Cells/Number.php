@@ -14,7 +14,7 @@ class Number extends Component
         protected float $value,
         protected int $decimals = 0,
         protected ?string $decimal_separator = '.',
-        protected ?string $thousands_separator = ','
+        protected ?string $thousands_separator = ',',
     ) {
     }
 

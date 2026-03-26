@@ -8,6 +8,7 @@ use Flute\Core\Support\AbstractServiceProvider;
 use Flute\Core\Support\FluteRequest;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RequestContext;
 
@@ -16,10 +17,11 @@ class RequestServiceProvider extends AbstractServiceProvider
     public function register(ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            FluteRequest::class => \DI\factory(static fn () => FluteRequest::createFromGlobals()),
+            FluteRequest::class => \DI\factory(static fn() => FluteRequest::createFromGlobals()),
             Request::class => \DI\get(FluteRequest::class),
             RequestInterface::class => \DI\get(FluteRequest::class),
             Response::class => \DI\create(),
+            RequestStack::class => \DI\factory(static fn() => new RequestStack()),
             RequestContext::class => \DI\factory(static function (Container $container) {
                 $context = new RequestContext();
                 $context->fromRequest($container->get(Request::class));
@@ -37,15 +39,19 @@ class RequestServiceProvider extends AbstractServiceProvider
 
         $trustedProxies = array_filter((array) config('app.trusted_proxies', []));
 
+        if (in_array('*', $trustedProxies, true) || in_array('REMOTE_ADDR', $trustedProxies, true)) {
+            $trustedProxies = [$_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'];
+        }
+
+        $trustedHeaders =
+            Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+            | Request::HEADER_X_FORWARDED_HOST;
+
         if (!empty($trustedProxies)) {
-            FluteRequest::setTrustedProxies(
-                $trustedProxies,
-                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
-            );
-            Request::setTrustedProxies(
-                $trustedProxies,
-                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO
-            );
+            FluteRequest::setTrustedProxies($trustedProxies, $trustedHeaders);
+            Request::setTrustedProxies($trustedProxies, $trustedHeaders);
         } else {
             FluteRequest::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
             Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);

@@ -22,8 +22,8 @@ return array(
         ),
         'password' =>
         array(
-            'min_length' => 4,
-            'max_length' => 30,
+            'min_length' => 8,
+            'max_length' => 128,
         ),
         'name' =>
         array(
@@ -50,6 +50,11 @@ return array(
         array(
             'site_key' => '',
             'secret_key' => '',
+        ),
+        'yandex' =>
+        array(
+            'client_key' => '',
+            'server_key' => '',
         ),
     ),
     'two_factor' =>

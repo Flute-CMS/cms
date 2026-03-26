@@ -90,31 +90,26 @@ class TranslationService
             }
         }
 
-        $defaultLocale = $defaultLocale ?: (string) (config('lang.locale') ?? 'en');
+        $defaultLocale = $defaultLocale ?: (string) ( config('lang.locale') ?? 'en' );
 
         if (app()->getLang() !== $defaultLocale) {
             app()->setLang($defaultLocale);
         }
 
-        // Enable on-disk translation caching only when performance mode is requested
-        // and the required Symfony Config classes are available. Missing the
-        // symfony/config package causes Translator to throw a fatal error when
-        // attempting to create the config cache factory, so detect that and
-        // silently fall back to non-cached mode.
-        $requestedCacheDir = is_performance() ? path('storage/app/translations') : null;
-        $debug = is_debug();
+        $requestedCacheDir = path('storage/app/translations');
+        $debug = is_debug() || is_development();
 
         $cacheDir = $requestedCacheDir;
-        if ($requestedCacheDir) {
-            if (!class_exists('Symfony\\Component\\Config\\ConfigCacheFactory') && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')) {
-                logs()->warning('Symfony Config component is missing; disabling translation catalogue cache.');
-                $cacheDir = null;
-            }
+        if (
+            !class_exists('Symfony\\Component\\Config\\ConfigCacheFactory')
+            && !class_exists('Symfony\\Component\\Config\\ConfigCacheFactoryInterface')
+        ) {
+            $cacheDir = null;
         }
 
         $this->translator = new Translator($defaultLocale, null, $cacheDir, $debug);
 
-        $this->performance = ($cacheDir !== null);
+        $this->performance = $cacheDir !== null;
 
         $this->translator->addLoader('file', new PhpFileLoader());
         $this->translator->setLocale($defaultLocale);
@@ -124,9 +119,6 @@ class TranslationService
         $this->listenEvents($eventDispatcher);
 
         register_shutdown_function(function () {
-            if (!is_performance()) {
-                return;
-            }
             foreach ($this->latestDiscoveredFilesByLocale as $locale => $paths) {
                 $cacheKey = 'translation.compiled.sources.' . $locale;
                 $existing = (array) cache()->get($cacheKey, []);
@@ -136,7 +128,7 @@ class TranslationService
         });
 
         $this->_importTranslationsForLocale($this->translator, $defaultLocale);
-        if (is_performance() && $this->primaryFallback && $this->primaryFallback !== $defaultLocale) {
+        if ($this->performance && $this->primaryFallback && $this->primaryFallback !== $defaultLocale) {
             $this->_importTranslationsForLocale($this->translator, $this->primaryFallback);
         }
 
@@ -218,7 +210,7 @@ class TranslationService
             if (!is_string($rKey)) {
                 continue;
             }
-            if (strpos($rKey, ':') !== 0 && !(substr($rKey, 0, 1) === '%' && substr($rKey, -1) === '%')) {
+            if (strpos($rKey, ':') !== 0 && !( substr($rKey, 0, 1) === '%' && substr($rKey, -1) === '%' )) {
                 $extendedReplacements[':' . $rKey] = $rValue;
                 $extendedReplacements['%' . $rKey . '%'] = $rValue;
             }
@@ -272,9 +264,6 @@ class TranslationService
      */
     public function flushLocaleCache(string $locale): void
     {
-        if (!is_performance()) {
-            return;
-        }
         $cacheDir = path('storage/app/translations');
         foreach ($this->globSafe($cacheDir . '/catalogue.' . $locale . '.*.php') as $cachedFile) {
             @unlink($cachedFile);
@@ -297,22 +286,26 @@ class TranslationService
         }
 
         $cacheKey = 'translation.dir.' . md5($directory);
-        $translationFiles = cache()->callback($cacheKey, static function () use ($directory) {
-            $finder = finder();
-            $finder->files()->in($directory)->name('*.php');
+        $translationFiles = cache()->callback(
+            $cacheKey,
+            static function () use ($directory) {
+                $finder = finder();
+                $finder->files()->in($directory)->name('*.php');
 
-            $files = [];
-            foreach ($finder as $file) {
-                $files[] = [
-                    'path' => $file->getPathname(),
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'mtime' => filemtime($file->getPathname()),
-                ];
-            }
+                $files = [];
+                foreach ($finder as $file) {
+                    $files[] = [
+                        'path' => $file->getPathname(),
+                        'locale' => $file->getRelativePath(),
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'mtime' => filemtime($file->getPathname()),
+                    ];
+                }
 
-            return $files;
-        }, $cacheDuration);
+                return $files;
+            },
+            $cacheDuration,
+        );
 
         if (empty($translationFiles)) {
             $this->loadedDirectories[$directory] = true;
@@ -392,23 +385,44 @@ class TranslationService
      */
     protected function registerKnownTranslationDirectories(): void
     {
-        $dirs = cache()->callback('translation.known_dirs.v2', function () {
-            $result = [];
-            $seen = [];
+        $dirs = cache()->callback(
+            'translation.known_dirs.v2',
+            function () {
+                $result = [];
+                $seen = [];
 
-            $glob = fn (string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
+                $glob = fn(string $pattern, int $flags = 0): array => $this->globSafe($pattern, $flags);
 
-            // Modules
-            $modulesRoot = path('app/Modules');
-            if (is_dir($modulesRoot)) {
-                $patterns = [
-                    $modulesRoot . '/*/Resources/lang',
-                    $modulesRoot . '/*/Admin/Resources/lang',
-                    $modulesRoot . '/*/Admin/Package/Resources/lang',
-                ];
+                // Modules
+                $modulesRoot = path('app/Modules');
+                if (is_dir($modulesRoot)) {
+                    $patterns = [
+                        $modulesRoot . '/*/Resources/lang',
+                        $modulesRoot . '/*/Admin/Resources/lang',
+                        $modulesRoot . '/*/Admin/Package/Resources/lang',
+                    ];
 
-                foreach ($patterns as $pattern) {
-                    foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                    foreach ($patterns as $pattern) {
+                        foreach ($glob($pattern, GLOB_NOSORT) as $dir) {
+                            if (!is_dir($dir)) {
+                                continue;
+                            }
+
+                            $normalized = rtrim(str_replace('\\', '/', $dir), '/');
+                            if (isset($seen[$normalized])) {
+                                continue;
+                            }
+
+                            $seen[$normalized] = true;
+                            $result[] = $normalized;
+                        }
+                    }
+                }
+
+                // Core admin packages
+                $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
+                if (is_dir($adminPkgsRoot)) {
+                    foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
                         if (!is_dir($dir)) {
                             continue;
                         }
@@ -422,30 +436,43 @@ class TranslationService
                         $result[] = $normalized;
                     }
                 }
+
+                sort($result);
+
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
+
+        $currentLocale = app()->getLang();
+        $indexCacheKey = 'translation.domain_index.' . md5(implode('|', $dirs)) . '.' . $currentLocale;
+        $cachedIndex = !is_debug() ? cache()->get($indexCacheKey) : null;
+
+        if (is_array($cachedIndex) && !empty($cachedIndex)) {
+            foreach ($dirs as $dir) {
+                $this->translationDirectories[$dir] = true;
+                $this->loadedDirectories[$dir] = true;
             }
-
-            // Core admin packages
-            $adminPkgsRoot = path('app/Core/Modules/Admin/Packages');
-            if (is_dir($adminPkgsRoot)) {
-                foreach ($glob($adminPkgsRoot . '/*/Resources/lang', GLOB_NOSORT) as $dir) {
-                    if (!is_dir($dir)) {
-                        continue;
-                    }
-
-                    $normalized = rtrim(str_replace('\\', '/', $dir), '/');
-                    if (isset($seen[$normalized])) {
-                        continue;
-                    }
-
-                    $seen[$normalized] = true;
-                    $result[] = $normalized;
+            foreach ($cachedIndex as $locale => $domains) {
+                foreach ($domains as $domain => $path) {
+                    $this->domainFileIndex[$locale][$domain] = $path;
                 }
             }
 
-            sort($result);
+            // Eagerly load resources for current locale.
+            $fallbacks = $this->translator->getFallbackLocales();
+            $eagerLocales = array_unique(array_filter(array_merge([$currentLocale], $fallbacks)));
+            foreach ($eagerLocales as $locale) {
+                if (!isset($cachedIndex[$locale])) {
+                    continue;
+                }
+                foreach ($cachedIndex[$locale] as $domain => $path) {
+                    $this->registerResource($path, $locale, $domain);
+                }
+            }
 
-            return $result;
-        }, self::CACHE_TIME);
+            return;
+        }
 
         $this->bulkLoad = true;
         foreach ($dirs as $dir) {
@@ -453,6 +480,10 @@ class TranslationService
             $this->loadTranslationsFromDirectory($dir, self::CACHE_TIME);
         }
         $this->bulkLoad = false;
+
+        if (!empty($this->domainFileIndex) && !is_debug()) {
+            cache()->set($indexCacheKey, $this->domainFileIndex, self::CACHE_TIME);
+        }
 
         if (is_performance()) {
             $localesNeedingFlush = [];
@@ -504,20 +535,24 @@ class TranslationService
 
         $cacheKey = 'translation.core.files.' . $locale;
 
-        $domains = cache()->callback($cacheKey, static function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
+        $domains = cache()->callback(
+            $cacheKey,
+            static function () use ($langDir) {
+                $finder = finder();
+                $finder->files()->in($langDir)->name('*.php');
 
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
+                $result = [];
+                foreach ($finder as $file) {
+                    $result[] = [
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'path' => $file->getPathname(),
+                    ];
+                }
 
-            return $result;
-        }, self::CACHE_TIME);
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
 
         foreach ($domains as $domainInfo) {
             $translator->addResource('file', $domainInfo['path'], $locale, $domainInfo['domain']);
@@ -532,21 +567,25 @@ class TranslationService
 
         $cacheKey = 'translation.core.files';
 
-        $files = cache()->callback($cacheKey, static function () use ($langDir) {
-            $finder = finder();
-            $finder->files()->in($langDir)->name('*.php');
+        $files = cache()->callback(
+            $cacheKey,
+            static function () use ($langDir) {
+                $finder = finder();
+                $finder->files()->in($langDir)->name('*.php');
 
-            $result = [];
-            foreach ($finder as $file) {
-                $result[] = [
-                    'locale' => $file->getRelativePath(),
-                    'domain' => basename($file->getFilename(), '.php'),
-                    'path' => $file->getPathname(),
-                ];
-            }
+                $result = [];
+                foreach ($finder as $file) {
+                    $result[] = [
+                        'locale' => $file->getRelativePath(),
+                        'domain' => basename($file->getFilename(), '.php'),
+                        'path' => $file->getPathname(),
+                    ];
+                }
 
-            return $result;
-        }, self::CACHE_TIME);
+                return $result;
+            },
+            self::CACHE_TIME,
+        );
 
         foreach ($files as $file) {
             $translator->addResource('file', $file['path'], $file['locale'], $file['domain']);
@@ -623,7 +662,13 @@ class TranslationService
         }
 
         foreach (array_keys($this->translationDirectories) as $dir) {
-            $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $domain . '.php';
+            $candidate =
+                rtrim($dir, DIRECTORY_SEPARATOR)
+                . DIRECTORY_SEPARATOR
+                . $locale
+                . DIRECTORY_SEPARATOR
+                . $domain
+                . '.php';
             if (file_exists($candidate)) {
                 return $this->domainFileIndex[$locale][$domain] = $candidate;
             }

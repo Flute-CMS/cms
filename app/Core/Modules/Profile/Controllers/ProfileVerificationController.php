@@ -11,9 +11,11 @@ class ProfileVerificationController extends BaseController
     public function verifyEmail()
     {
         try {
+            throttler()->throttle(['action' => 'verify_email', 'user' => user()->id], 3, 300, 1);
+
             $user = user()->getCurrentUser();
 
-            $verificationToken = auth()->createVerificationToken($user)->token;
+            $verificationToken = auth()->createVerificationToken($user)->rawToken;
 
             $template = template()->render('flute::emails.confirmation', [
                 'url' => url('confirm/' . $verificationToken),

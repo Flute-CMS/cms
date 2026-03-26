@@ -1,269 +1,314 @@
-<div class="about-system">
-    <div class="about-system__support-banner">
-        <h2><x-icon path="ph.bold.music-notes-bold" /> {{ __('admin-about-system.labels.donate_title') }}</h2>
-        <p>{{ __('admin-about-system.labels.donate_description') }}</p>
-        <div class="about-system__support-actions">
-            <a href="https://github.com/Flute-CMS/cms/sponsors" target="_blank"
-                class="about-system__btn about-system__btn--primary">
-                <x-icon path="ph.bold.heart-bold" />
-                {{ __('admin-about-system.support.github_sponsors') }}
-            </a>
-            <a href="https://github.com/Flute-CMS/cms" target="_blank" class="about-system__btn">
-                <x-icon path="ph.regular.github-logo" />
-                {{ __('admin-about-system.support.github') }}
-            </a>
+<div class="about-sys">
+    {{-- Report download --}}
+    <div class="about-sys__report">
+        <div class="about-sys__report-left">
+            <x-icon path="ph.regular.file-text" class="about-sys__report-icon" />
+            <div>
+                <div class="about-sys__report-title">{{ __('admin-about-system.report.title') }}</div>
+                <div class="about-sys__report-desc">{{ __('admin-about-system.report.description') }}</div>
+            </div>
+        </div>
+        <a href="{{ url('/admin/about-system/download-report') }}" class="about-sys__report-btn" data-turbo="false" hx-boost="false">
+            <x-icon path="ph.bold.download-simple-bold" />
+            {{ __('admin-about-system.report.download') }}
+        </a>
+    </div>
+
+    {{-- Performance --}}
+    @if ($performanceData['hasData'])
+        @push('head')
+            <script src="{{ asset('assets/js/libs/apex-charts.js') }}" defer></script>
+        @endpush
+
+        <div class="about-sys__section">
+            <div class="about-sys__section-header">
+                <x-icon path="ph.bold.gauge-bold" />
+                <span>{{ __('admin-about-system.sections.performance.title') }}</span>
+            </div>
+
+            <div class="about-sys__stats">
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['total_requests'] }}</span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.total_requests') }}</span>
+                </div>
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['avg_response_time'] }}<small>ms</small></span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.avg_response') }}</span>
+                </div>
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['avg_db_time'] }}<small>ms</small></span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.avg_db_time') }}</span>
+                </div>
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['avg_memory'] }}<small>MB</small></span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.avg_memory') }}</span>
+                </div>
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['routes_count'] }}</span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.routes_tracked') }}</span>
+                </div>
+                <div class="about-sys__stat">
+                    <span class="about-sys__stat-value">{{ $performanceData['overview']['widgets_count'] }}</span>
+                    <span class="about-sys__stat-label">{{ __('admin-about-system.charts.widgets_tracked') }}</span>
+                </div>
+            </div>
+
+            @if ($performanceData['overview']['last_updated'])
+                <div class="about-sys__updated">
+                    {{ __('admin-about-system.charts.last_updated') }}: {{ $performanceData['overview']['last_updated'] }}
+                </div>
+            @endif
+        </div>
+
+        @php
+            $charts = array_filter([
+                ['chart' => $routesChart, 'icon' => 'ph.regular.path', 'title' => __('admin-about-system.charts.slowest_routes')],
+                ['chart' => $queriesChart, 'icon' => 'ph.regular.database', 'title' => __('admin-about-system.charts.slowest_queries')],
+                ['chart' => $widgetsChart, 'icon' => 'ph.regular.squares-four', 'title' => __('admin-about-system.charts.slowest_widgets')],
+                ['chart' => $modulesChart, 'icon' => 'ph.regular.package', 'title' => __('admin-about-system.charts.slowest_modules')],
+                ['chart' => $providersChart, 'icon' => 'ph.regular.plugs-connected', 'title' => __('admin-about-system.charts.slowest_providers')],
+            ], fn($item) => $item['chart'] !== null);
+        @endphp
+
+        @if (count($charts) > 0)
+            <div class="about-sys__charts-grid">
+                @foreach ($charts as $chartData)
+                    <div class="about-sys__section">
+                        <div class="about-sys__section-header">
+                            <x-icon path="{{ $chartData['icon'] }}" />
+                            <span>{{ $chartData['title'] }}</span>
+                        </div>
+                        <div class="about-sys__chart">
+                            {!! $chartData['chart']->container() !!}
+                        </div>
+                        {!! $chartData['chart']->script() !!}
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    @else
+        <div class="about-sys__section">
+            <div class="about-sys__section-header">
+                <x-icon path="ph.bold.gauge-bold" />
+                <span>{{ __('admin-about-system.sections.performance.title') }}</span>
+            </div>
+            <div class="about-sys__empty">
+                <x-icon path="ph.regular.chart-line" />
+                <p>{{ __('admin-about-system.charts.no_data') }}</p>
+                <small>{{ __('admin-about-system.charts.no_data_hint') }}</small>
+            </div>
+        </div>
+    @endif
+
+    {{-- Info + PHP --}}
+    <div class="row gx-3 gy-3">
+        <div class="col-md-6">
+            <div class="about-sys__group">
+                <div class="about-sys__group-header">
+                    <x-icon path="ph.bold.info-bold" />
+                    <span>{{ __('admin-about-system.sections.system_info.title') }}</span>
+                </div>
+                <div class="about-sys__group-body">
+                    <div class="about-sys__kv">
+                        <span class="about-sys__kv-label">{{ __('admin-about-system.labels.author') }}</span>
+                        <a href="https://github.com/FlamesONE" target="_blank" rel="noopener" class="about-sys__kv-link">
+                            {{ explode(' <', $systemInfo['author'])[0] ?? $systemInfo['author'] }}
+                            <x-icon path="ph.bold.arrow-square-out-bold" />
+                        </a>
+                    </div>
+                    <div class="about-sys__kv">
+                        <span class="about-sys__kv-label">{{ __('admin-about-system.labels.project_link') }}</span>
+                        <a href="{{ $systemInfo['project_link'] }}" target="_blank" rel="noopener" class="about-sys__kv-link">
+                            GitHub
+                            <x-icon path="ph.bold.arrow-square-out-bold" />
+                        </a>
+                    </div>
+                    <div class="about-sys__kv">
+                        <span class="about-sys__kv-label">{{ __('admin-about-system.labels.license') }}</span>
+                        <span class="about-sys__badge about-sys__badge--accent">{{ $systemInfo['license'] }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="about-sys__group">
+                <div class="about-sys__group-header">
+                    <x-icon path="ph.bold.code-bold" />
+                    <span>{{ __('admin-about-system.sections.php_info.title') }}</span>
+                </div>
+                <div class="about-sys__group-body">
+                    @foreach (['version', 'memory_limit', 'max_execution_time', 'upload_max_filesize', 'post_max_size', 'opcache', 'jit'] as $key)
+                        @if (isset($phpInfo[$key]))
+                            @php
+                                $hasWarning = isset($phpWarnings[$key]);
+                                $warningMessage = $hasWarning ? $phpWarnings[$key] : '';
+                            @endphp
+                            <div class="about-sys__kv">
+                                <span class="about-sys__kv-label">
+                                    {{ __('admin-about-system.labels.' . $key) }}
+                                    @if ($hasWarning)
+                                        <x-icon path="ph.bold.warning-bold" data-tooltip="{{ $warningMessage }}" />
+                                    @endif
+                                </span>
+                                @if ($key === 'version')
+                                    <span class="about-sys__badge {{ $phpVersionValid ? 'about-sys__badge--ok' : 'about-sys__badge--warn' }}">{{ $phpInfo[$key] }}</span>
+                                @elseif ($key === 'opcache' || $key === 'jit')
+                                    <span class="about-sys__badge {{ $phpInfo[$key] === 'Enabled' ? 'about-sys__badge--ok' : 'about-sys__badge--warn' }}">{{ $phpInfo[$key] }}</span>
+                                @else
+                                    <span class="about-sys__kv-value">{{ $phpInfo[$key] }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="about-system__panels">
-        <section class="about-system__panel">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.info" />
-                {{ __('admin-about-system.sections.system_info.title') }}
-            </h2>
-
-            <div class="about-system__grid">
-                <div class="about-system__grid-item">
-                    <div class="about-system__grid-label">{{ __('admin-about-system.labels.author') }}</div>
-                    <div class="about-system__grid-value">
-                        <a href="https://github.com/FlamesONE" target="_blank">
-                            {{ explode(' <', $systemInfo['author'])[0] ?? $systemInfo['author'] }}
-                        </a>
+    {{-- Optimization recommendations --}}
+    @php
+        $optimizationWarnings = array_filter($phpWarnings, fn($k) => in_array($k, ['opcache', 'opcache_validate', 'jit', 'performance_mode', 'realpath_cache'], true), ARRAY_FILTER_USE_KEY);
+    @endphp
+    @if (!empty($optimizationWarnings))
+        <div class="row gx-3 gy-3 mt-0">
+            <div class="col-12">
+                <div class="about-sys__group about-sys__group--warn">
+                    <div class="about-sys__group-header">
+                        <x-icon path="ph.bold.lightning-bold" />
+                        <span>{{ __('admin-about-system.sections.optimization.title') }}</span>
                     </div>
-                </div>
-
-                <div class="about-system__grid-item">
-                    <div class="about-system__grid-label">{{ __('admin-about-system.labels.project_link') }}</div>
-                    <div class="about-system__grid-value">
-                        <a href="{{ $systemInfo['project_link'] }}" target="_blank">GitHub</a>
-                    </div>
-                </div>
-
-                <div class="about-system__grid-item">
-                    <div class="about-system__grid-label">{{ __('admin-about-system.labels.license') }}</div>
-                    <div class="about-system__grid-value">
-                        <span class="badge primary">{{ $systemInfo['license'] }}</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="about-system__panel">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.code" />
-                {{ __('admin-about-system.sections.php_info.title') }}
-            </h2>
-
-            <div class="about-system__grid">
-                @foreach (['version', 'memory_limit', 'max_execution_time', 'upload_max_filesize', 'post_max_size', 'opcache'] as $key)
-                    @if (isset($phpInfo[$key]))
-                        @php
-                            $hasWarning = isset($phpWarnings[$key]);
-                            $warningMessage = $hasWarning ? $phpWarnings[$key] : '';
-                        @endphp
-
-                        <div
-                            class="about-system__grid-item {{ $hasWarning ? 'about-system__grid-item--warning' : '' }}">
-                            <div class="about-system__grid-label">
-                                {{ __('admin-about-system.labels.' . $key) }}
-                                @if ($hasWarning)
-                                    <x-icon path="ph.regular.warning" class="icon"
-                                        data-tooltip="{{ $warningMessage }}" />
-                                @endif
+                    <div class="about-sys__group-body">
+                        @foreach ($optimizationWarnings as $key => $message)
+                            <div class="about-sys__kv about-sys__kv--alert">
+                                <span class="about-sys__kv-label">
+                                    <x-icon path="ph.bold.warning-bold" />
+                                    {{ $message }}
+                                </span>
                             </div>
-                            <div class="about-system__grid-value">
-                                @if ($key === 'version')
-                                    <span
-                                        class="about-system__badge {{ $phpVersionValid ? 'about-system__badge--success' : 'about-system__badge--warning' }}">
-                                        {{ $phpInfo[$key] }}
-                                    </span>
-                                @elseif($key === 'opcache' || $key === 'jit')
-                                    <span
-                                        class="about-system__badge {{ $phpInfo[$key] === 'Enabled' ? 'about-system__badge--success' : 'about-system__badge--warning' }}">
-                                        {{ $phpInfo[$key] }}
-                                    </span>
-                                @else
-                                    {{ $phpInfo[$key] }}
-                                @endif
-                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Server + Health --}}
+    <div class="row gx-3 gy-3 mt-0">
+        <div class="col-md-6">
+            <div class="about-sys__group">
+                <div class="about-sys__group-header">
+                    <x-icon path="ph.bold.hard-drives-bold" />
+                    <span>{{ __('admin-about-system.sections.server_info.title') }}</span>
+                </div>
+                <div class="about-sys__group-body">
+                    @foreach ($serverInfo as $key => $value)
+                        <div class="about-sys__kv">
+                            <span class="about-sys__kv-label">{{ __('admin-about-system.labels.' . $key) }}</span>
+                            <span class="about-sys__kv-value">{{ $value }}</span>
                         </div>
-                    @endif
-                @endforeach
-            </div>
-        </section>
-    </div>
-
-    <div class="about-system__panels">
-        <section class="about-system__panel">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.database" />
-                {{ __('admin-about-system.sections.server_info.title') }}
-            </h2>
-
-            <div class="about-system__grid">
-                @foreach ($serverInfo as $key => $value)
-                    <div class="about-system__grid-item">
-                        <div class="about-system__grid-label">{{ __('admin-about-system.labels.' . $key) }}</div>
-                        <div class="about-system__grid-value">{{ $value }}</div>
-                    </div>
-                @endforeach
-            </div>
-        </section>
-
-        <section class="about-system__panel">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.chart-line-up" />
-                {{ __('admin-about-system.sections.system_health.title') }}
-            </h2>
-
-            <div class="about-system__health">
-                <div class="about-system__health-item">
-                    <div class="about-system__health-label">{{ __('admin-about-system.labels.memory_usage') }}</div>
-                    <div class="about-system__health-bar">
-                        @php
-                            $memoryUsage = memory_get_usage(true);
-                            $memoryLimit = ini_get('memory_limit');
-                            $memoryLimitBytes = preg_replace('/[^0-9]/', '', $memoryLimit) * 1024 * 1024;
-                            $memoryPercentage =
-                                $memoryLimitBytes > 0 ? min(100, round(($memoryUsage / $memoryLimitBytes) * 100)) : 0;
-
-                            $statusClass = 'about-system__health-bar-fill--success';
-                            if ($memoryPercentage > 70) {
-                                $statusClass = 'about-system__health-bar-fill--warning';
-                            }
-                            if ($memoryPercentage > 85) {
-                                $statusClass = 'about-system__health-bar-fill--error';
-                            }
-                        @endphp
-                        <div class="about-system__health-bar-fill {{ $statusClass }}"
-                            style="width: {{ $memoryPercentage }}%"></div>
-                    </div>
-                    <div class="about-system__health-value">
-                        {{ round($memoryUsage / 1024 / 1024, 1) }}MB / {{ $memoryLimit }}
-                    </div>
-                </div>
-
-                <div class="about-system__health-item">
-                    <div class="about-system__health-label">{{ __('admin-about-system.labels.disk_usage') }}</div>
-                    <div class="about-system__health-bar">
-                        @php
-                            $diskTotal = disk_total_space(__DIR__);
-                            $diskFree = disk_free_space(__DIR__);
-                            $diskUsed = $diskTotal - $diskFree;
-                            $diskPercentage = round(($diskUsed / $diskTotal) * 100);
-
-                            $statusClass = 'about-system__health-bar-fill--success';
-                            if ($diskPercentage > 70) {
-                                $statusClass = 'about-system__health-bar-fill--warning';
-                            }
-                            if ($diskPercentage > 85) {
-                                $statusClass = 'about-system__health-bar-fill--error';
-                            }
-                        @endphp
-                        <div class="about-system__health-bar-fill {{ $statusClass }}"
-                            style="width: {{ $diskPercentage }}%">
-                        </div>
-                    </div>
-                    <div class="about-system__health-value">
-                        {{ round($diskUsed / 1024 / 1024 / 1024, 1) }}GB /
-                        {{ round($diskTotal / 1024 / 1024 / 1024, 1) }}GB
-                    </div>
+                    @endforeach
                 </div>
             </div>
-        </section>
-    </div>
+        </div>
 
-    <div class="about-system__panels">
-        <section class="about-system__panel">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.cpu" />
-                {{ __('admin-about-system.sections.resources.title') }}
-            </h2>
-
-            <div class="about-system__grid">
-                {{-- CPU Load --}}
-                <div class="about-system__grid-item">
-                    <div class="about-system__grid-label">{{ __('admin-about-system.labels.cpu_load') }}</div>
-                    <div class="about-system__grid-value">
-                        {{ $resourceUsage['cpu_load']['1min'] }} (1m),
-                        {{ $resourceUsage['cpu_load']['5min'] }} (5m),
-                        {{ $resourceUsage['cpu_load']['15min'] }} (15m)
-                    </div>
+        <div class="col-md-6">
+            <div class="about-sys__group">
+                <div class="about-sys__group-header">
+                    <x-icon path="ph.bold.heartbeat-bold" />
+                    <span>{{ __('admin-about-system.sections.system_health.title') }}</span>
                 </div>
-
-                {{-- RAM Usage --}}
-                <div class="about-system__grid-item">
-                    <div class="about-system__grid-label">{{ __('admin-about-system.labels.ram_usage') }}</div>
-                    <div class="about-system__grid-value">
-                        {{-- График заполнения --}}
-                        @php
-                            $ramPct = $resourceUsage['ram']['percent'];
-                            $ramBarClass =
-                                $ramPct > 85
-                                    ? 'about-system__health-bar-fill--error'
-                                    : ($ramPct > 70
-                                        ? 'about-system__health-bar-fill--warning'
-                                        : 'about-system__health-bar-fill--success');
-                        @endphp
-                        <div class="about-system__health-bar">
-                            <div class="about-system__health-bar-fill {{ $ramBarClass }}"
-                                style="width: {{ $ramPct }}%">
-                            </div>
-                        </div>
-                        {{ \Flute\Admin\Packages\AboutSystem\Helpers\AboutSystemHelper::formatBytes($resourceUsage['ram']['used']) }}
-                        /
-                        {{ \Flute\Admin\Packages\AboutSystem\Helpers\AboutSystemHelper::formatBytes($resourceUsage['ram']['total']) }}
-                        ({{ $ramPct }}%)
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="about-system__panel about-system__panel--full">
-            <h2 class="about-system__panel-title">
-                <x-icon path="ph.regular.plug" />
-                {{ __('admin-about-system.sections.requirements.title') }}
-            </h2>
-
-            <div class="about-system__requirements">
-                @foreach ($requiredExtensions as $extension => $info)
+                <div class="about-sys__group-body about-sys__group-body--health">
+                    {{-- Memory --}}
                     @php
-                        $itemClass = 'about-system__requirements-item';
-                        $iconName = 'ph.regular.check-circle';
-
-                        if ($info['required']) {
-                            $itemClass .= ' about-system__requirements-item--required';
-                        }
-
-                        if ($info['loaded']) {
-                            $itemClass .= ' about-system__requirements-item--loaded';
-                        } else {
-                            $iconName = 'ph.regular.x-circle';
-                            $itemClass .= $info['required']
-                                ? ' about-system__requirements-item--not-loaded'
-                                : ' about-system__requirements-item--warning';
-                        }
+                        $memoryUsage = memory_get_usage(true);
+                        $memoryLimit = ini_get('memory_limit');
+                        $memoryLimitBytes = preg_replace('/[^0-9]/', '', $memoryLimit) * 1024 * 1024;
+                        $memoryPct = $memoryLimitBytes > 0 ? min(100, round(($memoryUsage / $memoryLimitBytes) * 100)) : 0;
+                        $memClass = $memoryPct > 85 ? '--error' : ($memoryPct > 70 ? '--warn' : '--ok');
                     @endphp
-
-                    <div class="{{ $itemClass }}">
-                        <div class="about-system__requirements-icon">
-                            <x-icon path="{{ $iconName }}" />
+                    <div class="about-sys__meter">
+                        <div class="about-sys__meter-header">
+                            <span>{{ __('admin-about-system.labels.memory_usage') }}</span>
+                            <span class="about-sys__meter-val">{{ round($memoryUsage / 1024 / 1024, 1) }}MB / {{ $memoryLimit }}</span>
                         </div>
-                        <div class="about-system__requirements-content">
-                            <div class="about-system__requirements-name">
-                                {{ $extension }}
-                                @if ($info['required'])
-                                    <span class="about-system__requirements-required"
-                                        data-tooltip="{{ __('admin-about-system.requirements.required_extension') }}">
-                                        <x-icon path="ph.regular.info" />
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="about-system__requirements-description">{{ $info['description'] }}</div>
+                        <div class="about-sys__meter-track">
+                            <div class="about-sys__meter-fill about-sys__meter-fill{{ $memClass }}" style="width: {{ $memoryPct }}%"></div>
                         </div>
                     </div>
-                @endforeach
+
+                    {{-- Disk --}}
+                    @php
+                        $diskTotal = disk_total_space(__DIR__);
+                        $diskFree = disk_free_space(__DIR__);
+                        $diskUsed = $diskTotal - $diskFree;
+                        $diskPct = round(($diskUsed / $diskTotal) * 100);
+                        $diskClass = $diskPct > 85 ? '--error' : ($diskPct > 70 ? '--warn' : '--ok');
+                    @endphp
+                    <div class="about-sys__meter">
+                        <div class="about-sys__meter-header">
+                            <span>{{ __('admin-about-system.labels.disk_usage') }}</span>
+                            <span class="about-sys__meter-val">{{ round($diskUsed / 1024 / 1024 / 1024, 1) }}GB / {{ round($diskTotal / 1024 / 1024 / 1024, 1) }}GB</span>
+                        </div>
+                        <div class="about-sys__meter-track">
+                            <div class="about-sys__meter-fill about-sys__meter-fill{{ $diskClass }}" style="width: {{ $diskPct }}%"></div>
+                        </div>
+                    </div>
+
+                    {{-- CPU --}}
+                    <div class="about-sys__kv" style="border: 0; padding-bottom: 0;">
+                        <span class="about-sys__kv-label">{{ __('admin-about-system.labels.cpu_load') }}</span>
+                        <span class="about-sys__kv-value">
+                            {{ $resourceUsage['cpu_load']['1min'] }}
+                            <small>/ {{ $resourceUsage['cpu_load']['5min'] }}</small>
+                            <small>/ {{ $resourceUsage['cpu_load']['15min'] }}</small>
+                        </span>
+                    </div>
+
+                    {{-- RAM --}}
+                    @php
+                        $ramPct = $resourceUsage['ram']['percent'];
+                        $ramClass = $ramPct > 85 ? '--error' : ($ramPct > 70 ? '--warn' : '--ok');
+                    @endphp
+                    <div class="about-sys__meter">
+                        <div class="about-sys__meter-header">
+                            <span>{{ __('admin-about-system.labels.ram_usage') }}</span>
+                            <span class="about-sys__meter-val">
+                                {{ \Flute\Admin\Packages\AboutSystem\Helpers\AboutSystemHelper::formatBytes($resourceUsage['ram']['used']) }}
+                                / {{ \Flute\Admin\Packages\AboutSystem\Helpers\AboutSystemHelper::formatBytes($resourceUsage['ram']['total']) }}
+                                ({{ $ramPct }}%)
+                            </span>
+                        </div>
+                        <div class="about-sys__meter-track">
+                            <div class="about-sys__meter-fill about-sys__meter-fill{{ $ramClass }}" style="width: {{ $ramPct }}%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
+    </div>
+
+    {{-- PHP Extensions --}}
+    <div class="about-sys__group about-sys__group--wide">
+        <div class="about-sys__group-header">
+            <x-icon path="ph.bold.puzzle-piece-bold" />
+            <span>{{ __('admin-about-system.sections.requirements.title') }}</span>
+        </div>
+        <div class="about-sys__extensions">
+            @foreach ($requiredExtensions as $extension => $info)
+                <div class="about-sys__ext {{ $info['loaded'] ? 'about-sys__ext--ok' : ($info['required'] ? 'about-sys__ext--error' : 'about-sys__ext--warn') }}">
+                    <x-icon path="{{ $info['loaded'] ? 'ph.bold.check-circle-bold' : 'ph.bold.x-circle-bold' }}" class="about-sys__ext-icon" />
+                    <div class="about-sys__ext-info">
+                        <span class="about-sys__ext-name">
+                            {{ $extension }}
+                            @if ($info['required'])
+                                <span class="about-sys__ext-req" data-tooltip="{{ __('admin-about-system.requirements.required_extension') }}">*</span>
+                            @endif
+                        </span>
+                        <span class="about-sys__ext-desc">{{ $info['description'] }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
     </div>
 </div>

@@ -12,6 +12,7 @@ return [
         'welcome_message' => 'Bem-vindo ao painel de controle',
         'user_registrations' => 'Tendências de registro de usuários',
         'user_activity' => 'Atividade de usuários por dia',
+        'user_engagement' => 'Novos usuários vs usuários ativos nos últimos 7 dias',
         'notifications' => 'Estatísticas de notificações',
         'activity_by_hour' => 'Atividade por hora',
         'system_load' => 'Carga do sistema',
@@ -42,6 +43,7 @@ return [
     'charts' => [
         'user_registrations' => 'Registros de Usuários',
         'user_activity' => 'Atividade de Usuários',
+        'user_engagement' => 'Engajamento de Usuários',
         'notifications' => 'Notificações',
         'activity_by_hour' => 'Atividade por Hora',
         'system_load' => 'Carga do Sistema',

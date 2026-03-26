@@ -7,11 +7,7 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 class FlashService implements FlashBagInterface
 {
-    public const
-        SUCCESS_TYPE = "success",
-        ERROR_TYPE = "error",
-        WARNING_TYPE = "warning",
-        INFO_TYPE = "info";
+    public const SUCCESS_TYPE = 'success', ERROR_TYPE = 'error', WARNING_TYPE = 'warning', INFO_TYPE = 'info';
 
     private FlashBagInterface $flashBag;
 

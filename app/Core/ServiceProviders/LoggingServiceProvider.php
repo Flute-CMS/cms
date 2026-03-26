@@ -11,7 +11,7 @@ class LoggingServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             LogRendererManager::class => \DI\autowire(),
-            "flute.logging.renderer" => \DI\get(LogRendererManager::class),
+            'flute.logging.renderer' => \DI\get(LogRendererManager::class),
         ]);
     }
 

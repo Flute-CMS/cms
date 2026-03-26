@@ -38,7 +38,7 @@ class PaymentInvoice extends ActiveRecord
     public string $gateway;
 
     #[Column(type: "string")]
-    public $transactionId;
+    public string $transactionId;
 
     #[Column(type: "float")]
     public float $amount;

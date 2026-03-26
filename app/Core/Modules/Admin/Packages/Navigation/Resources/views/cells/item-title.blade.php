@@ -5,7 +5,7 @@
 
     <div class="d-flex flex-column">
         <span class="d-flex align-center gap-3">
-            {{ $navbarItem->title }}
+            {{ transValue($navbarItem->title) }}
 
             @if ($navbarItem->visibility === 'desktop')
                 <span style="width: 26px; height: 26px; font-size: var(--p); padding: 0;" data-tooltip="Этот пункт отображается только на ПК" class="badge success">
@@ -18,7 +18,7 @@
             @endif
         </span>
         @if ($navbarItem->url)
-            <a href="{{ url($navbarItem->url) }}" target="_blank"
+            <a href="{{ url($navbarItem->url) }}" target="_blank" rel="noopener"
                 class="d-flex text-muted text-small hover-accent">{{ $navbarItem->url }}</a>
         @endif
     </div>

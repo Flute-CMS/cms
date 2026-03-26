@@ -14,6 +14,11 @@ class IconFinder
     private static array $fileContentCache = [];
 
     /**
+     * In-request cache for directory scan results (icon lists).
+     */
+    private static array $iconListCache = [];
+
+    /**
      */
     private Collection $directories;
 
@@ -52,7 +57,23 @@ class IconFinder
     {
         if (Str::contains($name, 'svg')) {
             $decoded = html_entity_decode($name, ENT_QUOTES | ENT_HTML5);
-            if (Str::startsWith(trim($decoded), '<svg') && Str::contains($decoded, ['</svg>']) && !Str::contains(strtolower($decoded), ['<script', 'onload=', 'onerror='])) {
+            if (Str::startsWith(trim($decoded), '<svg') && Str::contains($decoded, ['</svg>'])) {
+                $lower = strtolower($decoded);
+                if (
+                    preg_match('/\bon\w+\s*=/i', $lower)
+                    || Str::contains($lower, [
+                        '<script',
+                        'javascript:',
+                        'data:text/html',
+                        '<iframe',
+                        '<object',
+                        '<embed',
+                        '<form',
+                    ])
+                ) {
+                    return null;
+                }
+
                 return $decoded;
             }
         }
@@ -66,7 +87,7 @@ class IconFinder
 
         // Failed to find the icon
         return $this->directories
-            ->map(fn ($dir) => $this->getContent($name, $prefix, $dir))
+            ->map(fn($dir) => $this->getContent($name, $prefix, $dir))
             ->filter()
             ->first();
     }
@@ -107,40 +128,55 @@ class IconFinder
      */
     public function getIconsInPackage(string $prefix, ?string $category = null): array
     {
-        $icons = [];
+        $cacheKey = 'icons.list.' . $prefix . '.' . ( $category ?? '_all' );
+
+        if (isset(self::$iconListCache[$cacheKey])) {
+            return self::$iconListCache[$cacheKey];
+        }
+
+        if (function_exists('cache')) {
+            $icons = cache()->callback($cacheKey, fn() => $this->scanIconsInPackage($prefix, $category), 86400);
+        } else {
+            $icons = $this->scanIconsInPackage($prefix, $category);
+        }
+
+        self::$iconListCache[$cacheKey] = $icons;
+
+        return $icons;
+    }
+
+    /**
+     * Scan filesystem for icons in the specified package.
+     */
+    protected function scanIconsInPackage(string $prefix, ?string $category = null): array
+    {
         $dir = $this->directories->get($prefix);
 
         if (!$dir) {
-            return $icons;
+            return [];
         }
+
+        $icons = [];
 
         try {
             if ($category) {
                 $categoryDir = $dir . DIRECTORY_SEPARATOR . $category;
                 if (is_dir($categoryDir)) {
-                    $files = $this->scanDirectory($categoryDir);
-                    foreach ($files as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
-                            $relativePath = str_replace($categoryDir . DIRECTORY_SEPARATOR, '', $file);
-                            $iconName = pathinfo($relativePath, PATHINFO_FILENAME);
-                            $icons[] = $category . '.' . $iconName;
-                        }
+                    $pattern = $categoryDir . DIRECTORY_SEPARATOR . '*.svg';
+                    foreach (glob($pattern) as $file) {
+                        $icons[] = $category . '.' . pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
             } else {
-                $files = $this->scanDirectory($dir);
-                foreach ($files as $file) {
-                    if (pathinfo($file, PATHINFO_EXTENSION) === 'svg') {
-                        $relativePath = str_replace($dir . DIRECTORY_SEPARATOR, '', $file);
-                        $iconName = pathinfo($relativePath, PATHINFO_FILENAME);
-                        $pathParts = explode(DIRECTORY_SEPARATOR, $relativePath);
-
-                        if (count($pathParts) > 1) {
-                            $categoryName = $pathParts[0];
-                            $icons[] = $categoryName . '.' . $iconName;
-                        } else {
-                            $icons[] = $iconName;
-                        }
+                // First-level SVGs
+                foreach (glob($dir . DIRECTORY_SEPARATOR . '*.svg') as $file) {
+                    $icons[] = pathinfo($file, PATHINFO_FILENAME);
+                }
+                // Category subdirectories
+                foreach (glob($dir . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) as $catDir) {
+                    $categoryName = basename($catDir);
+                    foreach (glob($catDir . DIRECTORY_SEPARATOR . '*.svg') as $file) {
+                        $icons[] = $categoryName . '.' . pathinfo($file, PATHINFO_FILENAME);
                     }
                 }
             }
@@ -158,12 +194,35 @@ class IconFinder
      */
     public function getCategoriesInPackage(string $prefix): array
     {
-        $categories = [];
+        $cacheKey = 'icons.categories.' . $prefix;
+
+        if (isset(self::$iconListCache[$cacheKey])) {
+            return self::$iconListCache[$cacheKey];
+        }
+
+        if (function_exists('cache')) {
+            $result = cache()->callback($cacheKey, fn() => $this->scanCategoriesInPackage($prefix), 86400);
+        } else {
+            $result = $this->scanCategoriesInPackage($prefix);
+        }
+
+        self::$iconListCache[$cacheKey] = $result;
+
+        return $result;
+    }
+
+    /**
+     * Scan filesystem for categories in the specified package.
+     */
+    protected function scanCategoriesInPackage(string $prefix): array
+    {
         $dir = $this->directories->get($prefix);
 
         if (!$dir) {
-            return $categories;
+            return [];
         }
+
+        $categories = [];
 
         try {
             if (is_dir($dir)) {
@@ -201,32 +260,20 @@ class IconFinder
     protected function getContent(string $name, string $prefix, string $dir)
     {
         $file = Str::of($name)
-            ->when($prefix !== $name, static fn ($string) => $string->replaceFirst($prefix, ''))
+            ->when($prefix !== $name, static fn($string) => $string->replaceFirst($prefix, ''))
             ->replaceFirst('.', '')
             ->replace('.', DIRECTORY_SEPARATOR);
 
         $path = $dir . DIRECTORY_SEPARATOR . $file . '.svg';
 
-        if (isset(self::$fileContentCache[$path])) {
+        if (array_key_exists($path, self::$fileContentCache)) {
             return self::$fileContentCache[$path];
         }
 
-        if (!is_file($path)) {
-            self::$fileContentCache[$path] = null;
+        $content = @file_get_contents($path);
+        self::$fileContentCache[$path] = $content ?: null;
 
-            return null;
-        }
-
-        try {
-            $content = file_get_contents($path);
-            if ($content !== false) {
-                self::$fileContentCache[$path] = $content;
-            }
-
-            return $content ?: null;
-        } catch (Exception) {
-            return null;
-        }
+        return self::$fileContentCache[$path];
     }
 
     /**

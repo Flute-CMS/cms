@@ -102,7 +102,7 @@ class AdminPagesService
 
         $q = PageBlock::query()->buildQuery();
         $q->columns([new \Cycle\Database\Injection\Expression('COUNT(DISTINCT page_id) AS cnt')]);
-        $pagesWithBlocksCount = (int) ($q->fetchAll()[0]['cnt'] ?? 0);
+        $pagesWithBlocksCount = (int) ( $q->fetchAll()[0]['cnt'] ?? 0 );
 
         return [
             'total_pages' => $totalPages,
@@ -169,13 +169,13 @@ class AdminPagesService
     {
         if (function_exists('cache')) {
             try {
-                cache()->delete('flute.pages.all');
+                cache()->deleteImmediately('flute.pages.all');
             } catch (Throwable) {
             }
 
             foreach (array_filter(array_unique($routes)) as $route) {
                 try {
-                    cache()->delete('flute.page.route.' . md5($route));
+                    cache()->deleteImmediately('flute.page.route.' . md5($route));
                 } catch (Throwable) {
                 }
             }

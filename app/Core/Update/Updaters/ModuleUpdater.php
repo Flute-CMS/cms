@@ -7,7 +7,7 @@ use Flute\Core\Composer\ComposerManager;
 use Flute\Core\ModulesManager\ModuleActions;
 use Flute\Core\ModulesManager\ModuleInformation;
 use Flute\Core\ModulesManager\ModuleManager;
-use ZipArchive;
+use Flute\Core\Support\FileUploader;
 
 class ModuleUpdater extends AbstractUpdater
 {
@@ -80,10 +80,12 @@ class ModuleUpdater extends AbstractUpdater
     public function update(array $data): bool
     {
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
-            logs()->error('Module update package file not found: ' . ($data['package_file'] ?? 'null'));
+            logs()->error('Module update package file not found: ' . ( $data['package_file'] ?? 'null' ));
 
             return false;
         }
+
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
 
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/module-' . $this->module->key . '-' . time());
@@ -93,57 +95,61 @@ class ModuleUpdater extends AbstractUpdater
         }
 
         try {
-            $this->createBackup();
-
-            $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
-            if (!$modulePath) {
-                return false;
-            }
-
-            if (!$this->validateModule($modulePath)) {
-                logs()->error('Module validation failed: incompatible with current CMS version');
-
-                return false;
-            }
-
-            $moduleDir = $this->getModuleDirectory();
-            $this->copyModuleFiles($modulePath, $moduleDir);
-
-            // Update composer dependencies
-            /** @var ComposerManager $composerManager */
-            $composerManager = app(ComposerManager::class);
-
             try {
-                $composerManager->install();
-            } catch (Exception $e) {
-                // Rollback
-                $this->removeDirectory($moduleDir);
-                if ($this->backupDir && is_dir($this->backupDir)) {
-                    $this->copyDirectory($this->backupDir, $moduleDir);
+                $this->createBackup();
+
+                $modulePath = $this->extractModuleArchive($packageFile, $extractDir);
+                if (!$modulePath) {
+                    return false;
                 }
 
-                throw $e;
-            }
+                if (!$this->validateModule($modulePath)) {
+                    logs()->error('Module validation failed: incompatible with current CMS version');
 
-            $this->updateModuleInformation();
+                    return false;
+                }
 
-            $this->clearCache();
-            cache()->clear();
-            /** @var ModuleManager $moduleManager */
-            $moduleManager = app(ModuleManager::class);
-            $moduleManager->clearCache();
-            $moduleManager->refreshModules();
+                $moduleDir = $this->getModuleDirectory();
+                $this->copyModuleFiles($modulePath, $moduleDir);
 
-            $this->removeDirectory($extractDir);
+                // Update composer dependencies
+                /** @var ComposerManager $composerManager */
+                $composerManager = app(ComposerManager::class);
 
-            return true;
-        } catch (Exception $e) {
-            logs()->error('Error during module update: ' . $e->getMessage());
-            if (is_dir($extractDir)) {
+                try {
+                    $composerManager->install();
+                } catch (Exception $e) {
+                    // Rollback
+                    $this->removeDirectory($moduleDir);
+                    if ($this->backupDir && is_dir($this->backupDir)) {
+                        $this->copyDirectory($this->backupDir, $moduleDir);
+                    }
+
+                    throw $e;
+                }
+
+                $this->updateModuleInformation();
+
+                $this->clearCache();
+                cache()->clear();
+                /** @var ModuleManager $moduleManager */
+                $moduleManager = app(ModuleManager::class);
+                $moduleManager->clearCache();
+                $moduleManager->refreshModules();
+
                 $this->removeDirectory($extractDir);
-            }
 
-            return false;
+                return true;
+            } catch (Exception $e) {
+                logs()->error('Error during module update: ' . $e->getMessage());
+                if (is_dir($extractDir)) {
+                    $this->removeDirectory($extractDir);
+                }
+
+                return false;
+            }
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled);
         }
     }
 
@@ -154,15 +160,13 @@ class ModuleUpdater extends AbstractUpdater
      */
     protected function extractModuleArchive(string $packageFile, string $extractDir)
     {
-        $zip = new ZipArchive();
-        if ($zip->open($packageFile) !== true) {
-            logs()->error('Failed to open module update package: ' . $packageFile);
+        try {
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+        } catch (Exception $e) {
+            logs()->error('Failed to extract module update package: ' . $e->getMessage());
 
             return false;
         }
-
-        $zip->extractTo($extractDir);
-        $zip->close();
 
         $rootDir = $extractDir;
         $items = scandir($extractDir);
@@ -309,7 +313,7 @@ class ModuleUpdater extends AbstractUpdater
 
         $directory = opendir($source);
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
@@ -377,7 +381,7 @@ class ModuleUpdater extends AbstractUpdater
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }

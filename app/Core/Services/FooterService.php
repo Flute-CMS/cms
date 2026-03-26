@@ -9,21 +9,36 @@ class FooterService
 {
     public const CACHE_KEY = 'flute.footer.items';
 
+    public const CACHE_TAG = 'footer';
+
     protected const CACHE_TIME = 24 * 60 * 60;
 
-    protected array $cachedItems;
+    protected ?array $cachedItems = null;
 
     protected bool $performance;
 
     /**
      * Constructor method
-     * Initializes the format class and sets the default footer items
+     * Initializes the format class; DB/cache loading is deferred to first access.
      */
     public function __construct()
     {
-        $this->performance = (bool) (is_performance());
+        $this->performance = (bool) is_performance();
+    }
 
-        $this->cachedItems = cache()->callback(self::CACHE_KEY, fn () => $this->getDefaultItems(), self::CACHE_TIME);
+    /**
+     * Lazily loads footer items from cache/DB on first access.
+     */
+    protected function loadItems(): array
+    {
+        if ($this->cachedItems !== null) {
+            return $this->cachedItems;
+        }
+
+        cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
+        $this->cachedItems = cache()->callback(self::CACHE_KEY, fn() => $this->getDefaultItems(), self::CACHE_TIME);
+
+        return $this->cachedItems;
     }
 
     /**
@@ -33,6 +48,7 @@ class FooterService
      */
     public function add(FooterItem $item): self
     {
+        $this->loadItems();
         $this->cachedItems[] = $this->format($item);
 
         return $this;
@@ -51,7 +67,7 @@ class FooterService
      */
     public function all(): array
     {
-        return $this->cachedItems;
+        return $this->loadItems();
     }
 
     public function format(FooterItem $FooterItem): array
@@ -72,7 +88,7 @@ class FooterService
         }
 
         if ($result['children']) {
-            usort($result['children'], static fn ($a, $b) => $a['position'] <=> $b['position']);
+            usort($result['children'], static fn($a, $b) => $a['position'] <=> $b['position']);
         }
 
         return $result;
@@ -83,47 +99,18 @@ class FooterService
      */
     protected function getDefaultItems(): array
     {
-        $footerItems = $this->getAllFooterItems();
-        $tree = $this->buildTree($footerItems);
+        $footerItems = FooterItem::query()
+            ->load(['children', 'children.children'])
+            ->orderBy('position', 'asc')
+            ->where(['parent_id' => null])
+            ->fetchAll();
 
         $formattedItems = [];
-        foreach ($tree as $item) {
+        foreach ($footerItems as $item) {
             $formattedItems[] = $this->format($item);
         }
 
-        usort($formattedItems, static fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
-
         return $formattedItems;
-    }
-
-    protected function getAllFooterItems(): array
-    {
-        $footerItems = FooterItem::query()
-            ->load(['children', 'children.children', 'parent'])
-            ->orderBy('position', 'asc')
-            ->where([
-                'parent_id' => null,
-            ])->fetchAll();
-
-        return $footerItems;
-    }
-
-    protected function buildTree(array $items, ?int $parentId = null): array
-    {
-        $tree = [];
-
-        foreach ($items as $item) {
-            if ($item->parent && $item->parent->id === $parentId) {
-                $item->children = $this->buildTree($items, $item->id);
-                $tree[] = $item;
-            } else {
-                $tree[] = $item;
-            }
-        }
-
-        usort($tree, static fn ($a, $b) => ($a->position ?? 0) <=> ($b->position ?? 0));
-
-        return $tree;
     }
 
     /**

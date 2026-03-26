@@ -45,7 +45,7 @@ class EmptyWidget extends AbstractWidget
         ];
     }
 
-    public function render(array $settings): string|null
+    public function render(array $settings): ?string
     {
         return view('flute::widgets.empty', ['height' => $settings['height'] ?? '100'])->render();
     }

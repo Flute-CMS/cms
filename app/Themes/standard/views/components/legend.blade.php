@@ -5,19 +5,19 @@
         <legend>
             <div class="legend-content">
                 <div class="legend-text">
-                    <h4>
+                    <h1>
                         @if($icon)
-                            <div class="legend-icon">
+                            <span class="legend-icon">
                                 <x-icon path="{{ $icon }}" />
-                            </div>
+                            </span>
                         @endif
                         {{ $title }}
-                    </h4>
+                    </h1>
 
                     @if (! empty($description))
-                        <small class="d-block text-balance mb-0">
+                        <p class="d-block text-balance mb-0">
                             {!! __($description) !!}
-                        </small>
+                        </p>
                     @endif
                 </div>
             </div>

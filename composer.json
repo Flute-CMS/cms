@@ -29,6 +29,7 @@
 		"composer/composer": "^2.7",
 		"cycle/active-record": "^0.8.0",
 		"cycle/annotated": "^4.1",
+		"cycle/database": "2.15.1",
 		"cycle/entity-behavior": "^1.3",
 		"cycle/migrations": "^4.2",
 		"cycle/orm": "^2.8.0",
@@ -47,7 +48,7 @@
 		"league/omnipay": "^3.2",
 		"madesimple/php-arrays": "^3.0",
 		"matthiasmullie/minify": "^1.3",
-		"monolog/monolog": "^2.9",
+		"monolog/monolog": "^3.0",
 		"nette/schema": "^1.3",
 		"padaliyajay/php-autoprefixer": "^1.4",
 		"paragonie/constant_time_encoding": "^3.1",
@@ -86,13 +87,13 @@
 		"xpaw/steamid": "^3.0"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^3",
-		"phpstan/phpstan": "^2.1"
+		"carthage-software/mago": "^1.15"
 	},
 	"autoload": {
 		"psr-4": {
 			"Flute\\": "app/",
-			"Flute\\Admin\\": "app/Core/Modules/Admin/"
+			"Flute\\Admin\\": "app/Core/Modules/Admin/",
+			"Hybridauth\\Provider\\": "app/Core/Modules/Auth/Hybrid/"
 		}
 	},
 	"autoload-dev": {
@@ -117,28 +118,23 @@
 	},
 	"scripts": {
 		"test": [
-			"@php vendor/bin/php-cs-fixer fix --dry-run --diff"
+			"vendor/bin/mago lint",
+			"vendor/bin/mago format --check"
 		],
-		"test-fix": [
-			"@php vendor/bin/php-cs-fixer fix"
-		],
-		"analyse": "@php -r \"echo 'PHPStan is temporarily disabled.\\n'; exit(0);\"",
-		"format": "vendor/bin/php-cs-fixer fix",
-		"format-check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+		"lint": "vendor/bin/mago lint",
+		"analyse": "vendor/bin/mago analyze",
+		"format": "vendor/bin/mago format",
+		"format-check": "vendor/bin/mago format --check",
+		"fix": "vendor/bin/mago format",
 		"optimize": [
 			"php flute cache:clear"
-		],
-		"post-install-cmd": [
-			"@php -r \"if (file_exists('vendor/friendsofphp/php-cs-fixer/php-cs-fixer')) { copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); }\""
-		],
-		"post-update-cmd": [
-			"@php -r \"if (file_exists('vendor/friendsofphp/php-cs-fixer/php-cs-fixer')) { copy('vendor/friendsofphp/php-cs-fixer/php-cs-fixer', 'php-cs-fixer'); }\""
 		]
 	},
 	"config": {
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"preferred-install": "dist",
+		"process-timeout": 1800,
 		"allow-plugins": {
 			"php-http/discovery": true,
 			"wikimedia/composer-merge-plugin": true

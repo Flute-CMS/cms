@@ -1,0 +1,324 @@
+.image-cropper {
+    width: min(700px, 92vw) !important;
+    min-width: unset !important;
+
+    // ── Body ─────────────────────────────────────────────────────────────
+
+    &__body {
+        padding: var(--space-md) var(--space-xl) var(--space-sm) !important;
+
+        @media (max-width: 600px) {
+            padding: var(--space-sm) var(--space-md) var(--space-xs) !important;
+        }
+    }
+
+    // ── Canvas ───────────────────────────────────────────────────────────
+
+    &__canvas {
+        position: relative;
+        width: 100%;
+        height: 380px;
+        background: #0a0a0a;
+        border-radius: 10px;
+        overflow: hidden;
+
+        :root[data-theme=light] & {
+            background: #e8e8ed;
+        }
+
+        @media (max-width: 600px) {
+            height: 260px;
+            border-radius: 8px;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        &.is-round .cropper-view-box,
+        &.is-round .cropper-face {
+            border-radius: 50%;
+        }
+
+        &.is-round .cropper-view-box {
+            outline-color: rgba(255, 255, 255, 0.8);
+        }
+    }
+
+    // ── Icon wrapper ─────────────────────────────────────────────────────
+
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        &--sm {
+            @extend .image-cropper__icon;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    // ── Toolbar (ratios + tools, single row) ─────────────────────────────
+
+    &__toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: var(--space-sm);
+        gap: var(--space-sm);
+
+        @media (max-width: 600px) {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+
+    // ── Ratio presets ────────────────────────────────────────────────────
+
+    &__ratios {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 1;
+        min-width: 0;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__ratio-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border: 1px solid var(--transp-1);
+        background: transparent;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-400);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+
+        .image-cropper__icon--sm {
+            opacity: 0.5;
+        }
+
+        &:hover {
+            color: var(--text-200);
+            background: var(--transp-05);
+            border-color: var(--transp-2);
+        }
+
+        &.is-active {
+            background: var(--accent);
+            color: var(--accent-900);
+            border-color: var(--accent);
+
+            .image-cropper__icon--sm {
+                opacity: 1;
+            }
+        }
+    }
+
+    // ── Tool buttons ─────────────────────────────────────────────────────
+
+    &__tools {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    &__tool-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        border-radius: 7px;
+        color: var(--text-400);
+        cursor: pointer;
+        transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+
+        &:hover {
+            background: var(--transp-1);
+            color: var(--text);
+        }
+
+        &:active {
+            transform: scale(0.92);
+        }
+    }
+
+    &__tool-sep {
+        width: 1px;
+        height: 18px;
+        background: var(--transp-1);
+        margin: 0 3px;
+        flex-shrink: 0;
+    }
+
+    // ── Footer ───────────────────────────────────────────────────────────
+
+    &__footer {
+        display: flex !important;
+        justify-content: flex-end;
+        align-items: center;
+        gap: var(--space-xs);
+
+        .btn-accent {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+    }
+}
+
+// ── Cropper.js visual overrides ──────────────────────────────────────────────
+
+.image-cropper__canvas {
+    .cropper-container {
+        border-radius: 10px;
+
+        @media (max-width: 600px) {
+            border-radius: 8px;
+        }
+    }
+
+    .cropper-modal {
+        background: #000;
+        opacity: 0.45;
+
+        :root[data-theme=light] & {
+            opacity: 0.25;
+        }
+    }
+
+    .cropper-view-box {
+        outline: 2px solid var(--transp-2);
+        outline-offset: -1px;
+
+        :root[data-theme=light] & {
+            outline-color: rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    .cropper-line {
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .cropper-dashed {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .cropper-point {
+        width: 10px;
+        height: 10px;
+        background-color: var(--accent);
+        border-radius: 50%;
+        opacity: 1;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+
+        &.point-nw {
+            top: -5px;
+            left: -5px;
+        }
+
+        &.point-ne {
+            top: -5px;
+            right: -5px;
+        }
+
+        &.point-sw {
+            bottom: -5px;
+            left: -5px;
+        }
+
+        &.point-se {
+            bottom: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    .cropper-bg {
+        background-image: none;
+    }
+}
+
+// Container class added by JS — provides positioning context for the edit button
+// without breaking FilePond layout (no inline style changes).
+.has-crop-edit {
+    position: relative;
+}
+
+.image-cropper__edit-btn {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+
+    :root[data-theme=light] & {
+        background: rgba(255, 255, 255, 0.65);
+        color: var(--text);
+    }
+
+    .image-cropper__icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.7);
+
+        :root[data-theme=light] & {
+            background: rgba(255, 255, 255, 0.85);
+        }
+    }
+
+    &:active {
+        transform: scale(0.9);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        opacity: 1;
+    }
+}

@@ -33,12 +33,9 @@ class LogsPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-logs.labels.main'),
-            ],
-            [
+                'key' => 'logs',
                 'title' => __('admin-logs.title'),
-                'icon' => 'ph.bold.list-bullets-bold',
+                'icon' => 'ph.regular.list-bullets',
                 'url' => url('/admin/logs'),
             ],
         ];

@@ -41,6 +41,38 @@ abstract class Layout implements LayoutInterface
      */
     abstract public function build(Repository $repository);
 
+    /**
+     * Returns skeleton descriptor for lazy-loaded tab placeholders.
+     * Each layout provides its type and metadata so a Blade template can render it.
+     *
+     * @return array{type: string, ...}
+     */
+    public function skeletonDescriptor(): array
+    {
+        return ['type' => 'generic'];
+    }
+
+    /**
+     * Collects skeleton descriptors from nested child layouts.
+     *
+     * @return array[]
+     */
+    protected function childrenSkeletonDescriptors(): array
+    {
+        $descriptors = [];
+
+        foreach ($this->layouts as $group) {
+            foreach (Arr::wrap($group) as $layout) {
+                $layout = is_object($layout) ? $layout : app()->get($layout);
+                if ($layout instanceof self && $layout->isVisible()) {
+                    $descriptors[] = $layout->skeletonDescriptor();
+                }
+            }
+        }
+
+        return $descriptors;
+    }
+
     public function jsonSerialize(): array
     {
         $props = collect(get_object_vars($this));
@@ -62,8 +94,8 @@ abstract class Layout implements LayoutInterface
         }
 
         $build = collect($this->layouts)
-            ->map(static fn ($layouts) => Arr::wrap($layouts))
-            ->map(fn (iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
+            ->map(static fn($layouts) => Arr::wrap($layouts))
+            ->map(fn(iterable $layouts, string $key) => $this->buildChild($layouts, $key, $repository))
             ->collapse()
             ->all();
 
@@ -85,8 +117,8 @@ abstract class Layout implements LayoutInterface
     {
         return collect($layouts)
             ->flatten()
-            ->map(static fn ($layout) => is_object($layout) ? $layout : app()->get($layout))
-            ->filter(fn () => $this->isVisible())
+            ->map(static fn($layout) => is_object($layout) ? $layout : app()->get($layout))
+            ->filter(fn() => $this->isVisible())
             ->reduce(static function ($build, self $layout) use ($key, $repository) {
                 $build[$key][] = $layout->build($repository);
 

@@ -1,9 +1,10 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Flute\Core\Services;
 
+use Flute\Core\Support\FileUploader;
 use PharData;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -76,13 +77,14 @@ class IoncubeService
     {
         $directUrl = $this->getRecommendedDirectDownloadUrl();
         if (!$directUrl) {
-            throw new RuntimeException('No direct ionCube loaders download is available for this platform. Use: ' . self::DOWNLOADS_PAGE_URL);
+            throw new RuntimeException('No direct ionCube loaders download is available for this platform. Use: '
+            . self::DOWNLOADS_PAGE_URL);
         }
 
         $fs = new Filesystem();
         $fs->mkdir($targetDir);
 
-        $archiveName = $this->guessArchiveNameFromUrl($directUrl) ?? ('ioncube_loaders_' . time());
+        $archiveName = $this->guessArchiveNameFromUrl($directUrl) ?? 'ioncube_loaders_' . time();
         $archivePath = rtrim($targetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $archiveName;
 
         $this->downloadFile($directUrl, $archivePath);
@@ -138,6 +140,8 @@ class IoncubeService
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_TIMEOUT, 120);
             curl_setopt($ch, CURLOPT_USERAGENT, 'FluteCMS/ioncube-downloader');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
             $ok = curl_exec($ch);
             $err = curl_error($ch);
@@ -148,7 +152,9 @@ class IoncubeService
             if ($ok !== true || $code >= 400) {
                 @unlink($destPath);
 
-                throw new RuntimeException('Failed to download ionCube loaders. HTTP: ' . $code . ($err ? (', error: ' . $err) : ''));
+                throw new RuntimeException(
+                    'Failed to download ionCube loaders. HTTP: ' . $code . ( $err ? ', error: ' . $err : '' ),
+                );
             }
 
             return;
@@ -173,12 +179,12 @@ class IoncubeService
         $fs->mkdir($outDir);
 
         if (str_ends_with($lower, '.zip') && class_exists(ZipArchive::class)) {
-            $zip = new ZipArchive();
-            if ($zip->open($archivePath) === true) {
-                $zip->extractTo($outDir);
-                $zip->close();
+            try {
+                app(FileUploader::class)->safeExtractZip($archivePath, $outDir);
 
                 return $outDir;
+            } catch (Throwable) {
+                // Fall through to other extraction methods
             }
         }
 
@@ -198,6 +204,23 @@ class IoncubeService
 
                     $phar = new PharData($tarPath);
                     $phar->extractTo($outDir, null, true);
+
+                    $realOutDir = realpath($outDir);
+                    if ($realOutDir !== false) {
+                        $iterator = new \RecursiveIteratorIterator(
+                            new \RecursiveDirectoryIterator($realOutDir, \FilesystemIterator::SKIP_DOTS),
+                            \RecursiveIteratorIterator::SELF_FIRST,
+                        );
+                        foreach ($iterator as $item) {
+                            $realItemPath = realpath($item->getPathname());
+                            if (
+                                $realItemPath === false
+                                || !str_starts_with($realItemPath, $realOutDir . DIRECTORY_SEPARATOR)
+                            ) {
+                                $fs->remove($realItemPath ?: $item->getPathname());
+                            }
+                        }
+                    }
 
                     return $outDir;
                 } catch (Throwable) {

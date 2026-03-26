@@ -211,7 +211,7 @@ class TD extends Cell
 
         // Add hidden style if needed
         if ($this->hasAttribute('hidden')) {
-            $style = ($style ? $style . '; ' : '') . 'display: none;';
+            $style = ( $style ? $style . '; ' : '' ) . 'display: none;';
         }
 
         $tableId = $this->getAttribute('tableId', 'default');
@@ -246,18 +246,16 @@ class TD extends Cell
 
         // Add hidden style if needed
         if ($this->hasAttribute('hidden')) {
-            $style = ($style ? $style . '; ' : '') . 'display: none;';
+            $style = ( $style ? $style . '; ' : '' ) . 'display: none;';
         }
 
         if ($source instanceof Repository) {
-            $value = $this->render
-                ? $this->handler($source, $loop)
-                : $source->getContent($this->name);
+            $value = $this->render ? $this->handler($source, $loop) : $source->getContent($this->name);
         } else {
             // There was a bug with EntityProxyInterface. #TODO: Implement new ways to display values.
             $value = $this->render
                 ? $this->handler($source, $loop)
-                : (is_array($source) ? $source[$this->name] : $source->{$this->name});
+                : ( is_array($source) ? $source[$this->name] : $source->{$this->name} );
         }
 
         if ($this->isSelection) {
@@ -337,7 +335,7 @@ class TD extends Cell
     public function buildSortUrl(): string
     {
         $currentSort = request()->input('sort', '');
-        $newSort = ($currentSort === $this->column) ? '-' . $this->column : $this->column;
+        $newSort = $currentSort === $this->column ? '-' . $this->column : $this->column;
 
         $query = array_merge(request()->input(), ['sort' => $newSort]);
 
@@ -379,7 +377,7 @@ class TD extends Cell
      */
     public static function isShowVisibleColumns(array $columns): bool
     {
-        return collect($columns)->filter(static fn ($column) => $column->isAllowUserHidden())->isNotEmpty();
+        return collect($columns)->filter(static fn($column) => $column->isAllowUserHidden())->isNotEmpty();
     }
 
     /**
@@ -400,6 +398,14 @@ class TD extends Cell
     public static function selection(string $name = 'id'): self
     {
         return static::make($name)->asSelection();
+    }
+
+    /**
+     * Check if this column is a selection column.
+     */
+    public function isSelectionColumn(): bool
+    {
+        return $this->isSelection;
     }
 
     /**

@@ -60,4 +60,5 @@ return [
     'update_channel' => 'Канал обновлений',
     'channel_stable' => 'Стабильный',
     'channel_early' => 'Ранний доступ',
+    'version' => 'Версия',
 ];

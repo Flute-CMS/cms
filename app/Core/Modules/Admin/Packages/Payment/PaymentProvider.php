@@ -37,23 +37,22 @@ class PaymentProvider extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-payment.title.finance'),
-            ],
-            [
+                'key' => 'gateways',
                 'title' => __('admin-payment.title.gateways'),
                 'url' => url('/admin/payment/gateways'),
-                'icon' => 'ph.bold.money-wavy-bold',
+                'icon' => 'ph.regular.credit-card',
             ],
             [
+                'key' => 'invoices',
                 'title' => __('admin-payment.title.invoices'),
                 'url' => url('/admin/payment/invoices'),
-                'icon' => 'ph.bold.credit-card-bold',
+                'icon' => 'ph.regular.receipt',
             ],
             [
+                'key' => 'promo-codes',
                 'title' => __('admin-payment.title.promo_codes'),
                 'url' => url('/admin/payment/promo-codes'),
-                'icon' => 'ph.bold.tag-bold',
+                'icon' => 'ph.regular.ticket',
             ],
         ];
     }

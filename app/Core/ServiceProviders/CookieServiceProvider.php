@@ -15,7 +15,7 @@ class CookieServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             CookieService::class => \DI\autowire(),
-            "cookies" => \DI\get(CookieService::class),
+            'cookies' => \DI\get(CookieService::class),
         ]);
     }
 
@@ -26,8 +26,10 @@ class CookieServiceProvider extends AbstractServiceProvider
     public function boot(\DI\Container $container): void
     {
         if (!is_cli()) {
-            $container->get(EventDispatcher::class)
-                ->addListener(ResponseEvent::NAME, [$container->get(CookieService::class), 'onResponse']);
+            $container->get(EventDispatcher::class)->addListener(ResponseEvent::NAME, [
+                $container->get(CookieService::class),
+                'onResponse',
+            ]);
         }
     }
 }

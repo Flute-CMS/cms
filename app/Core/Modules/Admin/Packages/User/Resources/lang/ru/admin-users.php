@@ -27,6 +27,8 @@ return [
         'details' => 'Детали',
         'device' => 'Устройство',
         'ip' => 'IP адрес',
+        'first_login' => 'Первый вход',
+        'last_login' => 'Последний вход',
         'social_network' => 'Соц. сеть',
         'value' => 'Значение',
         'display_name' => 'Отображаемое имя',
@@ -35,6 +37,11 @@ return [
         'transaction_id' => 'ID транзакции',
         'payment_gateway' => 'Платёжный шлюз',
         'amount' => 'Сумма',
+        'balance_after' => 'Баланс после',
+        'source' => 'Источник',
+        'type' => 'Тип',
+        'date' => 'Дата',
+        'description' => 'Описание',
         'payment_date' => 'Дата оплаты',
         'reason' => 'Причина',
         'payment_status' => 'Статус оплаты',
@@ -45,6 +52,7 @@ return [
         'social_networks' => 'Социальные сети',
         'blocks_history' => 'История блокировок',
         'deposit_history' => 'История пополнений',
+        'balance_history' => 'История баланса',
         'action_history' => 'История действий',
         'all' => 'Все',
         'blocked' => 'Заблокированные',
@@ -67,6 +75,8 @@ return [
         ],
         'email' => [
             'label' => 'Email',
+            'pending' => 'Ожидает подтверждения: :email',
+            'confirm_enabled' => 'Подтверждение email включено — при смене будет отправлено письмо',
         ],
         'uri' => [
             'label' => 'URI',
@@ -83,6 +93,11 @@ return [
         'verified' => [
             'label' => 'Верифицирован',
             'help' => 'Отметьте, если пользователь прошёл верификацию',
+            'not_verified_hint' => 'Email не подтверждён — можно верифицировать вручную или отправить письмо',
+        ],
+        'approved' => [
+            'label' => 'Подтверждён',
+            'help' => 'Подтверждённые пользователи получают значок верификации в профиле',
         ],
         'hidden' => [
             'label' => 'Скрытый профиль',
@@ -140,6 +155,12 @@ return [
         'save_social' => 'Сохранить',
         'hide' => 'Скрыть',
         'show' => 'Показать',
+        'verify_email' => 'Верифицировать',
+        'verify_email_hint' => 'Подтвердить email вручную без письма',
+        'send_verification' => 'Отправить письмо',
+        'apply_pending_email' => 'Применить',
+        'apply_pending_email_hint' => 'Применить новый email без подтверждения',
+        'cancel_pending_email' => 'Отменить смену',
     ],
     'sections' => [
         'main_info' => 'Основная информация',
@@ -152,6 +173,7 @@ return [
         'terminate_session' => 'Вы уверены, что хотите завершить эту сессию?',
         'delete_social' => 'Вы уверены, что хотите удалить эту социальную сеть?',
         'unblock_user' => 'Вы уверены, что хотите разблокировать пользователя?',
+        'delete_social_network' => 'Вы уверены, что хотите удалить эту социальную сеть?',
     ],
     'modals' => [
         'block_user' => [
@@ -191,6 +213,13 @@ return [
         'social_not_found' => 'Социальная сеть не найдена.',
         'session_not_found' => 'Сессия не найдена.',
         'session_terminated' => 'Сессия успешно завершена.',
+        'email_verified' => 'Email пользователя верифицирован.',
+        'verification_sent' => 'Письмо с подтверждением отправлено.',
+        'no_email' => 'У пользователя нет email-адреса.',
+        'pending_email_applied' => 'Новый email успешно применён.',
+        'pending_email_cancelled' => 'Смена email отменена.',
+        'no_permission_reset_password' => 'У вас нет прав для сброса паролей.',
+        'password_reset_success' => 'Пароль успешно сброшен.',
     ],
     'status' => [
         'forever' => 'Навсегда',
@@ -202,6 +231,7 @@ return [
         'paid' => 'Оплачено',
         'unpaid' => 'Не оплачено',
         'verified' => 'Верифицирован',
+        'approved' => 'Подтверждён',
         'hidden' => 'Скрытый',
         'blocked' => 'Заблокирован',
         'visible' => 'Видимый',

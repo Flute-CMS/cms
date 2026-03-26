@@ -31,6 +31,14 @@ class Metric extends Layout
      */
     protected $icons = [];
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'metric',
+            'count' => count($this->labels),
+        ];
+    }
+
     /**
      * Create a new Metric instance
      */
@@ -76,12 +84,13 @@ class Metric extends Layout
             return;
         }
 
-        $metrics = collect($this->labels)->mapWithKeys(fn (string $value, string $key) => [
-            $key => [
-                'value' => $repository->getContent($value, ''),
-                'icon' => $this->getIcon($key),
-            ],
-        ]);
+        $metrics = collect($this->labels)
+            ->mapWithKeys(fn(string $value, string $key) => [
+                $key => [
+                    'value' => $repository->getContent($value, ''),
+                    'icon' => $this->getIcon($key),
+                ],
+            ]);
 
         return view($this->template, [
             'title' => $this->title,

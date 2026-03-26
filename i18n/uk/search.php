@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Швидкий пошук...",
+    "search_placeholder" => "Пошук сторінок, налаштувань та функцій...",
+    "search_input" => "Поле пошуку",
+    "to_navigate" => "для навігації",
+    "to_select" => "для вибору",
+    "search_results_for" => "Знайдено за запитом «%query%»",
+    "no_results_found" => "Нічого не знайдено",
+    "available_commands" => "Доступні команди",
+    "no_commands_available" => "Команди не знайдено",
+    "search_users" => "Пошук користувачів",
+    "users" => "Користувачі",
+    "settings" => "Налаштування",
+    "lets_search" => "Давайте знайдемо щось...",
+];

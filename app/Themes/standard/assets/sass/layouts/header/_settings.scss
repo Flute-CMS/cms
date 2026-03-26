@@ -1,0 +1,73 @@
+// ========================================
+// NAVIGATION FIXED/STATIC (via data-nav-fixed)
+// ========================================
+
+html[data-nav-fixed="false"] {
+    .flute_header {
+        position: relative;
+    }
+
+    &[data-nav-style="pill"],
+    &[data-nav-style="pill-transparent"],
+    &[data-nav-style="pill-full"],
+    &[data-nav-style="centered"] {
+        .flute_header {
+            position: relative;
+        }
+
+        #main {
+            padding-top: 0;
+        }
+    }
+}
+
+// ========================================
+// NAVIGATION BLUR (via data-nav-blur)
+// ========================================
+
+// No blur
+html[data-nav-blur="false"] {
+    .navbar {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--background);
+    }
+
+    &[data-nav-style="pill"],
+    &[data-nav-style="pill-full"] {
+        .navbar {
+            background: var(--background);
+        }
+    }
+
+    // For pill-transparent, only apply no-blur when scrolled
+    &[data-nav-style="pill-transparent"][data-nav-scrolled="true"] {
+        .navbar {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: var(--background) !important;
+        }
+    }
+}
+
+html[data-nav-blur="true"] {
+    .navbar {
+        background: var(--blurred-background);
+        backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+        -webkit-backdrop-filter: blur(var(--blur-amount, 10px)) saturate(180%);
+    }
+}
+
+// Hide navbar socials when disabled
+html[data-nav-socials="false"] {
+    .navbar__socials {
+        display: none !important;
+    }
+}
+
+// Hide navbar navigation dropdown when sidebar mode is active
+html[data-nav-style="sidebar"] {
+    .navbar-dropdown {
+        display: none !important;
+    }
+}

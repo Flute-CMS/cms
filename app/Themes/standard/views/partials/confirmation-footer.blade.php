@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-end align-items-center gap-3">
+<div class="d-flex justify-content-end align-items-center gap-3 w-100">
     <x-button class="w-100" type="outline-primary" id="confirmation-dialog-cancel" autofocus data-a11y-dialog-hide>
         {{ __('def.cancel') }}
     </x-button>

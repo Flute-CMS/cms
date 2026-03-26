@@ -16,12 +16,12 @@ class LayoutFactory
      */
     public static function view(string $view, $data = []): View
     {
-        return new class ($view, $data) extends View {};
+        return new class($view, $data) extends View {};
     }
 
     public static function rows(array $fields): Rows
     {
-        return new class ($fields) extends Rows {
+        return new class($fields) extends Rows {
             /**
              * @var \Flute\Admin\Platform\Field[]
              */
@@ -44,12 +44,12 @@ class LayoutFactory
 
     public static function block($layouts): Block
     {
-        return new class (Arr::wrap($layouts)) extends Block {};
+        return new class(Arr::wrap($layouts)) extends Block {};
     }
 
     public static function table(string $target, array $columns): Table
     {
-        return new class ($target, $columns) extends Table {
+        return new class($target, $columns) extends Table {
             /**
              * @var array
              */
@@ -70,22 +70,22 @@ class LayoutFactory
 
     public static function columns(array $layouts): Columns
     {
-        return new class ($layouts) extends Columns {};
+        return new class($layouts) extends Columns {};
     }
 
     public static function split(array $layouts): Split
     {
-        return new class ($layouts) extends Split {};
+        return new class($layouts) extends Split {};
     }
 
     public static function tabs(array $tabs): Tabs
     {
-        return new class ($tabs) extends Tabs {};
+        return new class($tabs) extends Tabs {};
     }
 
     public static function field(Field $field): \Flute\Admin\Platform\Layouts\Field
     {
-        return new class ($field) extends \Flute\Admin\Platform\Layouts\Field {};
+        return new class($field) extends \Flute\Admin\Platform\Layouts\Field {};
     }
 
     /**
@@ -95,17 +95,17 @@ class LayoutFactory
     {
         $layouts = Arr::wrap($layouts);
 
-        return new class ($repository, $layouts) extends Modal {};
+        return new class($repository, $layouts) extends Modal {};
     }
 
     public static function blank(array $layouts): Blank
     {
-        return new class ($layouts) extends Blank {};
+        return new class($layouts) extends Blank {};
     }
 
     public static function wrapper(string $template, array $layouts): Wrapper
     {
-        return new class ($template, $layouts) extends Wrapper {};
+        return new class($template, $layouts) extends Wrapper {};
     }
 
     // public static function accordion(array $layouts) : Accordion
@@ -177,7 +177,7 @@ class LayoutFactory
 
     public static function chart(string $target, ?string $title = null): Chart
     {
-        $chart = new class ($target, $title) extends Chart {
+        $chart = new class($target, $title) extends Chart {
             public function __construct(string $target, ?string $title)
             {
                 $this->target($target);
@@ -195,7 +195,7 @@ class LayoutFactory
      */
     public static function sortable(string $target, array $columns): Sortable
     {
-        return new class ($target, $columns) extends Sortable {
+        return new class($target, $columns) extends Sortable {
             /**
              * @var array
              */

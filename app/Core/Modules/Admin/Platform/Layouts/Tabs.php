@@ -121,34 +121,96 @@ abstract class Tabs extends Layout
      * @throws InvalidArgumentException If the slug is not set.
      * @return \Illuminate\View\View
      */
+    public function skeletonDescriptor(): array
+    {
+        $tabDescriptors = [];
+
+        foreach ($this->tabs as $tab) {
+            $layouts = $tab->getLayouts();
+            $children = [];
+
+            foreach ($layouts as $layoutOrGroup) {
+                foreach (Arr::wrap($layoutOrGroup) as $layout) {
+                    if (is_string($layout)) {
+                        $layout = app()->get($layout);
+                    }
+                    if ($layout instanceof Layout) {
+                        $children[] = $layout->skeletonDescriptor();
+                    }
+                }
+            }
+
+            $tabDescriptors[] = [
+                'title' => $tab->getName(),
+                'children' => $children,
+            ];
+        }
+
+        return [
+            'type' => 'tabs',
+            'tabs' => $tabDescriptors,
+            'pills' => $this->variables['pills'] ?? false,
+        ];
+    }
+
     public function build(Repository $repository)
     {
-        if (empty($this->variables['slug']) && ($this->variables['lazyload'] ?? true) == true) {
+        if (empty($this->variables['slug']) && ( $this->variables['lazyload'] ?? true ) == true) {
             throw new InvalidArgumentException('Tabs layout must have a slug.');
         }
 
         $this->variables['slug'] ??= $this->slug ?? uniqid();
 
         $tabs = [];
+        $useLazyLoad = $this->variables['lazyload'] ?? true;
 
         foreach ($this->tabs as $tab) {
             $name = $tab->getName();
             $slug = $tab->getSlug() ?? Str::slug($name);
             $layouts = $tab->getLayouts();
+            $isActive = $this->isTabActive($slug, $tab);
 
-            $builtLayouts = collect($layouts)
-                ->map(static fn ($layout) => Arr::wrap($layout))
-                ->flatMap(fn (iterable $layoutGroup, string $key) => $this->buildChild($layoutGroup, $key, $repository))
-                ->all();
+            // For lazy-loaded inactive tabs, collect skeleton descriptors instead of building
+            if ($useLazyLoad && !$isActive) {
+                $skeletonDescriptors = [];
+                foreach ($layouts as $layoutOrGroup) {
+                    foreach (Arr::wrap($layoutOrGroup) as $layout) {
+                        if (is_string($layout)) {
+                            $layout = app()->get($layout);
+                        }
+                        if ($layout instanceof Layout) {
+                            $skeletonDescriptors[] = $layout->skeletonDescriptor();
+                        }
+                    }
+                }
 
-            $tabs[$slug] = [
-                'badge' => $tab->getBadge(),
-                'slug' => $slug,
-                'title' => $name,
-                'icon' => $tab->getIcon(),
-                'active' => $this->isTabActive($slug, $tab),
-                'forms' => $builtLayouts,
-            ];
+                $tabs[$slug] = [
+                    'badge' => $tab->getBadge(),
+                    'slug' => $slug,
+                    'title' => $name,
+                    'icon' => $tab->getIcon(),
+                    'active' => false,
+                    'forms' => [],
+                    'skeletons' => $skeletonDescriptors,
+                ];
+            } else {
+                $builtLayouts = collect($layouts)
+                    ->map(static fn($layout) => Arr::wrap($layout))
+                    ->flatMap(
+                        fn(iterable $layoutGroup, string $key) => $this->buildChild($layoutGroup, $key, $repository),
+                    )
+                    ->all();
+
+                $tabs[$slug] = [
+                    'badge' => $tab->getBadge(),
+                    'slug' => $slug,
+                    'title' => $name,
+                    'icon' => $tab->getIcon(),
+                    'active' => $isActive,
+                    'forms' => $builtLayouts,
+                    'skeletons' => [],
+                ];
+            }
         }
 
         $this->variables['tabs'] = $tabs;
@@ -173,11 +235,7 @@ abstract class Tabs extends Layout
             return true;
         }
 
-        return (bool) ($activeTab === null && $tab->isActive())
-
-
-
-        ;
+        return (bool) ( $activeTab === null && $tab->isActive() );
     }
 
     /**

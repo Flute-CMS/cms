@@ -2,24 +2,12 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
-use Cycle\Database\Injection\Parameter;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
-use Flute\Core\Database\Repositories\UserRepository;
 
 class UsersTodayWidget extends AbstractWidget
 {
     protected const CACHE_TIME = 60;
-
-    /**
-     * @var UserRepository
-     */
-    protected $userRepository;
-
-    public function __construct()
-    {
-        $this->userRepository = rep(User::class);
-    }
 
     public function getName(): string
     {
@@ -36,24 +24,20 @@ class UsersTodayWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $cacheKey = 'flute.widget.users_today.' . $maxDisplay;
 
-        // Cache only user IDs to avoid serialization issues with ORM entities
-        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
-            $startOfDay = new DateTimeImmutable('today');
+        $users = cache()->callback(
+            $cacheKey,
+            static function () use ($maxDisplay) {
+                $startOfDay = new DateTimeImmutable('today');
 
-            $users = User::query()
-                ->where('last_logged', '>=', $startOfDay)
-                ->where('hidden', false)
-                ->orderBy(['last_logged' => 'DESC'])
-                ->limit($maxDisplay)
-                ->fetchAll();
-
-            return array_map(static fn ($user) => $user->id, $users);
-        }, self::CACHE_TIME);
-
-        // Reload users from IDs
-        $users = !empty($userIds)
-            ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll()
-            : [];
+                return User::query()
+                    ->where('last_logged', '>=', $startOfDay)
+                    ->where('hidden', false)
+                    ->orderBy(['last_logged' => 'DESC'])
+                    ->limit($maxDisplay)
+                    ->fetchAll();
+            },
+            self::CACHE_TIME,
+        );
 
         return view('flute::widgets.users-today', [
             'users' => $users,
@@ -85,6 +69,16 @@ class UsersTodayWidget extends AbstractWidget
         return 'users';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.users_today_desc';
+    }
+
+    public function getCacheTime(): int
+    {
+        return self::CACHE_TIME;
+    }
+
     public function getDefaultWidth(): int
     {
         return 3;
@@ -97,7 +91,7 @@ class UsersTodayWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10),
+            'max_display' => (int) ( $input['max_display'] ?? 10 ),
         ];
     }
 }

@@ -15,7 +15,7 @@
                                 alt="{{ $user->name }}" loading="lazy" id="avatar-image">
                         </div>
 
-                        <h3>{{ $user->name }}</h3>
+                        <h3>{!! $user->getDisplayName() !!}</h3>
                         @if ($user->email)
                             <p>{{ $user->email }}</p>
                         @endif
@@ -30,7 +30,7 @@
                             <div class="profile-edit__main-block-body">
                                 <div class="profile-edit__field">
                                     <div class="profile-edit__field-name">{{ __('profile.edit.main.fields.name') }}</div>
-                                    <div class="profile-edit__field-value">{{ $user->name }}</div>
+                                    <div class="profile-edit__field-value">{!! $user->getDisplayName() !!}</div>
                                     <a href="{{ url('profile/settings?tab=main') }}" class="profile-edit__field-icon">
                                         <x-icon path="ph.regular.pencil" />
                                     </a>

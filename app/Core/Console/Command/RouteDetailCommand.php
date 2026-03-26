@@ -26,9 +26,7 @@ class RouteDetailCommand extends Command
 
     protected function configure(): void
     {
-        $this
-            ->setName('route:detail')
-            ->addArgument('path', InputArgument::REQUIRED, 'Route path (URI)');
+        $this->setName('route:detail')->addArgument('path', InputArgument::REQUIRED, 'Route path (URI)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -106,6 +104,5 @@ class RouteDetailCommand extends Command
         }
 
         return 'Unknown';
-
     }
 }

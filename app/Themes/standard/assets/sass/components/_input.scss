@@ -10,29 +10,30 @@
 
         font-size: var(--h5);
         line-height: 1;
-        margin-bottom: 2px;
     }
 
     &__field-container {
         @extend .align-center;
 
-        gap: 10px;
+        gap: 8px;
         position: relative;
         width: 100%;
-        padding: 0.75em 1em 0.75em 1em;
-        font-size: var(--p);
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 14px;
         border: 1px solid var(--transp-2);
-        border-radius: var(--border05);
+        border-radius: 12px;
         color: var(--text);
-        transition: border var(--transition), background-color var(--transition);
+        background-color: var(--transp-05);
+        transition: border-color 0.15s, box-shadow 0.15s;
 
         &-withPassword {
             padding-right: 3em;
         }
 
-        // &:hover:not(.input__field-container-readonly) {
-        //     background-color: var(--transp-2);
-        // }
+        &:hover:not(:focus-within):not(.has-error):not(.input__field-container-readonly) {
+            border-color: var(--transp-3);
+        }
 
         &:focus-within:not(.input__field-container-readonly):not(.has-error) {
             border-color: var(--primary-300);
@@ -58,7 +59,7 @@
         @extend .icon-hover;
 
         position: absolute;
-        right: 0.3em;
+        right: var(--space-2xs);
         width: 36px;
         height: 36px;
         font-size: var(--p-small);

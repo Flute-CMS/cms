@@ -19,7 +19,8 @@ use Cycle\ORM\Entity\Behavior;
         new Index(columns: ["uri"], unique: true),
         new Index(columns: ["email"], unique: true),
         new Index(columns: ["last_logged", "hidden"]),
-        new Index(columns: ["hidden"])
+        new Index(columns: ["hidden"]),
+        new Index(columns: ["created_at"])
     ]
 )]
 #[Behavior\CreatedAt(
@@ -56,10 +57,16 @@ class User extends ActiveRecord
     public ?string $email = null;
 
     #[Column(type: "string", nullable: true)]
+    public ?string $pendingEmail = null;
+
+    #[Column(type: "string", nullable: true)]
     public ?string $password = null;
 
     #[Column(type: "boolean", default: false)]
     public bool $verified = false;
+
+    #[Column(type: "boolean", default: false)]
+    public bool $approved = false;
 
     #[Column(type: "boolean", default: false)]
     public bool $hidden = false;
@@ -82,10 +89,10 @@ class User extends ActiveRecord
     #[HasMany(target: "UserDevice", cascade: true)]
     public array $userDevices = [];
 
-    #[HasMany(target: "UserBlock", cascade: true)]
+    #[HasMany(target: "UserBlock", innerKey: "id", outerKey: "blockedBy_id", cascade: true)]
     public array $blocksGiven = [];
 
-    #[HasMany(target: "UserBlock", cascade: true)]
+    #[HasMany(target: "UserBlock", innerKey: "id", outerKey: "user_id", cascade: true)]
     public array $blocksReceived = [];
 
     #[HasMany(target: "UserActionLog", cascade: true)]
@@ -118,6 +125,12 @@ class User extends ActiveRecord
     #[Column(type: "datetime", nullable: true)]
     public ?\DateTimeImmutable $two_factor_confirmed_at = null;
 
+    /** @var array<string,true>|null Lazy-built index for O(1) hasRole() lookups */
+    private ?array $rolesIndex = null;
+
+    /** @var array<string,true>|null Lazy-built index for O(1) hasPermission() lookups */
+    private ?array $permissionsIndex = null;
+
     public function __construct()
     {
         $this->last_logged = new \DateTimeImmutable();
@@ -127,6 +140,8 @@ class User extends ActiveRecord
     {
         if (! in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
+            $this->rolesIndex = null;
+            $this->permissionsIndex = null;
         }
     }
 
@@ -136,26 +151,31 @@ class User extends ActiveRecord
             $this->roles,
             fn ($r) => $r !== $role
         );
+        $this->rolesIndex = null;
+        $this->permissionsIndex = null;
     }
 
     public function clearRoles() : void
     {
         $this->roles = [];
+        $this->rolesIndex = null;
+        $this->permissionsIndex = null;
     }
 
     public function hasRole(string $roleName) : bool
     {
-        foreach ($this->roles as $role) {
-            if ($role->name === $roleName) {
-                return true;
+        if ($this->rolesIndex === null) {
+            $this->rolesIndex = [];
+            foreach ($this->roles as $role) {
+                $this->rolesIndex[$role->name] = true;
             }
         }
-        return false;
+        return isset($this->rolesIndex[$roleName]);
     }
 
     public function setPassword(string $password) : void
     {
-        $this->password = password_hash($password, PASSWORD_BCRYPT);
+        $this->password = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $this->password_updated_at = new \DateTimeImmutable();
     }
 
@@ -168,14 +188,15 @@ class User extends ActiveRecord
 
     public function hasPermission(string $permissionName) : bool
     {
-        foreach ($this->roles as $role) {
-            foreach ($role->permissions as $permission) {
-                if ($permission->name === $permissionName) {
-                    return true;
+        if ($this->permissionsIndex === null) {
+            $this->permissionsIndex = [];
+            foreach ($this->roles as $role) {
+                foreach ($role->permissions as $permission) {
+                    $this->permissionsIndex[$permission->name] = true;
                 }
             }
         }
-        return false;
+        return isset($this->permissionsIndex[$permissionName]);
     }
 
     public function getPermissions()
@@ -184,19 +205,17 @@ class User extends ActiveRecord
 
         foreach ($this->roles as $role) {
             foreach ($role->permissions as $permission) {
-                if (! in_array($permission, $permissions)) {
-                    $permissions[] = $permission;
-                }
+                $permissions[$permission->id] = $permission;
             }
         }
 
-        return $permissions;
+        return array_values($permissions);
     }
 
     public function getSocialNetwork(string $socialNetworkName) : ?UserSocialNetwork
     {
         foreach ($this->socialNetworks as $socialNetwork) {
-            if ($socialNetwork->socialNetwork->key === $socialNetworkName) {
+            if ($socialNetwork->socialNetwork?->key === $socialNetworkName) {
                 return $socialNetwork;
             }
         }
@@ -206,7 +225,7 @@ class User extends ActiveRecord
     public function hasSocialNetwork(string $socialNetworkName) : bool
     {
         foreach ($this->socialNetworks as $socialNetwork) {
-            if ($socialNetwork->socialNetwork->key === $socialNetworkName) {
+            if ($socialNetwork->socialNetwork?->key === $socialNetworkName) {
                 return true;
             }
         }
@@ -217,13 +236,29 @@ class User extends ActiveRecord
     {
         $this->socialNetworks = array_filter(
             $this->socialNetworks,
-            fn ($socialNetwork) => $socialNetwork->socialNetwork->key !== $socialNetworkName
+            fn ($socialNetwork) => $socialNetwork->socialNetwork?->key !== $socialNetworkName
         );
     }
 
     public function addSocialNetwork(UserSocialNetwork $socialNetwork) : void
     {
         $this->socialNetworks[] = $socialNetwork;
+    }
+
+    /**
+     * Get the rendered username HTML with all decorators (badges, icons, tags).
+     *
+     * @param bool $withColor Apply role color styling
+     * @param bool $link      Wrap name in a profile link
+     * @param string $class   Additional CSS class for the wrapper
+     */
+    public function getDisplayName(string $class = '', bool $withColor = true, bool $link = false) : string
+    {
+        try {
+            return app(\Flute\Core\Services\UserNameRenderer::class)->render($this, $class, $withColor, $link);
+        } catch (\Throwable $e) {
+            return e($this->name);
+        }
     }
 
     public function getUrl() : string
@@ -235,14 +270,17 @@ class User extends ActiveRecord
     {
         $now = new \DateTimeImmutable();
         $lastLogged = $this->last_logged instanceof \DateTimeImmutable ? $this->last_logged : ($this->last_logged ? new \DateTimeImmutable($this->last_logged) : null);
+        if ($lastLogged === null) {
+            return false;
+        }
         $interval = $now->getTimestamp() - $lastLogged->getTimestamp();
         return $interval <= self::IS_ONLINE_TIME;
     }
 
     public function isBlocked() : bool
     {
+        $now = new \DateTimeImmutable();
         foreach ($this->blocksReceived as $block) {
-            $now = new \DateTimeImmutable();
             $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
@@ -256,15 +294,15 @@ class User extends ActiveRecord
 
     public function getBlockInfo() : ?array
     {
+        $now = new \DateTimeImmutable();
         foreach ($this->blocksReceived as $block) {
-            $now = new \DateTimeImmutable();
+            if (! $block->isActive) {
+                continue;
+            }
+
             $blockedUntil = $block->blockedUntil;
 
             if ($blockedUntil === null || $blockedUntil > $now) {
-                if (! $block->isActive) {
-                    return null;
-                }
-
                 return [
                     'reason' => $block->reason,
                     'blockedBy' => $block->blockedBy,

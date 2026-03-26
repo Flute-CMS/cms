@@ -57,15 +57,12 @@ class AttributeRouteLoader
     {
         $routeCount = 0;
         $cacheKey = 'route_loader_' . md5(implode('|', $directories) . '_' . $namespace);
-        if (!is_debug()) {
-            $classNames = cache()->callback(
-                $cacheKey,
-                fn () => $this->scanDirectoriesForControllers($directories, $namespace),
-                86400
-            );
-        } else {
-            $classNames = $this->scanDirectoriesForControllers($directories, $namespace);
-        }
+        $ttl = is_debug() ? 30 : 86400;
+        $classNames = cache()->callback(
+            $cacheKey,
+            fn() => $this->scanDirectoriesForControllers($directories, $namespace),
+            $ttl,
+        );
 
         foreach ($classNames as $className) {
             $routeCount += $this->loadFromClass($className);
@@ -101,10 +98,7 @@ class AttributeRouteLoader
                 if ($method->isStatic()) {
                     continue;
                 }
-                $routeAttributes = $method->getAttributes(
-                    RouteAttribute::class,
-                    ReflectionAttribute::IS_INSTANCEOF
-                );
+                $routeAttributes = $method->getAttributes(RouteAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
                 if (empty($routeAttributes)) {
                     continue;
                 }
@@ -122,11 +116,7 @@ class AttributeRouteLoader
                     $annotationRoute = $finalRoute;
 
                     $action = [$className, $method->getName()];
-                    $routeInstance = $this->router->addRoute(
-                        $finalRoute->getMethods(),
-                        $finalRoute->getUri(),
-                        $action
-                    );
+                    $routeInstance = $this->router->addRoute($finalRoute->getMethods(), $finalRoute->getUri(), $action);
 
                     $annotationRoute->setAfterModifyCallback(static function ($annotationRoute) use ($routeInstance) {
                         if ($annotationRoute->getName()) {
@@ -146,22 +136,20 @@ class AttributeRouteLoader
                         }
                     });
 
+                    $allMiddleware = array_merge($combinedMiddleware, $finalRoute->getMiddleware());
+
                     if ($finalRoute->getName()) {
                         $routeInstance->name($finalRoute->getName());
                     }
 
-                    // middleware
-                    $allMiddleware = array_merge($combinedMiddleware, $finalRoute->getMiddleware());
                     if (!empty($allMiddleware)) {
                         $routeInstance->middleware($allMiddleware);
                     }
 
-                    // where
                     foreach ($finalRoute->getWhere() as $param => $pattern) {
                         $routeInstance->where($param, $pattern);
                     }
 
-                    // defaults
                     foreach ($finalRoute->getDefaults() as $param => $value) {
                         $routeInstance->defaults($param, $value);
                     }
@@ -171,7 +159,6 @@ class AttributeRouteLoader
             }
 
             return $routeCount;
-
         } catch (ReflectionException $e) {
             return 0;
         }
@@ -219,10 +206,7 @@ class AttributeRouteLoader
             $middleware = $this->getInheritedClassMiddleware($parent);
         }
 
-        $middlewareAttributes = $class->getAttributes(
-            MiddlewareAttribute::class,
-            ReflectionAttribute::IS_INSTANCEOF
-        );
+        $middlewareAttributes = $class->getAttributes(MiddlewareAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
 
         foreach ($middlewareAttributes as $attribute) {
             $middlewareInstance = $attribute->newInstance();
@@ -246,10 +230,7 @@ class AttributeRouteLoader
         }
 
         $middleware = [];
-        $middlewareAttributes = $method->getAttributes(
-            MiddlewareAttribute::class,
-            ReflectionAttribute::IS_INSTANCEOF
-        );
+        $middlewareAttributes = $method->getAttributes(MiddlewareAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
 
         foreach ($middlewareAttributes as $attribute) {
             $middlewareInstance = $attribute->newInstance();
@@ -318,10 +299,7 @@ class AttributeRouteLoader
             $parentRoute = $this->buildClassRouteChain($parent);
         }
 
-        $routeAttributes = $class->getAttributes(
-            RouteAttribute::class,
-            ReflectionAttribute::IS_INSTANCEOF
-        );
+        $routeAttributes = $class->getAttributes(RouteAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
 
         $classRoute = null;
         if (!empty($routeAttributes)) {

@@ -33,11 +33,13 @@ class ProfileEditTabService
      *
      * @return Collection|ProfileTab[]
      */
-    public function getTabs(): Collection
+    public function getTabs(?User $user = null): Collection
     {
-        return $this->tabs
-            ->sortByDesc(static fn (ProfileTab $tab) => $tab->getOrder())
-            ->groupBy(static fn (ProfileTab $tab) => $tab->getPath())
+        $tabs = $user !== null ? $this->tabs->filter(static fn(ProfileTab $tab) => $tab->canView($user)) : $this->tabs;
+
+        return $tabs
+            ->sortByDesc(static fn(ProfileTab $tab) => $tab->getOrder())
+            ->groupBy(static fn(ProfileTab $tab) => $tab->getPath())
             ->map(static function (Collection $group) {
                 $highestPriorityTab = $group->first();
 
@@ -46,6 +48,7 @@ class ProfileEditTabService
                     'description' => $highestPriorityTab->getDescription(),
                     'title' => $highestPriorityTab->getTitle(),
                     'icon' => $highestPriorityTab->getIcon(),
+                    'isFullWidth' => $highestPriorityTab->isFullWidth(),
                 ];
             })
             ->values();
@@ -56,12 +59,26 @@ class ProfileEditTabService
      */
     public function renderTabsByPath(string $path, User $user): string
     {
-        $tabs = $this->getTabsByPath($path)->filter(static fn (ProfileTab $tab) => $tab->canView($user));
+        $tabs = $this->getTabsByPath($path)->filter(static fn(ProfileTab $tab) => $tab->canView($user));
 
         $content = '';
 
         foreach ($tabs as $tab) {
-            $content .= $tab->getContent($user);
+            if ($styles = $tab->getStyles()) {
+                template()->addStyle($styles);
+            }
+
+            if ($scripts = $tab->getScripts()) {
+                template()->addScript($scripts);
+            }
+
+            $tabContent = $tab->getContent($user);
+
+            if ($layout = $tab->getLayout()) {
+                $tabContent = view($layout, ['content' => $tabContent])->render();
+            }
+
+            $content .= $tabContent;
         }
 
         return $content;
@@ -74,6 +91,8 @@ class ProfileEditTabService
      */
     public function getTabsByPath(string $path): Collection
     {
-        return $this->tabs->filter(static fn (ProfileTab $tab) => $tab->getPath() === $path)->sortBy(static fn (ProfileTab $tab) => $tab->getOrder());
+        return $this->tabs
+            ->filter(static fn(ProfileTab $tab) => $tab->getPath() === $path)
+            ->sortBy(static fn(ProfileTab $tab) => $tab->getOrder());
     }
 }

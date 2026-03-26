@@ -16,8 +16,6 @@ use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class RouterServiceProvider extends AbstractServiceProvider
 {
@@ -31,11 +29,21 @@ class RouterServiceProvider extends AbstractServiceProvider
 
             RequestContext::class => \DI\autowire(),
 
-            UrlMatcher::class => \DI\factory(static fn (Container $c) => new UrlMatcher($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
+            UrlMatcher::class => \DI\factory(
+                static fn(Container $c) => new UrlMatcher(
+                    $c->get(RouteCollection::class),
+                    ( new RequestContext() )->fromRequest($c->get(FluteRequest::class)),
+                ),
+            ),
 
             ContainerControllerResolver::class => \DI\autowire(),
 
-            UrlGenerator::class => \DI\factory(static fn (Container $c) => new UrlGenerator($c->get(RouteCollection::class), (new RequestContext())->fromRequest($c->get(FluteRequest::class)))),
+            UrlGenerator::class => \DI\factory(
+                static fn(Container $c) => new UrlGenerator(
+                    $c->get(RouteCollection::class),
+                    ( new RequestContext() )->fromRequest($c->get(FluteRequest::class)),
+                ),
+            ),
 
             RateLimiterFactory::class => \DI\factory(static function (Container $c) {
                 $storage = new CacheStorage($c->get(\Flute\Core\Cache\Contracts\CacheInterface::class)->getAdapter());
@@ -54,8 +62,6 @@ class RouterServiceProvider extends AbstractServiceProvider
 
                 return new RateLimiterFactory($config, $storage);
             }),
-
-            CsrfTokenManagerInterface::class => \DI\factory(static fn (Container $c) => new CsrfTokenManager()),
 
             Router::class => \DI\autowire(),
 

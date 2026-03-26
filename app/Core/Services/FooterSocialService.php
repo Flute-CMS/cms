@@ -8,6 +8,8 @@ class FooterSocialService
 {
     public const CACHE_KEY = 'flute.footer.social';
 
+    public const CACHE_TAG = 'footer';
+
     protected const CACHE_TIME = 24 * 60 * 60;
 
     protected $footerSocial;
@@ -16,9 +18,18 @@ class FooterSocialService
 
     public function __construct()
     {
-        $this->performance = (bool) (is_performance());
+        $this->performance = (bool) is_performance();
 
-        $this->footerSocial = $this->performance ? cache()->callback(self::CACHE_KEY, fn () => $this->getFooterSocial(), self::CACHE_TIME) : $this->getFooterSocial();
+        if ($this->performance) {
+            cache()->tagKey(self::CACHE_TAG, self::CACHE_KEY);
+            $this->footerSocial = cache()->callback(
+                self::CACHE_KEY,
+                fn() => $this->getFooterSocial(),
+                self::CACHE_TIME,
+            );
+        } else {
+            $this->footerSocial = $this->getFooterSocial();
+        }
     }
 
     public function add(FooterSocial $footerSocial): self

@@ -90,5 +90,15 @@ return [
         'social_updated' => 'Social network updated successfully.',
         'social_deleted' => 'Social network deleted successfully.',
         'social_not_found' => 'Social network not found.',
+        'item_has_children' => 'Cannot delete footer item because it has child elements.',
+    ],
+
+    'empty' => [
+        'title' => 'No footer items',
+        'sub' => 'Create items to display in the site footer',
+        'socials' => [
+            'title' => 'No social links',
+            'sub' => 'Add links to your social networks',
+        ],
     ],
 ];

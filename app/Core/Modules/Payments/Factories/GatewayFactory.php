@@ -22,7 +22,7 @@ class GatewayFactory
     {
         try {
             $gateway = Omnipay::create($gatewayEntity->adapter);
-            $config = $this->decryptConfig($gatewayEntity->additional);
+            $config = $this->decryptConfig($gatewayEntity);
             $gateway->initialize($config);
 
             return $gateway;
@@ -33,29 +33,53 @@ class GatewayFactory
             if (is_debug()) {
                 throw $e;
             }
+
+            throw new PaymentException("Failed to initialize gateway '{$gatewayEntity->adapter}'");
         }
     }
 
     /**
      * Decrypts and decodes the gateway configuration.
-     *
-     * @param string $encryptedConfig Encrypted configuration string.
-     *
-     * @throws PaymentException
-     * @return array Decrypted configuration array.
+     * If the config is plaintext JSON, it will be auto-encrypted and saved.
      */
-    private function decryptConfig(string $encryptedConfig): array
+    private function decryptConfig(PaymentGatewayEntity $gatewayEntity): array
     {
+        $raw = $gatewayEntity->additional;
+
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            try {
+                $gatewayEntity->additional = encrypt()->encryptString($raw);
+                $gatewayEntity->save();
+            } catch (Throwable) {
+            }
+
+            return $this->normalizeConfig($decoded);
+        }
+
         try {
-            $json = encrypt()->decryptString($encryptedConfig);
+            $json = encrypt()->decryptString($raw);
         } catch (Throwable $e) {
-            $json = $encryptedConfig;
+            logs()->warning('Gateway config decryption failed: ' . $e->getMessage());
+
+            throw new PaymentException('Failed to decrypt gateway configuration');
         }
 
         $config = \Nette\Utils\Json::decode($json, \Nette\Utils\Json::FORCE_ARRAY);
 
         if (!is_array($config)) {
             throw new PaymentException('Invalid gateway configuration');
+        }
+
+        return $this->normalizeConfig($config);
+    }
+
+    private function normalizeConfig(array $config): array
+    {
+        if (isset($config['keys']) && is_array($config['keys'])) {
+            $keys = $config['keys'];
+            unset($config['keys']);
+            $config = array_merge($config, $keys);
         }
 
         if (isset($config['testMode'])) {

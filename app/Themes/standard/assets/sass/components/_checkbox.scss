@@ -35,8 +35,8 @@ $checkbox-size: 22px;
             &:after {
                 position: absolute;
                 display: block;
-                top: 4px;
-                left: 8px;
+                top: var(--space-2xs);
+                left: var(--space-xs);
                 content: "";
                 width: 6px;
                 height: 10px;

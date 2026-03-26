@@ -10,6 +10,7 @@ use Flute\Admin\Platform\Fields\Input;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Fields\Tab;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Fields\TranslatableInput;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
 use Flute\Admin\Platform\Screen;
@@ -32,12 +33,10 @@ class FooterListScreen extends Screen
 
     public function mount(): void
     {
-        // $this->name = __('admin-footer.title');
-        // $this->description = __('admin-footer.description');
+        $this->name = __('admin-footer.title');
+        $this->description = __('admin-footer.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-footer.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-footer.title'));
 
         $this->loadFooterItems();
         $this->loadSocials();
@@ -51,27 +50,32 @@ class FooterListScreen extends Screen
                     ->badge(sizeof($this->footerItems))
                     ->layouts([
                         LayoutFactory::sortable('footerItems', [
-                            Sight::make('title', __('admin-footer.table.title'))->render(static fn (FooterItem $footerItem) => view('admin-footer::cells.item-title', compact('footerItem'))),
-                            Sight::make('actions', __('admin-footer.table.actions'))
-                                ->render(
-                                    static fn (FooterItem $footerItem) => DropDown::make()
-                                        ->icon('ph.regular.dots-three-outline-vertical')
-                                        ->list([
-                                            DropDownItem::make(__('def.edit'))
-                                                ->modal('editFooterItemModal', ['footerItem' => $footerItem->id])
-                                                ->icon('ph.bold.pencil-bold')
-                                                ->type(Color::OUTLINE_PRIMARY)
-                                                ->size('small')
-                                                ->fullWidth(),
-                                            DropDownItem::make(__('def.delete'))
-                                                ->confirm(__('admin-footer.confirms.delete_item'))
-                                                ->method('deleteFooterItem', ['id' => $footerItem->id])
-                                                ->icon('ph.bold.trash-bold')
-                                                ->type(Color::OUTLINE_DANGER)
-                                                ->size('small')
-                                                ->fullWidth(),
-                                        ])
-                                ),
+                            Sight::make(
+                                'title',
+                                __('admin-footer.table.title'),
+                            )->render(static fn(FooterItem $footerItem) => view(
+                                'admin-footer::cells.item-title',
+                                compact('footerItem'),
+                            )),
+                            Sight::make('actions', __('admin-footer.table.actions'))->render(
+                                static fn(FooterItem $footerItem) => DropDown::make()
+                                    ->icon('ph.regular.dots-three-outline-vertical')
+                                    ->list([
+                                        DropDownItem::make(__('def.edit'))
+                                            ->modal('editFooterItemModal', ['footerItem' => $footerItem->id])
+                                            ->icon('ph.bold.pencil-bold')
+                                            ->type(Color::OUTLINE_PRIMARY)
+                                            ->size('small')
+                                            ->fullWidth(),
+                                        DropDownItem::make(__('def.delete'))
+                                            ->confirm(__('admin-footer.confirms.delete_item'))
+                                            ->method('deleteFooterItem', ['id' => $footerItem->id])
+                                            ->icon('ph.bold.trash-bold')
+                                            ->type(Color::OUTLINE_DANGER)
+                                            ->size('small')
+                                            ->fullWidth(),
+                                    ]),
+                            ),
                         ])
                             ->onSortEnd('updateFooterItemPositions')
                             ->commands([
@@ -82,18 +86,37 @@ class FooterListScreen extends Screen
                                     ->type(Color::PRIMARY),
                             ])
                             ->title(__('admin-footer.sections.main_links.title'))
-                            ->description(__('admin-footer.sections.main_links.description')),
+                            ->description(__('admin-footer.sections.main_links.description'))
+                            ->empty(
+                                'ph.regular.text-columns',
+                                __('admin-footer.empty.title'),
+                                __('admin-footer.empty.sub'),
+                            ),
                     ]),
                 Tab::make(__('admin-footer.tabs.social'))
                     ->badge(sizeof($this->socials))
                     ->layouts([
                         LayoutFactory::table('socials', [
-                            TD::make('icon', __('admin-footer.table.icon'))->render(static fn (FooterSocial $footerSocial) => view('admin-footer::cells.social-icon', compact('footerSocial'))),
-                            TD::make('url', __('admin-footer.table.url'))->render(static fn (FooterSocial $footerSocial) => '<a class="hover-accent" href="' . $footerSocial->url . '" target="_blank">' . $footerSocial->url . '</a>'),
+                            TD::make(
+                                'icon',
+                                __('admin-footer.table.icon'),
+                            )->render(static fn(FooterSocial $footerSocial) => view(
+                                'admin-footer::cells.social-icon',
+                                compact('footerSocial'),
+                            )),
+                            TD::make('url', __('admin-footer.table.url'))->render(
+                                static fn(FooterSocial $footerSocial) => (
+                                    '<a class="hover-accent" href="'
+                                    . $footerSocial->url
+                                    . '" target="_blank">'
+                                    . $footerSocial->url
+                                    . '</a>'
+                                ),
+                            ),
                             TD::make('actions', __('admin-footer.table.actions'))
                                 ->width('150px')
                                 ->alignCenter()
-                                ->render(static fn (FooterSocial $footerSocial) => DropDown::make()
+                                ->render(static fn(FooterSocial $footerSocial) => DropDown::make()
                                     ->icon('ph.regular.dots-three-outline-vertical')
                                     ->list([
                                         DropDownItem::make(__('admin-footer.buttons.edit'))
@@ -111,6 +134,17 @@ class FooterListScreen extends Screen
                                             ->fullWidth(),
                                     ])),
                         ])
+                            ->empty(
+                                'ph.regular.share-network',
+                                __('admin-footer.empty.socials.title'),
+                                __('admin-footer.empty.socials.sub'),
+                            )
+                            ->emptyButton(
+                                Button::make(__('def.create'))
+                                    ->icon('ph.bold.plus-bold')
+                                    ->modal('createFooterSocialModal')
+                                    ->type(Color::PRIMARY),
+                            )
                             ->searchable()
                             ->title(__('admin-footer.sections.social_links.title'))
                             ->description(__('admin-footer.sections.social_links.description'))
@@ -133,7 +167,7 @@ class FooterListScreen extends Screen
     {
         $sortableResult = json_decode(request()->input('sortableResult'), true);
         if (!$sortableResult) {
-            $this->flashMessage(__('admin-footer.messages.invalid_sort_data'), 'danger');
+            $this->flashMessage(__('admin-footer.messages.invalid_sort_data'), 'error');
 
             return;
         }
@@ -154,9 +188,9 @@ class FooterListScreen extends Screen
     {
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
-                    ->placeholder(__('admin-footer.modal.footer_item.fields.title.placeholder'))
+                    ->placeholder(__('admin-footer.modal.footer_item.fields.title.placeholder')),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.title.label'))
                 ->required()
@@ -165,7 +199,7 @@ class FooterListScreen extends Screen
             LayoutFactory::field(
                 Input::make('icon')
                     ->type('icon')
-                    ->placeholder(__('admin-footer.modal.footer_item.fields.icon.placeholder'))
+                    ->placeholder(__('admin-footer.modal.footer_item.fields.icon.placeholder')),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.icon.label'))
                 ->small(__('admin-footer.modal.footer_item.fields.icon.help')),
@@ -173,7 +207,7 @@ class FooterListScreen extends Screen
             LayoutFactory::field(
                 Input::make('url')
                     ->type('text')
-                    ->placeholder(__('admin-footer.modal.footer_item.fields.url.placeholder'))
+                    ->placeholder(__('admin-footer.modal.footer_item.fields.url.placeholder')),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.url.label'))
                 ->small(__('admin-footer.modal.footer_item.fields.url.help')),
@@ -196,8 +230,12 @@ class FooterListScreen extends Screen
     {
         $data = request()->input();
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $data['title'] = '';
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
+            'title' => ['required', 'string'],
             'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
@@ -245,10 +283,10 @@ class FooterListScreen extends Screen
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('title')
+                TranslatableInput::make('title')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.title.placeholder'))
-                    ->value($footerItem->title)
+                    ->value($footerItem->title),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.title.label'))
                 ->required()
@@ -258,7 +296,7 @@ class FooterListScreen extends Screen
                 Input::make('icon')
                     ->type('icon')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.icon.placeholder'))
-                    ->value($footerItem->icon)
+                    ->value($footerItem->icon),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.icon.label'))
                 ->small(__('admin-footer.modal.footer_item.fields.icon.help')),
@@ -267,7 +305,7 @@ class FooterListScreen extends Screen
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.footer_item.fields.url.placeholder'))
-                    ->value($footerItem->url)
+                    ->value($footerItem->url),
             )
                 ->label(__('admin-footer.modal.footer_item.fields.url.label'))
                 ->small(__('admin-footer.modal.footer_item.fields.url.help')),
@@ -276,7 +314,7 @@ class FooterListScreen extends Screen
                 CheckBox::make('new_tab')
                     ->label(__('admin-footer.modal.footer_item.fields.new_tab.label'))
                     ->popover(__('admin-footer.modal.footer_item.fields.new_tab.help'))
-                    ->value($footerItem->new_tab)
+                    ->value($footerItem->new_tab),
             ),
         ])
             ->title(__('admin-footer.modal.footer_item.edit_title'))
@@ -299,8 +337,12 @@ class FooterListScreen extends Screen
             return;
         }
 
+        if (empty(transValue($data['title'] ?? ''))) {
+            $data['title'] = '';
+        }
+
         $validation = $this->validate([
-            'title' => ['required', 'string', 'max-str-len:255'],
+            'title' => ['required', 'string'],
             'icon' => ['nullable', 'string', 'max-str-len:255'],
             'url' => ['nullable', 'string', 'max-str-len:255'],
         ], $data);
@@ -339,7 +381,7 @@ class FooterListScreen extends Screen
         }
 
         if (!empty($footerItem->children)) {
-            $this->flashMessage('Невозможно удалить элемент футера, так как у него есть дочерние элементы.', 'warning');
+            $this->flashMessage(__('admin-footer.messages.item_has_children'), 'warning');
 
             return;
         }
@@ -361,25 +403,21 @@ class FooterListScreen extends Screen
             LayoutFactory::field(
                 Input::make('social_name')
                     ->type('text')
-                    ->placeholder(__('admin-footer.modal.social.fields.name.placeholder'))
+                    ->placeholder(__('admin-footer.modal.social.fields.name.placeholder')),
             )
                 ->label(__('admin-footer.modal.social.fields.name.label'))
                 ->required()
                 ->small(__('admin-footer.modal.social.fields.name.help')),
 
             LayoutFactory::field(
-                Input::make('icon')
-                    ->type('icon')
-                    ->placeholder(__('admin-footer.modal.social.fields.icon.placeholder'))
+                Input::make('icon')->type('icon')->placeholder(__('admin-footer.modal.social.fields.icon.placeholder')),
             )
                 ->label(__('admin-footer.modal.social.fields.icon.label'))
                 ->required()
                 ->small(__('admin-footer.modal.social.fields.icon.help')),
 
             LayoutFactory::field(
-                Input::make('url')
-                    ->type('text')
-                    ->placeholder(__('admin-footer.modal.social.fields.url.placeholder'))
+                Input::make('url')->type('text')->placeholder(__('admin-footer.modal.social.fields.url.placeholder')),
             )
                 ->label(__('admin-footer.modal.social.fields.url.label'))
                 ->required()
@@ -440,7 +478,7 @@ class FooterListScreen extends Screen
                 Input::make('social_name')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.social.fields.name.placeholder'))
-                    ->value($footerSocial->name)
+                    ->value($footerSocial->name),
             )
                 ->label(__('admin-footer.modal.social.fields.name.label'))
                 ->required()
@@ -450,7 +488,7 @@ class FooterListScreen extends Screen
                 Input::make('icon')
                     ->type('icon')
                     ->placeholder(__('admin-footer.modal.social.fields.icon.placeholder'))
-                    ->value($footerSocial->icon)
+                    ->value($footerSocial->icon),
             )
                 ->label(__('admin-footer.modal.social.fields.icon.label'))
                 ->required()
@@ -460,7 +498,7 @@ class FooterListScreen extends Screen
                 Input::make('url')
                     ->type('text')
                     ->placeholder(__('admin-footer.modal.social.fields.url.placeholder'))
-                    ->value($footerSocial->url)
+                    ->value($footerSocial->url),
             )
                 ->label(__('admin-footer.modal.social.fields.url.label'))
                 ->required()
@@ -576,16 +614,13 @@ class FooterListScreen extends Screen
     }
 
     /**
-     * Clear all cached footer keys matching the cache key prefix.
+     * Clear all cached footer keys (items + socials) and global layout.
      */
     private function clearFooterCache(): void
     {
         try {
-            $pattern = \Flute\Core\Services\FooterService::CACHE_KEY . '*';
-            $keys = cache()->getKeys($pattern);
-            foreach ($keys as $key) {
-                cache()->delete($key);
-            }
+            cache()->deleteByTag(\Flute\Core\Services\FooterService::CACHE_TAG);
+            cache()->deleteImmediately('flute.global.layout');
         } catch (Throwable $e) {
             // Swallow exceptions to avoid breaking admin UI
         }

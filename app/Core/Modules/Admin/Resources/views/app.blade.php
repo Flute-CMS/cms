@@ -18,7 +18,7 @@
     <meta name="auth" id="auth" content="{{ user()->isLoggedIn() }}">
     <meta name="application-name" content="{{ config('app.name') }}">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="color-scheme" content="dark light">
     <meta name="supported-color-schemes" content="dark light">
@@ -45,7 +45,12 @@
     }'>
     <meta name="site_url" content="{{ config('app.url') }}">
 
-    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+
+    <link rel="icon" type="image/x-icon" href="@asset('favicon.ico')?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
+    <link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css' media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="@asset('assets/css/libs/flute-select.css')" type='text/css'></noscript>
 
     @stack('styles')
 
@@ -63,24 +68,36 @@
     @endif
 
     @if (!request()->htmx()->isHtmxRequest())
-        <link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')">
-        <link rel="stylesheet" href="@asset('animate')" type='text/css'>
-        <link rel="stylesheet" href="@asset('grid')" type='text/css'>
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Regular.woff2')" as="font" type="font/woff2" crossorigin fetchpriority="high">
+        <link rel="preload" href="@asset('assets/fonts/manrope/Manrope-Medium.woff2')" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="@asset('assets/fonts/manrope/manrope.css')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="@asset('assets/fonts/manrope/manrope.css')"></noscript>
+        <link rel="preload" href="@asset('animate')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript>
+            <link rel="stylesheet" href="@asset('animate')" type='text/css'>
+        </noscript>
+        <link rel="preload" href="@asset('grid')" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="@asset('grid')" type='text/css'></noscript>
         <link rel="stylesheet" href="@asset('assets/css/libs/filepond.min.css')">
-        <link rel="stylesheet" href="@asset('assets/css/libs/easymde.min.css')">
+        <link rel="stylesheet" href="@asset('assets/css/libs/filepond-plugin-image-preview.min.css')">
 
+        <link rel="stylesheet" href="@asset('assets/css/libs/cropper.min.css')" media="print" onload="this.media='all'">
         {{-- SCSS assets --}}
         @at('Core/Modules/Admin/Resources/assets/sass/admin.scss')
 
-        <script src="@asset('assets/js/htmx/core.js')"></script>
-        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}"></script>
+        <script src="@asset('assets/js/htmx/core.js')" defer></script>
+        <script src="{{ Clickfwd\Yoyo\Services\Configuration::yoyoSrc() }}" defer></script>
 
-        <script src="@asset('assets/js/htmx/head.js')"></script>
-        <script src="@asset('assets/js/htmx/idiomorph.js')"></script>
+        <script src="@asset('assets/js/htmx/head.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/htmx/idiomorph.js')" defer fetchpriority="low"></script>
 
-        <script src="@asset('assets/js/htmx/loadingState.js')"></script>
+        <script src="@asset('assets/js/htmx/loadingState.js')" defer fetchpriority="low"></script>
 
-        @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode() @endphp
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                @php echo Clickfwd\Yoyo\Services\Configuration::javascriptInitCode(false) @endphp
+            });
+        </script>
     @endif
 
     <script>
@@ -94,7 +111,7 @@
                     document.head.appendChild(m)
                 }
                 var bg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim() ||
-                '#1c1c1e';
+                    '#1c1c1e';
                 m.setAttribute('content', bg);
                 var ms1 = document.querySelector('meta[name="msapplication-TileColor"]');
                 if (ms1) {
@@ -105,13 +122,16 @@
                     ms2.setAttribute('content', bg)
                 }
             }
-            document.addEventListener('DOMContentLoaded', updateThemeColor);
-            var o = new MutationObserver(updateThemeColor);
+            var cb = typeof requestIdleCallback === 'function'
+                ? function(fn) { requestIdleCallback(fn) }
+                : function(fn) { setTimeout(fn, 1) };
+            cb(updateThemeColor);
+            var o = new MutationObserver(function() { cb(updateThemeColor) });
             o.observe(document.documentElement, {
                 attributes: true,
                 attributeFilter: ['data-theme']
             });
-            window.addEventListener('flute:theme-changed', updateThemeColor);
+            window.addEventListener('flute:theme-changed', function() { cb(updateThemeColor) });
         })();
     </script>
 </head>
@@ -121,6 +141,17 @@
         cookie()->get('admin-sidebar-collapsed', 'false') === 'true' &&
         !user()->device()->isMobile(),
 ])>
+    @if (!request()->htmx()->isHtmxRequest())
+        <div class="admin-grid-pattern" aria-hidden="true"></div>
+        <div class="admin-particles" aria-hidden="true">
+            <div class="admin-particle admin-particle--1"></div>
+            <div class="admin-particle admin-particle--2"></div>
+            <div class="admin-particle admin-particle--3"></div>
+            <div class="admin-particle admin-particle--4"></div>
+            <div class="admin-particle admin-particle--5"></div>
+        </div>
+    @endif
+
     @includeWhen(!request()->htmx()->isHtmxRequest(), 'admin::layouts.sidebar')
 
     @if (!request()->htmx()->isHtmxRequest())
@@ -158,7 +189,7 @@
             <p>
                 © {{ date('Y') }} Flute. Version: <strong>{{ app()->getVersion() }}</strong>.
             </p>
-            <p>Developed by <a class="hover-accent" href="https://github.com/FlamesONE" target="_blank">Flames</a> with
+            <p>Developed by <a class="hover-accent" href="https://github.com/FlamesONE" target="_blank" rel="noopener">Flames</a> with
                 <span class="secret-confetti cursor-pointer" id="secret-confetti">❤️</span>.
             </p>
             @php
@@ -174,7 +205,7 @@
                 }
             @endphp
             <small class="text-muted mt-3">Booted in <strong
-                    data-tooltip="{!! implode("\n", $times) !!}">{{ $executionTime }}</strong> seconds
+                    data-tooltip="{!! implode('&#10;', array_map('e', $times)) !!}">{{ $executionTime }}</strong> seconds
 
                 @if ($executionTime > 1)
                     <x-popover content="{!! __('admin.performance_info') !!}" />
@@ -209,10 +240,11 @@
         @include('admin::partials.search')
         @include('admin::partials.scrollup')
         @include('admin::partials.customization')
+        @include('admin::components.richtext-icons')
     @endif
 
     @if (!request()->htmx()->isHtmxRequest())
-        <footer>
+        <div class="footer-scripts">
             @php
                 if (is_debug()) {
                     Tracy\Debugger::renderLoader();
@@ -225,26 +257,48 @@
                 {!! $sections['footer'] !!}
             @endif
 
-            @include('admin::components.richtext-icons')
-        </footer>
+        </div>
 
         <script src="@asset('assets/js/libs/a11y-dialog.js')" defer></script>
         <script src="@asset('assets/js/libs/floating.js')" defer></script>
         <script src="@asset('jquery')" defer></script>
         <script src="@asset('assets/js/app.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-image-preview.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond-validate.js')" defer></script>
-        <script src="@asset('assets/js/libs/filepond.js')" defer></script>
-        <script src="@asset('assets/js/libs/notyf.js')" defer></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-image-preview.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-type.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-file-validate-size.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/filepond-plugin-image-exif-orientation.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/filepond.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/cropper.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/notyf.js')" defer fetchpriority="low"></script>
         <script src="@asset('assets/js/libs/nprogress.js')" defer></script>
-        <script src="@asset('assets/js/libs/sortable.js')" defer></script>
-        <script src="@asset('assets/js/libs/confetti.js')" defer></script>
-        <script src="@asset('assets/js/libs/tom-select.js')" defer></script>
-        <script src="@asset('assets/js/libs/easymde.js')" defer></script>
-        <!-- <script src="@asset('assets/js/libs/flatpickr.js')" defer></script> -->
-        <script src="@asset('assets/js/libs/pickr.js')" defer></script>
+        <script src="@asset('assets/js/libs/sortable.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/confetti.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/flute-select.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/tiptap-editor.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/flatpickr.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/flatpickr-l10n.js')" defer fetchpriority="low"></script>
+        <script src="@asset('assets/js/libs/pickr.js')" defer fetchpriority="low"></script>
 
         @at('Core/Modules/Admin/Resources/assets/js/helpers.js')
+        <script>
+            window.__imageCropperI18n = {
+                crop_image: @json(__('def.crop_image')),
+                rotate_left: @json(__('def.rotate_left')),
+                rotate_right: @json(__('def.rotate_right')),
+                flip_horizontal: @json(__('def.flip_horizontal')),
+                flip_vertical: @json(__('def.flip_vertical')),
+                zoom_in: @json(__('def.zoom_in')),
+                zoom_out: @json(__('def.zoom_out')),
+                reset: @json(__('def.reset')),
+                cancel: @json(__('def.cancel')),
+                apply: @json(__('def.apply')),
+                free: @json(__('def.free')),
+                square: @json(__('def.square')),
+                landscape: @json(__('def.landscape')),
+                portrait: @json(__('def.portrait'))
+            };
+        </script>
+        @at('Core/Modules/Admin/Resources/assets/js/image-cropper.js')
         @at('Core/Modules/Admin/Resources/assets/js/modals.js')
         @at('Core/Modules/Admin/Resources/assets/js/tabs.js')
         @at('Core/Modules/Admin/Resources/assets/js/popover.js')
@@ -252,17 +306,36 @@
         @at('Core/Modules/Admin/Resources/assets/js/selection.js')
         @at('Core/Modules/Admin/Resources/assets/js/script.js')
         @at('Core/Modules/Admin/Resources/assets/js/sidebar.js')
+        @at('Core/Modules/Admin/Resources/assets/js/sidebar-sort.js')
         @at('Core/Modules/Admin/Resources/assets/js/sortable.js')
         @at('Core/Modules/Admin/Resources/assets/js/search.js')
         @at('Core/Modules/Admin/Resources/assets/js/secret.js')
         @at('Core/Modules/Admin/Resources/assets/js/scrollup.js')
         @at('Core/Modules/Admin/Resources/assets/js/select.js')
         @at('Core/Modules/Admin/Resources/assets/js/table-search.js')
-        @at('Core/Modules/Admin/Resources/assets/js/richtext.js')
+        {{-- Richtext editor (TipTap) --}}
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/icons.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/extensions.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/upload.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/toolbar.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/modals.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/bubble-menu.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/table-controls.js')
+        @at('Core/Modules/Admin/Resources/assets/js/richtext/main.js')
         @at('Core/Modules/Admin/Resources/assets/js/customization.js')
         @at('Core/Modules/Admin/Resources/assets/js/confirm.js')
+        @at('Core/Modules/Admin/Resources/assets/js/datepicker.js')
         @at('Core/Modules/Admin/Resources/assets/js/input.js')
-        @at('Core/Modules/Admin/Resources/assets/js/dirty.js')
+        @at('Core/Modules/Admin/Resources/assets/js/buttongroup.js')
+        @at('Core/Modules/Admin/Resources/assets/js/radiocards.js')
+        @at('Core/Modules/Admin/Resources/assets/js/translatable.js')
+        @at('Core/Modules/Admin/Resources/assets/js/filters.js')
+
+        @if (!cookie()->get('admin_onboarding_done'))
+            @include('admin-dashboard::components.onboarding')
+            <script src="@asset('assets/js/libs/shepherd.js')" defer></script>
+            <script src="@at('Core/Modules/Admin/Resources/assets/js/onboarding.js', true)"></script>
+        @endif
 
         @include('admin::partials.toasts')
 
@@ -271,6 +344,20 @@
         @if (isset($sections['scripts']))
             {!! $sections['scripts'] !!}
         @endif
+
+        <script>
+            (function() {
+                var b = document.body, t = 80, expanded = false;
+                window.addEventListener('scroll', function() {
+                    var top = window.scrollY < t;
+                    if (top !== expanded) {
+                        expanded = top;
+                        b.classList.toggle('glow-expanded', top);
+                    }
+                }, { passive: true });
+                if (window.scrollY < t) b.classList.add('glow-expanded');
+            })();
+        </script>
     @endif
 </body>
 

@@ -5,13 +5,11 @@
 @endsection
 
 @push('content')
-    <div class="h-100 container">
-        <section class="lk-container" aria-labelledby="lk-title">
-            <article class="lk-content" hx-swap="morph:outerHTML">
-                @fragment('lk-card')
-                    @yoyo('payment-form')
-                @endfragment
-            </article>
-        </section>
+    <div class="container">
+        <article class="lk-content" hx-swap="morph:outerHTML">
+            @fragment('lk-card')
+                @yoyo('payment-form', ['isModal' => $isModal])
+            @endfragment
+        </article>
     </div>
 @endpush

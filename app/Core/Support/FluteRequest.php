@@ -35,7 +35,9 @@ class FluteRequest extends Request
      */
     public function expectsJson(): bool
     {
-        return $this->headers->get('Accept') === 'application/json';
+        $accept = (string) $this->headers->get('Accept', '');
+
+        return stripos($accept, 'application/json') !== false;
     }
 
     /**
@@ -43,7 +45,9 @@ class FluteRequest extends Request
      */
     public function isJson(): bool
     {
-        return $this->headers->get('Content-Type') === 'application/json';
+        $contentType = (string) $this->headers->get('Content-Type', '');
+
+        return stripos($contentType, 'application/json') === 0;
     }
 
     /**
@@ -128,7 +132,7 @@ class FluteRequest extends Request
         $data = array_merge($this->attributes->all(), $this->query->all(), $this->request->all());
 
         if ($this->isJson()) {
-            $jsonData = json_decode($this->getContent(), true) ?? [];
+            $jsonData = json_decode($this->getContent(), true, 32) ?? [];
             $data = array_merge($data, $jsonData);
         }
 
@@ -243,7 +247,7 @@ class FluteRequest extends Request
         }
 
         if (is_url($uri)) {
-            return $this->getSchemeAndHttpHost().$this->getPathInfo() === $uri;
+            return $this->getSchemeAndHttpHost() . $this->getPathInfo() === $uri;
         }
 
         return $this->getPathInfo() === $uri;

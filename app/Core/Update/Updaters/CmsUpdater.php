@@ -5,8 +5,8 @@ namespace Flute\Core\Update\Updaters;
 use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
+use Flute\Core\Support\FileUploader;
 use Throwable;
-use ZipArchive;
 
 class CmsUpdater extends AbstractUpdater
 {
@@ -18,6 +18,7 @@ class CmsUpdater extends AbstractUpdater
         'bootstrap',
         'i18n',
         'public',
+        'scripts',
         'storage',
     ];
 
@@ -68,10 +69,12 @@ class CmsUpdater extends AbstractUpdater
     public function update(array $data): bool
     {
         if (empty($data['package_file']) || !file_exists($data['package_file'])) {
-            logs()->error('Update package file not found: ' . ($data['package_file'] ?? 'null'));
+            logs()->error('Update package file not found: ' . ( $data['package_file'] ?? 'null' ));
 
             return false;
         }
+
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
 
         $packageFile = $data['package_file'];
         $extractDir = storage_path('app/temp/updates/cms-extract-' . time());
@@ -80,58 +83,60 @@ class CmsUpdater extends AbstractUpdater
             mkdir($extractDir, 0o755, true);
         }
 
-        $zip = new ZipArchive();
-        if ($zip->open($packageFile) !== true) {
-            logs()->error('Failed to open update package: ' . $packageFile);
+        try {
+            app(FileUploader::class)->safeExtractZip($packageFile, $extractDir);
+        } catch (Exception $e) {
+            logs()->error('Failed to extract update package: ' . $e->getMessage());
 
             return false;
         }
 
-        $zip->extractTo($extractDir);
-        $zip->close();
-
         try {
-            $this->createBackup();
+            try {
+                $this->createBackup();
 
-            $dirs = array_filter(glob($extractDir . '/*'), 'is_dir');
-            $rootDir = count($dirs) === 1 ? reset($dirs) : $extractDir;
+                $dirs = array_filter(glob($extractDir . '/*'), 'is_dir');
+                $rootDir = count($dirs) === 1 ? reset($dirs) : $extractDir;
 
-            foreach ($this->allowedFolders as $folder) {
-                $sourcePath = $rootDir . '/' . $folder;
-                $targetPath = $this->getBasePath() . '/' . $folder;
-                if (is_dir($sourcePath)) {
-                    $this->copyDirectory($sourcePath, $targetPath);
+                foreach ($this->allowedFolders as $folder) {
+                    $sourcePath = $rootDir . '/' . $folder;
+                    $targetPath = $this->getBasePath() . '/' . $folder;
+                    if (is_dir($sourcePath)) {
+                        $this->copyDirectory($sourcePath, $targetPath);
+                    }
                 }
-            }
 
-            // Copy allowed root files (like composer.json / composer.lock)
-            foreach ($this->allowedFiles as $file) {
-                $sourceFile = $rootDir . '/' . $file;
-                $targetFile = $this->getBasePath() . '/' . $file;
-                if (is_file($sourceFile)) {
-                    $this->copyFile($sourceFile, $targetFile);
+                // Copy allowed root files (like composer.json / composer.lock)
+                foreach ($this->allowedFiles as $file) {
+                    $sourceFile = $rootDir . '/' . $file;
+                    $targetFile = $this->getBasePath() . '/' . $file;
+                    if (is_file($sourceFile)) {
+                        $this->copyFile($sourceFile, $targetFile);
+                    }
                 }
-            }
 
-            // If composer files changed or exist in the package, ensure dependencies are installed
-            if (is_file($this->getBasePath() . '/composer.json')) {
-                try {
-                    (new ComposerManager())->install();
-                } catch (Throwable $e) {
-                    logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
+                // If composer files changed or exist in the package, ensure dependencies are installed
+                if (is_file($this->getBasePath() . '/composer.json')) {
+                    try {
+                        ( new ComposerManager() )->install();
+                    } catch (Throwable $e) {
+                        logs()->error('Composer install failed after CMS update: ' . $e->getMessage());
+                    }
                 }
+
+                $this->clearCache();
+
+                $this->removeDirectory($extractDir);
+
+                return true;
+            } catch (Exception $e) {
+                logs()->error('Error during CMS update: ' . $e->getMessage());
+                $this->removeDirectory($extractDir);
+
+                return false;
             }
-
-            $this->clearCache();
-
-            $this->removeDirectory($extractDir);
-
-            return true;
-        } catch (Exception $e) {
-            logs()->error('Error during CMS update: ' . $e->getMessage());
-            $this->removeDirectory($extractDir);
-
-            return false;
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled);
         }
     }
 
@@ -200,7 +205,7 @@ class CmsUpdater extends AbstractUpdater
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..' || $this->shouldExcludeFile($file)) {
                 continue;
             }

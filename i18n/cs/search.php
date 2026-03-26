@@ -1,0 +1,15 @@
+<?php return [
+    "quick_search" => "Rychlé vyhledávání...",
+    "search_placeholder" => "Hledat stránky, nastavení a funkce...",
+    "search_input" => "Vyhledávací pole",
+    "to_navigate" => "pro navigaci",
+    "to_select" => "pro výběr",
+    "search_results_for" => "Výsledky vyhledávání pro \"%query%\"",
+    "no_results_found" => "Žádné výsledky nebyly nalezeny",
+    "available_commands" => "Dostupné příkazy",
+    "no_commands_available" => "Žádné příkazy nebyly nalezeny",
+    "search_users" => "Hledat uživatele",
+    "users" => "Uživatelé",
+    "settings" => "Nastavení",
+    "lets_search" => "Pojďme něco najít...",
+];

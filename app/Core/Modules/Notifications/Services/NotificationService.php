@@ -163,7 +163,7 @@ class NotificationService
     {
         $notification = new Notification();
         $notification->user = $user;
-        $notification->title = $title;
+        $notification->title = strip_tags($title, '<b><i><strong><em>');
         $notification->content = $content;
         $notification->type = 'text';
         $notification->icon = $icon;
@@ -180,14 +180,19 @@ class NotificationService
      * @param string|null $icon The icon of the notification.
      * @throws Throwable
      */
-    public function createButtonNotification(User $user, string $title, string $content, array $buttons, ?string $icon = null): void
-    {
+    public function createButtonNotification(
+        User $user,
+        string $title,
+        string $content,
+        array $buttons,
+        ?string $icon = null,
+    ): void {
         $notification = new Notification();
         $notification->user = $user;
         $notification->title = $title;
         $notification->content = $content;
         $notification->type = 'button';
-        $notification->extra_data = ['buttons' => $buttons];
+        $notification->setExtraData(['buttons' => $buttons]);
         $notification->icon = $icon;
         $this->create($notification);
     }
@@ -202,8 +207,13 @@ class NotificationService
      * @param string|null $icon The icon of the notification.
      * @throws Throwable
      */
-    public function createFileNotification(User $user, string $title, string $content, string $fileUrl, ?string $icon = null): void
-    {
+    public function createFileNotification(
+        User $user,
+        string $title,
+        string $content,
+        string $fileUrl,
+        ?string $icon = null,
+    ): void {
         $notification = new Notification();
         $notification->user = $user;
         $notification->title = $title;
@@ -238,6 +248,27 @@ class NotificationService
             transaction($note)->run();
             $this->invalidateCache();
         }
+    }
+
+    /**
+     * Mark all notifications as read.
+     *
+     * @throws Throwable
+     */
+    public function markAllAsRead(): void
+    {
+        $unread = $this->unread();
+
+        if (empty($unread)) {
+            return;
+        }
+
+        foreach ($unread as $note) {
+            $note->viewed = true;
+        }
+
+        transaction($unread)->run();
+        $this->invalidateCache();
     }
 
     /**
@@ -302,27 +333,60 @@ class NotificationService
     }
 
     /**
+     * Check if the current user has any unread notifications.
+     * No caching - always fresh result.
+     *
+     * @return bool True if there are unread notifications.
+     */
+    public function hasUnread(): bool
+    {
+        return Notification::query()
+            ->where([
+                'user_id' => user()->id,
+                'viewed' => false,
+            ])
+            ->limit(1)
+            ->count() > 0;
+    }
+
+    /**
+     * Get the ID of the newest unread notification.
+     *
+     * @return int|null The ID of the newest unread notification, or null.
+     */
+    public function getNewestUnreadId(): ?int
+    {
+        $note = Notification::query()
+            ->where([
+                'user_id' => user()->id,
+                'viewed' => false,
+            ])
+            ->orderBy('id', 'DESC')
+            ->limit(1)
+            ->fetchOne();
+
+        return $note?->id;
+    }
+
+    /**
      * Count the number of unread notifications for the current user.
      *
      * @return int The number of unread notifications.
      */
     public function countUnread(): int
     {
-        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
-        if (cache()->has($cacheKey)) {
-            return cache()->get($cacheKey);
+        if ($this->cachedUnreadCount !== null) {
+            return $this->cachedUnreadCount;
         }
 
-        $count = Notification::query()
+        $this->cachedUnreadCount = Notification::query()
             ->where([
                 'user_id' => user()->id,
                 'viewed' => false,
             ])
             ->count();
 
-        cache()->set($cacheKey, $count, 60);
-
-        return $count;
+        return $this->cachedUnreadCount;
     }
 
     /**
@@ -357,9 +421,7 @@ class NotificationService
             return $this->cachedTotalCount;
         }
 
-        $this->cachedTotalCount = Notification::query()
-            ->where(['user_id' => user()->id])
-            ->count();
+        $this->cachedTotalCount = Notification::query()->where(['user_id' => user()->id])->count();
 
         return $this->cachedTotalCount;
     }
@@ -396,8 +458,6 @@ class NotificationService
      */
     protected function invalidateCache(): void
     {
-        $cacheKey = 'user_' . user()->id . '_unread_notifications_count';
-        cache()->delete($cacheKey);
         $this->cached = false;
         $this->cachedItems = [];
         $this->unreadCached = false;

@@ -175,18 +175,23 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }
 
         try {
-            $entDir = $this->getModulePath("database/Entities");
+            $entDir = $this->getModulePath('database/Entities');
             if (!is_dir($entDir)) {
                 return;
             }
 
             $cacheKey = "module.{$this->getModuleName()}.entities_dir";
-            $hasEntities = cache()->callback($cacheKey, static function () use ($entDir) {
-                $finder = finder();
-                $finder->files()->in($entDir)->name('*.php');
+            cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
+            $hasEntities = cache()->callback(
+                $cacheKey,
+                static function () use ($entDir) {
+                    $finder = finder();
+                    $finder->files()->in($entDir)->name('*.php');
 
-                return $finder->count() > 0;
-            }, $this->defaultCacheDuration);
+                    return $finder->count() > 0;
+                },
+                $this->defaultCacheDuration,
+            );
 
             if ($hasEntities) {
                 $db = app(DatabaseConnection::class);
@@ -206,6 +211,10 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     public function loadPackage(AdminPackageInterface $package): void
     {
+        if (!is_admin_path() && !user()->can('admin')) {
+            return;
+        }
+
         app(AdminPanel::class)->registerPackage($package);
     }
 
@@ -251,27 +260,39 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             return;
         }
 
-        $cacheKey = "module.{$this->getModuleName()}.configs";
-        $configFiles = cache()->callback($cacheKey, static function () use ($configDir) {
-            $finder = finder();
-            $finder->files()->in($configDir)->name('*.php');
+        $cacheKey = "module.{$this->getModuleName()}.configs.v2." . md5($configDir);
+        cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
+        $configFiles = cache()->callback(
+            $cacheKey,
+            static function () use ($configDir) {
+                $finder = finder();
+                $finder->files()->in($configDir)->name('*.php');
 
-            $files = [];
-            foreach ($finder as $file) {
-                $files[] = [
-                    'path' => $file->getPathname(),
-                    'name' => basename($file->getFilename(), '.php'),
-                ];
-            }
+                $files = [];
+                foreach ($finder as $file) {
+                    $files[] = [
+                        'relative' => $file->getRelativePathname(),
+                        'name' => basename($file->getFilename(), '.php'),
+                    ];
+                }
 
-            return $files;
-        }, $this->defaultCacheDuration);
+                return $files;
+            },
+            $this->defaultCacheDuration,
+        );
 
         if (!empty($configFiles)) {
             $configService = app(ConfigurationService::class);
 
             foreach ($configFiles as $file) {
-                $configService->loadCustomConfig($file['path'], $file['name']);
+                $path = $configDir . DIRECTORY_SEPARATOR . $file['relative'];
+                if (!is_file($path)) {
+                    logs('modules')->warning("Module config file not found: {$path}");
+
+                    continue;
+                }
+
+                $configService->loadCustomConfig($path, $file['name']);
             }
 
             $this->loadedStatus[$configsCacheKey] = true;
@@ -332,27 +353,39 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
             $submodulesPath = $this->getModulePath('Submodules');
 
             if (is_dir($submodulesPath)) {
-                $cacheKey = "module.{$this->getModuleName()}.submodules";
-                $submodules = cache()->callback($cacheKey, function () use ($submodulesPath) {
-                    $result = [];
-                    foreach ($this->getFilesFromDirectory($submodulesPath) as $submodule) {
-                        if ($submodule->isDir()) {
-                            $submoduleControllers = $submodule->getPathname() . '/Controllers';
-                            if (is_dir($submoduleControllers)) {
-                                $result[] = [
-                                    'name' => $submodule->getBasename(),
-                                    'controllers_path' => $submoduleControllers,
-                                ];
+                $cacheKey = "module.{$this->getModuleName()}.submodules.v2." . md5($submodulesPath);
+                cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
+                $submodules = cache()->callback(
+                    $cacheKey,
+                    function () use ($submodulesPath) {
+                        $result = [];
+                        foreach ($this->getFilesFromDirectory($submodulesPath) as $submodule) {
+                            if (!$submodule->isDir()) {
+                                continue;
                             }
-                        }
-                    }
 
-                    return $result;
-                }, $this->defaultCacheDuration);
+                            $controllersRelativePath = $submodule->getBasename() . '/Controllers';
+                            $controllersPath = $submodulesPath . '/' . $controllersRelativePath;
+                            if (!is_dir($controllersPath)) {
+                                continue;
+                            }
+
+                            $result[] = [
+                                'name' => $submodule->getBasename(),
+                                'controllers_relative_path' => $controllersRelativePath,
+                            ];
+                        }
+
+                        return $result;
+                    },
+                    $this->defaultCacheDuration,
+                );
 
                 foreach ($submodules as $submodule) {
-                    $submoduleNamespace = "Flute\\Modules\\{$this->getModuleName()}\\Submodules\\" . $submodule['name'] . "\\Controllers";
-                    router()->registerAttributeRoutes([$submodule['controllers_path']], $submoduleNamespace);
+                    $controllersPath = $submodulesPath . '/' . $submodule['controllers_relative_path'];
+                    $submoduleNamespace =
+                        "Flute\\Modules\\{$this->getModuleName()}\\Submodules\\" . $submodule['name'] . "\\Controllers";
+                    router()->registerAttributeRoutes([$controllersPath], $submoduleNamespace);
                 }
             }
 
@@ -503,6 +536,28 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     }
 
     /**
+     * Register notification templates from a provider.
+     */
+    public function registerNotificationTemplates(\Flute\Core\Modules\Notifications\Contracts\NotificationTemplateProviderInterface $provider): void
+    {
+        if (!function_exists('notification_templates')) {
+            logs('modules')->warning(
+                'notification_templates() helper not available for module: ' . $this->getModuleName(),
+            );
+
+            return;
+        }
+
+        try {
+            notification_templates()->registerProvider($provider);
+        } catch (Throwable $e) {
+            logs('modules')->error(
+                'Failed to register notification templates for ' . $this->getModuleName() . ': ' . $e->getMessage(),
+            );
+        }
+    }
+
+    /**
      * Bootstrap module by loading configs, translations, views, routes, entities, widgets, etc.
      *
      * @throws Exception
@@ -515,13 +570,29 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         }
 
         try {
-            $this->loadEntities();
-            $this->loadConfigs();
-            $this->loadTranslations();
-            $this->loadViewPages();
-            $this->loadRouterAttributes();
-            $this->loadComponents();
-            $this->loadWidgets();
+            $manifest = $this->getModuleManifest();
+
+            if ($manifest['hasEntities']) {
+                $this->loadEntities();
+            }
+            if ($manifest['hasConfigs']) {
+                $this->loadConfigs();
+            }
+            if ($manifest['hasTranslations']) {
+                $this->loadTranslations();
+            }
+            if ($manifest['hasViewPages']) {
+                $this->loadViewPages();
+            }
+            if ($manifest['hasControllers']) {
+                $this->loadRouterAttributes();
+            }
+            if ($manifest['hasComponents']) {
+                $this->loadComponents();
+            }
+            if ($manifest['hasWidgets']) {
+                $this->loadWidgets();
+            }
 
             $this->loadedStatus[$bootstrapCacheKey] = true;
         } catch (Exception $e) {
@@ -531,6 +602,61 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
                 throw $e;
             }
         }
+    }
+
+    protected function getModuleManifest(): array
+    {
+        if (is_debug()) {
+            $base = $this->getModulePath();
+
+            return [
+                'hasEntities' => is_dir($base . '/database/Entities'),
+                'hasConfigs' => is_dir($base . '/Resources/config'),
+                'hasTranslations' => is_dir($base . '/Resources/lang'),
+                'hasViewPages' => is_dir($base . '/Resources/pages'),
+                'hasControllers' => is_dir($base . '/Http/Controllers') || is_dir($base . '/Controllers'),
+                'hasComponents' => is_dir($base . '/Components'),
+                'hasWidgets' => is_dir($base . '/Widgets'),
+            ];
+        }
+
+        $cacheKey = "module.{$this->getModuleName()}.manifest.v2";
+        cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
+
+        $manifest = cache()->callback(
+            $cacheKey,
+            function () {
+                $base = $this->getModulePath();
+
+                return [
+                    'hasEntities' => is_dir($base . '/database/Entities'),
+                    'hasConfigs' => is_dir($base . '/Resources/config'),
+                    'hasTranslations' => is_dir($base . '/Resources/lang'),
+                    'hasViewPages' => is_dir($base . '/Resources/pages'),
+                    'hasControllers' => is_dir($base . '/Http/Controllers') || is_dir($base . '/Controllers'),
+                    'hasComponents' => is_dir($base . '/Components'),
+                    'hasWidgets' => is_dir($base . '/Widgets'),
+                    '_v' => 2,
+                ];
+            },
+            $this->defaultCacheDuration,
+        );
+
+        if (!isset($manifest['_v']) || $manifest['_v'] < 2) {
+            cache()->delete($cacheKey);
+
+            return [
+                'hasEntities' => true,
+                'hasConfigs' => true,
+                'hasTranslations' => true,
+                'hasViewPages' => true,
+                'hasControllers' => true,
+                'hasComponents' => true,
+                'hasWidgets' => true,
+            ];
+        }
+
+        return $manifest;
     }
 
     /**
@@ -559,68 +685,8 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $this->modulePathCache = [];
         $this->loadedStatus = [];
 
-        $cachePatternFiles = "module.{$moduleName}.files.*";
-        $fileKeys = cache()->getKeys($cachePatternFiles);
-        if (!empty($fileKeys)) {
-            foreach ($fileKeys as $key) {
-                cache()->delete($key);
-            }
-        } else {
-            $commonDirs = [
-                'Controllers',
-                'Components',
-                'Widgets',
-                'Resources/pages',
-                'Resources/lang',
-                'Resources/config',
-                'Submodules',
-            ];
-            foreach ($commonDirs as $dir) {
-                $dirPath = $this->getModulePath($dir);
-                if (is_dir($dirPath)) {
-                    $cacheKey = "module.{$moduleName}.files." . md5($dirPath);
-                    cache()->delete($cacheKey);
-                }
-            }
-        }
-
-        $directoryCachePattern = "module.{$moduleName}.directory.*";
-        $directoryKeys = cache()->getKeys($directoryCachePattern);
-        if (!empty($directoryKeys)) {
-            foreach ($directoryKeys as $key) {
-                cache()->delete($key);
-            }
-        }
-
-        $cachePatternComponents = "module.{$moduleName}.components.*";
-        $componentsKeys = cache()->getKeys($cachePatternComponents);
-        if (!empty($componentsKeys)) {
-            foreach ($componentsKeys as $key) {
-                cache()->delete($key);
-            }
-        }
-
-        $cachePatternWidgets = "module.{$moduleName}.widgets.*";
-        $widgetsKeys = cache()->getKeys($cachePatternWidgets);
-        if (!empty($widgetsKeys)) {
-            foreach ($widgetsKeys as $key) {
-                cache()->delete($key);
-            }
-        }
-
-        cache()->delete("module.{$moduleName}.submodules");
-
-        $viewPagesPattern = "module.{$moduleName}.view_pages.*";
-        $viewPagesKeys = cache()->getKeys($viewPagesPattern);
-        if (!empty($viewPagesKeys)) {
-            foreach ($viewPagesKeys as $key) {
-                cache()->delete($key);
-            }
-        }
-
-        cache()->delete("module.{$moduleName}.entities_dir");
-        cache()->delete("module.{$moduleName}.translations");
-        cache()->delete("module.{$moduleName}.configs");
+        // Delete all tagged keys for this module (works on any cache driver)
+        cache()->deleteByTag("module.{$moduleName}");
 
         try {
             $langDir = $this->getModulePath('Resources/lang');
@@ -666,49 +732,58 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     {
         $cacheKey = "module.{$this->getModuleName()}.view_pages." . md5($directory . $prefix);
 
-        $viewPageData = cache()->callback($cacheKey, function () use ($directory, $prefix) {
-            $namespace = $this->kebabCase($this->getModuleName());
-            $routes = [];
+        cache()->tagKey("module.{$this->getModuleName()}", $cacheKey);
 
-            foreach ($this->getFilesFromDirectory($directory) as $file) {
-                $relativePath = ltrim(str_replace($this->getModulePath('Resources/pages'), '', $file->getPathname()), DIRECTORY_SEPARATOR);
+        $viewPageData = cache()->callback(
+            $cacheKey,
+            function () use ($directory, $prefix) {
+                $namespace = $this->kebabCase($this->getModuleName());
+                $routes = [];
 
-                if ($file->isDir()) {
-                    // Directory will be processed in a recursive call
-                    continue;
-                }
+                foreach ($this->getFilesFromDirectory($directory) as $file) {
+                    $relativePath = ltrim(
+                        str_replace($this->getModulePath('Resources/pages'), '', $file->getPathname()),
+                        DIRECTORY_SEPARATOR,
+                    );
 
-                if ($file->getExtension() !== 'php') {
-                    continue;
-                }
+                    if ($file->isDir()) {
+                        // Directory will be processed in a recursive call
+                        continue;
+                    }
 
-                $filename = str_replace('.blade', '', pathinfo($file->getBasename(), PATHINFO_FILENAME));
-                $routeUri = ltrim($prefix . ($filename === 'index' ? '' : '/' . $filename), '/');
-                $viewPath = str_replace('.blade.php', '', $relativePath);
+                    if ($file->getExtension() !== 'php') {
+                        continue;
+                    }
 
-                $routes[] = [
-                    'uri' => $routeUri,
-                    'view' => $namespace . '::' . $viewPath,
-                ];
-            }
+                    $filename = str_replace('.blade', '', pathinfo($file->getBasename(), PATHINFO_FILENAME));
+                    $routeUri = ltrim($prefix . ( $filename === 'index' ? '' : '/' . $filename ), '/');
+                    $viewPath = str_replace('.blade.php', '', $relativePath);
 
-            // Get subdirectories for recursive processing
-            $subDirs = [];
-            foreach ($this->getFilesFromDirectory($directory) as $file) {
-                if ($file->isDir()) {
-                    $newPrefix = trim($prefix . '/' . $file->getBasename(), '/');
-                    $subDirs[] = [
-                        'path' => $file->getPathname(),
-                        'prefix' => $newPrefix,
+                    $routes[] = [
+                        'uri' => $routeUri,
+                        'view' => $namespace . '::' . $viewPath,
                     ];
                 }
-            }
 
-            return [
-                'routes' => $routes,
-                'subDirs' => $subDirs,
-            ];
-        }, $this->defaultCacheDuration);
+                // Get subdirectories for recursive processing
+                $subDirs = [];
+                foreach ($this->getFilesFromDirectory($directory) as $file) {
+                    if ($file->isDir()) {
+                        $newPrefix = trim($prefix . '/' . $file->getBasename(), '/');
+                        $subDirs[] = [
+                            'path' => $file->getPathname(),
+                            'prefix' => $newPrefix,
+                        ];
+                    }
+                }
+
+                return [
+                    'routes' => $routes,
+                    'subDirs' => $subDirs,
+                ];
+            },
+            $this->defaultCacheDuration,
+        );
 
         // Register routes
         foreach ($viewPageData['routes'] as $route) {
@@ -728,6 +803,8 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
     {
         $moduleName = $this->getModuleName();
         $cacheKey = "module.{$moduleName}.widgets." . md5($directory . $namespace);
+
+        cache()->tagKey("module.{$moduleName}", $cacheKey);
 
         $cachedWidgets = cache()->get($cacheKey);
         if ($cachedWidgets !== null) {
@@ -788,13 +865,13 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
      */
     protected function getModulePath(string $path = ''): string
     {
-        $cacheKey = $this->getModuleName() . ($path ? '_' . md5($path) : '');
+        $cacheKey = $this->getModuleName() . ( $path ? '_' . md5($path) : '' );
 
         if (isset($this->modulePathCache[$cacheKey])) {
             return $this->modulePathCache[$cacheKey];
         }
 
-        $result = path("app/Modules/{$this->getModuleName()}") . ($path ? '/' . $path : '');
+        $result = path("app/Modules/{$this->getModuleName()}") . ( $path ? '/' . $path : '' );
         $this->modulePathCache[$cacheKey] = $result;
 
         return $result;
@@ -808,6 +885,8 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $moduleName = $this->getModuleName();
         $cacheKey = "module.{$moduleName}.components." . md5($directory . $namespace);
 
+        cache()->tagKey("module.{$moduleName}", $cacheKey);
+
         $cachedComponents = cache()->get($cacheKey);
         if ($cachedComponents !== null) {
             $components = array_merge($components, $cachedComponents);
@@ -818,7 +897,11 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $foundComponents = [];
         foreach ($this->getFilesFromDirectory($directory) as $file) {
             if ($file->isDir()) {
-                $this->scanForComponents($file->getPathname(), $namespace . '\\' . $file->getBasename(), $foundComponents);
+                $this->scanForComponents(
+                    $file->getPathname(),
+                    $namespace . '\\' . $file->getBasename(),
+                    $foundComponents,
+                );
 
                 continue;
             }
@@ -873,22 +956,28 @@ abstract class ModuleServiceProvider implements ModuleServiceProviderInterface
         $cacheKey = "module.{$moduleName}.files." . $dirHash;
         $duration = $cacheDuration ?? $this->defaultCacheDuration;
 
-        $filePaths = cache()->callback($cacheKey, static function () use ($directory) {
-            if (!is_dir($directory)) {
-                return [];
-            }
+        cache()->tagKey("module.{$moduleName}", $cacheKey);
 
-            $paths = [];
-            $finder = finder()->files()->in($directory);
+        $filePaths = cache()->callback(
+            $cacheKey,
+            static function () use ($directory) {
+                if (!is_dir($directory)) {
+                    return [];
+                }
 
-            foreach ($finder as $file) {
-                $paths[] = $file->getPathname();
-            }
+                $paths = [];
+                $finder = finder()->files()->in($directory);
 
-            return $paths;
-        }, $duration);
+                foreach ($finder as $file) {
+                    $paths[] = $file->getPathname();
+                }
 
-        $result = array_map(static fn ($path) => new SplFileInfo($path), $filePaths);
+                return $paths;
+            },
+            $duration,
+        );
+
+        $result = array_map(static fn($path) => new SplFileInfo($path), $filePaths);
 
         $this->directoryCache[$dirHash] = $result;
 

@@ -6,9 +6,9 @@ use Exception;
 use Flute\Core\App;
 use Flute\Core\Composer\ComposerManager;
 use Flute\Core\ModulesManager\ModuleManager;
+use Flute\Core\Support\FileUploader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use ZipArchive;
 
 class ModuleInstallerService
 {
@@ -65,6 +65,7 @@ class ModuleInstallerService
         $this->client = new Client([
             'timeout' => 30,
             'http_errors' => false,
+            'verify' => true,
         ]);
 
         $this->tempDir = storage_path('app/temp/marketplace');
@@ -101,10 +102,8 @@ class ModuleInstallerService
                 'allow_redirects' => false,
             ]);
 
-            $body = method_exists($response, 'getBody') ? (string)$response->getBody() : '';
-            if (
-                $response->getStatusCode() === 401
-            ) {
+            $body = method_exists($response, 'getBody') ? (string) $response->getBody() : '';
+            if ($response->getStatusCode() === 401) {
                 throw new Exception('MARKETPLACE_BAD_REQUEST');
             }
             if ($response->getStatusCode() !== 200) {
@@ -134,20 +133,13 @@ class ModuleInstallerService
             throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Архив не найден');
         }
 
-        $zip = new ZipArchive();
-
-        if ($zip->open($this->moduleArchivePath) !== true) {
-            throw new Exception(__('admin-marketplace.messages.extract_failed') . ': Не удалось открыть архив');
-        }
-
         $this->moduleExtractPath = $this->tempDir . '/extract-' . $module['slug'] . '-' . time();
 
         if (!is_dir($this->moduleExtractPath)) {
             mkdir($this->moduleExtractPath, 0o755, true);
         }
 
-        $zip->extractTo($this->moduleExtractPath);
-        $zip->close();
+        app(FileUploader::class)->safeExtractZip($this->moduleArchivePath, $this->moduleExtractPath);
 
         $rootDir = $this->moduleExtractPath;
         $items = scandir($this->moduleExtractPath);
@@ -211,7 +203,9 @@ class ModuleInstallerService
             $requiredPhp = $moduleJson['requires']['php'];
 
             if (!$this->checkPhpVersion($requiredPhp)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Требуется PHP ' . $requiredPhp);
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Требуется PHP ' . $requiredPhp,
+                );
             }
         }
 
@@ -219,7 +213,9 @@ class ModuleInstallerService
             $requiredFlute = $moduleJson['requires']['flute'];
 
             if (!$this->checkFluteVersion($requiredFlute)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Требуется Flute ' . $requiredFlute);
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Требуется Flute ' . $requiredFlute,
+                );
             }
         }
 
@@ -228,7 +224,10 @@ class ModuleInstallerService
             $missingModules = $this->checkModuleDependencies($requiredModules);
 
             if (!empty($missingModules)) {
-                throw new Exception(__('admin-marketplace.messages.validate_failed') . ': Отсутствуют модули: ' . implode(', ', $missingModules));
+                throw new Exception(
+                    __('admin-marketplace.messages.validate_failed') . ': Отсутствуют модули: '
+                        . implode(', ', $missingModules),
+                );
             }
         }
 
@@ -263,7 +262,9 @@ class ModuleInstallerService
             $moduleName = $this->moduleInfo['name'];
         }
 
-        $moduleFolder = $this->sanitizeModuleFolderName((string) ($moduleName ?? $this->moduleKey ?? $module['slug']));
+        $moduleFolder = $this->sanitizeModuleFolderName(
+            (string) ( $moduleName ?? $this->moduleKey ?? $module['slug'] ),
+        );
         $destination = $this->modulesDir . '/' . $moduleFolder;
 
         $this->backupDir = null;
@@ -286,6 +287,16 @@ class ModuleInstallerService
         }
 
         $this->copyDirectory($source, $destination);
+
+        clearstatcache(true);
+
+        if (function_exists('opcache_invalidate')) {
+            $moduleJsonPath = $destination . '/module.json';
+            if (is_file($moduleJsonPath)) {
+                @opcache_invalidate($moduleJsonPath, true);
+            }
+        }
+
         $this->waitForCopiedModuleJson($destination);
         $this->moduleFolder = $moduleFolder;
 
@@ -413,36 +424,54 @@ class ModuleInstallerService
         return $base;
     }
 
-    protected function waitForCopiedModuleJson(string $destinationDir, int $timeoutSeconds = 15): void
+    protected function waitForCopiedModuleJson(string $destinationDir, int $timeoutSeconds = 20): void
     {
         $this->keepProcessAlive();
 
         $start = microtime(true);
+        $moduleJsonPath = $destinationDir . '/module.json';
 
-        while ((microtime(true) - $start) < $timeoutSeconds) {
-            clearstatcache(true);
+        while (( microtime(true) - $start ) < $timeoutSeconds) {
+            clearstatcache(true, $destinationDir);
+            clearstatcache(true, $moduleJsonPath);
 
-            if (is_file($destinationDir . '/module.json')) {
-                return;
-            }
+            if (is_file($moduleJsonPath)) {
+                $content = @file_get_contents($moduleJsonPath);
+                if ($content !== false && strlen($content) > 10) {
+                    if (function_exists('opcache_invalidate')) {
+                        @opcache_invalidate($moduleJsonPath, true);
+                    }
 
-            $jsonFinder = finder();
-            $jsonFinder
-                ->files()
-                ->name('module.json')
-                ->in($destinationDir)
-                ->depth('== 1');
-
-            foreach ($jsonFinder as $jsonFile) {
-                if ($jsonFile->isFile()) {
                     return;
                 }
             }
 
-            usleep(250000);
+            $jsonFinder = finder();
+            $jsonFinder->files()->name('module.json')->in($destinationDir)->depth('== 1');
+
+            foreach ($jsonFinder as $jsonFile) {
+                if ($jsonFile->isFile()) {
+                    $nestedPath = $jsonFile->getRealPath();
+                    $content = @file_get_contents($nestedPath);
+                    if ($content !== false && strlen($content) > 10) {
+                        if (function_exists('opcache_invalidate')) {
+                            @opcache_invalidate($nestedPath, true);
+                        }
+
+                        return;
+                    }
+                }
+            }
+
+            usleep(300000);
         }
 
-        throw new Exception(__('admin-marketplace.messages.install_failed') . ': Файл module.json не найден после копирования');
+        throw new Exception(
+            __('admin-marketplace.messages.install_failed')
+            . ': Файл module.json не найден после копирования ('
+            . $moduleJsonPath
+            . ')',
+        );
     }
 
     /**
@@ -505,11 +534,7 @@ class ModuleInstallerService
         }
 
         if (!is_dir($destination)) {
-            $dirPerms = fileperms($source) & 0o777;
-            mkdir($destination, $dirPerms, true);
-            chmod($destination, $dirPerms);
-            @chown($destination, fileowner($source));
-            @chgrp($destination, filegroup($source));
+            mkdir($destination, 0o755, true);
         }
 
         $directory = opendir($source);
@@ -517,7 +542,7 @@ class ModuleInstallerService
             return false;
         }
 
-        while (($file = readdir($directory)) !== false) {
+        while (( $file = readdir($directory) ) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
@@ -528,11 +553,9 @@ class ModuleInstallerService
             if (is_dir($sourcePath)) {
                 $this->copyDirectory($sourcePath, $destinationPath);
             } else {
-                copy($sourcePath, $destinationPath);
-                $filePerms = fileperms($sourcePath) & 0o777;
-                chmod($destinationPath, $filePerms);
-                @chown($destinationPath, fileowner($sourcePath));
-                @chgrp($destinationPath, filegroup($sourcePath));
+                if (copy($sourcePath, $destinationPath)) {
+                    chmod($destinationPath, 0o644);
+                }
             }
         }
 

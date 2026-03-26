@@ -11,7 +11,7 @@ class IsAuthenticatedMiddleware extends BaseMiddleware
     public function handle(FluteRequest $request, Closure $next, ...$args): \Symfony\Component\HttpFoundation\Response
     {
         if (!user()->isLoggedIn()) {
-            return $this->error()->notFound();
+            return $this->error()->unauthorized();
         }
 
         return $next($request);

@@ -39,9 +39,18 @@ class ConfirmationManager {
             event.preventDefault();
 
             const $triggerElement = $(event.currentTarget);
-            const confirmMessage = $triggerElement.attr('hx-flute-confirm');
+            let confirmMessage = $triggerElement.attr('hx-flute-confirm');
             const confirmType =
                 $triggerElement.attr('hx-flute-confirm-type') || 'error';
+
+            // Replace {count} placeholder with bulk selection count
+            if (confirmMessage && confirmMessage.includes('{count}')) {
+                const bulkBar = $triggerElement.closest('[data-bulk-table]');
+                const count = bulkBar.length
+                    ? bulkBar.find('.bulk-selected-count').text() || '0'
+                    : '0';
+                confirmMessage = confirmMessage.replace('{count}', count);
+            }
             const actionKey = $triggerElement.attr('hx-flute-action-key');
             const withoutTrigger = $triggerElement.attr(
                 'hx-flute-without-trigger',
@@ -61,6 +70,7 @@ class ConfirmationManager {
                     if (actionKey) {
                         this.confirmedActions.add(actionKey);
                     }
+                    htmx.trigger($triggerElement[0], 'confirmed');
                 },
                 onCancel: () => {
                     if (actionKey) {
@@ -191,13 +201,13 @@ class ConfirmationManager {
             setTimeout(resetConfirmState, 300);
         });
 
-        $confirmButton.on('click', () => {
+        $confirmButton.off('click').on('click', () => {
             if (confirmHandled) return;
             confirmHandled = true;
-            
+
             $confirmButton.off('click');
             $cancelButton.off('click');
-            
+
             closeModal('confirmation-dialog');
 
             if (typeof onConfirm === 'function') {
@@ -207,13 +217,13 @@ class ConfirmationManager {
             setTimeout(resetConfirmState, 300);
         });
 
-        $cancelButton.on('click', () => {
+        $cancelButton.off('click').on('click', () => {
             if (cancelHandled) return;
             cancelHandled = true;
-            
+
             $confirmButton.off('click');
             $cancelButton.off('click');
-            
+
             closeModal('confirmation-dialog');
 
             if (typeof onCancel === 'function') {
@@ -256,7 +266,7 @@ class ConfirmationManager {
                 'HX-Trigger': 'screen-container-1',
                 'X-Csrf-Token': document
                     .querySelector('meta[name="csrf-token"]')
-                    .getAttribute('content'),
+                    ?.getAttribute('content') ?? '',
             };
 
             const componentName = yoyoComponent.getAttribute('yoyo:name');
@@ -284,6 +294,14 @@ class ConfirmationManager {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
+                        const newCsrfToken = xhr.getResponseHeader('X-CSRF-Token');
+                        if (newCsrfToken) {
+                            const meta = document.querySelector('meta[name="csrf-token"]');
+                            if (meta) {
+                                meta.setAttribute('content', newCsrfToken);
+                            }
+                        }
+
                         htmx.trigger(document.body, 'htmx:afterRequest', {
                             target: yoyoComponent,
                             xhr: xhr,
@@ -333,10 +351,12 @@ class ConfirmationManager {
 
                             if (responseEl) {
                                 yoyoComponent.outerHTML = responseEl.outerHTML;
-                                YoyoEngine.trigger(yoyoComponent, action);
-                                htmx.process(
-                                    document.querySelector(targetSelector),
-                                );
+                                // Re-query the new element (outerHTML detaches the old node)
+                                const newComponent = document.querySelector(targetSelector);
+                                if (newComponent) {
+                                    YoyoEngine.trigger(newComponent, action);
+                                    htmx.process(newComponent);
+                                }
                             }
                         } else {
                             YoyoEngine.trigger(yoyoComponent, action);

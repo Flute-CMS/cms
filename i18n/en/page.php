@@ -5,19 +5,24 @@ return [
     "categories" => [
         "general"  => "General",
         "users"    => "Users",
+        "user"     => "User",
         "content"  => "Content",
         "media"    => "Media files",
         "other"    => "Other",
         "payments" => "Payments",
         "admin"    => "Administration",
         "stats"    => "Statistics",
+        "system"   => "System",
+        "social"   => "Social",
     ],
+    "drag_widget_tip" => "Drag a widget to the page to add it",
     "edit_nav" => [
         "title" => "Editing page — :url",
         "height_mode" => "Widget Height Mode",
         "auto_height" => "Auto Height",
         "manual_height" => "Manual Height",
-        "auto_position" => "Auto position"
+        "auto_position" => "Auto position",
+        "gap" => "Gap between widgets"
     ],
     "onboarding" => [
         "colors"            => [
@@ -41,6 +46,11 @@ return [
     ],
     "saved_successfully" => "Page saved successfully!",
     "error_saving"       => "Error saving page!",
+    "layout_local" => "Local",
+    "layout_global" => "Global",
+    "layout_local_hint" => "Widgets only for the current page",
+    "layout_global_hint" => "Widgets for all pages on the site",
+    "global_layout_requires_content" => "Global layout must contain the Content widget",
     "seo" => [
         "title" => "Page SEO Settings",
         "edit_seo" => "Edit SEO",

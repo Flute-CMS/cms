@@ -2,7 +2,6 @@
 
 namespace Flute\Core\Modules\Page\Widgets;
 
-use Cycle\Database\Injection\Parameter;
 use DateTimeImmutable;
 use Flute\Core\Database\Entities\User;
 use Flute\Core\Database\Repositories\UserRepository;
@@ -36,25 +35,21 @@ class UsersOnlineWidget extends AbstractWidget
         $maxDisplay = $settings['max_display'] ?? 10;
         $cacheKey = 'flute.widget.users_online.' . $maxDisplay;
 
-        $userIds = cache()->callback($cacheKey, static function () use ($maxDisplay) {
-            $users = User::query()
-                ->where('last_logged', '>=', (new DateTimeImmutable())->modify('-10 minutes'))
-                ->where('hidden', false)
-                ->orderBy(['last_logged' => 'DESC'])
-                ->limit($maxDisplay)
-                ->fetchAll();
-
-            usort($users, static fn ($a, $b) => ($b->last_logged?->getTimestamp() ?? 0) <=> ($a->last_logged?->getTimestamp() ?? 0));
-
-            return array_map(static fn ($user) => $user->id, $users);
-        }, self::CACHE_TIME);
-
-        $onlineUsers = !empty($userIds)
-            ? User::query()->where('id', 'IN', new Parameter($userIds))->fetchAll()
-            : [];
+        $users = cache()->callback(
+            $cacheKey,
+            static function () use ($maxDisplay) {
+                return User::query()
+                    ->where('last_logged', '>=', ( new DateTimeImmutable() )->modify('-10 minutes'))
+                    ->where('hidden', false)
+                    ->orderBy(['last_logged' => 'DESC'])
+                    ->limit($maxDisplay)
+                    ->fetchAll();
+            },
+            self::CACHE_TIME,
+        );
 
         return view('flute::widgets.users-online', [
-            'users' => $onlineUsers,
+            'users' => $users,
             'display_type' => $settings['display_type'] ?? 'text',
             'max_display' => $maxDisplay,
         ])->render();
@@ -83,6 +78,16 @@ class UsersOnlineWidget extends AbstractWidget
         return 'users';
     }
 
+    public function getDescription(): string
+    {
+        return 'widgets.users_online_desc';
+    }
+
+    public function getCacheTime(): int
+    {
+        return self::CACHE_TIME;
+    }
+
     public function getDefaultWidth(): int
     {
         return 3;
@@ -95,7 +100,7 @@ class UsersOnlineWidget extends AbstractWidget
     {
         return [
             'display_type' => $input['display_type'] ?? 'text',
-            'max_display' => (int) ($input['max_display'] ?? 10),
+            'max_display' => (int) ( $input['max_display'] ?? 10 ),
         ];
     }
 }

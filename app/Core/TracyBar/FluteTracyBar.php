@@ -53,20 +53,11 @@ class FluteTracyBar
 
     protected function addPanels()
     {
-        Debugger::getBar()
-            ->addPanel(new ModulesTimingPanel());
+        Debugger::getBar()->addPanel(new ModulesTimingPanel());
     }
 
-    protected function getDebugAccess()
+    protected function getDebugAccess(): int
     {
-        if (sizeof(config('app.debug_ips')) > 0) {
-            return config('app.debug_ips');
-        }
-
-        if (!is_debug()) {
-            return Debugger::Production;
-        }
-
         return Debugger::Development;
     }
 }

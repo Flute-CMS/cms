@@ -1,0 +1,168 @@
+.role-badge {
+    --role-color: #8e8e8e;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.role-badge--full {
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--transp-1);
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    svg {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+    }
+
+    .role-badge__swatch {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--role-color);
+        flex-shrink: 0;
+    }
+
+    .role-badge__name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+    }
+
+    &.role-badge--small {
+        padding: 2px 8px;
+        font-size: 10px;
+        gap: 4px;
+
+        svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .role-badge__swatch {
+            width: 6px;
+            height: 6px;
+        }
+    }
+}
+
+.role-badge--icon {
+    width: 28px;
+    height: 28px;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--role-color);
+    background: color-mix(in srgb, var(--role-color) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--role-color) 18%, transparent);
+    transition: background 0.15s ease;
+    cursor: default;
+
+    svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    &:hover {
+        background: color-mix(in srgb, var(--role-color) 16%, transparent);
+    }
+
+    &.role-badge--small {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+
+        svg {
+            width: 13px;
+            height: 13px;
+        }
+    }
+}
+
+.role-badge--dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--role-color);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--role-color) 25%, transparent);
+    cursor: default;
+}
+
+.role-badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.role-badges--center {
+    justify-content: center;
+}
+
+.role-badges__overflow {
+    display: grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-500);
+    background: transparent;
+    border: 1px solid var(--transp-2);
+    border-radius: 999px;
+    cursor: default;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    line-height: 1;
+    transition: opacity 0.2s ease, color 0.2s ease, transform 0.15s ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &--small svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    &--ghosted {
+        color: var(--text-400);
+        opacity: 0.3;
+    }
+
+    @at-root button#{&} {
+        cursor: pointer;
+
+        &:hover {
+            transform: scale(1.15);
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+}

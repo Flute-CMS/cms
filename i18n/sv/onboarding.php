@@ -9,7 +9,7 @@ return [
     "new_design"               => "Ny design",
     "modern_interface"         => "Modernt gränssnitt",
     "dynamic_loading"          => "Dynamisk laddning",
-    "no_page_reloads"          => "No page reloads",
+    "no_page_reloads"          => "Inga sidomladdningar",
     "page_editor"              => "Ny sidredigerare",
     "widget_system"            => "Flexibelt widgetsystem",
     "dynamic_colors"           => "Dynamiska färger",

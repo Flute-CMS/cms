@@ -1,25 +1,50 @@
 @if (count($results) > 0)
-    <div class="search-results-count">
-        <span>{{ __('search.search_results_for', ['%query%' => $query]) }}:</span>
-    </div>
-    <ul class="search-results-list">
-        @foreach ($results as $result)
-            <li class="search-result-item" role="option" aria-selected="false">
-                <a href="{{ $result->getUrl() }}" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true"
-                    class="flex items-center">
-                    @if ($result->getIcon())
-                        @if(\Nette\Utils\Validators::isUrl($result->getIcon()))
-                            <img src="{{ $result->getIcon() }}" alt="{{ __($result->getTitle()) }}" class="search-image">
-                        @else
-                            <x-icon :path="$result->getIcon()" />
-                        @endif
-                    @endif
-                    <span>{{ __($result->getTitle()) }}</span>
-                    <x-icon path="ph.regular.arrow-right" class="search-go-icon" />
-                </a>
-            </li>
-        @endforeach
-    </ul>
+    @php
+        $groupedResults = [];
+        foreach ($results as $result) {
+            $category = $result->getCategory() ?: __('search.category_other');
+            if (!isset($groupedResults[$category])) {
+                $groupedResults[$category] = [];
+            }
+            $groupedResults[$category][] = $result;
+        }
+    @endphp
+
+    @foreach ($groupedResults as $category => $categoryResults)
+        <div class="search-group">
+            <div class="search-group__header">
+                <span class="search-group__title">{{ $category }}</span>
+                <span class="search-group__count">{{ count($categoryResults) }}</span>
+            </div>
+            <ul class="search-group__list">
+                @foreach ($categoryResults as $result)
+                    <li class="search-result-item">
+                        <a href="{{ $result->getUrl() }}">
+                            <div class="search-result-item__icon">
+                                @if ($result->getIcon())
+                                    @if (\Nette\Utils\Validators::isUrl($result->getIcon()))
+                                        <img src="{{ $result->getIcon() }}" alt="{{ __($result->getTitle()) }}">
+                                    @else
+                                        <x-icon :path="$result->getIcon()" />
+                                    @endif
+                                @else
+                                    <x-icon path="ph.regular.file" />
+                                @endif
+                            </div>
+                            <div class="search-result-item__content">
+                                <span class="search-result-item__title">{!! $result->getHighlightedTitle($query ?? '') !!}</span>
+                            </div>
+                            <x-icon path="ph.regular.arrow-right" class="search-result-item__arrow" />
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endforeach
 @else
-    <p class="text-muted">{{ __('search.no_results_found') }}</p>
+    <div class="search-no-results">
+        <x-icon path="ph.regular.magnifying-glass" />
+        <p>{{ __('search.no_results') }}</p>
+        <span>{{ __('search.try_different') }}</span>
+    </div>
 @endif

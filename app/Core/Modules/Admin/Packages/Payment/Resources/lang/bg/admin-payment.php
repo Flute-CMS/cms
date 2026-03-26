@@ -85,6 +85,21 @@ return [
             'label' => 'Image',
             'placeholder' => 'Enter image URL',
         ],
+        'description' => [
+            'label' => 'Description',
+            'placeholder' => 'E.g.: Visa, MasterCard, Maestro',
+            'help' => 'Short description displayed below the payment method name',
+        ],
+        'fee' => [
+            'label' => 'Fee (%)',
+            'placeholder' => '0',
+            'help' => 'Fee percentage charged by the payment gateway. Displayed to users as information',
+        ],
+        'bonus' => [
+            'label' => 'Bonus (%)',
+            'placeholder' => '0',
+            'help' => 'Bonus percentage added to the top-up when using this payment method',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'Enable or disable this payment gateway',

@@ -83,7 +83,7 @@ class RichText extends Field
      * @var array
      */
     protected $attributes = [
-        'class' => 'form-control markdown-editor',
+        'class' => 'form-control richtext-editor',
         'value' => null,
         'height' => 300,
         'spellcheck' => false,
@@ -200,42 +200,80 @@ class RichText extends Field
         switch ($preset) {
             case 'minimal':
                 $this->toolbar = [
-                    'bold', 'italic', '|',
-                    'unordered-list', 'ordered-list', '|',
-                    'link', '|', 'preview',
+                    'bold',
+                    'italic',
+                    '|',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    '|',
+                    'preview',
                 ];
 
                 break;
             case 'basic':
                 $this->toolbar = [
-                    'bold', 'italic', 'heading', '|',
-                    'quote', 'unordered-list', 'ordered-list', '|',
-                    'link', 'image', '|',
-                    'preview', 'guide',
+                    'bold',
+                    'italic',
+                    'heading',
+                    '|',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    'image',
+                    '|',
+                    'preview',
+                    'guide',
                 ];
 
                 break;
             case 'full':
                 $this->toolbar = [
-                    'bold', 'italic', 'strikethrough', 'heading', 'heading-smaller', 'heading-bigger',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    'heading',
                     '|',
-                    'code', 'quote', 'unordered-list', 'ordered-list', 'horizontal-rule',
+                    'code',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    'horizontal-rule',
                     '|',
-                    'link', 'image', 'table',
+                    'text-align',
+                    'text-color',
+                    'highlight',
                     '|',
-                    'preview', 'side-by-side', 'fullscreen',
+                    'link',
+                    'image',
+                    'table',
+                    'youtube',
                     '|',
-                    'guide',
+                    'fullscreen',
                 ];
 
                 break;
             case 'standard':
             default:
                 $this->toolbar = [
-                    'bold', 'italic', 'heading', '|',
-                    'quote', 'unordered-list', 'ordered-list', '|',
-                    'link', 'image', '|',
-                    'preview', 'side-by-side', 'fullscreen',
+                    'bold',
+                    'italic',
+                    'heading',
+                    '|',
+                    'quote',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'link',
+                    'image',
+                    '|',
+                    'preview',
+                    'side-by-side',
+                    'fullscreen',
                     '|',
                     'guide',
                 ];

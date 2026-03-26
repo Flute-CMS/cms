@@ -10,20 +10,30 @@ class NotificationController extends BaseController
     public function getAll()
     {
         return $this->json([
-            "result" => notification()->all(true),
+            'result' => notification()->all(true),
         ]);
     }
 
     public function getUnread()
     {
         return $this->json([
-            "result" => notification()->unread(true),
+            'result' => notification()->unread(true),
         ]);
     }
 
     public function getCountUnread()
     {
         return response()->make(notification()->countUnread());
+    }
+
+    public function hasUnread()
+    {
+        $newestId = notification()->getNewestUnreadId();
+
+        return $this->json([
+            'hasUnread' => $newestId !== null,
+            'newestId' => $newestId,
+        ]);
     }
 
     public function delete(FluteRequest $fluteRequest, $id)
@@ -43,6 +53,13 @@ class NotificationController extends BaseController
     public function clear(FluteRequest $fluteRequest)
     {
         notification()->clear();
+
+        return $this->success();
+    }
+
+    public function readAll(FluteRequest $fluteRequest)
+    {
+        notification()->markAllAsRead();
 
         return $this->success();
     }

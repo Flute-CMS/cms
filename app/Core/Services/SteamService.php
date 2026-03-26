@@ -4,6 +4,7 @@ namespace Flute\Core\Services;
 
 use Exception;
 use Flute\Core\Cache\CacheManager;
+use Flute\Core\Database\Entities\SocialNetwork;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -44,10 +45,17 @@ class SteamService
         $this->apiKey = $apiKey;
         $this->cache = $cache;
 
-        $this->httpClient = new Client([
+        $proxyConfig = [];
+        $social = SocialNetwork::findOne(['key' => 'Steam']) ?? SocialNetwork::findOne(['key' => 'HttpsSteam']);
+        if ($social) {
+            $proxyConfig = $social->getGuzzleProxyConfig();
+        }
+
+        $this->httpClient = new Client(array_merge([
             'base_uri' => 'https://api.steampowered.com/',
             'timeout' => 10.0,
-        ]);
+            'connect_timeout' => 3.0,
+        ], $proxyConfig));
         $this->cacheDuration = config('app.steam_cache_duration', 604800); // 7 days
 
         register_shutdown_function([$this, 'executeBatchRequest']);
@@ -146,25 +154,29 @@ class SteamService
 
                         $userInfo = [
                             'steamid' => $steamId,
-                            'name' => $player['personaname'] ?? ($player['personaname'] ?? ''),
-                            'avatar' => $player['avatarfull'] ?? ($player['avatar'] ?? ''),
+                            'name' => $player['personaname'] ?? $player['personaname'] ?? '',
+                            'avatar' => $player['avatarfull'] ?? $player['avatar'] ?? '',
                             'profile' => $player['profileurl'] ?? '',
                         ];
 
-                        cache()->set("steam_user_{$normalizedId}", $userInfo, $this->cacheDuration);
                         cache()->set("steam_user_info_{$normalizedId}", $userInfo, $this->cacheDuration);
                         $playersData[$normalizedId] = $userInfo;
                     }
                 }
 
                 foreach (self::$deferreds as $id64 => $deferred) {
-                    $norm = $this->normalizeSteamId((string)$id64);
-                    $info = $playersData[$norm] ?? cache()->get("steam_user_{$norm}") ?? [];
+                    $norm = $this->normalizeSteamId((string) $id64);
+                    $info = $playersData[$norm] ?? cache()->get("steam_user_info_{$norm}") ?? [];
                     $deferred->resolve($info);
                     unset(self::$deferreds[$id64]);
                 }
             } catch (Exception $e) {
-                logs()->error('Steam API Batch Request Failed: '.$e->getMessage());
+                logs()->error('Steam API Batch Request Failed: ' . $e->getMessage());
+
+                foreach (self::$deferreds as $id64 => $deferred) {
+                    $deferred->reject($e);
+                    unset(self::$deferreds[$id64]);
+                }
             }
         }
     }
@@ -249,7 +261,7 @@ class SteamService
                         }
                     }
                 } catch (Exception $e) {
-                    logs()->error("Steam API Error: " . $e->getMessage());
+                    logs()->error('Steam API Error: ' . $e->getMessage());
                 }
             }
         }
@@ -276,7 +288,7 @@ class SteamService
      */
     public function getUserName(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['personaname'] ?? null);
+        return $this->getUserInfo($steamId)->then(static fn($userInfo) => $userInfo['name'] ?? null);
     }
 
     /**
@@ -284,7 +296,7 @@ class SteamService
      */
     public function getUserAvatar(string $steamId): PromiseInterface
     {
-        return $this->getUserInfo($steamId)->then(static fn ($userInfo) => $userInfo['avatarfull'] ?? null);
+        return $this->getUserInfo($steamId)->then(static fn($userInfo) => $userInfo['avatar'] ?? null);
     }
 
     /**
@@ -294,6 +306,7 @@ class SteamService
     {
         $normalizedId = $this->normalizeSteamId($steamId);
         cache()->delete("steam_user_{$normalizedId}");
+        cache()->delete("steam_user_info_{$normalizedId}");
     }
 
     /**

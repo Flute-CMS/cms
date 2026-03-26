@@ -48,12 +48,14 @@ class ThemeActions
             $existingColors = [];
         }
 
-        $updatedColors = array_merge($existingColors, [$theme => $newColors]);
+        $existingThemeColors = $existingColors[$theme] ?? [];
+        $updatedColors = $existingColors;
+        $updatedColors[$theme] = array_merge($existingThemeColors, $newColors);
 
         $jsonData = json_encode($updatedColors, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         if ($jsonData === false) {
-            throw new Exception("Failed to encode colors to JSON: " . json_last_error_msg());
+            throw new Exception('Failed to encode colors to JSON: ' . json_last_error_msg());
         }
 
         $tempColorsPath = $colorsPath . '.tmp';
@@ -78,6 +80,8 @@ class ThemeActions
         if ($event->isPropagationStopped()) {
             return;
         }
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -113,6 +117,8 @@ class ThemeActions
         template()->getTemplateAssets()->clearStyleCache();
 
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -133,6 +139,8 @@ class ThemeActions
 
         $this->updateThemeStatus($themeName, ThemeManager::ACTIVE);
         $this->themeManager->installedThemes[] = $themeName;
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -145,6 +153,8 @@ class ThemeActions
         $this->themeManager->getTheme($themeName);
 
         $this->updateThemeStatus($themeName, ThemeManager::DISABLED);
+
+        $this->clearThemeRelatedCaches();
     }
 
     /**
@@ -157,7 +167,7 @@ class ThemeActions
         $this->themeManager->getTheme($themeName);
 
         if ($this->isLastActiveTheme($themeName)) {
-            throw new Exception("Cannot uninstall the last active theme.");
+            throw new Exception('Cannot uninstall the last active theme.');
         }
 
         $event = new ThemeUninstalled($themeName);
@@ -167,7 +177,9 @@ class ThemeActions
             return;
         }
 
-        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(static fn ($theme) => $theme !== $themeName);
+        $this->themeManager->installedThemes = $this->themeManager->installedThemes->filter(
+            static fn($theme) => $theme !== $themeName,
+        );
 
         if ($this->themeManager->getCurrentTheme() === $themeName) {
             $this->themeManager->fallbackToDefaultTheme();
@@ -177,6 +189,25 @@ class ThemeActions
         transaction($theme, 'delete')->run();
 
         fs()->remove(BASE_PATH . 'app/Themes/' . $themeName);
+
+        $this->clearThemeRelatedCaches();
+    }
+
+    /**
+     * Clear all theme-related caches to ensure changes are reflected immediately.
+     */
+    protected function clearThemeRelatedCaches(): void
+    {
+        try {
+            cache()->deleteImmediately('themes_list');
+            cache()->deleteImmediately('active_theme');
+            cache()->deleteImmediately('flute.themes.get');
+            cache()->deleteImmediately('flute.themes.json_data');
+            cache()->deleteImmediately('flute.themes.db_rows');
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break theme operations if cache clearing fails
+        }
     }
 
     /**
@@ -208,7 +239,7 @@ class ThemeActions
         $theme = Theme::findOne(['key' => $themeName]);
 
         if ($theme->status === ThemeManager::NOTINSTALLED) {
-            throw new Exception(sprintf("Theme %s is not installed.", $themeName));
+            throw new Exception(sprintf('Theme %s is not installed.', $themeName));
         }
     }
 

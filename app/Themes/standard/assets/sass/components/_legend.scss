@@ -45,7 +45,7 @@
             }
         }
 
-        h4 {
+        h1 {
             font-weight: 700;
             position: relative;
             display: inline-flex;
@@ -53,12 +53,14 @@
             gap: var(--space-xs);
             margin: 0;
             color: var(--text);
-            font-size: var(--h3);
+            line-height: 1.4;
             letter-spacing: -0.01em;
         }
 
-        small {
-            color: var(--text-600);
+        p {
+            color: var(--text-400);
+            line-height: 1.4;
+            font-size: var(--h6);
             max-width: 80ch;
         }
 

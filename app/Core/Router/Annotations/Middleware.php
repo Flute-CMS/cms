@@ -6,7 +6,7 @@ use Attribute;
 
 #[Attribute(
     Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE,
-    flags: Attribute::TARGET_CLASS | Attribute::TARGET_METHOD
+    flags: Attribute::TARGET_CLASS | Attribute::TARGET_METHOD,
 )]
 class Middleware
 {
@@ -56,9 +56,6 @@ class Middleware
      */
     public static function inherit(Middleware $parent, Middleware $child): Middleware
     {
-        return new self(
-            array_merge($parent->getMiddleware(), $child->getMiddleware()),
-            true
-        );
+        return new self(array_merge($parent->getMiddleware(), $child->getMiddleware()), true);
     }
 }

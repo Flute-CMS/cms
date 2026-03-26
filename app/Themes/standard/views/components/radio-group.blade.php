@@ -1,8 +1,14 @@
-@props(['name', 'legend' => null])
+@props([
+    'name',
+    'legend' => null,
+    'variant' => null, // null (stacked cards) | 'inline' (button group)
+])
 
-<fieldset class="radio-group" {{ $attributes }}>
+<fieldset {{ $attributes->merge(['class' => 'radio-group' . ($variant === 'inline' ? ' radio-group--inline' : '')]) }}>
     @if ($legend)
-        <legend>{{ $legend }}</legend>
+        <legend class="radio-group__legend">{{ $legend }}</legend>
     @endif
-    {{ $slot }}
+    <div class="radio-group__items">
+        {{ $slot }}
+    </div>
 </fieldset>

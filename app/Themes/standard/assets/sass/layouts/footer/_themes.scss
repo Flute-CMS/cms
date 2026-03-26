@@ -1,0 +1,15 @@
+html[data-theme="light"] {
+    .footer__logo-light {
+        display: flex;
+    }
+
+    .footer__logo-dark {
+        display: none;
+    }
+}
+
+html[data-theme="dark"] {
+    .footer__logo-light {
+        display: none;
+    }
+}

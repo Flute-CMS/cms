@@ -5,4 +5,4 @@
             <p class="mb-0">{{ __('admin-payment.no_drivers.description') }}</p>
         </div>
     </div>
-</div> 
+</div>

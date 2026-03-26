@@ -30,7 +30,7 @@ abstract class AbstractWidget implements WidgetInterface
     /**
      * Renders the widget with specified settings.
      */
-    abstract public function render(array $settings): string|null;
+    abstract public function render(array $settings): ?string;
 
     /**
      * Renders the widget's settings form.
@@ -102,10 +102,27 @@ abstract class AbstractWidget implements WidgetInterface
     }
 
     /**
+     * Returns the cache time in seconds for the rendered HTML.
+     * Return 0 to disable HTML caching (e.g., for user-dependent widgets).
+     */
+    public function getCacheTime(): int
+    {
+        return 0;
+    }
+
+    /**
      * Returns the category of the widget.
      */
     public function getCategory(): string
     {
         return 'general';
+    }
+
+    /**
+     * Returns a short description of the widget.
+     */
+    public function getDescription(): string
+    {
+        return '';
     }
 }

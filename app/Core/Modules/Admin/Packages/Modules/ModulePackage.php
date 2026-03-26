@@ -38,12 +38,9 @@ class ModulePackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-modules.modules_and_themes'),
-            ],
-            [
+                'key' => 'modules',
                 'title' => __('admin-modules.title'),
-                'icon' => 'ph.bold.folder-bold',
+                'icon' => 'ph.regular.folder',
                 'url' => url('/admin/modules'),
                 'badge' => $this->getModulesCount(),
             ],

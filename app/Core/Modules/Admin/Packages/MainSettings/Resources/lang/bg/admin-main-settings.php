@@ -53,6 +53,13 @@ return [
         'user' => 'User',
         'database' => 'Database',
         'prefix' => 'Table Prefix',
+        'persistent_connections' => 'Persistent Connections',
+        'db_connect_timeout' => 'Connection Timeout (sec)',
+        'db_read_timeout' => 'Read Timeout (sec)',
+        'db_write_timeout' => 'Write Timeout (sec)',
+        'db_init_sql' => 'Init SQL (MySQL)',
+        'db_compression' => 'Compression (MySQL)',
+        'db_reconnect' => 'Auto Reconnect',
         'share_description' => 'Your site will send error reports to Flute servers.',
         'discord_link_roles_description' => 'Automatic sync of Flute roles with Discord roles. See <a href="https://docs.flute-cms.com" class="accent">here</a>.',
         'copyright_description' => 'Flute copyright in the footer. If you like Flute, please keep it 😘.',
@@ -64,9 +71,13 @@ return [
         'robots' => 'Robots Settings',
         'keywords' => 'Keywords',
         'lk_only_modal' => 'Balance Top-Up in Modal',
+        'lk_step_mode' => 'Step-by-step Payment',
         'change_theme' => 'Change Theme',
         'logo_light' => 'Logo for Light Theme',
         'default_theme' => 'Default Theme',
+        'profile_tab_title' => 'Tab',
+        'yandex_client_key' => 'Yandex SmartCaptcha Client Key',
+        'yandex_server_key' => 'Yandex SmartCaptcha Server Key',
     ],
 
     'options' => [
@@ -104,6 +115,10 @@ return [
         'db_user' => 'Database user',
         'db_database' => 'Database name',
         'db_password' => 'Database password',
+        'db_connect_timeout' => 'Example: 5',
+        'db_read_timeout' => 'Example: 30',
+        'db_write_timeout' => 'Example: 30',
+        'db_init_sql' => 'Example: SET NAMES utf8mb4',
         'db_prefix' => 'e.g.: lvl_, my_, user_',
         'locale' => 'Select interface language',
         'debug_ips' => 'Enter debug IPs, separated by commas',
@@ -113,6 +128,8 @@ return [
         'robots' => 'index, nofollow',
         'change_theme' => 'Enable theme change',
         'test_mail' => 'Email for testing',
+        'yandex_client_key' => 'Enter Yandex SmartCaptcha client key',
+        'yandex_server_key' => 'Enter Yandex SmartCaptcha server key',
     ],
 
     'buttons' => [
@@ -150,6 +167,9 @@ return [
         'profile_images_saved' => 'Profile images saved successfully!',
         'unknown_error' => 'An unknown error occurred.',
         'loading' => 'Loading...',
+        'profile_tabs_order_saved' => 'Profile tabs order saved successfully!',
+        'invalid_sort' => 'Invalid sort data.',
+        'no_profile_tabs' => 'No profile tabs registered. Tabs will appear after installing modules that add sections to the profile.',
     ],
 
     'breadcrumbs' => [
@@ -182,6 +202,8 @@ return [
         'active_languages' => 'Active Languages',
         'active_languages_description' => 'These languages will be available for users.',
         'seo' => 'SEO Settings',
+        'profile_tabs_order' => 'Profile Tabs Order',
+        'profile_tabs_order_description' => 'Drag tabs to change their display order in user profile.',
     ],
 
     'popovers' => [
@@ -207,9 +229,19 @@ return [
         'flute_key' => 'This key links your site to the Flute marketplace. Get it <a target="_blank" href="https://flute-cms.com">here</a>.',
         'seo' => 'These settings affect search engine indexing.',
         'lk_only_modal' => 'Replaces user dashboard with a modal.',
+        'lk_step_mode' => 'Splits the payment form into sequential steps: amount → payment method → confirmation.',
         'change_theme' => 'Enable manual theme switching.',
         'default_theme' => 'Default theme used when manual theme switching is disabled or for new users.',
         'prefix' => 'Adds a prefix to all tables in the database. Allows multiple applications to share a single database without table name conflicts.',
+        'persistent_connections' => 'Best for remote databases. Reuses connections, but under high load can exhaust DB limits and increase memory usage.',
+        'db_connect_timeout' => 'Increase for remote/slow databases. MySQL uses connect timeout; Postgres uses PDO timeout.',
+        'db_read_timeout' => 'MySQL-only. Increase for slow network or long queries.',
+        'db_write_timeout' => 'MySQL-only. Increase for slow network or large writes.',
+        'db_init_sql' => 'MySQL-only. SQL executed on every new connection (e.g. charset, timezone).',
+        'db_compression' => 'MySQL-only. Compresses traffic to remote DB, may increase CPU.',
+        'db_reconnect' => 'Retry on lost connection. Can hide transient errors if overused.',
+        'yandex_client_key' => 'Get your client key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
+        'yandex_server_key' => 'Get your server key from <a target="_blank" href="https://console.yandex.cloud/folders?section=service-smartcaptcha">Yandex Cloud Console</a>.',
     ],
 
     'examples' => [

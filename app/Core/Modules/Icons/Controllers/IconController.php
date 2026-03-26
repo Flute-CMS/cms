@@ -7,9 +7,10 @@ use Flute\Core\Router\Annotations\Get;
 use Flute\Core\Router\Annotations\Route;
 use Flute\Core\Support\BaseController;
 use Flute\Core\Support\FluteRequest;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Route("admin/api/icons", middleware: ['can:admin'])]
+#[Route('admin/api/icons', middleware: ['can:admin'])]
 class IconController extends BaseController
 {
     /**
@@ -30,7 +31,7 @@ class IconController extends BaseController
      *
      * @Get("packages")
      */
-    #[Get("packages")]
+    #[Get('packages')]
     public function getPackages()
     {
         $packages = $this->iconFinder->getPackages();
@@ -48,9 +49,9 @@ class IconController extends BaseController
             ];
         }
 
-        usort($result, static fn ($a, $b) => strcmp($a['category'], $b['category']));
+        usort($result, static fn($a, $b) => strcmp($a['category'], $b['category']));
 
-        return $this->json($result);
+        return $this->jsonCached($result, 86400);
     }
 
     /**
@@ -58,7 +59,7 @@ class IconController extends BaseController
      *
      * @Get("packages/{prefix}")
      */
-    #[Get("packages/{prefix}")]
+    #[Get('packages/{prefix}')]
     public function getIcons(string $prefix, FluteRequest $request)
     {
         $categoryName = $request->input('category');
@@ -87,7 +88,7 @@ class IconController extends BaseController
      *
      * @Get("packages/{prefix}/categories")
      */
-    #[Get("packages/{prefix}/categories")]
+    #[Get('packages/{prefix}/categories')]
     public function getCategories(string $prefix)
     {
         $categories = $this->iconFinder->getCategoriesInPackage($prefix);
@@ -106,7 +107,7 @@ class IconController extends BaseController
      *
      * @Get("all")
      */
-    #[Get("all")]
+    #[Get('all')]
     public function getAllIcons()
     {
         $packages = $this->iconFinder->getPackages();
@@ -134,7 +135,7 @@ class IconController extends BaseController
      *
      * @Get("render")
      */
-    #[Get("render")]
+    #[Get('render')]
     public function renderIcon(FluteRequest $request)
     {
         $path = $request->input('path');
@@ -156,7 +157,7 @@ class IconController extends BaseController
      *
      * @Get("search")
      */
-    #[Get("search")]
+    #[Get('search')]
     public function searchIcons(FluteRequest $request)
     {
         $query = $request->input('q');
@@ -171,45 +172,49 @@ class IconController extends BaseController
             return $this->json(['error' => 'Prefix parameter is required'], 400);
         }
 
-        $allIcons = $this->iconFinder->getIconsInPackage($prefix, $category);
-        $query = strtolower($query);
+        $cacheKey = 'icons.search.' . md5("{$prefix}.{$category}.{$query}");
 
-        $matchingIcons = [];
-        foreach ($allIcons as $icon) {
-            $iconName = strtolower(str_replace('-', ' ', $icon));
+        $result = cache()->callback(
+            $cacheKey,
+            function () use ($prefix, $category, $query) {
+                $allIcons = $this->iconFinder->getIconsInPackage($prefix, $category);
+                $query = strtolower($query);
 
-            if (strpos($iconName, $query) !== false) {
-                $matchingIcons[] = $icon;
-            }
-        }
+                $matchingIcons = [];
+                foreach ($allIcons as $icon) {
+                    $iconName = strtolower(str_replace('-', ' ', $icon));
+                    if (str_contains($iconName, $query)) {
+                        $matchingIcons[] = $icon;
+                    }
+                }
 
-        $result = [
-            'prefix' => $prefix,
-            'query' => $query,
-            'category' => $category,
-            'total' => count($matchingIcons),
-            'icons' => [],
-        ];
+                $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $matchingIcons);
+                $paths = array_slice($paths, 0, 300);
 
-        $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $matchingIcons);
+                $icons = [];
+                foreach ($paths as $path) {
+                    $svg = $this->iconFinder->loadFile($path);
+                    if ($svg) {
+                        $icons[] = [
+                            'path' => $path,
+                            'svg' => $svg,
+                            'displayName' => $this->getDisplayNameFromPath($path),
+                        ];
+                    }
+                }
 
-        $paths = array_slice($paths, 0, min(count($paths), 500));
-
-        foreach ($paths as $path) {
-            $svg = $this->iconFinder->loadFile($path);
-
-            if ($svg) {
-                $displayName = $this->getDisplayNameFromPath($path);
-
-                $result['icons'][] = [
-                    'path' => $path,
-                    'svg' => $svg,
-                    'displayName' => $displayName,
+                return [
+                    'prefix' => $prefix,
+                    'query' => $query,
+                    'category' => $category,
+                    'total' => count($matchingIcons),
+                    'icons' => $icons,
                 ];
-            }
-        }
+            },
+            3600,
+        );
 
-        return $this->json($result);
+        return $this->jsonCached($result);
     }
 
     /**
@@ -217,61 +222,75 @@ class IconController extends BaseController
      *
      * @Get("batch-render")
      */
-    #[Get("batch-render")]
+    #[Get('batch-render')]
     public function batchRenderIcons(FluteRequest $request)
     {
         $paths = $request->input('paths', []);
         $prefix = $request->input('prefix');
         $category = $request->input('category');
-        $limit = (int)$request->input('limit', 50);
-        $page = (int)$request->input('page', 1);
+        $limit = min((int) $request->input('limit', 150), 300);
+        $page = max((int) $request->input('page', 1), 1);
 
-        if ($prefix) {
-            $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
-
-            $total = count($icons);
-            $icons = array_slice($icons, ($page - 1) * $limit, $limit);
-
-            $paths = array_map(static fn ($icon) => "{$prefix}.{$icon}", $icons);
-
-            $result = [
-                'prefix' => $prefix,
-                'category' => $category,
-                'page' => $page,
-                'limit' => $limit,
-                'total' => $total,
-                'totalPages' => ceil($total / $limit),
-                'icons' => [],
-            ];
-        } else {
-            if (empty($paths)) {
-                return $this->json([
-                    'error' => 'Paths parameter is required when prefix is not specified',
-                ], 400);
-            }
-
-            $result = [
-                'icons' => [],
-            ];
+        if (!$prefix && empty($paths)) {
+            return $this->json([
+                'error' => 'Paths parameter is required when prefix is not specified',
+            ], 400);
         }
 
-        $paths = array_slice($paths, 0, min(count($paths), 200));
+        if ($prefix) {
+            $cacheKey = "icons.batch.{$prefix}.{$category}.{$limit}.{$page}";
+
+            $result = cache()->callback(
+                $cacheKey,
+                function () use ($prefix, $category, $limit, $page) {
+                    $icons = $this->iconFinder->getIconsInPackage($prefix, $category);
+                    $total = count($icons);
+                    $icons = array_slice($icons, ( $page - 1 ) * $limit, $limit);
+                    $paths = array_map(static fn($icon) => "{$prefix}.{$icon}", $icons);
+
+                    $rendered = [];
+                    foreach ($paths as $path) {
+                        $svg = $this->iconFinder->loadFile($path);
+                        if ($svg) {
+                            $rendered[] = [
+                                'path' => $path,
+                                'svg' => $svg,
+                                'displayName' => $this->getDisplayNameFromPath($path),
+                            ];
+                        }
+                    }
+
+                    return [
+                        'prefix' => $prefix,
+                        'category' => $category,
+                        'page' => $page,
+                        'limit' => $limit,
+                        'total' => $total,
+                        'totalPages' => (int) ceil($total / $limit),
+                        'icons' => $rendered,
+                    ];
+                },
+                86400,
+            );
+
+            return $this->jsonCached($result, 86400);
+        }
+
+        $paths = array_slice($paths, 0, 300);
+        $result = ['icons' => []];
 
         foreach ($paths as $path) {
             $svg = $this->iconFinder->loadFile($path);
-
             if ($svg) {
-                $displayName = $this->getDisplayNameFromPath($path);
-
                 $result['icons'][] = [
                     'path' => $path,
                     'svg' => $svg,
-                    'displayName' => $displayName,
+                    'displayName' => $this->getDisplayNameFromPath($path),
                 ];
             }
         }
 
-        return $this->json($result);
+        return $this->jsonCached($result);
     }
 
     /**
@@ -279,14 +298,14 @@ class IconController extends BaseController
      */
     protected function getCategoryForPrefix(string $prefix): string
     {
-        $normalized = ltrim(strtolower($prefix), '@');
-        if (str_starts_with($normalized, 'ph')) {
-            return 'Phosphor Icons';
-        } elseif (str_starts_with($normalized, 'fa')) {
-            return 'Font Awesome';
-        }
-
-        return 'Other';
+        return match (ltrim(strtolower($prefix), '@')) {
+            'ph' => 'Phosphor Icons',
+            'fa' => 'Font Awesome',
+            'si' => 'Simple Icons',
+            'lu' => 'Lucide',
+            'tb' => 'Tabler Icons',
+            default => ucfirst($prefix),
+        };
     }
 
     /**
@@ -297,7 +316,7 @@ class IconController extends BaseController
         $parts = explode('.', $path);
         $prefix = $parts[0] ?? '';
 
-        if (str_starts_with($prefix, 'ph')) {
+        if ($prefix === 'ph') {
             $style = $parts[1] ?? '';
             $name = $parts[2] ?? '';
 
@@ -306,14 +325,27 @@ class IconController extends BaseController
             }
 
             return ucfirst(str_replace('-', ' ', $name));
-        } elseif (str_starts_with($prefix, 'fa')) {
-            // fa.folder.icon
-            $name = $parts[2] ?? '';
+        }
+
+        if ($prefix === 'fa' || $prefix === 'tb') {
+            // fa.folder.icon / tb.outline.icon
+            $name = $parts[2] ?? $parts[1] ?? '';
 
             return ucfirst(str_replace('-', ' ', $name));
         }
 
+        // si.brands.icon / lu.icon
         return ucfirst(str_replace('-', ' ', end($parts)));
+    }
 
+    /**
+     * Return JSON response with browser cache headers.
+     */
+    protected function jsonCached(array $data, int $maxAge = 3600): JsonResponse
+    {
+        $response = new JsonResponse($data);
+        $response->headers->set('Cache-Control', "public, max-age={$maxAge}");
+
+        return $response;
     }
 }

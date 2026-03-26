@@ -1,16 +1,25 @@
 @props(['item'])
 
+@php
+    $title = $item['title'] ?? '';
+    $itemKey = $item['key'] ?? ($item['_config_key'] ?? '');
+@endphp
+
 @if (isset($item['type']) && $item['type'] === 'header')
-    <li class="sidebar__menu-header">{{ __($item['title']) }}</li>
+    <li class="sidebar__menu-header">{{ $title }}</li>
 @else
-    <li class="sidebar__menu-item @if (! empty($item['children'])) sub-menu @endif">
-        <a href="{{ $item['url'] ?? '#' }}" class="menu-item">
+    <li class="sidebar__menu-item @if (! empty($item['children'])) sub-menu @endif"
+        @if ($itemKey) data-item-key="{{ $itemKey }}" @endif>
+        <a href="{{ $item['url'] ?? '#' }}" class="menu-item" data-tooltip="{{ $title }}" data-tooltip-placement="right">
             <span class="menu-icon">
                 <x-icon :path="$item['icon'] ?? 'ph.regular.circle'" />
             </span>
-            <span class="menu-title">{{ __($item['title']) }}</span>
+            <span class="menu-title">{{ $title }}</span>
             @if (! empty($item['badge']))
-                <span class="badge {{ $item['badge-type'] ?? 'primary' }}">{{ $item['badge'] }}</span>
+                <span class="menu-badge menu-badge--{{ $item['badge-type'] ?? '' }}">{{ $item['badge'] }}</span>
+            @endif
+            @if (! empty($item['children']))
+                <x-icon path="ph.regular.caret-right" class="menu-arrow" />
             @endif
         </a>
         @if (! empty($item['children']))

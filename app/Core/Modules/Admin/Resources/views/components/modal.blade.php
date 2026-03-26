@@ -27,6 +27,9 @@
     <div class="{{ $type == 'right' ? 'right_sidebar__container' : 'modal__container' }} {{ $containerClass }}"
         role="dialog" aria-modal="true" aria-labelledby="{{ $id }}-title">
         @if ($type != 'right')
+            <div class="drag-handle"><span></span></div>
+        @endif
+        @if ($type != 'right')
             @if (!empty($title) || !$withoutCloseButton)
                 <header @class([
                     'modal__header',

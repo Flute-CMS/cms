@@ -2,11 +2,13 @@
 
 namespace Flute\Admin\Packages\Roles\Screens;
 
+use Cycle\Database\Injection\Parameter;
 use Flute\Admin\Platform\Actions\Button;
 use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
-use Flute\Admin\Platform\Fields\CheckBox;
+use Flute\Admin\Platform\Fields\ButtonGroup;
 use Flute\Admin\Platform\Fields\Input;
+use Flute\Admin\Platform\Fields\Select;
 use Flute\Admin\Platform\Fields\Sight;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Repository;
@@ -14,6 +16,7 @@ use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
 use Flute\Core\Database\Entities\Permission;
 use Flute\Core\Database\Entities\Role;
+use Throwable;
 
 class RoleListScreen extends Screen
 {
@@ -30,9 +33,7 @@ class RoleListScreen extends Screen
         $this->name = __('admin-roles.title.roles');
         $this->description = __('admin-roles.title.roles_description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-roles.breadcrumbs.roles'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-roles.breadcrumbs.roles'));
 
         $this->loadRoles();
     }
@@ -52,28 +53,30 @@ class RoleListScreen extends Screen
     {
         return [
             LayoutFactory::sortable('roles', [
-                Sight::make()->render(static fn (Role $role) => view('admin-roles::cells.role-name', compact('role'))),
-                Sight::make('actions', __('admin-roles.table.actions'))
-                    ->render(
-                        static fn (Role $role) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-roles.buttons.edit'))
-                                    ->modal('editRoleModal', ['role' => $role->id])
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
-                                DropDownItem::make(__('admin-roles.buttons.delete'))
-                                    ->confirm(__('admin-roles.modal.delete.confirm'))
-                                    ->method('deleteRole', ['id' => $role->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
-            ])->onSortEnd('saveRolePriority'),
+                Sight::make()->render(static fn(Role $role) => view('admin-roles::cells.role-name', compact('role'))),
+                Sight::make('actions', __('admin-roles.table.actions'))->render(
+                    static fn(Role $role) => DropDown::make()
+                        ->icon('ph.regular.dots-three-outline-vertical')
+                        ->list([
+                            DropDownItem::make(__('admin-roles.buttons.edit'))
+                                ->modal('editRoleModal', ['role' => $role->id])
+                                ->icon('ph.bold.pencil-bold')
+                                ->type(Color::OUTLINE_PRIMARY)
+                                ->size('small')
+                                ->fullWidth(),
+                            DropDownItem::make(__('admin-roles.buttons.delete'))
+                                ->confirm(__('admin-roles.modal.delete.confirm'))
+                                ->method('deleteRole', ['id' => $role->id])
+                                ->icon('ph.bold.trash-bold')
+                                ->type(Color::OUTLINE_DANGER)
+                                ->size('small')
+                                ->fullWidth(),
+                        ]),
+                ),
+            ])
+                ->onSortEnd('saveRolePriority')
+                ->maxLevels(1)
+                ->empty('ph.regular.shield', __('admin-roles.empty.title'), __('admin-roles.empty.sub')),
         ];
     }
 
@@ -81,7 +84,7 @@ class RoleListScreen extends Screen
     {
         $sortableResult = json_decode(request()->input('sortableResult', '[]'), true);
         if (!$sortableResult) {
-            $this->flashMessage(__('admin-roles.messages.invalid_sort'), 'danger');
+            $this->flashMessage(__('admin-roles.messages.invalid_sort'), 'error');
 
             return;
         }
@@ -89,6 +92,8 @@ class RoleListScreen extends Screen
         $this->reorderRoles($sortableResult);
 
         orm()->getHeap()->clean();
+
+        $this->clearRoleRelatedCaches();
 
         $this->loadRoles();
     }
@@ -98,46 +103,42 @@ class RoleListScreen extends Screen
      */
     public function createRoleModal(Repository $parameters)
     {
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.' . $name))
-            );
-        }
-
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
-                Input::make('name')
-                    ->type('text')
-                    ->placeholder(__('admin-roles.fields.name.placeholder'))
+                Input::make('name')->type('text')->placeholder(__('admin-roles.fields.name.placeholder')),
             )
                 ->label(__('admin-roles.fields.name.label'))
                 ->required()
                 ->small(__('admin-roles.fields.name.help')),
 
             LayoutFactory::field(
-                Input::make('icon')
-                    ->type('icon')
-                    ->placeholder(__('admin-roles.fields.icon.placeholder'))
+                Input::make('icon')->type('icon')->placeholder(__('admin-roles.fields.icon.placeholder')),
             )
                 ->label(__('admin-roles.fields.icon.label'))
                 ->small(__('admin-roles.fields.icon.help')),
 
             LayoutFactory::field(
-                Input::make('color')
-                    ->type('color')
+                ButtonGroup::make('show_icon')
+                    ->options([
+                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value('0')
+                    ->color('accent'),
             )
+                ->label(__('admin-roles.fields.show_icon.label'))
+                ->small(__('admin-roles.fields.show_icon.help')),
+
+            LayoutFactory::field(Input::make('color')->type('color'))
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn($permission) => user()->can($permission->name))
+                    ->multiple(),
+            )->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.create.title'))
             ->applyButton(__('admin-roles.modal.create.submit'))
@@ -151,15 +152,9 @@ class RoleListScreen extends Screen
     {
         $data = request()->input();
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissions[] = str_replace('_', '.', $permissionName);
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
 
         // if (empty($data['permissions'])) {
         //     $this->flashMessage(__('admin-roles.messages.no_permissions'), 'error');
@@ -182,6 +177,7 @@ class RoleListScreen extends Screen
         $role->name = $data['name'];
         $role->color = $data['color'] ?? null;
         $role->icon = $data['icon'] ?? null;
+        $role->showIcon = isset($data['show_icon']) && filter_var($data['show_icon'], FILTER_VALIDATE_BOOLEAN);
         $role->priority = 0;
 
         $role->save();
@@ -189,15 +185,17 @@ class RoleListScreen extends Screen
         $role->clearPermissions();
 
         if (!empty($data['permissions'])) {
-            foreach ($data['permissions'] as $permissionId) {
-                $permission = Permission::findOne(['name' => $permissionId]);
-                if ($permission && user()->can($permission->name)) {
+            $permissions = Permission::query()->where('name', 'IN', new Parameter($data['permissions']))->fetchAll();
+            foreach ($permissions as $permission) {
+                if (user()->can($permission->name)) {
                     $role->addPermission($permission);
                 }
             }
         }
 
         $role->save();
+
+        $this->clearRoleRelatedCaches();
 
         $this->flashMessage(__('admin-roles.messages.created'), 'success');
         $this->closeModal();
@@ -212,33 +210,20 @@ class RoleListScreen extends Screen
         $roleId = $parameters->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }
 
-        $permissions = collect(Permission::findAll())
-            ->filter(static fn ($permission) => user()->can($permission->name))
-            ->pluck('name', 'id')
-            ->toArray();
-
-        $permissionsCheckboxes = [];
-        foreach ($permissions as $id => $name) {
-            $permissionsCheckboxes[] = LayoutFactory::field(
-                CheckBox::make("permissions.{$name}")
-                    ->label($name)
-                    ->popover(__('permissions.' . $name))
-                    ->checked($role->hasPermission(Permission::findByPK($id)))
-            );
-        }
+        $selectedPermissions = array_map(static fn($permission) => $permission->name, $role->permissions);
 
         return LayoutFactory::modal($parameters, [
             LayoutFactory::field(
                 Input::make('name')
                     ->type('text')
                     ->placeholder(__('admin-roles.fields.name.placeholder'))
-                    ->value($role->name)
+                    ->value($role->name),
             )
                 ->label(__('admin-roles.fields.name.label'))
                 ->required()
@@ -248,20 +233,34 @@ class RoleListScreen extends Screen
                 Input::make('icon')
                     ->type('icon')
                     ->placeholder(__('admin-roles.fields.icon.placeholder'))
-                    ->value($role->icon)
+                    ->value($role->icon),
             )
                 ->label(__('admin-roles.fields.icon.label'))
                 ->small(__('admin-roles.fields.icon.help')),
 
             LayoutFactory::field(
-                Input::make('color')
-                    ->type('color')
-                    ->value($role->color)
+                ButtonGroup::make('show_icon')
+                    ->options([
+                        '0' => ['label' => __('def.no'), 'icon' => 'ph.bold.x-bold'],
+                        '1' => ['label' => __('def.yes'), 'icon' => 'ph.bold.check-bold'],
+                    ])
+                    ->value($role->showIcon ? '1' : '0')
+                    ->color('accent'),
             )
+                ->label(__('admin-roles.fields.show_icon.label'))
+                ->small(__('admin-roles.fields.show_icon.help')),
+
+            LayoutFactory::field(Input::make('color')->type('color')->value($role->color))
                 ->label(__('admin-roles.fields.color.label'))
                 ->small(__('admin-roles.fields.color.help')),
 
-            ...$permissionsCheckboxes,
+            LayoutFactory::field(
+                Select::make('permissions')
+                    ->fromDatabase('permissions', 'name', 'name')
+                    ->filter(static fn($permission) => user()->can($permission->name))
+                    ->multiple()
+                    ->value($selectedPermissions),
+            )->label(__('admin-roles.fields.permissions.label')),
         ])
             ->title(__('admin-roles.modal.edit.title'))
             ->applyButton(__('admin-roles.modal.edit.submit'))
@@ -277,26 +276,15 @@ class RoleListScreen extends Screen
         $roleId = $this->modalParams->get('role');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }
 
-        $permissions = [];
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'permissions_') === 0 && $value == 'on') {
-                $permissionName = substr($key, strlen('permissions_'));
-                $permissions[] = str_replace('_', '.', $permissionName);
-            }
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
         }
-
-        $data['permissions'] = $permissions;
-
-        // if (empty($data['permissions'])) {
-        //     $this->flashMessage(__('admin-roles.messages.no_permissions'), 'error');
-        //     return;
-        // }
 
         $validation = $this->validate([
             'name' => ['required', 'string', 'max-str-len:255', 'unique:roles,name,' . $role->id],
@@ -313,15 +301,16 @@ class RoleListScreen extends Screen
         $role->name = $data['name'];
         $role->icon = $data['icon'] ?? null;
         $role->color = $data['color'] ?? null;
+        $role->showIcon = isset($data['show_icon']) && filter_var($data['show_icon'], FILTER_VALIDATE_BOOLEAN);
 
         $role->save();
 
         $role->clearPermissions();
 
         if (!empty($data['permissions'])) {
-            foreach ($data['permissions'] as $permissionId) {
-                $permission = Permission::findOne(['name' => $permissionId]);
-                if ($permission && user()->can($permission->name)) {
+            $permissions = Permission::query()->where('name', 'IN', new Parameter($data['permissions']))->fetchAll();
+            foreach ($permissions as $permission) {
+                if (user()->can($permission->name)) {
                     $role->addPermission($permission);
                 }
             }
@@ -329,6 +318,8 @@ class RoleListScreen extends Screen
 
         // Persist clearing permissions even when none are selected
         $role->save();
+
+        $this->clearRoleRelatedCaches();
 
         $this->flashMessage(__('admin-roles.messages.updated'), 'success');
         $this->closeModal();
@@ -343,13 +334,15 @@ class RoleListScreen extends Screen
         $roleId = request()->input('id');
         $role = Role::findByPK($roleId);
 
-        if (!$role || $role->priority > user()->getHighestPriority()) {
-            $this->flashMessage(__('admin-roles.messages.not_found'), 'danger');
+        if (!$role || $role->priority >= user()->getHighestPriority()) {
+            $this->flashMessage(__('admin-roles.messages.not_found'), 'error');
 
             return;
         }
 
         $role->delete();
+
+        $this->clearRoleRelatedCaches();
 
         $this->flashMessage(__('admin-roles.messages.deleted'), 'success');
         $this->loadRoles();
@@ -368,16 +361,37 @@ class RoleListScreen extends Screen
 
     private function reorderRoles(array $roles)
     {
-        foreach (array_reverse($roles) as $index => $roleId) {
-            $role = Role::findByPK((int) $roleId['id']);
+        $roleIds = array_map(fn($r) => (int) $r['id'], array_reverse($roles));
+        $allRoles = Role::query()->where('id', 'IN', new Parameter($roleIds))->fetchAll();
+        $rolesById = [];
+        foreach ($allRoles as $role) {
+            $rolesById[$role->id] = $role;
+        }
 
-            if (!$role || $role->priority > user()->getHighestPriority()) {
+        foreach (array_reverse($roles) as $index => $roleData) {
+            $roleId = (int) $roleData['id'];
+            $role = $rolesById[$roleId] ?? null;
+
+            if (!$role || $role->priority >= user()->getHighestPriority()) {
                 continue;
             }
 
             $role->priority = $index;
 
             $role->save();
+        }
+    }
+
+    /**
+     * Clear caches that depend on role data (navbar visibility is role-based).
+     */
+    private function clearRoleRelatedCaches(): void
+    {
+        try {
+            cache()->deleteByTag(\Flute\Core\Services\NavbarService::CACHE_TAG);
+            cache()->deleteImmediately('flute.global.layout');
+        } catch (Throwable $e) {
+            // Do not break admin flow if cache clearing fails
         }
     }
 }

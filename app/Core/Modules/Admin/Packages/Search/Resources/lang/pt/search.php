@@ -1,14 +1,40 @@
 <?php
 
 return [
+    // General
+    'placeholder' => 'Pesquisar...',
+    'search_input' => 'Campo de pesquisa',
+
+    // Quick actions
+    'quick_actions' => 'Ações rápidas',
+    'tip_users' => 'Pesquisar usuários',
+    'tip_settings' => 'Ir para configurações',
+    'tip_pages' => 'Pesquisar páginas',
+    'tip_servers' => 'Pesquisar servidores',
+
+    // Hints
+    'hint_navigate' => 'Navegar',
+    'hint_select' => 'Selecionar',
+    'hint_commands' => 'Comandos',
+
+    // Commands
     'available_commands' => 'Comandos disponíveis',
-    'search_commands' => 'Pesquisar comandos',
+    'no_commands' => 'Nenhum comando encontrado',
+
+    // Results
+    'no_results' => 'Nada encontrado',
+    'try_different' => 'Tente um termo de pesquisa diferente',
+    'category_other' => 'Outros',
+
+    // Categories
+    'category_navigation' => 'Navegação',
+    'category_users' => 'Usuários',
+    'category_pages' => 'Páginas',
+    'category_servers' => 'Servidores',
+    'category_settings' => 'Configurações',
+
+    // Commands descriptions
     'search_users' => 'Pesquisar usuários',
-    'no_commands_available' => 'Nenhum comando disponível',
-    'lets_search' => 'Pesquisando...',
-    'search_input' => 'Pesquisar',
-    'search_results_for' => 'Resultados da pesquisa para "%query%"',
-    'no_results_found' => 'Nenhum resultado encontrado',
     'settings' => 'Configurações',
     'help' => 'Ajuda',
     'users' => 'Usuários',

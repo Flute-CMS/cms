@@ -9,33 +9,36 @@
     'disabled' => false,
     'class' => '',
     'pattern' => null,
-    'autofocus' => false
+    'autofocus' => false,
+    'hint' => null,
+    'mono' => false,
 ])
 
 @php
     $id = $id ?? $name;
-    $inputClass = 'installer-input__field';
-    
-    if ($errors->has($name)) {
-        $inputClass .= ' has-error';
+    $hasError = $errors->has($name);
+    $inputClass = 'field__input';
+
+    if ($mono) {
+        $inputClass .= ' field__input--mono';
     }
-    
+
     if ($class) {
         $inputClass .= ' ' . $class;
     }
 @endphp
 
-<div class="input-wrapper @if ($errors->has($name)) has-error @endif">
+<div @class(['field', 'has-error' => $hasError])>
     @if ($label)
-        <label for="{{ $id }}" class="input__label">
+        <label for="{{ $id }}" class="field__label">
             {{ $label }}
             @if ($required)
-                <span class="installer-input__required">*</span>
+                <span class="required">*</span>
             @endif
         </label>
     @endif
-    
-    <input 
+
+    <input
         type="{{ $type }}"
         name="{{ $name }}"
         id="{{ $id }}"
@@ -48,8 +51,12 @@
         @if ($pattern) pattern="{{ $pattern }}" @endif
         {{ $attributes }}
     >
-    
+
+    @if ($hint && !$hasError)
+        <span class="field__hint">{{ $hint }}</span>
+    @endif
+
     @error($name)
-        <span class="installer-input__error">{{ $message }}</span>
+        <span class="field__error">{{ $message }}</span>
     @enderror
-</div> 
+</div>

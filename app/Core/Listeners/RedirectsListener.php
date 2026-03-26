@@ -12,9 +12,13 @@ class RedirectsListener
 
     public static function onRoutingFinished(RoutingFinishedEvent $event)
     {
+        if (!is_installed()) {
+            return;
+        }
+
         $request = request();
 
-        if (!is_installed()) {
+        if ($request->isMethod('POST') || $request->isXmlHttpRequest()) {
             return;
         }
 
@@ -36,31 +40,39 @@ class RedirectsListener
 
     protected static function fetchRedirects(string $uri): array
     {
-        $cacheKey = 'flute.redirects.' . md5($uri);
+        $allRedirects = cache()->callback(
+            'flute.redirects.all',
+            static function () {
+                $redirects = Redirect::query()
+                    ->load('conditionGroups')
+                    ->load('conditionGroups.conditions')
+                    ->fetchAll();
 
-        return cache()->callback($cacheKey, static function () use ($uri) {
-            $redirects = Redirect::query()
-                ->where('fromUrl', $uri)
-                ->load('conditionGroups')
-                ->load('conditionGroups.conditions')
-                ->fetchAll();
+                if (empty($redirects)) {
+                    return [];
+                }
 
-            if (empty($redirects)) {
-                return [];
-            }
+                $grouped = [];
+                foreach ($redirects as $r) {
+                    $grouped[$r->fromUrl][] = [
+                        'id' => $r->id,
+                        'toUrl' => $r->toUrl,
+                        'conditionGroups' => array_map(static fn($g) => [
+                            'conditions' => array_map(static fn($c) => [
+                                'type' => $c->type,
+                                'operator' => $c->operator,
+                                'value' => $c->value,
+                            ], $g->conditions),
+                        ], $r->conditionGroups),
+                    ];
+                }
 
-            return array_map(static fn ($r) => [
-                'id' => $r->id,
-                'toUrl' => $r->toUrl,
-                'conditionGroups' => array_map(static fn ($g) => [
-                    'conditions' => array_map(static fn ($c) => [
-                        'type' => $c->type,
-                        'operator' => $c->operator,
-                        'value' => $c->value,
-                    ], $g->conditions),
-                ], $r->conditionGroups),
-            ], $redirects);
-        }, self::CACHE_TIME);
+                return $grouped;
+            },
+            self::CACHE_TIME,
+        );
+
+        return $allRedirects[$uri] ?? [];
     }
 
     private static function checkConditions(array $redirect, FluteRequest $request): bool

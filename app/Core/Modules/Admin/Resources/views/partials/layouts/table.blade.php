@@ -1,19 +1,12 @@
 @empty(!$title)
-    <fieldset>
-        <div class="col mb-2 p-0">
-            <legend class="text-black text-black">
-                <h4>
-                    {{ $title }}
-                </h4>
-
-                @if (!empty($description))
-                    <small class="d-block text-muted mb-0 text-balance">
-                        {!! __($description ?? '') !!}
-                    </small>
-                @endif
-            </legend>
-        </div>
-    </fieldset>
+    <div class="mb-3">
+        <h4 style="margin: 0; font-weight: 600; font-size: 1.125rem">{{ $title }}</h4>
+        @if (!empty($description))
+            <p class="text-muted mb-0" style="font-size: 0.8125rem; margin-top: 0.25rem">
+                {!! __($description ?? '') !!}
+            </p>
+        @endif
+    </div>
 @endempty
 
 <div class="d-flex flex-between align-center flex-md-row flex-column mb-3 flex-row gap-3">
@@ -21,15 +14,35 @@
         @include('admin::partials.layouts.table-search')
     @endif
 
-    @empty(!$commandBar)
-        <div class="d-flex justify-content-end ms-auto gap-2">
-            @foreach ($commandBar as $command)
+    <div class="d-flex justify-content-end ms-auto gap-2">
+        @if ($exportable ?? false)
+            <button type="button" class="btn btn-outline-primary" data-dropdown-open="export-{{ $tableId }}">
+                <x-icon path="ph.regular.export" />
+                <span>{{ __('admin.export.title') }}</span>
+                <x-icon path="ph.regular.caret-down" class="ms-1" />
+            </button>
+            <div data-dropdown="export-{{ $tableId }}">
                 <div>
-                    {!! $command !!}
+                    <a href="{{ url()->withGet()->addParams(['export' => 'csv', 'table' => $tableId])->get() }}"
+                       class="dropdown-item">
+                        <x-icon path="ph.regular.file-csv" />
+                        {{ __('admin.export.csv') }}
+                    </a>
+                    <a href="{{ url()->withGet()->addParams(['export' => 'excel', 'table' => $tableId])->get() }}"
+                       class="dropdown-item">
+                        <x-icon path="ph.regular.file-xls" />
+                        {{ __('admin.export.excel') }}
+                    </a>
                 </div>
-            @endforeach
-        </div>
-    @endempty
+            </div>
+        @endif
+
+        @foreach ($commandBar ?? [] as $command)
+            <div>
+                {!! $command !!}
+            </div>
+        @endforeach
+    </div>
 </div>
 
 @empty(!$bulkBar)
@@ -84,18 +97,25 @@
                 @empty
                     <tr>
                         <td colspan="{{ count($columns) }}">
-                            <div class="py-4 text-center">
+                            <div class="table-empty-state">
                                 @isset($iconNotFound)
-                                    <h1 class="flex-center text-muted mb-1">
+                                    <div class="table-empty-state__icon">
                                         <x-icon :path="$iconNotFound" />
-                                    </h1>
+                                    </div>
                                 @endisset
-                                <h3>
+                                <h3 class="table-empty-state__title">
                                     {!! $textNotFound !!}
                                 </h3>
-                                <p class="text-muted flex-center text-balance">
-                                    {!! $subNotFound !!}
-                                </p>
+                                @if (!empty($subNotFound))
+                                    <p class="table-empty-state__sub">
+                                        {!! $subNotFound !!}
+                                    </p>
+                                @endif
+                                @if ($buttonNotFound)
+                                    <div class="mt-2">
+                                        {!! $buttonNotFound !!}
+                                    </div>
+                                @endif
                             </div>
                         </td>
                     </tr>

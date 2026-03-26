@@ -31,6 +31,11 @@ return [
             'placeholder' => 'Enter currency rate',
             'help' => 'Rate relative to the base currency',
         ],
+        'preset_amounts' => [
+            'label' => 'Quick amounts',
+            'placeholder' => '100, 500, 1000, 5000',
+            'help' => 'Preset amounts for quick selection on the top-up page (comma-separated)',
+        ],
         'enabled' => [
             'label' => 'Enabled',
             'help' => 'An enabled currency is available for use in the system',
@@ -63,6 +68,12 @@ return [
         'default_currency_delete' => 'Cannot delete the default currency.',
         'no_permission.manage' => 'You do not have permission to manage currencies.',
         'no_permission.delete' => 'You do not have permission to delete currencies.',
+        'invalid_payment_gateways' => 'One or more selected payment gateways are invalid.',
+    ],
+
+    'empty' => [
+        'title' => 'No currencies yet',
+        'sub' => 'Create your first currency to start accepting payments',
     ],
 
     'confirms' => [

@@ -23,29 +23,41 @@ class PasswordResetComponent extends Component
     public function reset()
     {
         if ($this->validator() && $this->validateCaptcha()) {
+            $startTime = microtime(true);
+
             try {
                 auth()->resetPassword($this->loginOrEmail);
-
-                $this->success = true;
-
-                return;
+            } catch (UserNotFoundException $e) {
+                // intentional no-op — same response as success
             } catch (ValidationException $e) {
                 $errors = $e->getMessageObjects();
+                $firstError = $errors[0] ?? null;
 
-                foreach ($errors as $error) {
-                    toast()->error(__($error->code, $error->variables))->push();
+                if ($firstError) {
+                    toast()->error(__($firstError->code, $firstError->variables))->push();
                 }
-            } catch (UserNotFoundException $e) {
-                $this->success = true;
 
-                sleep(rand(3, 7));
+                return;
             } catch (TooManyRequestsException $e) {
                 toast()->error(__('auth.too_many_requests'))->push();
+
+                return;
             } catch (Exception $e) {
                 logs()->error($e);
 
                 toast()->error(is_debug() ? $e->getMessage() : __('def.unknown_error'))->push();
+
+                return;
             }
+
+            // Constant-time response to prevent user enumeration
+            $elapsed = microtime(true) - $startTime;
+            $minTime = 3.0;
+            if ($elapsed < $minTime) {
+                usleep((int) ( ( $minTime - $elapsed ) * 1_000_000 ));
+            }
+
+            $this->success = true;
         }
     }
 
@@ -75,9 +87,10 @@ class PasswordResetComponent extends Component
             return true;
         }
 
-        $captchaResponse = request()->input('g-recaptcha-response')
-            ?? request()->input('h-captcha-response')
-            ?? request()->input('cf-turnstile-response');
+        $captchaResponse =
+            request()->input('g-recaptcha-response') ?? request()->input('h-captcha-response') ?? request()->input(
+                'cf-turnstile-response',
+            ) ?? request()->input('smart-token');
 
         if (empty($captchaResponse)) {
             toast()->error(__('auth.captcha_required'))->push();

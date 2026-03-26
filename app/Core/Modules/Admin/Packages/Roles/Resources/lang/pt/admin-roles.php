@@ -2,7 +2,8 @@
 
 return [
     'title' => [
-        'roles' => 'Cargos',    ],
+        'roles' => 'Cargos',
+    ],
     'breadcrumbs' => [
         'roles' => 'Cargos',
     ],

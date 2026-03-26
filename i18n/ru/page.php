@@ -5,19 +5,24 @@ return [
     'categories' => [
         'general' => 'Общие',
         'users' => 'Пользователи',
+        'user' => 'Пользователь',
         'content' => 'Контент',
         'media' => 'Медиа файлы',
         'other' => 'Другое',
         'payments' => 'Платежи',
         'admin' => 'Администрирование',
         'stats' => 'Статистика',
+        'system' => 'Системные',
+        'social' => 'Социальные',
     ],
+    'drag_widget_tip' => 'Перетащите виджет на страницу для добавления',
     'edit_nav' => [
         'title' => 'Редактирование страницы — :url',
         'height_mode' => 'Режим высоты виджетов',
         'auto_height' => 'Автоматическая высота',
         'manual_height' => 'Ручная высота',
-        "auto_position" => "Автоматическая расстановка"
+        "auto_position" => "Автоматическая расстановка",
+        "gap" => "Расстояние между виджетами"
     ],
     'onboarding' => [
         'colors' => [
@@ -41,6 +46,11 @@ return [
     ],
     'saved_successfully' => 'Страница успешно сохранена!',
     'error_saving' => 'Ошибка сохранения страницы!',
+    'layout_local' => 'Локальные',
+    'layout_global' => 'Глобальные',
+    'layout_local_hint' => 'Виджеты только для текущей страницы',
+    'layout_global_hint' => 'Виджеты для всех страниц сайта',
+    'global_layout_requires_content' => 'Глобальный layout должен содержать виджет Content',
     'seo' => [
         'title' => 'SEO настройки страницы',
         'edit_seo' => 'Редактировать SEO',

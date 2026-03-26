@@ -11,6 +11,7 @@
     "admin.templates"      => "Permission to manage templates. The user can create, edit, and delete templates used to display content on the site.",
     "admin.roles"          => "Permission to manage user roles. The user can create, edit, and delete roles, and assign them to other users.",
     "admin.users"          => "Permission to manage users. The user can create, edit, and delete user accounts, as well as manage their access.",
+    "admin.users.view"     => "Permission to view user profiles, including hidden ones. Does not grant editing or management rights.",
     "admin.pages"          => "Permission to manage pages. The user can create, edit, and delete static pages on the site.",
     "admin.socials"        => "Permission to manage social networks. The user can add, edit, and delete social network links.",
     "admin.notifications"  => "Permission to create user notifications. The user can send various notifications and alerts to platform users.",

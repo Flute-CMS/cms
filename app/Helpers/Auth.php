@@ -9,7 +9,7 @@ if (!function_exists('auth')) {
      * @throws DependencyException
      * @throws NotFoundException
      */
-    function auth() : AuthService
+    function auth(): AuthService
     {
         static $instance = null;
 

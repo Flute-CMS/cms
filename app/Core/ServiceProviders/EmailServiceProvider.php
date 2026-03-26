@@ -13,7 +13,7 @@ class EmailServiceProvider extends AbstractServiceProvider
     {
         $containerBuilder->addDefinitions([
             EmailService::class => \DI\create(),
-            "email" => \DI\get(EmailService::class),
+            'email' => \DI\get(EmailService::class),
         ]);
     }
 

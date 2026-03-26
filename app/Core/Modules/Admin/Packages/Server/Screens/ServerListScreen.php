@@ -8,6 +8,7 @@ use Flute\Admin\Platform\Actions\DropDown;
 use Flute\Admin\Platform\Actions\DropDownItem;
 use Flute\Admin\Platform\Components\Cells\DateTime;
 use Flute\Admin\Platform\Fields\TD;
+use Flute\Admin\Platform\Layouts\Filters;
 use Flute\Admin\Platform\Layouts\LayoutFactory;
 use Flute\Admin\Platform\Screen;
 use Flute\Admin\Platform\Support\Color;
@@ -28,93 +29,123 @@ class ServerListScreen extends Screen
         $this->name = __('admin-server.title.list');
         $this->description = __('admin-server.title.description');
 
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-server.title.list'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-server.title.list'));
 
-        $this->servers = rep(Server::class)->select();
+        $query = rep(Server::class)->select();
+
+        // Фильтр по статусу
+        $status = request()->input('status', 'all');
+        if ($status === 'active') {
+            $query->where('enabled', true);
+        } elseif ($status === 'inactive') {
+            $query->where('enabled', false);
+        }
+
+        // Фильтр по моду/игре
+        $mod = request()->input('mod');
+        if ($mod) {
+            $query->where('mod', $mod);
+        }
+
+        $this->servers = $query;
     }
 
     public function layout(): array
     {
-        return [
-            LayoutFactory::table('servers', [
-                TD::selection('id'),
-                TD::make('mod')
-                    ->title(__('admin-server.fields.mod.label'))
-                    ->render(static fn (Server $server) => app(AdminServersService::class)->getGameName($server->mod))
-                    ->width('200px')
-                    ->sort()
-                    ->cantHide(),
+        $layouts = [];
 
-                TD::make('name')
-                    ->title(__('admin-server.fields.name.label'))
-                    ->render(static fn (Server $server) => view('admin-server::cells.server', compact('server')))
-                    ->minWidth('200px')
-                    ->cantHide(),
+        if ($this->shouldShowCronWarning()) {
+            $layouts[] = LayoutFactory::view('admin-server::components.cron-warning');
+        }
 
-                TD::make('enabled')
-                    ->title(__('admin-server.fields.enabled.label'))
-                    ->render(static fn (Server $server) => view('admin-server::cells.enabled', compact('server')))
-                    ->popover(__('admin-server.fields.enabled.help')),
+        $layouts[] = $this->getServerFilters();
+        $layouts[] = LayoutFactory::table('servers', [
+            TD::selection('id'),
+            TD::make('mod')
+                ->title(__('admin-server.fields.mod.label'))
+                ->render(static fn(Server $server) => app(AdminServersService::class)->getGameName($server->mod))
+                ->width('200px')
+                ->sort()
+                ->cantHide(),
 
-                TD::make('createdAt')
-                    ->title(__('admin-server.fields.created_at'))
-                    ->asComponent(DateTime::class)
-                    ->width('200px')
-                    ->sort()
-                    ->cantHide(),
+            TD::make('name')
+                ->title(__('admin-server.fields.name.label'))
+                ->render(static fn(Server $server) => view('admin-server::cells.server', compact('server')))
+                ->minWidth('200px')
+                ->cantHide(),
 
-                TD::make('actions')
-                    ->class('actions-col')
-                    ->title(__('admin-server.buttons.actions'))
-                    ->width('200px')
-                    ->alignCenter()
-                    ->render(
-                        static fn (Server $server) => DropDown::make()
-                            ->icon('ph.regular.dots-three-outline-vertical')
-                            ->list([
-                                DropDownItem::make(__('admin-server.buttons.edit'))
-                                    ->redirect(url('/admin/servers/' . $server->id . '/edit'))
-                                    ->icon('ph.bold.pencil-bold')
-                                    ->type(Color::OUTLINE_PRIMARY)
-                                    ->size('small')
-                                    ->fullWidth(),
+            TD::make('enabled')
+                ->title(__('admin-server.fields.enabled.label'))
+                ->render(static fn(Server $server) => view('admin-server::cells.enabled', compact('server')))
+                ->popover(__('admin-server.fields.enabled.help')),
 
-                                DropDownItem::make(__('admin-server.buttons.delete'))
-                                    ->confirm(__('admin-server.confirms.delete_server'))
-                                    ->method('delete', ['delete-id' => $server->id])
-                                    ->icon('ph.bold.trash-bold')
-                                    ->type(Color::OUTLINE_DANGER)
-                                    ->size('small')
-                                    ->fullWidth(),
-                            ])
-                    ),
+            TD::make('dbconnections')
+                ->title(__('admin-server.tabs.db_connections'))
+                ->render(static fn(Server $server) => view('admin-server::cells.connections', compact('server')))
+                ->width('200px'),
+
+            TD::make('createdAt')
+                ->title(__('admin-server.fields.created_at'))
+                ->asComponent(DateTime::class)
+                ->width('200px')
+                ->sort()
+                ->cantHide(),
+
+            TD::make('actions')
+                ->class('actions-col')
+                ->title(__('admin-server.buttons.actions'))
+                ->width('200px')
+                ->alignCenter()
+                ->render(static fn(Server $server) => DropDown::make()
+                    ->icon('ph.regular.dots-three-outline-vertical')
+                    ->list([
+                        DropDownItem::make(__('admin-server.buttons.edit'))
+                            ->redirect(url('/admin/servers/' . $server->id . '/edit'))
+                            ->icon('ph.bold.pencil-bold')
+                            ->type(Color::OUTLINE_PRIMARY)
+                            ->size('small')
+                            ->fullWidth(),
+
+                        DropDownItem::make(__('admin-server.buttons.delete'))
+                            ->confirm(__('admin-server.confirms.delete_server'))
+                            ->method('delete', ['delete-id' => $server->id])
+                            ->icon('ph.bold.trash-bold')
+                            ->type(Color::OUTLINE_DANGER)
+                            ->size('small')
+                            ->fullWidth(),
+                    ])),
+        ])
+            ->empty('ph.regular.game-controller', __('admin-server.empty.title'), __('admin-server.empty.sub'))
+            ->emptyButton(
+                Button::make(__('admin-server.buttons.add'))
+                    ->icon('ph.bold.plus-bold')
+                    ->redirect(url('/admin/servers/add')),
+            )
+            ->searchable(['name', 'ip', 'port'])
+            ->commands([
+                Button::make(__('admin-server.buttons.add'))
+                    ->icon('ph.bold.plus-bold')
+                    ->redirect(url('/admin/servers/add')),
             ])
-                ->searchable(['name', 'ip', 'port'])
-                ->commands([
-                    Button::make(__('admin-server.buttons.add'))
-                        ->icon('ph.bold.plus-bold')
-                        ->redirect(url('/admin/servers/add')),
-                ])
-                ->bulkActions([
-                    Button::make(__('admin.bulk.enable_selected'))
-                        ->icon('ph.bold.play-bold')
-                        ->type(Color::OUTLINE_SUCCESS)
-                        ->method('bulkEnable'),
+            ->bulkActions([
+                Button::make(__('admin.bulk.enable_selected'))
+                    ->icon('ph.bold.play-bold')
+                    ->type(Color::OUTLINE_SUCCESS)
+                    ->method('bulkEnable'),
 
-                    Button::make(__('admin.bulk.disable_selected'))
-                        ->icon('ph.bold.power-bold')
-                        ->type(Color::OUTLINE_WARNING)
-                        ->method('bulkDisable'),
+                Button::make(__('admin.bulk.disable_selected'))
+                    ->icon('ph.bold.power-bold')
+                    ->type(Color::OUTLINE_WARNING)
+                    ->method('bulkDisable'),
 
-                    Button::make(__('admin.bulk.delete_selected'))
-                        ->icon('ph.bold.trash-bold')
-                        ->type(Color::OUTLINE_DANGER)
-                        ->confirm(__('admin.confirms.delete_selected'))
-                        ->method('bulkDelete'),
-                ]),
-        ];
+                Button::make(__('admin.bulk.delete_selected'))
+                    ->icon('ph.bold.trash-bold')
+                    ->type(Color::OUTLINE_DANGER)
+                    ->confirm(__('admin.confirms.delete_selected'))
+                    ->method('bulkDelete'),
+            ]);
+
+        return $layouts;
     }
 
     public function delete(): void
@@ -173,5 +204,44 @@ class ServerListScreen extends Screen
             }
         }
         $this->flashMessage(__('admin-server.messages.servers_deleted'));
+    }
+
+    /**
+     * Получить компонент фильтров.
+     */
+    private function getServerFilters(): Filters
+    {
+        // Получаем уникальные моды
+        $servers = Server::findAll();
+        $modOptions = ['' => __('admin.filters.status.all')];
+        $serversService = app(AdminServersService::class);
+        foreach ($servers as $server) {
+            if (!isset($modOptions[$server->mod])) {
+                $modOptions[$server->mod] = $serversService->getGameName($server->mod);
+            }
+        }
+
+        return Filters::make()
+            ->status('status', __('admin.filters.status_label'), 'all')
+            ->select('mod', __('admin-server.fields.mod.label'), $modOptions)
+            ->compact();
+    }
+
+    private function shouldShowCronWarning(): bool
+    {
+        if (!config('app.cron_mode')) {
+            return false;
+        }
+
+        $logDir = BASE_PATH . '/storage/logs';
+        $logFiles = glob($logDir . '/cron-*.log');
+
+        if (empty($logFiles)) {
+            return true;
+        }
+
+        $lastModified = max(array_map('filemtime', $logFiles));
+
+        return ( time() - $lastModified ) > 3600;
     }
 }

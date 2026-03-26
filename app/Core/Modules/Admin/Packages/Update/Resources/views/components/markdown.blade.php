@@ -2,7 +2,6 @@
     @isset($html)
         {!! $html !!}
     @elseif (isset($markdown))
-        {!! markdown()->parse($markdown, false, false) !!}
+        {!! markdown()->parse($markdown) !!}
     @endif
 </div>
-

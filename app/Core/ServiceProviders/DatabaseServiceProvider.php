@@ -14,7 +14,7 @@ class DatabaseServiceProvider extends AbstractServiceProvider
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            DatabaseManager::class => \DI\factory(static fn () => DatabaseManager::getInstance()),
+            DatabaseManager::class => \DI\factory(static fn() => DatabaseManager::getInstance()),
 
             DatabaseConnection::class => \DI\factory(static function (\DI\Container $c) {
                 $manager = $c->get(DatabaseManager::class);
@@ -22,10 +22,10 @@ class DatabaseServiceProvider extends AbstractServiceProvider
                 return new DatabaseConnection($manager);
             }),
 
-            ORM::class => \DI\factory(static fn (\DI\Container $c) => $c->get(DatabaseConnection::class)->getOrm()),
+            ORM::class => \DI\factory(static fn(\DI\Container $c) => $c->get(DatabaseConnection::class)->getOrm()),
             ORMInterface::class => \DI\get(ORM::class),
 
-            "db.connection" => \DI\get(DatabaseConnection::class),
+            'db.connection' => \DI\get(DatabaseConnection::class),
         ]);
     }
 

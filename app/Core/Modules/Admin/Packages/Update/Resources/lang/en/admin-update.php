@@ -60,4 +60,5 @@ return [
     'update_channel' => 'Update channel',
     'channel_stable' => 'Stable',
     'channel_early' => 'Early',
+    'version' => 'Version',
 ];

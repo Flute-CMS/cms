@@ -66,10 +66,17 @@
             },
             bootstrapRequest(evt) {
                 const elt = evt.detail.elt;
+
+                if (
+                    elt.hasAttribute('yoyo:ignore') ||
+                    elt.closest('[yoyo\\:ignore]')
+                ) {
+                    return;
+                }
+
                 let component = getComponent(elt);
 
                 if (!component) {
-                    // Try to resolve component using HX-Target or common admin screen id
                     const headers = evt.detail.requestConfig ? evt.detail.requestConfig.headers || {} : {};
                     const hxTarget = headers['HX-Target'] || elt.getAttribute('hx-target');
                     let targetEl = null;
@@ -85,14 +92,13 @@
                     component = (targetEl && getComponent(targetEl)) || getComponentById('screen-container') || getAnyComponent();
                 }
 
-                const componentName = component ? getComponentName(component) : null;
-
-                if (
-                    elt.hasAttribute('yoyo:ignore') ||
-                    elt.closest('[yoyo\\:ignore]')
-                ) {
+                if (!component) {
+                    console.warn('[Yoyo] No component found for element, skipping request:', elt);
+                    evt.preventDefault();
                     return;
                 }
+
+                const componentName = getComponentName(component);
 
                 const currentUrl = new URL(window.location.href);
                 const currentParams = currentUrl.searchParams;
@@ -124,6 +130,11 @@
                     const url = xhr.getResponseHeader('Yoyo-Redirect');
                     if (url) {
                         const parsedUrl = new URL(url, window.location.origin);
+                        // Block cross-origin redirects to prevent open redirect attacks
+                        if (parsedUrl.origin !== window.location.origin) {
+                            console.warn('[Yoyo] Blocked cross-origin redirect to:', parsedUrl.origin);
+                            return;
+                        }
                         parsedUrl.searchParams.delete('yoyo-id');
                         window.location = parsedUrl.toString();
                     }
@@ -194,13 +205,15 @@
                     return;
                 }
 
+                spinningStop(component);
+
                 componentCopyYoyoDataFromTo(evt.detail.target, component);
 
                 setTimeout(() => {
                     removeEventListenerData(component);
                 }, 125);
 
-                // Если сервер вернул HX-Trigger с close-modal, обработаем его
+                // Process HX-Trigger close-modal
                 const triggerHeader = evt.detail.xhr.getResponseHeader('HX-Trigger');
                 if (triggerHeader) {
                     try {
@@ -209,6 +222,12 @@
                             const id = triggers['close-modal'];
                             if (typeof window.closeModal === 'function') {
                                 window.closeModal(id);
+                            } else {
+                                // Fallback: try to close via A11yDialog
+                                const modalEl = document.getElementById(id);
+                                if (modalEl && modalEl._a11yDialog) {
+                                    modalEl._a11yDialog.hide();
+                                }
                             }
                         }
                     } catch (e) {
@@ -415,10 +434,14 @@
             event,
             params,
         ) {
-            let componentListeningFor = component
-                .getAttribute('hx-trigger')
+            let hxTrigger = component.getAttribute('hx-trigger');
+            if (!hxTrigger) return;
+
+            // Extract event names, stripping HTMX modifiers and filters
+            // e.g. "refresh, myEvent[detail.x > 0] delay:500ms" → ["refresh", "myEvent"]
+            let componentListeningFor = hxTrigger
                 .split(',')
-                .map((name) => name.trim())
+                .map((name) => name.trim().split(/[\s\[]/)[0])
                 .filter(Boolean);
 
             if (!componentListeningFor.includes(event)) {
@@ -488,8 +511,6 @@
                     [],
             );
 
-            delete yoyoSpinners[component.id];
-
             spinningElts.forEach((directive) => {
                 const spinnerElt = directive.elt;
                 if (directive.modifiers.includes('class')) {
@@ -529,9 +550,20 @@
             }
         }
 
+        function cleanupDetachedSpinners() {
+            for (const id in yoyoSpinners) {
+                if (!document.getElementById(id)) {
+                    delete yoyoSpinners[id];
+                }
+            }
+        }
+
         function initializeComponentSpinners(component) {
             const componentId = component.id;
             component.__yoyo_on_finish_loading = [];
+
+            // Periodically clean up spinners for components no longer in DOM
+            cleanupDetachedSpinners();
 
             walk(component, (elt) => {
                 const directive = extractModifiersAndValue(elt, 'spinning');
@@ -687,10 +719,9 @@
             if (state.initialState) {
                 componentAddYoyoData(cached, { replayingHistory: true });
                 YoyoEngine.trigger(cached, 'refresh');
-            } else {
-                Yoyo.processBrowserEvents(state?.effects?.browserEvents);
-                Yoyo.processEmitEvents(component, state?.effects?.emitEvents);
             }
+            // Intentionally skip replaying browserEvents and emitEvents on popstate
+            // to avoid side effects like re-opening modals or re-firing analytics
         }
 
         function componentCopyYoyoDataFromTo(from, to) {
@@ -761,6 +792,13 @@ YoyoEngine.defineExtension('yoyo', {
             Yoyo.beforeRequestActions(evt.detail.elt);
         }
 
+        if (name === 'htmx:responseError' || name === 'htmx:sendError') {
+            let component = getComponent(evt.detail.elt) || getComponentById('screen-container') || getAnyComponent();
+            if (component) {
+                spinningStop(component);
+            }
+        }
+
         if (name === 'htmx:afterOnLoad') {
             Yoyo.afterOnLoadActions(evt);
 
@@ -827,7 +865,8 @@ YoyoEngine.defineExtension('yoyo', {
     },
     isInlineSwap: function (swapStyle) {
         let config = createMorphConfig(swapStyle);
-        return config?.morphStyle === 'outerHTML' || config?.morphStyle == null;
+        if (!config) return false;
+        return config.morphStyle === 'outerHTML' || config.morphStyle == null;
     },
     handleSwap: function (swapStyle, target, fragment) {
         let config = createMorphConfig(swapStyle);
@@ -843,6 +882,11 @@ function createMorphConfig(swapStyle) {
     } else if (swapStyle === 'morph:innerHTML') {
         return { morphStyle: 'innerHTML' };
     } else if (swapStyle.startsWith('morph:')) {
-        return Function('return (' + swapStyle.slice(6) + ')')();
+        try {
+            return JSON.parse(swapStyle.slice(6));
+        } catch (e) {
+            console.error('Invalid morph config:', swapStyle);
+            return { morphStyle: 'outerHTML' };
+        }
     }
 }

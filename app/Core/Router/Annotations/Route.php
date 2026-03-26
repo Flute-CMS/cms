@@ -7,7 +7,7 @@ use Closure;
 
 #[Attribute(
     Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE,
-    flags: Attribute::TARGET_CLASS | Attribute::TARGET_METHOD
+    flags: Attribute::TARGET_CLASS | Attribute::TARGET_METHOD,
 )]
 class Route
 {
@@ -69,12 +69,12 @@ class Route
         array|string|null $middleware = null,
         array $where = [],
         array $defaults = [],
-        bool $inherited = false
+        bool $inherited = false,
     ) {
         $this->uri = $uri;
         $this->methods = is_string($methods) ? [$methods] : $methods;
         $this->name = $name;
-        $this->middleware = is_string($middleware) ? [$middleware] : ($middleware ?? []);
+        $this->middleware = is_string($middleware) ? [$middleware] : $middleware ?? [];
         $this->where = $where;
         $this->defaults = $defaults;
         $this->inherited = $inherited;
@@ -220,7 +220,7 @@ class Route
         $uri = '/' . trim($uri, '/');
 
         // Combine names
-        $name = $parent->getName() . ($child->getName() ?? '');
+        $name = $parent->getName() . ( $child->getName() ?? '' );
 
         // Merge middleware
         $middleware = array_merge($parent->getMiddleware(), $child->getMiddleware());
@@ -232,7 +232,7 @@ class Route
             $middleware,
             array_merge($parent->getWhere(), $child->getWhere()),
             array_merge($parent->getDefaults(), $child->getDefaults()),
-            true
+            true,
         );
 
         if ($child->afterModifyCallback !== null) {

@@ -78,7 +78,7 @@ return [
         'steam_error' => 'STEAM API kaliti oʻrnatilmagan. Iltimos, uni <a href="/admin/main-settings" hx-boost="true" hx-target="#main" hx-swap="outerHTML transition:true">sozlamalarda</a> konfigurasiya qiling.',
         'telegram' => 'Telegram sozlash uchun <a href="https://docs.flute-cms.com/social-auth/telegram" target="_blank">hujjatlarni</a> koʻring.',
         'telegram_token' => 'Bot Token',
-        'telegram_token_placeholder' => '1234546',
+        'telegram_token_placeholder' => '123456789:ABCdEfGhIjK-LmNoPqRsTuVwXyZ',
         'telegram_bot_name' => 'Bot Nomi',
         'telegram_bot_name_placeholder' => 'masalan: MyAwesomeBot',
     ],

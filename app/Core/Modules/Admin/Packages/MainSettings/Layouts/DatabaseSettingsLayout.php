@@ -22,27 +22,31 @@ class DatabaseSettingsLayout extends Table
 
         return [
             TD::make('databaseName', __('admin-main-settings.databaseName'))
-                ->width('200px')->render(static fn (Repository $item) => $item->get('databaseName') . '<small class="d-flex text-muted">' . $item->get('driver') . '</small>')
+                ->width('200px')
+                ->render(
+                    static fn(Repository $item) => (
+                        $item->get('databaseName')
+                        . '<small class="d-flex text-muted">'
+                        . $item->get('driver')
+                        . '</small>'
+                    ),
+                )
                 ->cantHide(),
 
-            TD::make('host', __('admin-main-settings.host'))
-                ->width('150px'),
+            TD::make('host', __('admin-main-settings.host'))->width('150px'),
 
-            TD::make('user', __('admin-main-settings.user'))
-                ->width('150px'),
+            TD::make('user', __('admin-main-settings.user'))->width('150px'),
 
-            TD::make('database', __('admin-main-settings.database'))
-                ->width('150px'),
+            TD::make('database', __('admin-main-settings.database'))->width('150px'),
 
-            TD::make('prefix', __('admin-main-settings.prefix'))
-                ->width('100px'),
+            TD::make('prefix', __('admin-main-settings.prefix'))->width('100px'),
 
             TD::make(__('admin-main-settings.actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->disableSearch()
                 ->width('100px')
                 ->cantHide()
-                ->render(static fn (Repository $item) => DropDown::make()
+                ->render(static fn(Repository $item) => DropDown::make()
                     ->icon('ph.regular.dots-three-outline-vertical')
                     ->list([
                         DropDownItem::make(__('admin-main-settings.edit'))

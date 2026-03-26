@@ -24,7 +24,7 @@ class EventsServiceProvider extends AbstractServiceProvider
             EventDispatcher::class => \DI\get(FluteEventDispatcher::class),
             EventDispatcherInterface::class => \DI\get(FluteEventDispatcher::class),
             \Symfony\Contracts\EventDispatcher\EventDispatcherInterface::class => \DI\get(FluteEventDispatcher::class),
-            "events" => \DI\get(FluteEventDispatcher::class),
+            'events' => \DI\get(FluteEventDispatcher::class),
         ]);
     }
 
@@ -34,9 +34,15 @@ class EventsServiceProvider extends AbstractServiceProvider
     public function boot(\DI\Container $container): void
     {
         if (!is_cli()) {
-            $container->get('events')->addListener(RoutingFinishedEvent::NAME, [RedirectsListener::class, 'onRoutingFinished']);
+            $container->get('events')->addListener(RoutingFinishedEvent::NAME, [
+                RedirectsListener::class,
+                'onRoutingFinished',
+            ]);
             $container->get('events')->addListener(ResponseEvent::NAME, [HeadersListener::class, 'onRouteResponse']);
-            $container->get('events')->addListener(ResponseEvent::NAME, [\Flute\Core\Listeners\RequestTimingListener::class, 'onRouteResponse']);
+            $container->get('events')->addListener(ResponseEvent::NAME, [
+                \Flute\Core\Listeners\RequestTimingListener::class,
+                'onRouteResponse',
+            ]);
         }
     }
 }

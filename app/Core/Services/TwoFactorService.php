@@ -133,7 +133,7 @@ class TwoFactorService
      */
     public function hashRecoveryCodes(array $codes): array
     {
-        return array_map(static fn ($code) => hash('sha256', $code), $codes);
+        return array_map(static fn($code) => hash('sha256', $code), $codes);
     }
 
     /**

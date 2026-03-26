@@ -4,7 +4,6 @@
         id="table-search-{{ $tableId ?? 'default' }}"
         value="{{ $searchValue ?? '' }}"
         placeholder="{{ __('def.lets_search') }}"
-        data-ignore-dirty="true"
         autocomplete="off"
         hx-get="render"
         hx-trigger="input delay:500ms"

@@ -34,6 +34,9 @@ class Currency extends ActiveRecord
     #[Column(type: "float")]
     public float $exchange_rate;
 
+    #[Column(type: "string", nullable: true)]
+    public ?string $preset_amounts = null;
+
     #[ManyToMany(target: "PaymentGateway", through: "CurrencyPaymentGateway")]
     public array $paymentGateways = [];
 
@@ -68,6 +71,24 @@ class Currency extends ActiveRecord
             }
         }
         return false;
+    }
+
+    public function getPresetAmounts(): array
+    {
+        if (empty($this->preset_amounts)) {
+            return [];
+        }
+
+        $decoded = json_decode($this->preset_amounts, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function setPresetAmounts(array $amounts): void
+    {
+        $amounts = array_values(array_filter(array_map('floatval', $amounts), static fn ($v) => $v > 0));
+        sort($amounts);
+        $this->preset_amounts = !empty($amounts) ? json_encode($amounts) : null;
     }
 
     public function removePayment(PaymentGateway $paymentGateway) : void

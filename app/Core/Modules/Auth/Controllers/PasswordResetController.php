@@ -10,8 +10,7 @@ class PasswordResetController extends BaseController
 {
     public function getReset(FluteRequest $request)
     {
-        breadcrumb()->add(config('app.name'), url('/'))
-            ->add(__('auth.header.reset'));
+        breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.reset'));
 
         return view('flute::pages.reset');
     }
@@ -19,8 +18,7 @@ class PasswordResetController extends BaseController
     public function getResetWithToken(FluteRequest $request, string $token)
     {
         try {
-            breadcrumb()->add(config('app.name'), url('/'))
-                ->add(__('auth.header.reset'));
+            breadcrumb()->add(config('app.name'), url('/'))->add(__('auth.header.reset'));
 
             return view('flute::pages.reset-token', [
                 'token' => $token,

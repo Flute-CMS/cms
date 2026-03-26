@@ -1,167 +1,141 @@
+// Recent Payments Widget — Minimal Design
+// ========================================
+
 .recent-payments {
-    &-header {
-        @extend .d-flex, .gap-2;
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
 
         h5 {
-            @extend .d-flex, .align-center, .gap-2;
+            font-size: var(--h6);
             font-weight: 600;
-            letter-spacing: -0.02em;
+            color: var(--text);
         }
-        
+    }
+
+    &__count {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-500);
+        background: var(--transp-05);
+        padding: 0.15rem 0.5rem;
+        border-radius: var(--border05);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-2xs);
+        margin: 0 calc(var(--space-2xs) * -1);
+        border-radius: var(--border05);
+        text-decoration: none;
+        color: inherit;
+        transition: background var(--transition);
+
+        &:hover {
+            background: var(--transp-03);
+
+            .recent-payments__name {
+                color: var(--text);
+            }
+        }
+    }
+
+    &__user {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        min-width: 0;
+        flex: 1;
+    }
+
+    &__avatar {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 0;
+    }
+
+    &__name {
+        font-size: var(--small);
+        font-weight: 500;
+        color: var(--text-300);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+        transition: color var(--transition);
+    }
+
+    &__time {
+        font-size: 0.65rem;
+        color: var(--text-500);
+        line-height: 1.3;
+    }
+
+    &__payment {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+        flex-shrink: 0;
+    }
+
+    &__amount {
+        font-size: var(--small);
+        font-weight: 600;
+        color: var(--success);
+        line-height: 1.3;
+        font-variant-numeric: tabular-nums;
+
         small {
-            opacity: 0.7;
-        }
-    }
-
-    &-icon {
-        @extend .flex-center;
-        
-        color: var(--accent);
-        font-size: 1.3rem;
-    }
-    
-    &-content {
-        margin-top: 0;
-    }
-
-    .payment {
-        &-list {
-            @extend .d-flex, .flex-column;
-        }
-
-        &-item {
-            padding: 0.8rem 1.5rem;
-            position: relative;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            gap: 1rem;
-            
-            &:not(:last-child)::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 1.5rem;
-                right: 1.5rem;
-                height: 1px;
-                background-color: var(--transp-1);
-                opacity: 0.6;
-            }
-            
-            &:hover {
-                background: var(--transp-05);
-            }
-        }
-        
-        &-user-wrapper {
-            display: grid;
-            grid-template-columns: 40px 1fr;
-            gap: 1rem;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            color: inherit;
-            text-decoration: none;
-            
-            &:hover .payment-user span {
-                color: var(--accent);
-            }
-        }
-        
-        &-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: var(--transp-2);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--transp-1);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-        }
-
-        &-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1.4;
-            overflow: hidden;
-        }
-        
-        &-user {
-            span {
-                font-weight: 600;
-                font-size: var(--p);
-                letter-spacing: -0.01em;
-                color: var(--text-100);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: block;
-                transition: color 0.25s ease;
-            }
-        }
-
-        &-date {
-            font-size: var(--small);
+            font-weight: 500;
             color: var(--text-500);
-            margin-top: 0.1rem;
-        }
-        
-        &-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 0.25rem;
-        }
-
-        &-amount {
-            font-weight: 600;
-            color: var(--success);
-            font-size: var(--p);
-            display: flex;
-            align-items: center;
-            gap: 0.1rem;
-            
-            .currency {
-                font-size: var(--small);
-                opacity: 0.9;
-                font-weight: 500;
-            }
-        }
-
-        &-gateway {
-            .badge {
-                font-size: var(--small);
-                padding: 0.15rem 0.5rem;
-                background-color: var(--transp-1);
-                border-radius: 4px;
-                color: var(--text-500);
-            }
+            margin-left: 2px;
         }
     }
 
-    &-empty {
-        @extend .flex-center, .flex-column;
-        padding: 3rem 0;
-        color: var(--text-400);
-        gap: 0.75rem;
+    &__gateway {
+        font-size: 0.6rem;
+        color: var(--text-600);
+        line-height: 1.3;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-lg);
+        gap: var(--space-xs);
+        color: var(--text-600);
 
         svg {
-            font-size: 1.75rem;
-            opacity: 0.6;
-            color: var(--text-400);
+            font-size: 1.5rem;
+            opacity: 0.5;
         }
 
-        p {
-            margin-bottom: 0;
-            font-size: var(--p-small);
+        span {
+            font-size: var(--small);
         }
     }
 }

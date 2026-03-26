@@ -21,7 +21,7 @@ class AboutSystemPackage extends AbstractAdminPackage
 
     public function getPermissions(): array
     {
-        return ['admin'];
+        return ['admin', 'admin.system'];
     }
 
     public function getPriority(): int
@@ -33,12 +33,9 @@ class AboutSystemPackage extends AbstractAdminPackage
     {
         return [
             [
-                'type' => 'header',
-                'title' => __('admin-about-system.labels.main'),
-            ],
-            [
+                'key' => 'about',
                 'title' => __('admin-about-system.labels.home'),
-                'icon' => 'ph.bold.question-bold',
+                'icon' => 'ph.regular.question',
                 'url' => url('/admin/about-system'),
             ],
         ];

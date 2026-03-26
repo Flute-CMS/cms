@@ -2,7 +2,8 @@
 
 return [
     'title' => 'Módulos',
-    'modules_and_themes' => 'Módulos e Temas',    'table' => [
+    'modules_and_themes' => 'Módulos e Temas',
+    'table' => [
         'name' => 'Nome',
         'version' => 'Versão',
         'status' => 'Status',
@@ -32,8 +33,7 @@ return [
         'module_url' => 'URL do Módulo',
         'details_title' => 'Detalhes do Módulo: :name',
     ],
-    'confirmations' => [    ],
-    'messages' => [    ],
-    'dropzone' => [        'errors' => [        ],
-    ],
+    'confirmations' => [],
+    'messages' => [],
+    'dropzone' => ['errors' => []],
 ];

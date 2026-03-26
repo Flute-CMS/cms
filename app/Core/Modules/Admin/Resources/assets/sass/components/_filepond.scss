@@ -1,0 +1,258 @@
+// Reserve layout space while FilePond is initialising so there is no
+// height-jump after the JS runs. The inner field container is hidden
+// immediately so the raw <input type="file"> never flashes.
+.input-wrapper:has(input.filepond) {
+    min-height: 80px;
+}
+
+.input__field-container:has(> input.filepond) {
+    display: none;
+}
+
+.filepond--root {
+    font-family: inherit !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 0 !important;
+    border: 1.5px dashed var(--transp-3);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+
+    :root[data-theme=light] & {
+        border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    &:hover {
+        border-color: var(--transp-5);
+
+        :root[data-theme=light] & {
+            border-color: rgba(0, 0, 0, 0.25);
+        }
+    }
+
+    &.filepond--hopper-droppable {
+        border-style: solid;
+        border-color: var(--accent);
+        background-color: color-mix(in srgb, var(--accent) 5%, transparent);
+    }
+}
+
+.filepond--panel-root {
+    background-color: var(--transp-05) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    :root[data-theme=light] & {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+}
+
+.filepond--root.filepond--hopper-droppable .filepond--panel-root {
+    background-color: color-mix(in srgb, var(--accent) 5%, transparent) !important;
+}
+
+// ── Drip (click ripple) — remove ─────────────────────────────────────────────
+
+.filepond--drip {
+    display: none !important;
+}
+
+// ── Drop label ────────────────────────────────────────────────────────────────
+
+.filepond--drop-label {
+    min-height: 100px !important;
+    color: var(--text-500) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    label {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        color: var(--text-500) !important;
+        cursor: pointer !important;
+        padding: 12px 1.25rem !important;
+        line-height: 1.6 !important;
+    }
+}
+
+// Upload icon inside the label
+.filepond--icon-upload {
+    color: var(--text-400);
+    opacity: 0.7;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+
+    .filepond--root:hover & {
+        opacity: 1;
+        color: var(--text-300);
+    }
+
+    .filepond--root.filepond--hopper-droppable & {
+        color: var(--accent);
+        opacity: 1;
+    }
+}
+
+.filepond--label-text {
+    text-align: center;
+}
+
+.filepond--label-action {
+    color: var(--text) !important;
+    font-weight: 500 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 2px !important;
+    text-decoration-color: var(--transp-3) !important;
+    transition: text-decoration-color 0.15s ease !important;
+
+    &:hover {
+        text-decoration-color: var(--text-400) !important;
+    }
+}
+
+// ── File items ────────────────────────────────────────────────────────────────
+
+.filepond--item {
+    border-radius: 9px;
+    width: 100% !important;
+}
+
+// Item background panels — use same three-panel approach, no border-radius
+// needed since the item element itself clips.
+.filepond--item-panel {
+    background-color: var(--transp-05) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: background-color 0.2s ease !important;
+
+    :root[data-theme=light] & {
+        background-color: rgba(0, 0, 0, 0.04) !important;
+    }
+}
+
+// The item <li> acts as the visual card; add border via outline.
+.filepond--item > .filepond--panel {
+    outline: 1px solid var(--transp-1);
+    outline-offset: -1px;
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+// Processing / success
+.filepond--item[data-filepond-item-state='processing-complete'] .filepond--item-panel {
+    background-color: var(--success-light) !important;
+}
+
+.filepond--item[data-filepond-item-state='processing-complete'] > .filepond--panel {
+    outline-color: rgba(48, 209, 88, 0.2);
+}
+
+// Error / invalid
+.filepond--item[data-filepond-item-state*='error'] .filepond--item-panel,
+.filepond--item[data-filepond-item-state*='invalid'] .filepond--item-panel {
+    background-color: var(--error-light) !important;
+}
+
+.filepond--item[data-filepond-item-state*='error'] > .filepond--panel,
+.filepond--item[data-filepond-item-state*='invalid'] > .filepond--panel {
+    outline-color: rgba(255, 59, 48, 0.25);
+}
+
+// ── File info text ────────────────────────────────────────────────────────────
+
+.filepond--file-info {
+    padding: 6px 8px 6px 10px !important;
+}
+
+.filepond--file-info-main {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--text) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.filepond--file-info-sub {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: var(--text-500) !important;
+    opacity: 1 !important;
+    margin-top: 1px !important;
+    transition: none !important;
+}
+
+// ── Status text ───────────────────────────────────────────────────────────────
+
+.filepond--file-status-main {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--text) !important;
+}
+
+.filepond--file-status-sub {
+    font-size: 11px !important;
+    color: var(--text-500) !important;
+    opacity: 1 !important;
+}
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+
+.filepond--file-action-button {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--text-500) !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+
+    svg {
+        color: inherit !important;
+    }
+
+    &:hover {
+        background-color: var(--transp-1) !important;
+        color: var(--text) !important;
+    }
+}
+
+// ── Progress indicator ────────────────────────────────────────────────────────
+
+.filepond--progress-indicator {
+    color: var(--accent) !important;
+}
+
+// ── Image preview (FilePond image-preview plugin) ─────────────────────────────
+
+.filepond--image-preview-wrapper {
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+.filepond--image-preview {
+    background-color: var(--transp-05) !important;
+}
+
+// Remove gradient overlays — minimal look
+.filepond--image-preview-overlay-idle,
+.filepond--image-preview-overlay-success,
+.filepond--image-preview-overlay-failure {
+    display: none !important;
+}
+
+// ── List scrollbar ────────────────────────────────────────────────────────────
+
+.filepond--list-scroller {
+    scrollbar-width: thin;
+    scrollbar-color: var(--transp-2) transparent;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: var(--transp-2); border-radius: 4px; }
+}

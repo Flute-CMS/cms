@@ -248,7 +248,7 @@
                 <div class="mp-tab-content">
                     {{-- Overview Tab --}}
                     <section class="mp-tab mp-tab-overview">
-                        @php $rawDesc = $module['description'] ?? ''; @endphp
+                        @php $rawDesc = $module['_localizedDesc'] ?? $module['description'] ?? ''; @endphp
                         @if($rawDesc)
                             <div class="mp-description">
                                 {!! markdown()->parse($rawDesc) !!}

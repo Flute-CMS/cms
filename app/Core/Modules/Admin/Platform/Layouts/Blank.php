@@ -25,6 +25,14 @@ class Blank extends Layout
         $this->layouts = $layouts;
     }
 
+    public function skeletonDescriptor(): array
+    {
+        return [
+            'type' => 'blank',
+            'children' => $this->childrenSkeletonDescriptors(),
+        ];
+    }
+
     /**
      * @return \Illuminate\View\View|mixed
      */

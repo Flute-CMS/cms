@@ -7,6 +7,10 @@ use Clickfwd\Yoyo\Component;
 use Clickfwd\Yoyo\Exceptions\BypassRenderMethod;
 use Flute\Core\Contracts\FluteComponentInterface;
 use Flute\Core\Exceptions\TooManyRequestsException;
+use ReflectionException;
+use ReflectionNamedType;
+use ReflectionProperty;
+use TypeError;
 
 /**
  * Class FluteComponent
@@ -17,9 +21,11 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
 {
     public array $confirmedActions = [];
 
-    protected array $excludesVariables = [];
+    protected array $excludesVariables = ['redirectTo', 'confirmedActions'];
 
     protected $validator;
+
+    private static array $propertyTypeCache = [];
 
     public function boot(array $variables, array $attributes)
     {
@@ -42,8 +48,24 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $this->validator = validator();
 
         foreach ($publicProperties as $property) {
-            if (!in_array($property, $this->excludesVariables)) {
-                $this->{$property} = $data[$property] ?? $this->{$property};
+            if (in_array($property, $this->excludesVariables)) {
+                continue;
+            }
+
+            if (!array_key_exists($property, $data)) {
+                continue;
+            }
+
+            $value = $data[$property];
+
+            if ($value !== null && !$this->isPropertyAssignable($property, $value)) {
+                continue;
+            }
+
+            try {
+                $this->{$property} = $value ?? $this->{$property};
+            } catch (TypeError $e) {
+                continue;
             }
         }
 
@@ -89,6 +111,14 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     }
 
     /**
+     * Get the response instance.
+     */
+    public function response()
+    {
+        return $this->response;
+    }
+
+    /**
      * Show confirmation dialog.
      *
      * @param string $actionKey The action key
@@ -100,8 +130,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * @param bool|null $withoutTrigger Whether to hide the trigger element
      * @return void
      */
-    public function confirm(string $actionKey, string $type, string $message, ?string $title = null, ?string $confirmText = null, ?string $cancelText = null, ?bool $withoutTrigger = false)
-    {
+    protected function confirm(
+        string $actionKey,
+        string $type,
+        string $message,
+        ?string $title = null,
+        ?string $confirmText = null,
+        ?string $cancelText = null,
+        ?bool $withoutTrigger = false,
+    ) {
         $action = $this->request->get('component') ?? '';
         $action = explode('/', $action)[1] ?? '';
 
@@ -123,7 +160,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @param string $actionKey A unique key to identify this confirmed action
      */
-    public function confirmed(string $actionKey): bool
+    protected function confirmed(string $actionKey): bool
     {
         /**
          * 1.  Проверяем клавиши, пришедшие вместе с запросом (старое‑поведение).
@@ -135,8 +172,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         $fromRequest = $this->request->get('confirmed_action', '');
         $fromRequest = is_string($fromRequest) ? explode(',', $fromRequest) : (array) $fromRequest;
 
-        return \in_array($actionKey, $fromRequest, true)
-            || \in_array($actionKey, $this->confirmedActions, true);
+        return \in_array($actionKey, $fromRequest, true) || \in_array($actionKey, $this->confirmedActions, true);
     }
 
     /**
@@ -144,7 +180,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @return void
      */
-    public function redirectTo(string $url, int $delay = 0)
+    protected function redirectTo(string $url, int $delay = 0)
     {
         if ($delay > 0) {
             $this->dispatchBrowserEvent('delayed-redirect', [
@@ -157,19 +193,11 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
     }
 
     /**
-     * Get the response instance.
-     */
-    public function response()
-    {
-        return $this->response;
-    }
-
-    /**
      * Flash a message to the user.
      *
      * @return void
      */
-    public function flashMessage(string $message, string $type = 'success')
+    protected function flashMessage(string $message, string $type = 'success')
     {
         toast()->$type($message)->push();
     }
@@ -179,7 +207,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @return void
      */
-    public function inputError(string $name, $error)
+    protected function inputError(string $name, $error)
     {
         template()->addError($name, $error);
     }
@@ -188,12 +216,14 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * Skip rendering and respond with a specific HTTP status code.
      *
      * @throws BypassRenderMethod
-     * @return void
+     * @return static
      */
-    public function skipRenderWithStatus(int $statusCode = 204)
+    protected function skipRenderWithStatus(int $statusCode = 204)
     {
         $this->response->status($statusCode);
         $this->omitResponse = true;
+
+        return $this;
     }
 
     /**
@@ -202,7 +232,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * @param mixed  ...$args
      * @return void
      */
-    public function emitEvent(string $event, ...$args)
+    protected function emitEvent(string $event, ...$args)
     {
         $this->emit($event, ...$args);
     }
@@ -212,7 +242,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @return self
      */
-    public function setProperties(array $properties)
+    protected function setProperties(array $properties)
     {
         foreach ($properties as $key => $value) {
             $this->$key = $value;
@@ -226,7 +256,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @param string $modalId The ID of the modal to open.
      */
-    public function modalOpen(string $modalId): void
+    protected function modalOpen(string $modalId): void
     {
         $this->dispatchBrowserEvent('open-modal', [
             'modalId' => $modalId,
@@ -239,7 +269,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      * @param string $modalId The ID of the modal to close.
      * @return void
      */
-    public function modalClose(string $modalId)
+    protected function modalClose(string $modalId)
     {
         $this->dispatchBrowserEvent('close-modal', [
             'modalId' => $modalId,
@@ -261,8 +291,15 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      *
      * @return mixed The result of the action if confirmed
      */
-    public function withConfirmation(string $actionKey, string $type, string $message, callable $action, ?string $title = null, ?string $confirmText = null, ?string $cancelText = null)
-    {
+    protected function withConfirmation(
+        string $actionKey,
+        string $type,
+        string $message,
+        callable $action,
+        ?string $title = null,
+        ?string $confirmText = null,
+        ?string $cancelText = null,
+    ) {
         if (!$this->confirmed($actionKey)) {
             $this->confirm($actionKey, $type, $message, $title, $confirmText, $cancelText);
 
@@ -270,6 +307,38 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
         }
 
         return $action();
+    }
+
+    /**
+     * Check if a value is type-compatible with a typed property.
+     * Prevents assigning scalars/arrays to object-typed properties.
+     */
+    protected function isPropertyAssignable(string $property, $value): bool
+    {
+        $cacheKey = static::class . '::' . $property;
+
+        if (!isset(self::$propertyTypeCache[$cacheKey])) {
+            try {
+                $refProp = new ReflectionProperty(static::class, $property);
+                $type = $refProp->getType();
+
+                if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+                    self::$propertyTypeCache[$cacheKey] = $type->getName();
+                } else {
+                    self::$propertyTypeCache[$cacheKey] = true;
+                }
+            } catch (ReflectionException $e) {
+                self::$propertyTypeCache[$cacheKey] = true;
+            }
+        }
+
+        $typeInfo = self::$propertyTypeCache[$cacheKey];
+
+        if ($typeInfo === true) {
+            return true;
+        }
+
+        return $value instanceof $typeInfo;
     }
 
     /**
@@ -283,12 +352,7 @@ abstract class FluteComponent extends Component implements FluteComponentInterfa
      */
     protected function throttle(string $key, int $maxRequest = 5, int $perMinute = 60, int $burstiness = 5): void
     {
-        throttler()->throttle(
-            ['action' => $key, request()->ip()],
-            $maxRequest,
-            $perMinute,
-            $burstiness
-        );
+        throttler()->throttle(['action' => $key, request()->ip()], $maxRequest, $perMinute, $burstiness);
     }
 
     /**

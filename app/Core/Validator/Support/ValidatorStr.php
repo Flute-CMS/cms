@@ -36,7 +36,6 @@ class ValidatorStr
         }
 
         return static::overlapLeft($a, substr($b, 0, strrpos($b, '.')));
-
     }
 
     /**

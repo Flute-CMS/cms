@@ -37,8 +37,9 @@ class MainSettingsPackage extends AbstractAdminPackage
     {
         return [
             [
-                'title' => 'admin-main-settings.labels.home',
-                'icon' => 'ph.bold.gear-bold',
+                'key' => 'main-settings',
+                'title' => __('admin-main-settings.labels.home'),
+                'icon' => 'ph.regular.gear',
                 'url' => url('/admin/main-settings'),
             ],
         ];

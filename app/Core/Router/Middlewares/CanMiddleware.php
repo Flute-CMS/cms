@@ -23,8 +23,12 @@ class CanMiddleware extends BaseMiddleware
             throw new InvalidArgumentException('Permission parameter is required.');
         }
 
-        if (!user()->can($permission)) {
+        if (!user()->isLoggedIn()) {
             return $this->error()->unauthorized();
+        }
+
+        if (!user()->can($permission)) {
+            return $this->error()->forbidden(__('def.access_denied'));
         }
 
         return $next($request);

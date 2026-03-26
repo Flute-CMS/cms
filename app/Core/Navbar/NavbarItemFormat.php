@@ -13,7 +13,12 @@ class NavbarItemFormat
      * @param NavbarItem $navbarItem The navbar item to format.
      * @return array The formatted navbar item.
      */
-    public function format(NavbarItem $navbarItem): array
+    /**
+     * @param NavbarItem  $navbarItem
+     * @param array|null  $childrenOverride Pre-built children array (skips ORM relation iteration).
+     *                                      Pass null to iterate $navbarItem->children as before.
+     */
+    public function format(NavbarItem $navbarItem, ?array $childrenOverride = null): array
     {
         $result = [
             'id' => $navbarItem->id,
@@ -26,8 +31,12 @@ class NavbarItemFormat
             'roles' => [],
         ];
 
-        foreach ($navbarItem->children as $child) {
-            $result['children'][] = $this->format($child);
+        if ($childrenOverride !== null) {
+            $result['children'] = $childrenOverride;
+        } else {
+            foreach ($navbarItem->children as $child) {
+                $result['children'][] = $this->format($child);
+            }
         }
 
         foreach ($navbarItem->roles as $role) {

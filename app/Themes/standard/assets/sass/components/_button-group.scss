@@ -1,0 +1,69 @@
+.button-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.125rem;
+    background: var(--transp-05);
+    border: 1px solid var(--transp-2);
+    border-radius: 12px;
+    padding: 0.1875rem;
+
+    &__item {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-500);
+        font-size: var(--p-small);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            background: var(--transp-05);
+            color: var(--text);
+        }
+
+        &.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--background-950);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 25%, transparent);
+        }
+    }
+
+    // Icon only variant
+    &--icons {
+        .button-group__item {
+            padding: var(--space-xs);
+
+            span {
+                display: none;
+            }
+        }
+    }
+
+    // Compact variant
+    &--compact {
+        gap: 0.0625rem;
+
+        .button-group__item {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--small);
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+    }
+}

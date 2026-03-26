@@ -22,3 +22,46 @@
         </div>
     </div>
 </aside>
+
+{{-- Excluded Paths editor template (used by JS for global widgets) --}}
+<template id="pe-excluded-paths-tpl">
+    <div class="pe-excluded-paths">
+        <div class="pe-excluded-paths__header">
+            <h4 class="pe-excluded-paths__title">@t('page-edit.excluded_paths')</h4>
+            <p class="pe-excluded-paths__desc">@t('page-edit.excluded_paths_desc')</p>
+        </div>
+        <div class="pe-excluded-paths__list"></div>
+        <div class="pe-excluded-paths__add">
+            <input type="text" class="pe-excluded-paths__input"
+                placeholder="@t('page-edit.excluded_paths_placeholder')"
+                autocomplete="off" spellcheck="false" />
+            <button type="button" class="pe-excluded-paths__add-btn">
+                @t('page-edit.add_path')
+            </button>
+        </div>
+        <p class="pe-excluded-paths__hint">@t('page-edit.excluded_paths_hint')</p>
+    </div>
+
+    {{-- Tag template (cloned per path) --}}
+    <template class="pe-excluded-paths__tag-tpl">
+        <div class="pe-excluded-paths__tag">
+            <span class="pe-excluded-paths__tag-text"></span>
+            <button type="button" class="pe-excluded-paths__tag-remove">&times;</button>
+        </div>
+    </template>
+</template>
+
+{{-- Icons for conditions editor (pre-rendered, used by JS) --}}
+<div id="pe-conditions-icons" hidden>
+    <span data-icon="user"><x-icon path="ph.regular.user" /></span>
+    <span data-icon="users-three"><x-icon path="ph.regular.users-three" /></span>
+    <span data-icon="user-minus"><x-icon path="ph.regular.user-minus" /></span>
+    <span data-icon="user-check"><x-icon path="ph.regular.user-check" /></span>
+    <span data-icon="shield"><x-icon path="ph.regular.shield-check" /></span>
+    <span data-icon="devices"><x-icon path="ph.regular.devices" /></span>
+    <span data-icon="browsers"><x-icon path="ph.regular.browsers" /></span>
+    <span data-icon="desktop"><x-icon path="ph.regular.desktop" /></span>
+    <span data-icon="tablet"><x-icon path="ph.regular.device-tablet" /></span>
+    <span data-icon="mobile"><x-icon path="ph.regular.device-mobile" /></span>
+    <span data-icon="eye-slash"><x-icon path="ph.regular.eye-slash" /></span>
+</div>

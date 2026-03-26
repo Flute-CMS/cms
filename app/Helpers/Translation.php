@@ -1,7 +1,6 @@
 <?php
 
 use Flute\Core\Modules\Translation\Services\TranslationService;
-use Symfony\Component\Translation\Translator;
 
 if (!function_exists('__')) {
     /**
@@ -63,6 +62,67 @@ if (!function_exists("trans")) {
     function trans(string $key, array $replacements = [], string $locale = null) : string
     {
         return __($key, $replacements, $locale);
+    }
+}
+
+if (!function_exists("transValue")) {
+    /**
+     * Resolve a translatable value (JSON or plain string) for the current locale.
+     *
+     * Accepts either a plain string (returned as-is for backward compat)
+     * or a JSON-encoded object / PHP array keyed by locale codes, e.g.
+     *   {"ru":"Главная","en":"Home"}
+     *
+     * Fallback chain: requested locale → site default locale → first available → ''
+     *
+     * @param  mixed        $value   Raw DB value (string, array, or null)
+     * @param  string|null  $locale  Override locale (null = current)
+     * @return string
+     */
+    function transValue(mixed $value, ?string $locale = null): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        // Plain string that is NOT JSON
+        if (is_string($value)) {
+            if ($value[0] !== '{') {
+                // If looks like a translation key (e.g. "def.home"), try __() for backward compat
+                if (str_contains($value, '.') && !str_contains($value, ' ')) {
+                    $translated = __($value, [], $locale);
+                    if ($translated !== $value) {
+                        return $translated;
+                    }
+                }
+                return $value;
+            }
+
+            $decoded = json_decode($value, true);
+
+            if (!is_array($decoded)) {
+                return $value;
+            }
+
+            $value = $decoded;
+        }
+
+        if (!is_array($value)) {
+            return (string) $value;
+        }
+
+        // Empty array
+        if (empty($value)) {
+            return '';
+        }
+
+        $locale ??= app()->getLang();
+        $defaultLocale = config('lang.locale', 'en');
+
+        return $value[$locale]
+            ?? $value[$defaultLocale]
+            ?? reset($value)
+            ?: '';
     }
 }
 

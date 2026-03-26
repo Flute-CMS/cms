@@ -9,6 +9,8 @@ use Cycle\Annotated\Annotation\Relation\BelongsTo;
 use Cycle\Annotated\Annotation\Relation\HasMany;
 use Cycle\Annotated\Annotation\Table;
 use Cycle\Annotated\Annotation\Table\Index;
+use Cycle\ORM\Entity\Behavior;
+use DateTimeImmutable;
 
 #[Entity]
 #[Table(
@@ -16,6 +18,14 @@ use Cycle\Annotated\Annotation\Table\Index;
         new Index(columns: ["ip"]),
         new Index(columns: ["user_id"])
     ]
+)]
+#[Behavior\CreatedAt(
+    field: 'createdAt',
+    column: 'created_at'
+)]
+#[Behavior\UpdatedAt(
+    field: 'lastUsedAt',
+    column: 'last_used_at'
 )]
 class UserDevice extends ActiveRecord
 {
@@ -33,4 +43,21 @@ class UserDevice extends ActiveRecord
 
     #[Column(type: "string")]
     public string $ip;
+
+    #[Column(type: "datetime", nullable: true)]
+    public ?DateTimeImmutable $createdAt = null;
+
+    #[Column(type: "datetime", nullable: true)]
+    public ?DateTimeImmutable $lastUsedAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new DateTimeImmutable();
+        $this->lastUsedAt = new DateTimeImmutable();
+    }
+
+    public function touch(): void
+    {
+        $this->lastUsedAt = new DateTimeImmutable();
+    }
 }

@@ -22,15 +22,15 @@ class UpdateScreen extends Screen
 
     public $description = 'admin-update.description';
 
+    public ?string $permission = 'admin.system';
+
     /**
      */
     protected UpdateService $updateService;
 
     public function mount(): void
     {
-        breadcrumb()
-            ->add(__('def.admin_panel'), url('/admin'))
-            ->add(__('admin-update.title'));
+        breadcrumb()->add(__('def.admin_panel'), url('/admin'))->add(__('admin-update.title'));
 
         $this->updateService = app(UpdateService::class);
         $savedChannel = config('app.update_channel', 'stable');
@@ -83,7 +83,7 @@ class UpdateScreen extends Screen
     public function switchChannel(): void
     {
         $data = request()->all();
-        $channel = in_array(($data['channel'] ?? ''), ['stable', 'early'], true) ? $data['channel'] : 'stable';
+        $channel = in_array($data['channel'] ?? '', ['stable', 'early'], true) ? $data['channel'] : 'stable';
         $currentAppConfig = config('app');
         $currentAppConfig['update_channel'] = $channel;
         config()->set('app', $currentAppConfig);
@@ -106,6 +106,8 @@ class UpdateScreen extends Screen
             @ignore_user_abort(true);
         }
 
+        $maintenanceEnabled = $this->enableUpdateMaintenance();
+
         try {
             $data = request()->all();
 
@@ -118,9 +120,10 @@ class UpdateScreen extends Screen
             $this->updateService->clearCache();
             $updates = $this->updateService->getAvailableUpdates(true);
 
-            if (($type === 'cms' && empty($updates['cms'])) ||
-                ($type === 'module' && (empty($id) || empty($updates['modules'][$id]))) ||
-                ($type === 'theme' && (empty($id) || empty($updates['themes'][$id])))
+            if (
+                $type === 'cms' && empty($updates['cms'])
+                || $type === 'module' && ( empty($id) || empty($updates['modules'][$id]) )
+                || $type === 'theme' && ( empty($id) || empty($updates['themes'][$id]) )
             ) {
                 throw new InvalidArgumentException(__('admin-update.no_updates'));
             }
@@ -135,7 +138,7 @@ class UpdateScreen extends Screen
             $this->flashMessage(__('admin-update.update_extracting'));
 
             $success = match ($type) {
-                'cms' => (new CmsUpdater())->update(['package_file' => $packageFile]),
+                'cms' => ( new CmsUpdater() )->update(['package_file' => $packageFile]),
                 'module' => $this->updateModule($id, ['package_file' => $packageFile]),
                 'theme' => $this->updateTheme($id, ['package_file' => $packageFile]),
                 default => throw new InvalidArgumentException(__('admin-update.unknown_type')),
@@ -196,7 +199,7 @@ class UpdateScreen extends Screen
 
                     if (!empty($packageFile) && file_exists($packageFile)) {
                         $this->flashMessage(__('admin-update.update_extracting') . ' (CMS)');
-                        $success = (new CmsUpdater())->update(['package_file' => $packageFile]);
+                        $success = ( new CmsUpdater() )->update(['package_file' => $packageFile]);
 
                         if ($success) {
                             $successfulUpdates++;
@@ -217,7 +220,11 @@ class UpdateScreen extends Screen
 
                     try {
                         $this->flashMessage(__('admin-update.update_downloading') . " ({$moduleUpdate['name']})");
-                        $packageFile = $this->updateService->downloadUpdate('module', $moduleId, $moduleUpdate['version']);
+                        $packageFile = $this->updateService->downloadUpdate(
+                            'module',
+                            $moduleId,
+                            $moduleUpdate['version'],
+                        );
 
                         if (!empty($packageFile) && file_exists($packageFile)) {
                             $this->flashMessage(__('admin-update.update_extracting') . " ({$moduleUpdate['name']})");
@@ -279,13 +286,14 @@ class UpdateScreen extends Screen
             }
 
             $this->triggerSidebarRefresh();
-
         } catch (Exception $e) {
             if (is_debug()) {
                 throw $e;
             }
             logs()->error('Bulk update error: ' . $e->getMessage());
             $this->flashMessage(__('admin-update.update_error', ['message' => $e->getMessage()]), 'error');
+        } finally {
+            $this->disableUpdateMaintenance($maintenanceEnabled ?? false);
         }
     }
 
@@ -299,7 +307,7 @@ class UpdateScreen extends Screen
             throw new InvalidArgumentException("Module {$moduleId} not found");
         }
 
-        return (new ModuleUpdater($module))->update($data);
+        return ( new ModuleUpdater($module) )->update($data);
     }
 
     /**
@@ -316,11 +324,68 @@ class UpdateScreen extends Screen
 
         $theme = Theme::findOne(['key' => $themeId]);
 
-        return (new ThemeUpdater($theme, $themeData))->update($data);
+        return ( new ThemeUpdater($theme, $themeData) )->update($data);
     }
 
     protected function triggerSidebarRefresh(): void
     {
         $this->dispatchBrowserEvent('sidebar-refresh');
+    }
+
+    private function enableUpdateMaintenance(): bool
+    {
+        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
+        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
+        $publicFlag = $basePath . 'public/.maintenance-composer';
+
+        $existed = is_file($storageFlag) || is_file($publicFlag);
+        if ($existed) {
+            return false;
+        }
+
+        @mkdir(dirname($storageFlag), 0o775, true);
+        @mkdir(dirname($publicFlag), 0o775, true);
+
+        $payload = [
+            'title' => 'Maintenance',
+            'message' => 'Update in progress, please try again shortly.',
+            'started_at' => date(DATE_ATOM),
+            'pid' => getmypid(),
+            'force' => false,
+        ];
+
+        @file_put_contents($storageFlag, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        @file_put_contents($publicFlag, '1');
+
+        return true;
+    }
+
+    private function disableUpdateMaintenance(bool $enabledByThisCall): void
+    {
+        if (!$enabledByThisCall) {
+            return;
+        }
+
+        $basePath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/';
+        $storageFlag = $basePath . 'storage/app/.maintenance-composer';
+        $publicFlag = $basePath . 'public/.maintenance-composer';
+
+        $payload = [];
+        if (is_file($storageFlag)) {
+            $raw = @file_get_contents($storageFlag);
+            if (is_string($raw) && $raw !== '') {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $payload = $decoded;
+                }
+            }
+        }
+
+        if (!empty($payload['force'])) {
+            return;
+        }
+
+        @unlink($storageFlag);
+        @unlink($publicFlag);
     }
 }

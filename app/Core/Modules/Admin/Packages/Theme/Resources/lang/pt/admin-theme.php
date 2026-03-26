@@ -46,6 +46,6 @@ return [
         'inactive' => 'Inativo',
         'not_installed' => 'Não Instalado',
     ],
-    'confirms' => [    ],
-    'messages' => [        'refresh_success' => 'Lista de temas atualizada com sucesso.',    ],
+    'confirms' => [],
+    'messages' => ['refresh_success' => 'Lista de temas atualizada com sucesso.'],
 ];

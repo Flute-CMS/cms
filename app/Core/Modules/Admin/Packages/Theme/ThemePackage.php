@@ -38,8 +38,9 @@ class ThemePackage extends AbstractAdminPackage
     {
         return [
             [
+                'key' => 'themes',
                 'title' => __('admin-theme.title.themes'),
-                'icon' => 'ph.bold.palette-bold',
+                'icon' => 'ph.regular.palette',
                 'url' => url('/admin/themes'),
                 'badge' => $this->getThemesCount(),
             ],

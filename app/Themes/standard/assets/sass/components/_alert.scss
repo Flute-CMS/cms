@@ -41,7 +41,7 @@
     }
 
     @include media(mobile) {
-        padding: 10px 15px;
+        padding: var(--space-sm) var(--space-md);
     }
 
     &-success {
@@ -100,9 +100,9 @@
     &-close {
         @extend .icon-hover;
         position: absolute;
-        right: 7px;
+        right: var(--space-xs);
         color: var(--text-400);
-        top: 0.5rem;
+        top: var(--space-xs);
 
         svg {
             font-size: var(--h5);

@@ -18,15 +18,11 @@ class PaymentDriverFactory
     public function register(string $key, string $driverClass): void
     {
         if (!is_subclass_of($driverClass, PaymentDriverInterface::class)) {
-            throw new InvalidArgumentException(
-                "Driver class must implement PaymentDriverInterface."
-            );
+            throw new InvalidArgumentException('Driver class must implement PaymentDriverInterface.');
         }
 
         if (isset($this->drivers[$key])) {
-            throw new InvalidArgumentException(
-                "Driver [{$key}] already registered."
-            );
+            throw new InvalidArgumentException("Driver [{$key}] already registered.");
         }
 
         $this->drivers[$key] = $driverClass;
@@ -38,9 +34,7 @@ class PaymentDriverFactory
     public function make(string $key): PaymentDriverInterface
     {
         if (!isset($this->drivers[$key])) {
-            throw new InvalidArgumentException(
-                "Payment driver [{$key}] not found."
-            );
+            throw new InvalidArgumentException("Payment driver [{$key}] not found.");
         }
 
         $driverClass = $this->drivers[$key];
