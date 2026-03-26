@@ -226,10 +226,13 @@ class NotificationTemplate extends ActiveRecord
             }
         }
 
-        return preg_replace_callback('/\{(\w+)\}/', static function ($matches) use ($data) {
+        return preg_replace_callback('/\{(\w+)\}/u', static function ($matches) use ($data) {
             $key = $matches[1];
+            if (!array_key_exists($key, $data)) {
+                return $matches[0];
+            }
 
-            return $data[$key] ?? $matches[0];
+            return (string) $data[$key];
         }, $template);
     }
 

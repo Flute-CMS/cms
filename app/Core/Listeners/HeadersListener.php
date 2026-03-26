@@ -36,7 +36,6 @@ class HeadersListener
                 '</assets/js/htmx/core.js>; rel=preload; as=script',
             ];
 
-
             $response->headers->set('Link', implode(', ', $linkHeaders), false);
         }
 

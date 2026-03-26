@@ -383,6 +383,8 @@ class PaymentProcessor
      */
     public function processPayment(PaymentInvoice $invoice, PaymentGateway $gatewayEntity)
     {
+        $additional = $this->decodeAdditional($gatewayEntity->additional);
+
         $gateway = $this->gatewayFactory->create($gatewayEntity);
 
         $gatewayAmount = $invoice->currency ? $invoice->amount : $invoice->originalAmount;
@@ -390,9 +392,11 @@ class PaymentProcessor
             $gatewayAmount = round($gatewayAmount + ( ( $gatewayAmount * $gatewayEntity->fee ) / 100 ), 2);
         }
 
-        $additional = \Nette\Utils\Json::decode($gatewayEntity->additional, \Nette\Utils\Json::FORCE_ARRAY);
-
         foreach ($additional as $key => $val) {
+            if (!is_string($val)) {
+                continue;
+            }
+
             $additional[$key] = str_replace(
                 ['{{amount}}', '{{transactionId}}', '{{currency}}'],
                 [$gatewayAmount, $invoice->transactionId, $invoice->currency->code ?? ''],
@@ -621,6 +625,7 @@ class PaymentProcessor
             'transaction_reference',
             'order_id',
             'orderId',
+            'OrderId',
             'merchant_order_id',
             'merchantOrderId',
             'invoice',
@@ -722,5 +727,30 @@ class PaymentProcessor
         }
 
         return '';
+    }
+
+    /**
+     * Decode gateway additional config, handling both plaintext JSON and encrypted strings.
+     */
+    private function decodeAdditional(string $raw): array
+    {
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        try {
+            $json = encrypt()->decryptString($raw);
+            $decoded = json_decode($json, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        } catch (\Throwable $e) {
+            logs()->warning('payments.decode_additional_failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return [];
     }
 }

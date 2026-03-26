@@ -255,8 +255,14 @@ class DatabaseConnection
             try {
                 // Suppress warnings from Cycle ORM schema introspection (e.g. VIEWs
                 // returning columns without the expected 'Field' key).
-                $prevHandler = set_error_handler(static function (int $errno, string $errstr, string $errfile) use (&$prevHandler) {
-                    if ($errno === E_WARNING && str_contains($errfile, 'cycle' . DIRECTORY_SEPARATOR . 'database')) {
+                $prevHandler = set_error_handler(static function (int $errno, string $errstr, string $errfile) use (
+                    &$prevHandler,
+                ) {
+                    if (
+                        ( $errno === E_WARNING || $errno === E_NOTICE )
+                        && str_contains($errfile, 'cycle' . DIRECTORY_SEPARATOR . 'database')
+                    ) {
+                        // Convert to harmless return so null doesn't propagate to TypeError
                         return true;
                     }
 
