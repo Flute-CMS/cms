@@ -217,13 +217,49 @@ class DatabaseConnection
         $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 15.0);
 
         if ($lockHandle === false) {
-            logs()->warning('ORM schema compilation: lock wait timeout or stale lock detected');
-
             if (file_exists(self::SCHEMA_FILE)) {
-                $this->recompileOrmSchema(true);
+                logs()->debug('ORM schema compilation: lock held by another process, using cached schema');
+
+                if (!isset($this->dbal)) {
+                    $this->dbal = $this->databaseManager->getDbal();
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                        logs('database'),
+                        (bool) config('database.debug'),
+                    );
+                    $this->dbal->setLogger($timingLogger);
+                }
+
+                $this->loadCachedSchemaIntoOrm();
+
+                return;
             }
 
-            return;
+            logs()->warning('ORM schema compilation: lock timeout and no cached schema, waiting for compilation to finish');
+
+            $lockHandle = \Flute\Core\Services\FileLockService::acquireLockWithWait($lockFile, 60.0);
+
+            if ($lockHandle === false) {
+                logs()->error('ORM schema compilation: failed to acquire lock after extended wait');
+
+                return;
+            }
+
+            if (file_exists(self::SCHEMA_FILE)) {
+                \Flute\Core\Services\FileLockService::releaseLock($lockHandle);
+
+                if (!isset($this->dbal)) {
+                    $this->dbal = $this->databaseManager->getDbal();
+                    $timingLogger = new \Flute\Core\Database\DatabaseTimingLogger(
+                        logs('database'),
+                        (bool) config('database.debug'),
+                    );
+                    $this->dbal->setLogger($timingLogger);
+                }
+
+                $this->loadCachedSchemaIntoOrm();
+
+                return;
+            }
         }
 
         try {
